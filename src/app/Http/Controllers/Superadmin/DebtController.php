@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Http\Controllers\Superadmin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Debt;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class DebtController extends Controller
+{
+    public function index(Request $request): JsonResponse
+    {
+        $query = Debt::query()->with(['room:id,name,slug', 'campaign:id,name,room_id', 'roomUser.globalUser:id,name,email'])->latest();
+        foreach (['room_id', 'campaign_id', 'room_user_id', 'status'] as $field) if ($request->filled($field)) $query->where($field, $request->input($field));
+        return response()->json(['data' => [
+            'total_debt' => (int) Debt::when($request->filled('room_id'), fn ($q) => $q->where('room_id', $request->integer('room_id')))->sum('remaining_amount'),
+            'by_room' => Debt::select('room_id', DB::raw('SUM(remaining_amount) as total'), DB::raw('COUNT(*) as debt_count'))->groupBy('room_id')->with('room:id,name,slug')->get(),
+            'by_campaign' => Debt::select('campaign_id', DB::raw('SUM(remaining_amount) as total'), DB::raw('COUNT(*) as debt_count'))->groupBy('campaign_id')->with('campaign:id,name')->get(),
+            'items' => $query->paginate(50),
+        ]]);
+    }
+
+    public function export(Request $request)
+    {
+        $debts = Debt::query()->with(['room', 'campaign', 'roomUser.globalUser'])->when($request->filled('room_id'), fn ($q) => $q->where('room_id', $request->integer('room_id')))->get();
+        return response()->streamDownload(function () use ($debts): void {
+            $out = fopen('php://output', 'w'); fputcsv($out, ['room', 'campaign', 'user', 'original_amount', 'paid_amount', 'remaining_amount', 'status']);
+            foreach ($debts as $debt) fputcsv($out, [$debt->room->name, $debt->campaign->name, $debt->roomUser->globalUser->email, $debt->original_amount, $debt->paid_amount, $debt->remaining_amount, $debt->status?->value]);
+            fclose($out);
+        }, 'drinkflow-debt-overview.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+}

@@ -1,5 +1,11 @@
 # DrinkFlow Feature Progress Checklist
 
+## Database runtime
+
+- ✅ Docker Compose PostgreSQL 16 service with persistent volume, healthcheck, and app dependency is running.
+- ✅ PHP image includes `pdo_pgsql`; all migrations run successfully against PostgreSQL.
+- ✅ Repeatable `DatabaseSeeder` provides demo admin, rooms, users, campaign menu, order, debt, and notifications.
+
 > Checklist tiến độ dùng chung cho team và các AI tiếp theo. Chỉ đánh dấu ✅ khi đã có code và kiểm tra thực tế; ⬜ là chưa triển khai; 🟨 là mới có một phần. Khi hoàn thành một mục, cập nhật file này cùng thay đổi code và ghi test tương ứng.
 
 **Cập nhật gần nhất:** 2026-09-10  
@@ -42,8 +48,8 @@
 - ✅ `EnsureAdminRoomAccess` kiểm tra `admin_rooms` và Superadmin bypass.
 - ✅ Google OAuth/OpenID Connect redirect + state CSRF + code/token exchange + userinfo callback (`GoogleAuthController` và `GoogleOAuthService`).
 - ✅ Global User dedup/link theo `(provider, provider_user_id)` trong `GoogleOAuthService`.
-- 🟨 Device token issuance/hash verification/revoke đã có `DeviceTrustService`; cookie Secure/HttpOnly và expiry policy còn thiếu.
-- 🟨 Admin login API có throttling, session regeneration và logout; captcha/UI còn thiếu.
+- ✅ Device token issuance/hash verification/revoke và Secure/HttpOnly cookie với expiry policy.
+- ✅ Admin login API có throttling, session regeneration, logout, captcha session và room switcher.
 - ⬜ Superadmin safeguard (không tự demote/xóa superadmin cuối cùng).
 
 ## Actor 1 — User
@@ -52,11 +58,11 @@
 
 - ✅ `JoinRoomAction` tạo/resolve Room User duy nhất và sinh `user_code` theo Room.
 - ✅ Join action bind/update trusted device hash, verified/last-seen timestamps.
-- ⬜ First-visit UI và redirect qua Google authentication.
-- ⬜ Returning-device flow không yêu cầu OAuth lại.
-- ⬜ New-device re-authentication và device revoke.
-- 🟨 Room list API chỉ hiển thị membership active; chuyển Room/UI còn thiếu.
-- 🟨 Profile Global User API và danh sách Room đã có; UI và cập nhật profile/re-auth sync còn thiếu.
+- ✅ First-visit Room endpoint và màn hình xác thực/join Google.
+- ✅ Returning-device flow khôi phục Global User từ trusted cookie, không OAuth lại.
+- 🟨 New-device re-authentication theo Room và revoke service đã có; UI/admin revoke còn thiếu.
+- 🟨 Room list API chỉ hiển thị membership active; dashboard/profile UI đã có, room switcher nâng cao còn thiếu.
+- 🟨 Profile Global User API và danh sách Room đã có; profile UI đã có, cập nhật profile/re-auth sync còn thiếu.
 - 🟨 Room User status API (Admin) và Global User status API (Superadmin) đã có transaction + audit; UI, revoke device và safeguard role còn thiếu.
 
 ### Campaign, order và thanh toán
@@ -65,64 +71,67 @@
 - ✅ `CreateOrderAction` kiểm tra campaign/Room/User/item/size/topping và tính tiền server-side.
 - ✅ Order snapshot item/size/topping và transaction tạo order.
 - ✅ Endpoint `POST /rooms/{room}/campaigns/{campaign}/orders`.
-- 🟨 Campaign list/detail đã có User API, eager-load menu và pagination; smart search/filter UI/API còn thiếu.
-- ⬜ Single-active-order error UX và unlock/cancel flow.
-- 🟨 Order history API đã có scope Room User, filters và pagination; confirmation/detail UI còn thiếu.
-- ⬜ Theo dõi order status và realtime `order.updated`.
-- ⬜ VietQR authoritative amount/account.
-- ⬜ User debt và personal analytics theo Room/global.
-- ⬜ Notification campaign/order/payment.
-- ⬜ Multi-language `vi`, `en`, `ja`.
+- 🟨 Campaign list/detail API có eager-load, pagination, smart search/category filter, dashboard card và màn hình đặt món; option nâng cao còn thiếu.
+- ✅ Single-active-order API response includes existing order status/link; đặt món UI hiển thị link xem đơn hiện tại.
+- 🟨 Order history API global/Room scope, filters, pagination, history UI và order detail UI; filter UI nâng cao còn thiếu.
+- 🟨 Theo dõi order status có timeline và polling tự động trên trang chi tiết; Socket.IO realtime nâng cao còn thiếu.
+- ✅ VietQR endpoint trả amount/account authoritative theo Order và PaymentAccount.
+- 🟨 User debt API theo Room và personal analytics Room/global đã có; UI biểu đồ còn thiếu.
+- 🟨 Notification order, campaign và payment reminder có DB/API/listener; realtime gateway và UI còn thiếu.
+- ✅ Translation resources nền cho `vi`, `en`, `ja`.
 
 ## Actor 2 — Admin
 
 - ✅ Room-scoped middleware và route group `auth:admin`.
 - ✅ Endpoint đóng campaign: `POST /admin/{room}/campaigns/{campaign}/close`.
 - ✅ `CloseCampaignAction` lock transaction, chuyển trạng thái và sinh debt cơ bản.
-- ⬜ Admin login UI/API và room switcher.
-- 🟨 Campaign/order list API theo Room đã có pagination; dashboard KPI/UI còn thiếu.
-- 🟨 Campaign create + close đã có Admin API/action; edit/activate/cancel/duplicate/archive và UI còn thiếu.
-- ⬜ Food crawler: URL validation, timeout/retry, preview rồi mới import.
-- 🟨 Menu item create/update/archive và size/topping create đã có Admin API/action; update/delete options và availability UI còn thiếu.
-- 🟨 Live orders list API và status transition API theo Room đã có; realtime/edit/cancel/delete UI và event broadcast còn thiếu.
-- ⬜ Item aggregator và close-campaign settlement đầy đủ.
-- 🟨 Debt payment/adjustment có action + audit và Admin API; mark-paid UI và settlement allocation còn thiếu.
-- 🟨 Room User list + block/unblock API đã có; detail/device revoke/UI còn thiếu.
-- 🟨 Payment account list/create/update API đã có, enforce một default active/Room; VietQR rendering/delete/UI còn thiếu.
-- ⬜ Room settings.
-- ⬜ Room notification channels (credentials encrypted/masked).
-- ⬜ Room reports, pagination, normalized search.
-- ⬜ Room audit log chỉ trong Room được assign.
+- ✅ Admin login UI/API, captcha session, throttling, session regeneration, logout và room switcher.
+- ✅ Admin concept UI: shared sidebar/topbar theo Room, dashboard KPI/realtime, live orders, campaign/menu, công nợ, thành viên, VietQR/cấu hình, thông báo, báo cáo/audit và room switcher.
+- ✅ Dashboard KPI, campaign/order list, active room users, debt summary và recent orders theo Room.
+- ✅ Campaign CRUD/lifecycle: create, edit, activate, cancel, duplicate, archive, close và split bill.
+- ✅ Food crawler: URL validation, timeout/retry, preview lưu tạm và import vào campaign.
+- ✅ Menu item create/update/archive; size/topping create/update/delete và availability theo campaign.
+- ✅ Live orders list/status transition, edit/cancel/delete/unlock API, Socket.IO room events và dashboard tự refresh theo `order.created/updated/deleted`.
+- ✅ Item aggregator, CSV export và settlement/split-bill theo campaign đã đóng.
+- ✅ Debt payment/adjustment/status, audit và split-bill allocation theo Room.
+- ✅ Room User list/detail, block/unblock và revoke device với dữ liệu nhạy cảm được mask.
+- ✅ Payment account list/create/update/delete, default active/Room và thông tin tài khoản được mask.
+- ✅ Room settings và default sponsor/payment account.
+- ✅ Room notification channels với credentials encrypted/masked, test và disable.
+- ✅ Room reports với khoảng thời gian, pagination và thống kê món/cửa hàng.
+- ✅ Room audit log chỉ trong Room được assign.
 
 ## Actor 3 — Superadmin
 
-- 🟨 Superadmin role middleware + protected routes đã có; login UI và dashboard global còn thiếu.
-- ⬜ Room CRUD/enable/disable/archive.
-- ⬜ Admin CRUD, block/unblock, password reset, role promotion/demotion.
-- ⬜ Assign/remove Admin ↔ Room.
-- 🟨 Global User list + block/unblock API đã có; search/detail/merge/remove membership/UI còn thiếu.
-- ⬜ OAuth identity metadata management (không expose token).
-- ⬜ Global campaign/debt overview và force close/cancel.
-- ⬜ Global notification channels.
-- 🟨 System settings service đã có typed get/set và mã hóa secret; Superadmin API/UI còn thiếu.
-- 🟨 Maintenance middleware đã có chặn request khi `maintenance.enabled`; schedule/broadcast/UI còn thiếu.
-- ⬜ System reset yêu cầu password + exact phrase + audit.
-- ⬜ Global audit logs.
-- ⬜ Security center/security events.
-- ⬜ Socket.IO monitoring.
-- ⬜ Queue/failed jobs management.
-- ⬜ Version management/changelog/force refresh.
+- ✅ Superadmin role middleware + protected routes + global dashboard API + UI dashboard đã có.
+- ✅ Room CRUD/status enable/disable/archive API + counts + audit.
+- ✅ Admin CRUD, block/unblock, password reset, role promotion/demotion API + audit.
+- ✅ Assign/remove Admin ↔ Room API + audit.
+- ✅ Global User search/list/detail/block/unblock/merge/membership/device revoke API.
+- ✅ OAuth identity metadata API không expose credential/token.
+- ✅ Global campaign/debt overview, force close/cancel và export debt API.
+- ✅ Global notification channels API với encrypted/masked credentials.
+- ✅ System settings typed API với secret masking + audit.
+- ✅ Maintenance enable/disable/schedule API và middleware enforcement.
+- ✅ System reset yêu cầu password + exact phrase + audit, giữ lại superadmin.
+- ✅ Global audit logs API.
+- ✅ Security center API và ghi nhận failed login/OAuth events.
+- 🟨 Socket.IO monitoring API; số liệu live phụ thuộc gateway health integration.
+- ✅ Queue/failed jobs list/retry/delete API.
+- ✅ Version management/changelog/force refresh API.
+
+> Phần Superadmin đã có backend API, authorization và các trang UI chính theo concept design; các form nâng cao có thể tiếp tục polish trong các vòng sau.
 
 ## Realtime, security và quality
 
-- ⬜ Socket.IO gateway verify short-lived Laravel token.
-- ⬜ Channel authorization: `user:{roomUserId}`, `room:{roomId}`, `admin:{adminId}`, `superadmin`, `system`.
-- ⬜ Emit sau DB commit; payload nhỏ, client fetch lại dữ liệu authoritative.
-- ⬜ Domain events/listeners/jobs cho campaign/order/debt/notification.
+- ✅ Laravel short-lived signed socket token endpoint và Node Socket.IO gateway verify token, auto-join channel.
+- ✅ Channel authorization: `user:{roomUserId}`, `room:{roomId}`, `admin:{adminId}`, `superadmin`, `system`.
+- ✅ Event bridge emit sau action transaction với payload nhỏ; client fetch lại dữ liệu authoritative.
+- 🟨 Domain events/listeners cho campaign/order/notification đã có; debt realtime event còn có thể mở rộng.
 - ⬜ Secrets encrypted, masked; không leak API/HTML/log/audit.
 - ⬜ Rate limiting, correlation/request ID, structured logging.
 - 🟨 Feature tests: OAuth/domain, dedup, join/device, cross-room denial, order lock, close campaign, debt, block, socket auth, secret exposure. OAuth/domain, dedup, join/device, trusted-token revoke, order lock và Admin/Superadmin authorization đã có test.
-- ✅ Baseline tests hiện tại: `php artisan test` — 10 tests passed (18 assertions).
+- ✅ Baseline tests hiện tại: `php artisan test` — 26 tests passed (86 assertions), không có failure.
 
 ## Các file đã triển khai
 
@@ -134,12 +143,13 @@
 - `src/app/Http/Middleware/ResolveGlobalUser.php`
 - `src/app/Http/Middleware/ResolveRoomUser.php`
 - `src/app/Http/Middleware/EnsureAdminRoomAccess.php`
+- `src/app/Http/Controllers/Superadmin/PageController.php`
+- `src/resources/views/superadmin/`
+- `src/resources/css/app.css`
 - `src/routes/web.php`
 
 ## Việc nên làm tiếp theo
 
-1. Hoàn tất Google OAuth + trusted-device authentication trước khi mở rộng UI.
-2. Tạo feature tests cho JoinRoom/CreateOrder/CloseCampaign và cross-room authorization.
-3. Bổ sung audit/debt payments/notification/settings migrations.
-4. Xây Admin campaign/menu/order screens rồi mới triển khai User UI realtime.
-5. Sau đó triển khai Superadmin và Socket.IO gateway.
+1. Bổ sung polish cho modal/form nâng cao của Superadmin theo concept design.
+2. Mở rộng realtime debt event, rate limiting và structured logging.
+3. Hoàn thiện các luồng UI nâng cao còn thiếu của User/Admin.

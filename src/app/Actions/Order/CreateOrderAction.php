@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\RoomUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Events\OrderCreated;
 
 class CreateOrderAction
 {
@@ -23,7 +24,7 @@ class CreateOrderAction
             throw ValidationException::withMessages(['user' => 'Tài khoản không hoạt động.']);
         }
 
-        return DB::transaction(function () use ($campaign, $roomUser, $data): Order {
+        $order = DB::transaction(function () use ($campaign, $roomUser, $data): Order {
             $items = $data['items'] ?? [];
             if ($items === []) throw ValidationException::withMessages(['items' => 'Đơn hàng phải có món.']);
             $subtotal = 0;
@@ -55,5 +56,7 @@ class CreateOrderAction
             }
             return $order->load('items.toppings');
         });
+        OrderCreated::dispatch($order);
+        return $order;
     }
 }

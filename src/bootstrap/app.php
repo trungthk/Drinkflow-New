@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'superadmin' => \App\Http\Middleware\EnsureSuperadmin::class,
             'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
         ]);
+        $middleware->validateCsrfTokens(except: ['admin/*', 'superadmin/*']);
+        $middleware->append(\App\Http\Middleware\CheckMaintenanceMode::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

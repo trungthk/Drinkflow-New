@@ -42,4 +42,10 @@ return [
         'allowed_domains' => array_values(array_filter(array_map('strtolower', array_map('trim', explode(',', (string) env('GOOGLE_ALLOWED_DOMAINS', '')))))),
     ],
 
+    'realtime' => [
+        'url' => env('REALTIME_URL'),
+        'public_url' => env('REALTIME_PUBLIC_URL', 'http://localhost:3001'),
+        'internal_secret' => env('REALTIME_INTERNAL_SECRET'),
+    ],
+
 ];

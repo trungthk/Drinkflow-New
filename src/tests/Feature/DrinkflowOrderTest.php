@@ -9,7 +9,9 @@ use App\Models\Campaign;
 use App\Models\CampaignItem;
 use App\Models\GlobalUser;
 use App\Models\Room;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Tests\TestCase;
 
 class DrinkflowOrderTest extends TestCase
@@ -38,7 +40,27 @@ class DrinkflowOrderTest extends TestCase
         $action = app(CreateOrderAction::class);
         $order = $action->execute($campaign, $roomUser, ['items' => [['item_id' => $item->id, 'quantity' => 2]], 'discount_amount' => 999999, 'sponsor_amount' => 999999]);
         $this->assertSame(44000, $order->final_amount);
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->assertDatabaseHas('user_notifications', ['global_user_id' => $user->id, 'type' => 'order.created']);
+        $this->expectException(QueryException::class);
         $action->execute($campaign, $roomUser, ['items' => [['item_id' => $item->id, 'quantity' => 1]]]);
+    }
+
+    public function test_duplicate_order_response_links_to_existing_order(): void
+    {
+        $user = GlobalUser::create(['name' => 'An', 'normalized_name' => 'AN', 'email' => 'an-order@company.com']);
+        $room = Room::create(['name' => 'IT', 'slug' => 'it-order-link']);
+        $roomUser = app(JoinRoomAction::class)->execute($user, $room, 'device-link', 'hash-link');
+        $campaign = Campaign::create(['room_id' => $room->id, 'name' => 'Lunch link', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Active]);
+        $item = CampaignItem::create(['campaign_id' => $campaign->id, 'name' => 'Tea link', 'normalized_name' => 'TEA LINK', 'base_price' => 20000, 'status' => 'active']);
+        app(CreateOrderAction::class)->execute($campaign, $roomUser, ['items' => [['item_id' => $item->id, 'quantity' => 1]]]);
+
+        $response = $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($user, 'web')
+            ->postJson(route('user.orders.store', [$room, $campaign]), ['items' => [['item_id' => $item->id, 'quantity' => 1]]]);
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('code', 'active_order_exists')
+            ->assertJsonPath('order_status', 'submitted')
+            ->assertJsonStructure(['code', 'order_id', 'order_status', 'order_url']);
     }
 }

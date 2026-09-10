@@ -1,0 +1,18 @@
+<?php
+
+namespace App\Http\Controllers\Superadmin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\VersionRequest;
+use App\Models\Version;
+use App\Services\Audit\AuditService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class VersionController extends Controller
+{
+    public function index(): JsonResponse { return response()->json(['data' => Version::query()->latest('release_date')->paginate(50)]); }
+    public function store(VersionRequest $request, AuditService $audit): JsonResponse { $version = Version::create([...$request->validated(), 'created_by_admin_id' => request()->user('admin')->id]); $audit->record('version.created', 'version', $version->id, null, [], $version->only(['version', 'title', 'release_date', 'force_refresh', 'important'])); return response()->json(['data' => $version], 201); }
+    public function update(VersionRequest $request, Version $version, AuditService $audit): JsonResponse { $before = $version->only(['version', 'title', 'changelog', 'release_date', 'force_refresh', 'important']); $version->update($request->validated()); $audit->record('version.updated', 'version', $version->id, null, $before, $version->fresh()->only(array_keys($before))); return response()->json(['data' => $version->fresh()]); }
+    public function destroy(Version $version, AuditService $audit): JsonResponse { $version->delete(); $audit->record('version.deleted', 'version', $version->id); return response()->json(['data' => ['deleted' => true]]); }
+}

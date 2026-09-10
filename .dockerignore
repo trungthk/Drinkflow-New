@@ -1,0 +1,11 @@
+.git
+.gitignore
+documents
+src/.env
+src/vendor
+src/node_modules
+src/public/build
+src/storage/logs/*
+src/storage/framework/cache/data/*
+src/storage/framework/sessions/*
+src/storage/framework/views/*

@@ -1,0 +1,11 @@
+<?php
+
+namespace App\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class SystemResetRequest extends FormRequest
+{
+    public function authorize(): bool { return true; }
+    public function rules(): array { return ['password' => ['required', 'string'], 'phrase' => ['required', 'string']]; }
+}

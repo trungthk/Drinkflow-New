@@ -1,0 +1,53 @@
+<?php
+
+namespace App\Services\Realtime;
+
+use App\Models\RoomUser;
+use App\Models\AdminAccount;
+use App\Models\Room;
+use Illuminate\Support\Str;
+
+class SocketTokenService
+{
+    public function issue(RoomUser $roomUser, int $ttlSeconds = 300): string
+    {
+        abort_unless($roomUser->globalUser?->status?->value === 'active' && $roomUser->status?->value === 'active', 403);
+        $payload = [
+            'actor_type' => 'user',
+            'global_user_id' => $roomUser->global_user_id,
+            'room_user_id' => $roomUser->id,
+            'room_id' => $roomUser->room_id,
+            'exp' => now()->addSeconds($ttlSeconds)->timestamp,
+            'jti' => (string) Str::uuid(),
+        ];
+        $encoded = $this->encode($payload);
+
+        return $encoded.'.'.hash_hmac('sha256', $encoded, (string) config('app.key'));
+    }
+
+    public function issueForAdmin(AdminAccount $admin, ?Room $room = null, int $ttlSeconds = 300): string
+    {
+        abort_unless($admin->isActive(), 403);
+        $roomIds = $admin->isSuperadmin() ? Room::query()->where('status', 'active')->pluck('id')->all() : ($room ? [$room->id] : []);
+        if (! $admin->isSuperadmin() && (! $room || ! $admin->rooms()->whereKey($room->id)->exists())) abort(403);
+        $payload = ['actor_type' => $admin->isSuperadmin() ? 'superadmin' : 'admin', 'admin_id' => $admin->id, 'room_ids' => $roomIds, 'exp' => now()->addSeconds($ttlSeconds)->timestamp, 'jti' => (string) Str::uuid()];
+        $encoded = $this->encode($payload);
+        return $encoded.'.'.hash_hmac('sha256', $encoded, (string) config('app.key'));
+    }
+
+    public function verify(string $token): ?array
+    {
+        [$encoded, $signature] = array_pad(explode('.', $token, 2), 2, '');
+        if ($encoded === '' || $signature === '' || ! hash_equals(hash_hmac('sha256', $encoded, (string) config('app.key')), $signature)) {
+            return null;
+        }
+        $payload = json_decode((string) base64_decode(strtr($encoded, '-_', '+/')), true);
+
+        return is_array($payload) && ($payload['actor_type'] ?? null) === 'user' && ($payload['exp'] ?? 0) >= now()->timestamp ? $payload : null;
+    }
+
+    private function encode(array $payload): string
+    {
+        return rtrim(strtr(base64_encode((string) json_encode($payload, JSON_UNESCAPED_SLASHES)), '+/', '-_'), '=');
+    }
+}

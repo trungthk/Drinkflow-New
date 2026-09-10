@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { 'colors': { 'on-error': '#ffffff', 'tertiary-fixed': '#ffddb8', 'tertiary': '#000000', 'secondary-fixed': '#6ffbbe', 'tertiary-container': '#2a1700', 'surface-container-high': '#dce9ff', 'surface-container': '#e5eeff', 'on-primary-container': '#7c839b', 'primary-container': '#131b2e', 'inverse-on-surface': '#eaf1ff', 'tertiary-fixed-dim': '#ffb95f', 'surface-dim': '#cbdbf5', 'on-primary-fixed': '#131b2e', 'primary': '#000000', 'on-surface': '#0b1c30', 'outline-variant': '#c6c6cd', 'on-error-container': '#93000a', 'on-secondary': '#ffffff', 'background': '#f8f9ff', 'surface-tint': '#565e74', 'surface-variant': '#d3e4fe', 'on-secondary-container': '#00714d', 'on-background': '#0b1c30', 'on-secondary-fixed-variant': '#005236', 'secondary': '#006c49', 'primary-fixed-dim': '#bec6e0', 'surface-bright': '#f8f9ff', 'secondary-fixed-dim': '#4edea3', 'on-surface-variant': '#45464d', 'primary-fixed': '#dae2fd', 'surface-container-highest': '#d3e4fe', 'inverse-surface': '#213145', 'error': '#ba1a1a', 'inverse-primary': '#bec6e0', 'outline': '#76777d', 'on-tertiary-container': '#b87500', 'surface-container-low': '#eff4ff', 'on-tertiary': '#ffffff', 'error-container': '#ffdad6', 'surface': '#f8f9ff', 'on-tertiary-fixed': '#2a1700', 'secondary-container': '#6cf8bb', 'surface-container-lowest': '#ffffff', 'on-primary': '#ffffff', 'on-tertiary-fixed-variant': '#653e00', 'on-primary-fixed-variant': '#3f465c', 'on-secondary-fixed': '#002113' }, 'borderRadius': { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, 'spacing': { 'space-sm': '0.5rem', 'space-md': '0.75rem', 'margin-desktop': '2.5rem', 'space-2xl': '2rem', 'space-3xl': '3rem', 'margin-tablet': '1.5rem', 'gutter-mobile': '1rem', 'space-base': '1rem', 'space-2xs': '0.125rem', 'space-xs': '0.25rem', 'space-xl': '1.5rem', 'space-lg': '1.25rem', 'gutter-desktop': '1.5rem', 'margin-mobile': '1rem' }, 'fontFamily': { 'label-sm': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'], 'headline-xl': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'headline-md': ['Plus Jakarta Sans'], 'body-sm': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'], 'numeric-table': ['Plus Jakarta Sans'], 'headline-sm': ['Plus Jakarta Sans'], 'numeric-stat': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'], 'headline-xl-mobile': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'] }, 'fontSize': { 'label-sm': ['11px', { 'lineHeight': '14px', 'letterSpacing': '0.02em', 'fontWeight': '600' }], 'label-md': ['12px', { 'lineHeight': '16px', 'letterSpacing': '0.01em', 'fontWeight': '600' }], 'headline-xl': ['32px', { 'lineHeight': '40px', 'letterSpacing': '-0.025em', 'fontWeight': '700' }], 'body-md': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0em', 'fontWeight': '400' }], 'headline-md': ['20px', { 'lineHeight': '28px', 'letterSpacing': '-0.015em', 'fontWeight': '600' }], 'body-sm': ['12px', { 'lineHeight': '18px', 'letterSpacing': '0em', 'fontWeight': '400' }], 'body-lg': ['16px', { 'lineHeight': '24px', 'letterSpacing': '-0.005em', 'fontWeight': '400' }], 'numeric-table': ['14px', { 'lineHeight': '20px', 'letterSpacing': '-0.01em', 'fontWeight': '600' }], 'headline-sm': ['16px', { 'lineHeight': '24px', 'letterSpacing': '-0.01em', 'fontWeight': '600' }], 'numeric-stat': ['28px', { 'lineHeight': '36px', 'letterSpacing': '-0.03em', 'fontWeight': '700' }], 'headline-lg': ['24px', { 'lineHeight': '32px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'headline-xl-mobile': ['26px', { 'lineHeight': '34px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'label-lg': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0.005em', 'fontWeight': '600' }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between"><div class="flex flex-col flex-1 overflow-y-auto"><div class="h-16 px-space-lg flex items-center gap-space-sm bg-surface-container-lowest"><img alt="Modern minimalist vector logo for DrinkFlow corporate app. An abstract sleek coffee cup or boba tea cup merged with clean geometric flow waves or checkmark, minimalist fintech tech style, deep navy and emerald mint green color accents on clean transparent background.. Design context: - Primary color: #0f172a
+- Font: plusJakartaSans
+- Mode: light
+- Roundness: rounded-md
+. The logo should be visually consistent with these brand tokens." class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VfdHD9KbxjlZXKrksIg_phD3M1bWNTMkLJRiKk9JOCXpehgfjZpdqo8OwId3jMb7nl-V6sdgeLfaKaiXoqHOyXgCJ6tcQbDsQCHKb0SpH2aC4FaWSekhrQRExuEXZO1lx7CEIJ3mhhG_Sdw9lJHkILT8lylvav7oY5-ZWHQ6ZNc4SiC05woMYhNTMC_3sxzVgdOT_wtSl5dTal8UwNzoLYGquO2igIMN148RJx83d8_fId_uluyLg27w"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">DrinkFlow</span><span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider mt-0.5">Kernel Core</span></div></div><div class="px-space-md py-space-sm"><div class="bg-surface-container-low px-space-md py-space-sm rounded-lg flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-sm">security</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Node Authority</span></div><span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm bg-secondary-container text-on-secondary-container font-bold">PROD-SG</span></div></div><nav class="flex-1 px-space-md py-space-xs space-y-space-md" data-active-classes="bg-surface-container text-on-surface font-semibold rounded-lg shadow-sm"><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Core System</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="dashboard-and-health" href="#"><span class="material-symbols-outlined text-lg">monitoring</span><span class="font-body-sm text-body-sm flex-1">Dashboard &amp; Health</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="room-management" href="#"><span class="material-symbols-outlined text-lg">meeting_room</span><span class="font-body-sm text-body-sm flex-1">Room Management</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="admin-and-assignments" href="#"><span class="material-symbols-outlined text-lg">admin_panel_settings</span><span class="font-body-sm text-body-sm flex-1">Admin &amp; Assignments</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-users-and-identities" href="#"><span class="material-symbols-outlined text-lg">badge</span><span class="font-body-sm text-body-sm flex-1">Global Users &amp; Identities</span></a></div><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Platform Data</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-campaigns" href="#"><span class="material-symbols-outlined text-lg">campaign</span><span class="font-body-sm text-body-sm flex-1">Global Campaigns</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-debt-overview" href="#"><span class="material-symbols-outlined text-lg">account_balance</span><span class="font-body-sm text-body-sm flex-1">Global Debt Overview</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="audit-logs" href="#"><span class="material-symbols-outlined text-lg">receipt_long</span><span class="font-body-sm text-body-sm flex-1">Audit Logs</span></a></div><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Infra &amp; Security</div><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-2 transition-colors bg-surface-container text-on-surface font-semibold rounded-lg shadow-sm" data-path="security-center" href="#"><span class="material-symbols-outlined text-lg">shield_person</span><span class="font-body-sm text-body-sm flex-1">Security Center</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="socket-io-and-queue" href="#"><span class="material-symbols-outlined text-lg">hub</span><span class="font-body-sm text-body-sm flex-1">Socket.IO &amp; Queue</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="system-settings-and-maintenance" href="#"><span class="material-symbols-outlined text-lg">settings_system_daydream</span><span class="font-body-sm text-body-sm flex-1">System Settings &amp; Maintenance</span></a></div></nav></div><div class="p-space-md bg-surface-container-low m-space-md rounded-xl space-y-space-xs"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-label-sm text-label-sm text-secondary font-bold uppercase">Zero Trust Enforced</span></div><p class="font-label-sm text-label-sm text-on-surface-variant leading-relaxed">DrinkFlow Kernel v2.4.0 • Enterprise Root Admin</p></div></aside><div class="pl-72 flex flex-col min-h-screen"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-space-xl flex items-center justify-between"><div class="flex items-center gap-space-md"><span class="px-space-sm py-1 rounded bg-primary-container text-on-primary font-label-sm text-label-sm tracking-widest font-bold uppercase">Enterprise Superadmin</span><div class="h-4 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-on-surface-variant text-base">verified_user</span><span class="font-label-md text-label-md text-on-surface font-semibold">Root Authority (All Rooms &amp; Systems)</span></div></div><div class="hidden xl:flex items-center gap-space-lg px-space-md py-1.5 rounded-full bg-surface-container-low"><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-secondary"></span><span class="font-label-sm text-label-sm text-on-surface-variant">Socket:</span><span class="font-label-sm text-label-sm text-on-surface font-bold">Connected</span></div><div class="h-3 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-xs text-on-surface-variant">database</span><span class="font-label-sm text-label-sm text-on-surface-variant">DB:</span><span class="font-numeric-table text-numeric-table text-on-surface">12ms</span></div><div class="h-3 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-xs text-secondary">task_alt</span><span class="font-label-sm text-label-sm text-on-surface-variant">Queue:</span><span class="font-label-sm text-label-sm text-secondary font-bold">Healthy</span></div></div><div class="flex items-center gap-space-lg"><button aria-label="Notifications" class="relative p-space-xs text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-xl">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></button><div class="h-6 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-space-sm"><div class="flex flex-col text-right"><span class="font-label-md text-label-md text-on-surface font-bold leading-tight">Alex Tran</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Chief Platform Architect / Superadmin</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-surface-variant" src="https://lh3.googleusercontent.com/aida/AEtjO1UNzJSRtTOvm_yCmgGIiF_k57geL4PhhBO7akp9MzRMP5zqxilHgIS_5ZXh6byJ9gQExKnQ4TuMhrlq2x0nwv8KWovUUQqtfaMXf2aNOxeAxygj4NolHPs2xPM-I6FB-Sd2v5CGvSxh8xOgm9qY2saY-NKE_sKtO2dlpdKv8mgq9qd_a0Goj8uili80fNtiKJ5KDD-Dobm3mGfpAha1ucwUNNPfk5p3PyLYN7Q32I7gzFZACoLSA3tM0ik"/></div></div></header><main class="w-full pt-16 bg-surface flex-1 px-space-xl py-space-xl"><div class="flex flex-col w-full gap-space-xl">
+<!-- Top Breadcrumb & Action Header -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex flex-col gap-space-2xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-secondary uppercase font-bold tracking-widest">DrinkFlow Kernel</span>
+<span class="text-outline-variant font-label-sm text-label-sm">•</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium">INFRA &amp; SECURITY</span>
+<span class="material-symbols-outlined text-xs text-outline-variant">chevron_right</span>
+<span class="font-label-sm text-label-sm text-on-surface font-bold">SECURITY CENTER</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Trung tâm Bảo mật &amp; Giám sát Mối đe dọa (Security Center &amp; Threat Monitoring)</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-4xl">
+        Phát hiện sự cố xác thực OAuth, tấn công brute-force, sai lệch Socket token và vi phạm ranh giới Room Actor trong thời gian thực.
+      </p>
+</div>
+<!-- Action Group -->
+<div class="flex flex-wrap items-center gap-space-sm">
+<button class="flex items-center gap-space-xs px-space-md py-2 bg-surface-container-lowest text-on-surface rounded-lg shadow-sm hover:bg-surface-container-low transition-colors font-label-md text-label-md">
+<span class="material-symbols-outlined text-base text-on-surface-variant">download</span>
+<span>Export Security Report (CSV)</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2 bg-secondary text-on-secondary rounded-lg shadow-sm hover:opacity-95 transition-opacity font-label-md text-label-md" id="scanBtn" onclick="triggerThreatScan()">
+<span class="material-symbols-outlined text-base">radar</span>
+<span id="scanBtnText">Quét an ninh chủ động</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2 bg-primary text-on-primary rounded-lg shadow-sm hover:bg-inverse-surface transition-colors font-label-md text-label-md">
+<span class="material-symbols-outlined text-base">security_update_good</span>
+<span>Cấu hình WAF &amp; Chặn IP</span>
+</button>
+</div>
+</div>
+<!-- KPI Bento Row (4 Cards) -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-base">
+<!-- Card 1: Threat Score -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-secondary/5 pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Chỉ số Nguy cơ An ninh</span>
+<div class="w-9 h-9 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-xl">verified_user</span>
+</div>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-2">
+<span class="font-numeric-stat text-numeric-stat text-secondary font-bold">98.6</span>
+<span class="font-label-md text-label-md text-secondary font-bold">/100 An toàn</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+          0 cuộc tấn công vượt tường lửa
+        </p>
+</div>
+<div class="mt-space-md pt-space-xs bg-surface-container-low rounded p-2 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Mức độ rủi ro</span>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-secondary/15 text-secondary">LOW THREAT</span>
+</div>
+</div>
+<!-- Card 2: OAuth & SSO -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-tertiary-fixed-dim/10 pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Sự cố OAuth &amp; SSO (24h)</span>
+<div class="w-9 h-9 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-xl">key_off</span>
+</div>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-2">
+<span class="font-numeric-stat text-numeric-stat text-on-surface font-bold">4</span>
+<span class="font-headline-sm text-headline-sm text-on-tertiary-container font-semibold">lần thất bại</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 truncate">
+          3 domain lạ (@gmail.com, @tech.io), 1 token expired
+        </p>
+</div>
+<div class="mt-space-md pt-space-xs bg-surface-container-low rounded p-2 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">OAuth Policy</span>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-tertiary-container text-tertiary-fixed">Domain Restriction: Strict</span>
+</div>
+</div>
+<!-- Card 3: Boundary Violations -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-error-container/20 pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Lỗi Token &amp; Phân quyền</span>
+<div class="w-9 h-9 rounded-lg bg-error-container flex items-center justify-center text-on-error-container">
+<span class="material-symbols-outlined text-xl">gpp_bad</span>
+</div>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-2">
+<span class="font-numeric-stat text-numeric-stat text-error font-bold">1</span>
+<span class="font-headline-sm text-headline-sm text-error font-semibold">vi phạm ranh giới</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+          Phát hiện truy cập trái phép Room #104
+        </p>
+</div>
+<div class="mt-space-md pt-space-xs bg-surface-container-low rounded p-2 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Room Actor Guard</span>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-error text-on-error">BLOCKED &amp; LOGGED</span>
+</div>
+</div>
+<!-- Card 4: WAF Active Bans -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 w-24 h-24 rounded-full bg-primary-container/10 pointer-events-none"></div>
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">IP Bị WAF Khóa (Active Bans)</span>
+<div class="w-9 h-9 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-xl">block</span>
+</div>
+</div>
+<div class="mt-space-md">
+<div class="flex items-baseline gap-2">
+<span class="font-numeric-stat text-numeric-stat text-on-surface font-bold">6</span>
+<span class="font-headline-sm text-headline-sm text-on-surface-variant font-medium">Địa chỉ IP</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+          Do vượt rate-limit 429 &amp; spam socket payload
+        </p>
+</div>
+<div class="mt-space-md pt-space-xs bg-surface-container-low rounded p-2 flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Redis Blacklist Sync</span>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-primary text-on-primary">ACTIVE CLUSTER</span>
+</div>
+</div>
+</div>
+<!-- Live Threat Scanner Feedback Banner (Hidden by default, toggled by JS) -->
+<div class="hidden bg-surface-container-high rounded-xl p-space-md shadow-sm items-center justify-between" id="scanStatusBanner">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary animate-spin">refresh</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Hệ thống đang quét toàn bộ kết nối Websocket &amp; Session Store...</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Kiểm tra 1,420 token hoạt động, 26 rooms đang mở và 8 cluster gateway nodes.</span>
+</div>
+</div>
+<span class="font-numeric-table text-numeric-table text-secondary font-bold">LATENCY: 4ms</span>
+</div>
+<!-- Section 1: Live Threat Detection & Suspicious Activities Stream -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+<!-- Header with Live Pulse & Filters -->
+<div class="p-space-lg flex flex-col xl:flex-row xl:items-center justify-between gap-space-base bg-surface-container-lowest">
+<div class="flex items-center gap-space-sm">
+<div class="relative flex items-center justify-center w-3 h-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-error opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-error"></span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Nhật ký Mối đe dọa &amp; Sự cố An ninh Thời gian thực (Security Events Stream)</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Đồng bộ tự động qua bảng security_events &amp; Kafka auditing queue</p>
+</div>
+</div>
+<!-- Live Stream Stats Pill -->
+<div class="flex items-center gap-space-xs px-3 py-1 bg-surface-container-low rounded-full">
+<span class="material-symbols-outlined text-xs text-secondary">wifi_tethering</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Socket Stream:</span>
+<span class="font-label-sm text-label-sm text-secondary font-bold">LIVE (SEC_FEED_CH_01)</span>
+</div>
+</div>
+<!-- Filter Bar & Search -->
+<div class="px-space-lg pb-space-md pt-space-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-space-sm bg-surface-container-lowest">
+<!-- Tabs -->
+<div class="flex items-center gap-1 overflow-x-auto pb-1 md:pb-0" id="filterTabs">
+<button class="px-3 py-1.5 rounded-lg font-label-md text-label-md bg-primary text-on-primary font-bold shadow-sm transition-all whitespace-nowrap" onclick="filterEvents('all', this)">
+          Tất cả sự kiện (28)
+        </button>
+<button class="px-3 py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low transition-all whitespace-nowrap" onclick="filterEvents('critical', this)">
+          Nguy cơ cao (High/Critical) (3)
+        </button>
+<button class="px-3 py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low transition-all whitespace-nowrap" onclick="filterEvents('oauth', this)">
+          Xác thực Google OAuth (12)
+        </button>
+<button class="px-3 py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low transition-all whitespace-nowrap" onclick="filterEvents('boundary', this)">
+          Vi phạm Token Room (4)
+        </button>
+<button class="px-3 py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low transition-all whitespace-nowrap" onclick="filterEvents('ratelimit', this)">
+          Rate Limit &amp; IP Block (9)
+        </button>
+</div>
+<!-- Search Input -->
+<div class="relative min-w-[280px] lg:min-w-[340px]">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-on-surface-variant text-base">search</span>
+<input class="w-full bg-surface-container-low rounded-lg pl-9 pr-4 py-2 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant/70 focus:outline-none focus:bg-surface-container-lowest transition-colors shadow-inner" id="eventSearchInput" onkeyup="searchEventsTable()" placeholder="Tìm kiếm theo IP, Actor, Device UUID..." type="text"/>
+</div>
+</div>
+<!-- Security Events Table -->
+<div class="w-full overflow-x-auto">
+<table class="w-full text-left border-collapse" id="securityTable">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-3 px-space-lg">Thời gian &amp; Mức độ</th>
+<th class="py-3 px-space-md">Loại sự kiện (Event Type)</th>
+<th class="py-3 px-space-md">Tác nhân / Mục tiêu (Actor)</th>
+<th class="py-3 px-space-md">Nguồn gốc &amp; Thiết bị (Origin)</th>
+<th class="py-3 px-space-md">Hành động hệ thống (System Action)</th>
+<th class="py-3 px-space-lg text-right">Thao tác xử lý</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container text-body-sm font-body-sm text-on-surface" id="tableBody">
+<!-- Row 1: CRITICAL - Boundary Breach -->
+<tr class="hover:bg-surface-container-low/60 transition-colors event-row" data-category="critical boundary" data-search="113.161.44.12 room_104 usr_94a2f unauthorized_room_access">
+<td class="py-3.5 px-space-lg">
+<div class="flex flex-col">
+<span class="font-numeric-table text-numeric-table font-bold text-on-surface">14:32:08</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Hôm nay (14 giây trước)</span>
+<div class="mt-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-error text-on-error">
+<span class="material-symbols-outlined text-xs">crisis_alert</span>
+                    CRITICAL
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-md text-label-md font-bold text-error">unauthorized_room_access</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Attempted checkout order on isolated room</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">room_scope_mismatch_exception</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md font-bold text-on-surface">Actor: USR_94A2F</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant">Dev Team</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">nam.phan@drinkflow.internal</span>
+<span class="font-label-sm text-label-sm text-error font-semibold mt-0.5">Target: Room #104 (Executive Floor)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-numeric-table text-numeric-table font-bold text-on-surface">113.161.44.12</span>
+<span class="px-1 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant">VN (Viettel)</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">Dev UUID: 4f3a-991b-cce0</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">DrinkFlow Mobile iOS 17.4</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 text-on-surface font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-xs text-error">gpp_maybe</span>
+                  Token thu hồi tức thì + Gửi Webhook Dev Slack
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Kênh: #security-alerts-bot (Ref #EVT-9941)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-lg text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" onclick="viewEventDetail('EVT-9941')" title="Xem chi tiết Packet">
+<span class="material-symbols-outlined text-base">data_object</span>
+</button>
+<button class="px-2.5 py-1 rounded-lg bg-error text-on-error hover:opacity-90 font-label-sm text-label-sm font-bold transition-opacity" onclick="isolateDevice('4f3a-991b-cce0')">
+                  Cách ly thiết bị
+                </button>
+</div>
+</td>
+</tr>
+<!-- Row 2: HIGH - Rate Limit Hit & WAF Ban -->
+<tr class="hover:bg-surface-container-low/60 transition-colors event-row" data-category="critical ratelimit" data-search="45.134.22.89 rate_limit_hit blocked_ip brute-force">
+<td class="py-3.5 px-space-lg">
+<div class="flex flex-col">
+<span class="font-numeric-table text-numeric-table font-bold text-on-surface">14:18:52</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">13 phút trước</span>
+<div class="mt-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-primary-container text-on-primary">
+<span class="material-symbols-outlined text-xs">warning</span>
+                    HIGH
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-md text-label-md font-bold text-on-surface">rate_limit_hit • blocked_ip</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">429 flood on /api/v1/orders/batch-split</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">148 req/sec from single IP</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md font-bold text-on-surface">Anonymous Actor</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Bearer: None (Unauthenticated probe)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Target: REST API Endpoint</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-numeric-table text-numeric-table font-bold text-error">45.134.22.89</span>
+<span class="px-1 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant">NL (Hosting/VPN)</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">UUID: Unidentifiable / Raw Curl</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Python-urllib/3.9 aiohttp</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 text-on-surface font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-xs text-error">block</span>
+                  Tự động chặn IP vĩnh viễn (WAF Sync)
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Redis Key: ban:ip:45.134.22.89 (TTL: Infinite)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-lg text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" onclick="viewEventDetail('EVT-9938')" title="Xem chi tiết Packet">
+<span class="material-symbols-outlined text-base">data_object</span>
+</button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="unbanIp('45.134.22.89')">
+                  Mở khóa IP
+                </button>
+</div>
+</td>
+</tr>
+<!-- Row 3: WARNING - OAuth Identity Mismatch -->
+<tr class="hover:bg-surface-container-low/60 transition-colors event-row" data-category="oauth" data-search="171.244.38.10 oauth_identity_mismatch external@tech.io">
+<td class="py-3.5 px-space-lg">
+<div class="flex flex-col">
+<span class="font-numeric-table text-numeric-table font-bold text-on-surface">13:45:11</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">47 phút trước</span>
+<div class="mt-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-tertiary-fixed text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-xs">shield_lock</span>
+                    WARNING
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-md text-label-md font-bold text-on-tertiary-container">oauth_identity_mismatch</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Domain ngoài danh sách Google Workspace</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">domain_not_allowed: @tech.io</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md font-bold text-on-surface">Google Sub: 108481920481</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">partner.dev@tech.io</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">SSO Org: DrinkFlow Corp Tenant</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-numeric-table text-numeric-table font-bold text-on-surface">171.244.38.10</span>
+<span class="px-1 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant">VN (FPT Telecom)</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">UUID: 89ab-11ef-93a1</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Chrome 122.0.0.0 / macOS</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 text-on-surface font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-xs text-secondary">check_circle</span>
+                  Từ chối cấp JWT + Ghi log xác thực
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Redirected: /auth/rejected-domain</span>
+</div>
+</td>
+<td class="py-3.5 px-space-lg text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" onclick="viewEventDetail('EVT-9920')" title="Xem chi tiết Packet">
+<span class="material-symbols-outlined text-base">data_object</span>
+</button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-colors">
+                  Kiểm tra Allowlist
+                </button>
+</div>
+</td>
+</tr>
+<!-- Row 4: WARNING - Invalid Socket Token Handshake -->
+<tr class="hover:bg-surface-container-low/60 transition-colors event-row" data-category="boundary" data-search="14.232.180.5 invalid_socket_token expired handshake room_042">
+<td class="py-3.5 px-space-lg">
+<div class="flex flex-col">
+<span class="font-numeric-table text-numeric-table font-bold text-on-surface">12:15:30</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">2 giờ trước</span>
+<div class="mt-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-tertiary-fixed text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-xs">shield_lock</span>
+                    WARNING
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-md text-label-md font-bold text-on-tertiary-container">invalid_socket_token</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Handshake failed: Expired signature</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">jwt_signature_expired_or_corrupt</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md font-bold text-on-surface">Actor: USR_38D88</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">hoang.le@drinkflow.internal</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Socket ID: sck_anon_99e12</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-numeric-table text-numeric-table font-bold text-on-surface">14.232.180.5</span>
+<span class="px-1 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant">VN (VNPT)</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">UUID: cc71-8842-fa09</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">DrinkFlow Android 14 / Samsung</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 text-on-surface font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-xs text-secondary">refresh</span>
+                  Ngắt kết nối Socket &amp; Buộc làm mới phiên
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Client re-authenticated successfully sau 4s</span>
+</div>
+</td>
+<td class="py-3.5 px-space-lg text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" onclick="viewEventDetail('EVT-9892')" title="Xem chi tiết Packet">
+<span class="material-symbols-outlined text-base">data_object</span>
+</button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="isolateDevice('cc71-8842-fa09')">
+                  Kiểm tra thiết bị
+                </button>
+</div>
+</td>
+</tr>
+<!-- Row 5: INFO - Automatic Rate Limiter Reset -->
+<tr class="hover:bg-surface-container-low/60 transition-colors event-row" data-category="ratelimit" data-search="118.69.191.24 rate_limit_hit 15m_lock usr_201ab">
+<td class="py-3.5 px-space-lg">
+<div class="flex flex-col">
+<span class="font-numeric-table text-numeric-table font-bold text-on-surface">11:02:19</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">3 giờ trước</span>
+<div class="mt-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-surface-container text-on-surface-variant">
+<span class="material-symbols-outlined text-xs">info</span>
+                    INFO
+                  </span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col gap-0.5">
+<span class="font-label-md text-label-md font-bold text-on-surface">rate_limit_cooldown_expired</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Hết hạn khóa tạm thời 15 phút</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">policy_cooldown_unlocked</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md font-bold text-on-surface">Actor: USR_201AB</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">linh.tran@drinkflow.internal</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant mt-0.5">Finance Department</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-numeric-table text-numeric-table font-bold text-on-surface">118.69.191.24</span>
+<span class="px-1 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant">VN (Mobifone)</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">UUID: 104b-77c8-0012</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Safari 17.2 / iOS</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col gap-1">
+<span class="inline-flex items-center gap-1 text-secondary font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-xs">lock_open</span>
+                  Gỡ cờ hạn chế, mở lại quyền tạo đơn
+                </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Hệ thống đã phục hồi hạn mức tiêu chuẩn</span>
+</div>
+</td>
+<td class="py-3.5 px-space-lg text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="p-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" onclick="viewEventDetail('EVT-9870')" title="Xem chi tiết Packet">
+<span class="material-symbols-outlined text-base">data_object</span>
+</button>
+<button class="px-2.5 py-1 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-colors">
+                  Lịch sử vi phạm
+                </button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer Pagination / Status -->
+<div class="px-space-lg py-space-sm bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Đang giám sát 28/28 bản ghi an ninh (Khoảng thời gian: 24 giờ qua)</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-2.5 py-1 bg-surface-container-lowest rounded font-label-sm text-label-sm text-on-surface shadow-sm hover:bg-surface-container transition-colors disabled:opacity-50" disabled="">Trang trước</button>
+<span class="font-numeric-table text-numeric-table text-on-surface px-2">1 / 1</span>
+<button class="px-2.5 py-1 bg-surface-container-lowest rounded font-label-sm text-label-sm text-on-surface shadow-sm hover:bg-surface-container transition-colors disabled:opacity-50" disabled="">Trang kế</button>
+</div>
+</div>
+</div>
+<!-- Section 2: Bottom 2-Column Bento Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-base">
+<!-- Left Column (7 cols): WAF & Rate Limiting Policies -->
+<div class="lg:col-span-7 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-base">rule</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Chính sách Tường lửa Tự động &amp; Rate Limiting (WAF Thresholds)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Cơ chế bảo vệ API Gateway và hạn mức luồng tải theo thời gian thực</p>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded-full font-label-sm text-label-sm bg-secondary-container text-on-secondary-container font-bold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+            ACTIVE
+          </span>
+</div>
+<!-- Policies List -->
+<div class="mt-space-md space-y-space-sm">
+<!-- Policy 1 -->
+<div class="p-space-md bg-surface-container-low rounded-xl flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-tertiary-fixed-dim mt-0.5">login</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Xác thực người dùng / OAuth Gateway</span>
+<span class="font-label-sm text-label-sm font-mono text-on-surface-variant">POST /api/v1/auth/*</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Quy tắc: <strong>5 lần thất bại liên tiếp</strong> → Tự động khóa IP và Account <strong>15 phút</strong>. Bắt buộc giải CAPTCHA v3 Enterprise.
+                </p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-surface-container text-on-surface">5 Fails / 15m</span>
+</div>
+<!-- Policy 2 -->
+<div class="p-space-md bg-surface-container-low rounded-xl flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary mt-0.5">shopping_cart_checkout</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Xử lý giỏ hàng &amp; Giao dịch Phòng</span>
+<span class="font-label-sm text-label-sm font-mono text-on-surface-variant">POST /api/v1/orders/*</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Quy tắc: Tối đa <strong>10 requests/giây mỗi Device UUID</strong>. Chặn hành vi đặt trùng lặp đơn hàng (Idempotency Key enforce).
+                </p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-surface-container text-on-surface">10 req/s Max</span>
+</div>
+<!-- Policy 3 -->
+<div class="p-space-md bg-surface-container-low rounded-xl flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary-container mt-0.5">hub</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Socket.IO Realtime Handshake &amp; Heartbeat</span>
+<span class="font-label-sm text-label-sm font-mono text-on-surface-variant">WSS /socket.io/?EIO=4</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Quy tắc: <strong>3 lần retry thất bại với chữ ký sai lệch</strong> → Đưa IP vào danh sách đen WAF <strong>1 giờ</strong>.
+                </p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-surface-container text-on-surface">Ban 1h / 3 Retries</span>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm bg-surface-container-low/50 rounded-lg p-space-sm flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-sm">cloud_sync</span>
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Tình trạng: Hoạt động đồng bộ qua Redis Cluster v7.2 Rate Limiter (Latency: 0.8ms)</span>
+</div>
+<button class="font-label-sm text-label-sm text-primary font-bold hover:underline">Chỉnh sửa ngưỡng hạn ngạch</button>
+</div>
+</div>
+<!-- Right Column (5 cols): Incident Response -->
+<div class="lg:col-span-5 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-error text-on-error flex items-center justify-center">
+<span class="material-symbols-outlined text-base">emergency_home</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Khu vực Xử lý Sự cố Khẩn cấp (Incident Response)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Hành động can thiệp cấp Superadmin có hiệu lực ngay lập tức</p>
+</div>
+</div>
+<div class="mt-space-md flex flex-col gap-space-sm">
+<!-- Action 1 -->
+<div class="p-space-md bg-surface-container-low rounded-xl flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-bold">Khóa toàn bộ phiên ngoài trụ sở công ty</span>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-primary-container text-on-primary">GEO-FENCE</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Buộc đăng xuất tất cả các phiên đang hoạt động từ địa chỉ IP nằm ngoài Subnet Văn phòng &amp; VPN nội bộ DrinkFlow.
+            </p>
+<button class="mt-1 w-full py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg font-label-md text-label-md font-bold transition-colors flex items-center justify-center gap-1.5" onclick="executeAction('lock_external_sessions')">
+<span class="material-symbols-outlined text-base">domain_disabled</span>
+<span>Kích hoạt Khóa Phiên Ngoại Trụ Sở</span>
+</button>
+</div>
+<!-- Action 2 -->
+<div class="p-space-md bg-surface-container-low rounded-xl flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-bold">Thu hồi thiết bị chưa xác thực FIDO2</span>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-secondary-container text-on-secondary-container">HARDWARE KEY</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Hủy Refresh Token của tất cả các máy tính / thiết bị di động chưa gắn phần cứng FIDO2/YubiKey.
+            </p>
+<button class="mt-1 w-full py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg font-label-md text-label-md font-bold transition-colors flex items-center justify-center gap-1.5" onclick="executeAction('revoke_non_fido2')">
+<span class="material-symbols-outlined text-base">passkey</span>
+<span>Thu hồi Device Tokens Non-FIDO2</span>
+</button>
+</div>
+<!-- Action 3: Red Alert -->
+<div class="p-space-md bg-error-container/40 rounded-xl flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>
+<span class="font-label-md text-label-md text-on-surface font-bold">Chế độ Báo động Đỏ (Global Re-Auth)</span>
+</div>
+<span class="px-2 py-0.5 rounded font-label-sm text-label-sm font-bold bg-error text-on-error">CODE RED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Đình chỉ phiên toàn diện: Bắt buộc 100% người dùng đăng nhập lại từ đầu qua cổng Google Workspace có MFA.
+            </p>
+<button class="mt-1 w-full py-2 bg-error text-on-error hover:opacity-90 rounded-lg font-label-md text-label-md font-bold transition-opacity flex items-center justify-center gap-1.5 shadow-sm" onclick="triggerRedAlert()">
+<span class="material-symbols-outlined text-base">notification_important</span>
+<span>Kích hoạt Báo động Đỏ (Root Superadmin)</span>
+</button>
+</div>
+</div>
+</div>
+<div class="mt-space-md flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-xs text-on-surface-variant">info</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Mọi hành động khẩn cấp đều được ghi vĩnh viễn vào Security Audit Ledger.</span>
+</div>
+</div>
+</div>
+<!-- Detail Modal Dialog (Hidden by Default) -->
+<div class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-space-base" id="packetModal">
+<div class="bg-surface-container-lowest rounded-xl max-w-2xl w-full p-space-xl shadow-xl flex flex-col gap-space-md max-h-[921px] overflow-y-auto">
+<div class="flex items-center justify-between pb-space-xs bg-surface-container-lowest">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-xl">terminal</span>
+<h3 class="font-headline-md text-headline-md text-on-surface" id="modalTitle">Security Event Packet Trace</h3>
+</div>
+<button class="p-1 rounded-lg hover:bg-surface-container text-on-surface-variant" onclick="closePacketModal()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-lg font-mono text-body-sm text-on-surface overflow-x-auto" id="packetPayload">
+        {
+          "event_id": "EVT-9941",
+          "timestamp": "2025-05-18T14:32:08.412Z",
+          "severity": "CRITICAL",
+          "type": "unauthorized_room_access",
+          "actor": {
+            "id": "USR_94A2F",
+            "email": "nam.phan@drinkflow.internal",
+            "roles": ["developer", "staff"],
+            "session_id": "sess_89104fa2"
+          },
+          "target": {
+            "room_id": "room_104",
+            "room_name": "Executive Boardroom Floor 4",
+            "required_authority": "ROOM_ADMIN_OR_EXECUTIVE",
+            "operation": "MUTATION_DISPATCH_ORDER"
+          },
+          "network": {
+            "ip": "113.161.44.12",
+            "geo": "VN - Ho Chi Minh City",
+            "isp": "Viettel Group",
+            "user_agent": "DrinkFlow/2.4.0 (iPhone; iOS 17.4; Scale/3.00)",
+            "device_uuid": "4f3a-991b-cce0-120a"
+          },
+          "decision": {
+            "status": "BLOCKED",
+            "rule": "ACL_ROOM_BOUNDARY_STRICT",
+            "actions_executed": [
+              "REVOKE_ACTOR_ROOM_SCOPE",
+              "DISPATCH_WEBHOOK_DEV_SLACK",
+              "FLAG_IP_REPUTATION"
+            ]
+          }
+        }
+      </div>
+<div class="flex items-center justify-end gap-space-sm pt-space-xs">
+<button class="px-space-md py-2 bg-surface-container text-on-surface rounded-lg font-label-md text-label-md" onclick="closePacketModal()">Đóng</button>
+<button class="px-space-md py-2 bg-primary text-on-primary rounded-lg font-label-md text-label-md flex items-center gap-1" onclick="copyPayload()">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+<span id="copyBtnText">Sao chép JSON Payload</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  function filterEvents(category, buttonElement) {
+    const tabs = document.querySelectorAll('#filterTabs button');
+    tabs.forEach(btn => {
+      btn.className = 'px-3 py-1.5 rounded-lg font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-low transition-all whitespace-nowrap';
+    });
+    buttonElement.className = 'px-3 py-1.5 rounded-lg font-label-md text-label-md bg-primary text-on-primary font-bold shadow-sm transition-all whitespace-nowrap';
+
+    const rows = document.querySelectorAll('.event-row');
+    rows.forEach(row => {
+      if (category === 'all') {
+        row.style.display = '';
+      } else {
+        const catList = row.getAttribute('data-category') || '';
+        if (catList.includes(category)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      }
+    });
+  }
+
+  function searchEventsTable() {
+    const query = document.getElementById('eventSearchInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('.event-row');
+    rows.forEach(row => {
+      const searchContent = (row.getAttribute('data-search') + ' ' + row.innerText).toLowerCase();
+      if (!query || searchContent.includes(query)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  }
+
+  function triggerThreatScan() {
+    const banner = document.getElementById('scanStatusBanner');
+    const btnText = document.getElementById('scanBtnText');
+    banner.classList.remove('hidden');
+    banner.classList.add('flex');
+    btnText.innerText = 'Đang quét an ninh...';
+
+    setTimeout(() => {
+      banner.classList.add('hidden');
+      banner.classList.remove('flex');
+      btnText.innerText = 'Quét an ninh chủ động';
+      alert('Quét an ninh hoàn tất! Không phát hiện thêm lỗ hổng Zero-day. Toàn bộ 1,420 token và 8 gateway nodes đều hợp lệ.');
+    }, 2500);
+  }
+
+  function viewEventDetail(eventId) {
+    const modal = document.getElementById('packetModal');
+    document.getElementById('modalTitle').innerText = 'Security Event Packet Trace [' + eventId + ']';
+    modal.classList.remove('hidden');
+  }
+
+  function closePacketModal() {
+    document.getElementById('packetModal').classList.add('hidden');
+  }
+
+  function copyPayload() {
+    const text = document.getElementById('packetPayload').innerText;
+    navigator.clipboard.writeText(text);
+    const btn = document.getElementById('copyBtnText');
+    btn.innerText = 'Đã sao chép!';
+    setTimeout(() => {
+      btn.innerText = 'Sao chép JSON Payload';
+    }, 2000);
+  }
+
+  function unbanIp(ip) {
+    if (confirm('Xác nhận gỡ bỏ IP ' + ip + ' khỏi danh sách đen WAF Redis?')) {
+      alert('Đã gỡ bỏ khóa IP: ' + ip + '. Lưu lượng truy cập sẽ được giám sát lại từ đầu.');
+    }
+  }
+
+  function isolateDevice(deviceUuid) {
+    if (confirm('Xác nhận cách ly thiết bị UUID: ' + deviceUuid + '? Thiết bị sẽ bị hủy phiên trên toàn hệ thống DrinkFlow.')) {
+      alert('Đã thu hồi token và cách ly thiết bị: ' + deviceUuid);
+    }
+  }
+
+  function executeAction(actionType) {
+    if (actionType === 'lock_external_sessions') {
+      if (confirm('Xác nhận đăng xuất tất cả người dùng ngoài IP Văn phòng?')) {
+        alert('Đã vô hiệu hóa 14 phiên làm việc bên ngoài trụ sở DrinkFlow.');
+      }
+    } else if (actionType === 'revoke_non_fido2') {
+      if (confirm('Xác nhận thu hồi phiên của các thiết bị không có phần cứng FIDO2?')) {
+        alert('Đã thu hồi 8 token phiên làm việc chưa xác thực khóa FIDO2.');
+      }
+    }
+  }
+
+  function triggerRedAlert() {
+    const code = prompt('CẢNH BÁO: Kích hoạt Chế độ Báo động Đỏ sẽ lập tức đăng xuất toàn bộ người dùng và quản trị viên DrinkFlow trên toàn cầu.\nNhập "CONFIRM-RED-ALERT" để tiếp tục:');
+    if (code === 'CONFIRM-RED-ALERT') {
+      alert('Chế độ Báo động Đỏ ĐÃ KÍCH HOẠT. Tất cả phiên đã bị thu hồi. Yêu cầu Google Workspace SSO Re-auth được áp dụng.');
+    } else if (code !== null) {
+      alert('Hủy bỏ: Mã xác nhận không chính xác.');
+    }
+  }
+</script></main></div></body></html>

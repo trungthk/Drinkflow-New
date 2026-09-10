@@ -20,4 +20,6 @@ class Campaign extends Model
     public function orders(): HasMany { return $this->hasMany(Order::class); }
 
     public function debts(): HasMany { return $this->hasMany(Debt::class); }
+
+    public function paymentAccount(): BelongsTo { return $this->belongsTo(PaymentAccount::class); }
 }

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { 'colors': { 'on-error': '#ffffff', 'tertiary-fixed': '#ffddb8', 'tertiary': '#000000', 'secondary-fixed': '#6ffbbe', 'tertiary-container': '#2a1700', 'surface-container-high': '#dce9ff', 'surface-container': '#e5eeff', 'on-primary-container': '#7c839b', 'primary-container': '#131b2e', 'inverse-on-surface': '#eaf1ff', 'tertiary-fixed-dim': '#ffb95f', 'surface-dim': '#cbdbf5', 'on-primary-fixed': '#131b2e', 'primary': '#000000', 'on-surface': '#0b1c30', 'outline-variant': '#c6c6cd', 'on-error-container': '#93000a', 'on-secondary': '#ffffff', 'background': '#f8f9ff', 'surface-tint': '#565e74', 'surface-variant': '#d3e4fe', 'on-secondary-container': '#00714d', 'on-background': '#0b1c30', 'on-secondary-fixed-variant': '#005236', 'secondary': '#006c49', 'primary-fixed-dim': '#bec6e0', 'surface-bright': '#f8f9ff', 'secondary-fixed-dim': '#4edea3', 'on-surface-variant': '#45464d', 'primary-fixed': '#dae2fd', 'surface-container-highest': '#d3e4fe', 'inverse-surface': '#213145', 'error': '#ba1a1a', 'inverse-primary': '#bec6e0', 'outline': '#76777d', 'on-tertiary-container': '#b87500', 'surface-container-low': '#eff4ff', 'on-tertiary': '#ffffff', 'error-container': '#ffdad6', 'surface': '#f8f9ff', 'on-tertiary-fixed': '#2a1700', 'secondary-container': '#6cf8bb', 'surface-container-lowest': '#ffffff', 'on-primary': '#ffffff', 'on-tertiary-fixed-variant': '#653e00', 'on-primary-fixed-variant': '#3f465c', 'on-secondary-fixed': '#002113' }, 'borderRadius': { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, 'spacing': { 'space-sm': '0.5rem', 'space-md': '0.75rem', 'margin-desktop': '2.5rem', 'space-2xl': '2rem', 'space-3xl': '3rem', 'margin-tablet': '1.5rem', 'gutter-mobile': '1rem', 'space-base': '1rem', 'space-2xs': '0.125rem', 'space-xs': '0.25rem', 'space-xl': '1.5rem', 'space-lg': '1.25rem', 'gutter-desktop': '1.5rem', 'margin-mobile': '1rem' }, 'fontFamily': { 'label-sm': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'], 'headline-xl': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'headline-md': ['Plus Jakarta Sans'], 'body-sm': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'], 'numeric-table': ['Plus Jakarta Sans'], 'headline-sm': ['Plus Jakarta Sans'], 'numeric-stat': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'], 'headline-xl-mobile': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'] }, 'fontSize': { 'label-sm': ['11px', { 'lineHeight': '14px', 'letterSpacing': '0.02em', 'fontWeight': '600' }], 'label-md': ['12px', { 'lineHeight': '16px', 'letterSpacing': '0.01em', 'fontWeight': '600' }], 'headline-xl': ['32px', { 'lineHeight': '40px', 'letterSpacing': '-0.025em', 'fontWeight': '700' }], 'body-md': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0em', 'fontWeight': '400' }], 'headline-md': ['20px', { 'lineHeight': '28px', 'letterSpacing': '-0.015em', 'fontWeight': '600' }], 'body-sm': ['12px', { 'lineHeight': '18px', 'letterSpacing': '0em', 'fontWeight': '400' }], 'body-lg': ['16px', { 'lineHeight': '24px', 'letterSpacing': '-0.005em', 'fontWeight': '400' }], 'numeric-table': ['14px', { 'lineHeight': '20px', 'letterSpacing': '-0.01em', 'fontWeight': '600' }], 'headline-sm': ['16px', { 'lineHeight': '24px', 'letterSpacing': '-0.01em', 'fontWeight': '600' }], 'numeric-stat': ['28px', { 'lineHeight': '36px', 'letterSpacing': '-0.03em', 'fontWeight': '700' }], 'headline-lg': ['24px', { 'lineHeight': '32px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'headline-xl-mobile': ['26px', { 'lineHeight': '34px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'label-lg': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0.005em', 'fontWeight': '600' }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between"><div class="flex flex-col flex-1 overflow-y-auto"><div class="h-16 px-space-lg flex items-center gap-space-sm bg-surface-container-lowest"><img alt="Modern minimalist vector logo for DrinkFlow corporate app. An abstract sleek coffee cup or boba tea cup merged with clean geometric flow waves or checkmark, minimalist fintech tech style, deep navy and emerald mint green color accents on clean transparent background.. Design context: - Primary color: #0f172a
+- Font: plusJakartaSans
+- Mode: light
+- Roundness: rounded-md
+. The logo should be visually consistent with these brand tokens." class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VfdHD9KbxjlZXKrksIg_phD3M1bWNTMkLJRiKk9JOCXpehgfjZpdqo8OwId3jMb7nl-V6sdgeLfaKaiXoqHOyXgCJ6tcQbDsQCHKb0SpH2aC4FaWSekhrQRExuEXZO1lx7CEIJ3mhhG_Sdw9lJHkILT8lylvav7oY5-ZWHQ6ZNc4SiC05woMYhNTMC_3sxzVgdOT_wtSl5dTal8UwNzoLYGquO2igIMN148RJx83d8_fId_uluyLg27w"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">DrinkFlow</span><span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider mt-0.5">Kernel Core</span></div></div><div class="px-space-md py-space-sm"><div class="bg-surface-container-low px-space-md py-space-sm rounded-lg flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-sm">security</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Node Authority</span></div><span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm bg-secondary-container text-on-secondary-container font-bold">PROD-SG</span></div></div><nav class="flex-1 px-space-md py-space-xs space-y-space-md" data-active-classes="bg-surface-container text-on-surface font-semibold rounded-lg shadow-sm"><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Core System</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="dashboard-and-health" href="#"><span class="material-symbols-outlined text-lg">monitoring</span><span class="font-body-sm text-body-sm flex-1">Dashboard &amp; Health</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="room-management" href="#"><span class="material-symbols-outlined text-lg">meeting_room</span><span class="font-body-sm text-body-sm flex-1">Room Management</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="admin-and-assignments" href="#"><span class="material-symbols-outlined text-lg">admin_panel_settings</span><span class="font-body-sm text-body-sm flex-1">Admin &amp; Assignments</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-users-and-identities" href="#"><span class="material-symbols-outlined text-lg">badge</span><span class="font-body-sm text-body-sm flex-1">Global Users &amp; Identities</span></a></div><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Platform Data</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-campaigns" href="#"><span class="material-symbols-outlined text-lg">campaign</span><span class="font-body-sm text-body-sm flex-1">Global Campaigns</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-debt-overview" href="#"><span class="material-symbols-outlined text-lg">account_balance</span><span class="font-body-sm text-body-sm flex-1">Global Debt Overview</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="audit-logs" href="#"><span class="material-symbols-outlined text-lg">receipt_long</span><span class="font-body-sm text-body-sm flex-1">Audit Logs</span></a></div><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Infra &amp; Security</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="security-center" href="#"><span class="material-symbols-outlined text-lg">shield_person</span><span class="font-body-sm text-body-sm flex-1">Security Center</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="socket-io-and-queue" href="#"><span class="material-symbols-outlined text-lg">hub</span><span class="font-body-sm text-body-sm flex-1">Socket.IO &amp; Queue</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="system-settings-and-maintenance" href="#"><span class="material-symbols-outlined text-lg">settings_system_daydream</span><span class="font-body-sm text-body-sm flex-1">System Settings &amp; Maintenance</span></a></div></nav></div><div class="p-space-md bg-surface-container-low m-space-md rounded-xl space-y-space-xs"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-label-sm text-label-sm text-secondary font-bold uppercase">Zero Trust Enforced</span></div><p class="font-label-sm text-label-sm text-on-surface-variant leading-relaxed">DrinkFlow Kernel v2.4.0 • Enterprise Root Admin</p></div></aside><div class="pl-72 flex flex-col min-h-screen"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-space-xl flex items-center justify-between"><div class="flex items-center gap-space-md"><span class="px-space-sm py-1 rounded bg-primary-container text-on-primary font-label-sm text-label-sm tracking-widest font-bold uppercase">Enterprise Superadmin</span><div class="h-4 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-on-surface-variant text-base">verified_user</span><span class="font-label-md text-label-md text-on-surface font-semibold">Root Authority (All Rooms &amp; Systems)</span></div></div><div class="hidden xl:flex items-center gap-space-lg px-space-md py-1.5 rounded-full bg-surface-container-low"><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-secondary"></span><span class="font-label-sm text-label-sm text-on-surface-variant">Socket:</span><span class="font-label-sm text-label-sm text-on-surface font-bold">Connected</span></div><div class="h-3 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-xs text-on-surface-variant">database</span><span class="font-label-sm text-label-sm text-on-surface-variant">DB:</span><span class="font-numeric-table text-numeric-table text-on-surface">12ms</span></div><div class="h-3 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-xs text-secondary">task_alt</span><span class="font-label-sm text-label-sm text-on-surface-variant">Queue:</span><span class="font-label-sm text-label-sm text-secondary font-bold">Healthy</span></div></div><div class="flex items-center gap-space-lg"><button aria-label="Notifications" class="relative p-space-xs text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-xl">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></button><div class="h-6 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-space-sm"><div class="flex flex-col text-right"><span class="font-label-md text-label-md text-on-surface font-bold leading-tight">Alex Tran</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Chief Platform Architect / Superadmin</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-surface-variant" src="https://lh3.googleusercontent.com/aida/AEtjO1UNzJSRtTOvm_yCmgGIiF_k57geL4PhhBO7akp9MzRMP5zqxilHgIS_5ZXh6byJ9gQExKnQ4TuMhrlq2x0nwv8KWovUUQqtfaMXf2aNOxeAxygj4NolHPs2xPM-I6FB-Sd2v5CGvSxh8xOgm9qY2saY-NKE_sKtO2dlpdKv8mgq9qd_a0Goj8uili80fNtiKJ5KDD-Dobm3mGfpAha1ucwUNNPfk5p3PyLYN7Q32I7gzFZACoLSA3tM0ik"/></div></div></header><main class="w-full pt-16 bg-surface flex-1 px-space-xl py-space-xl"><div class="flex flex-col w-full">
+<div class="flex flex-col gap-space-md mb-space-2xl">
+<div class="flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<span class="text-secondary font-bold">DrinkFlow Kernel</span>
+<span>•</span>
+<span>Configuration</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-on-surface font-bold">System Settings &amp; Maintenance</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight leading-tight">
+          Thiết lập Hệ thống, Xác thực SSO &amp; Chế độ Bảo trì
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+          Kiểm soát tên miền công ty Google Workspace, chính sách thiết bị tin cậy, thông số Crawler và chế độ ngắt máy chủ bảo trì.
+        </p>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="flex items-center gap-space-xs px-space-base py-2.5 rounded-lg bg-surface-container-high hover:bg-surface-variant text-on-surface font-label-md text-label-md transition-all duration-150 shadow-sm" id="backup-btn">
+<span class="material-symbols-outlined text-base">cloud_download</span>
+<span>Sao lưu Database Supabase (Backup Now)</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-lg py-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md transition-all duration-150 shadow-md" id="save-settings-btn">
+<span class="material-symbols-outlined text-base">save</span>
+<span>Lưu cấu hình hệ thống</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-space-base">
+<div class="p-space-base bg-surface-container-lowest rounded-xl shadow-sm flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-xl">domain_verification</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Google Workspace SSO</span>
+<span class="font-numeric-stat text-headline-sm text-on-surface font-bold">3 Domains Active</span>
+</div>
+</div>
+<div class="p-space-base bg-surface-container-lowest rounded-xl shadow-sm flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined text-xl">hub</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Live Connected Nodes</span>
+<span class="font-numeric-stat text-headline-sm text-on-surface font-bold">614 Clients</span>
+</div>
+</div>
+<div class="p-space-base bg-surface-container-lowest rounded-xl shadow-sm flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-on-surface">
+<span class="material-symbols-outlined text-xl">shield</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Zero Trust Boundary</span>
+<span class="font-label-lg text-label-lg text-secondary font-bold">Enforced (Tier 3)</span>
+</div>
+</div>
+<div class="p-space-base bg-surface-container-lowest rounded-xl shadow-sm flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-xl">schedule</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Next Auto Backup</span>
+<span class="font-numeric-stat text-headline-sm text-on-surface font-bold">02:00 UTC+7</span>
+</div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl">
+<div class="lg:col-span-6 flex flex-col gap-space-xl">
+<div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col gap-space-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-2xl">verified_user</span>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">
+                Cấu hình Xác thực Doanh nghiệp (Google Workspace)
+              </h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">auth.google_enabled • allowed_company_domains</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">OAuth SSO</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" id="sso-toggle" type="checkbox"/>
+<div class="w-11 h-6 bg-surface-container-high peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-secondary"></div>
+</label>
+</div>
+</div>
+<div class="flex flex-col gap-space-sm">
+<label class="font-label-md text-label-md text-on-surface font-bold flex items-center justify-between">
+<span>Tên miền công ty được phép đăng nhập (Allowed Company Domains)</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-normal">Chặn hoàn toàn @gmail.com cá nhân</span>
+</label>
+<div class="p-space-sm bg-surface-container-low rounded-lg flex flex-wrap items-center gap-space-xs min-h-[52px]" id="domains-container">
+<span class="domain-tag inline-flex items-center gap-1 px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface font-label-sm text-label-sm shadow-sm">
+<span class="material-symbols-outlined text-xs text-secondary">check_circle</span>
+<span>@company.com</span>
+<button class="remove-tag text-on-surface-variant hover:text-error ml-1" type="button">
+<span class="material-symbols-outlined text-sm leading-none">close</span>
+</button>
+</span>
+<span class="domain-tag inline-flex items-center gap-1 px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface font-label-sm text-label-sm shadow-sm">
+<span class="material-symbols-outlined text-xs text-secondary">check_circle</span>
+<span>@company.co.jp</span>
+<button class="remove-tag text-on-surface-variant hover:text-error ml-1" type="button">
+<span class="material-symbols-outlined text-sm leading-none">close</span>
+</button>
+</span>
+<span class="domain-tag inline-flex items-center gap-1 px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface font-label-sm text-label-sm shadow-sm">
+<span class="material-symbols-outlined text-xs text-secondary">check_circle</span>
+<span>@subsidiary.vn</span>
+<button class="remove-tag text-on-surface-variant hover:text-error ml-1" type="button">
+<span class="material-symbols-outlined text-sm leading-none">close</span>
+</button>
+</span>
+<input class="flex-1 min-w-[200px] bg-transparent outline-none font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant px-space-xs py-1" id="domain-input" placeholder="Nhập domain và nhấn Enter (ví dụ: @holding.vn)" type="text"/>
+</div>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-base">verified</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">Chính sách Xác minh Google Workspace API</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Yêu cầu chặt chẽ cờ <code class="bg-surface-container-high px-1 py-0.5 rounded font-numeric-table text-numeric-table text-on-surface">email_verified = true</code> từ payload OpenID Connect. Mọi tài khoản công ty không vượt qua kiểm tra bảo mật tổ chức sẽ bị từ chối truy cập ngay lập tức.
+          </p>
+</div>
+<div class="flex flex-col gap-space-md">
+<div class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">
+            Mã định danh API &amp; Khóa Bảo mật (Zero-Leakage Token Storage)
+          </div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="p-space-md bg-surface-container-low rounded-lg flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Google Client Secret</span>
+<div class="flex items-center justify-between">
+<span class="font-numeric-table text-numeric-table text-on-surface tracking-widest">••••••••••••••••••••</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high font-label-sm text-label-sm text-on-surface font-semibold">.env Injected</span>
+</div>
+</div>
+<div class="p-space-md bg-surface-container-low rounded-lg flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Service Account Key (GSuite)</span>
+<div class="flex items-center justify-between">
+<span class="font-numeric-table text-numeric-table text-on-surface tracking-widest">••••••••••••••••••••</span>
+<span class="px-space-xs py-0.5 rounded bg-secondary-container font-label-sm text-label-sm text-on-secondary-container font-semibold">Vault Secured</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col gap-space-lg">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-2xl">tune</span>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">
+              Thông số Vận hành Nền tảng (Platform &amp; Crawler Parameters)
+            </h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Runtime, Locale, Crawler &amp; Trust Boundaries</span>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-base">
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md text-on-surface font-bold">Múi giờ Hệ thống (System Timezone)</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded-lg px-space-md py-2.5 outline-none appearance-none cursor-pointer">
+<option selected="">GMT+7 (Asia/Ho_Chi_Minh) - Giờ chuẩn VN</option>
+<option>GMT+9 (Asia/Tokyo) - Nhật Bản</option>
+<option>UTC+0 (Coordinated Universal Time)</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant pointer-events-none text-base">expand_more</span>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md text-on-surface font-bold">Ngôn ngữ Mặc định (Default Locale)</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded-lg px-space-md py-2.5 outline-none appearance-none cursor-pointer">
+<option selected="">Tiếng Việt (Default Workspace Locale)</option>
+<option>English (United States)</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-on-surface-variant pointer-events-none text-base">expand_more</span>
+</div>
+</div>
+</div>
+<div class="p-space-md bg-surface-container-low rounded-lg flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-bold flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-base">smart_toy</span>
+              Thông số Crawler &amp; GrabFood/ShopeeFood Scraper
+            </span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded bg-surface-container-high text-on-surface font-semibold">Worker Pool: 4 Threads</span>
+</div>
+<div class="grid grid-cols-3 gap-space-sm">
+<div class="bg-surface-container-lowest p-space-sm rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Timeout</span>
+<span class="font-numeric-table text-numeric-table text-on-surface font-bold">15 giây</span>
+</div>
+<div class="bg-surface-container-lowest p-space-sm rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Max Retries</span>
+<span class="font-numeric-table text-numeric-table text-on-surface font-bold">2 lần</span>
+</div>
+<div class="bg-surface-container-lowest p-space-sm rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">User-Agent</span>
+<span class="font-label-sm text-label-sm text-on-surface font-bold truncate">DrinkFlow Bot 2.4</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-base">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface font-bold">Phiên Thiết bị Tin cậy</label>
+<span class="font-numeric-table text-numeric-table text-secondary font-bold" id="trust-val">30 ngày</span>
+</div>
+<input class="w-full accent-secondary cursor-pointer" id="trust-range" max="90" min="1" type="range" value="30"/>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tự động hủy token và buộc xác thực SSO lại khi quá hạn.</span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface font-bold">Giới hạn Upload File</label>
+<span class="font-numeric-table text-numeric-table text-on-surface font-bold">5 MB Max</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-2.5 rounded-lg text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-base">attachment</span>
+<span>Định dạng hỗ trợ: PNG, JPG, WebP (Avatar &amp; Bill VietQR)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-6 flex flex-col gap-space-xl">
+<div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col gap-space-lg">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-xl">build</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">
+                Chế độ Bảo trì Hệ thống (Maintenance Mode)
+              </h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Section 3.10 • System Maintenance Isolation</span>
+</div>
+</div>
+<span class="px-space-sm py-1 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold" id="maint-badge">
+            Hệ thống Hoạt động
+          </span>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Kích hoạt Bảo trì Toàn cục Khẩn cấp</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Chặn đơn hàng mới, giữ nguyên phiên làm việc của Superadmin.</span>
+</div>
+<button class="px-space-md py-2 rounded-lg bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md transition-all duration-150 flex items-center justify-center gap-space-xs" id="toggle-maint-btn">
+<span class="material-symbols-outlined text-base">power_settings_new</span>
+<span id="maint-btn-text">Bật Chế độ Bảo trì</span>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md text-on-surface font-bold">Lịch Trình Bảo trì Dự kiến (Scheduled Maintenance Window)</label>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-2.5 rounded-lg">
+<span class="material-symbols-outlined text-base text-on-surface-variant">calendar_today</span>
+<input class="bg-transparent text-on-surface font-numeric-table text-numeric-table outline-none w-full" type="text" value="10/09/2026"/>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-2.5 rounded-lg">
+<span class="material-symbols-outlined text-base text-on-surface-variant">schedule</span>
+<input class="bg-transparent text-on-surface font-numeric-table text-numeric-table outline-none w-full" type="text" value="22:00 - 22:30 (GMT+7)"/>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md text-on-surface font-bold">Thông điệp Hiển thị Toàn thể Nhân viên (Trang Lỗi 503 / Toast)</label>
+<textarea class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm p-space-md rounded-lg outline-none resize-none" rows="3">DrinkFlow đang nâng cấp cơ sở hạ tầng cụm cơ sở dữ liệu định kỳ. Tất cả các đơn hàng đang chờ sẽ được giữ nguyên trạng thái an toàn. Dự kiến hoàn tất lúc 22:30.</textarea>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary animate-ping"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface font-bold">Cơ chế Realtime Broadcast Socket.IO</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tự động phát sự kiện <code class="font-numeric-table text-xs bg-surface-container-high px-1 py-0.5 rounded">system.maintenance</code> tới toàn bộ 614 clients</span>
+</div>
+</div>
+<button class="px-space-sm py-1.5 rounded bg-surface-container-high hover:bg-surface-variant text-on-surface font-label-sm text-label-sm font-bold" id="broadcast-test-btn" type="button">
+            Gửi Test Ping
+          </button>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-xl shadow-sm flex flex-col gap-space-lg relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-error"></div>
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-error-container flex items-center justify-center text-on-error-container">
+<span class="material-symbols-outlined text-xl">warning</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-error font-bold">
+              Khu vực Cực kỳ Nguy hiểm (Danger Zone: System Reset)
+            </h2>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">superadmin.md 3.11 • Zero Recovery Boundary</span>
+</div>
+</div>
+<div class="p-space-md bg-error-container/40 rounded-lg flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-error text-xl shrink-0 mt-0.5">report</span>
+<p class="font-body-sm text-body-sm text-on-surface font-medium leading-relaxed">
+            Thao tác này sẽ xóa vĩnh viễn toàn bộ đơn hàng, chiến dịch gom đơn, số dư công nợ và cấu hình phòng ban. <strong class="text-error font-bold">DUY NHẤT TÀI KHOẢN SUPERADMIN ROOT SẼ ĐƯỢC GIỮ LẠI.</strong> Dữ liệu không thể khôi phục sau khi xác nhận.
+          </p>
+</div>
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface font-bold uppercase tracking-wider">
+<span>Hàng rào bảo mật 3 lớp (3-Tier Safeguard Checklist)</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-bold">Lớp 1: Xác nhận Mật khẩu Tài khoản Root Admin</label>
+<input class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm px-space-md py-2.5 rounded-lg outline-none placeholder:text-on-surface-variant" id="admin-pwd" placeholder="Nhập mật khẩu Superadmin hiện tại..." type="password"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-bold">
+                Lớp 2: Gõ chính xác cụm từ bảo vệ <span class="text-error font-mono font-bold tracking-wider select-all">RESET DRINKFLOW</span>
+</label>
+<input class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm px-space-md py-2.5 rounded-lg outline-none placeholder:text-on-surface-variant uppercase" id="confirm-phrase" placeholder="Gõ đúng 'RESET DRINKFLOW' để mở khóa" type="text"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-bold">Lớp 3: Mã OTP Hardware Token FIDO2 / Authenticator</label>
+<div class="flex items-center gap-space-sm">
+<input class="w-32 text-center tracking-[0.3em] font-numeric-stat text-headline-sm bg-surface-container-low text-on-surface px-space-sm py-1.5 rounded-lg outline-none" id="mfa-code" maxlength="6" placeholder="000000" type="text"/>
+<span class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">key</span>
+                  Yêu cầu khóa YubiKey hoặc Google Authenticator 6 số
+                </span>
+</div>
+</div>
+</div>
+<div class="pt-space-xs">
+<button class="w-full py-3 px-space-lg rounded-lg bg-surface-container-high text-on-surface-variant font-label-lg text-label-lg font-bold flex items-center justify-center gap-space-xs cursor-not-allowed transition-all duration-150" disabled="" id="reset-system-btn">
+<span class="material-symbols-outlined text-lg">delete_forever</span>
+<span>XÁC NHẬN ĐẶT LẠI HỆ THỐNG TOÀN CỤC (PURGE DATABASE)</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="fixed bottom-6 right-6 hidden z-50 bg-primary text-on-primary px-space-lg py-space-sm rounded-xl shadow-xl flex items-center gap-space-sm transition-all duration-200" id="toast">
+<span class="material-symbols-outlined text-secondary text-xl">check_circle</span>
+<span class="font-label-md text-label-md font-semibold" id="toast-msg">Cấu hình đã được lưu an toàn vào cơ sở dữ liệu.</span>
+</div>
+</div>
+<script>
+  (function() {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-msg');
+    const showToast = (msg, isError = false) => {
+      toastMsg.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3200);
+    };
+
+    const domainInput = document.getElementById('domain-input');
+    const domainsContainer = document.getElementById('domains-container');
+
+    const bindRemoveBtns = () => {
+      domainsContainer.querySelectorAll('.remove-tag').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          btn.closest('.domain-tag').remove();
+        };
+      });
+    };
+    bindRemoveBtns();
+
+    domainInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        let val = domainInput.value.trim().toLowerCase();
+        if (val) {
+          if (!val.startsWith('@')) val = '@' + val;
+          const tag = document.createElement('span');
+          tag.className = 'domain-tag inline-flex items-center gap-1 px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface font-label-sm text-label-sm shadow-sm';
+          tag.innerHTML = `
+            <span class="material-symbols-outlined text-xs text-secondary">check_circle</span>
+            <span>${val}</span>
+            <button type="button" class="remove-tag text-on-surface-variant hover:text-error ml-1">
+              <span class="material-symbols-outlined text-sm leading-none">close</span>
+            </button>
+          `;
+          domainsContainer.insertBefore(tag, domainInput);
+          domainInput.value = '';
+          bindRemoveBtns();
+          showToast(`Đã thêm tên miền ${val}`);
+        }
+      }
+    });
+
+    const trustRange = document.getElementById('trust-range');
+    const trustVal = document.getElementById('trust-val');
+    trustRange.addEventListener('input', (e) => {
+      trustVal.textContent = `${e.target.value} ngày`;
+    });
+
+    const maintBtn = document.getElementById('toggle-maint-btn');
+    const maintBadge = document.getElementById('maint-badge');
+    const maintText = document.getElementById('maint-btn-text');
+    let isMaintActive = false;
+
+    maintBtn.addEventListener('click', () => {
+      isMaintActive = !isMaintActive;
+      if (isMaintActive) {
+        maintBadge.className = 'px-space-sm py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold animate-pulse';
+        maintBadge.textContent = 'ĐANG BẢO TRÌ (INACTIVE)';
+        maintText.textContent = 'Tắt Chế độ Bảo trì';
+        showToast('Cảnh báo: Toàn bộ kết nối khách hàng đang bị chặn ngắt (503 Active)');
+      } else {
+        maintBadge.className = 'px-space-sm py-1 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold';
+        maintBadge.textContent = 'Hệ thống Hoạt động';
+        maintText.textContent = 'Bật Chế độ Bảo trì';
+        showToast('Hệ thống đã phục hồi trạng thái sẵn sàng trực tuyến');
+      }
+    });
+
+    const broadcastBtn = document.getElementById('broadcast-test-btn');
+    broadcastBtn.addEventListener('click', () => {
+      showToast('Đã phát tín hiệu system.maintenance tới 614 sockets thành công!');
+    });
+
+    const saveBtn = document.getElementById('save-settings-btn');
+    saveBtn.addEventListener('click', () => {
+      showToast('Toàn bộ thông số hệ thống và SSO Google đã lưu an toàn vào DB!');
+    });
+
+    const backupBtn = document.getElementById('backup-btn');
+    backupBtn.addEventListener('click', () => {
+      showToast('Đang tạo bản Snapshot Supabase... Tiến trình chạy nền (Backup Job #8129)');
+    });
+
+    const adminPwd = document.getElementById('admin-pwd');
+    const confirmPhrase = document.getElementById('confirm-phrase');
+    const mfaCode = document.getElementById('mfa-code');
+    const resetBtn = document.getElementById('reset-system-btn');
+
+    const validateSafeguards = () => {
+      const pwdValid = adminPwd.value.trim().length >= 6;
+      const phraseValid = confirmPhrase.value.trim() === 'RESET DRINKFLOW';
+      const mfaValid = mfaCode.value.trim().length === 6;
+
+      if (pwdValid && phraseValid && mfaValid) {
+        resetBtn.disabled = false;
+        resetBtn.className = 'w-full py-3 px-space-lg rounded-lg bg-error text-on-error font-label-lg text-label-lg font-bold flex items-center justify-center gap-space-xs hover:bg-on-error-container transition-all duration-150 shadow-lg cursor-pointer animate-bounce';
+      } else {
+        resetBtn.disabled = true;
+        resetBtn.className = 'w-full py-3 px-space-lg rounded-lg bg-surface-container-high text-on-surface-variant font-label-lg text-label-lg font-bold flex items-center justify-center gap-space-xs cursor-not-allowed transition-all duration-150';
+      }
+    };
+
+    adminPwd.addEventListener('input', validateSafeguards);
+    confirmPhrase.addEventListener('input', validateSafeguards);
+    mfaCode.addEventListener('input', validateSafeguards);
+
+    resetBtn.addEventListener('click', () => {
+      if (!resetBtn.disabled) {
+        if (confirm('CẢNH BÁO CUỐI CÙNG: Bạn có chắc chắn muốn xóa sạch toàn bộ đơn hàng và nợ không? Thao tác này KHÔNG THỂ đảo ngược!')) {
+          showToast('Đang tiến hành Reset Hệ thống toàn cục... Root Admin duy trì.');
+        }
+      }
+    });
+  })();
+</script></main></div></body></html>

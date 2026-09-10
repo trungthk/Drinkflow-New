@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { 'colors': { 'on-error': '#ffffff', 'tertiary-fixed': '#ffddb8', 'tertiary': '#000000', 'secondary-fixed': '#6ffbbe', 'tertiary-container': '#2a1700', 'surface-container-high': '#dce9ff', 'surface-container': '#e5eeff', 'on-primary-container': '#7c839b', 'primary-container': '#131b2e', 'inverse-on-surface': '#eaf1ff', 'tertiary-fixed-dim': '#ffb95f', 'surface-dim': '#cbdbf5', 'on-primary-fixed': '#131b2e', 'primary': '#000000', 'on-surface': '#0b1c30', 'outline-variant': '#c6c6cd', 'on-error-container': '#93000a', 'on-secondary': '#ffffff', 'background': '#f8f9ff', 'surface-tint': '#565e74', 'surface-variant': '#d3e4fe', 'on-secondary-container': '#00714d', 'on-background': '#0b1c30', 'on-secondary-fixed-variant': '#005236', 'secondary': '#006c49', 'primary-fixed-dim': '#bec6e0', 'surface-bright': '#f8f9ff', 'secondary-fixed-dim': '#4edea3', 'on-surface-variant': '#45464d', 'primary-fixed': '#dae2fd', 'surface-container-highest': '#d3e4fe', 'inverse-surface': '#213145', 'error': '#ba1a1a', 'inverse-primary': '#bec6e0', 'outline': '#76777d', 'on-tertiary-container': '#b87500', 'surface-container-low': '#eff4ff', 'on-tertiary': '#ffffff', 'error-container': '#ffdad6', 'surface': '#f8f9ff', 'on-tertiary-fixed': '#2a1700', 'secondary-container': '#6cf8bb', 'surface-container-lowest': '#ffffff', 'on-primary': '#ffffff', 'on-tertiary-fixed-variant': '#653e00', 'on-primary-fixed-variant': '#3f465c', 'on-secondary-fixed': '#002113' }, 'borderRadius': { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, 'spacing': { 'space-sm': '0.5rem', 'space-md': '0.75rem', 'margin-desktop': '2.5rem', 'space-2xl': '2rem', 'space-3xl': '3rem', 'margin-tablet': '1.5rem', 'gutter-mobile': '1rem', 'space-base': '1rem', 'space-2xs': '0.125rem', 'space-xs': '0.25rem', 'space-xl': '1.5rem', 'space-lg': '1.25rem', 'gutter-desktop': '1.5rem', 'margin-mobile': '1rem' }, 'fontFamily': { 'label-sm': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'], 'headline-xl': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'headline-md': ['Plus Jakarta Sans'], 'body-sm': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'], 'numeric-table': ['Plus Jakarta Sans'], 'headline-sm': ['Plus Jakarta Sans'], 'numeric-stat': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'], 'headline-xl-mobile': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'] }, 'fontSize': { 'label-sm': ['11px', { 'lineHeight': '14px', 'letterSpacing': '0.02em', 'fontWeight': '600' }], 'label-md': ['12px', { 'lineHeight': '16px', 'letterSpacing': '0.01em', 'fontWeight': '600' }], 'headline-xl': ['32px', { 'lineHeight': '40px', 'letterSpacing': '-0.025em', 'fontWeight': '700' }], 'body-md': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0em', 'fontWeight': '400' }], 'headline-md': ['20px', { 'lineHeight': '28px', 'letterSpacing': '-0.015em', 'fontWeight': '600' }], 'body-sm': ['12px', { 'lineHeight': '18px', 'letterSpacing': '0em', 'fontWeight': '400' }], 'body-lg': ['16px', { 'lineHeight': '24px', 'letterSpacing': '-0.005em', 'fontWeight': '400' }], 'numeric-table': ['14px', { 'lineHeight': '20px', 'letterSpacing': '-0.01em', 'fontWeight': '600' }], 'headline-sm': ['16px', { 'lineHeight': '24px', 'letterSpacing': '-0.01em', 'fontWeight': '600' }], 'numeric-stat': ['28px', { 'lineHeight': '36px', 'letterSpacing': '-0.03em', 'fontWeight': '700' }], 'headline-lg': ['24px', { 'lineHeight': '32px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'headline-xl-mobile': ['26px', { 'lineHeight': '34px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'label-lg': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0.005em', 'fontWeight': '600' }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between"><div class="flex flex-col flex-1 overflow-y-auto"><div class="h-16 px-space-lg flex items-center gap-space-sm bg-surface-container-lowest"><img alt="Modern minimalist vector logo for DrinkFlow corporate app. An abstract sleek coffee cup or boba tea cup merged with clean geometric flow waves or checkmark, minimalist fintech tech style, deep navy and emerald mint green color accents on clean transparent background.. Design context: - Primary color: #0f172a
+- Font: plusJakartaSans
+- Mode: light
+- Roundness: rounded-md
+. The logo should be visually consistent with these brand tokens." class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VfdHD9KbxjlZXKrksIg_phD3M1bWNTMkLJRiKk9JOCXpehgfjZpdqo8OwId3jMb7nl-V6sdgeLfaKaiXoqHOyXgCJ6tcQbDsQCHKb0SpH2aC4FaWSekhrQRExuEXZO1lx7CEIJ3mhhG_Sdw9lJHkILT8lylvav7oY5-ZWHQ6ZNc4SiC05woMYhNTMC_3sxzVgdOT_wtSl5dTal8UwNzoLYGquO2igIMN148RJx83d8_fId_uluyLg27w"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">DrinkFlow</span><span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider mt-0.5">Kernel Core</span></div></div><div class="px-space-md py-space-sm"><div class="bg-surface-container-low px-space-md py-space-sm rounded-lg flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-sm">security</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Node Authority</span></div><span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm bg-secondary-container text-on-secondary-container font-bold">PROD-SG</span></div></div><nav class="flex-1 px-space-md py-space-xs space-y-space-md" data-active-classes="bg-surface-container text-on-surface font-semibold rounded-lg shadow-sm"><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Core System</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="dashboard-and-health" href="#"><span class="material-symbols-outlined text-lg">monitoring</span><span class="font-body-sm text-body-sm flex-1">Dashboard &amp; Health</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="room-management" href="#"><span class="material-symbols-outlined text-lg">meeting_room</span><span class="font-body-sm text-body-sm flex-1">Room Management</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="admin-and-assignments" href="#"><span class="material-symbols-outlined text-lg">admin_panel_settings</span><span class="font-body-sm text-body-sm flex-1">Admin &amp; Assignments</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-users-and-identities" href="#"><span class="material-symbols-outlined text-lg">badge</span><span class="font-body-sm text-body-sm flex-1">Global Users &amp; Identities</span></a></div><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Platform Data</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-campaigns" href="#"><span class="material-symbols-outlined text-lg">campaign</span><span class="font-body-sm text-body-sm flex-1">Global Campaigns</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-debt-overview" href="#"><span class="material-symbols-outlined text-lg">account_balance</span><span class="font-body-sm text-body-sm flex-1">Global Debt Overview</span></a><a aria-current="page" class="flex items-center gap-space-sm px-space-sm py-2 transition-colors bg-surface-container text-on-surface font-semibold rounded-lg shadow-sm" data-path="audit-logs" href="#"><span class="material-symbols-outlined text-lg">receipt_long</span><span class="font-body-sm text-body-sm flex-1">Audit Logs</span></a></div><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Infra &amp; Security</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="security-center" href="#"><span class="material-symbols-outlined text-lg">shield_person</span><span class="font-body-sm text-body-sm flex-1">Security Center</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="socket-io-and-queue" href="#"><span class="material-symbols-outlined text-lg">hub</span><span class="font-body-sm text-body-sm flex-1">Socket.IO &amp; Queue</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="system-settings-and-maintenance" href="#"><span class="material-symbols-outlined text-lg">settings_system_daydream</span><span class="font-body-sm text-body-sm flex-1">System Settings &amp; Maintenance</span></a></div></nav></div><div class="p-space-md bg-surface-container-low m-space-md rounded-xl space-y-space-xs"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-label-sm text-label-sm text-secondary font-bold uppercase">Zero Trust Enforced</span></div><p class="font-label-sm text-label-sm text-on-surface-variant leading-relaxed">DrinkFlow Kernel v2.4.0 • Enterprise Root Admin</p></div></aside><div class="pl-72 flex flex-col min-h-screen"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-space-xl flex items-center justify-between"><div class="flex items-center gap-space-md"><span class="px-space-sm py-1 rounded bg-primary-container text-on-primary font-label-sm text-label-sm tracking-widest font-bold uppercase">Enterprise Superadmin</span><div class="h-4 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-on-surface-variant text-base">verified_user</span><span class="font-label-md text-label-md text-on-surface font-semibold">Root Authority (All Rooms &amp; Systems)</span></div></div><div class="hidden xl:flex items-center gap-space-lg px-space-md py-1.5 rounded-full bg-surface-container-low"><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-secondary"></span><span class="font-label-sm text-label-sm text-on-surface-variant">Socket:</span><span class="font-label-sm text-label-sm text-on-surface font-bold">Connected</span></div><div class="h-3 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-xs text-on-surface-variant">database</span><span class="font-label-sm text-label-sm text-on-surface-variant">DB:</span><span class="font-numeric-table text-numeric-table text-on-surface">12ms</span></div><div class="h-3 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-xs text-secondary">task_alt</span><span class="font-label-sm text-label-sm text-on-surface-variant">Queue:</span><span class="font-label-sm text-label-sm text-secondary font-bold">Healthy</span></div></div><div class="flex items-center gap-space-lg"><button aria-label="Notifications" class="relative p-space-xs text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-xl">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></button><div class="h-6 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-space-sm"><div class="flex flex-col text-right"><span class="font-label-md text-label-md text-on-surface font-bold leading-tight">Alex Tran</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Chief Platform Architect / Superadmin</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-surface-variant" src="https://lh3.googleusercontent.com/aida/AEtjO1UNzJSRtTOvm_yCmgGIiF_k57geL4PhhBO7akp9MzRMP5zqxilHgIS_5ZXh6byJ9gQExKnQ4TuMhrlq2x0nwv8KWovUUQqtfaMXf2aNOxeAxygj4NolHPs2xPM-I6FB-Sd2v5CGvSxh8xOgm9qY2saY-NKE_sKtO2dlpdKv8mgq9qd_a0Goj8uili80fNtiKJ5KDD-Dobm3mGfpAha1ucwUNNPfk5p3PyLYN7Q32I7gzFZACoLSA3tM0ik"/></div></div></header><main class="w-full pt-16 bg-surface flex-1 px-space-xl py-space-xl"><div class="flex flex-col w-full space-y-space-xl">
+<!-- Top Breadcrumb & Executive Header -->
+<div class="flex flex-col xl:flex-row xl:items-start justify-between gap-space-lg bg-surface-container-lowest p-space-xl rounded-xl shadow-sm">
+<div class="space-y-space-xs max-w-3xl">
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span>DRINKFLOW KERNEL</span>
+<span>•</span>
+<span>PLATFORM DATA</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-secondary font-bold">GLOBAL AUDIT LOGS</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">
+        Nhật ký Kiểm toán Toàn cục Bất biến (Immutable Global Audit Logs)
+      </h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+        Dữ liệu nhật ký kiểm toán không thể chỉnh sửa, ghi nhận mọi biến động về phân quyền Admin, khóa Global User, đối soát nợ và thay đổi cấu hình.
+      </p>
+<div class="pt-space-xs flex flex-wrap items-center gap-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+          SHA-256 Merkle Chained Active
+        </span>
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface-variant font-numeric-table text-numeric-table">
+<span class="material-symbols-outlined text-sm">lock</span>
+          Chữ ký khối: #BLK-99824-202605
+        </span>
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-sm">history</span>
+          Lưu trữ WORM 10 năm
+        </span>
+</div>
+</div>
+<!-- Action Toolbar Buttons -->
+<div class="flex flex-wrap items-center gap-space-sm self-start shrink-0">
+<button class="px-space-md py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-colors font-label-md text-label-md flex items-center gap-space-xs shadow-sm" id="btnVerifyChain">
+<span class="material-symbols-outlined text-secondary text-base">verified</span>
+<span>Xác minh tính toàn vẹn chữ ký chuỗi</span>
+</button>
+<button class="px-space-md py-2 rounded-lg bg-surface-container text-on-surface hover:bg-surface-container-high transition-colors font-label-md text-label-md flex items-center gap-space-xs shadow-sm" id="btnExport">
+<span class="material-symbols-outlined text-base">download</span>
+<span>Xuất nhật ký (JSON/CSV)</span>
+</button>
+<button class="px-space-md py-2 rounded-lg bg-primary text-on-primary hover:bg-surface-tint transition-colors font-label-md text-label-md flex items-center gap-space-xs shadow-sm">
+<span class="material-symbols-outlined text-base">tune</span>
+<span>Bộ lọc nâng cao</span>
+</button>
+</div>
+</div>
+<!-- Realtime Chain Health Bento Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-base">
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Tổng số bản ghi</span>
+<span class="material-symbols-outlined text-on-surface-variant">receipt_long</span>
+</div>
+<div class="mt-space-md flex items-baseline justify-between">
+<span class="font-numeric-stat text-numeric-stat text-on-surface">48,912</span>
+<span class="font-label-sm text-label-sm text-secondary font-bold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-xs">trending_up</span> +342 hôm nay
+        </span>
+</div>
+<p class="mt-space-xs font-body-sm text-body-sm text-on-surface-variant">Toàn bộ cụm Shard #01 - SG</p>
+</div>
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Trạng thái Khối Merkle</span>
+<span class="material-symbols-outlined text-secondary">shield</span>
+</div>
+<div class="mt-space-md flex items-baseline justify-between">
+<span class="font-headline-lg text-headline-lg text-secondary">HỢP LỆ (100%)</span>
+<span class="font-label-sm text-label-sm bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded font-bold">SYMMETRIC</span>
+</div>
+<p class="mt-space-xs font-body-sm text-body-sm text-on-surface-variant">Khối cuối kiểm toán 42 giây trước</p>
+</div>
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Tác động nhạy cảm</span>
+<span class="material-symbols-outlined text-on-error-container">warning</span>
+</div>
+<div class="mt-space-md flex items-baseline justify-between">
+<span class="font-numeric-stat text-numeric-stat text-error">18</span>
+<span class="font-label-sm text-label-sm bg-error-container text-on-error-container px-2 py-0.5 rounded font-bold">24H QUA</span>
+</div>
+<p class="mt-space-xs font-body-sm text-body-sm text-on-surface-variant">Thu hồi quyền &amp; khóa Global User</p>
+</div>
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Daemon Tự động</span>
+<span class="material-symbols-outlined text-on-tertiary-container">smart_toy</span>
+</div>
+<div class="mt-space-md flex items-baseline justify-between">
+<span class="font-numeric-stat text-numeric-stat text-on-surface">32,109</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">65.6%</span>
+</div>
+<p class="mt-space-xs font-body-sm text-body-sm text-on-surface-variant">Napas VietQR &amp; Auto Split Batch</p>
+</div>
+</div>
+<!-- Filter Console Module -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm space-y-space-md">
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-space-md">
+<!-- Actor Type Filter -->
+<div class="space-y-space-xs">
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Actor Type</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm px-space-md py-2.5 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary">
+<option>Tất cả tác nhân (User, Admin, Superadmin, System)</option>
+<option>Superadmin Authority</option>
+<option>Room Administrator</option>
+<option>System Daemon (Reconcile / Socket)</option>
+<option>Global User Identity</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 pointer-events-none text-on-surface-variant text-base">expand_more</span>
+</div>
+</div>
+<!-- Target Type Filter -->
+<div class="space-y-space-xs">
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Target Type</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm px-space-md py-2.5 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary">
+<option>Tất cả đối tượng (admin_account, global_user, room...)</option>
+<option>admin_account</option>
+<option>global_user</option>
+<option>room</option>
+<option>debt</option>
+<option>system_setting</option>
+<option>campaign</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 pointer-events-none text-on-surface-variant text-base">expand_more</span>
+</div>
+</div>
+<!-- Scope Filter -->
+<div class="space-y-space-xs">
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Phòng ban / Phạm vi</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm px-space-md py-2.5 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary">
+<option>Toàn hệ thống (Global Scope)</option>
+<option>Engineering Floor 4 (Room #101)</option>
+<option>Marketing Growth (Room #102)</option>
+<option>Operations &amp; HR (Room #105)</option>
+<option>Product &amp; Design (Room #108)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 pointer-events-none text-on-surface-variant text-base">expand_more</span>
+</div>
+</div>
+<!-- Time Range Filter -->
+<div class="space-y-space-xs">
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Khoảng thời gian</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm px-space-md py-2.5 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary">
+<option>Hôm nay (05/2026)</option>
+<option>7 ngày gần nhất</option>
+<option>Tháng 05/2026</option>
+<option>Quý 2/2026 (Audit SOX)</option>
+<option>Tùy chỉnh khoảng ngày...</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 pointer-events-none text-on-surface-variant text-base">calendar_month</span>
+</div>
+</div>
+<!-- Quick Search Bar -->
+<div class="space-y-space-xs">
+<label class="block font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tìm kiếm định danh</label>
+<div class="relative">
+<input class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm pl-9 pr-space-md py-2 rounded-lg placeholder:text-on-surface-variant/70 focus:outline-none focus:ring-1 focus:ring-primary" placeholder="Tìm theo Actor ID, IP, Device UUID, Event name..." type="text"/>
+<span class="material-symbols-outlined absolute left-2.5 top-2.5 text-on-surface-variant text-base">search</span>
+</div>
+</div>
+</div>
+<!-- Active Filter Pills & Summary -->
+<div class="pt-space-xs flex flex-wrap items-center justify-between gap-space-sm font-label-sm text-label-sm text-on-surface-variant">
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="font-bold uppercase tracking-wider text-on-surface">Đang áp dụng:</span>
+<span class="inline-flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded text-on-surface">
+          Node: PROD-SG-SHARD1
+          <button class="hover:text-error leading-none ml-0.5">×</button>
+</span>
+<span class="inline-flex items-center gap-1 bg-surface-container px-2 py-0.5 rounded text-on-surface">
+          Toàn vẹn: Hash OK
+          <button class="hover:text-error leading-none ml-0.5">×</button>
+</span>
+<button class="text-secondary font-semibold hover:underline ml-space-xs">Xóa tất cả bộ lọc</button>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span>Stream thời gian thực: Tự động tải mới sau 15s</span>
+</div>
+</div>
+</div>
+<!-- Immutable Audit Ledger Table Section -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col">
+<!-- Table Header Info Bar -->
+<div class="px-space-xl py-space-md bg-surface-container-low flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-secondary">history_toggle_off</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Bảng Dữ liệu Kiểm toán Chi tiết</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high font-numeric-table text-numeric-table text-on-surface">
+          48,912 records
+        </span>
+</div>
+<div class="flex items-center gap-space-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Mã hóa chuỗi SHA-256</span>
+<div class="h-3 w-[1px] bg-outline-variant"></div>
+<button class="text-primary font-label-md text-label-md flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-sm">view_column</span>
+          Cấu hình hiển thị cột
+        </button>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse min-w-[1100px]">
+<thead>
+<tr class="bg-surface-container text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-space-md px-space-md w-44">Thời gian &amp; Trace ID</th>
+<th class="py-space-md px-space-md w-52">Tác nhân (Actor)</th>
+<th class="py-space-md px-space-md w-56">Hành động (Event)</th>
+<th class="py-space-md px-space-md w-48">Mục tiêu (Target &amp; Scope)</th>
+<th class="py-space-md px-space-md">Chi tiết Biến động (Diff Before / After)</th>
+<th class="py-space-md px-space-md w-48">Môi trường Thực thi</th>
+<th class="py-space-md px-space-md text-right w-36">Thao tác</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container font-body-sm text-body-sm text-on-surface">
+<!-- Row 1: admin_rooms.assigned -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-space-md px-space-md align-top">
+<div class="font-numeric-table text-numeric-table text-on-surface">15:45:12</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Hôm nay (24/05/2026)</div>
+<div class="mt-1 font-numeric-table text-[11px] text-on-surface-variant/80 font-mono">trace-88f2a1b</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-base mt-0.5">verified_user</span>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">Alex Tran</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">ID: #ADM-01 • Superadmin</div>
+<span class="inline-block mt-1 px-1.5 py-0.2 rounded bg-primary-container text-on-primary text-[10px] font-bold uppercase">Root Authority</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-label-md text-label-md font-bold text-on-surface font-mono">admin_rooms.assigned</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Phân quyền quản trị thêm Room #105 cho Tuấn Lê</p>
+<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-semibold">RBAC Grant</span>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">admin_account #ADM-04</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Room #105 (Operations)</div>
+<div class="font-label-sm text-label-sm text-secondary font-mono mt-0.5">scope: room:admin:write</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="bg-surface-container-low p-space-xs rounded-lg font-mono text-xs space-y-1">
+<div class="flex items-start gap-1 text-on-surface-variant">
+<span class="text-error font-bold">-</span>
+<span>"assigned_rooms": [1, 2]</span>
+</div>
+<div class="flex items-start gap-1 text-secondary font-semibold">
+<span class="text-secondary font-bold">+</span>
+<span>"assigned_rooms": [1, 2, 5]</span>
+</div>
+<div class="text-[11px] text-on-surface-variant/70 italic">role_tier: "manager" -&gt; "manager"</div>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-numeric-table text-numeric-table font-mono">14.161.88.24</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant truncate max-w-[170px]" title="Chrome 125.0 • macOS Sonoma">Chrome 125.0 • macOS</div>
+<div class="font-numeric-table text-[10px] text-on-surface-variant font-mono truncate max-w-[170px]" title="uuid-a889-4bc2-81fa-91b42ecaa">dev: a889-4bc2-81fa</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right space-y-1">
+<button class="w-full text-right px-2 py-1 rounded hover:bg-surface-container text-primary font-label-sm text-label-sm font-semibold flex items-center justify-end gap-1" onclick="openPayloadModal('trace-88f2a1b', 'admin_rooms.assigned')">
+<span class="material-symbols-outlined text-sm">code</span> Payload JSON
+              </button>
+<button class="w-full text-right px-2 py-1 rounded hover:bg-surface-container text-secondary font-label-sm text-label-sm font-semibold flex items-center justify-end gap-1" onclick="verifySingleHash('trace-88f2a1b')">
+<span class="material-symbols-outlined text-sm">fingerprint</span> Chữ ký chuỗi
+              </button>
+</td>
+</tr>
+<!-- Row 2: global_user.blocked -->
+<tr class="hover:bg-surface-container-low/60 transition-colors bg-error-container/10">
+<td class="py-space-md px-space-md align-top">
+<div class="font-numeric-table text-numeric-table text-on-surface">15:32:04</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Hôm nay (24/05/2026)</div>
+<div class="mt-1 font-numeric-table text-[11px] text-on-surface-variant/80 font-mono">trace-91c77f0</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-base mt-0.5">manage_accounts</span>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">Tuấn Lê</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">ID: #ADM-04 • IT Dept</div>
+<span class="inline-block mt-1 px-1.5 py-0.2 rounded bg-surface-container-highest text-on-surface text-[10px] font-bold">Admin Delegate</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-label-md text-label-md font-bold text-error font-mono">global_user.blocked</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Khóa toàn cục tài khoản do nghi ngờ rò rỉ mật khẩu</p>
+<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">Security Killswitch</span>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">global_user #GU-8821</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Lê Hoàng Nam (HR Team)</div>
+<div class="font-label-sm text-label-sm text-error font-mono mt-0.5">scope: * (Cross-rooms)</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="bg-surface-container-low p-space-xs rounded-lg font-mono text-xs space-y-1">
+<div class="flex items-start gap-1 text-on-surface-variant">
+<span class="text-error font-bold">-</span>
+<span>"status": "active", "can_order": true</span>
+</div>
+<div class="flex items-start gap-1 text-error font-semibold">
+<span class="text-error font-bold">+</span>
+<span>"status": "blocked", "can_order": false</span>
+</div>
+<div class="text-[11px] text-on-surface-variant/70">"reason": "suspicious_credential_leak"</div>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-numeric-table text-numeric-table font-mono">118.69.182.90</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant truncate max-w-[170px]" title="Firefox 126 • Windows 11">Firefox 126 • Windows 11</div>
+<div class="font-numeric-table text-[10px] text-on-surface-variant font-mono truncate max-w-[170px]" title="uuid-fe11-90a2-23bb-00aa4b12">dev: fe11-90a2-23bb</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right space-y-1">
+<button class="w-full text-right px-2 py-1 rounded hover:bg-surface-container text-primary font-label-sm text-label-sm font-semibold flex items-center justify-end gap-1" onclick="openPayloadModal('trace-91c77f0', 'global_user.blocked')">
+<span class="material-symbols-outlined text-sm">code</span> Payload JSON
+              </button>
+<button class="w-full text-right px-2 py-1 rounded hover:bg-surface-container text-secondary font-label-sm text-label-sm font-semibold flex items-center justify-end gap-1" onclick="verifySingleHash('trace-91c77f0')">
+<span class="material-symbols-outlined text-sm">fingerprint</span> Chữ ký chuỗi
+              </button>
+</td>
+</tr>
+<!-- Row 3: debt.adjusted -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-space-md px-space-md align-top">
+<div class="font-numeric-table text-numeric-table text-on-surface">14:19:55</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Hôm nay (24/05/2026)</div>
+<div class="mt-1 font-numeric-table text-[11px] text-on-surface-variant/80 font-mono">trace-55a109e</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-base mt-0.5">smart_toy</span>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">System Daemon</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Napas VietQR Reconcile</div>
+<span class="inline-block mt-1 px-1.5 py-0.2 rounded bg-secondary-container text-on-secondary-container text-[10px] font-bold">Automated Hook</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-label-md text-label-md font-bold text-on-surface font-mono">debt.adjusted</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Điều chỉnh nợ đơn #CAM-8841 giảm 10.000đ sau mã voucher</p>
+<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-semibold">Ledger Settlement</span>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">debt #DBT-9942</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Campaign #CAM-8841</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant font-mono mt-0.5">room_id: 101 (Eng)</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="bg-surface-container-low p-space-xs rounded-lg font-mono text-xs space-y-1">
+<div class="flex items-start gap-1 text-on-surface-variant">
+<span class="text-error font-bold">-</span>
+<span>"before_amount": 55000</span>
+</div>
+<div class="flex items-start gap-1 text-secondary font-semibold">
+<span class="text-secondary font-bold">+</span>
+<span>"after_amount": 45000</span>
+</div>
+<div class="text-[11px] text-on-surface-variant/70">"discount_code": "TEABREAK10K"</div>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-numeric-table text-numeric-table font-mono">10.0.4.12 (Internal)</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Go Reconcile Service v2.4</div>
+<div class="font-numeric-table text-[10px] text-on-surface-variant font-mono">cluster: napas-worker-sg</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right space-y-1">
+<button class="w-full text-right px-2 py-1 rounded hover:bg-surface-container text-primary font-label-sm text-label-sm font-semibold flex items-center justify-end gap-1" onclick="openPayloadModal('trace-55a109e', 'debt.adjusted')">
+<span class="material-symbols-outlined text-sm">code</span> Payload JSON
+              </button>
+<button class="w-full text-right px-2 py-1 rounded hover:bg-surface-container text-secondary font-label-sm text-label-sm font-semibold flex items-center justify-end gap-1" onclick="verifySingleHash('trace-55a109e')">
+<span class="material-symbols-outlined text-sm">fingerprint</span> Chữ ký chuỗi
+              </button>
+</td>
+</tr>
+<!-- Row 4: system_setting.updated -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-space-md px-space-md align-top">
+<div class="font-numeric-table text-numeric-table text-on-surface">11:15:30</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Hôm nay (24/05/2026)</div>
+<div class="mt-1 font-numeric-table text-[11px] text-on-surface-variant/80 font-mono">trace-23b091f</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-base mt-0.5">shield_person</span>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">Alex Tran</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">ID: #ADM-01 • Superadmin</div>
+<span class="inline-block mt-1 px-1.5 py-0.2 rounded bg-primary-container text-on-primary text-[10px] font-bold uppercase">Root Authority</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-label-md text-label-md font-bold text-on-surface font-mono">system_setting.updated</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Cập nhật danh sách allowed_company_domains thêm domain đối tác</p>
+<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-semibold">Config Mutate</span>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">system_setting</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">allowed_company_domains</div>
+<div class="font-label-sm text-label-sm text-secondary font-mono mt-0.5">scope: kernel:global</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="bg-surface-container-low p-space-xs rounded-lg font-mono text-xs space-y-1">
+<div class="flex items-start gap-1 text-on-surface-variant truncate">
+<span class="text-error font-bold">-</span>
+<span>["@drinkflow.io", "@corp.vn"]</span>
+</div>
+<div class="flex items-start gap-1 text-secondary font-semibold truncate">
+<span class="text-secondary font-bold">+</span>
+<span>["@drinkflow.io", "@corp.vn", "@partner.global"]</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-numeric-table text-numeric-table font-mono">14.161.88.24</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant truncate max-w-[170px]">Safari 17.5 • macOS</div>
+<div class="font-numeric-table text-[10px] text-on-surface-variant font-mono truncate max-w-[170px]">dev: a889-4bc2-81fa</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right space-y-1">
+<button class="w-full text-right px-2 py-1 rounded hover:bg-surface-container text-primary font-label-sm text-label-sm font-semibold flex items-center justify-end gap-1" onclick="openPayloadModal('trace-23b091f', 'system_setting.updated')">
+<span class="material-symbols-outlined text-sm">code</span> Payload JSON
+              </button>
+<button class="w-full text-right px-2 py-1 rounded hover:bg-surface-container text-secondary font-label-sm text-label-sm font-semibold flex items-center justify-end gap-1" onclick="verifySingleHash('trace-23b091f')">
+<span class="material-symbols-outlined text-sm">fingerprint</span> Chữ ký chuỗi
+              </button>
+</td>
+</tr>
+<!-- Row 5: room_user_device.revoked -->
+<tr class="hover:bg-surface-container-low/60 transition-colors">
+<td class="py-space-md px-space-md align-top">
+<div class="font-numeric-table text-numeric-table text-on-surface">09:44:18</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Hôm nay (24/05/2026)</div>
+<div class="mt-1 font-numeric-table text-[11px] text-on-surface-variant/80 font-mono">trace-08e44ba</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-on-surface-variant text-base mt-0.5">person</span>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface">Lê Hoàng Nam</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">ID: #GU-8821 • User</div>
+<span class="inline-block mt-1 px-1.5 py-0.2 rounded bg-surface-container text-on-surface text-[10px] font-bold">Self-Service</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-label-md text-label-md font-bold text-on-surface font-mono">room_user_device.revoked</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Thu hồi thiết bị iPhone 15 do nhân sự báo mất</p>
+<span class="inline-block mt-1 px-1.5 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface font-semibold">Device Revocation</span>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-label-md text-label-md font-semibold text-on-surface">device_binding</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">iPhone 15 Pro Max</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant font-mono mt-0.5">room_id: 105 (HR)</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="bg-surface-container-low p-space-xs rounded-lg font-mono text-xs space-y-1">
+<div class="flex items-start gap-1 text-on-surface-variant">
+<span class="text-error font-bold">-</span>
+<span>"is_trusted": true, "session_active": true</span>
+</div>
+<div class="flex items-start gap-1 text-error font-semibold">
+<span class="text-error font-bold">+</span>
+<span>"is_trusted": false, "revoked_at": "2026-05-24T02:44:18Z"</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md align-top">
+<div class="font-numeric-table text-numeric-table font-mono">42.119.145.10</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant truncate max-w-[170px]">DrinkFlow iOS App v2.4</div>
+<div class="font-numeric-table text-[10px] text-on-surface-variant font-mono truncate max-w-[170px]">dev: d10e-771c-fca3</div>
+</td>
+<td class="py-space-md px-space-md align-top text-right space-y-1">
+<button class="w-full text-right px-2 py-1 rounded hover:bg-surface-container text-primary font-label-sm text-label-sm font-semibold flex items-center justify-end gap-1" onclick="openPayloadModal('trace-08e44ba', 'room_user_device.revoked')">
+<span class="material-symbols-outlined text-sm">code</span> Payload JSON
+              </button>
+<button class="w-full text-right px-2 py-1 rounded hover:bg-surface-container text-secondary font-label-sm text-label-sm font-semibold flex items-center justify-end gap-1" onclick="verifySingleHash('trace-08e44ba')">
+<span class="material-symbols-outlined text-sm">fingerprint</span> Chữ ký chuỗi
+              </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="px-space-xl py-space-md bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm font-body-sm text-body-sm text-on-surface-variant">
+<span>Hiển thị</span>
+<span class="font-numeric-table text-numeric-table text-on-surface font-bold">1 - 5</span>
+<span>trên tổng số</span>
+<span class="font-numeric-table text-numeric-table text-on-surface font-bold">48,912</span>
+<span>bản ghi kiểm toán</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm flex items-center gap-1 shadow-sm disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span> Trước
+        </button>
+<button class="w-8 h-8 rounded bg-primary text-on-primary font-label-sm text-label-sm font-bold shadow-sm">1</button>
+<button class="w-8 h-8 rounded bg-surface-container-lowest text-on-surface font-label-sm text-label-sm hover:bg-surface-container transition-colors shadow-sm">2</button>
+<button class="w-8 h-8 rounded bg-surface-container-lowest text-on-surface font-label-sm text-label-sm hover:bg-surface-container transition-colors shadow-sm">3</button>
+<span class="px-1 text-on-surface-variant">...</span>
+<button class="w-8 h-8 rounded bg-surface-container-lowest text-on-surface font-label-sm text-label-sm hover:bg-surface-container transition-colors shadow-sm">4892</button>
+<button class="px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface font-label-sm text-label-sm flex items-center gap-1 hover:bg-surface-container transition-colors shadow-sm">
+          Sau <span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom Regulatory Security Seal & Compliance Banner -->
+<div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-secondary text-xl">encrypted</span>
+</div>
+<div>
+<div class="font-label-md text-label-md font-bold text-on-surface flex items-center gap-2">
+<span>Dữ liệu được ký số SHA-256 bất biến</span>
+<span class="text-[10px] px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-container font-mono font-bold">WORM ENFORCED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Tuân thủ chuẩn bảo mật Enterprise SOX / ISO 27001 • Các bản ghi được chốt liên tục vào cây Merkle trên vùng lưu trữ bất biến.
+        </p>
+</div>
+</div>
+<div class="flex items-center gap-space-lg shrink-0">
+<div class="flex flex-col text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Audit Root Node Key</span>
+<span class="font-numeric-table text-numeric-table font-mono text-on-surface">e3b0c442...b9708fb5</span>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant"></div>
+<div class="flex flex-col text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Khóa xác minh</span>
+<span class="font-label-md text-label-md text-secondary font-bold flex items-center gap-1 justify-end">
+<span class="material-symbols-outlined text-sm">check_circle</span> Đã chứng thực
+        </span>
+</div>
+</div>
+</div>
+<!-- Modal: JSON Payload Inspector -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/60 backdrop-blur-sm p-space-md" id="modalPayload">
+<div class="bg-surface-container-lowest rounded-xl max-w-2xl w-full p-space-xl shadow-xl space-y-space-md flex flex-col max-h-[870px]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary">data_object</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface" id="modalPayloadTitle">Audit Payload JSON</h3>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-1 rounded-lg" onclick="closePayloadModal()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto bg-surface-container-low p-space-md rounded-lg font-mono text-xs text-on-surface leading-relaxed">
+<pre id="modalPayloadContent">Loading...</pre>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono" id="modalPayloadTrace">trace: none</span>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1" onclick="copyPayloadToClipboard()">
+<span class="material-symbols-outlined text-sm">content_copy</span> Sao chép JSON
+          </button>
+<button class="px-space-md py-1.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md" onclick="closePayloadModal()">
+            Đóng
+          </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal: Hash Chain Verification Flow -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/60 backdrop-blur-sm p-space-md" id="modalVerify">
+<div class="bg-surface-container-lowest rounded-xl max-w-lg w-full p-space-xl shadow-xl space-y-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary">verified_user</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Xác minh Chữ ký Chuỗi Khối</h3>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-1 rounded-lg" onclick="closeVerifyModal()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="space-y-space-sm">
+<div class="p-space-md rounded-lg bg-surface-container-low space-y-2">
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Thuật toán kiểm chứng:</span>
+<span class="font-mono text-on-surface font-bold">HMAC SHA-256 (Merkle DAG)</span>
+</div>
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Bản ghi kiểm tra gần nhất:</span>
+<span class="font-mono text-on-surface">trace-88f2a1b</span>
+</div>
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Previous Block Hash:</span>
+<span class="font-mono text-on-surface-variant text-[11px] truncate max-w-[220px]">3bf98a72c1d94020a1...</span>
+</div>
+<div class="flex justify-between font-label-sm text-label-sm">
+<span class="text-on-surface-variant">Calculated Merkle Root:</span>
+<span class="font-mono text-secondary text-[11px] truncate max-w-[220px]">e3b0c44298fc1c149a...</span>
+</div>
+</div>
+<div class="p-space-md rounded-lg bg-secondary-container text-on-secondary-container flex items-start gap-space-xs" id="verifyStateBox">
+<span class="material-symbols-outlined text-secondary text-lg mt-0.5">check_circle</span>
+<div>
+<div class="font-label-md text-label-md font-bold">Toàn vẹn Chuỗi 100% Khớp Đúng</div>
+<p class="font-body-sm text-body-sm mt-0.5">Không phát hiện bất kỳ dấu hiệu sửa đổi, chèn giả mạo hoặc mất mát dữ liệu trên toàn bộ 48,912 bản ghi.</p>
+</div>
+</div>
+</div>
+<div class="flex justify-end pt-space-xs">
+<button class="px-space-lg py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md" onclick="closeVerifyModal()">
+          Hoàn tất
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  const payloadDataStore = {
+    'trace-88f2a1b': {
+      trace_id: 'trace-88f2a1b',
+      event: 'admin_rooms.assigned',
+      timestamp: '2026-05-24T08:45:12.102Z',
+      actor: { id: 'ADM-01', name: 'Alex Tran', role: 'superadmin', ip: '14.161.88.24' },
+      target: { type: 'admin_account', id: 'ADM-04', name: 'Tuấn Lê' },
+      diff: {
+        before: { assigned_rooms: [1, 2], scope: ['room:1:admin', 'room:2:admin'] },
+        after: { assigned_rooms: [1, 2, 5], scope: ['room:1:admin', 'room:2:admin', 'room:5:admin'] }
+      },
+      hash_signature: 'sha256-7889bcfe019a2b41de45c088ef01c238b18a88f01bca',
+      merkle_leaf_index: 48912
+    },
+    'trace-91c77f0': {
+      trace_id: 'trace-91c77f0',
+      event: 'global_user.blocked',
+      timestamp: '2026-05-24T08:32:04.441Z',
+      actor: { id: 'ADM-04', name: 'Tuấn Lê', role: 'admin', ip: '118.69.182.90' },
+      target: { type: 'global_user', id: 'GU-8821', name: 'Lê Hoàng Nam' },
+      diff: {
+        before: { status: 'active', can_order: true, session_count: 2 },
+        after: { status: 'blocked', can_order: false, session_count: 0, reason: 'suspicious_credential_leak' }
+      },
+      hash_signature: 'sha256-42bc81f19abcf870192e4abef90184ca9170abb1cdef',
+      merkle_leaf_index: 48911
+    },
+    'trace-55a109e': {
+      trace_id: 'trace-55a109e',
+      event: 'debt.adjusted',
+      timestamp: '2026-05-24T07:19:55.801Z',
+      actor: { id: 'SYSTEM-RECONCILE', name: 'Napas VietQR Reconcile Daemon', role: 'system', ip: '10.0.4.12' },
+      target: { type: 'debt', id: 'DBT-9942', campaign_id: 'CAM-8841' },
+      diff: {
+        before: { original_amount: 55000, settled: false },
+        after: { adjusted_amount: 45000, discount_voucher: 'TEABREAK10K', settled: false }
+      },
+      hash_signature: 'sha256-91e84ca9170abb1cdef42bc81f19abcf870192e4abef',
+      merkle_leaf_index: 48910
+    },
+    'trace-23b091f': {
+      trace_id: 'trace-23b091f',
+      event: 'system_setting.updated',
+      timestamp: '2026-05-24T04:15:30.119Z',
+      actor: { id: 'ADM-01', name: 'Alex Tran', role: 'superadmin', ip: '14.161.88.24' },
+      target: { type: 'system_setting', key: 'allowed_company_domains' },
+      diff: {
+        before: { domains: ['@drinkflow.io', '@corp.vn'] },
+        after: { domains: ['@drinkflow.io', '@corp.vn', '@partner.global'] }
+      },
+      hash_signature: 'sha256-abef90184ca9170abb1cdef42bc81f19abcf870192e4',
+      merkle_leaf_index: 48909
+    },
+    'trace-08e44ba': {
+      trace_id: 'trace-08e44ba',
+      event: 'room_user_device.revoked',
+      timestamp: '2026-05-24T02:44:18.665Z',
+      actor: { id: 'GU-8821', name: 'Lê Hoàng Nam', role: 'user', ip: '42.119.145.10' },
+      target: { type: 'device_binding', device_id: 'd10e-771c-fca3' },
+      diff: {
+        before: { is_trusted: true, session_active: true },
+        after: { is_trusted: false, revoked_at: '2026-05-24T02:44:18Z' }
+      },
+      hash_signature: 'sha256-11f42bc81f19abcf870192e4abef90184ca9170abb1c',
+      merkle_leaf_index: 48908
+    }
+  };
+
+  function openPayloadModal(traceId, eventName) {
+    const modal = document.getElementById('modalPayload');
+    const content = document.getElementById('modalPayloadContent');
+    const title = document.getElementById('modalPayloadTitle');
+    const traceEl = document.getElementById('modalPayloadTrace');
+
+    const data = payloadDataStore[traceId] || { error: 'Payload record not found' };
+    title.textContent = `Audit Payload • ${eventName}`;
+    traceEl.textContent = `Trace: ${traceId}`;
+    content.textContent = JSON.stringify(data, null, 2);
+
+    modal.classList.remove('hidden');
+  }
+
+  function closePayloadModal() {
+    document.getElementById('modalPayload').classList.add('hidden');
+  }
+
+  function copyPayloadToClipboard() {
+    const content = document.getElementById('modalPayloadContent').textContent;
+    navigator.clipboard.writeText(content).then(() => {
+      alert('Đã sao chép cấu trúc JSON vào bộ nhớ đệm!');
+    });
+  }
+
+  function openVerifyModal() {
+    document.getElementById('modalVerify').classList.remove('hidden');
+  }
+
+  function closeVerifyModal() {
+    document.getElementById('modalVerify').classList.add('hidden');
+  }
+
+  function verifySingleHash(traceId) {
+    const item = payloadDataStore[traceId];
+    if (item) {
+      alert(`[Xác minh Chữ ký Bất biến]\nBản ghi: ${traceId}\nHash: ${item.hash_signature}\nMerkle Index: #${item.merkle_leaf_index}\nTrạng thái: KHỚP ĐÚNG TUYỆT ĐỐI (Verified Safe)`);
+    } else {
+      alert(`Đang kiểm tra tính toàn vẹn chữ ký cho ${traceId}... OK!`);
+    }
+  }
+
+  document.getElementById('btnVerifyChain')?.addEventListener('click', openVerifyModal);
+  document.getElementById('btnExport')?.addEventListener('click', () => {
+    alert('Đang trích xuất 48,912 bản ghi kiểm toán kèm Hash chữ ký số dưới định dạng JSON/CSV an toàn...');
+  });
+</script></main></div></body></html>

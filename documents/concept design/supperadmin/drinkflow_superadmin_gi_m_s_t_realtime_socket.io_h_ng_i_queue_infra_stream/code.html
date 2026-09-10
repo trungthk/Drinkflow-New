@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: 'class', theme: { extend: { 'colors': { 'on-error': '#ffffff', 'tertiary-fixed': '#ffddb8', 'tertiary': '#000000', 'secondary-fixed': '#6ffbbe', 'tertiary-container': '#2a1700', 'surface-container-high': '#dce9ff', 'surface-container': '#e5eeff', 'on-primary-container': '#7c839b', 'primary-container': '#131b2e', 'inverse-on-surface': '#eaf1ff', 'tertiary-fixed-dim': '#ffb95f', 'surface-dim': '#cbdbf5', 'on-primary-fixed': '#131b2e', 'primary': '#000000', 'on-surface': '#0b1c30', 'outline-variant': '#c6c6cd', 'on-error-container': '#93000a', 'on-secondary': '#ffffff', 'background': '#f8f9ff', 'surface-tint': '#565e74', 'surface-variant': '#d3e4fe', 'on-secondary-container': '#00714d', 'on-background': '#0b1c30', 'on-secondary-fixed-variant': '#005236', 'secondary': '#006c49', 'primary-fixed-dim': '#bec6e0', 'surface-bright': '#f8f9ff', 'secondary-fixed-dim': '#4edea3', 'on-surface-variant': '#45464d', 'primary-fixed': '#dae2fd', 'surface-container-highest': '#d3e4fe', 'inverse-surface': '#213145', 'error': '#ba1a1a', 'inverse-primary': '#bec6e0', 'outline': '#76777d', 'on-tertiary-container': '#b87500', 'surface-container-low': '#eff4ff', 'on-tertiary': '#ffffff', 'error-container': '#ffdad6', 'surface': '#f8f9ff', 'on-tertiary-fixed': '#2a1700', 'secondary-container': '#6cf8bb', 'surface-container-lowest': '#ffffff', 'on-primary': '#ffffff', 'on-tertiary-fixed-variant': '#653e00', 'on-primary-fixed-variant': '#3f465c', 'on-secondary-fixed': '#002113' }, 'borderRadius': { 'DEFAULT': '0.25rem', 'lg': '0.5rem', 'xl': '0.75rem', 'full': '9999px' }, 'spacing': { 'space-sm': '0.5rem', 'space-md': '0.75rem', 'margin-desktop': '2.5rem', 'space-2xl': '2rem', 'space-3xl': '3rem', 'margin-tablet': '1.5rem', 'gutter-mobile': '1rem', 'space-base': '1rem', 'space-2xs': '0.125rem', 'space-xs': '0.25rem', 'space-xl': '1.5rem', 'space-lg': '1.25rem', 'gutter-desktop': '1.5rem', 'margin-mobile': '1rem' }, 'fontFamily': { 'label-sm': ['Plus Jakarta Sans'], 'label-md': ['Plus Jakarta Sans'], 'headline-xl': ['Plus Jakarta Sans'], 'body-md': ['Plus Jakarta Sans'], 'headline-md': ['Plus Jakarta Sans'], 'body-sm': ['Plus Jakarta Sans'], 'body-lg': ['Plus Jakarta Sans'], 'numeric-table': ['Plus Jakarta Sans'], 'headline-sm': ['Plus Jakarta Sans'], 'numeric-stat': ['Plus Jakarta Sans'], 'headline-lg': ['Plus Jakarta Sans'], 'headline-xl-mobile': ['Plus Jakarta Sans'], 'label-lg': ['Plus Jakarta Sans'] }, 'fontSize': { 'label-sm': ['11px', { 'lineHeight': '14px', 'letterSpacing': '0.02em', 'fontWeight': '600' }], 'label-md': ['12px', { 'lineHeight': '16px', 'letterSpacing': '0.01em', 'fontWeight': '600' }], 'headline-xl': ['32px', { 'lineHeight': '40px', 'letterSpacing': '-0.025em', 'fontWeight': '700' }], 'body-md': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0em', 'fontWeight': '400' }], 'headline-md': ['20px', { 'lineHeight': '28px', 'letterSpacing': '-0.015em', 'fontWeight': '600' }], 'body-sm': ['12px', { 'lineHeight': '18px', 'letterSpacing': '0em', 'fontWeight': '400' }], 'body-lg': ['16px', { 'lineHeight': '24px', 'letterSpacing': '-0.005em', 'fontWeight': '400' }], 'numeric-table': ['14px', { 'lineHeight': '20px', 'letterSpacing': '-0.01em', 'fontWeight': '600' }], 'headline-sm': ['16px', { 'lineHeight': '24px', 'letterSpacing': '-0.01em', 'fontWeight': '600' }], 'numeric-stat': ['28px', { 'lineHeight': '36px', 'letterSpacing': '-0.03em', 'fontWeight': '700' }], 'headline-lg': ['24px', { 'lineHeight': '32px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'headline-xl-mobile': ['26px', { 'lineHeight': '34px', 'letterSpacing': '-0.02em', 'fontWeight': '700' }], 'label-lg': ['14px', { 'lineHeight': '20px', 'letterSpacing': '0.005em', 'fontWeight': '600' }] } } } };</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between"><div class="flex flex-col flex-1 overflow-y-auto"><div class="h-16 px-space-lg flex items-center gap-space-sm bg-surface-container-lowest"><img alt="Modern minimalist vector logo for DrinkFlow corporate app. An abstract sleek coffee cup or boba tea cup merged with clean geometric flow waves or checkmark, minimalist fintech tech style, deep navy and emerald mint green color accents on clean transparent background.. Design context: - Primary color: #0f172a
+- Font: plusJakartaSans
+- Mode: light
+- Roundness: rounded-md
+. The logo should be visually consistent with these brand tokens." class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VfdHD9KbxjlZXKrksIg_phD3M1bWNTMkLJRiKk9JOCXpehgfjZpdqo8OwId3jMb7nl-V6sdgeLfaKaiXoqHOyXgCJ6tcQbDsQCHKb0SpH2aC4FaWSekhrQRExuEXZO1lx7CEIJ3mhhG_Sdw9lJHkILT8lylvav7oY5-ZWHQ6ZNc4SiC05woMYhNTMC_3sxzVgdOT_wtSl5dTal8UwNzoLYGquO2igIMN148RJx83d8_fId_uluyLg27w"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight leading-none">DrinkFlow</span><span class="font-label-sm text-label-sm text-secondary font-bold uppercase tracking-wider mt-0.5">Kernel Core</span></div></div><div class="px-space-md py-space-sm"><div class="bg-surface-container-low px-space-md py-space-sm rounded-lg flex items-center justify-between"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-secondary text-sm">security</span><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Node Authority</span></div><span class="px-1.5 py-0.5 rounded font-label-sm text-label-sm bg-secondary-container text-on-secondary-container font-bold">PROD-SG</span></div></div><nav class="flex-1 px-space-md py-space-xs space-y-space-md" data-active-classes="bg-surface-container text-on-surface font-semibold rounded-lg shadow-sm"><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Core System</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="dashboard-and-health" href="#"><span class="material-symbols-outlined text-lg">monitoring</span><span class="font-body-sm text-body-sm flex-1">Dashboard &amp; Health</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="room-management" href="#"><span class="material-symbols-outlined text-lg">meeting_room</span><span class="font-body-sm text-body-sm flex-1">Room Management</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="admin-and-assignments" href="#"><span class="material-symbols-outlined text-lg">admin_panel_settings</span><span class="font-body-sm text-body-sm flex-1">Admin &amp; Assignments</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-users-and-identities" href="#"><span class="material-symbols-outlined text-lg">badge</span><span class="font-body-sm text-body-sm flex-1">Global Users &amp; Identities</span></a></div><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Platform Data</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-campaigns" href="#"><span class="material-symbols-outlined text-lg">campaign</span><span class="font-body-sm text-body-sm flex-1">Global Campaigns</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="global-debt-overview" href="#"><span class="material-symbols-outlined text-lg">account_balance</span><span class="font-body-sm text-body-sm flex-1">Global Debt Overview</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="audit-logs" href="#"><span class="material-symbols-outlined text-lg">receipt_long</span><span class="font-body-sm text-body-sm flex-1">Audit Logs</span></a></div><div class="space-y-space-xs"><div class="px-space-sm py-1 font-label-sm text-label-sm text-on-surface-variant font-bold uppercase tracking-wider">Infra &amp; Security</div><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="security-center" href="#"><span class="material-symbols-outlined text-lg">shield_person</span><span class="font-body-sm text-body-sm flex-1">Security Center</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="socket-io-and-queue" href="#"><span class="material-symbols-outlined text-lg">hub</span><span class="font-body-sm text-body-sm flex-1">Socket.IO &amp; Queue</span></a><a class="flex items-center gap-space-sm px-space-sm py-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors" data-path="system-settings-and-maintenance" href="#"><span class="material-symbols-outlined text-lg">settings_system_daydream</span><span class="font-body-sm text-body-sm flex-1">System Settings &amp; Maintenance</span></a></div></nav></div><div class="p-space-md bg-surface-container-low m-space-md rounded-xl space-y-space-xs"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-label-sm text-label-sm text-secondary font-bold uppercase">Zero Trust Enforced</span></div><p class="font-label-sm text-label-sm text-on-surface-variant leading-relaxed">DrinkFlow Kernel v2.4.0 • Enterprise Root Admin</p></div></aside><div class="pl-72 flex flex-col min-h-screen"><header class="fixed top-0 left-72 right-0 h-16 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 px-space-xl flex items-center justify-between"><div class="flex items-center gap-space-md"><span class="px-space-sm py-1 rounded bg-primary-container text-on-primary font-label-sm text-label-sm tracking-widest font-bold uppercase">Enterprise Superadmin</span><div class="h-4 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-on-surface-variant text-base">verified_user</span><span class="font-label-md text-label-md text-on-surface font-semibold">Root Authority (All Rooms &amp; Systems)</span></div></div><div class="hidden xl:flex items-center gap-space-lg px-space-md py-1.5 rounded-full bg-surface-container-low"><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-secondary"></span><span class="font-label-sm text-label-sm text-on-surface-variant">Socket:</span><span class="font-label-sm text-label-sm text-on-surface font-bold">Connected</span></div><div class="h-3 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-xs text-on-surface-variant">database</span><span class="font-label-sm text-label-sm text-on-surface-variant">DB:</span><span class="font-numeric-table text-numeric-table text-on-surface">12ms</span></div><div class="h-3 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-xs text-secondary">task_alt</span><span class="font-label-sm text-label-sm text-on-surface-variant">Queue:</span><span class="font-label-sm text-label-sm text-secondary font-bold">Healthy</span></div></div><div class="flex items-center gap-space-lg"><button aria-label="Notifications" class="relative p-space-xs text-on-surface-variant hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-xl">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></button><div class="h-6 w-[1px] bg-surface-variant"></div><div class="flex items-center gap-space-sm"><div class="flex flex-col text-right"><span class="font-label-md text-label-md text-on-surface font-bold leading-tight">Alex Tran</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Chief Platform Architect / Superadmin</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-1 ring-surface-variant" src="https://lh3.googleusercontent.com/aida/AEtjO1UNzJSRtTOvm_yCmgGIiF_k57geL4PhhBO7akp9MzRMP5zqxilHgIS_5ZXh6byJ9gQExKnQ4TuMhrlq2x0nwv8KWovUUQqtfaMXf2aNOxeAxygj4NolHPs2xPM-I6FB-Sd2v5CGvSxh8xOgm9qY2saY-NKE_sKtO2dlpdKv8mgq9qd_a0Goj8uili80fNtiKJ5KDD-Dobm3mGfpAha1ucwUNNPfk5p3PyLYN7Q32I7gzFZACoLSA3tM0ik"/></div></div></header><main class="w-full pt-16 bg-surface flex-1 px-space-xl py-space-xl"><div class="flex flex-col w-full space-y-space-xl">
+<!-- Header & Top Command Bar -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div class="space-y-space-2xs">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="tracking-wider">DRINKFLOW KERNEL</span>
+<span>•</span>
+<span>INFRASTRUCTURE</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-secondary font-bold">REALTIME &amp; WORKERS</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">
+        Giám sát Socket.IO Gateway &amp; Xử lý Hàng đợi (Realtime &amp; BullMQ Monitor)
+      </h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-4xl">
+        Theo dõi kết nối thời gian thực theo phòng ban, trạng thái kênh phát tán và khắc phục lỗi Job không đồng bộ
+      </p>
+</div>
+<!-- Actions -->
+<div class="flex flex-wrap items-center gap-space-sm shrink-0">
+<button class="flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container transition-colors shadow-sm" id="realtimeToggleBtn" onclick="toggleAutoRefresh()">
+<span class="w-2 h-2 rounded-full bg-secondary animate-ping"></span>
+<span class="font-label-md text-label-md font-semibold" id="refreshLabel">Làm mới Realtime (Auto 2s)</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-variant transition-colors shadow-sm" onclick="restartGateway()">
+<span class="material-symbols-outlined text-base">restart_alt</span>
+<span class="font-label-md text-label-md font-semibold">Khởi động lại Gateway Pods</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-2 rounded-lg bg-primary-container text-on-primary hover:bg-primary transition-all shadow-md" onclick="retryAllFailed()">
+<span class="material-symbols-outlined text-base text-secondary-fixed">replay</span>
+<span class="font-label-md text-label-md font-bold">Retry toàn bộ Job lỗi (Retry 3 Failed)</span>
+</button>
+</div>
+</div>
+<!-- Top Bento Metrics (4 Cards) -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-base">
+<!-- Metric 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-secondary/5 pointer-events-none"></div>
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Socket.IO Server Health</span>
+<span class="p-1.5 rounded-lg bg-secondary-container text-on-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">podcasts</span>
+</span>
+</div>
+<div class="my-space-sm">
+<div class="flex items-baseline gap-2">
+<span class="font-numeric-stat text-numeric-stat text-on-surface">ONLINE</span>
+<span class="font-label-sm text-label-sm text-secondary font-bold">(Pod-Cluster 3/3)</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant pt-space-xs border-t border-surface-container-low font-body-sm text-body-sm">
+<span>Uptime: <strong class="text-on-surface font-semibold">99.98%</strong></span>
+<span>Gateway: <strong class="text-on-surface font-semibold">v1.8 • 12ms</strong></span>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-primary/5 pointer-events-none"></div>
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tổng Kết nối Đang mở</span>
+<span class="p-1.5 rounded-lg bg-surface-container-high text-on-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">hub</span>
+</span>
+</div>
+<div class="my-space-sm">
+<div class="flex items-baseline gap-2">
+<span class="font-numeric-stat text-numeric-stat text-on-surface">614</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Active Sockets</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant pt-space-xs font-body-sm text-body-sm">
+<span>42 Admins • 570 Users</span>
+<span class="text-secondary font-semibold">0 Rò rỉ RAM</span>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Kênh Phòng Ban (Rooms)</span>
+<span class="p-1.5 rounded-lg bg-surface-container text-on-surface flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">meeting_room</span>
+</span>
+</div>
+<div class="my-space-sm">
+<div class="flex items-baseline gap-2">
+<span class="font-numeric-stat text-numeric-stat text-on-surface">12</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-bold">Channels (room:{id})</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant pt-space-xs font-body-sm text-body-sm">
+<span>Private User Channels:</span>
+<span class="text-on-surface font-semibold font-numeric-table text-numeric-table">184 Live</span>
+</div>
+</div>
+<!-- Metric 4 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">BullMQ Workers / Queue</span>
+<span class="p-1.5 rounded-lg bg-error-container text-on-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-lg">error_outline</span>
+</span>
+</div>
+<div class="my-space-sm">
+<div class="flex items-baseline gap-2">
+<span class="font-numeric-stat text-numeric-stat text-secondary">99.8%</span>
+<span class="font-label-sm text-label-sm text-error font-bold">3 Thất bại (24h)</span>
+</div>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant pt-space-xs font-body-sm text-body-sm">
+<span>Đang chờ: <strong class="text-on-surface">3 Jobs</strong></span>
+<span>Avg: <strong class="text-on-surface font-numeric-table text-numeric-table">140ms</strong></span>
+</div>
+</div>
+</div>
+<!-- Tab Switcher Navigation -->
+<div class="flex items-center justify-between border-b border-surface-container-high pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<button class="px-space-lg py-space-sm rounded-lg font-label-lg text-label-lg font-bold bg-primary text-on-primary shadow-sm flex items-center gap-space-xs transition-all" id="tab-btn-socket" onclick="switchTab('tab-socket')">
+<span class="material-symbols-outlined text-lg">sync_alt</span>
+        Tab 1: Socket.IO Gateway &amp; Room Connection Matrix
+      </button>
+<button class="px-space-lg py-space-sm rounded-lg font-label-lg text-label-lg font-semibold bg-surface-container-low text-on-surface-variant hover:text-on-surface flex items-center gap-space-xs transition-all" id="tab-btn-queue" onclick="switchTab('tab-queue')">
+<span class="material-symbols-outlined text-lg">reorder</span>
+        Tab 2: Trạm Kiểm soát Hàng đợi &amp; Failed Jobs
+        <span class="ml-1 px-1.5 py-0.5 rounded-full bg-error text-on-error font-label-sm text-label-sm">3</span>
+</button>
+</div>
+<div class="hidden lg:flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-base text-secondary">verified</span>
+<span>Cluster: Redis Pub/Sub Adapter (v7.2.4)</span>
+</div>
+</div>
+<!-- TAB 1: Socket.IO Matrix & HMAC Verification -->
+<div class="space-y-space-xl" id="tab-socket-content">
+<!-- Active Room Channels Matrix -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="p-space-lg flex flex-col sm:flex-row sm:items-center justify-between gap-space-md bg-surface-container-lowest">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary">meeting_room</span>
+            Phân Bổ Kết Nối Theo Phòng Ban (Connections by Room Channel)
+          </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+            Mỗi phòng ban là một Redis room namespace độc lập với kiểm soát luồng đa phòng ban &amp; push thông báo tức thì.
+          </p>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="px-2.5 py-1 rounded bg-surface-container font-numeric-table text-numeric-table text-on-surface">12 Rooms Active</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<tr>
+<th class="py-space-md px-space-lg">Phòng Ban / Kênh Gateway</th>
+<th class="py-space-md px-space-md">Tổng Socket</th>
+<th class="py-space-md px-space-md">Phân Bổ Thành Viên</th>
+<th class="py-space-md px-space-md">Sự Kiện Phát Gần Nhất</th>
+<th class="py-space-md px-space-md">Độ trễ Broadcast</th>
+<th class="py-space-md px-space-lg text-right">Tác Vụ</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary"></div>
+<div>
+<span class="font-label-md text-label-md text-on-surface font-bold">Room IT - Tầng 4</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant font-mono">room:101</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-numeric-table text-numeric-table text-on-surface font-bold">42</span> Sockets
+              </td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm">1 Host Admin</span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface">41 Users</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-sm text-secondary">bolt</span>
+<span class="font-mono text-on-surface font-semibold">order.created</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">(1s trước)</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-numeric-table text-numeric-table text-secondary font-semibold">4.8ms</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<button class="px-space-sm py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="pingRoom('101')">
+                  Ping Room
+                </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary"></div>
+<div>
+<span class="font-label-md text-label-md text-on-surface font-bold">Marketing &amp; Growth</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant font-mono">room:102</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-numeric-table text-numeric-table text-on-surface font-bold">28</span> Sockets
+              </td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm">2 Host Admins</span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface">26 Users</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">campaign</span>
+<span class="font-mono text-on-surface font-semibold">campaign.updated</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">(45s trước)</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-numeric-table text-numeric-table text-secondary font-semibold">6.1ms</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<button class="px-space-sm py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="pingRoom('102')">
+                  Ping Room
+                </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary"></div>
+<div>
+<span class="font-label-md text-label-md text-on-surface font-bold">Product &amp; Design Lab</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant font-mono">room:103</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-numeric-table text-numeric-table text-on-surface font-bold">19</span> Sockets
+              </td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm">1 Host Admin</span>
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface">18 Users</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">payments</span>
+<span class="font-mono text-on-surface font-semibold">debt.settled</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">(3m trước)</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-numeric-table text-numeric-table text-secondary font-semibold">5.4ms</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<button class="px-space-sm py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="pingRoom('103')">
+                  Ping Room
+                </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-lowest/80 transition-colors">
+<td class="py-space-md px-space-lg">
+<div class="flex items-center gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary-fixed-dim"></div>
+<div>
+<span class="font-label-md text-label-md text-on-surface font-bold">Global Admin Stream</span>
+<div class="font-label-sm text-label-sm text-on-surface-variant font-mono">admin:all &amp; superadmin</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-numeric-table text-numeric-table text-on-surface font-bold">18</span> Sockets
+              </td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-1.5">
+<span class="px-2 py-0.5 rounded bg-primary text-on-primary font-label-sm text-label-sm font-bold">2 Superadmins</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high font-label-sm text-label-sm text-on-surface">16 Room Admins</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-sm text-on-surface-variant">terminal</span>
+<span class="font-mono text-on-surface font-semibold">system.health_tick</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">(2s trước)</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-numeric-table text-numeric-table text-secondary font-semibold">2.1ms</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<button class="px-space-sm py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="inspectAdminChannel()">
+                  Xem Stream
+                </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Socket Token & HMAC Verification Stream -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg space-y-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary">key</span>
+            Kiểm tra Xác thực Socket Token (HMAC Signed Handshakes)
+          </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+            Xác thực cấp token có chữ ký HMAC ngắn hạn từ Laravel Kernel (TTL 60s) chống mạo danh và can thiệp WebSocket
+          </p>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-secondary font-bold uppercase">100% Handshakes Valid</span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<tr>
+<th class="py-space-sm px-space-md">Actor Type</th>
+<th class="py-space-sm px-space-md">Global User ID</th>
+<th class="py-space-sm px-space-md">Room User ID</th>
+<th class="py-space-sm px-space-md">Expire in</th>
+<th class="py-space-sm px-space-md">HMAC SHA-256 Signature</th>
+<th class="py-space-sm px-space-md text-right">Verified State</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<tr>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold">Superadmin</span>
+</td>
+<td class="py-space-sm px-space-md font-mono text-on-surface">usr_root_001</td>
+<td class="py-space-sm px-space-md font-mono text-on-surface-variant">SYSTEM_GLOBAL</td>
+<td class="py-space-sm px-space-md font-numeric-table text-numeric-table text-secondary">58s</td>
+<td class="py-space-sm px-space-md font-mono text-label-sm text-on-surface-variant">e3b0c44298fc1c149afbf4c8...</td>
+<td class="py-space-sm px-space-md text-right">
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">VERIFIED</span>
+</td>
+</tr>
+<tr>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-on-surface font-label-sm text-label-sm font-semibold">Room Admin</span>
+</td>
+<td class="py-space-sm px-space-md font-mono text-on-surface">usr_it_admin09</td>
+<td class="py-space-sm px-space-md font-mono text-on-surface-variant">ru_101_host</td>
+<td class="py-space-sm px-space-md font-numeric-table text-numeric-table text-secondary">42s</td>
+<td class="py-space-sm px-space-md font-mono text-label-sm text-on-surface-variant">87293a9b1836ef018274ac4...</td>
+<td class="py-space-sm px-space-md text-right">
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">VERIFIED</span>
+</td>
+</tr>
+<tr>
+<td class="py-space-sm px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">Member</span>
+</td>
+<td class="py-space-sm px-space-md font-mono text-on-surface">usr_mkt_member14</td>
+<td class="py-space-sm px-space-md font-mono text-on-surface-variant">ru_102_u884</td>
+<td class="py-space-sm px-space-md font-numeric-table text-numeric-table text-secondary">19s</td>
+<td class="py-space-sm px-space-md font-mono text-label-sm text-on-surface-variant">19284cbcf992019401abed1...</td>
+<td class="py-space-sm px-space-md text-right">
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">VERIFIED</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- TAB 2: Queue & BullMQ Worker Pipeline (Hidden by default or switchable) -->
+<div class="space-y-space-xl hidden" id="tab-queue-content">
+<!-- Active BullMQ Workers Pipeline Grid -->
+<div class="space-y-space-sm">
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary">engineering</span>
+            Danh sách Công việc Nền (Job Pipeline &amp; BullMQ Workers)
+          </h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Xử lý webhook thông báo văn phòng, thu thập dữ liệu giá món &amp; chia tự động hóa đơn
+          </p>
+</div>
+<span class="px-2.5 py-1 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">
+          6 Dedicated Pipelines Active
+        </span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-space-base">
+<!-- Pipeline Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-bold">SendChatworkNotification</span>
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">IDLE</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">redis:notifications • Concurrency: 5</p>
+<div class="flex items-center justify-between pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span>Processed: <strong class="text-on-surface font-numeric-table text-numeric-table">1,248</strong></span>
+<span>Success: <strong class="text-secondary">100%</strong></span>
+</div>
+</div>
+<!-- Pipeline Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-bold">SendTelegramNotification</span>
+<span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">1 RETRYING</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">redis:notifications • Concurrency: 10</p>
+<div class="flex items-center justify-between pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span>Processed: <strong class="text-on-surface font-numeric-table text-numeric-table">3,892</strong></span>
+<span>Success: <strong class="text-error">99.7%</strong></span>
+</div>
+</div>
+<!-- Pipeline Card 3 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-bold">SendSlackNotification</span>
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">IDLE</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">redis:notifications • Concurrency: 8</p>
+<div class="flex items-center justify-between pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span>Processed: <strong class="text-on-surface font-numeric-table text-numeric-table">940</strong></span>
+<span>Success: <strong class="text-secondary">100%</strong></span>
+</div>
+</div>
+<!-- Pipeline Card 4 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-bold">CrawlMenu (Shopee/Grab)</span>
+<span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">2 FAILED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">redis:crawlers • Concurrency: 3</p>
+<div class="flex items-center justify-between pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span>Processed: <strong class="text-on-surface font-numeric-table text-numeric-table">312</strong></span>
+<span>Success: <strong class="text-error">98.4%</strong></span>
+</div>
+</div>
+<!-- Pipeline Card 5 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-bold">CloseCampaignBatch</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm font-bold">SCHEDULED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">redis:campaigns • Concurrency: 2</p>
+<div class="flex items-center justify-between pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span>Next Run: <strong class="text-on-surface">11:00 AM</strong></span>
+<span>Success: <strong class="text-secondary">100%</strong></span>
+</div>
+</div>
+<!-- Pipeline Card 6 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm space-y-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-bold">AutoSplitBillSettlement</span>
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">IDLE</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">redis:finance • Concurrency: 6</p>
+<div class="flex items-center justify-between pt-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span>Processed: <strong class="text-on-surface font-numeric-table text-numeric-table">480</strong></span>
+<span>Success: <strong class="text-secondary">100%</strong></span>
+</div>
+</div>
+</div>
+</div>
+<!-- Bảng Quản lý Failed Jobs (Laravel failed_jobs) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<div class="p-space-lg flex flex-col sm:flex-row sm:items-center justify-between gap-space-md bg-surface-container-lowest">
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-error">report</span>
+<h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">
+              Bảng Quản lý Failed Jobs (Laravel failed_jobs Table)
+            </h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+            Lưu vết tự động các tác vụ thất bại vượt ngưỡng max attempts, lưu trữ exception stacktrace &amp; payload JSON.
+          </p>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-1 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">
+            3 Thất bại Cần xử lý
+          </span>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<tr>
+<th class="py-space-md px-space-lg">Job ID &amp; Class</th>
+<th class="py-space-md px-space-md">Queue / Connection</th>
+<th class="py-space-md px-space-md">Lỗi Chi Tiết (Exception Message)</th>
+<th class="py-space-md px-space-md">Attempts</th>
+<th class="py-space-md px-space-md">Thời gian</th>
+<th class="py-space-md px-space-lg text-right">Tác vụ Trực tiếp</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low" id="failedJobsBody">
+<!-- Job 1 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors" id="job-row-1092">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-mono text-on-surface font-bold">#1092</span>
+<span class="font-mono text-label-sm text-primary">App\Jobs\SendTelegramNotification</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container font-mono text-label-sm text-on-surface">redis:notifications</span>
+</td>
+<td class="py-space-md px-space-md max-w-xs">
+<p class="font-body-sm text-body-sm text-error font-medium truncate" title="Telegram API Timeout 504 Gateway (Endpoint: https://api.telegram.org/bot.../sendMessage)">
+                  Telegram API Timeout 504 Gateway
+                </p>
+<span class="font-label-sm text-label-sm text-on-surface-variant">HTTP Request to telegram.org timed out after 10000ms</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-numeric-table text-numeric-table font-bold">3 / 3</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant">10:14 Hôm nay</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="retryJob('1092')">
+                    Thử lại
+                  </button>
+<button class="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="viewPayload('1092')">
+                    JSON Payload
+                  </button>
+<button class="p-1 rounded text-on-surface-variant hover:text-error transition-colors" onclick="deleteJob('1092')" title="Xóa Job">
+<span class="material-symbols-outlined text-base">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Job 2 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors" id="job-row-1093">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-mono text-on-surface font-bold">#1093</span>
+<span class="font-mono text-label-sm text-primary">App\Jobs\CrawlMenuFromShopeeFood</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container font-mono text-label-sm text-on-surface">redis:crawlers</span>
+</td>
+<td class="py-space-md px-space-md max-w-xs">
+<p class="font-body-sm text-body-sm text-error font-medium truncate" title="ShopeeFood Cloudflare Bot Detection HTTP 403 Forbidden">
+                  ShopeeFood Cloudflare Bot Detection HTTP 403
+                </p>
+<span class="font-label-sm text-label-sm text-on-surface-variant">WAF Challenge returned captcha verification page</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-numeric-table text-numeric-table font-bold">3 / 3</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant">09:45 Hôm nay</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="retryJob('1093')">
+                    Thử lại
+                  </button>
+<button class="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="viewPayload('1093')">
+                    JSON Payload
+                  </button>
+<button class="p-1 rounded text-on-surface-variant hover:text-error transition-colors" onclick="deleteJob('1093')" title="Xóa Job">
+<span class="material-symbols-outlined text-base">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Job 3 -->
+<tr class="hover:bg-surface-container-lowest/80 transition-colors" id="job-row-1094">
+<td class="py-space-md px-space-lg">
+<div class="flex flex-col">
+<span class="font-mono text-on-surface font-bold">#1094</span>
+<span class="font-mono text-label-sm text-primary">App\Jobs\CrawlMenuFromShopeeFood</span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-2 py-0.5 rounded bg-surface-container font-mono text-label-sm text-on-surface">redis:crawlers</span>
+</td>
+<td class="py-space-md px-space-md max-w-xs">
+<p class="font-body-sm text-body-sm text-error font-medium truncate" title="ShopeeFood Cloudflare Bot Detection HTTP 403 Forbidden">
+                  ShopeeFood Cloudflare Bot Detection HTTP 403
+                </p>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Store ID: 819284 • Proxy Node SG-04 banned</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-numeric-table text-numeric-table font-bold">3 / 3</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant">09:30 Hôm nay</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="flex items-center justify-end gap-1.5">
+<button class="px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="retryJob('1094')">
+                    Thử lại
+                  </button>
+<button class="px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold transition-colors" onclick="viewPayload('1094')">
+                    JSON Payload
+                  </button>
+<button class="p-1 rounded text-on-surface-variant hover:text-error transition-colors" onclick="deleteJob('1094')" title="Xóa Job">
+<span class="material-symbols-outlined text-base">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Modal Sheet for JSON Payload & Stacktrace -->
+<div class="fixed inset-0 bg-primary/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-space-md" id="payloadModal">
+<div class="bg-surface-container-lowest w-full max-w-3xl rounded-xl shadow-xl overflow-hidden flex flex-col max-h-[870px]">
+<div class="p-space-lg flex items-center justify-between border-b border-surface-container">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary">data_object</span>
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold" id="modalTitle">Payload &amp; Exception Stacktrace</span>
+</div>
+<button class="p-1 rounded-lg text-on-surface-variant hover:text-on-surface" onclick="closePayloadModal()">
+<span class="material-symbols-outlined text-xl">close</span>
+</button>
+</div>
+<div class="p-space-lg overflow-y-auto space-y-space-md font-mono text-label-sm">
+<div>
+<span class="text-on-surface-variant uppercase tracking-wider font-label-sm font-bold block mb-1">Queue Connection:</span>
+<div class="p-space-sm rounded bg-surface-container-low text-on-surface font-mono" id="modalConn">redis:notifications</div>
+</div>
+<div>
+<span class="text-on-surface-variant uppercase tracking-wider font-label-sm font-bold block mb-1">Raw Payload JSON:</span>
+<pre class="p-space-md rounded bg-surface-container-lowest border border-surface-container-high text-on-surface overflow-x-auto text-xs" id="modalPayload">{
+  "job": "Illuminate\\Queue\\CallQueuedHandler@call",
+  "data": {
+    "commandName": "App\\Jobs\\SendTelegramNotification",
+    "command": "O:31:\"App\\Jobs\\SendTelegramNotification\":4:{s:7:\"room_id\";i:101;s:10:\"message_id\";s:12:\"TG_ORD_98124\";s:6:\"chat_id\";s:10:\"-100293819\";s:7:\"payload\";a:3:{s:5:\"event\";s:13:\"order.created\";s:5:\"total\";i:285000;s:5:\"items\";i:6;}}"
+  }
+}</pre>
+</div>
+<div>
+<span class="text-error uppercase tracking-wider font-label-sm font-bold block mb-1">Exception Traceback:</span>
+<pre class="p-space-md rounded bg-error-container text-on-error-container overflow-x-auto text-xs" id="modalStack">GuzzleHttp\Exception\ConnectException: cURL error 28: Operation timed out after 10001 milliseconds with 0 out of 0 bytes received (see https://curl.haxx.se/libcurl/c/libcurl-errors.html) for https://api.telegram.org/botSECRET_KEY/sendMessage
+  at vendor/guzzlehttp/guzzle/src/Handler/CurlHandler.php:40
+  at vendor/guzzlehttp/guzzle/src/Handler/CurlFactory.php:158
+  at App\Services\TelegramBotService.php:84
+  at App\Jobs\SendTelegramNotification.php:48</pre>
+</div>
+</div>
+<div class="p-space-md bg-surface-container-low flex items-center justify-end gap-space-sm border-t border-surface-container">
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md font-semibold" onclick="closePayloadModal()">
+          Đóng cửa sổ
+        </button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  let isAutoRefresh = true;
+  function toggleAutoRefresh() {
+    isAutoRefresh = !isAutoRefresh;
+    const label = document.getElementById('refreshLabel');
+    const btn = document.getElementById('realtimeToggleBtn');
+    if (isAutoRefresh) {
+      label.textContent = 'Làm mới Realtime (Auto 2s)';
+      btn.classList.remove('opacity-60');
+    } else {
+      label.textContent = 'Đã tạm dừng Realtime';
+      btn.classList.add('opacity-60');
+    }
+  }
+
+  function restartGateway() {
+    if (confirm('Khởi động lại Pod Gateway sẽ ngắt tạm thời 614 socket trong khoảng 350ms. Tiếp tục?')) {
+      alert('Đã gửi tín hiệu Rolling Restart đến Kubernetes Pod-Cluster 3/3.');
+    }
+  }
+
+  function retryAllFailed() {
+    const rows = ['job-row-1092', 'job-row-1093', 'job-row-1094'];
+    rows.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.style.opacity = '0.4';
+      }
+    });
+    setTimeout(() => {
+      alert('Đã đẩy 3 Failed Jobs vào hàng đợi BullMQ để thử lại!');
+    }, 300);
+  }
+
+  function retryJob(id) {
+    const el = document.getElementById('job-row-' + id);
+    if (el) {
+      el.style.opacity = '0.3';
+      setTimeout(() => {
+        el.remove();
+        alert('Job #' + id + ' đã được chuyển sang BullMQ Active Worker.');
+      }, 400);
+    }
+  }
+
+  function deleteJob(id) {
+    if (confirm('Xác nhận xóa bỏ vĩnh viễn Job #' + id + ' khỏi failed_jobs?')) {
+      const el = document.getElementById('job-row-' + id);
+      if (el) el.remove();
+    }
+  }
+
+  function switchTab(tabId) {
+    const socketContent = document.getElementById('tab-socket-content');
+    const queueContent = document.getElementById('tab-queue-content');
+    const btnSocket = document.getElementById('tab-btn-socket');
+    const btnQueue = document.getElementById('tab-btn-queue');
+
+    if (tabId === 'tab-socket') {
+      socketContent.classList.remove('hidden');
+      queueContent.classList.add('hidden');
+      btnSocket.className = 'px-space-lg py-space-sm rounded-lg font-label-lg text-label-lg font-bold bg-primary text-on-primary shadow-sm flex items-center gap-space-xs transition-all';
+      btnQueue.className = 'px-space-lg py-space-sm rounded-lg font-label-lg text-label-lg font-semibold bg-surface-container-low text-on-surface-variant hover:text-on-surface flex items-center gap-space-xs transition-all';
+    } else {
+      socketContent.classList.add('hidden');
+      queueContent.classList.remove('hidden');
+      btnQueue.className = 'px-space-lg py-space-sm rounded-lg font-label-lg text-label-lg font-bold bg-primary text-on-primary shadow-sm flex items-center gap-space-xs transition-all';
+      btnSocket.className = 'px-space-lg py-space-sm rounded-lg font-label-lg text-label-lg font-semibold bg-surface-container-low text-on-surface-variant hover:text-on-surface flex items-center gap-space-xs transition-all';
+    }
+  }
+
+  function viewPayload(id) {
+    document.getElementById('modalTitle').textContent = 'Payload & Stacktrace Job #' + id;
+    document.getElementById('payloadModal').classList.remove('hidden');
+  }
+
+  function closePayloadModal() {
+    document.getElementById('payloadModal').classList.add('hidden');
+  }
+
+  function pingRoom(roomId) {
+    alert('Đã gửi broadcast socket event `sys.ping` tới kênh room:' + roomId);
+  }
+
+  function inspectAdminChannel() {
+    alert('Admin Stream: 18 Superadmin/Admins đang kết nối an toàn qua WSS channel.');
+  }
+</script></main></div></body></html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DrinkFlow - Điều khoản Sử dụng & Quy chuẩn Đặt hàng</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#f8f9ff] text-slate-800 font-sans antialiased min-h-full flex flex-col justify-between">
+  <!-- Top Bar -->
+  <header class="bg-white border-b border-slate-100 px-4 py-3 sm:px-6 sticky top-0 z-30">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <img src="https://lh3.googleusercontent.com/aida/AEtjO1VfdHD9KbxjlZXKrksIg_phD3M1bWNTMkLJRiKk9JOCXpehgfjZpdqo8OwId3jMb7nl-V6sdgeLfaKaiXoqHOyXgCJ6tcQbDsQCHKb0SpH2aC4FaWSekhrQRExuEXZO1lx7CEIJ3mhhG_Sdw9lJHkILT8lylvav7oY5-ZWHQ6ZNc4SiC05woMYhNTMC_3sxzVgdOT_wtSl5dTal8UwNzoLYGquO2igIMN148RJx83d8_fId_uluyLg27w" alt="Logo" class="w-8 h-8 rounded-lg object-contain">
+        <span class="font-extrabold text-base text-slate-900">DrinkFlow Enterprise</span>
+      </div>
+      <a href="#" class="text-xs font-bold text-slate-600 hover:text-slate-900">← Về Trang chủ</a>
+    </div>
+  </header>
+
+  <main class="flex-grow max-w-4xl mx-auto px-4 py-8 sm:py-12 w-full">
+    <!-- Header document -->
+    <div class="mb-8">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">Văn bản quy định nội bộ</span>
+      <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 mt-3 mb-2 tracking-tight">Điều khoản Sử dụng & Quy chuẩn Đặt đồ uống</h1>
+      <p class="text-xs sm:text-sm text-slate-500">Cập nhật lần cuối: Ngày 10 tháng 05 năm 2026 • Phiên bản hiệu lực: v2.4.0</p>
+    </div>
+
+    <!-- Content Sections -->
+    <div class="bg-white rounded-3xl p-6 sm:p-10 border border-slate-100 shadow-sm space-y-8 text-xs sm:text-sm leading-relaxed text-slate-700">
+      
+      <!-- Section 1 -->
+      <div>
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 mb-3">
+          <span class="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs">1</span>
+          Quy định về Tài khoản & Định danh (Identity)
+        </h2>
+        <ul class="list-disc pl-5 space-y-1.5 text-slate-600">
+          <li>DrinkFlow chỉ cho phép đăng nhập bằng Google Workspace thuộc tên miền doanh nghiệp đã được ủy quyền (ví dụ: <code class="bg-slate-100 text-slate-900 px-1 py-0.5 rounded font-mono">@company.com</code>).</li>
+          <li>Mỗi tài khoản Global User có thể tham gia vào nhiều Room (Phòng ban/Chi nhánh) khác nhau, tuy nhiên quyền hạn, mã định danh (<code class="bg-slate-100 text-slate-900 px-1 py-0.5 rounded font-mono">user_code</code>) và công nợ sẽ được quản lý hoàn toàn độc lập tại từng Room.</li>
+          <li>Người dùng có trách nhiệm bảo mật thiết bị đã gán quyền <span class="font-bold text-slate-800">Trusted Device</span>. Trong trường hợp mất thiết bị, cần sử dụng tính năng "Thu hồi thiết bị" ngay tại trang cá nhân.</li>
+        </ul>
+      </div>
+
+      <!-- Section 2 -->
+      <div>
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 mb-3">
+          <span class="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs">2</span>
+          Quy chế Khóa 1 Đơn Duy Nhất (Single Active Order Lock)
+        </h2>
+        <p class="text-slate-600 mb-2">
+          Để đảm bảo tính nhất quán của hóa đơn gom phòng và hạn chế tình trạng đặt nhầm, DrinkFlow áp dụng chính sách kỹ thuật:
+        </p>
+        <div class="bg-blue-50/70 border border-blue-100 p-4 rounded-2xl text-blue-900 font-medium space-y-1">
+          <p>• Trong một Chiến dịch (Campaign) đang mở, mỗi thành viên chỉ được duy trì <strong>01 đơn đặt hàng duy nhất</strong>.</p>
+          <p>• Bạn có thể thoải mái chỉnh sửa món, kích cỡ, lượng đường/đá và topping trước thời điểm Chốt sổ (Closing Deadline).</p>
+          <p>• Khi Host (Admin) đã bấm chốt đơn hoặc khi đồng hồ đếm ngược về 00:00, mọi thao tác chỉnh sửa hoặc hủy đơn sẽ bị khóa hoàn toàn.</p>
+        </div>
+      </div>
+
+      <!-- Section 3 -->
+      <div>
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 mb-3">
+          <span class="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs">3</span>
+          Quy chuẩn Quyết toán Công nợ & Chuyển khoản VietQR
+        </h2>
+        <ul class="list-disc pl-5 space-y-1.5 text-slate-600">
+          <li><strong>Ngân sách trợ giá (Company Sponsor):</strong> Được hệ thống tự động cấn trừ trực tiếp vào đơn hàng theo hạn mức quy định của ban giám đốc.</li>
+          <li><strong>Phí giao hàng & Giảm giá:</strong> Phí vận chuyển và voucher khuyến mãi sẽ được hệ thống chia đều tương ứng cho tất cả thành viên tham gia cùng chuyến đặt.</li>
+          <li><strong>Cú pháp chuyển khoản:</strong> Thành viên phải giữ nguyên đúng cú pháp hiển thị trên mã VietQR (ví dụ: <code class="bg-slate-100 text-slate-900 px-1 py-0.5 rounded font-mono">DF ROOM4 USER104 THANHTOAN</code>) để hệ thống tự động gạch nợ realtime qua Webhook.</li>
+          <li>Thời hạn thanh toán công nợ tối đa là 24h sau khi nhận đồ uống tại Pantry văn phòng.</li>
+        </ul>
+      </div>
+
+      <!-- Section 4 -->
+      <div>
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2 mb-3">
+          <span class="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center text-xs">4</span>
+          Xử lý Vi phạm & Chặn tài khoản (Block Policy)
+        </h2>
+        <p class="text-slate-600">
+          Room Admin có quyền tạm khóa quyền đặt đồ uống (<code class="bg-slate-100 text-slate-900 px-1 py-0.5 rounded font-mono">room_users.status = blocked</code>) đối với thành viên cố tình nợ tiền quá hạn hoặc spam thực đơn. Khi bị chặn tại một Room, thành viên vẫn có thể tham gia các Room hợp lệ khác mà không bị ảnh hưởng danh tính chung.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-100 px-4 py-6 text-center text-xs text-slate-500">
+    DrinkFlow Enterprise Core • Tuân thủ chính sách nội bộ và an toàn thông tin doanh nghiệp.
+  </footer>
+</body>
+</html>

@@ -1,0 +1,13 @@
+@extends('superadmin.layout', ['title' => 'Global Users & Identities', 'active' => 'users'])
+@section('content')
+<div class="superadmin-heading"><div><p class="superadmin-eyebrow">Identity Layer</p><h1>Global Users &amp; Identities</h1><p>Tra cứu global identity, OAuth metadata, membership và trạng thái truy cập toàn hệ thống.</p></div></div><div id="notice" class="sa-notice"></div>
+<section class="sa-card sa-section"><div class="sa-section-header"><div><h2>Global users</h2><p id="user-count">Đang tải dữ liệu...</p></div><input id="user-search" class="sa-input" placeholder="Tìm tên, normalized name hoặc email" oninput="loadUsers()"></div><div class="sa-table-wrap"><table class="sa-table"><thead><tr><th>User</th><th>OAuth</th><th>Memberships</th><th>Status</th><th>Actions</th></tr></thead><tbody id="users-table"></tbody></table></div></section>
+@endsection
+@push('scripts')
+<script>
+const userNotice=(message,type='success')=>{const n=document.querySelector('#notice');n.textContent=message;n.className=`sa-notice ${type} is-visible`;};
+async function loadUsers(){const q=document.querySelector('#user-search').value;const {data}=await dfApi('{{ route('superadmin.global-users.index') }}'+(q?'?q='+encodeURIComponent(q):''));document.querySelector('#user-count').textContent=`${data.total} global user`;document.querySelector('#users-table').innerHTML=data.data.length?data.data.map(u=>`<tr><td><strong>${escapeHtml(u.name)}</strong><br><small>${escapeHtml(u.email)}</small></td><td>${(u.oauth_identities||[]).map(i=>escapeHtml(i.provider)).join(', ')||'—'}</td><td>${u.room_users_count}</td><td>${statusPill(u.status)}</td><td><div class="superadmin-actions"><a class="sa-button secondary" href="/superadmin/global-users/${u.id}/page">Detail</a>${u.status==='blocked'?`<button class="sa-button" onclick="setUserStatus(${u.id},'active')">Unblock</button>`:`<button class="sa-button danger" onclick="setUserStatus(${u.id},'blocked')">Block</button>`}</div></td></tr>`).join(''):'<tr><td colspan="5" class="sa-empty">Chưa có user phù hợp.</td></tr>';}
+async function setUserStatus(id,status){try{await dfApi(`/superadmin/global-users/${id}/status`,{method:'PATCH',body:{status}});userNotice('Đã cập nhật global user.');loadUsers();}catch(e){userNotice(e.message,'error');}}
+loadUsers();
+</script>
+@endpush

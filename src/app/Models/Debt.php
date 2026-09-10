@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Enums\DebtStatus;
 
 class Debt extends Model
@@ -17,4 +18,8 @@ class Debt extends Model
     public function campaign(): BelongsTo { return $this->belongsTo(Campaign::class); }
 
     public function roomUser(): BelongsTo { return $this->belongsTo(RoomUser::class); }
+
+    public function adjustments(): HasMany { return $this->hasMany(DebtAdjustment::class); }
+
+    public function payments(): HasMany { return $this->hasMany(DebtPayment::class); }
 }

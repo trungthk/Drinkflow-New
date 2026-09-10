@@ -1,4 +1,67 @@
 <?php
+
 namespace App\Http\Controllers\Superadmin;
-use App\Actions\User\SetGlobalUserStatusAction; use App\Http\Controllers\Controller; use App\Http\Requests\SetStatusRequest; use App\Models\GlobalUser; use Illuminate\Http\JsonResponse;
-class GlobalUserController extends Controller { public function index(): JsonResponse { return response()->json(['data'=>GlobalUser::withCount('roomUsers')->latest()->paginate(50)]); } public function status(SetStatusRequest $request,GlobalUser $globalUser,SetGlobalUserStatusAction $action): JsonResponse { return response()->json(['data'=>$action->execute($globalUser,$request->validated('status'))]); } }
+
+use App\Actions\User\SetGlobalUserStatusAction;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\SetStatusRequest;
+use App\Models\GlobalUser;
+use App\Models\RoomUser;
+use App\Models\RoomUserDevice;
+use App\Actions\Superadmin\MergeGlobalUsersAction;
+use App\Services\Auth\DeviceTrustService;
+use App\Services\Audit\AuditService;
+use App\Http\Requests\MergeGlobalUsersRequest;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+
+class GlobalUserController extends Controller
+{
+    public function index(Request $request): JsonResponse
+    {
+        $query = GlobalUser::query()->withCount('roomUsers')->with('oauthIdentities:id,global_user_id,provider,provider_user_id,provider_email,linked_at,last_login_at')->latest();
+        if ($request->filled('q')) {
+            $term = '%'.$request->string('q')->toString().'%';
+            $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('normalized_name', 'like', strtoupper($term))->orWhere('email', 'like', $term));
+        }
+        if ($request->filled('status')) $query->where('status', $request->string('status')->toString());
+        return response()->json(['data' => $query->paginate(50)]);
+    }
+
+    public function show(GlobalUser $globalUser): JsonResponse
+    {
+        return response()->json(['data' => $globalUser->load(['oauthIdentities:id,global_user_id,provider,provider_user_id,provider_email,linked_at,last_login_at', 'roomUsers.room', 'roomUsers.devices'])]);
+    }
+
+    public function status(SetStatusRequest $request, GlobalUser $globalUser, SetGlobalUserStatusAction $action): JsonResponse
+    {
+        return response()->json(['data' => $action->execute($globalUser, $request->validated('status'))]);
+    }
+
+    public function removeMembership(GlobalUser $globalUser, RoomUser $roomUser, AuditService $audit): JsonResponse
+    {
+        abort_unless($roomUser->global_user_id === $globalUser->id, 404);
+        $before = ['status' => $roomUser->status?->value];
+        DB::transaction(function () use ($roomUser): void {
+            $roomUser->update(['status' => 'removed']);
+            $roomUser->devices()->whereNull('revoked_at')->update(['revoked_at' => now()]);
+        });
+        $audit->record('room_user.membership_removed', 'room_user', $roomUser->id, $roomUser->room_id, $before, ['status' => 'removed']);
+        return response()->json(['data' => ['removed' => true]]);
+    }
+
+    public function revokeDevice(GlobalUser $globalUser, RoomUser $roomUser, RoomUserDevice $device, DeviceTrustService $trust, AuditService $audit): JsonResponse
+    {
+        abort_unless($roomUser->global_user_id === $globalUser->id && $device->room_user_id === $roomUser->id, 404);
+        $trust->revoke($device);
+        $audit->record('room_user.device_revoked', 'room_user_device', $device->id, $roomUser->room_id, [], ['revoked_at' => $device->fresh()->revoked_at]);
+        return response()->json(['data' => ['revoked' => true]]);
+    }
+
+    public function merge(MergeGlobalUsersRequest $request, MergeGlobalUsersAction $action): JsonResponse
+    {
+        $data = $request->validated();
+        return response()->json(['data' => $action->execute(GlobalUser::findOrFail($data['source_id']), GlobalUser::findOrFail($data['target_id']))]);
+    }
+}

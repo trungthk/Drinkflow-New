@@ -27,6 +27,14 @@ class GoogleAuthController extends Controller
         $user = $service->resolveUser(['sub' => $profile['sub'] ?? null, 'email' => $profile['email'] ?? null, 'name' => $profile['name'] ?? '', 'picture' => $profile['picture'] ?? null, 'email_verified' => (bool) ($profile['email_verified'] ?? false)]);
         auth('web')->login($user, true);
         $request->session()->regenerate();
-        return redirect()->intended('/');
+        $intended = $request->session()->pull('url.intended');
+        if ($intended) {
+            return redirect()->to($intended);
+        }
+
+        $room = $user->roomUsers()->where('status', 'active')->with('room')->first();
+        return $room?->room
+            ? redirect()->route('user.dashboard', $room->room)
+            : redirect()->route('user.profile.page');
     }
 }
