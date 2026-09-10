@@ -1,0 +1,5 @@
+<?php
+namespace App\Http\Controllers\Admin;
+use App\Http\Controllers\Controller; use App\Models\Order; use Illuminate\Http\JsonResponse; use Illuminate\Http\Request;
+use App\Http\Requests\UpdateOrderStatusRequest; use App\Actions\Order\UpdateOrderStatusAction;
+class OrderController extends Controller { public function index(Request $request): JsonResponse { $room=request()->attributes->get('room'); $query=Order::where('room_id',$room->id)->with(['roomUser.globalUser','items.toppings','campaign'])->latest(); if($request->filled('status'))$query->where('status',$request->string('status')); if($request->filled('campaign_id'))$query->where('campaign_id',(int)$request->input('campaign_id')); return response()->json(['data'=>$query->paginate(50)]); } public function updateStatus(UpdateOrderStatusRequest $request, Order $order, UpdateOrderStatusAction $action): JsonResponse { abort_unless($order->room_id===request()->attributes->get('room')->id,404); return response()->json(['data'=>$action->execute($order,$request->validated('status'))]); } }

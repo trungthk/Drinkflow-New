@@ -1,0 +1,4 @@
+<?php
+namespace Tests\Feature;
+use App\Enums\AdminRole; use App\Models\AdminAccount; use Illuminate\Foundation\Testing\RefreshDatabase; use Tests\TestCase;
+class AuthorizationTest extends TestCase { use RefreshDatabase; public function test_regular_admin_cannot_access_superadmin_routes(): void { $admin=AdminAccount::create(['name'=>'Admin','email'=>'admin@test.local','password'=>'secret','role'=>AdminRole::Admin,'status'=>'active']); $this->actingAs($admin,'admin')->get('/superadmin/global-users')->assertForbidden(); } public function test_superadmin_can_access_superadmin_routes(): void { $admin=AdminAccount::create(['name'=>'Root','email'=>'root@test.local','password'=>'secret','role'=>AdminRole::SuperAdmin,'status'=>'active']); $this->actingAs($admin,'admin')->get('/superadmin/global-users')->assertOk(); } }
