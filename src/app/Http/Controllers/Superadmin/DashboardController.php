@@ -16,6 +16,11 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse|View Result of the operation.
+     */
     public function index(Request $request): JsonResponse|View
     {
         if (! $request->expectsJson()) return view('superadmin.dashboard');
@@ -35,6 +40,10 @@ class DashboardController extends Controller
         ]]);
     }
 
+    /**
+     * Handle the database health operation.
+     * @return string Result of the operation.
+     */
     private function databaseHealth(): string
     {
         try { DB::select('select 1'); return 'ok'; } catch (\Throwable) { return 'error'; }

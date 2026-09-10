@@ -12,6 +12,12 @@ use Illuminate\Support\Str;
 
 class RoomController extends Controller
 {
+    /**
+     * Handle the show operation.
+     * @param Request $request Parameter value.
+     * @param Room $room Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function show(Request $request, Room $room): JsonResponse
     {
         abort_unless($room->status === 'active', 404);
@@ -47,6 +53,14 @@ class RoomController extends Controller
         return response()->json(['data' => $room->loadCount(['campaigns']), 'room_user' => $membership]);
     }
 
+    /**
+     * Handle the join operation.
+     * @param Request $request Parameter value.
+     * @param Room $room Parameter value.
+     * @param JoinRoomAction $action Parameter value.
+     * @param DeviceTrustService $devices Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function join(Request $request, Room $room, JoinRoomAction $action, DeviceTrustService $devices): JsonResponse
     {
         abort_unless($room->status === 'active', 404);

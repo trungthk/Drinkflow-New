@@ -13,18 +13,28 @@ use Illuminate\Support\Facades\DB;
 
 class RoomSettingsController extends Controller
 {
+    /**
+     * Handle the show operation.
+     * @return JsonResponse Result of the operation.
+     */
     public function show(): JsonResponse
     {
         $room = request()->attributes->get('room');
         return response()->json(['data' => $this->payload($room)]);
     }
 
+    /**
+     * Handle the update operation.
+     * @param UpdateRoomSettingsRequest $request Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function update(UpdateRoomSettingsRequest $request, AuditService $audit): JsonResponse
     {
         $room = request()->attributes->get('room');
         $data = $request->validated();
         if (array_key_exists('default_payment_account_id', $data) && $data['default_payment_account_id'] !== null) {
-            abort_unless(PaymentAccount::query()->whereKey($data['default_payment_account_id'])->where('room_id', $room->id)->where('status', 'active')->exists(), 422, 'Tài khoản thanh toán không thuộc Room hoặc đã disabled.');
+            abort_unless(PaymentAccount::query()->whereKey($data['default_payment_account_id'])->where('room_id', $room->id)->where('status', 'active')->exists(), 422, 'TĂ i khoáº£n thanh toĂ¡n khĂ´ng thuá»™c Room hoáº·c Ä‘Ă£ disabled.');
         }
         $before = $this->payload($room);
         $updated = DB::transaction(function () use ($room, $data): Room {
@@ -38,6 +48,11 @@ class RoomSettingsController extends Controller
         return response()->json(['data' => $after]);
     }
 
+    /**
+     * Handle the payload operation.
+     * @param Room $room Parameter value.
+     * @return array Result of the operation.
+     */
     private function payload(Room $room): array
     {
         $settings = $room->roomSettings()->get()->keyBy('key');

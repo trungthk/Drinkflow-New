@@ -10,6 +10,11 @@ use Illuminate\Support\Str;
 
 class GoogleAuthController extends Controller
 {
+    /**
+     * Handle the redirect operation.
+     * @param Request $request Parameter value.
+     * @return RedirectResponse Result of the operation.
+     */
     public function redirect(Request $request): RedirectResponse
     {
         abort_unless(config('services.google.client_id'), 503, 'Google authentication is not configured.');
@@ -19,6 +24,12 @@ class GoogleAuthController extends Controller
         return redirect()->away('https://accounts.google.com/o/oauth2/v2/auth?' . $query);
     }
 
+    /**
+     * Handle the callback operation.
+     * @param Request $request Parameter value.
+     * @param GoogleOAuthService $service Parameter value.
+     * @return RedirectResponse Result of the operation.
+     */
     public function callback(Request $request, GoogleOAuthService $service): RedirectResponse
     {
         abort_unless($request->filled('code') && hash_equals((string) $request->session()->pull('google_oauth_state'), (string) $request->input('state')), 419);

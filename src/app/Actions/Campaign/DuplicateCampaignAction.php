@@ -7,6 +7,12 @@ use Illuminate\Support\Facades\DB;
 
 class DuplicateCampaignAction
 {
+    /**
+     * Handle the execute operation.
+     * @param Campaign $campaign Parameter value.
+     * @param int $adminId Parameter value.
+     * @return Campaign Result of the operation.
+     */
     public function execute(Campaign $campaign, int $adminId): Campaign
     {
         return DB::transaction(function () use ($campaign, $adminId): Campaign {

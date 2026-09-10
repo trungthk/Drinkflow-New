@@ -30,6 +30,26 @@ class SuperadminFeatureTest extends TestCase
         $this->actingAs($root, 'admin')->postJson('/superadmin/rooms', ['name' => 'Marketing', 'slug' => 'marketing'])->assertCreated();
     }
 
+    public function test_superadmin_can_sync_admin_rooms_and_archive_room(): void
+    {
+        $root = $this->superadmin();
+        $admin = AdminAccount::create(['name' => 'Operator', 'email' => 'operator-rooms@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active']);
+        $room = Room::create(['name' => 'Operations', 'slug' => 'operations', 'status' => 'active']);
+
+        $this->actingAs($root, 'admin')->putJson("/superadmin/admins/{$admin->id}/rooms", ['room_ids' => [$room->id]])
+            ->assertOk()
+            ->assertJsonPath('data.id', $admin->id)
+            ->assertJsonPath('data.rooms.0.id', $room->id);
+        $this->assertDatabaseHas('admin_rooms', ['admin_id' => $admin->id, 'room_id' => $room->id]);
+
+        $this->actingAs($root, 'admin')->patchJson("/superadmin/rooms/{$room->id}", ['name' => 'Operations HQ', 'slug' => 'operations-hq'])
+            ->assertOk()
+            ->assertJsonPath('data.name', 'Operations HQ');
+        $this->actingAs($root, 'admin')->patchJson("/superadmin/rooms/{$room->id}/status", ['status' => 'archived'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'archived');
+    }
+
     public function test_last_superadmin_cannot_be_demoted_or_blocked(): void
     {
         $root = $this->superadmin();
@@ -54,6 +74,37 @@ class SuperadminFeatureTest extends TestCase
         $this->actingAs($root, 'admin')->putJson('/superadmin/system/settings', ['settings' => [['key' => 'oauth.client_secret', 'value' => 'top-secret', 'type' => 'string', 'is_secret' => true]]])->assertOk();
         $this->assertDatabaseMissing('system_settings', ['value' => 'top-secret']);
         $this->actingAs($root, 'admin')->getJson('/superadmin/system')->assertOk()->assertJsonPath('data.settings.0.value', null);
+    }
+
+    public function test_typed_non_secret_system_setting_can_be_updated(): void
+    {
+        $root = $this->superadmin();
+
+        $this->actingAs($root, 'admin')->putJson('/superadmin/system/settings', ['settings' => [
+            ['key' => 'orders.daily_limit', 'value' => 25, 'type' => 'integer', 'is_secret' => false],
+            ['key' => 'orders.allow_cash', 'value' => true, 'type' => 'boolean', 'is_secret' => false],
+        ]])->assertOk();
+
+        $this->actingAs($root, 'admin')->getJson('/superadmin/system')->assertOk()
+            ->assertJsonPath('data.settings.0.key', 'orders.allow_cash')
+            ->assertJsonPath('data.settings.0.value', true)
+            ->assertJsonPath('data.settings.1.value', 25);
+    }
+
+    public function test_maintenance_schedule_is_saved_and_returned_to_superadmin(): void
+    {
+        $root = $this->superadmin();
+        $payload = ['enabled' => true, 'starts_at' => '2026-09-12 08:30:00', 'ends_at' => '2026-09-12 12:00:00'];
+
+        $this->actingAs($root, 'admin')->putJson('/superadmin/system/maintenance', $payload)
+            ->assertOk()
+            ->assertJsonPath('data.starts_at', $payload['starts_at'])
+            ->assertJsonPath('data.ends_at', $payload['ends_at']);
+
+        $this->actingAs($root, 'admin')->getJson('/superadmin/system')
+            ->assertOk()
+            ->assertJsonPath('data.maintenance.starts_at', $payload['starts_at'])
+            ->assertJsonPath('data.maintenance.ends_at', $payload['ends_at']);
     }
 
     public function test_system_reset_requires_exact_confirmation_and_preserves_superadmin(): void

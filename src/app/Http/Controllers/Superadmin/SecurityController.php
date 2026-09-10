@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class SecurityController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(Request $request): JsonResponse
     {
         $query = SecurityEvent::query()->with('room:id,name,slug')->latest('created_at');

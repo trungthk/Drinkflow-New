@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'superadmin' => \App\Http\Middleware\EnsureSuperadmin::class,
             'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
         ]);
+        $middleware->redirectGuestsTo(function (Request $request): string {
+            return $request->is('admin/*', 'superadmin/*')
+                ? route('admin.login.page')
+                : route('auth.google');
+        });
         $middleware->validateCsrfTokens(except: ['admin/*', 'superadmin/*']);
         $middleware->append(\App\Http\Middleware\CheckMaintenanceMode::class);
     })

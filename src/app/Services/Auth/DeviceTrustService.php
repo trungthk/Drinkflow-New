@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services\Auth;
 
 use App\Models\RoomUser;
@@ -7,6 +8,12 @@ use Illuminate\Support\Str;
 
 class DeviceTrustService
 {
+    /**
+     * Handle the issue operation.
+     * @param RoomUser $roomUser Parameter value.
+     * @param string $deviceUuid Parameter value.
+     * @return string Result of the operation.
+     */
     public function issue(RoomUser $roomUser, string $deviceUuid): string
     {
         $token = Str::random(64);
@@ -17,17 +24,40 @@ class DeviceTrustService
         return $token;
     }
 
+    /**
+     * Handle the resolve operation.
+     * @param string $deviceUuid Parameter value.
+     * @param string $token Parameter value.
+     * @param ?int $roomId Parameter value.
+     * @return ?RoomUserDevice Result of the operation.
+     */
     public function resolve(string $deviceUuid, string $token, ?int $roomId = null): ?RoomUserDevice
     {
         if ($deviceUuid === '' || $token === '') return null;
         $query = RoomUserDevice::query()->with('roomUser.globalUser')->where('device_uuid', $deviceUuid)->whereNull('revoked_at');
-        if ($roomId !== null) $query->whereHas('roomUser', fn ($q) => $q->where('room_id', $roomId));
-        $device = $query->latest('id')->get()->first(fn (RoomUserDevice $device) => hash_equals($device->token_hash, $this->hash($token)));
+        if ($roomId !== null) $query->whereHas('roomUser', fn($q) => $q->where('room_id', $roomId));
+        $device = $query->latest('id')->get()->first(fn(RoomUserDevice $device) => hash_equals($device->token_hash, $this->hash($token)));
         if ($device) $device->update(['last_seen_at' => now()]);
         return $device;
     }
 
-    public function revoke(RoomUserDevice $device): void { $device->update(['revoked_at' => now()]); }
+    /**
+     * Handle the revoke operation.
+     * @param RoomUserDevice $device Parameter value.
+     * @return void Result of the operation.
+     */
+    public function revoke(RoomUserDevice $device): void
+    {
+        $device->update(['revoked_at' => now()]);
+    }
 
-    private function hash(string $token): string { return hash('sha256', $token); }
+    /**
+     * Handle the hash operation.
+     * @param string $token Parameter value.
+     * @return string Result of the operation.
+     */
+    private function hash(string $token): string
+    {
+        return hash('sha256', $token);
+    }
 }

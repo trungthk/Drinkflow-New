@@ -145,6 +145,22 @@
 - `src/app/Http/Middleware/EnsureAdminRoomAccess.php`
 - `src/app/Http/Controllers/Superadmin/PageController.php`
 - `src/resources/views/superadmin/`
+- `src/resources/views/admin/operations.blade.php` renders all Room management tabs from their Admin API responses.
+- `src/app/Http/Controllers/Admin/ReportController.php` qualifies joined report columns for PostgreSQL.
+- `src/tests/Feature/AdminFeatureTest.php` covers the Room report query after joining campaigns.
+- Methods in `src/app/Http/Controllers`, `src/app/Actions`, and `src/app/Services` now have PHPDoc descriptions with `@param` and `@return` annotations.
+- Admin shell now follows the concept scope banner, underline tab navigation, and shared Plus Jakarta Sans typography.
+- `src/resources/views/superadmin/system.blade.php` restores saved maintenance schedule values in the form.
+- Superadmin Admin detail now supports concept-aligned Room access management via the existing assignment API.
+- Superadmin Room Management now supports status filtering, edit, archive, disable, enable, and restore actions.
+- Superadmin System Settings now supports typed non-secret editing while preserving secret masking and maintenance controls.
+- `src/tests/Feature/SuperadminFeatureTest.php` covers Admin Room sync and Room edit/archive lifecycle.
+- `src/tests/Feature/SuperadminFeatureTest.php` covers maintenance schedule persistence and response data.
+- `src/routes/user.php`, `src/routes/admin.php`, and `src/routes/superadmin.php` separate actor route groups; `src/routes/web.php` remains the loader and landing route.
+- `src/resources/views/user/layout.blade.php` provides the shared document shell for all user pages.
+- `src/resources/views/admin/operations.blade.php` avoids Blade `@json` parsing conflicts in the shared Room management page.
+- `src/bootstrap/app.php` redirects unauthenticated Admin/Superadmin requests to the Admin login page.
+- `src/tests/Feature/AuthorizationTest.php` covers guest access to the Admin management URL.
 - `src/resources/css/app.css`
 - `src/routes/web.php`
 

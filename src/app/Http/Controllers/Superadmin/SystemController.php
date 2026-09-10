@@ -14,6 +14,11 @@ use Illuminate\Http\Request;
 
 class SystemController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param SystemSettingsService $settings Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(SystemSettingsService $settings): JsonResponse
     {
         $items = SystemSetting::query()->orderBy('key')->get()->map(fn (SystemSetting $setting) => [
@@ -23,6 +28,13 @@ class SystemController extends Controller
         return response()->json(['data' => ['settings' => $items, 'maintenance' => $this->maintenanceState($settings)]]);
     }
 
+    /**
+     * Handle the settings operation.
+     * @param SystemSettingsRequest $request Parameter value.
+     * @param SystemSettingsService $service Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function settings(SystemSettingsRequest $request, SystemSettingsService $service, AuditService $audit): JsonResponse
     {
         $saved = [];
@@ -35,6 +47,13 @@ class SystemController extends Controller
         return response()->json(['data' => ['settings' => $saved, 'maintenance' => $this->maintenanceState($service)]]);
     }
 
+    /**
+     * Handle the maintenance operation.
+     * @param Request $request Parameter value.
+     * @param SystemSettingsService $service Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function maintenance(Request $request, SystemSettingsService $service, AuditService $audit): JsonResponse
     {
         if ($request->isMethod('get')) return response()->json(['data' => $this->maintenanceState($service)]);
@@ -46,11 +65,22 @@ class SystemController extends Controller
         return response()->json(['data' => $this->maintenanceState($service)]);
     }
 
+    /**
+     * Handle the reset operation.
+     * @param SystemResetRequest $request Parameter value.
+     * @param ResetSystemAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function reset(SystemResetRequest $request, ResetSystemAction $action): JsonResponse
     {
         return response()->json(['data' => $action->execute(request()->user('admin'), $request->validated('password'), $request->validated('phrase'))]);
     }
 
+    /**
+     * Handle the maintenance state operation.
+     * @param SystemSettingsService $service Parameter value.
+     * @return array Result of the operation.
+     */
     private function maintenanceState(SystemSettingsService $service): array
     {
         $enabled = (bool) $service->get('maintenance.enabled', false); $starts = $service->get('maintenance.starts_at'); $ends = $service->get('maintenance.ends_at');

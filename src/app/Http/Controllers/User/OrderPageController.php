@@ -10,6 +10,13 @@ use Illuminate\Http\Request;
 
 class OrderPageController extends Controller
 {
+    /**
+     * Invoke the controller.
+     * @param Request $request Parameter value.
+     * @param Room $room Parameter value.
+     * @param Order $order Parameter value.
+     * @return View Result of the operation.
+     */
     public function __invoke(Request $request, Room $room, Order $order): View
     {
         $roomUser = $request->attributes->get('room_user');

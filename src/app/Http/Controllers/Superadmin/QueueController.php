@@ -11,8 +11,18 @@ use Illuminate\Support\Facades\DB;
 
 class QueueController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(): JsonResponse { return response()->json(['data' => ['connection' => config('queue.default'), 'failed_jobs' => DB::table('failed_jobs')->latest('failed_at')->paginate(50)]]); }
 
+    /**
+     * Handle the retry operation.
+     * @param int $failedJob Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function retry(int $failedJob, AuditService $audit): JsonResponse
     {
         $job = DB::table('failed_jobs')->where('id', $failedJob)->firstOrFail();
@@ -21,6 +31,12 @@ class QueueController extends Controller
         return response()->json(['data' => ['retried' => true, 'uuid' => $job->uuid]]);
     }
 
+    /**
+     * Handle the forget operation.
+     * @param int $failedJob Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function forget(int $failedJob, AuditService $audit): JsonResponse
     {
         $job = DB::table('failed_jobs')->where('id', $failedJob)->firstOrFail();

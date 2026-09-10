@@ -1,6 +1,53 @@
-<!doctype html><html lang="{{ str_replace('_', '-', app()->getLocale()) }}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Lịch sử · DrinkFlow</title>@vite(['resources/css/app.css','resources/js/app.js'])</head>
-<body class="min-h-screen bg-slate-50 text-slate-900"><main class="mx-auto max-w-5xl px-4 py-8"><a class="text-sm text-indigo-600" href="{{ route('user.rooms.index') }}">← Rooms của tôi</a><h1 class="mt-5 text-3xl font-semibold">Lịch sử đơn hàng</h1><div class="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm"><table class="w-full text-left text-sm"><thead class="bg-slate-100"><tr><th class="px-4 py-3">Đơn</th><th class="px-4 py-3">Room</th><th class="px-4 py-3">Campaign</th><th class="px-4 py-3">Trạng thái</th><th class="px-4 py-3 text-right">Tổng</th></tr></thead><tbody id="orders"><tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">Đang tải…</td></tr></tbody></table></div></main>
-<script>
-const url=@json(route('user.history.index')); const rows=document.querySelector('#orders'); const esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-fetch(url,{headers:{Accept:'application/json'}}).then(r=>r.json()).then(p=>{const data=p.data?.data||[]; rows.innerHTML=data.map(o=>`<tr class="border-t border-slate-100"><td class="px-4 py-3 font-medium">#${o.id}</td><td class="px-4 py-3">${esc(o.room?.name)}</td><td class="px-4 py-3">${esc(o.campaign?.name)}</td><td class="px-4 py-3">${esc(o.status)}</td><td class="px-4 py-3 text-right">${Number(o.final_amount).toLocaleString('vi-VN')} ₫</td></tr>`).join('')||'<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">Chưa có đơn hàng.</td></tr>';}).catch(()=>rows.innerHTML='<tr><td colspan="5" class="px-4 py-8 text-center text-red-600">Không thể tải lịch sử.</td></tr>');
-</script></body></html>
+@extends('user.layout')
+
+@section('title', 'Lịch sử · DrinkFlow')
+@section('content')
+    <main class="mx-auto max-w-5xl px-4 py-8"><a class="text-sm text-indigo-600" href="{{ route('user.rooms.index') }}">←
+            Rooms của tôi</a>
+        <h1 class="mt-5 text-3xl font-semibold">Lịch sử đơn hàng</h1>
+        <div class="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-slate-100">
+                    <tr>
+                        <th class="px-4 py-3">Đơn</th>
+                        <th class="px-4 py-3">Room</th>
+                        <th class="px-4 py-3">Campaign</th>
+                        <th class="px-4 py-3">Trạng thái</th>
+                        <th class="px-4 py-3 text-right">Tổng</th>
+                    </tr>
+                </thead>
+                <tbody id="orders">
+                    <tr>
+                        <td colspan="5" class="px-4 py-8 text-center text-slate-500">Đang tải…</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+@endsection
+
+@push('scripts')
+    <script>
+        const url = @json(route('user.history.index'));
+        const rows = document.querySelector('#orders');
+        const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        } [c]));
+        fetch(url, {
+            headers: {
+                Accept: 'application/json'
+            }
+        }).then(r => r.json()).then(p => {
+            const data = p.data?.data || [];
+            rows.innerHTML = data.map(o =>
+                    `<tr class="border-t border-slate-100"><td class="px-4 py-3 font-medium">#${o.id}</td><td class="px-4 py-3">${esc(o.room?.name)}</td><td class="px-4 py-3">${esc(o.campaign?.name)}</td><td class="px-4 py-3">${esc(o.status)}</td><td class="px-4 py-3 text-right">${Number(o.final_amount).toLocaleString('vi-VN')} ₫</td></tr>`
+                    ).join('') ||
+                '<tr><td colspan="5" class="px-4 py-8 text-center text-slate-500">Chưa có đơn hàng.</td></tr>';
+        }).catch(() => rows.innerHTML =
+            '<tr><td colspan="5" class="px-4 py-8 text-center text-red-600">Không thể tải lịch sử.</td></tr>');
+    </script>
+@endpush

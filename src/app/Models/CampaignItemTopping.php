@@ -9,5 +9,8 @@ class CampaignItemTopping extends Model
 {
     protected $fillable = ['campaign_item_id', 'name', 'price', 'status', 'sort_order'];
 
-    public function campaignItem(): BelongsTo { return $this->belongsTo(CampaignItem::class); }
+    public function campaignItem(): BelongsTo
+    {
+        return $this->belongsTo(CampaignItem::class);
+    }
 }

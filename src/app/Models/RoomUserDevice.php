@@ -11,7 +11,13 @@ class RoomUserDevice extends Model
 
     protected $hidden = ['token_hash'];
 
-    protected function casts(): array { return ['verified_at' => 'datetime', 'last_seen_at' => 'datetime', 'revoked_at' => 'datetime']; }
+    protected function casts(): array
+    {
+        return ['verified_at' => 'datetime', 'last_seen_at' => 'datetime', 'revoked_at' => 'datetime'];
+    }
 
-    public function roomUser(): BelongsTo { return $this->belongsTo(RoomUser::class); }
+    public function roomUser(): BelongsTo
+    {
+        return $this->belongsTo(RoomUser::class);
+    }
 }

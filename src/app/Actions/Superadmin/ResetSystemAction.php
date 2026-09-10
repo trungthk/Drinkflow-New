@@ -13,13 +13,20 @@ class ResetSystemAction
 {
     public const CONFIRMATION_PHRASE = 'RESET DRINKFLOW';
 
+    /**
+     * Handle the execute operation.
+     * @param AdminAccount $admin Parameter value.
+     * @param string $password Parameter value.
+     * @param string $phrase Parameter value.
+     * @return array Result of the operation.
+     */
     public function execute(AdminAccount $admin, string $password, string $phrase): array
     {
         if (! Hash::check($password, $admin->password)) {
-            throw ValidationException::withMessages(['password' => 'Mật khẩu xác nhận không đúng.']);
+            throw ValidationException::withMessages(['password' => 'Máº­t kháº©u xĂ¡c nháº­n khĂ´ng Ä‘Ăºng.']);
         }
         if (! hash_equals(self::CONFIRMATION_PHRASE, $phrase)) {
-            throw ValidationException::withMessages(['phrase' => 'Cụm từ xác nhận không đúng.']);
+            throw ValidationException::withMessages(['phrase' => 'Cá»¥m tá»« xĂ¡c nháº­n khĂ´ng Ä‘Ăºng.']);
         }
 
         return DB::transaction(function (): array {

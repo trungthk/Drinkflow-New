@@ -7,6 +7,12 @@ use Illuminate\Support\Collection;
 
 class OrderAggregationService
 {
+    /**
+     * Handle the for room operation.
+     * @param int $roomId Parameter value.
+     * @param ?int $campaignId Parameter value.
+     * @return Collection Result of the operation.
+     */
     public function forRoom(int $roomId, ?int $campaignId = null): Collection
     {
         $orders = Order::query()->where('room_id', $roomId)->whereNotIn('status', ['cancelled'])->when($campaignId, fn ($query) => $query->where('campaign_id', $campaignId))->with('items.toppings')->get();

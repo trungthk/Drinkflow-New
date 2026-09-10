@@ -12,6 +12,11 @@ use Illuminate\Support\Facades\DB;
 
 class CampaignController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(Request $request): JsonResponse
     {
         $query = Campaign::query()->with(['room:id,name,slug', 'paymentAccount:id,room_id,bank_name,account_name'])->withCount(['orders', 'debts'])->latest();
@@ -21,16 +26,28 @@ class CampaignController extends Controller
         return response()->json(['data' => $query->paginate(50)]);
     }
 
+    /**
+     * Handle the force close operation.
+     * @param Campaign $campaign Parameter value.
+     * @param CloseCampaignAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function forceClose(Campaign $campaign, CloseCampaignAction $action): JsonResponse
     {
         return response()->json(['data' => $action->execute($campaign)]);
     }
 
+    /**
+     * Handle the force cancel operation.
+     * @param Campaign $campaign Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function forceCancel(Campaign $campaign, AuditService $audit): JsonResponse
     {
         return response()->json(['data' => DB::transaction(function () use ($campaign, $audit): Campaign {
             $before = ['status' => $campaign->status?->value];
-            abort_if($campaign->status?->value === 'closed', 422, 'Campaign đã đóng, không thể hủy.');
+            abort_if($campaign->status?->value === 'closed', 422, 'Campaign Ä‘Ă£ Ä‘Ă³ng, khĂ´ng thá»ƒ há»§y.');
             $campaign->update(['status' => 'cancelled', 'closed_at' => now()]);
             $audit->record('campaign.force_cancelled', 'campaign', $campaign->id, $campaign->room_id, $before, ['status' => 'cancelled']);
             return $campaign->fresh();

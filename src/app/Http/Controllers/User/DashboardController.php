@@ -8,6 +8,11 @@ use Illuminate\Contracts\View\View;
 
 class DashboardController extends Controller
 {
+    /**
+     * Invoke the controller.
+     * @param Request $request Parameter value.
+     * @return View Result of the operation.
+     */
     public function __invoke(Request $request): View
     {
         return view('user.dashboard', [

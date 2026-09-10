@@ -14,6 +14,11 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(Request $request): JsonResponse
     {
         $room = $request->attributes->get('room');
@@ -26,24 +31,49 @@ class OrderController extends Controller
         return response()->json(['data' => $query->paginate(50)]);
     }
 
+    /**
+     * Handle the show operation.
+     * @param Order $order Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function show(Order $order): JsonResponse
     {
         $this->assertRoom($order);
         return response()->json(['data' => $order->load(['roomUser.globalUser', 'items.toppings', 'campaign'])]);
     }
 
+    /**
+     * Handle the update operation.
+     * @param UpdateOrderRequest $request Parameter value.
+     * @param Order $order Parameter value.
+     * @param UpdateOrderAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function update(UpdateOrderRequest $request, Order $order, UpdateOrderAction $action): JsonResponse
     {
         $this->assertRoom($order);
         return response()->json(['data' => $action->execute($order, $request->validated())]);
     }
 
+    /**
+     * Handle the update status operation.
+     * @param UpdateOrderStatusRequest $request Parameter value.
+     * @param Order $order Parameter value.
+     * @param UpdateOrderStatusAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order, UpdateOrderStatusAction $action): JsonResponse
     {
         $this->assertRoom($order);
         return response()->json(['data' => $action->execute($order, $request->validated('status'))]);
     }
 
+    /**
+     * Handle the cancel operation.
+     * @param Order $order Parameter value.
+     * @param UpdateOrderStatusAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function cancel(Order $order, UpdateOrderStatusAction $action): JsonResponse
     {
         $this->assertRoom($order);
@@ -51,6 +81,12 @@ class OrderController extends Controller
         return response()->json(['data' => $action->execute($order, 'cancelled')]);
     }
 
+    /**
+     * Handle the unlock operation.
+     * @param Order $order Parameter value.
+     * @param UpdateOrderStatusAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function unlock(Order $order, UpdateOrderStatusAction $action): JsonResponse
     {
         $this->assertRoom($order);
@@ -58,6 +94,12 @@ class OrderController extends Controller
         return response()->json(['data' => ['unlocked' => true, 'order' => $order]]);
     }
 
+    /**
+     * Handle the destroy operation.
+     * @param Order $order Parameter value.
+     * @param DeleteOrderAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function destroy(Order $order, DeleteOrderAction $action): JsonResponse
     {
         $this->assertRoom($order);
@@ -65,6 +107,11 @@ class OrderController extends Controller
         return response()->json(['message' => 'order_deleted']);
     }
 
+    /**
+     * Handle the assert room operation.
+     * @param Order $order Parameter value.
+     * @return void Result of the operation.
+     */
     private function assertRoom(Order $order): void
     {
         abort_unless($order->room_id === request()->attributes->get('room')->id, 404);

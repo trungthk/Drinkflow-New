@@ -7,6 +7,12 @@ use Illuminate\Support\Facades\DB;
 
 class UpdateCampaignItemAction
 {
+    /**
+     * Handle the execute operation.
+     * @param CampaignItem $item Parameter value.
+     * @param array $data Parameter value.
+     * @return CampaignItem Result of the operation.
+     */
     public function execute(CampaignItem $item, array $data): CampaignItem
     {
         return DB::transaction(function () use ($item, $data) {

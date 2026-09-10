@@ -11,8 +11,18 @@ use Illuminate\Support\Facades\DB;
 
 class NotificationController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(): JsonResponse { return response()->json(['data' => SystemNotificationChannel::query()->latest()->get()->map(fn (SystemNotificationChannel $channel) => $this->publicChannel($channel))]); }
 
+    /**
+     * Handle the store operation.
+     * @param SystemNotificationChannelRequest $request Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function store(SystemNotificationChannelRequest $request, AuditService $audit): JsonResponse
     {
         $data = $request->validated(); $config = is_string($data['config']) ? $data['config'] : json_encode($data['config'], JSON_THROW_ON_ERROR); unset($data['config']);
@@ -21,6 +31,13 @@ class NotificationController extends Controller
         return response()->json(['data' => $this->publicChannel($channel)], 201);
     }
 
+    /**
+     * Handle the update operation.
+     * @param SystemNotificationChannelRequest $request Parameter value.
+     * @param SystemNotificationChannel $channel Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function update(SystemNotificationChannelRequest $request, SystemNotificationChannel $channel, AuditService $audit): JsonResponse
     {
         $data = $request->validated(); $config = is_string($data['config']) ? $data['config'] : json_encode($data['config'], JSON_THROW_ON_ERROR); unset($data['config']);
@@ -29,6 +46,12 @@ class NotificationController extends Controller
         return response()->json(['data' => $this->publicChannel($channel->fresh())]);
     }
 
+    /**
+     * Handle the destroy operation.
+     * @param SystemNotificationChannel $channel Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function destroy(SystemNotificationChannel $channel, AuditService $audit): JsonResponse
     {
         $before = $channel->only(['type', 'name', 'status']); $channel->delete();
@@ -36,5 +59,10 @@ class NotificationController extends Controller
         return response()->json(['data' => ['deleted' => true]]);
     }
 
+    /**
+     * Handle the public channel operation.
+     * @param SystemNotificationChannel $channel Parameter value.
+     * @return array Result of the operation.
+     */
     private function publicChannel(SystemNotificationChannel $channel): array { return ['id' => $channel->id, 'type' => $channel->type, 'name' => $channel->name, 'status' => $channel->status, 'configured' => true]; }
 }

@@ -10,6 +10,14 @@ use Illuminate\Support\Facades\DB;
 
 class JoinRoomAction
 {
+    /**
+     * Handle the execute operation.
+     * @param GlobalUser $globalUser Parameter value.
+     * @param Room $room Parameter value.
+     * @param string $deviceUuid Parameter value.
+     * @param string $deviceTokenHash Parameter value.
+     * @return RoomUser Result of the operation.
+     */
     public function execute(GlobalUser $globalUser, Room $room, string $deviceUuid, string $deviceTokenHash): RoomUser
     {
         $globalUser->refresh();
@@ -39,6 +47,12 @@ class JoinRoomAction
         });
     }
 
+    /**
+     * Handle the unique code operation.
+     * @param Room $room Parameter value.
+     * @param string $normalizedName Parameter value.
+     * @return string Result of the operation.
+     */
     private function uniqueCode(Room $room, string $normalizedName): string
     {
         $base = preg_replace('/[^A-Z0-9]/', '', strtoupper($normalizedName)) ?: 'USER';

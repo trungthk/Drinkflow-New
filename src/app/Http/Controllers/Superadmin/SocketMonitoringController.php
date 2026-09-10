@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Http;
 
 class SocketMonitoringController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(): JsonResponse
     {
         $endpoint = config('services.realtime.url');

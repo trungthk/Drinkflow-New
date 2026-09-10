@@ -12,39 +12,46 @@ use App\Events\OrderCreated;
 
 class CreateOrderAction
 {
+    /**
+     * Handle the execute operation.
+     * @param Campaign $campaign Parameter value.
+     * @param RoomUser $roomUser Parameter value.
+     * @param array $data Parameter value.
+     * @return Order Result of the operation.
+     */
     public function execute(Campaign $campaign, RoomUser $roomUser, array $data): Order
     {
         $campaign->refresh();
         $roomUser->refresh();
         $roomUser->loadMissing('globalUser');
         if ($campaign->status !== CampaignStatus::Active || $campaign->room_id !== $roomUser->room_id) {
-            throw ValidationException::withMessages(['campaign' => 'Campaign không khả dụng.']);
+            throw ValidationException::withMessages(['campaign' => 'Campaign khĂ´ng kháº£ dá»¥ng.']);
         }
         if ($roomUser->status->value !== 'active' || $roomUser->globalUser->status->value !== 'active') {
-            throw ValidationException::withMessages(['user' => 'Tài khoản không hoạt động.']);
+            throw ValidationException::withMessages(['user' => 'TĂ i khoáº£n khĂ´ng hoáº¡t Ä‘á»™ng.']);
         }
 
         $order = DB::transaction(function () use ($campaign, $roomUser, $data): Order {
             $items = $data['items'] ?? [];
-            if ($items === []) throw ValidationException::withMessages(['items' => 'Đơn hàng phải có món.']);
+            if ($items === []) throw ValidationException::withMessages(['items' => 'ÄÆ¡n hĂ ng pháº£i cĂ³ mĂ³n.']);
             $subtotal = 0;
             $snapshots = [];
             foreach ($items as $input) {
                 $item = $campaign->items()->with(['sizes', 'toppings'])->whereKey($input['item_id'] ?? 0)->first();
                 $quantity = (int) ($input['quantity'] ?? 0);
                 if (!$item || $item->status !== 'active' || $quantity < 1) {
-                    throw ValidationException::withMessages(['items' => 'Món không hợp lệ hoặc đã hết.']);
+                    throw ValidationException::withMessages(['items' => 'MĂ³n khĂ´ng há»£p lá»‡ hoáº·c Ä‘Ă£ háº¿t.']);
                 }
                 $size = !empty($input['size_id']) ? $item->sizes->firstWhere('id', (int) $input['size_id']) : null;
-                if (!empty($input['size_id']) && (!$size || $size->status !== 'active')) throw ValidationException::withMessages(['items' => 'Size không hợp lệ.']);
+                if (!empty($input['size_id']) && (!$size || $size->status !== 'active')) throw ValidationException::withMessages(['items' => 'Size khĂ´ng há»£p lá»‡.']);
                 $toppings = collect($input['topping_ids'] ?? [])->map(fn ($id) => $item->toppings->firstWhere('id', (int) $id));
-                if ($toppings->contains(fn ($t) => !$t || $t->status !== 'active')) throw ValidationException::withMessages(['items' => 'Topping không hợp lệ.']);
+                if ($toppings->contains(fn ($t) => !$t || $t->status !== 'active')) throw ValidationException::withMessages(['items' => 'Topping khĂ´ng há»£p lá»‡.']);
                 $unit = (int) $item->base_price + (int) ($size?->price_delta ?? 0) + (int) $toppings->sum('price');
                 $line = $unit * $quantity;
                 $subtotal += $line;
                 $snapshots[] = compact('item', 'size', 'toppings', 'quantity', 'unit', 'line', 'input');
             }
-            // Client chỉ gửi lựa chọn món; các khoản tiền luôn lấy từ cấu hình server.
+            // Client chá»‰ gá»­i lá»±a chá»n mĂ³n; cĂ¡c khoáº£n tiá»n luĂ´n láº¥y tá»« cáº¥u hĂ¬nh server.
             $discount = (int) $campaign->discount;
             $sponsor = 0;
             $delivery = (int) $campaign->delivery_fee;

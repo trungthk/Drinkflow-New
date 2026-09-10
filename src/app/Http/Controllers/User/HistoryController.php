@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class HistoryController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(Request $request): JsonResponse
     {
         $roomUserIds = $request->attributes->get('global_user')->roomUsers()->pluck('id');

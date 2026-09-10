@@ -9,6 +9,12 @@ use Illuminate\Http\Request;
 
 class JoinPageController extends Controller
 {
+    /**
+     * Invoke the controller.
+     * @param Request $request Parameter value.
+     * @param Room $room Parameter value.
+     * @return View Result of the operation.
+     */
     public function __invoke(Request $request, Room $room): View
     {
         abort_unless($room->status === 'active', 404);

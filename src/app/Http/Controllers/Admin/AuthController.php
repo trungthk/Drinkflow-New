@@ -15,6 +15,11 @@ use App\Models\SecurityEvent;
 
 class AuthController extends Controller
 {
+    /**
+     * Handle the login page operation.
+     * @param Request $request Parameter value.
+     * @return View|RedirectResponse Result of the operation.
+     */
     public function loginPage(Request $request): View|RedirectResponse
     {
         if ($request->user('admin')) return redirect()->route('admin.landing');
@@ -24,6 +29,11 @@ class AuthController extends Controller
         return view('admin.login', ['captchaQuestion' => "$a + $b = ?"]);
     }
 
+    /**
+     * Handle the landing operation.
+     * @param Request $request Parameter value.
+     * @return View|RedirectResponse Result of the operation.
+     */
     public function landing(Request $request): View|RedirectResponse
     {
         if ($request->user('admin')->isSuperadmin()) return redirect()->route('superadmin.dashboard');
@@ -32,22 +42,27 @@ class AuthController extends Controller
         return view('admin.rooms', ['rooms' => $rooms, 'admin' => $request->user('admin')]);
     }
 
+    /**
+     * Handle the login operation.
+     * @param AdminLoginRequest $request Parameter value.
+     * @return JsonResponse|RedirectResponse Result of the operation.
+     */
     public function login(AdminLoginRequest $request): JsonResponse|RedirectResponse
     {
         $key = strtolower($request->input('email')).'|'.$request->ip();
-        if (RateLimiter::tooManyAttempts($key, 5)) throw ValidationException::withMessages(['email' => 'Quá nhiều lần đăng nhập thất bại.']);
+        if (RateLimiter::tooManyAttempts($key, 5)) throw ValidationException::withMessages(['email' => 'QuĂ¡ nhiá»u láº§n Ä‘Äƒng nháº­p tháº¥t báº¡i.']);
         $answer = $request->session()->pull('admin_captcha_answer');
         if ($answer !== null && ! hash_equals((string) $answer, trim((string) $request->input('captcha')))) {
             RateLimiter::hit($key, 60);
             SecurityEvent::create(['type' => 'failed_login', 'severity' => 'medium', 'ip_address' => $request->ip(), 'metadata' => ['actor' => 'admin', 'reason' => 'captcha']]);
-            throw ValidationException::withMessages(['captcha' => 'Captcha không đúng.']);
+            throw ValidationException::withMessages(['captcha' => 'Captcha khĂ´ng Ä‘Ăºng.']);
         }
         $credentials = $request->only('email', 'password');
         $credentials['status'] = 'active';
         if (! Auth::guard('admin')->attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::hit($key, 60);
             SecurityEvent::create(['type' => 'failed_login', 'severity' => 'medium', 'ip_address' => $request->ip(), 'metadata' => ['actor' => 'admin']]);
-            throw ValidationException::withMessages(['email' => 'Thông tin đăng nhập không hợp lệ.']);
+            throw ValidationException::withMessages(['email' => 'ThĂ´ng tin Ä‘Äƒng nháº­p khĂ´ng há»£p lá»‡.']);
         }
         RateLimiter::clear($key);
         $request->session()->regenerate();
@@ -56,6 +71,11 @@ class AuthController extends Controller
         return redirect()->intended(route('admin.landing'));
     }
 
+    /**
+     * Handle the logout operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse|RedirectResponse Result of the operation.
+     */
     public function logout(Request $request): JsonResponse|RedirectResponse
     {
         Auth::guard('admin')->logout();

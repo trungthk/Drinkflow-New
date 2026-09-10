@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\DB;
 
 class ManageRoomAction
 {
+    /**
+     * Handle the create operation.
+     * @param array $data Parameter value.
+     * @return Room Result of the operation.
+     */
     public function create(array $data): Room
     {
         return DB::transaction(function () use ($data): Room {
@@ -17,6 +22,12 @@ class ManageRoomAction
         });
     }
 
+    /**
+     * Handle the update operation.
+     * @param Room $room Parameter value.
+     * @param array $data Parameter value.
+     * @return Room Result of the operation.
+     */
     public function update(Room $room, array $data): Room
     {
         return DB::transaction(function () use ($room, $data): Room {
@@ -27,6 +38,12 @@ class ManageRoomAction
         });
     }
 
+    /**
+     * Handle the set status operation.
+     * @param Room $room Parameter value.
+     * @param string $status Parameter value.
+     * @return Room Result of the operation.
+     */
     public function setStatus(Room $room, string $status): Room
     {
         return DB::transaction(function () use ($room, $status): Room {

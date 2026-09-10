@@ -14,6 +14,11 @@ use Illuminate\Http\Request;
 
 class RoomUserController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(Request $request): JsonResponse
     {
         $room = $request->attributes->get('room');
@@ -28,20 +33,40 @@ class RoomUserController extends Controller
         return response()->json(['data' => $query->paginate(50)]);
     }
 
+    /**
+     * Handle the show operation.
+     * @param RoomUser $roomUser Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function show(RoomUser $roomUser): JsonResponse
     {
         $this->assertRoom($roomUser);
         $roomUser->load(['globalUser', 'orders.items.toppings', 'debts.campaign', 'devices']);
-        $roomUser->setRelation('devices', $roomUser->devices->map(fn (RoomUserDevice $device) => ['id' => $device->id, 'device_uuid' => substr($device->device_uuid, 0, 8).'…', 'verified_at' => $device->verified_at, 'last_seen_at' => $device->last_seen_at, 'revoked_at' => $device->revoked_at, 'status' => $device->revoked_at ? 'revoked' : 'active']));
+        $roomUser->setRelation('devices', $roomUser->devices->map(fn (RoomUserDevice $device) => ['id' => $device->id, 'device_uuid' => substr($device->device_uuid, 0, 8).'â€¦', 'verified_at' => $device->verified_at, 'last_seen_at' => $device->last_seen_at, 'revoked_at' => $device->revoked_at, 'status' => $device->revoked_at ? 'revoked' : 'active']));
         return response()->json(['data' => $roomUser]);
     }
 
+    /**
+     * Handle the status operation.
+     * @param SetStatusRequest $request Parameter value.
+     * @param RoomUser $roomUser Parameter value.
+     * @param SetRoomUserStatusAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function status(SetStatusRequest $request, RoomUser $roomUser, SetRoomUserStatusAction $action): JsonResponse
     {
         $this->assertRoom($roomUser);
         return response()->json(['data' => $action->execute($roomUser, $request->validated('status'))]);
     }
 
+    /**
+     * Handle the revoke device operation.
+     * @param RoomUser $roomUser Parameter value.
+     * @param RoomUserDevice $device Parameter value.
+     * @param DeviceTrustService $trust Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function revokeDevice(RoomUser $roomUser, RoomUserDevice $device, DeviceTrustService $trust, AuditService $audit): JsonResponse
     {
         $this->assertRoom($roomUser);
@@ -51,6 +76,11 @@ class RoomUserController extends Controller
         return response()->json(['data' => ['revoked' => true]]);
     }
 
+    /**
+     * Handle the assert room operation.
+     * @param RoomUser $roomUser Parameter value.
+     * @return void Result of the operation.
+     */
     private function assertRoom(RoomUser $roomUser): void
     {
         abort_unless($roomUser->room_id === request()->attributes->get('room')->id, 404);

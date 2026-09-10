@@ -68,4 +68,15 @@ class AdminFeatureTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['event' => 'room.settings_updated', 'room_id' => $room->id]);
         $this->assertDatabaseHas('room_settings', ['room_id' => $room->id, 'key' => 'default_sponsor', 'value' => 'Company']);
     }
+
+    public function test_room_report_qualifies_order_columns_after_joining_campaigns(): void
+    {
+        $admin = $this->admin('reports@example.test');
+        $room = $this->roomFor($admin, 'reports-room');
+        Campaign::create(['room_id' => $room->id, 'name' => 'Lunch', 'restaurant' => 'Cafe', 'status' => 'closed']);
+
+        $this->actingAs($admin, 'admin')->getJson("/admin/{$room->id}/reports?period=month")
+            ->assertOk()
+            ->assertJsonPath('data.popular_stores', []);
+    }
 }

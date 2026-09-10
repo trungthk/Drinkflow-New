@@ -7,6 +7,13 @@ use Illuminate\Support\Facades\DB;
 
 class ImportCampaignItemsAction
 {
+    /**
+     * Handle the execute operation.
+     * @param Campaign $campaign Parameter value.
+     * @param string $sourceUrl Parameter value.
+     * @param array $items Parameter value.
+     * @return array Result of the operation.
+     */
     public function execute(Campaign $campaign, string $sourceUrl, array $items): array
     {
         return DB::transaction(function () use ($campaign, $sourceUrl, $items): array {
@@ -28,6 +35,11 @@ class ImportCampaignItemsAction
         });
     }
 
+    /**
+     * Handle the normalize operation.
+     * @param string $value Parameter value.
+     * @return string Result of the operation.
+     */
     private function normalize(string $value): string
     {
         return strtoupper(trim(preg_replace('/\s+/', ' ', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) ?: $value)));

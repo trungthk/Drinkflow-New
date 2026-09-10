@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\DB;
 
 class DebtController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(Request $request): JsonResponse
     {
         $query = Debt::query()->with(['room:id,name,slug', 'campaign:id,name,room_id', 'roomUser.globalUser:id,name,email'])->latest();
@@ -22,6 +27,11 @@ class DebtController extends Controller
         ]]);
     }
 
+    /**
+     * Handle the export operation.
+     * @param Request $request Parameter value.
+     * @return mixed Result of the operation.
+     */
     public function export(Request $request)
     {
         $debts = Debt::query()->with(['room', 'campaign', 'roomUser.globalUser'])->when($request->filled('room_id'), fn ($q) => $q->where('room_id', $request->integer('room_id')))->get();

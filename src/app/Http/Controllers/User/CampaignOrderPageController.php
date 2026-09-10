@@ -9,6 +9,12 @@ use Illuminate\Http\Request;
 
 class CampaignOrderPageController extends Controller
 {
+    /**
+     * Invoke the controller.
+     * @param Request $request Parameter value.
+     * @param Campaign $campaign Parameter value.
+     * @return View Result of the operation.
+     */
     public function __invoke(Request $request, Campaign $campaign): View
     {
         abort_unless($campaign->room_id === $request->attributes->get('room')->id && in_array($campaign->status?->value, ['active', 'scheduled'], true), 404);

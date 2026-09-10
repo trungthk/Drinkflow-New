@@ -13,6 +13,12 @@ use Illuminate\Http\JsonResponse;
 
 class CrawlerController extends Controller
 {
+    /**
+     * Handle the preview operation.
+     * @param CrawlerPreviewRequest $request Parameter value.
+     * @param FoodCrawlerService $crawler Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function preview(CrawlerPreviewRequest $request, FoodCrawlerService $crawler): JsonResponse
     {
         $items = $crawler->preview($request->validated('url'));
@@ -27,11 +33,18 @@ class CrawlerController extends Controller
         return response()->json(['data' => ['preview_id' => $preview->id, 'source_url' => $preview->source_url, 'items' => $items, 'expires_at' => $preview->expires_at]], 201);
     }
 
+    /**
+     * Handle the import operation.
+     * @param ImportCampaignItemsRequest $request Parameter value.
+     * @param Campaign $campaign Parameter value.
+     * @param ImportCampaignItemsAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function import(ImportCampaignItemsRequest $request, Campaign $campaign, ImportCampaignItemsAction $action): JsonResponse
     {
         abort_unless($campaign->room_id === request()->attributes->get('room')->id, 404);
         if ($campaign->status?->value === 'closed') {
-            abort(422, 'Campaign đã đóng.');
+            abort(422, 'Campaign Ä‘Ă£ Ä‘Ă³ng.');
         }
         $items = $request->validated('items');
         if ($request->filled('preview_id')) {

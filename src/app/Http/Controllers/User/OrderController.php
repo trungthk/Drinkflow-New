@@ -14,6 +14,11 @@ use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(Request $request): JsonResponse
     {
         $roomUser = $request->attributes->get('room_user');
@@ -31,6 +36,14 @@ class OrderController extends Controller
         return response()->json(['data' => $query->paginate(20)]);
     }
 
+    /**
+     * Handle the store operation.
+     * @param StoreOrderRequest $request Parameter value.
+     * @param Room $room Parameter value.
+     * @param Campaign $campaign Parameter value.
+     * @param CreateOrderAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function store(StoreOrderRequest $request, Room $room, Campaign $campaign, CreateOrderAction $action): JsonResponse
     {
         try {
@@ -48,7 +61,7 @@ class OrderController extends Controller
                 $room = $request->attributes->get('room');
 
                 return response()->json([
-                    'message' => 'Bạn đã có một đơn đang hoạt động cho campaign này.',
+                    'message' => 'Báº¡n Ä‘Ă£ cĂ³ má»™t Ä‘Æ¡n Ä‘ang hoáº¡t Ä‘á»™ng cho campaign nĂ y.',
                     'code' => 'active_order_exists',
                     'order_id' => $activeOrder?->id,
                     'order_status' => $activeOrder?->status?->value,
@@ -61,6 +74,13 @@ class OrderController extends Controller
         return response()->json(['data' => $order], 201);
     }
 
+    /**
+     * Handle the show operation.
+     * @param Request $request Parameter value.
+     * @param Room $room Parameter value.
+     * @param Order $order Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function show(Request $request, Room $room, Order $order): JsonResponse
     {
         $roomUser = $request->attributes->get('room_user');
@@ -69,6 +89,13 @@ class OrderController extends Controller
         return response()->json(['data' => $order->load(['items.toppings', 'campaign', 'room'])]);
     }
 
+    /**
+     * Handle the payment operation.
+     * @param Request $request Parameter value.
+     * @param Room $room Parameter value.
+     * @param Order $order Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function payment(Request $request, Room $room, Order $order): JsonResponse
     {
         $roomUser = $request->attributes->get('room_user');

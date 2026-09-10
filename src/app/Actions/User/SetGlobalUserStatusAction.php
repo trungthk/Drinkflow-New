@@ -9,9 +9,15 @@ use Illuminate\Validation\ValidationException;
 
 class SetGlobalUserStatusAction
 {
+    /**
+     * Handle the execute operation.
+     * @param GlobalUser $user Parameter value.
+     * @param string $status Parameter value.
+     * @return GlobalUser Result of the operation.
+     */
     public function execute(GlobalUser $user, string $status): GlobalUser
     {
-        if (!in_array($status, ['active', 'blocked', 'disabled'], true)) throw ValidationException::withMessages(['status' => 'Trạng thái không hợp lệ.']);
+        if (!in_array($status, ['active', 'blocked', 'disabled'], true)) throw ValidationException::withMessages(['status' => 'Tráº¡ng thĂ¡i khĂ´ng há»£p lá»‡.']);
         return DB::transaction(function () use ($user, $status) {
             $user->refresh();
             $before = $user->status->value;

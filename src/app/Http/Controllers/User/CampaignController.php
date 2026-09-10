@@ -10,6 +10,11 @@ use Illuminate\Support\Str;
 
 class CampaignController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(Request $request): JsonResponse
     {
         $room = $request->attributes->get('room');
@@ -27,6 +32,12 @@ class CampaignController extends Controller
         return response()->json(['data' => $campaigns]);
     }
 
+    /**
+     * Handle the show operation.
+     * @param Campaign $campaign Parameter value.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function show(Campaign $campaign, Request $request): JsonResponse
     {
         abort_unless($campaign->room_id === $request->attributes->get('room')->id && in_array($campaign->status?->value, ['active', 'scheduled'], true), 404);

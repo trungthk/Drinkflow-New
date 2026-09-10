@@ -12,13 +12,18 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(Request $request): JsonResponse
     {
         $room = $request->attributes->get('room');
         [$from, $to] = $this->period($request, $room->timezone);
-        $orders = Order::query()->where('room_id', $room->id)->whereBetween('created_at', [$from, $to])->whereNotIn('status', ['cancelled']);
-        $campaigns = Campaign::query()->where('room_id', $room->id)->whereBetween('created_at', [$from, $to]);
-        $debts = Debt::query()->where('room_id', $room->id)->whereBetween('created_at', [$from, $to]);
+        $orders = Order::query()->where('orders.room_id', $room->id)->whereBetween('orders.created_at', [$from, $to])->whereNotIn('orders.status', ['cancelled']);
+        $campaigns = Campaign::query()->where('campaigns.room_id', $room->id)->whereBetween('campaigns.created_at', [$from, $to]);
+        $debts = Debt::query()->where('debts.room_id', $room->id)->whereBetween('debts.created_at', [$from, $to]);
         $orderIds = (clone $orders)->pluck('id');
 
         $popularDrinks = $orderIds->isEmpty() ? collect() : \App\Models\OrderItem::query()->whereIn('order_id', $orderIds)->selectRaw('item_name, SUM(quantity) as quantity')->groupBy('item_name')->orderByDesc('quantity')->limit(10)->get();
@@ -38,6 +43,12 @@ class ReportController extends Controller
         ]]);
     }
 
+    /**
+     * Handle the period operation.
+     * @param Request $request Parameter value.
+     * @param string $timezone Parameter value.
+     * @return array Result of the operation.
+     */
     private function period(Request $request, string $timezone): array
     {
         $now = Carbon::now($timezone ?: config('app.timezone'));

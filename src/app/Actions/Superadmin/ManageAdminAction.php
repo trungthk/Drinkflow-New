@@ -11,6 +11,11 @@ use App\Events\AdminRoomsUpdated;
 
 class ManageAdminAction
 {
+    /**
+     * Handle the create operation.
+     * @param array $data Parameter value.
+     * @return AdminAccount Result of the operation.
+     */
     public function create(array $data): AdminAccount
     {
         return DB::transaction(function () use ($data): AdminAccount {
@@ -20,6 +25,12 @@ class ManageAdminAction
         });
     }
 
+    /**
+     * Handle the update operation.
+     * @param AdminAccount $admin Parameter value.
+     * @param array $data Parameter value.
+     * @return AdminAccount Result of the operation.
+     */
     public function update(AdminAccount $admin, array $data): AdminAccount
     {
         return DB::transaction(function () use ($admin, $data): AdminAccount {
@@ -31,10 +42,16 @@ class ManageAdminAction
         });
     }
 
+    /**
+     * Handle the set status operation.
+     * @param AdminAccount $admin Parameter value.
+     * @param string $status Parameter value.
+     * @return AdminAccount Result of the operation.
+     */
     public function setStatus(AdminAccount $admin, string $status): AdminAccount
     {
         return DB::transaction(function () use ($admin, $status): AdminAccount {
-            if (! in_array($status, ['active', 'blocked', 'disabled'], true)) throw ValidationException::withMessages(['status' => 'Trạng thái admin không hợp lệ.']);
+            if (! in_array($status, ['active', 'blocked', 'disabled'], true)) throw ValidationException::withMessages(['status' => 'Tráº¡ng thĂ¡i admin khĂ´ng há»£p lá»‡.']);
             if ($status !== 'active' && $admin->isSuperadmin()) $this->ensureAnotherSuperadmin($admin);
             $before = ['status' => $admin->status];
             $admin->update(['status' => $status]);
@@ -43,6 +60,12 @@ class ManageAdminAction
         });
     }
 
+    /**
+     * Handle the set role operation.
+     * @param AdminAccount $admin Parameter value.
+     * @param string $role Parameter value.
+     * @return AdminAccount Result of the operation.
+     */
     public function setRole(AdminAccount $admin, string $role): AdminAccount
     {
         return DB::transaction(function () use ($admin, $role): AdminAccount {
@@ -54,12 +77,24 @@ class ManageAdminAction
         });
     }
 
+    /**
+     * Handle the reset password operation.
+     * @param AdminAccount $admin Parameter value.
+     * @param string $password Parameter value.
+     * @return void Result of the operation.
+     */
     public function resetPassword(AdminAccount $admin, string $password): void
     {
         $admin->update(['password' => $password]);
         app(AuditService::class)->record('admin.password_reset', 'admin', $admin->id);
     }
 
+    /**
+     * Handle the sync rooms operation.
+     * @param AdminAccount $admin Parameter value.
+     * @param array $roomIds Parameter value.
+     * @return AdminAccount Result of the operation.
+     */
     public function syncRooms(AdminAccount $admin, array $roomIds): AdminAccount
     {
         return DB::transaction(function () use ($admin, $roomIds): AdminAccount {
@@ -72,6 +107,11 @@ class ManageAdminAction
         });
     }
 
+    /**
+     * Handle the delete operation.
+     * @param AdminAccount $admin Parameter value.
+     * @return void Result of the operation.
+     */
     public function delete(AdminAccount $admin): void
     {
         DB::transaction(function () use ($admin): void {
@@ -81,22 +121,37 @@ class ManageAdminAction
         });
     }
 
+    /**
+     * Handle the guard role change operation.
+     * @param AdminAccount $admin Parameter value.
+     * @param ?string $role Parameter value.
+     * @return void Result of the operation.
+     */
     private function guardRoleChange(AdminAccount $admin, ?string $role): void
     {
         if ($role !== AdminRole::Admin->value || ! $admin->isSuperadmin()) return;
         $current = request()->user('admin');
         if ($current?->is($admin) && $this->superadminCount() <= 1) {
-            throw ValidationException::withMessages(['role' => 'Không thể tự hạ quyền superadmin cuối cùng.']);
+            throw ValidationException::withMessages(['role' => 'KhĂ´ng thá»ƒ tá»± háº¡ quyá»n superadmin cuá»‘i cĂ¹ng.']);
         }
         $this->ensureAnotherSuperadmin($admin);
     }
 
+    /**
+     * Handle the ensure another superadmin operation.
+     * @param AdminAccount $admin Parameter value.
+     * @return void Result of the operation.
+     */
     private function ensureAnotherSuperadmin(AdminAccount $admin): void
     {
         $query = AdminAccount::query()->where('role', AdminRole::SuperAdmin->value)->where('status', 'active')->where('id', '<>', $admin->id);
-        if (! $query->exists()) throw ValidationException::withMessages(['admin' => 'Phải giữ lại ít nhất một superadmin.']);
+        if (! $query->exists()) throw ValidationException::withMessages(['admin' => 'Pháº£i giá»¯ láº¡i Ă­t nháº¥t má»™t superadmin.']);
     }
 
+    /**
+     * Handle the superadmin count operation.
+     * @return int Result of the operation.
+     */
     private function superadminCount(): int
     {
         return AdminAccount::query()->where('role', AdminRole::SuperAdmin->value)->count();

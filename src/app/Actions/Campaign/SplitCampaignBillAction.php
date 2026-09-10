@@ -10,16 +10,23 @@ use Illuminate\Validation\ValidationException;
 
 class SplitCampaignBillAction
 {
+    /**
+     * Handle the execute operation.
+     * @param Campaign $campaign Parameter value.
+     * @param string $method Parameter value.
+     * @param array $custom Parameter value.
+     * @return array Result of the operation.
+     */
     public function execute(Campaign $campaign, string $method, array $custom = []): array
     {
         return DB::transaction(function () use ($campaign, $method, $custom): array {
             $campaign = Campaign::query()->with(['orders' => fn ($query) => $query->whereNotIn('status', ['cancelled']), 'orders.roomUser'])->lockForUpdate()->findOrFail($campaign->id);
             if (! in_array($campaign->status?->value, ['closed', 'closing'], true)) {
-                throw ValidationException::withMessages(['campaign' => 'Chỉ split bill sau khi campaign đã đóng.']);
+                throw ValidationException::withMessages(['campaign' => 'Chá»‰ split bill sau khi campaign Ä‘Ă£ Ä‘Ă³ng.']);
             }
             $byUser = $campaign->orders->groupBy('room_user_id');
             if ($byUser->isEmpty()) {
-                throw ValidationException::withMessages(['campaign' => 'Campaign chưa có order hợp lệ.']);
+                throw ValidationException::withMessages(['campaign' => 'Campaign chÆ°a cĂ³ order há»£p lá»‡.']);
             }
             $gross = $byUser->map(fn ($orders) => (int) $orders->sum(fn ($order) => $order->subtotal + $order->delivery_amount - $order->discount_amount));
             $orderNet = $byUser->map(fn ($orders) => (int) $orders->sum('final_amount'));
@@ -33,7 +40,7 @@ class SplitCampaignBillAction
                 default => collect(),
             };
             if ((int) $allocations->sum() !== $totalNet) {
-                throw ValidationException::withMessages(['allocations' => 'Tổng phân bổ phải bằng tổng tiền order.']);
+                throw ValidationException::withMessages(['allocations' => 'Tá»•ng phĂ¢n bá»• pháº£i báº±ng tá»•ng tiá»n order.']);
             }
 
             $result = [];
@@ -56,6 +63,12 @@ class SplitCampaignBillAction
         });
     }
 
+    /**
+     * Handle the equalize operation.
+     * @param array $ids Parameter value.
+     * @param int $total Parameter value.
+     * @return \Illuminate\Support\Collection Result of the operation.
+     */
     private function equalize(array $ids, int $total): \Illuminate\Support\Collection
     {
         $base = intdiv($total, count($ids));
@@ -63,10 +76,17 @@ class SplitCampaignBillAction
         return collect($ids)->values()->mapWithKeys(fn ($id, $index) => [(int) $id => $base + ($index < $remainder ? 1 : 0)]);
     }
 
+    /**
+     * Handle the flat price operation.
+     * @param array $ids Parameter value.
+     * @param ?int $flatPrice Parameter value.
+     * @param int $total Parameter value.
+     * @return \Illuminate\Support\Collection Result of the operation.
+     */
     private function flatPrice(array $ids, ?int $flatPrice, int $total): \Illuminate\Support\Collection
     {
         if (! $flatPrice || $flatPrice < 0) {
-            throw ValidationException::withMessages(['flat_price' => 'Campaign chưa cấu hình flat price hợp lệ.']);
+            throw ValidationException::withMessages(['flat_price' => 'Campaign chÆ°a cáº¥u hĂ¬nh flat price há»£p lá»‡.']);
         }
         $amounts = collect($ids)->mapWithKeys(fn ($id) => [(int) $id => $flatPrice]);
         $difference = $total - (int) $amounts->sum();

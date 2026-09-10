@@ -9,13 +9,19 @@ use Illuminate\Validation\ValidationException;
 
 class SetDebtStatusAction
 {
+    /**
+     * Handle the execute operation.
+     * @param Debt $debt Parameter value.
+     * @param string $status Parameter value.
+     * @return Debt Result of the operation.
+     */
     public function execute(Debt $debt, string $status): Debt
     {
         return DB::transaction(function () use ($debt, $status): Debt {
             $debt = Debt::query()->lockForUpdate()->findOrFail($debt->id);
             $before = $debt->status->value;
             if ($status === 'unpaid' && $debt->remaining_amount === 0) {
-                throw ValidationException::withMessages(['status' => 'Debt đã không còn số dư để đánh dấu unpaid.']);
+                throw ValidationException::withMessages(['status' => 'Debt Ä‘Ă£ khĂ´ng cĂ²n sá»‘ dÆ° Ä‘á»ƒ Ä‘Ă¡nh dáº¥u unpaid.']);
             }
             if ($status === 'paid') {
                 $debt->paid_amount += $debt->remaining_amount;

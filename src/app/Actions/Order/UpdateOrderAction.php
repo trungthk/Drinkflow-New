@@ -9,12 +9,18 @@ use Illuminate\Validation\ValidationException;
 
 class UpdateOrderAction
 {
+    /**
+     * Handle the execute operation.
+     * @param Order $order Parameter value.
+     * @param array $data Parameter value.
+     * @return Order Result of the operation.
+     */
     public function execute(Order $order, array $data): Order
     {
         return DB::transaction(function () use ($order, $data): Order {
             $order = Order::query()->lockForUpdate()->findOrFail($order->id);
             if (! $order->status->isActive()) {
-                throw ValidationException::withMessages(['order' => 'Chỉ được sửa order đang hoạt động.']);
+                throw ValidationException::withMessages(['order' => 'Chá»‰ Ä‘Æ°á»£c sá»­a order Ä‘ang hoáº¡t Ä‘á»™ng.']);
             }
             $before = $order->only(['payment_method', 'note']);
             $order->update($data);

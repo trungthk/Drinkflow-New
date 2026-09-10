@@ -9,6 +9,12 @@ use Illuminate\Support\Str;
 
 class SocketTokenService
 {
+    /**
+     * Handle the issue operation.
+     * @param RoomUser $roomUser Parameter value.
+     * @param int $ttlSeconds Parameter value.
+     * @return string Result of the operation.
+     */
     public function issue(RoomUser $roomUser, int $ttlSeconds = 300): string
     {
         abort_unless($roomUser->globalUser?->status?->value === 'active' && $roomUser->status?->value === 'active', 403);
@@ -25,6 +31,13 @@ class SocketTokenService
         return $encoded.'.'.hash_hmac('sha256', $encoded, (string) config('app.key'));
     }
 
+    /**
+     * Handle the issue for admin operation.
+     * @param AdminAccount $admin Parameter value.
+     * @param ?Room $room Parameter value.
+     * @param int $ttlSeconds Parameter value.
+     * @return string Result of the operation.
+     */
     public function issueForAdmin(AdminAccount $admin, ?Room $room = null, int $ttlSeconds = 300): string
     {
         abort_unless($admin->isActive(), 403);
@@ -35,6 +48,11 @@ class SocketTokenService
         return $encoded.'.'.hash_hmac('sha256', $encoded, (string) config('app.key'));
     }
 
+    /**
+     * Handle the verify operation.
+     * @param string $token Parameter value.
+     * @return ?array Result of the operation.
+     */
     public function verify(string $token): ?array
     {
         [$encoded, $signature] = array_pad(explode('.', $token, 2), 2, '');
@@ -46,6 +64,11 @@ class SocketTokenService
         return is_array($payload) && ($payload['actor_type'] ?? null) === 'user' && ($payload['exp'] ?? 0) >= now()->timestamp ? $payload : null;
     }
 
+    /**
+     * Handle the encode operation.
+     * @param array $payload Parameter value.
+     * @return string Result of the operation.
+     */
     private function encode(array $payload): string
     {
         return rtrim(strtr(base64_encode((string) json_encode($payload, JSON_UNESCAPED_SLASHES)), '+/', '-_'), '=');

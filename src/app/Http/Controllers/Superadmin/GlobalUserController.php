@@ -18,6 +18,11 @@ use Illuminate\Support\Facades\DB;
 
 class GlobalUserController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(Request $request): JsonResponse
     {
         $query = GlobalUser::query()->withCount('roomUsers')->with('oauthIdentities:id,global_user_id,provider,provider_user_id,provider_email,linked_at,last_login_at')->latest();
@@ -29,16 +34,35 @@ class GlobalUserController extends Controller
         return response()->json(['data' => $query->paginate(50)]);
     }
 
+    /**
+     * Handle the show operation.
+     * @param GlobalUser $globalUser Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function show(GlobalUser $globalUser): JsonResponse
     {
         return response()->json(['data' => $globalUser->load(['oauthIdentities:id,global_user_id,provider,provider_user_id,provider_email,linked_at,last_login_at', 'roomUsers.room', 'roomUsers.devices'])]);
     }
 
+    /**
+     * Handle the status operation.
+     * @param SetStatusRequest $request Parameter value.
+     * @param GlobalUser $globalUser Parameter value.
+     * @param SetGlobalUserStatusAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function status(SetStatusRequest $request, GlobalUser $globalUser, SetGlobalUserStatusAction $action): JsonResponse
     {
         return response()->json(['data' => $action->execute($globalUser, $request->validated('status'))]);
     }
 
+    /**
+     * Handle the remove membership operation.
+     * @param GlobalUser $globalUser Parameter value.
+     * @param RoomUser $roomUser Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function removeMembership(GlobalUser $globalUser, RoomUser $roomUser, AuditService $audit): JsonResponse
     {
         abort_unless($roomUser->global_user_id === $globalUser->id, 404);
@@ -51,6 +75,15 @@ class GlobalUserController extends Controller
         return response()->json(['data' => ['removed' => true]]);
     }
 
+    /**
+     * Handle the revoke device operation.
+     * @param GlobalUser $globalUser Parameter value.
+     * @param RoomUser $roomUser Parameter value.
+     * @param RoomUserDevice $device Parameter value.
+     * @param DeviceTrustService $trust Parameter value.
+     * @param AuditService $audit Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function revokeDevice(GlobalUser $globalUser, RoomUser $roomUser, RoomUserDevice $device, DeviceTrustService $trust, AuditService $audit): JsonResponse
     {
         abort_unless($roomUser->global_user_id === $globalUser->id && $device->room_user_id === $roomUser->id, 404);
@@ -59,6 +92,12 @@ class GlobalUserController extends Controller
         return response()->json(['data' => ['revoked' => true]]);
     }
 
+    /**
+     * Handle the merge operation.
+     * @param MergeGlobalUsersRequest $request Parameter value.
+     * @param MergeGlobalUsersAction $action Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function merge(MergeGlobalUsersRequest $request, MergeGlobalUsersAction $action): JsonResponse
     {
         $data = $request->validated();

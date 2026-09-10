@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    /**
+     * Handle the index operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function index(Request $request): JsonResponse
     {
         $query = $request->attributes->get('global_user')->notifications()->latest();
@@ -19,6 +24,12 @@ class NotificationController extends Controller
         return response()->json(['data' => $query->paginate(30)]);
     }
 
+    /**
+     * Handle the read operation.
+     * @param Request $request Parameter value.
+     * @param UserNotification $notification Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function read(Request $request, UserNotification $notification): JsonResponse
     {
         abort_unless($notification->global_user_id === $request->attributes->get('global_user')->id, 404);

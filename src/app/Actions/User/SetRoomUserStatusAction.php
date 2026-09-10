@@ -9,9 +9,15 @@ use Illuminate\Validation\ValidationException;
 
 class SetRoomUserStatusAction
 {
+    /**
+     * Handle the execute operation.
+     * @param RoomUser $roomUser Parameter value.
+     * @param string $status Parameter value.
+     * @return RoomUser Result of the operation.
+     */
     public function execute(RoomUser $roomUser, string $status): RoomUser
     {
-        if (!in_array($status, ['active', 'blocked', 'removed'], true)) throw ValidationException::withMessages(['status' => 'Trạng thái không hợp lệ.']);
+        if (!in_array($status, ['active', 'blocked', 'removed'], true)) throw ValidationException::withMessages(['status' => 'Tráº¡ng thĂ¡i khĂ´ng há»£p lá»‡.']);
         return DB::transaction(function () use ($roomUser, $status) {
             $before = $roomUser->status->value;
             $roomUser->update(['status' => $status]);

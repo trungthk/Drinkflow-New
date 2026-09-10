@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 
 class AnalyticsController extends Controller
 {
+    /**
+     * Handle the global operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function global(Request $request): JsonResponse
     {
         $user = $request->attributes->get('global_user');
@@ -23,6 +28,11 @@ class AnalyticsController extends Controller
         ]]);
     }
 
+    /**
+     * Handle the room operation.
+     * @param Request $request Parameter value.
+     * @return JsonResponse Result of the operation.
+     */
     public function room(Request $request): JsonResponse
     {
         $roomUser = $request->attributes->get('room_user');

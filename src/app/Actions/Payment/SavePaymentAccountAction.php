@@ -8,6 +8,13 @@ use Illuminate\Support\Facades\DB;
 
 class SavePaymentAccountAction
 {
+    /**
+     * Handle the execute operation.
+     * @param Room $room Parameter value.
+     * @param array $data Parameter value.
+     * @param ?PaymentAccount $account Parameter value.
+     * @return PaymentAccount Result of the operation.
+     */
     public function execute(Room $room, array $data, ?PaymentAccount $account = null): PaymentAccount
     {
         return DB::transaction(function () use ($room, $data, $account) {
