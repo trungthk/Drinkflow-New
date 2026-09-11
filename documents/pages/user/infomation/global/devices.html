@@ -1,0 +1,588 @@
+<!DOCTYPE html><html class="h-full bg-surface" lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>DrinkFlow - Bảo mật &amp; Thiết bị tin cậy (/me/devices)</title>
+<!-- Material Symbols Outlined font -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS with custom plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-background": "#0b1c30",
+            "on-primary": "#ffffff",
+            "outline": "#6d7a72",
+            "on-surface-variant": "#3d4a42",
+            "on-secondary-fixed": "#002113",
+            "on-primary-fixed": "#002114",
+            "on-primary-container": "#f5fff7",
+            "on-secondary-container": "#00714d",
+            "inverse-on-surface": "#eaf1ff",
+            "on-secondary-fixed-variant": "#005236",
+            "tertiary-container": "#6c748b",
+            "on-tertiary-container": "#fefcff",
+            "inverse-surface": "#213145",
+            "outline-variant": "#bccac0",
+            "on-tertiary-fixed": "#131b2e",
+            "error-container": "#ffdad6",
+            "primary-fixed-dim": "#68dba9",
+            "surface-container-low": "#eff4ff",
+            "on-surface": "#0b1c30",
+            "primary": "#006948",
+            "on-secondary": "#ffffff",
+            "on-error": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "surface-dim": "#cbdbf5",
+            "primary-container": "#00855d",
+            "secondary": "#006c49",
+            "surface-container": "#e5eeff",
+            "surface-tint": "#006c4a",
+            "tertiary": "#545c72",
+            "inverse-primary": "#68dba9",
+            "surface-container-high": "#dce9ff",
+            "on-error-container": "#93000a",
+            "secondary-fixed": "#6ffbbe",
+            "on-tertiary-fixed-variant": "#3f465c",
+            "secondary-container": "#6cf8bb",
+            "surface-variant": "#d3e4fe",
+            "background": "#f8f9ff",
+            "tertiary-fixed-dim": "#bec6e0",
+            "on-tertiary": "#ffffff",
+            "surface-container-highest": "#d3e4fe",
+            "primary-fixed": "#85f8c4",
+            "error": "#ba1a1a",
+            "secondary-fixed-dim": "#4edea3",
+            "surface-bright": "#f8f9ff",
+            "tertiary-fixed": "#dae2fd",
+            "on-primary-fixed-variant": "#005137",
+            "surface": "#f8f9ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-2xl": "4rem",
+            "gutter": "1.5rem",
+            "space-sm": "1rem",
+            "space-lg": "2rem",
+            "space-md": "1.5rem",
+            "space-xl": "3rem",
+            "margin": "1.5rem",
+            "space-xs": "0.5rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "caption": ["Inter"],
+            "headline-xl": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0", "fontWeight": "400" }],
+            "caption": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 20px;
+      line-height: 1;
+      display: inline-block;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col bg-surface text-on-surface font-body-md antialiased selection:bg-secondary-fixed selection:text-on-secondary-fixed">
+<!-- TopNavBar (Shared Component JSON compliant) -->
+<header class="bg-surface-container-lowest dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shadow-sm dark:shadow-none sticky top-0 z-40">  <!-- Tier 1: Brand & User Actions -->
+  <div class="border-b border-outline-variant dark:border-outline">
+    <div class="w-full max-w-[1200px] mx-auto px-space-md flex items-center justify-between h-16">
+      <!-- Brand Logo -->
+      <a class="text-headline-md font-headline-md font-bold text-primary dark:text-inverse-primary tracking-tight flex items-center gap-2" href="#">
+        <span class="material-symbols-outlined text-primary text-2xl" style="font-variation-settings: 'FILL' 1;">local_cafe</span>
+        <span class="">DrinkFlow</span>
+      </a>
+      <!-- Trailing Actions & Profile -->
+      <div class="flex items-center gap-3">
+        <!-- Dropdown Thông báo với badge số 3 -->
+        <div class="relative">
+          <button id="notification-btn" onclick="document.getElementById('notification-dropdown').classList.toggle('hidden')" aria-label="Thông báo" class="relative p-2 text-on-surface-variant hover:text-primary hover:bg-surface rounded-lg transition-colors" type="button">
+            <span class="material-symbols-outlined">notifications</span>
+            <span class="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-error text-white text-[10px] font-bold flex items-center justify-center">3</span>
+          </button>
+          <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg py-2 z-50">
+            <div class="px-4 py-2 border-b border-outline-variant flex items-center justify-between">
+              <span class="font-headline-sm text-on-surface text-label-md font-semibold">Thông báo</span>
+              <span class="text-caption text-primary cursor-pointer hover:underline">Đánh dấu đã đọc</span>
+            </div>
+            <div class="divide-y divide-outline-variant max-h-64 overflow-y-auto">
+              <div class="p-3 hover:bg-surface/50 cursor-pointer flex gap-2.5 items-start">
+                <span class="material-symbols-outlined text-primary text-[18px] mt-0.5">receipt_long</span>
+                <div class="text-body-sm">
+                  <p class="text-on-surface font-medium text-caption">Đơn hàng #DF-209 đã chốt</p>
+                  <p class="text-outline text-caption">Trà sữa Gong Cha • 5 phút trước</p>
+                </div>
+              </div>
+              <div class="p-3 hover:bg-surface/50 cursor-pointer flex gap-2.5 items-start">
+                <span class="material-symbols-outlined text-secondary text-[18px] mt-0.5">payments</span>
+                <div class="text-body-sm">
+                  <p class="text-on-surface font-medium text-caption">Hoàn tất thanh toán 55.000đ</p>
+                  <p class="text-outline text-caption">Chuyển khoản VietQR • 30 phút trước</p>
+                </div>
+              </div>
+              <div class="p-3 hover:bg-surface/50 cursor-pointer flex gap-2.5 items-start">
+                <span class="material-symbols-outlined text-[#DC2626] text-[18px] mt-0.5">security</span>
+                <div class="text-body-sm">
+                  <p class="text-on-surface font-medium text-caption">Đăng nhập mới từ thiết bị di động</p>
+                  <p class="text-outline text-caption">Safari trên iPhone 15 Pro • 2 giờ trước</p>
+                </div>
+              </div>
+            </div>
+            <div class="pt-2 px-3 border-t border-outline-variant text-center">
+              <a href="#" class="text-caption text-primary hover:underline font-medium block py-1">Xem tất cả thông báo</a>
+            </div>
+          </div>
+        </div>
+        <!-- Trợ giúp (?) Button mở modal hỗ trợ -->
+        <button id="help-modal-trigger" onclick="document.getElementById('help-modal').classList.remove('hidden')" aria-label="Trợ giúp" class="p-2 text-on-surface-variant hover:text-primary hover:bg-surface rounded-lg transition-colors" type="button" title="Trợ giúp &amp; Hỗ trợ">
+          <span class="material-symbols-outlined">help_outline</span>
+        </button>
+        <div class="h-6 w-[1px] bg-outline-variant mx-1"></div>
+        <!-- Avatar & User Dropdown (Trung Lê) -->
+        <div class="relative">
+          <button onclick="document.getElementById('user-profile-menu').classList.toggle('hidden')" class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg border border-outline-variant bg-surface-container-low/50 hover:bg-surface transition-colors cursor-pointer text-left" type="button">
+            <div class="w-7 h-7 rounded-full bg-primary-container text-on-primary-container font-semibold flex items-center justify-center text-caption" title="trung.lt@company.com avatar">
+              TL
+            </div>
+            <div class="hidden lg:flex flex-col text-left">
+              <div class="flex items-center gap-1.5">
+                <span class="text-label-sm font-label-sm text-on-surface font-semibold truncate max-w-[130px]">Trung Lê</span>
+                <span class="inline-flex items-center px-1.5 py-0.2 rounded-full bg-surface-container-lowest text-primary text-[10px] font-medium border border-outline-variant/60">
+                  <span class="material-symbols-outlined text-[12px] mr-0.5 text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+                  SSO
+                </span>
+              </div>
+              <span class="text-caption font-caption text-outline">trung.lt@company.com</span>
+            </div>
+            <span class="material-symbols-outlined text-outline text-[18px] ml-0.5">expand_more</span>
+          </button>
+          <div id="user-profile-menu" class="hidden absolute right-0 mt-2 w-56 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg py-2 z-50">
+            <div class="px-4 py-2 border-b border-outline-variant">
+              <p class="text-label-sm font-semibold text-on-surface">Trung Lê</p>
+              <p class="text-caption text-outline font-mono truncate">trung.lt@company.com</p>
+              <span class="inline-block mt-1 px-1.5 py-0.5 text-[10px] bg-primary/10 text-primary rounded font-medium">Ban Công nghệ &amp; Kỹ thuật số</span>
+            </div>
+            <a href="#" class="flex items-center gap-2.5 px-4 py-2 text-label-sm text-on-surface hover:bg-surface hover:text-primary transition-colors">
+              <span class="material-symbols-outlined text-[18px] text-outline">person</span> Thông tin cá nhân
+            </a>
+            <a href="#" class="flex items-center gap-2.5 px-4 py-2 text-label-sm text-primary font-medium bg-surface/50 hover:bg-surface transition-colors">
+              <span class="material-symbols-outlined text-[18px] text-primary">security</span> Bảo mật &amp; Thiết bị
+            </a>
+            <a href="#" class="flex items-center gap-2.5 px-4 py-2 text-label-sm text-on-surface hover:bg-surface hover:text-primary transition-colors">
+              <span class="material-symbols-outlined text-[18px] text-outline">tune</span> Tùy chọn giao diện
+            </a>
+            <div class="border-t border-outline-variant my-1"></div>
+            <a href="#" class="flex items-center gap-2.5 px-4 py-2 text-label-sm text-error hover:bg-surface hover:text-error transition-colors">
+              <span class="material-symbols-outlined text-[18px] text-error">logout</span> Đăng xuất SSO
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Tier 2: Horizontal Navigation Bar -->
+  <div class="w-full max-w-[1200px] mx-auto px-space-md">
+    <nav class="flex items-center gap-6 overflow-x-auto">
+      <a class="text-on-surface-variant dark:text-surface-variant font-normal py-3 hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150 text-label-md font-label-md" href="#">Tổng quan</a>
+      <a class="text-on-surface-variant dark:text-surface-variant font-normal py-3 hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150 text-label-md font-label-md" href="#">Room của tôi</a>
+      <a class="text-on-surface-variant dark:text-surface-variant font-normal py-3 hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150 text-label-md font-label-md" href="#">Lịch sử Order</a>
+      <a class="text-on-surface-variant dark:text-surface-variant font-normal py-3 hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150 text-label-md font-label-md" href="#">Thanh toán</a>
+      <a class="text-on-surface-variant dark:text-surface-variant font-normal py-3 hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150 text-label-md font-label-md" href="#">Thống kê</a>
+      <a class="text-on-surface-variant dark:text-surface-variant font-normal py-3 hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150 text-label-md font-label-md" href="#">Đánh giá</a>
+    </nav>
+  </div></header>
+<!-- Main Canvas Container -->
+<main class="flex-1 w-full max-w-[1200px] mx-auto px-space-md py-space-lg space-y-6">
+<!-- Breadcrumb & Header Title Area -->
+<div>
+<nav aria-label="Breadcrumb" class="flex items-center gap-2 text-caption font-caption text-outline mb-2">
+<a class="hover:text-primary transition-colors" href="#">DrinkFlow Portal</a>
+<span class="material-symbols-outlined text-[14px]" data-icon="chevron_right">chevron_right</span>
+<span class="hover:text-primary transition-colors">Cá nhân</span>
+<span class="material-symbols-outlined text-[14px]" data-icon="chevron_right">chevron_right</span>
+<span class="text-on-surface font-semibold">Bảo mật &amp; Thiết bị</span>
+</nav>
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-outline-variant pb-5">
+<div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight">Bảo mật tài khoản &amp; Thiết bị đăng nhập</h1>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">Quản lý các phiên đăng nhập Google Workspace OAuth 2.0 và thiết bị tin cậy (Trusted Devices).</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-label-sm font-label-sm bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]">
+<span class="material-symbols-outlined text-[16px]" data-icon="security" style="font-variation-settings: 'FILL' 1;">security</span>
+            Chính sách bảo mật cấp 2 (Doanh nghiệp)
+          </span>
+</div>
+</div>
+</div>
+<!-- Section 1: Danh tính & Xác thực doanh nghiệp (Enterprise Identity Card) -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-space-md shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="badge">badge</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Danh tính &amp; Xác thực doanh nghiệp</h2>
+</div>
+<span class="text-caption font-caption uppercase tracking-wider text-outline px-2 py-0.5 rounded bg-surface border border-outline-variant">OAuth 2.0 Managed</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+<!-- Single Sign-On Info Box 1 -->
+<div class="p-4 rounded-lg bg-surface border border-outline-variant flex flex-col justify-between">
+<span class="text-caption font-caption text-outline">Tài khoản Google Workspace SSO</span>
+<div class="mt-2">
+<p class="text-label-md font-label-md text-on-surface font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="mail">mail</span>
+              trung.lt@company.com
+            </p>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5">Ban Công nghệ &amp; Kỹ thuật số</p>
+</div>
+<div class="mt-3 pt-2 border-t border-outline-variant/60 flex items-center justify-between text-caption font-caption">
+<span class="text-outline">Mã nhân viên:</span>
+<span class="font-semibold text-on-surface font-mono">DF-EMP-4089</span>
+</div>
+</div>
+<!-- 2FA Status Box 2 -->
+<div class="p-4 rounded-lg bg-surface border border-outline-variant flex flex-col justify-between">
+<span class="text-caption font-caption text-outline">Xác thực đa yếu tố (2FA)</span>
+<div class="mt-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="verified_user" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="text-label-md font-label-md text-on-surface font-semibold">Đã kích hoạt 2FA</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5">Qua Google Authenticator / Khóa bảo mật FIDO2</p>
+</div>
+<div class="mt-3 pt-2 border-t border-outline-variant/60 flex items-center justify-between text-caption font-caption">
+<span class="text-outline">Trạng thái bảo vệ:</span>
+<span class="text-primary font-semibold">Tuyệt đối an toàn</span>
+</div>
+</div>
+<!-- Token Lifetime Box 3 -->
+<div class="p-4 rounded-lg bg-surface border border-outline-variant flex flex-col justify-between">
+<span class="text-caption font-caption text-outline">Chính sách Token phiên</span>
+<div class="mt-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline" data-icon="timer">timer</span>
+<span class="text-label-md font-label-md text-on-surface font-semibold">Hết hạn sau 30 ngày</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5">Yêu cầu tái cấp token định kỳ theo AD Group</p>
+</div>
+<div class="mt-3 pt-2 border-t border-outline-variant/60 flex items-center justify-between text-caption font-caption">
+<span class="text-outline">Cơ chế:</span>
+<span class="text-on-surface font-medium">Automatic Refresh</span>
+</div>
+</div>
+</div>
+<!-- Enterprise Note Box -->
+<div class="rounded-lg bg-surface-container-low border border-outline-variant/70 p-3.5 flex items-start gap-3">
+<span class="material-symbols-outlined text-primary mt-0.5 text-[20px]" data-icon="info" style="font-variation-settings: 'FILL' 1;">info</span>
+<div class="text-body-sm font-body-sm text-on-surface-variant">
+<span class="font-semibold text-on-surface">Lưu ý quản trị:</span> Mật khẩu và thông tin đăng nhập do hệ thống Google Workspace của doanh nghiệp quản lý. DrinkFlow không lưu trữ mật khẩu cá nhân hoặc khóa mã hóa người dùng.
+        </div>
+</div>
+</section>
+<!-- Section 2: Thiết bị hiện tại (Current Device - Highlighted Card) -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-space-md shadow-sm relative overflow-hidden">
+<!-- Emerald Accent Line on Left -->
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pl-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="devices">devices</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Thiết bị hiện tại của bạn</h2>
+</div>
+<div>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0] font-semibold">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+            Thiết bị này - Đang hoạt động
+          </span>
+</div>
+</div>
+<div class="pl-2 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+<!-- Device Info Cluster -->
+<div class="lg:col-span-8 flex items-start gap-4">
+<div class="w-12 h-12 rounded-lg bg-surface-container-low border border-outline-variant flex items-center justify-center flex-shrink-0 text-primary">
+<span class="material-symbols-outlined text-2xl" data-icon="laptop_windows">laptop_windows</span>
+</div>
+<div class="space-y-1">
+<div class="flex flex-wrap items-center gap-2">
+<span class="text-headline-sm font-headline-sm text-on-surface">Chrome trên Windows 11 Pro</span>
+<span class="text-caption font-caption px-2 py-0.5 rounded bg-surface border border-outline-variant text-on-surface font-mono">df-workstation-x86</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="location_on">location_on</span>
+<span class="">Hà Nội, Việt Nam • IP: <strong class="font-mono text-on-surface">14.161.28.92</strong> (Mạng nội bộ Tòa nhà Keangnam Tầng 18)</span>
+</p>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-body-sm font-body-sm text-on-surface-variant">
+<span class="flex items-center gap-1 text-primary font-medium">
+<span class="material-symbols-outlined text-[16px]" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+                Thiết bị tin cậy (Trusted) - Miễn xác thực 2FA trong 30 ngày
+              </span>
+<span class="text-outline">•</span>
+<span class="flex items-center gap-1 text-outline">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span>
+                Hoạt động: <span class="text-on-surface font-medium">Vừa xong</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Management Status & Badge -->
+<div class="lg:col-span-4 flex lg:justify-end">
+<div class="w-full sm:w-auto p-3 bg-surface rounded-lg border border-outline-variant text-right flex sm:flex-col justify-between items-center sm:items-end gap-2">
+<div class="text-left sm:text-right">
+<span class="text-caption font-caption text-outline block">Mức độ ủy quyền</span>
+<span class="text-label-md font-label-md font-semibold text-primary flex items-center sm:justify-end gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="shield">shield</span>
+                Đã cấp quyền truy cập đầy đủ
+              </span>
+</div>
+<span class="text-caption font-caption text-outline">Mã phiên: #SES-9824-VN</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 3: Các phiên đăng nhập & Thiết bị khác đang hoạt động (Active Sessions List) -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-space-md shadow-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-outline-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="devices_other">devices_other</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Các phiên đăng nhập &amp; Thiết bị khác</h2>
+</div>
+<span class="text-body-sm font-body-sm text-outline">3 thiết bị đang hoạt động đồng thời</span>
+</div>
+<!-- Itemized Device List -->
+<div class="divide-y divide-outline-variant">
+<!-- Device 1: iPhone 15 Pro Max -->
+<div class="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface/50 px-2 rounded-lg transition-colors">
+<div class="flex items-start gap-3.5">
+<div class="w-10 h-10 rounded-lg bg-surface border border-outline-variant flex items-center justify-center flex-shrink-0 text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-xl" data-icon="smartphone">smartphone</span>
+</div>
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<h3 class="text-label-md font-label-md text-on-surface font-semibold">DrinkFlow Mobile Web / Safari trên iPhone 15 Pro Max</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-caption font-caption bg-[#FFFBEB] text-[#92400E] border border-amber-200">
+                  Mobile Client
+                </span>
+</div>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm font-body-sm text-on-surface-variant">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-outline" data-icon="location_on">location_on</span>
+                  Vị trí: Hà Nội
+                </span>
+<span class="text-outline">•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-outline" data-icon="schedule">schedule</span>
+                  Hoạt động gần nhất: <span class="text-on-surface font-medium">25 phút trước</span>
+</span>
+<span class="text-outline">•</span>
+<span class="font-mono text-caption text-outline">IP: 118.70.144.12</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 self-end md:self-center">
+<button class="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface hover:border-outline text-label-sm font-label-sm font-medium transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-1 focus:ring-primary" type="button" onclick="document.getElementById('logout-single-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="logout">logout</span>
+              Đăng xuất phiên này
+            </button>
+</div>
+</div>
+<!-- Device 2: Macbook Pro M2 -->
+<div class="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface/50 px-2 rounded-lg transition-colors">
+<div class="flex items-start gap-3.5">
+<div class="w-10 h-10 rounded-lg bg-surface border border-outline-variant flex items-center justify-center flex-shrink-0 text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-xl" data-icon="laptop_mac">laptop_mac</span>
+</div>
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<h3 class="text-label-md font-label-md text-on-surface font-semibold">Chrome trên Macbook Pro M2</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-caption font-caption bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]">
+                  Trusted Device
+                </span>
+</div>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm font-body-sm text-on-surface-variant">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-outline" data-icon="location_on">location_on</span>
+                  Vị trí: Hà Nội (Keangnam Tầng 16)
+                </span>
+<span class="text-outline">•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-outline" data-icon="schedule">schedule</span>
+                  Hoạt động gần nhất: <span class="text-on-surface font-medium">Hôm qua, 17:40</span>
+</span>
+<span class="text-outline">•</span>
+<span class="font-mono text-caption text-outline">IP: 14.161.28.88</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 self-end md:self-center">
+<button class="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface hover:border-outline text-label-sm font-label-sm font-medium transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-1 focus:ring-primary" type="button" onclick="document.getElementById('logout-single-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="logout">logout</span>
+              Đăng xuất phiên này
+            </button>
+</div>
+</div>
+<!-- Device 3: Edge trên Máy trạm Lab Kỹ thuật -->
+<div class="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-surface/50 px-2 rounded-lg transition-colors">
+<div class="flex items-start gap-3.5">
+<div class="w-10 h-10 rounded-lg bg-surface border border-outline-variant flex items-center justify-center flex-shrink-0 text-on-surface-variant mt-0.5">
+<span class="material-symbols-outlined text-xl" data-icon="desktop_windows">desktop_windows</span>
+</div>
+<div class="space-y-1">
+<div class="flex items-center gap-2 flex-wrap">
+<h3 class="text-label-md font-label-md text-on-surface font-semibold">Microsoft Edge trên Máy trạm Lab Kỹ thuật</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-caption font-caption bg-[#F1F5F9] text-[#475569] border border-slate-200">
+                  Shared Lab PC
+                </span>
+</div>
+<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-body-sm font-body-sm text-on-surface-variant">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-outline" data-icon="location_on">location_on</span>
+                  Vị trí: Keangnam Tầng 18
+                </span>
+<span class="text-outline">•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-outline" data-icon="schedule">schedule</span>
+                  Hoạt động gần nhất: <span class="text-on-surface font-medium">5 ngày trước</span>
+</span>
+<span class="text-outline">•</span>
+<span class="font-mono text-caption text-outline">IP: 14.161.28.105</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3 self-end md:self-center">
+<button class="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface hover:border-outline text-label-sm font-label-sm font-medium transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-1 focus:ring-primary" type="button" onclick="document.getElementById('logout-single-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[16px] text-outline" data-icon="logout">logout</span>
+              Đăng xuất phiên này
+            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 4: Thao tác bảo mật khẩn cấp (Global Security Actions) -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-space-md shadow-sm">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-error text-xl" data-icon="warning">warning</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Thao tác bảo mật khẩn cấp &amp; Cài đặt tự động</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+<!-- Emergency Sign-out Card -->
+<div class="p-4 rounded-lg border border-error-container bg-surface flex flex-col justify-between space-y-4">
+<div>
+<h3 class="text-label-md font-label-md text-on-surface font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-error text-lg" data-icon="gpp_bad">gpp_bad</span>
+              Đăng xuất phiên làm việc từ xa
+            </h3>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1.5">
+              Nếu bạn nghi ngờ có phiên đăng nhập bất thường hoặc để quên máy ở nơi công cộng, bạn có thể vô hiệu hóa ngay lập tức tất cả các phiên khác ngoại trừ thiết bị đang sử dụng này.
+            </p>
+</div>
+<div class="pt-2 border-t border-outline-variant/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<span class="text-caption font-caption text-outline">Xác nhận bằng mã Google SSO</span>
+<button class="px-4 py-2 rounded-lg bg-surface-container-lowest border border-red-200 text-[#DC2626] hover:bg-[#FEF2F2] text-label-md font-label-md font-semibold transition-colors flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-error" type="button" onclick="document.getElementById('logout-all-modal').classList.remove('hidden')">
+<span class="material-symbols-outlined text-[18px]" data-icon="no_accounts">no_accounts</span>
+              Đăng xuất khỏi tất cả thiết bị khác
+            </button>
+</div>
+</div>
+<!-- Automated Network Protection Toggle Switch -->
+<div class="p-4 rounded-lg border border-red-200 bg-surface flex flex-col justify-between space-y-4"><div class="space-y-1.5"><div><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-100 text-[#DC2626] border border-red-200 mb-1"><span class="material-symbols-outlined text-[12px]">dangerous</span> Khu vực nguy hiểm</span><h3 class="text-label-md font-label-md text-on-surface font-semibold flex items-center gap-1.5 text-error"><span class="material-symbols-outlined text-error text-lg">person_off</span> Hủy bỏ tài khoản DrinkFlow</h3></div><p class="text-body-sm font-body-sm text-on-surface-variant">Xóa vĩnh viễn tài khoản người dùng và toàn bộ dữ liệu cá nhân liên quan khỏi hệ thống DrinkFlow.</p></div><div class="pt-3 border-t border-red-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><span class="text-caption font-caption text-[#DC2626] font-medium flex items-center gap-1"><span class="material-symbols-outlined text-[15px]">error</span> Không thể phục hồi sau khi xóa</span><button onclick="document.getElementById('delete-account-modal').classList.remove('hidden')" class="px-4 py-2 rounded-lg bg-surface-container-lowest border border-error text-error hover:bg-error hover:text-white text-label-md font-label-md font-semibold transition-colors flex items-center justify-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-error shadow-sm" type="button"><span class="material-symbols-outlined text-[18px]">delete_forever</span> Yêu cầu hủy tài khoản</button></div></div>
+</div>
+</section>
+</main>
+<!-- Footer (Shared Component JSON compliant) -->
+<footer class="bg-surface-container-lowest dark:bg-inverse-surface border-t border-outline-variant dark:border-outline mt-auto">
+  <div class="w-full max-w-[1200px] mx-auto px-space-md py-space-md flex flex-col md:flex-row items-center justify-between gap-space-sm">
+    <div class="flex items-center gap-3">
+      <span class="text-headline-sm font-headline-sm font-semibold text-primary dark:text-inverse-primary">DrinkFlow</span>
+      <span class="text-outline hidden sm:inline">•</span>
+      <p class="text-caption font-caption text-on-surface-variant dark:text-surface-variant">
+        DrinkFlow v2.3.0 • © 2024 DrinkFlow SaaS. Enterprise Group Coordination &amp; Order Consolidation.
+      </p>
+    </div>
+    <nav class="flex flex-wrap items-center gap-x-6 gap-y-2 text-label-sm font-label-sm">
+      <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:underline transition-colors duration-150" href="#">Điều khoản dịch vụ</a>
+      <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:underline transition-colors duration-150" href="#">Chính sách bảo mật</a>
+      <a class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:underline transition-colors duration-150" href="#" onclick="document.getElementById('help-modal').classList.remove('hidden'); return false;">Hỗ trợ người dùng</a>
+    </nav>
+  </div>
+</footer><div id="help-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in duration-150">
+    <button onclick="document.getElementById('help-modal').classList.add('hidden')" class="absolute top-4 right-4 text-outline hover:text-on-surface p-1 rounded-lg hover:bg-surface transition-colors" aria-label="Đóng modal">
+      <span class="material-symbols-outlined text-xl">close</span>
+    </button>
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+        <span class="material-symbols-outlined text-xl">support_agent</span>
+      </div>
+      <div>
+        <h3 class="text-headline-sm font-semibold text-on-surface">Trung tâm trợ giúp DrinkFlow</h3>
+        <p class="text-caption text-outline">Hỗ trợ kỹ thuật &amp; Vận hành nội bộ</p>
+      </div>
+    </div>
+    <div class="space-y-3 mb-6 text-body-sm text-on-surface-variant">
+      <div class="p-3 bg-surface rounded-lg border border-outline-variant flex items-start gap-3">
+        <span class="material-symbols-outlined text-primary text-[20px] mt-0.5">help</span>
+        <div>
+          <p class="font-medium text-on-surface text-label-sm">Tài liệu hướng dẫn</p>
+          <p class="text-caption text-outline mt-0.5">Xem quy trình đặt đồ uống, quản lý room và nạp quỹ nội bộ.</p>
+        </div>
+      </div>
+      <div class="p-3 bg-surface rounded-lg border border-outline-variant flex items-start gap-3">
+        <span class="material-symbols-outlined text-primary text-[20px] mt-0.5">contact_support</span>
+        <div>
+          <p class="font-medium text-on-surface text-label-sm">Liên hệ Admin Ban Công nghệ</p>
+          <p class="text-caption text-outline mt-0.5">Hotline nội bộ: <strong>#8080</strong> hoặc Slack: <strong>#drinkflow-support</strong></p>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2">
+      <button onclick="document.getElementById('help-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-primary text-white text-label-md font-medium hover:bg-primary-container transition-colors" type="button">
+        Đã hiểu
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal 1: Xác nhận đăng xuất thiết bị đơn lẻ --><div id="logout-single-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onclick="if(event.target === this) this.classList.add('hidden')"><div class="bg-surface-container-lowest border border-outline-variant rounded-xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in duration-150"><button onclick="document.getElementById('logout-single-modal').classList.add('hidden')" class="absolute top-4 right-4 text-outline hover:text-on-surface p-1 rounded-lg hover:bg-surface transition-colors" aria-label="Đóng modal"><span class="material-symbols-outlined text-xl">close</span></button><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-full bg-error-container text-[#DC2626] flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-xl">logout</span></div><div><h3 class="text-headline-sm font-semibold text-on-surface">Xác nhận đăng xuất thiết bị</h3><p class="text-caption text-outline">Quản lý phiên làm việc đang hoạt động</p></div></div><p class="text-body-md text-on-surface-variant mb-6">Bạn có chắc chắn muốn đăng xuất khỏi thiết bị này? Thiết bị sẽ bị vô hiệu hóa phiên làm việc ngay lập tức và cần đăng nhập lại qua Google Workspace SSO để tiếp tục.</p><div class="flex justify-end gap-3"><button onclick="document.getElementById('logout-single-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface hover:bg-surface-container-low text-label-md font-medium transition-colors" type="button">Hủy bỏ</button><button onclick="document.getElementById('logout-single-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-error text-white hover:opacity-90 text-label-md font-medium transition-opacity flex items-center gap-1.5" type="button"><span class="material-symbols-outlined text-[18px]">logout</span> Đăng xuất</button></div></div></div><!-- Modal 2: Xác nhận đăng xuất tất cả thiết bị khác --><div id="logout-all-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onclick="if(event.target === this) this.classList.add('hidden')"><div class="bg-surface-container-lowest border border-outline-variant rounded-xl max-w-md w-full p-6 shadow-xl relative animate-in fade-in zoom-in duration-150"><button onclick="document.getElementById('logout-all-modal').classList.add('hidden')" class="absolute top-4 right-4 text-outline hover:text-on-surface p-1 rounded-lg hover:bg-surface transition-colors" aria-label="Đóng modal"><span class="material-symbols-outlined text-xl">close</span></button><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-full bg-error-container text-[#DC2626] flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-xl">no_accounts</span></div><div><h3 class="text-headline-sm font-semibold text-on-surface">Đăng xuất khỏi tất cả các thiết bị</h3><p class="text-caption text-outline">Hành động bảo mật khẩn cấp</p></div></div><p class="text-body-md text-on-surface-variant mb-6">Thao tác này sẽ hủy toàn bộ các phiên đăng nhập đang hoạt động trên các thiết bị khác (trừ thiết bị hiện tại). Bạn sẽ phải xác thực lại danh tính khi truy cập từ các thiết bị đó.</p><div class="flex justify-end gap-3"><button onclick="document.getElementById('logout-all-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface hover:bg-surface-container-low text-label-md font-medium transition-colors" type="button">Hủy bỏ</button><button onclick="document.getElementById('logout-all-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-error text-white hover:opacity-90 text-label-md font-medium transition-opacity flex items-center gap-1.5" type="button"><span class="material-symbols-outlined text-[18px]">lock_reset</span> Xác nhận đăng xuất tất cả</button></div></div></div><!-- Modal 3: Hủy bỏ tài khoản vĩnh viễn (Danger Zone Modal) --><div id="delete-account-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onclick="if(event.target === this) this.classList.add('hidden')"><div class="bg-surface-container-lowest border border-error-container rounded-xl max-w-lg w-full p-6 shadow-xl relative animate-in fade-in zoom-in duration-150"><button onclick="document.getElementById('delete-account-modal').classList.add('hidden')" class="absolute top-4 right-4 text-outline hover:text-on-surface p-1 rounded-lg hover:bg-surface transition-colors" aria-label="Đóng modal"><span class="material-symbols-outlined text-xl">close</span></button><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-full bg-error-container text-[#DC2626] flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-2xl">warning</span></div><div><h3 class="text-headline-sm font-semibold text-[#DC2626]">Xác nhận hủy bỏ tài khoản vĩnh viễn</h3><p class="text-caption text-outline">Thao tác xóa dữ liệu danh tính người dùng</p></div></div><div class="p-3 rounded-lg bg-[#FEF2F2] border border-red-200 mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-[#DC2626] text-[20px] flex-shrink-0">dangerous</span><span class="text-label-sm font-bold text-[#DC2626]">CẢNH BÁO NGUY HIỂM: Thao tác này không thể hoàn tác!</span></div><div class="space-y-2 mb-4"><p class="text-body-sm text-on-surface-variant">Khi xác nhận hủy bỏ tài khoản, toàn bộ dữ liệu cá nhân của bạn trong toàn bộ hệ thống DrinkFlow sẽ bị xóa vĩnh viễn, bao gồm:</p><ul class="text-body-sm text-on-surface-variant space-y-1 list-disc pl-5"><li class="">Lịch sử tham gia các Room và đơn hàng cá nhân</li><li class="">Dữ liệu thanh toán, biến động công nợ và đối soát VietQR</li><li class="">Tất cả quyền quản trị (Host), quyền thành viên trong các phòng ban</li><li class="">Hồ sơ đánh giá, góp ý và thông tin định danh Google SSO</li></ul></div><div class="mb-6"><label class="block text-label-sm font-medium text-on-surface mb-1.5" for="confirm-delete-input">Để xác nhận, vui lòng nhập chính xác email của bạn (<span class="font-mono font-bold text-[#DC2626]">trung.lt@company.com</span>) hoặc gõ '<span class="font-bold text-[#DC2626]">XÓA TÀI KHOẢN</span>':</label><input id="confirm-delete-input" class="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface text-body-sm focus:outline-none focus:ring-2 focus:ring-error" placeholder="trung.lt@company.com hoặc XÓA TÀI KHOẢN" type="text"></div><div class="flex flex-col sm:flex-row justify-end gap-3"><button onclick="document.getElementById('delete-account-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg border border-outline-variant bg-surface text-on-surface hover:bg-surface-container-low text-label-md font-medium transition-colors" type="button">Hủy bỏ / Giữ lại tài khoản</button><button onclick="document.getElementById('delete-account-modal').classList.add('hidden')" class="px-4 py-2 rounded-lg bg-error text-white hover:opacity-90 text-label-md font-semibold transition-opacity flex items-center justify-center gap-1.5 shadow-sm" type="button"><span class="material-symbols-outlined text-[18px]">delete_forever</span> Xác nhận xóa toàn bộ dữ liệu</button></div></div></div></body></html>

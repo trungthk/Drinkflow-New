@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>DrinkFlow - Room Portal</title><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "background": "#f8f9ff", "on-surface": "#0b1c30", "error-container": "#ffdad6", "on-surface-variant": "#3d4a42", "on-secondary-fixed": "#131b2e", "on-primary-fixed": "#002114", "primary-fixed": "#85f8c4", "primary-container": "#00855d", "on-primary-fixed-variant": "#005137", "secondary-fixed": "#dae2fd", "tertiary-fixed": "#ffdcc3", "surface-tint": "#006c4a", "on-error": "#ffffff", "surface-container-low": "#eff4ff", "outline-variant": "#bccac0", "inverse-on-surface": "#eaf1ff", "on-tertiary": "#ffffff", "on-secondary-container": "#5c647a", "surface-variant": "#d3e4fe", "on-error-container": "#93000a", "surface-container-highest": "#d3e4fe", "surface-dim": "#cbdbf5", "on-tertiary-fixed": "#2f1500", "outline": "#6d7a72", "on-background": "#0b1c30", "tertiary": "#8d4b00", "surface": "#f8f9ff", "inverse-surface": "#213145", "secondary-container": "#dae2fd", "primary": "#006948", "tertiary-container": "#b15f00", "tertiary-fixed-dim": "#ffb77d", "surface-container": "#e5eeff", "on-tertiary-container": "#fffbff", "surface-container-lowest": "#ffffff", "on-primary-container": "#f5fff7", "primary-fixed-dim": "#68dba9", "inverse-primary": "#68dba9", "surface-container-high": "#dce9ff", "on-secondary-fixed-variant": "#3f465c", "on-secondary": "#ffffff", "surface-bright": "#f8f9ff", "secondary": "#565e74", "secondary-fixed-dim": "#bec6e0", "on-primary": "#ffffff", "on-tertiary-fixed-variant": "#6e3900", "error": "#ba1a1a" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2rem", "space-md": "1rem", "space-lg": "1.5rem", "gutter": "1.5rem", "gutter-sm": "1rem", "space-sm": "0.5rem", "margin-sm": "1rem", "margin": "2rem", "space-xs": "0.25rem" }, "fontFamily": { "body-sm": [ "Inter" ], "label-md": [ "Inter" ], "headline-md": [ "Inter" ], "body-lg": [ "Inter" ], "display-lg": [ "Inter" ], "body-md": [ "Inter" ], "tabular-nums": [ "Inter" ], "label-sm": [ "Inter" ], "headline-sm": [ "Inter" ], "headline-lg": [ "Inter" ] }, "fontSize": { "body-sm": [ "12px", { "lineHeight": "16px", "fontWeight": "400" } ], "label-md": [ "14px", { "lineHeight": "20px", "fontWeight": "500" } ], "headline-md": [ "20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "display-lg": [ "32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "body-md": [ "14px", { "lineHeight": "20px", "fontWeight": "400" } ], "tabular-nums": [ "14px", { "lineHeight": "20px", "fontWeight": "500" } ], "label-sm": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" } ], "headline-sm": [ "16px", { "lineHeight": "24px", "fontWeight": "600" } ], "headline-lg": [ "24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" } ] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-50 bg-surface-container-lowest border-b border-outline-variant"><div class="h-14 border-b border-outline-variant bg-surface-container-lowest"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin h-full flex items-center justify-between"><div class="flex items-center gap-space-md"><a class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors" href="#"><span class="material-symbols-outlined text-[18px]">arrow_back</span><span>DrinkFlow</span></a><span class="h-4 w-px bg-outline-variant"></span><div class="flex items-center gap-space-sm"><img alt="DrinkFlow Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XNSZ79K0ZEolON069HpAGASvDOykI5SMkJCI6V21x39fZRBYt0wRYkT9zU7bruy-DqqYlmcf_AFVPu2WF3wth4FZmAyTbjkv1WlX1LGRgxgfzd-Ga1qxmuGURNyaqWajAL1CmuiO4xF9pTPAH0aT9bNYSRF7tjZ8Yg46-caHla1tVK6LRuWSoqpSgZvANZNlF7niBmwQOlKVEK5jlSj-e9sLMCRTSzdyfa8JIf4Eb4qXLEv_a0KRC3nKwJ"/><span class="font-headline-sm text-headline-sm text-on-surface">IT Team</span><button class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface hover:bg-surface-container-high border border-outline-variant font-label-md text-label-md text-on-surface transition-colors" type="button"><span>IT Team</span><span class="material-symbols-outlined text-[16px]">arrow_drop_down</span></button></div></div><div class="flex items-center gap-space-md"><button class="relative p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></button><span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm border border-primary-fixed-dim">TRUNGLT</span><div class="flex items-center gap-space-sm pl-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDABv8Oe8xyc5YFfx-Urh180Ei9oWDlXncJYYMhGsQyXKi9hH-Ozqz3OugY2_1YBVNW7gx3_8lQ0e663-MZrk9sfuwQNx_hfyyQtK2Zhj_zZGIVtA4PdjFBpNhgR9tn9snH3UYWVQ68_CKNQt5duVHzjZFHBqTbF8GWsCP5QSCLqXnCkE_RM9NLeqxpc7hKb0xusaVGpsBgdlLGILxnD3Fq8gdCU6OgF-qluxXmwytHivLwPF5jc5JUug"/><span class="font-label-md text-label-md text-on-surface hidden md:inline-block">Lâm Thành Trung</span></div></div></div></div><div class="h-10 bg-surface-container-low border-b border-outline-variant"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin h-full flex items-center justify-between"><div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant"><a class="hover:text-on-surface transition-colors" href="#">DrinkFlow</a><span class="material-symbols-outlined text-[14px]">chevron_right</span><a class="hover:text-on-surface transition-colors" href="#">IT Team</a><span class="material-symbols-outlined text-[14px]">chevron_right</span><span class="text-on-surface font-semibold">Friday Coffee</span></div><div class="flex items-center gap-space-xs font-tabular-nums text-tabular-nums text-error bg-error-container text-on-error-container px-2 py-0.5 rounded"><span class="material-symbols-outlined text-[14px]">timer</span><span>Chốt đơn sau 14:22</span></div></div></div><div class="h-12 bg-surface-container-lowest"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin h-full flex items-center"><nav class="flex items-center h-full gap-space-xs overflow-x-auto" data-active-classes="border-b-2 border-primary text-primary font-bold bg-surface-container-low"><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="tong-quan" href="#">Tổng quan</a><a aria-current="page" class="h-full px-space-md inline-flex items-center transition-colors border-b-2 border-primary text-primary font-bold bg-surface-container-low" data-path="chien-dich-and-menu" href="#">Chiến dịch &amp; Menu</a><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="don-hang-cua-toi" href="#">Đơn hàng của tôi</a><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="thanh-toan-and-no" href="#">Thanh toán &amp; Nợ</a><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="thong-ke-room" href="#">Thống kê Room</a></nav></div></div></header><main class="w-full pt-36 bg-background min-h-screen"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin py-space-md"><div class="flex flex-col w-full">
+<!-- Interactive Viewports / Split Workbench Layout -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<!-- Left Column: Top 5 Realtime Trends Modal / Diagnostic Panel (5 Cols) -->
+<section class="xl:col-span-5 flex flex-col gap-space-md">
+<!-- Top 5 Card Container -->
+<div class="bg-surface-container-lowest rounded-xl shadow-md p-space-lg flex flex-col relative overflow-hidden">
+<!-- Accent Glow Backdrop -->
+<div class="absolute -top-16 -right-16 w-44 h-44 rounded-full bg-primary-fixed-dim/20 blur-2xl pointer-events-none"></div>
+<!-- Header -->
+<div class="flex items-start justify-between gap-space-sm pb-space-sm">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="text-tertiary text-headline-sm font-headline-sm">🔥</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Top 5 món đang được ưa chuộng</h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+              Friday Coffee - Highlands Coffee <span class="text-outline-variant">•</span> Dữ liệu tính theo tổng số ly được chọn trong Campaign
+            </p>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface hover:bg-surface-container p-1.5 rounded-lg transition-colors" title="Đóng bảng xếp hạng" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Metric Pulse Banner -->
+<div class="flex items-center justify-between px-space-md py-space-sm rounded-lg bg-surface-container-low my-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px]">group_add</span>
+<span class="font-label-sm text-label-sm text-on-surface">Tổng cộng 38 đồng nghiệp đã pick</span>
+</div>
+<span class="font-tabular-nums text-tabular-nums text-primary font-semibold">Tỉ lệ 91% quota</span>
+</div>
+<!-- Ranked List -->
+<div class="flex flex-col gap-space-sm mt-space-sm">
+<!-- Rank 1: Cà phê sữa đá -->
+<div class="group p-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container-low transition-all duration-150 shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="w-6 h-6 rounded-md bg-primary text-on-primary font-label-sm text-label-sm flex items-center justify-center font-bold shadow-sm">
+                  #1
+                </span>
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Cà phê sữa đá</span>
+<span class="material-symbols-outlined text-primary text-[16px]" title="Món hot nhất">local_fire_department</span>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-bold">12</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">lượt chọn</span>
+</div>
+</div>
+<!-- Progress Bar Level (100%) -->
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 100%;"></div>
+</div>
+</div>
+<!-- Rank 2: Trà đào cam sả -->
+<div class="group p-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container-low transition-all duration-150 shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="w-6 h-6 rounded-md bg-secondary text-on-secondary font-label-sm text-label-sm flex items-center justify-center font-bold shadow-sm">
+                  #2
+                </span>
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Trà đào cam sả</span>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-bold">9</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">lượt chọn</span>
+</div>
+</div>
+<!-- Progress Bar Level (75%) -->
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="h-full bg-secondary rounded-full transition-all duration-500" style="width: 75%;"></div>
+</div>
+</div>
+<!-- Rank 3: Matcha Latte -->
+<div class="group p-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container-low transition-all duration-150 shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="w-6 h-6 rounded-md bg-tertiary text-on-tertiary font-label-sm text-label-sm flex items-center justify-center font-bold shadow-sm">
+                  #3
+                </span>
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Matcha Latte</span>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-bold">7</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">lượt chọn</span>
+</div>
+</div>
+<!-- Progress Bar Level (58%) -->
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="h-full bg-tertiary-container rounded-full transition-all duration-500" style="width: 58%;"></div>
+</div>
+</div>
+<!-- Rank 4: Trà sữa Oolong -->
+<div class="group p-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container-low transition-all duration-150 shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="w-6 h-6 rounded-md bg-surface-container-highest text-on-surface font-label-sm text-label-sm flex items-center justify-center font-bold">
+                  #4
+                </span>
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Trà sữa Oolong</span>
+<span class="px-1.5 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm scale-90">Đang chọn</span>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-bold">6</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">lượt chọn</span>
+</div>
+</div>
+<!-- Progress Bar Level (50%) -->
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-fixed-dim rounded-full transition-all duration-500" style="width: 50%;"></div>
+</div>
+</div>
+<!-- Rank 5: Americano -->
+<div class="group p-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container-low transition-all duration-150 shadow-sm flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="w-6 h-6 rounded-md bg-surface-container-highest text-on-surface font-label-sm text-label-sm flex items-center justify-center font-bold">
+                  #5
+                </span>
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Americano</span>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-bold">4</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">lượt chọn</span>
+</div>
+</div>
+<!-- Progress Bar Level (33%) -->
+<div class="w-full bg-surface-container-high h-2 rounded-full overflow-hidden">
+<div class="h-full bg-secondary-fixed-dim rounded-full transition-all duration-500" style="width: 33%;"></div>
+</div>
+</div>
+</div>
+<!-- Footer / Socket status & quick close -->
+<div class="flex items-center justify-between pt-space-md mt-space-sm">
+<div class="flex items-center gap-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<span class="inline-block w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span>Realtime updated via Socket.IO</span>
+</div>
+<button class="px-space-md py-1 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors shadow-sm" type="button">
+            Đóng
+          </button>
+</div>
+</div>
+<!-- Quick Room Insight Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-md p-space-md flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant">
+<span class="material-symbols-outlined text-[24px]">savings</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Quỹ Team IT tài trợ</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tối đa -15.000đ / thành viên / campaign</span>
+</div>
+</div>
+<span class="px-2 py-1 rounded bg-surface-container-low text-primary font-tabular-nums text-tabular-nums font-bold">
+          Active
+        </span>
+</div>
+</section>
+<!-- Right Column: Product Customizer & Order Breakdown Workbench (7 Cols) -->
+<section class="xl:col-span-7 flex flex-col">
+<!-- Customizer Shell Panel -->
+<div class="bg-surface-container-lowest rounded-xl shadow-md p-space-lg flex flex-col gap-space-lg">
+<!-- Product Header Section with Image Placeholder -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-space-md bg-surface-container-low p-space-md rounded-xl">
+<div class="flex items-center gap-space-md">
+<img class="w-20 h-20 rounded-lg object-cover shadow-sm shrink-0" data-alt="A delicious freshly brewed iced oolong milk tea in a clear cup with layered textures, creamy froth, boba pearls at the bottom, soft studio lighting, high resolution product photography, emerald green accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcZPyZc3ZryjiQiyWpWBWLJGJ4nH7kZvJOjH9KSmy-ttf4A84U65iSDhxUjozR2i-GWt7ybB5M_B_QOcwF7ds7hAocu0aZTLG1Va7pHQ_nOBSkkrm6NtpzSrwi42RI8G80JNfuRrly0p5SuSsr8OQyiu_wOq5KYyXUvW0C0RtGFnfrV1DRnkEDk7ymFejnSAgKVlTyntMmUYe6J3eeKF4L7XcVecjyMLkWTGSIS23WpufdDBYtaELyMA"/>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm">Highlands Drink</span>
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm font-semibold">Top #4 pick</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mt-1">Trà sữa Oolong</h1>
+<div class="flex items-baseline gap-space-xs">
+<span class="font-tabular-nums text-headline-md font-bold text-primary">45.000đ</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant line-through">50.000đ</span>
+</div>
+</div>
+</div>
+<!-- Quantity Stepper Component -->
+<div class="flex items-center bg-surface-container-lowest p-1 rounded-lg shadow-sm self-end sm:self-center">
+<button class="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<span class="w-10 text-center font-tabular-nums text-headline-sm font-bold text-on-surface">1</span>
+<button class="w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high flex items-center justify-center text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+</div>
+<!-- Option Groups -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+<!-- Size Selector -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface font-bold">Kích cỡ (Size)</label>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Bắt buộc</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm pt-space-xs">
+<!-- Option M -->
+<label class="flex items-center justify-between p-space-sm rounded-lg bg-surface-container-lowest hover:bg-surface-container-low cursor-pointer shadow-sm transition-all">
+<div class="flex items-center gap-space-xs">
+<input class="accent-primary w-4 h-4" name="size_option" type="radio"/>
+<span class="font-label-md text-label-md text-on-surface">Size M</span>
+</div>
+<span class="font-tabular-nums text-body-sm text-on-surface-variant">+0đ</span>
+</label>
+<!-- Option L (Selected) -->
+<label class="flex items-center justify-between p-space-sm rounded-lg bg-primary-fixed/20 shadow-sm cursor-pointer transition-all">
+<div class="flex items-center gap-space-xs">
+<input checked="" class="accent-primary w-4 h-4" name="size_option" type="radio"/>
+<span class="font-label-md text-label-md text-on-surface font-bold">Size L</span>
+</div>
+<span class="font-tabular-nums text-body-sm text-primary font-bold">+10.000đ</span>
+</label>
+</div>
+</div>
+<!-- Ice Level Selector -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface font-bold">Mức đá</label>
+<span class="font-tabular-nums text-body-sm text-primary font-semibold">50% đã chọn</span>
+</div>
+<div class="grid grid-cols-4 gap-space-xs pt-space-xs">
+<button class="py-2 px-1 rounded-lg text-center font-label-sm text-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" type="button">0%</button>
+<button class="py-2 px-1 rounded-lg text-center font-label-sm text-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" type="button">30%</button>
+<button class="py-2 px-1 rounded-lg text-center font-label-sm text-label-sm bg-primary text-on-primary font-bold shadow-sm" type="button">50%</button>
+<button class="py-2 px-1 rounded-lg text-center font-label-sm text-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" type="button">100%</button>
+</div>
+</div>
+<!-- Sugar Level Selector -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface font-bold">Mức đường</label>
+<span class="font-tabular-nums text-body-sm text-primary font-semibold">50% đã chọn</span>
+</div>
+<div class="grid grid-cols-5 gap-space-xs pt-space-xs">
+<button class="py-2 px-1 rounded-lg text-center font-label-sm text-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" type="button">0%</button>
+<button class="py-2 px-1 rounded-lg text-center font-label-sm text-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" type="button">30%</button>
+<button class="py-2 px-1 rounded-lg text-center font-label-sm text-label-sm bg-primary text-on-primary font-bold shadow-sm" type="button">50%</button>
+<button class="py-2 px-1 rounded-lg text-center font-label-sm text-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" type="button">70%</button>
+<button class="py-2 px-1 rounded-lg text-center font-label-sm text-label-sm bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors" type="button">100%</button>
+</div>
+</div>
+<!-- Topping Options -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface font-bold">Topping kèm theo</label>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Tùy chọn</span>
+</div>
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<!-- Topping 1: Trân châu trắng (Checked) -->
+<label class="flex items-center justify-between p-2 rounded-lg bg-surface-container-low hover:bg-surface-container cursor-pointer transition-colors shadow-sm">
+<div class="flex items-center gap-space-xs">
+<input checked="" class="accent-primary w-4 h-4 rounded" type="checkbox"/>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Trân châu trắng</span>
+</div>
+<span class="font-tabular-nums text-label-md text-primary font-semibold">+10.000đ</span>
+</label>
+<!-- Topping 2: Thạch phô mai (Unchecked) -->
+<label class="flex items-center justify-between p-2 rounded-lg bg-surface-container-lowest hover:bg-surface-container-low cursor-pointer transition-colors shadow-sm">
+<div class="flex items-center gap-space-xs">
+<input class="accent-primary w-4 h-4 rounded" type="checkbox"/>
+<span class="font-label-md text-label-md text-on-surface">Thạch phô mai</span>
+</div>
+<span class="font-tabular-nums text-label-md text-on-surface-variant">+12.000đ</span>
+</label>
+</div>
+</div>
+</div>
+<!-- Special Note Input -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md text-on-surface font-bold flex items-center justify-between" for="order_note">
+<span>Ghi chú cho Barista</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">Tối đa 120 ký tự</span>
+</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-on-surface-variant">edit_note</span>
+<input class="w-full pl-10 pr-space-md py-2 rounded-lg bg-surface-container-lowest shadow-sm text-on-surface font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-primary placeholder-outline" id="order_note" placeholder="Nhập yêu cầu đặc biệt..." type="text" value="Ít ngọt, đá riêng giúp em nhé ạ"/>
+</div>
+</div>
+<!-- Itemized Cost & Sponsor Calculation Ledger -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Giá món gốc (Size M)</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface">45.000đ</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Phụ thu Size L</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface">+10.000đ</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface-variant">Topping (Trân châu trắng)</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface">+10.000đ</span>
+</div>
+<div class="flex items-center justify-between pt-space-xs font-semibold">
+<span class="font-label-md text-label-md text-on-surface">Tạm tính (Subtotal)</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface">65.000đ</span>
+</div>
+<!-- Sponsor Row -->
+<div class="flex items-center justify-between py-1 px-space-xs rounded bg-tertiary-fixed/30 text-on-tertiary-fixed">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-tertiary">redeem</span>
+<span class="font-label-sm text-label-sm font-bold text-tertiary">Sponsor phòng ban (IT Budget)</span>
+</div>
+<span class="font-tabular-nums text-tabular-nums text-tertiary font-bold">-15.000đ</span>
+</div>
+<!-- Final Total Row -->
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Số tiền bạn trả</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Được trừ vào ví công nợ cuối tuần</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="font-tabular-nums text-display-lg font-bold text-primary">50.000đ</span>
+<span class="font-body-sm text-body-sm text-outline">Đã bao gồm VAT &amp; Phí ship</span>
+</div>
+</div>
+</div>
+<!-- Action CTAs -->
+<div class="flex items-center justify-end gap-space-sm pt-space-xs">
+<button class="px-space-md py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors shadow-sm" type="button">
+            Hủy thao tác
+          </button>
+<button class="flex-1 sm:flex-initial flex items-center justify-center gap-space-xs px-space-xl py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-headline-sm text-headline-sm transition-all shadow-md active:scale-98" type="button">
+<span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+<span>Xác nhận đặt món (50.000đ)</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+</div></div></main><footer class="w-full bg-surface-container-lowest border-t border-outline-variant py-space-lg mt-space-xl"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin flex flex-col sm:flex-row items-center justify-between gap-space-sm text-on-surface-variant font-body-sm text-body-sm"><div class="flex items-center gap-space-sm"><span>© 2025 DrinkFlow Enterprise Procurement System</span><span class="text-outline-variant">•</span><span>Phòng ban: IT Team</span></div><div class="flex items-center gap-space-md"><a class="hover:text-on-surface transition-colors" href="#">Chính sách đặt đồ uống</a><a class="hover:text-on-surface transition-colors" href="#">Hỗ trợ nội bộ</a></div></div></footer></body></html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+
+<html lang="en" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Live Campaign Control Center | DrinkFlow Admin</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-secondary-fixed-variant": "#3f465c",
+            "secondary-fixed": "#dae2fd",
+            "inverse-primary": "#68dba9",
+            "tertiary-fixed": "#6ffbbe",
+            "primary-fixed": "#85f8c4",
+            "surface-tint": "#006c4a",
+            "on-primary-fixed": "#002114",
+            "inverse-on-surface": "#eaf1ff",
+            "on-tertiary": "#ffffff",
+            "surface-container-high": "#dce9ff",
+            "error-container": "#ffdad6",
+            "primary-fixed-dim": "#68dba9",
+            "on-error": "#ffffff",
+            "surface-bright": "#f8f9ff",
+            "on-primary-fixed-variant": "#005137",
+            "inverse-surface": "#213145",
+            "on-surface": "#0b1c30",
+            "on-background": "#0b1c30",
+            "surface-dim": "#cbdbf5",
+            "on-primary-container": "#f5fff7",
+            "on-tertiary-fixed": "#002113",
+            "surface-variant": "#d3e4fe",
+            "surface": "#f8f9ff",
+            "primary": "#006948",
+            "tertiary": "#006947",
+            "surface-container-low": "#eff4ff",
+            "outline": "#6d7a72",
+            "secondary-fixed-dim": "#bec6e0",
+            "primary-container": "#00855d",
+            "error": "#ba1a1a",
+            "surface-container-highest": "#d3e4fe",
+            "tertiary-container": "#00855b",
+            "on-primary": "#ffffff",
+            "on-secondary-fixed": "#131b2e",
+            "surface-container-lowest": "#ffffff",
+            "tertiary-fixed-dim": "#4edea3",
+            "on-secondary-container": "#5c647a",
+            "outline-variant": "#bccac0",
+            "on-tertiary-container": "#f5fff6",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed-variant": "#005236",
+            "on-secondary": "#ffffff",
+            "on-surface-variant": "#3d4a42",
+            "secondary": "#565e74",
+            "secondary-container": "#dae2fd",
+            "background": "#f8f9ff",
+            "surface-container": "#e5eeff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "margin": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "space-xs": "0.25rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "label-sm": ["JetBrains Mono"],
+            "body-lg": ["Hanken Grotesk"],
+            "headline-sm": ["Hanken Grotesk"],
+            "display-lg": ["Hanken Grotesk"],
+            "body-md": ["Hanken Grotesk"],
+            "label-lg": ["JetBrains Mono"],
+            "headline-lg": ["Hanken Grotesk"],
+            "body-sm": ["Hanken Grotesk"],
+            "label-md": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased min-h-screen">
+<!-- ===================================================================== -->
+<!-- SIDEBAR: Shared Component (SideNavBar)                               -->
+<!-- ===================================================================== -->
+<aside class="fixed top-0 left-0 h-screen w-64 flex flex-col z-30 bg-surface-container-lowest border-r border-outline-variant">
+<div class="w-64 h-full p-4 flex flex-col justify-between">
+<!-- Top Brand & Room Switcher -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between px-1 py-1"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded bg-primary text-on-primary flex items-center justify-center font-bold text-headline-sm font-headline-sm">D</div><div><div class="text-headline-sm font-headline-sm font-bold text-on-surface tracking-tight">DrinkFlow Admin</div><div class="text-body-sm font-body-sm text-on-surface-variant leading-tight">Logistics Operations</div></div></div><button class="p-1 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors" title="Toggle Sidebar"><span class="material-symbols-outlined" data-icon="menu_open">menu_open</span></button></div>
+<!-- Nav Tabs List -->
+<nav class="flex flex-col gap-1 mt-2"><a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#"><span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>Dashboard</a><a class="flex items-center gap-3 px-3 py-2 bg-secondary-container text-on-secondary-container rounded font-label-md text-label-md border-l-4 border-primary" href="#"><span class="material-symbols-outlined" data-icon="campaign">campaign</span>Campaigns</a><a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#"><span class="material-symbols-outlined" data-icon="local_shipping">local_shipping</span>Orders</a><a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#"><span class="material-symbols-outlined" data-icon="payments">payments</span>Payments &amp; Debt</a><a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#"><span class="material-symbols-outlined" data-icon="group">group</span>Users</a><a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#"><span class="material-symbols-outlined" data-icon="assessment">assessment</span>Reports</a><a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#"><span class="material-symbols-outlined" data-icon="settings">settings</span>Room Settings</a></nav>
+</div>
+<!-- Footer Actions -->
+<div class="pt-4 border-t border-outline-variant flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="health_and_safety">health_and_safety</span>
+          System Diagnostics
+        </a>
+<a class="flex items-center gap-3 px-3 py-2 text-error hover:bg-error-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+          Logout
+        </a>
+</div>
+</div>
+</aside>
+<!-- ===================================================================== -->
+<!-- TOP APP BAR: Shared Component (TopNavBar)                             -->
+<!-- ===================================================================== -->
+<header class="fixed top-0 right-0 left-0 h-14 bg-surface-container-lowest border-b border-outline-variant z-20 flex justify-between items-center pl-72 pr-6 py-2"><div class="flex items-center gap-4 flex-1 max-w-md"><div class="relative w-full"><span class="material-symbols-outlined absolute left-2.5 top-2 text-outline" data-icon="search">search</span><input class="w-full pl-8 pr-3 py-1 text-body-sm font-body-sm bg-surface-container-low border border-outline-variant rounded focus:outline-none focus:border-primary" placeholder="Quick search campaigns, orders, users..." type="text"/></div></div><div class="flex items-center gap-3"><button class="p-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded" title="Notifications"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button><button class="p-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded" title="Help"><span class="material-symbols-outlined" data-icon="help_outline">help_outline</span></button><button class="bg-primary text-on-primary px-3 py-1.5 rounded font-label-md text-label-md hover:bg-primary-container flex items-center gap-1.5 transition-colors"><span class="material-symbols-outlined" data-icon="send">send</span>Dispatch Action</button><div class="flex items-center gap-2 pl-2 border-l border-outline-variant"><img class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="User profile avatar of Lâm Admin, Super Dispatcher" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUZGUh-1-lLZZ0-EZI6UkWTFbgNbEnnCPo76aqIGXtHWyer_dqJEACGiNS_akfVou2cfRxNjDvd0mmQqVSj49lAkf5ssaiQgpRxGjH85fD70ZoE_GjjdKG8nFG0eaHDOIdyqMXV-JRY1C_ZdTtYoIiXh-Tlq2WyDxYBtt0XHMnZUy9Fgi58nZHKXE-YNonNl9iMsKGKxU-yFcJPXOMOLe8-H5qxQ7atPeKZN5eS6g3y4D4r_mEs9Op"/><div class="flex flex-col text-left"><span class="text-label-sm font-label-sm font-bold text-on-surface leading-tight">Lâm Admin</span><span class="text-label-sm font-label-sm text-on-surface-variant leading-tight">Super Dispatcher</span></div></div></div></header>
+<!-- ===================================================================== -->
+<!-- MAIN OPERATIONAL WORKSPACE                                            -->
+<!-- ===================================================================== -->
+<main class="pl-64 pt-14 min-h-screen bg-background pb-12">
+<div class="max-w-[1600px] mx-auto px-6 py-6 flex flex-col gap-6"><div class="flex items-center gap-2 text-body-sm font-body-sm text-on-surface-variant"><a class="hover:text-primary transition-colors" href="#">Admin</a><span class="">/</span><a class="hover:text-primary transition-colors" href="#">Rooms</a><span class="">/</span><a class="hover:text-primary transition-colors" href="#">IT Team Operations</a><span class="">/</span><a class="hover:text-primary transition-colors" href="#">Campaigns</a><span class="">/</span><span class="text-on-surface font-bold">c-104 - Live Control</span></div>
+<!-- ================================================================= -->
+<!-- SECTION 1: Page Header & Live Countdown Action Strip             -->
+<!-- ================================================================= -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm flex flex-col gap-4"><div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-outline-variant"><div class="flex flex-col gap-1.5"><div class="flex items-center gap-2.5 flex-wrap"><span class="flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-error-container text-error border border-error text-label-sm font-label-sm font-bold tracking-wide"><span class="w-2 h-2 rounded-full bg-error animate-pulse"></span>LIVE NOW</span><h1 class="text-headline-lg font-headline-lg text-on-surface font-bold tracking-tight">Highlands Coffee - Landmark 72 Branch</h1><span class="text-label-sm font-label-sm bg-surface-container px-2 py-0.5 rounded font-mono font-medium text-secondary">#CMP-104</span><span class="text-label-sm font-label-sm bg-surface-container-low border border-outline-variant px-2 py-0.5 rounded text-on-surface-variant">Run #104</span></div><div class="flex items-center gap-4 text-body-sm font-body-sm text-on-surface-variant flex-wrap"><span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-[16px]" data-icon="schedule">schedule</span>Target Delivery: <strong class="text-on-surface font-bold">11:15 AM</strong></span><span class="text-outline-variant">•</span><span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-error text-[16px]" data-icon="lock_clock">lock_clock</span>Auto-lock: <strong class="text-error font-bold">10:30 AM</strong></span><span class="text-outline-variant">•</span><span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-secondary text-[16px]" data-icon="groups">groups</span>Room: <strong class="text-on-surface font-medium">IT Team Operations</strong></span></div></div><div class="flex items-center gap-2.5 flex-wrap lg:justify-end"><div class="flex items-center gap-2 px-3 py-1.5 bg-surface-container rounded-lg border border-outline-variant shadow-inner"><span class="material-symbols-outlined text-error text-[18px]" data-icon="timer">timer</span><div class="flex flex-col"><span class="text-[10px] font-label-sm uppercase tracking-wider text-on-surface-variant font-medium leading-tight">Time Left</span><span class="font-label-lg text-label-lg font-bold text-error tracking-widest font-mono leading-none">00:21:42</span></div></div><div class="relative"><button class="px-3 py-2 bg-surface-container-lowest text-primary border border-primary/40 hover:border-primary hover:bg-surface-container rounded font-label-md text-label-md transition-colors flex items-center gap-1.5" id="btn-extend-dropdown" onclick="document.getElementById('extend-menu').classList.toggle('hidden')"><span class="material-symbols-outlined text-[16px]" data-icon="more_time">more_time</span><span class="">+ Gia hạn</span><span class="material-symbols-outlined text-[14px]" data-icon="arrow_drop_down">arrow_drop_down</span></button><div class="hidden absolute right-0 top-full mt-1.5 w-48 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-30 py-1 flex flex-col" id="extend-menu"><button class="px-3 py-2 text-left text-label-sm hover:bg-surface-container flex items-center justify-between text-on-surface" onclick="alert('Đã gia hạn thêm 10 phút'); document.getElementById('extend-menu').classList.add('hidden')"><span class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[16px]">schedule</span>+10 phút</span><span class="text-outline text-[11px]">10:40 AM</span></button><button class="px-3 py-2 text-left text-label-sm hover:bg-surface-container flex items-center justify-between text-on-surface" onclick="alert('Đã gia hạn thêm 30 phút'); document.getElementById('extend-menu').classList.add('hidden')"><span class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[16px]">schedule</span>+30 phút</span><span class="text-outline text-[11px]">11:00 AM</span></button><button class="px-3 py-2 text-left text-label-sm hover:bg-surface-container flex items-center justify-between text-on-surface" onclick="alert('Đã gia hạn thêm 60 phút'); document.getElementById('extend-menu').classList.add('hidden')"><span class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[16px]">schedule</span>+60 phút</span><span class="text-outline text-[11px]">11:30 AM</span></button></div></div><button class="px-3 py-2 bg-surface-container-lowest text-on-surface border border-outline-variant rounded font-label-md text-label-md hover:bg-surface-container transition-colors flex items-center gap-1.5" onclick="openModal('pause-campaign-modal')"><span class="material-symbols-outlined text-[16px]" data-icon="pause_circle">pause_circle</span>Tạm Dừng Nhận Đơn</button><button class="px-3 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center gap-1.5 shadow-sm" onclick="openModal('close-campaign-modal')"><span class="material-symbols-outlined text-[16px]" data-icon="task_alt">task_alt</span>Đóng &amp; kết thúc</button><button class="px-3 py-2 bg-error-container text-error border border-error rounded font-label-md text-label-md hover:bg-error hover:text-on-error transition-colors flex items-center gap-1.5" onclick="openModal('cancel-campaign-modal')"><span class="material-symbols-outlined text-[16px]" data-icon="cancel">cancel</span>Hủy bỏ chiến dịch</button></div></div><div class="flex flex-col lg:flex-row items-center justify-between gap-4 pt-1"><div class="flex items-center gap-5 flex-wrap w-full lg:w-auto"><div class="flex items-baseline gap-2"><span class="text-body-sm font-body-sm text-on-surface-variant">Room Population:</span><span class="text-headline-sm font-headline-sm font-bold text-on-surface">30 Users</span></div><div class="h-4 w-px bg-outline-variant hidden sm:block"></div><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-primary"></span><span class="text-label-md font-label-md text-on-surface">Ordered: <strong class="text-primary font-bold">22 (73.3%)</strong></span></div><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-secondary"></span><span class="text-label-md font-label-md text-on-surface-variant">Declined: <strong class="font-medium">3 (10%)</strong></span></div><div class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-error"></span><span class="text-label-md font-label-md text-error">Pending: <strong class="font-bold">5 (16.7%)</strong></span></div></div><div class="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-end"><div class="w-48 sm:w-60 h-2 bg-surface-container rounded-full overflow-hidden flex border border-outline-variant"><div class="h-full bg-primary transition-all" style="width: 73.3%"></div><div class="h-full bg-secondary transition-all" style="width: 10%"></div><div class="h-full bg-error transition-all" style="width: 16.7%"></div></div><button class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high border border-outline-variant text-on-surface rounded font-label-sm text-label-sm flex items-center gap-1.5 transition-colors whitespace-nowrap"><span class="material-symbols-outlined text-primary text-[16px]" data-icon="notifications_active">notifications_active</span>Ping 5 Pending Users on Slack</button></div></div></div>
+<!-- ================================================================= -->
+<!-- SECTION 2: Two-Column Live Operational Layout                     -->
+<!-- ================================================================= -->
+<div class="flex flex-col gap-6"><div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start"><div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 flex flex-col justify-between h-full"><div class="flex flex-col gap-3"><div class="flex items-center justify-between pb-2 border-b border-outline-variant"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary" data-icon="kitchen">kitchen</span><h3 class="text-headline-sm font-headline-sm text-on-surface font-bold">Top 5 Live Popular Items</h3></div><span class="text-label-sm font-label-sm bg-surface-container px-2 py-0.5 rounded text-secondary font-medium">Kitchen Batch</span></div><p class="text-body-sm font-body-sm text-on-surface-variant">Consolidated item count ready for bulk ordering directly on merchant app.</p><div class="flex flex-col divide-y divide-surface-container"><div class="py-2.5 flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-label-sm text-label-sm font-bold">1</span><div><div class="font-bold text-body-sm font-body-sm text-on-surface">Cà phê sữa đá (Size L)</div><div class="text-label-sm font-label-sm text-on-surface-variant">9 users requested</div></div></div><div class="text-right"><span class="font-label-sm text-label-sm font-bold text-primary block">Qty: 12</span><span class="font-label-sm text-label-sm font-mono text-on-surface-variant">420.000đ</span></div></div><div class="py-2.5 flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-surface-container text-on-surface flex items-center justify-center font-label-sm text-label-sm font-bold">2</span><div><div class="font-bold text-body-sm font-body-sm text-on-surface">Trà sen vàng (Size L)</div><div class="text-label-sm font-label-sm text-on-surface-variant">7 users requested</div></div></div><div class="text-right"><span class="font-label-sm text-label-sm font-bold text-primary block">Qty: 8</span><span class="font-label-sm text-label-sm font-mono text-on-surface-variant">392.000đ</span></div></div><div class="py-2.5 flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-surface-container text-on-surface flex items-center justify-center font-label-sm text-label-sm font-bold">3</span><div><div class="font-bold text-body-sm font-body-sm text-on-surface">Freeze Trà xanh (Size L)</div><div class="text-label-sm font-label-sm text-on-surface-variant">4 users requested</div></div></div><div class="text-right"><span class="font-label-sm text-label-sm font-bold text-primary block">Qty: 5</span><span class="font-label-sm text-label-sm font-mono text-on-surface-variant">275.000đ</span></div></div><div class="py-2.5 flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-surface-container text-on-surface flex items-center justify-center font-label-sm text-label-sm font-bold">4</span><div><div class="font-bold text-body-sm font-body-sm text-on-surface">Phin Đen đá (Size M)</div><div class="text-label-sm font-label-sm text-on-surface-variant">4 users requested</div></div></div><div class="text-right"><span class="font-label-sm text-label-sm font-bold text-primary block">Qty: 4</span><span class="font-label-sm text-label-sm font-mono text-on-surface-variant">116.000đ</span></div></div><div class="py-2.5 flex items-center justify-between"><div class="flex items-center gap-3"><span class="w-5 h-5 rounded-full bg-surface-container text-on-surface flex items-center justify-center font-label-sm text-label-sm font-bold">5</span><div><div class="font-bold text-body-sm font-body-sm text-on-surface">Bạc xỉu đá (Size M)</div><div class="text-label-sm font-label-sm text-on-surface-variant">3 users requested</div></div></div><div class="text-right"><span class="font-label-sm text-label-sm font-bold text-primary block">Qty: 3</span><span class="font-label-sm text-label-sm font-mono text-on-surface-variant">105.000đ</span></div></div></div></div><button class="w-full mt-4 py-2 px-3 bg-surface-container-lowest border border-primary text-primary hover:bg-surface-container-low rounded font-label-md text-label-md flex items-center justify-center gap-2 transition-colors font-medium"><span class="material-symbols-outlined text-[16px]" data-icon="content_copy">content_copy</span>Copy Aggregated Order Summary for Delivery App</button></div><div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 flex flex-col justify-between h-full"><div class="flex flex-col gap-3"><div class="flex items-center justify-between pb-2 border-b border-outline-variant"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary" data-icon="calculate">calculate</span><h3 class="text-headline-sm font-headline-sm text-on-surface font-bold">Financial Calculations &amp; Split</h3></div><span class="text-label-sm font-label-sm bg-primary-container text-on-primary px-2 py-0.5 rounded font-medium">Auto Split</span></div><div class="space-y-2 pt-1 text-body-sm font-body-sm"><div class="flex justify-between items-center text-on-surface-variant"><span class="">Gross Subtotal:</span><span class="font-label-sm text-label-sm font-mono font-bold text-on-surface">1.308.000đ</span></div><div class="flex justify-between items-center text-on-surface-variant"><span class="flex items-center gap-1">Delivery App Surge / Diff:<span class="material-symbols-outlined text-xs text-outline" data-icon="info">info</span></span><span class="font-label-sm text-label-sm font-mono font-bold text-error">+18.000đ</span></div><div class="flex justify-between items-center py-1.5 border-t border-b border-outline-variant"><span class="font-bold text-on-surface">Adjusted Total:</span><span class="font-label-md text-label-md font-mono font-bold text-on-surface">1.326.000đ</span></div><div class="bg-surface-container-low p-2.5 rounded border border-outline-variant space-y-1.5"><div class="flex justify-between items-center text-primary font-bold"><span class="">Multi-Sponsor Subsidy (20% applied):</span><span class="font-label-sm text-label-sm font-mono">-265.200đ</span></div><div class="pl-2 border-l-2 border-primary space-y-1 text-label-sm font-label-sm text-on-surface-variant"><div class="flex justify-between"><span class="">Nguyễn Văn A (50%):</span><span class="font-mono text-on-surface font-medium">132.600đ</span></div><div class="flex justify-between"><span class="">Trần Văn B (50%):</span><span class="font-mono text-on-surface font-medium">132.600đ</span></div></div></div><div class="flex justify-between items-center pt-1 font-bold"><span class="text-on-surface">Net User Payables:</span><span class="font-label-lg text-label-lg font-mono text-primary font-bold">1.060.800đ</span></div></div></div><div class="grid grid-cols-2 gap-2.5 pt-3 mt-2 border-t border-outline-variant"><div class="p-2.5 rounded bg-surface-container border border-outline-variant"><span class="text-label-sm font-label-sm text-on-surface-variant block">Immediate Paid (VietQR):</span><span class="font-label-md text-label-md font-mono font-bold text-primary block mt-0.5">845.800đ</span><span class="text-label-sm text-secondary block">Dynamic QR confirmed</span></div><div class="p-2.5 rounded bg-surface-container border border-outline-variant"><span class="text-label-sm font-label-sm text-on-surface-variant block">Debt Generated (Ghi nợ):</span><span class="font-label-md text-label-md font-mono font-bold text-secondary block mt-0.5">215.000đ</span><span class="text-label-sm text-error block">3 users into ledger</span></div></div></div></div><div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden w-full shadow-sm"><div class="p-4 border-b border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-3"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary" data-icon="format_list_bulleted">format_list_bulleted</span><h2 class="text-headline-sm font-headline-sm text-on-surface font-bold">Real-time Incoming Orders</h2><span class="bg-primary text-on-primary text-label-sm font-label-sm px-2 py-0.5 rounded font-medium">22 placed</span></div><div class="flex items-center gap-3 w-full sm:w-auto"><div class="relative w-full sm:w-60"><span class="material-symbols-outlined absolute left-2.5 top-2 text-outline" data-icon="search">search</span><input class="w-full pl-8 pr-3 py-1 text-body-sm font-body-sm bg-surface-container-lowest border border-outline-variant rounded focus:outline-none focus:border-primary" placeholder="Filter User, SKU, Order ID..." type="text"/></div><button class="px-2.5 py-1 text-body-sm font-body-sm border border-outline-variant rounded hover:bg-surface-container flex items-center gap-1 text-on-surface"><span class="material-symbols-outlined text-[16px]" data-icon="tune">tune</span>Filter</button><label class="flex items-center gap-1.5 cursor-pointer text-label-sm font-label-sm text-on-surface bg-surface-container-low px-2.5 py-1 rounded border border-outline-variant"><input checked="" class="rounded border-outline text-primary focus:ring-primary h-3.5 w-3.5" type="checkbox"/><span class="">Cho phép ghi nợ</span></label></div></div><div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-surface border-b border-outline-variant text-label-sm font-label-sm text-on-surface-variant uppercase tracking-wider"><th class="py-2.5 px-3">Order ID &amp; Time</th><th class="py-2.5 px-3">User</th><th class="py-2.5 px-3">Item Details &amp; Notes</th><th class="py-2.5 px-3 text-right">Menu Subtotal</th><th class="py-2.5 px-3 text-right">Delivery Price</th><th class="py-2.5 px-3 text-center">Payment Status</th><th class="py-2.5 px-3 text-right">Action</th></tr></thead><tbody class="divide-y divide-surface-container text-body-sm font-body-sm text-on-surface"><tr class="hover:bg-surface transition-colors"><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-label-sm text-label-sm font-bold text-on-surface block">#ORD-881</span><span class="text-label-sm text-on-surface-variant font-mono">10:14 AM</span></td><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-bold block text-on-surface">Nguyễn Văn A</span><span class="font-label-sm text-label-sm text-secondary font-mono">NV_A01</span></td><td class="py-2.5 px-3"><div class="font-medium text-on-surface">2x Cà phê sữa đá L</div><div class="text-label-sm text-on-surface-variant italic">Ít ngọt, 50% đá</div></td><td class="py-2.5 px-3 text-right font-label-sm text-label-sm font-mono text-on-surface-variant">70.000đ</td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="font-label-sm text-label-sm font-bold font-mono text-on-surface">74.000đ</div><span class="text-label-sm text-error bg-error-container px-1 py-0.2 rounded font-mono">+4k surge</span></td><td class="py-2.5 px-3 text-center whitespace-nowrap"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary-container text-on-primary text-label-sm font-label-sm font-medium"><span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>Paid (VietQR)</span></td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="flex items-center justify-end gap-1.5"><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:bg-surface-container rounded text-primary hover:text-primary-container transition-colors font-medium">Chỉnh giá</button><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:border-error hover:bg-error-container hover:text-error rounded text-outline transition-colors font-medium flex items-center gap-1" onclick="openCancelOrderModal('ORD-881', 'Nguyễn Văn A', '2x Cà phê sữa đá L', '74.000đ')"><span class="material-symbols-outlined text-[14px]">delete_outline</span>Hủy đơn</button></div></td></tr><tr class="hover:bg-surface transition-colors"><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-label-sm text-label-sm font-bold text-on-surface block">#ORD-880</span><span class="text-label-sm text-on-surface-variant font-mono">10:11 AM</span></td><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-bold block text-on-surface">Lê Thị B</span><span class="font-label-sm text-label-sm text-secondary font-mono">LB_T04</span></td><td class="py-2.5 px-3"><div class="font-medium text-on-surface">1x Trà sen vàng L</div><div class="text-label-sm text-on-surface-variant italic">Thêm củ sen, ít đá</div></td><td class="py-2.5 px-3 text-right font-label-sm text-label-sm font-mono text-on-surface-variant">49.000đ</td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="font-label-sm text-label-sm font-bold font-mono text-on-surface">49.000đ</div><span class="text-label-sm text-secondary bg-surface-container px-1 py-0.2 rounded">Matched</span></td><td class="py-2.5 px-3 text-center whitespace-nowrap"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary-container text-on-primary text-label-sm font-label-sm font-medium"><span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>Paid (VietQR)</span></td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="flex items-center justify-end gap-1.5"><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:bg-surface-container rounded text-primary hover:text-primary-container transition-colors font-medium">Chỉnh giá</button><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:border-error hover:bg-error-container hover:text-error rounded text-outline transition-colors font-medium flex items-center gap-1" onclick="openCancelOrderModal('ORD-880', 'Lê Thị B', '1x Trà sen vàng L', '49.000đ')"><span class="material-symbols-outlined text-[14px]">delete_outline</span>Hủy đơn</button></div></td></tr><tr class="hover:bg-surface transition-colors"><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-label-sm text-label-sm font-bold text-on-surface block">#ORD-879</span><span class="text-label-sm text-on-surface-variant font-mono">10:08 AM</span></td><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-bold block text-on-surface">Trần Văn C</span><span class="font-label-sm text-label-sm text-secondary font-mono">TV_C09</span></td><td class="py-2.5 px-3"><div class="font-medium text-on-surface">1x Phin Đen đá M</div><div class="text-label-sm text-on-surface-variant italic">Không đường</div></td><td class="py-2.5 px-3 text-right font-label-sm text-label-sm font-mono text-on-surface-variant">29.000đ</td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="font-label-sm text-label-sm font-bold font-mono text-on-surface">29.000đ</div><span class="text-label-sm text-secondary bg-surface-container px-1 py-0.2 rounded">Matched</span></td><td class="py-2.5 px-3 text-center whitespace-nowrap"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container text-label-sm font-label-sm border border-outline-variant"><span class="material-symbols-outlined text-[14px]" data-icon="hourglass_top">hourglass_top</span>Pending App</span></td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="flex items-center justify-end gap-1.5"><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:bg-surface-container rounded text-primary hover:text-primary-container transition-colors font-medium">Chỉnh giá</button><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:border-error hover:bg-error-container hover:text-error rounded text-outline transition-colors font-medium flex items-center gap-1" onclick="openCancelOrderModal('ORD-879', 'Trần Văn C', '1x Phin Đen đá M', '29.000đ')"><span class="material-symbols-outlined text-[14px]">delete_outline</span>Hủy đơn</button></div></td></tr><tr class="hover:bg-surface transition-colors"><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-label-sm text-label-sm font-bold text-on-surface block">#ORD-878</span><span class="text-label-sm text-on-surface-variant font-mono">09:55 AM</span></td><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-bold block text-on-surface">Phạm Hoàng D</span><span class="font-label-sm text-label-sm text-secondary font-mono">PH_D12</span></td><td class="py-2.5 px-3"><div class="font-medium text-on-surface">2x Freeze Trà xanh L</div><div class="text-label-sm text-on-surface-variant italic">Thêm thạch đào</div></td><td class="py-2.5 px-3 text-right font-label-sm text-label-sm font-mono text-on-surface-variant">110.000đ</td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="font-label-sm text-label-sm font-bold font-mono text-on-surface">118.000đ</div><span class="text-label-sm text-error bg-error-container px-1 py-0.2 rounded font-mono">+8k surge</span></td><td class="py-2.5 px-3 text-center whitespace-nowrap"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-secondary text-label-sm font-label-sm border border-outline"><span class="material-symbols-outlined text-[14px]" data-icon="account_balance_wallet">account_balance_wallet</span>Ghi nợ / Debt</span></td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="flex items-center justify-end gap-1.5"><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:bg-surface-container rounded text-primary hover:text-primary-container transition-colors font-medium">Chỉnh giá</button><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:border-error hover:bg-error-container hover:text-error rounded text-outline transition-colors font-medium flex items-center gap-1" onclick="openCancelOrderModal('ORD-878', 'Phạm Hoàng D', '2x Freeze Trà xanh L', '118.000đ')"><span class="material-symbols-outlined text-[14px]">delete_outline</span>Hủy đơn</button></div></td></tr><tr class="hover:bg-surface transition-colors"><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-label-sm text-label-sm font-bold text-on-surface block">#ORD-875</span><span class="text-label-sm text-on-surface-variant font-mono">09:48 AM</span></td><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-bold block text-on-surface">Hoàng Minh K</span><span class="font-label-sm text-label-sm text-secondary font-mono">HM_K02</span></td><td class="py-2.5 px-3"><div class="font-medium text-on-surface">1x Bạc xỉu đá M</div><div class="text-label-sm text-on-surface-variant italic">Nhiều sữa đặc</div></td><td class="py-2.5 px-3 text-right font-label-sm text-label-sm font-mono text-on-surface-variant">35.000đ</td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="font-label-sm text-label-sm font-bold font-mono text-on-surface">35.000đ</div><span class="text-label-sm text-secondary bg-surface-container px-1 py-0.2 rounded">Matched</span></td><td class="py-2.5 px-3 text-center whitespace-nowrap"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary-container text-on-primary text-label-sm font-label-sm font-medium"><span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>Paid (VietQR)</span></td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="flex items-center justify-end gap-1.5"><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:bg-surface-container rounded text-primary hover:text-primary-container transition-colors font-medium">Chỉnh giá</button><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:border-error hover:bg-error-container hover:text-error rounded text-outline transition-colors font-medium flex items-center gap-1" onclick="openCancelOrderModal('ORD-875', 'Hoàng Minh K', '1x Bạc xỉu đá M', '35.000đ')"><span class="material-symbols-outlined text-[14px]">delete_outline</span>Hủy đơn</button></div></td></tr><tr class="hover:bg-surface transition-colors"><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-label-sm text-label-sm font-bold text-on-surface block">#ORD-872</span><span class="text-label-sm text-on-surface-variant font-mono">09:42 AM</span></td><td class="py-2.5 px-3 whitespace-nowrap"><span class="font-bold block text-on-surface">Vũ Thị Lan</span><span class="font-label-sm text-label-sm text-secondary font-mono">VT_L07</span></td><td class="py-2.5 px-3"><div class="font-medium text-on-surface">1x Cà phê sữa đá L</div><div class="text-label-sm text-on-surface-variant italic">Chuẩn vị Highlands</div></td><td class="py-2.5 px-3 text-right font-label-sm text-label-sm font-mono text-on-surface-variant">35.000đ</td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="font-label-sm text-label-sm font-bold font-mono text-on-surface">37.000đ</div><span class="text-label-sm text-error bg-error-container px-1 py-0.2 rounded font-mono">+2k surge</span></td><td class="py-2.5 px-3 text-center whitespace-nowrap"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-high text-secondary text-label-sm font-label-sm border border-outline"><span class="material-symbols-outlined text-[14px]" data-icon="account_balance_wallet">account_balance_wallet</span>Ghi nợ / Debt</span></td><td class="py-2.5 px-3 text-right whitespace-nowrap"><div class="flex items-center justify-end gap-1.5"><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:bg-surface-container rounded text-primary hover:text-primary-container transition-colors font-medium">Chỉnh giá</button><button class="px-2 py-1 text-label-sm font-label-sm border border-outline-variant hover:border-error hover:bg-error-container hover:text-error rounded text-outline transition-colors font-medium flex items-center gap-1" onclick="openCancelOrderModal('ORD-872', 'Vũ Thị Lan', '1x Cà phê sữa đá L', '37.000đ')"><span class="material-symbols-outlined text-[14px]">delete_outline</span>Hủy đơn</button></div></td></tr></tbody></table></div><div class="p-3 bg-surface border-t border-outline-variant flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant"><span class="">Showing 6 of 22 placed orders in this batch</span><div class="flex items-center gap-2"><button class="px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded hover:bg-surface-container">Previous</button><span class="px-2 py-1 bg-primary text-on-primary rounded font-bold">1</span><button class="px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded hover:bg-surface-container">2</button><button class="px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded hover:bg-surface-container">3</button><button class="px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded hover:bg-surface-container">Next</button></div></div></div><div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-3"><div class="flex items-center gap-2"><span class="material-symbols-outlined text-secondary" data-icon="rule">rule</span><h3 class="text-headline-sm font-headline-sm text-on-surface font-bold">Campaign Configuration Rules</h3></div><div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 text-body-sm font-body-sm text-on-surface-variant"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-[16px]" data-icon="lock_clock">lock_clock</span><span class="">Auto-lock countdown:</span><span class="font-label-sm text-label-sm text-on-surface font-bold">Active (10:30 AM)</span></div><div class="h-3.5 w-px bg-outline-variant hidden sm:block"></div><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-[16px]" data-icon="credit_score">credit_score</span><span class="">Room ledger debt:</span><span class="font-label-sm text-label-sm text-primary font-bold">Enabled (Max 150k/user)</span></div><div class="h-3.5 w-px bg-outline-variant hidden sm:block"></div><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-primary text-[16px]" data-icon="webhook">webhook</span><span class="">Slack Webhook:</span><span class="font-label-sm text-label-sm font-mono text-secondary font-medium">#it-team-orders</span></div></div></div></div>
+</div>
+</main>
+<!-- ===================================================================== -->
+<!-- CANCEL ORDER CONFIRMATION MODAL (Single Item)                         -->
+<!-- ===================================================================== -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/40 backdrop-blur-xs transition-opacity duration-200" id="cancel-order-modal">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col transform transition-all">
+<div class="p-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-error-container text-error flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]" data-icon="warning">warning</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Xác nhận hủy đơn hàng</h3>
+<span class="text-label-sm font-mono text-secondary" id="modal-order-id">#ORD-881</span>
+</div>
+</div>
+<button class="p-1 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors" onclick="closeCancelOrderModal()" title="Đóng modal">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-5 flex flex-col gap-4">
+<div class="bg-surface-container-low p-3 rounded-lg border border-outline-variant flex flex-col gap-1.5 text-body-sm">
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant">Người đặt:</span>
+<strong class="text-on-surface font-bold" id="modal-user-name">Nguyễn Văn A</strong>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant">Món đặt:</span>
+<span class="font-medium text-on-surface" id="modal-item-name">2x Cà phê sữa đá L</span>
+</div>
+<div class="flex justify-between items-center pt-1 border-t border-outline-variant">
+<span class="text-on-surface-variant">Số tiền hoàn/hủy:</span>
+<strong class="text-error font-mono font-bold" id="modal-order-price">74.000đ</strong>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-label-sm font-bold text-on-surface" for="cancel-reason">Lý do hủy đơn <span class="text-error">*</span></label>
+<select class="w-full px-3 py-2 text-body-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-primary" id="cancel-reason">
+<option value="user_request">Người đặt yêu cầu hủy</option>
+<option value="out_of_stock">Quán hết món / hết topping</option>
+<option value="duplicate">Đặt trùng lặp</option>
+<option value="other">Khác...</option>
+</select>
+</div>
+<div class="flex flex-col gap-2 pt-1">
+<label class="flex items-center gap-2 text-body-sm text-on-surface cursor-pointer">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-label-sm font-normal">Thông báo cho người đặt qua Slack bot</span>
+</label>
+<label class="flex items-center gap-2 text-body-sm text-on-surface cursor-pointer">
+<input checked="" class="rounded border-outline text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+<span class="text-label-sm font-normal">Hoàn lại tiền vào sổ nợ / VietQR nếu đã thanh toán</span>
+</label>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low border-t border-outline-variant flex items-center justify-end gap-2.5">
+<button class="px-4 py-2 border border-outline-variant rounded font-label-md text-label-md hover:bg-surface-container transition-colors text-on-surface font-medium" onclick="closeCancelOrderModal()">
+        Giữ lại đơn
+      </button>
+<button class="px-4 py-2 bg-error text-on-error rounded font-label-md text-label-md hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-sm font-medium" onclick="confirmCancelOrder()">
+<span class="material-symbols-outlined text-[16px]">delete_forever</span>
+        Xác nhận hủy đơn
+      </button>
+</div>
+</div>
+</div>
+<!-- ===================================================================== -->
+<!-- MODAL 1: CLOSE & FINALIZE CAMPAIGN MODAL                              -->
+<!-- ===================================================================== -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/40 backdrop-blur-xs transition-opacity duration-200" id="close-campaign-modal">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col transform transition-all">
+<div class="p-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]" data-icon="task_alt">task_alt</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Xác nhận đóng &amp; kết thúc chiến dịch đặt món</h3>
+<span class="text-label-sm font-mono text-secondary">#CMP-104 - Highlands Coffee - Landmark 72 Branch</span>
+</div>
+</div>
+<button class="p-1 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors" onclick="closeModal('close-campaign-modal')" title="Đóng modal">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-5 flex flex-col gap-4">
+<!-- Tóm tắt số liệu chốt sổ -->
+<div class="bg-surface-container-low p-3.5 rounded-lg border border-outline-variant flex flex-col gap-2.5 text-body-sm">
+<div class="text-label-sm font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">assessment</span>
+        Tóm tắt số liệu chốt sổ
+      </div>
+<div class="grid grid-cols-2 gap-3 pt-1">
+<div class="p-2.5 rounded bg-surface-container-lowest border border-outline-variant">
+<span class="text-label-sm text-on-surface-variant block">Đơn đã đặt thành công:</span>
+<span class="font-label-md text-label-md font-bold text-primary block mt-0.5">22 đơn</span>
+<span class="text-label-sm font-mono text-on-surface font-semibold">1.326.000đ</span>
+</div>
+<div class="p-2.5 rounded bg-surface-container-lowest border border-outline-variant">
+<span class="text-label-sm text-on-surface-variant block">Thành viên chưa phản hồi:</span>
+<span class="font-label-md text-label-md font-bold text-error block mt-0.5">5 thành viên</span>
+<span class="text-[11px] text-on-surface-variant leading-tight block">Tự động gắn Không tham gia</span>
+</div>
+</div>
+<div class="text-body-sm text-on-surface-variant pt-1 border-t border-outline-variant/60 flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[16px]">info</span>
+        Tổng cộng 22 đơn sẽ được tổng hợp tự động để tạo đơn tổng cho shipper / nhà hàng.
+      </div>
+</div>
+<!-- Tùy chọn xử lý -->
+<div class="flex flex-col gap-2.5 pt-1">
+<label class="flex items-start gap-2.5 text-body-sm text-on-surface cursor-pointer">
+<input checked="" class="mt-0.5 rounded border-outline text-primary focus:ring-primary h-4 w-4" id="close-cb-slack" type="checkbox"/>
+<span class="text-body-sm">Tự động gửi thông báo chốt đơn đến kênh Slack <strong class="font-mono text-primary">#it-team-orders</strong> kèm danh sách món đã chốt.</span>
+</label>
+<label class="flex items-start gap-2.5 text-body-sm text-on-surface cursor-pointer">
+<input checked="" class="mt-0.5 rounded border-outline text-primary focus:ring-primary h-4 w-4" id="close-cb-lock" type="checkbox"/>
+<span class="text-body-sm">Khóa form nhận thêm món mới và chuyển hướng sang bước Final Summary.</span>
+</label>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low border-t border-outline-variant flex items-center justify-end gap-2.5">
+<button class="px-4 py-2 border border-outline-variant rounded font-label-md text-label-md hover:bg-surface-container transition-colors text-on-surface font-medium" onclick="closeModal('close-campaign-modal')">
+        Quay lại
+      </button>
+<button class="px-4 py-2 bg-primary text-on-primary rounded font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center gap-1.5 shadow-sm font-medium" onclick="confirmCloseCampaign()">
+<span class="material-symbols-outlined text-[16px]">task_alt</span>
+        Xác nhận Đóng &amp; Chuyển sang Final Summary
+      </button>
+</div>
+</div>
+</div>
+<!-- ===================================================================== -->
+<!-- MODAL 2: CANCEL ENTIRE CAMPAIGN MODAL                                 -->
+<!-- ===================================================================== -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/40 backdrop-blur-xs transition-opacity duration-200" id="cancel-campaign-modal">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col transform transition-all">
+<div class="p-4 border-b border-outline-variant flex items-center justify-between bg-error-container/30">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-full bg-error-container text-error flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]" data-icon="cancel">cancel</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Hủy bỏ toàn bộ chiến dịch #CMP-104</h3>
+<span class="text-label-sm font-mono text-secondary">Highlands Coffee - Landmark 72 Branch</span>
+</div>
+</div>
+<button class="p-1 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors" onclick="closeModal('cancel-campaign-modal')" title="Đóng modal">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-5 flex flex-col gap-4">
+<!-- Warning notice -->
+<div class="bg-error-container/50 border border-error/30 p-3 rounded-lg flex items-start gap-2.5 text-body-sm text-on-error-container">
+<span class="material-symbols-outlined text-error text-[20px] shrink-0 mt-0.5">warning</span>
+<div>
+<strong class="font-bold text-error">Cảnh báo hành động không thể hoàn tác:</strong>
+<p class="text-body-sm mt-0.5">Thao tác này sẽ hủy toàn bộ 22 đơn hàng đã đặt và hoàn tiền/hủy nợ tự động cho các thành viên.</p>
+</div>
+</div>
+<!-- Lý do hủy bỏ -->
+<div class="flex flex-col gap-2">
+<label class="text-label-sm font-bold text-on-surface" for="campaign-cancel-reason">Lý do hủy bỏ chiến dịch <span class="text-error">*</span></label>
+<div class="space-y-2">
+<label class="flex items-center gap-2.5 text-body-sm text-on-surface cursor-pointer p-2 rounded hover:bg-surface-container border border-outline-variant/60">
+<input checked="" class="text-error focus:ring-error" name="cancel_campaign_radio" type="radio" value="store_closed"/>
+<span>Quán đóng cửa / hết món trên app giao hàng</span>
+</label>
+<label class="flex items-center gap-2.5 text-body-sm text-on-surface cursor-pointer p-2 rounded hover:bg-surface-container border border-outline-variant/60">
+<input class="text-error focus:ring-error" name="cancel_campaign_radio" type="radio" value="long_delivery"/>
+<span>Thời gian giao quá lâu (&gt;60 phút)</span>
+</label>
+<label class="flex items-center gap-2.5 text-body-sm text-on-surface cursor-pointer p-2 rounded hover:bg-surface-container border border-outline-variant/60">
+<input class="text-error focus:ring-error" name="cancel_campaign_radio" type="radio" value="plan_change"/>
+<span>Thay đổi kế hoạch cuộc họp / sự kiện</span>
+</label>
+<label class="flex items-center gap-2.5 text-body-sm text-on-surface cursor-pointer p-2 rounded hover:bg-surface-container border border-outline-variant/60">
+<input class="text-error focus:ring-error" name="cancel_campaign_radio" type="radio" value="other"/>
+<span>Lý do khác...</span>
+</label>
+</div>
+<textarea class="w-full mt-1.5 px-3 py-2 text-body-sm bg-surface-container-lowest border border-outline-variant rounded-lg focus:outline-none focus:border-error" id="cancel-campaign-note" placeholder="Nhập ghi chú bổ sung hoặc chi tiết lý do hủy (tùy chọn)..." rows="2"></textarea>
+</div>
+<!-- Tùy chọn thông báo -->
+<div class="pt-1">
+<label class="flex items-center gap-2.5 text-body-sm text-on-surface cursor-pointer">
+<input checked="" class="rounded border-outline text-error focus:ring-error h-4 w-4" id="cancel-cb-slack" type="checkbox"/>
+<span class="text-body-sm">Gửi thông báo hủy đơn và lý do tới tất cả 22 người đã đặt qua Slack Bot.</span>
+</label>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low border-t border-outline-variant flex items-center justify-end gap-2.5">
+<button class="px-4 py-2 border border-outline-variant rounded font-label-md text-label-md hover:bg-surface-container transition-colors text-on-surface font-medium" onclick="closeModal('cancel-campaign-modal')">
+        Hủy bỏ / Quay lại
+      </button>
+<button class="px-4 py-2 bg-error text-on-error rounded font-label-md text-label-md hover:opacity-90 transition-opacity flex items-center gap-1.5 shadow-sm font-medium" onclick="confirmCancelCampaign()">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+        Xác nhận Hủy Chiến Dịch
+      </button>
+</div>
+</div>
+</div>
+<!-- ===================================================================== -->
+<!-- MODAL 3: PAUSE CAMPAIGN MODAL                                         -->
+<!-- ===================================================================== -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/40 backdrop-blur-xs transition-opacity duration-200" id="pause-campaign-modal">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col transform transition-all">
+<div class="p-4 border-b border-outline-variant flex items-center justify-between bg-amber-50 dark:bg-amber-950/20">
+<div class="flex items-center gap-2.5">
+<div class="w-9 h-9 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]" data-icon="pause_circle">pause_circle</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm font-bold text-on-surface">Tạm dừng nhận đơn đặt món</h3>
+<span class="text-label-sm font-mono text-secondary">#CMP-104 - Highlands Coffee</span>
+</div>
+</div>
+<button class="p-1 text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded transition-colors" onclick="closeModal('pause-campaign-modal')" title="Đóng modal">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-5 flex flex-col gap-4">
+<p class="text-body-sm text-on-surface-variant leading-relaxed">
+      Khi tạm dừng, các thành viên sẽ không thể gửi thêm món mới hoặc chỉnh sửa giỏ hàng. Bạn có thể mở lại nhận đơn bất kỳ lúc nào trước giờ chốt (<strong class="text-on-surface">10:30 AM</strong>).
+    </p>
+<!-- Tùy chọn thời gian tạm dừng -->
+<div class="flex flex-col gap-2">
+<label class="text-label-sm font-bold text-on-surface">Thời gian tạm dừng</label>
+<div class="space-y-2">
+<label class="flex items-center gap-2.5 text-body-sm text-on-surface cursor-pointer p-2.5 rounded hover:bg-surface-container border border-outline-variant/70">
+<input checked="" class="text-amber-600 focus:ring-amber-500" name="pause_duration" type="radio" value="manual"/>
+<div>
+<span class="font-medium block text-on-surface">Tạm dừng cho đến khi mở lại thủ công</span>
+<span class="text-label-sm text-on-surface-variant">Admin sẽ bấm tiếp tục nhận đơn khi sẵn sàng</span>
+</div>
+</label>
+<label class="flex items-center gap-2.5 text-body-sm text-on-surface cursor-pointer p-2.5 rounded hover:bg-surface-container border border-outline-variant/70">
+<input class="text-amber-600 focus:ring-amber-500" name="pause_duration" type="radio" value="15m"/>
+<div>
+<span class="font-medium block text-on-surface">Tạm dừng trong 15 phút</span>
+<span class="text-label-sm text-on-surface-variant">Tự động mở lại nhận đơn lúc 10:24 AM</span>
+</div>
+</label>
+<label class="flex items-center gap-2.5 text-body-sm text-on-surface cursor-pointer p-2.5 rounded hover:bg-surface-container border border-outline-variant/70">
+<input class="text-amber-600 focus:ring-amber-500" name="pause_duration" type="radio" value="30m"/>
+<div>
+<span class="font-medium block text-on-surface">Tạm dừng trong 30 phút</span>
+<span class="text-label-sm text-on-surface-variant">Tự động mở lại nhận đơn lúc 10:39 AM</span>
+</div>
+</label>
+</div>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low border-t border-outline-variant flex items-center justify-end gap-2.5">
+<button class="px-4 py-2 border border-outline-variant rounded font-label-md text-label-md hover:bg-surface-container transition-colors text-on-surface font-medium" onclick="closeModal('pause-campaign-modal')">
+        Hủy
+      </button>
+<button class="px-4 py-2 bg-amber-600 text-white rounded font-label-md text-label-md hover:bg-amber-700 transition-colors flex items-center gap-1.5 shadow-sm font-medium" onclick="confirmPauseCampaign()">
+<span class="material-symbols-outlined text-[16px]">pause_circle</span>
+        Tạm dừng nhận đơn ngay
+      </button>
+</div>
+</div>
+</div>
+<script>
+  // Universal Modal Functions
+  window.openModal = function(modalId) {
+    var modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeModal = function(modalId) {
+    var modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  };
+
+  // Action handlers
+  window.confirmCloseCampaign = function() {
+    alert('Đã xác nhận đóng chiến dịch #CMP-104! Đang chuyển hướng sang trang Final Summary...');
+    window.closeModal('close-campaign-modal');
+  };
+
+  window.confirmCancelCampaign = function() {
+    var selectedReason = document.querySelector('input[name="cancel_campaign_radio"]:checked')?.value || 'Quán hết món';
+    var note = document.getElementById('cancel-campaign-note')?.value || '';
+    alert('Đã hủy toàn bộ chiến dịch #CMP-104 và gửi thông báo hoàn tiền tới thành viên trên Slack.');
+    window.closeModal('cancel-campaign-modal');
+  };
+
+  window.confirmPauseCampaign = function() {
+    var duration = document.querySelector('input[name="pause_duration"]:checked')?.value || 'manual';
+    alert('Đã tạm dừng nhận đơn cho chiến dịch #CMP-104 thành công (' + duration + ').');
+    window.closeModal('pause-campaign-modal');
+  };
+
+  // Cancel single order functions
+  window.openCancelOrderModal = function(orderId, user, item, price) {
+    var modal = document.getElementById('cancel-order-modal');
+    if (!modal) return;
+    
+    var formattedId = orderId && orderId.startsWith('#') ? orderId : '#' + orderId;
+    var elId = document.getElementById('modal-order-id');
+    var elUser = document.getElementById('modal-user-name');
+    var elItem = document.getElementById('modal-item-name');
+    var elPrice = document.getElementById('modal-order-price');
+    
+    if (elId) elId.innerText = formattedId;
+    if (elUser) elUser.innerText = user || '';
+    if (elItem) elItem.innerText = item || '';
+    if (elPrice) elPrice.innerText = price || '';
+    
+    window.openModal('cancel-order-modal');
+  };
+
+  window.closeCancelOrderModal = function() {
+    window.closeModal('cancel-order-modal');
+  };
+
+  window.confirmCancelOrder = function() {
+    var orderId = document.getElementById('modal-order-id')?.innerText || '';
+    alert('Đã hủy đơn hàng ' + orderId + ' thành công và cập nhật trạng thái.');
+    window.closeCancelOrderModal();
+  };
+
+  // Close modals when clicking backdrop outside content
+  document.addEventListener('DOMContentLoaded', function() {
+    var modalIds = ['cancel-order-modal', 'close-campaign-modal', 'cancel-campaign-modal', 'pause-campaign-modal'];
+    modalIds.forEach(function(id) {
+      var modal = document.getElementById(id);
+      if (modal) {
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) {
+            window.closeModal(id);
+          }
+        });
+      }
+    });
+  });
+
+  // Close modals on Escape key press
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var modalIds = ['cancel-order-modal', 'close-campaign-modal', 'cancel-campaign-modal', 'pause-campaign-modal'];
+      modalIds.forEach(function(id) {
+        window.closeModal(id);
+      });
+      var extendMenu = document.getElementById('extend-menu');
+      if (extendMenu && !extendMenu.classList.contains('hidden')) {
+        extendMenu.classList.add('hidden');
+      }
+    }
+  });
+</script>
+</body></html>

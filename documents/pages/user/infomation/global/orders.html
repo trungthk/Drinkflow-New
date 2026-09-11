@@ -1,0 +1,982 @@
+<!DOCTYPE html><html class="h-full" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>DrinkFlow - Lịch sử Order &amp; Chi tiết hóa đơn</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "tertiary-fixed-dim": "#bec6e0",
+            "on-tertiary": "#ffffff",
+            "surface-container-low": "#eff4ff",
+            "surface-container-highest": "#d3e4fe",
+            "on-primary-fixed": "#002114",
+            "surface-tint": "#006c4a",
+            "error-container": "#ffdad6",
+            "on-secondary-fixed": "#002113",
+            "on-tertiary-container": "#fefcff",
+            "on-secondary": "#ffffff",
+            "surface-container-high": "#dce9ff",
+            "surface-bright": "#f8f9ff",
+            "surface-variant": "#d3e4fe",
+            "primary": "#006948",
+            "on-primary-fixed-variant": "#005137",
+            "inverse-surface": "#213145",
+            "outline": "#6d7a72",
+            "on-secondary-container": "#00714d",
+            "tertiary-fixed": "#dae2fd",
+            "on-tertiary-fixed": "#131b2e",
+            "on-error": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "inverse-primary": "#68dba9",
+            "tertiary": "#545c72",
+            "background": "#f8f9ff",
+            "surface-dim": "#cbdbf5",
+            "inverse-on-surface": "#eaf1ff",
+            "surface": "#f8f9ff",
+            "on-error-container": "#93000a",
+            "secondary": "#006c49",
+            "on-tertiary-fixed-variant": "#3f465c",
+            "on-primary": "#ffffff",
+            "secondary-container": "#6cf8bb",
+            "on-primary-container": "#f5fff7",
+            "tertiary-container": "#6c748b",
+            "primary-fixed-dim": "#68dba9",
+            "surface-container": "#e5eeff",
+            "error": "#ba1a1a",
+            "on-surface": "#0b1c30",
+            "on-surface-variant": "#3d4a42",
+            "secondary-fixed-dim": "#4edea3",
+            "on-secondary-fixed-variant": "#005236",
+            "outline-variant": "#bccac0",
+            "primary-fixed": "#85f8c4",
+            "secondary-fixed": "#6ffbbe",
+            "primary-container": "#00855d",
+            "on-background": "#0b1c30"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "3rem",
+            "space-2xl": "4rem",
+            "space-xs": "0.5rem",
+            "space-lg": "2rem",
+            "space-sm": "1rem",
+            "space-md": "1.5rem",
+            "gutter": "1.5rem",
+            "margin": "1.5rem"
+          },
+          "fontFamily": {
+            "label-sm": ["Inter"],
+            "headline-md": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-sm": ["Inter"],
+            "caption": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-xl": ["Inter"]
+          },
+          "fontSize": {
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "600" }],
+            "caption": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0", "fontWeight": "400" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#F8FAFC] text-on-surface font-body-md text-body-md antialiased min-h-full flex flex-col selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- TOP APP BAR -->
+<header class="bg-surface-container-lowest border-b border-outline-variant shadow-sm sticky top-0 z-30"><div class="w-full max-w-[1200px] mx-auto px-6 flex flex-col">
+  <!-- Tầng 1: Brand & User Profile / Actions -->
+  <div class="flex items-center justify-between h-16 gap-6">
+    <!-- Logo DrinkFlow + Nhãn Enterprise -->
+    <div class="flex items-center gap-3">
+      <a class="flex items-center gap-2" href="/me">
+        <span class="material-symbols-outlined text-primary text-[28px]">local_cafe</span>
+        <span class="text-headline-lg font-headline-lg font-bold text-primary tracking-tight">DrinkFlow</span>
+      </a>
+      <span class="bg-surface-container-low text-primary text-caption font-caption px-2 py-0.5 rounded border border-outline-variant font-semibold tracking-wide uppercase">SAAS ENTERPRISE</span>
+    </div>
+    <!-- Actions & User Profile Dropdown Anchor -->
+    <div class="flex items-center gap-3">
+      <!-- Notification button with badge -->
+      <button class="relative p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-[6px] transition-colors" title="Thông báo" type="button">
+        <span class="material-symbols-outlined text-[20px]">notifications</span>
+        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-white"></span>
+      </button>
+      <!-- Help button -->
+      <button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-[6px] transition-colors" title="Trợ giúp" type="button">
+        <span class="material-symbols-outlined text-[20px]">help</span>
+      </button>
+      <!-- User Profile with Dropdown Menu -->
+      <div class="relative pl-2 border-l border-outline-variant group" id="userProfileMenuContainer">
+        <button class="flex items-center gap-2.5 text-left focus:outline-none cursor-pointer p-1 rounded-md hover:bg-surface-container-low transition-colors" id="userProfileDropdownBtn" type="button" aria-expanded="false">
+          <div class="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center font-semibold text-caption shrink-0">
+            TL
+          </div>
+          <div class="hidden lg:block leading-tight">
+            <p class="text-label-sm font-label-sm text-on-surface font-semibold truncate max-w-[140px]">Trung Lê</p>
+            <p class="text-caption font-caption text-outline truncate max-w-[140px]">trung.lt@company.com</p>
+          </div>
+          <span class="material-symbols-outlined text-outline text-[18px] transition-transform duration-200 group-hover:rotate-180">expand_more</span>
+        </button>
+        <!-- Dropdown Menu Content -->
+        <div class="absolute right-0 mt-2 w-72 bg-surface-container-lowest border border-outline-variant/80 rounded-xl shadow-2xl py-2 z-50 hidden group-hover:block hover:block divide-y divide-outline-variant/40 animate-in fade-in duration-150" id="userProfileDropdownMenu">
+          <!-- User info header inside dropdown -->
+          <div class="px-4 py-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-caption shrink-0">
+                TL
+              </div>
+              <div class="overflow-hidden">
+                <p class="font-semibold text-body-sm text-on-surface truncate">Trung Lê</p>
+                <p class="text-caption text-outline truncate">trung.lt@company.com</p>
+                <div class="flex items-center gap-1.5 mt-1">
+                  <span class="bg-emerald-50 text-[#065F46] border border-emerald-300 text-[10px] font-semibold px-1.5 py-0.2 rounded">Tech Lead</span>
+                  <span class="text-[10px] text-primary flex items-center gap-0.5"><span class="material-symbols-outlined text-[12px]">verified</span> SSO</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Links Section 1 -->
+          <div class="py-1.5">
+            <a class="flex items-center gap-2.5 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors" href="/me/profile">
+              <span class="material-symbols-outlined text-[18px] text-tertiary">person</span>
+              <span class="">Hồ sơ cá nhân &amp; Khẩu vị</span>
+            </a>
+            <a class="flex items-center gap-2.5 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors" href="/me/devices">
+              <span class="material-symbols-outlined text-[18px] text-tertiary">security</span>
+              <span class="">Bảo mật &amp; Thiết bị</span>
+            </a>
+            <a class="flex items-center gap-2.5 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors" href="/me/payments">
+              <span class="material-symbols-outlined text-[18px] text-tertiary">receipt_long</span>
+              <span class="">Lịch sử thanh toán &amp; Đối soát</span>
+            </a>
+            <a class="flex items-center gap-2.5 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors" href="/me/statistics">
+              <span class="material-symbols-outlined text-[18px] text-tertiary">bar_chart</span>
+              <span class="">Thống kê chi tiêu</span>
+            </a>
+          </div>
+          <!-- Links Section 2 -->
+          <div class="py-1.5">
+            <a class="flex items-center gap-2.5 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors" href="#">
+              <span class="material-symbols-outlined text-[18px] text-tertiary">notifications</span>
+              <span class="">Cài đặt thông báo</span>
+            </a>
+            <a class="flex items-center gap-2.5 px-4 py-2 text-body-sm text-on-surface hover:bg-surface-container-low transition-colors" href="#">
+              <span class="material-symbols-outlined text-[18px] text-tertiary">help_outline</span>
+              <span class="">Trợ giúp &amp; Hỗ trợ</span>
+            </a>
+          </div>
+          <!-- Logout Action -->
+          <div class="pt-1.5 px-1">
+            <a class="flex items-center gap-2.5 px-3 py-2 text-body-sm text-error hover:bg-red-50 rounded-md transition-colors font-medium" href="/logout">
+              <span class="material-symbols-outlined text-[18px]">logout</span>
+              <span class="">Đăng xuất</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Tầng 2: Sub-navigation 6 tabs -->
+  <nav class="flex items-center space-x-6 overflow-x-auto no-scrollbar pt-1">
+    <a class="text-on-surface-variant hover:text-on-surface font-label-md pb-3 transition-colors shrink-0" href="/me">Tổng quan</a>
+    <a class="text-on-surface-variant hover:text-on-surface font-label-md pb-3 transition-colors shrink-0" href="/me/rooms">Room của tôi</a>
+    <a class="border-b-2 border-primary text-primary font-label-md font-semibold pb-3 shrink-0 flex items-center gap-1.5" href="/me/orders">
+      <span class="">Lịch sử Order</span>
+      <span class="px-1.5 py-0.2 bg-primary/10 text-primary text-caption font-caption rounded-full">142</span>
+    </a>
+    <a class="text-on-surface-variant hover:text-on-surface font-label-md pb-3 transition-colors shrink-0" href="/me/payments">Thanh toán</a>
+    <a class="text-on-surface-variant hover:text-on-surface font-label-md pb-3 transition-colors shrink-0" href="/me/statistics">Thống kê</a>
+    <a class="text-on-surface-variant hover:text-on-surface font-label-md pb-3 transition-colors shrink-0" href="/me/feedback">Đánh giá</a>
+  </nav>
+</div></header>
+<!-- MAIN CANVAS -->
+<main class="flex-1 w-full max-w-[1200px] mx-auto px-6 py-6 flex flex-col gap-6">
+<!-- Page Title & Header Stats -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div>
+<div class="flex items-center gap-2">
+<h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight">Lịch sử Order của tôi</h1>
+<span class="bg-[#ECFDF5] text-[#065F46] border border-outline-variant/60 text-caption font-caption px-2.5 py-0.5 rounded-full font-semibold">Khối Kỹ thuật &amp; Sản phẩm</span>
+</div>
+<p class="text-body-sm font-body-sm text-outline mt-0.5">Theo dõi lịch sử gọi món cá nhân, đối soát công nợ phòng ban và hóa đơn chiết khấu theo kỳ.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="inline-flex items-center gap-2 px-3.5 py-2 bg-surface-container-lowest border border-outline-variant rounded-[6px] text-label-md font-label-md text-on-surface hover:bg-slate-50 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px] text-outline">file_download</span>
+<span class="">Xuất Excel / CSV</span>
+</button>
+<button class="inline-flex items-center gap-2 px-3.5 py-2 bg-primary text-white rounded-[6px] text-label-md font-label-md hover:bg-primary-container transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+<span class="">Đối soát tháng 09</span>
+</button>
+</div>
+</div>
+<!-- FILTERS BAR -->
+<div class="bg-surface-container-lowest border border-outline-variant/80 rounded-[8px] p-4 shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+<!-- Room Selector -->
+<div class="relative">
+<label class="block text-caption font-caption text-outline uppercase tracking-wider mb-1">Nhóm / Room</label>
+<div class="relative">
+<select class="w-full h-[38px] pl-3 pr-8 bg-surface-container-lowest border border-outline-variant rounded-[6px] text-body-sm font-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+<option>Tất cả Room (Mặc định)</option>
+<option selected="">Team Kỹ thuật HN (Active)</option>
+<option>Design &amp; UX Creative</option>
+<option>Kinh doanh &amp; Tăng trưởng</option>
+<option>Vận hành &amp; Nhân sự</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-outline text-[18px] pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Status Filter -->
+<div class="relative">
+<label class="block text-caption font-caption text-outline uppercase tracking-wider mb-1">Trạng thái thanh toán</label>
+<div class="relative">
+<select class="w-full h-[38px] pl-3 pr-8 bg-surface-container-lowest border border-outline-variant rounded-[6px] text-body-sm font-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+<option selected="">Tất cả trạng thái</option>
+<option>Đã thanh toán (Napas / VietQR)</option>
+<option>Chờ thanh toán (Unpaid)</option>
+<option>Đang gom đơn (Grouping)</option>
+<option>Đã hủy / Hoàn tiền</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-outline text-[18px] pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Date Range Filter -->
+<div class="relative">
+<label class="block text-caption font-caption text-outline uppercase tracking-wider mb-1">Thời gian đặt</label>
+<div class="relative">
+<select class="w-full h-[38px] pl-3 pr-8 bg-surface-container-lowest border border-outline-variant rounded-[6px] text-body-sm font-body-sm text-on-surface focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
+<option selected="">Tháng này (09/2026)</option>
+<option>3 tháng gần nhất (Q3/2026)</option>
+<option>Tháng trước (08/2026)</option>
+<option>Khoảng tùy chỉnh...</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-2.5 text-outline text-[18px] pointer-events-none">calendar_today</span>
+</div>
+</div>
+</div>
+<!-- Search in filter -->
+<div class="lg:w-80 flex flex-col justify-end">
+<label class="block text-caption font-caption text-outline uppercase tracking-wider mb-1">Tìm kiếm nhanh</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[18px]">filter_list</span>
+<input class="w-full h-[38px] pl-9 pr-3 bg-surface-container-lowest border border-outline-variant rounded-[6px] text-body-sm font-body-sm text-on-surface placeholder:text-outline focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none" placeholder="Tìm theo tên quán, món ăn hoặc mã đơn..." type="text">
+</div>
+</div>
+</div>
+<!-- QUICK STATS METRICS ROW -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+<div class="bg-surface-container-lowest border border-outline-variant/70 rounded-[8px] p-3.5 shadow-sm">
+<p class="text-caption font-caption text-outline uppercase tracking-wider">Tổng đơn trong tháng</p>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-headline-md font-headline-md text-on-surface font-semibold">18 đơn</span>
+<span class="text-caption text-primary font-medium flex items-center"><span class="material-symbols-outlined text-[14px]">arrow_upward</span> +3 đơn</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/70 rounded-[8px] p-3.5 shadow-sm">
+<p class="text-caption font-caption text-outline uppercase tracking-wider">Tổng chi cá nhân</p>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-headline-md font-headline-md text-on-surface font-semibold">945.000đ</span>
+<span class="text-caption text-outline">Đã thanh toán</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/70 rounded-[8px] p-3.5 shadow-sm">
+<p class="text-caption font-caption text-outline uppercase tracking-wider">Tài trợ từ công ty</p>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-headline-md font-headline-md text-primary font-semibold">-540.000đ</span>
+<span class="text-caption text-primary font-medium">30k/ngày</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant/70 rounded-[8px] p-3.5 shadow-sm">
+<p class="text-caption font-caption text-outline uppercase tracking-wider">Đang chờ thanh toán</p>
+<div class="flex items-baseline gap-2 mt-1">
+<span class="text-headline-md font-headline-md text-error font-semibold">110.000đ</span>
+<span class="text-caption bg-red-50 text-error px-1.5 py-0.5 rounded font-medium">1 đơn</span>
+</div>
+</div>
+</div>
+<!-- ORDERS TABLE CONTAINER -->
+<div class="bg-surface-container-lowest border border-outline-variant/80 rounded-[8px] shadow-[0_1px_3px_0_rgba(0,0,0,0.05)] overflow-hidden">
+<div class="px-5 py-3 border-b border-outline-variant flex items-center justify-between bg-[#F8FAFC]">
+<div class="flex items-center gap-2">
+<span class="font-semibold text-on-surface text-label-md font-label-md">Danh sách đơn hàng</span>
+<span class="bg-surface-container text-tertiary text-caption font-caption px-2 py-0.5 rounded-full">Hiển thị 5 / 142 đơn</span>
+</div>
+<span class="text-caption font-caption text-outline">Tự động cập nhật 2 phút trước</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F8FAFC] border-b border-outline-variant text-[11px] font-caption tracking-wider uppercase text-tertiary">
+<th class="py-3 px-4 font-semibold">Mã đơn &amp; Thời gian</th>
+<th class="py-3 px-4 font-semibold">Phòng ban / Room</th>
+<th class="py-3 px-4 font-semibold">Quán &amp; Tóm tắt món</th>
+<th class="py-3 px-4 text-right font-semibold">Tổng tiền</th>
+<th class="py-3 px-4 text-right font-semibold">Tài trợ</th>
+<th class="py-3 px-4 text-right font-semibold">Thực trả</th>
+<th class="py-3 px-4 text-center font-semibold">Trạng thái</th>
+<th class="py-3 px-4 text-center font-semibold">Thao tác</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/60 text-body-sm font-body-sm">
+<!-- Row 1: ORD-8492 (Highlighted as active preview) -->
+<tr class="bg-emerald-50/40 hover:bg-emerald-50/70 transition-colors group">
+<td class="py-3 px-4">
+<div class="flex items-center gap-1.5 font-semibold text-primary font-mono">
+<span class="material-symbols-outlined text-[16px]">pin</span>
+                  #ORD-8492
+                </div>
+<div class="text-caption font-caption text-outline mt-0.5">10/09/2026 10:15</div>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container text-on-surface-variant text-caption font-caption font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                  Team Kỹ thuật HN
+                </span>
+</td>
+<td class="py-3 px-4 max-w-xs">
+<div class="font-semibold text-on-surface truncate">Phúc Long Coffee &amp; Tea</div>
+<div class="text-caption font-caption text-outline truncate" title="Trà sữa Phúc Long size L (50% đường, 70% đá) x1, Bánh croissant x1">
+                  Trà sữa Phúc Long size L (50% đường, 70% đá) x1, Bánh croissant bơ tỏi x1
+                </div>
+</td>
+<td class="py-3 px-4 text-right font-mono text-on-surface">85.000đ</td>
+<td class="py-3 px-4 text-right font-mono text-primary font-medium">-30.000đ</td>
+<td class="py-3 px-4 text-right font-mono font-semibold text-on-surface">55.000đ</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]">
+                  Đã thanh toán
+                </span>
+</td>
+<td class="py-3 px-4 text-center">
+<button class="open-detail-btn inline-flex items-center gap-1 px-3 py-1 bg-white border border-primary text-primary hover:bg-primary hover:text-white rounded-[6px] text-caption font-caption font-semibold transition-colors shadow-xs" type="button">
+<span class="">Chi tiết</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+</td>
+</tr>
+<!-- Row 2: ORD-8420 -->
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="py-3 px-4">
+<div class="font-semibold text-on-surface font-mono">#ORD-8420</div>
+<div class="text-caption font-caption text-outline mt-0.5">08/09/2026 14:02</div>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container text-on-surface-variant text-caption font-caption font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                  Design &amp; UX
+                </span>
+</td>
+<td class="py-3 px-4 max-w-xs">
+<div class="font-semibold text-on-surface truncate">Phê La - Đặc sản Ô Long</div>
+<div class="text-caption font-caption text-outline truncate" title="Ô long sữa Phê La x2, Trân châu ô long">
+                  Ô long sữa Phê La x2 (Topping trân châu ô long)
+                </div>
+</td>
+<td class="py-3 px-4 text-right font-mono text-on-surface">110.000đ</td>
+<td class="py-3 px-4 text-right font-mono text-outline">0đ</td>
+<td class="py-3 px-4 text-right font-mono font-semibold text-error">110.000đ</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]">
+                  Chưa thanh toán
+                </span>
+</td>
+<td class="py-3 px-4 text-center">
+<button class="open-detail-btn inline-flex items-center gap-1 px-3 py-1 bg-white border border-outline-variant text-on-surface hover:border-outline rounded-[6px] text-caption font-caption font-medium transition-colors" type="button">
+<span class="">Xem chi tiết</span>
+</button>
+</td>
+</tr>
+<!-- Row 3: ORD-8390 -->
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="py-3 px-4">
+<div class="font-semibold text-on-surface font-mono">#ORD-8390</div>
+<div class="text-caption font-caption text-outline mt-0.5">05/09/2026 09:30</div>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container text-on-surface-variant text-caption font-caption font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                  Team Kỹ thuật HN
+                </span>
+</td>
+<td class="py-3 px-4 max-w-xs">
+<div class="font-semibold text-on-surface truncate">Katinat Saigon Kafe</div>
+<div class="text-caption font-caption text-outline truncate">
+                  Trà Đào Hồng Đài x1, Cà phê Muối x1
+                </div>
+</td>
+<td class="py-3 px-4 text-right font-mono text-on-surface">98.000đ</td>
+<td class="py-3 px-4 text-right font-mono text-primary font-medium">-30.000đ</td>
+<td class="py-3 px-4 text-right font-mono font-semibold text-on-surface">68.000đ</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]">
+                  Đã thanh toán
+                </span>
+</td>
+<td class="py-3 px-4 text-center">
+<button class="open-detail-btn inline-flex items-center gap-1 px-3 py-1 bg-white border border-outline-variant text-on-surface hover:border-outline rounded-[6px] text-caption font-caption font-medium transition-colors" type="button">
+<span class="">Xem chi tiết</span>
+</button>
+</td>
+</tr>
+<!-- Row 4: ORD-8344 -->
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="py-3 px-4">
+<div class="font-semibold text-on-surface font-mono">#ORD-8344</div>
+<div class="text-caption font-caption text-outline mt-0.5">02/09/2026 15:10</div>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container text-on-surface-variant text-caption font-caption font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  Kinh doanh &amp; TT
+                </span>
+</td>
+<td class="py-3 px-4 max-w-xs">
+<div class="font-semibold text-on-surface truncate">Starbucks Reserve</div>
+<div class="text-caption font-caption text-outline truncate">
+                  Caramel Macchiato Venti x1, Almond Croissant x1
+                </div>
+</td>
+<td class="py-3 px-4 text-right font-mono text-on-surface">145.000đ</td>
+<td class="py-3 px-4 text-right font-mono text-primary font-medium">-30.000đ</td>
+<td class="py-3 px-4 text-right font-mono font-semibold text-on-surface">115.000đ</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]">
+                  Đã thanh toán
+                </span>
+</td>
+<td class="py-3 px-4 text-center">
+<button class="open-detail-btn inline-flex items-center gap-1 px-3 py-1 bg-white border border-outline-variant text-on-surface hover:border-outline rounded-[6px] text-caption font-caption font-medium transition-colors" type="button">
+<span class="">Xem chi tiết</span>
+</button>
+</td>
+</tr>
+<!-- Row 5: ORD-8280 -->
+<tr class="hover:bg-slate-50 transition-colors">
+<td class="py-3 px-4">
+<div class="font-semibold text-on-surface font-mono">#ORD-8280</div>
+<div class="text-caption font-caption text-outline mt-0.5">29/08/2026 11:20</div>
+</td>
+<td class="py-3 px-4">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container text-on-surface-variant text-caption font-caption font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                  Team Kỹ thuật HN
+                </span>
+</td>
+<td class="py-3 px-4 max-w-xs">
+<div class="font-semibold text-on-surface truncate">Gong Cha Vietnam</div>
+<div class="text-caption font-caption text-outline truncate">
+                  Alisan Milk Tea with Coconut Jelly x1
+                </div>
+</td>
+<td class="py-3 px-4 text-right font-mono text-on-surface">57.000đ</td>
+<td class="py-3 px-4 text-right font-mono text-primary font-medium">-30.000đ</td>
+<td class="py-3 px-4 text-right font-mono font-semibold text-on-surface">27.000đ</td>
+<td class="py-3 px-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#F1F5F9] text-[#475569] border border-slate-300">
+                  Đã đóng
+                </span>
+</td>
+<td class="py-3 px-4 text-center">
+<button class="open-detail-btn inline-flex items-center gap-1 px-3 py-1 bg-white border border-outline-variant text-on-surface hover:border-outline rounded-[6px] text-caption font-caption font-medium transition-colors" type="button">
+<span class="">Xem chi tiết</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination bar -->
+<div class="px-5 py-3 border-t border-outline-variant bg-[#F8FAFC] flex flex-col sm:flex-row items-center justify-between gap-3">
+<div class="text-caption font-caption text-outline">
+          Đang xem dòng 1 - 5 trong tổng số 142 đơn đặt hàng
+        </div>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-white text-outline disabled:opacity-50" disabled="" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded bg-primary text-white font-semibold text-caption font-caption shadow-xs" type="button">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-white text-on-surface hover:bg-slate-100 text-caption font-caption transition-colors" type="button">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-white text-on-surface hover:bg-slate-100 text-caption font-caption transition-colors" type="button">3</button>
+<span class="px-1 text-outline text-caption">...</span>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-white text-on-surface hover:bg-slate-100 text-caption font-caption transition-colors" type="button">29</button>
+<button class="w-8 h-8 flex items-center justify-center rounded border border-outline-variant bg-white text-on-surface hover:bg-slate-100 text-caption font-caption transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- MODAL: CHI TIẾT ĐƠN HÀNG #ORD-8492 -->
+<div aria-modal="true" class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 sm:p-6" id="orderDetailModal" role="dialog">
+<!-- Backdrop overlay -->
+<div class="fixed inset-0 bg-[#0F172A] bg-opacity-40 transition-opacity backdrop-blur-[1px]" id="orderDetailBackdrop"></div>
+<!-- Modal Dialog Card (Level 3 depth) -->
+<div class="relative bg-surface-container-lowest border border-[#CBD5E1] rounded-[8px] max-w-2xl w-full shadow-[0_10px_15px_-3px_rgba(0,0,0,0.08),0_4px_6px_-4px_rgba(0,0,0,0.04)] overflow-hidden z-10 flex flex-col my-8">
+<!-- Modal Header -->
+<div class="p-6 border-b border-outline-variant bg-surface-container-lowest flex items-start justify-between gap-4">
+<div>
+<div class="flex flex-wrap items-center gap-2 mb-1">
+<h2 class="text-headline-md font-headline-md text-on-surface font-mono font-bold tracking-tight">Chi tiết đơn #ORD-8492</h2>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-caption font-caption font-semibold bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]">
+              Đã nhận món
+            </span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-caption font-caption font-semibold bg-emerald-100/60 text-primary border border-primary/30">
+              Đã thanh toán VietQR
+            </span>
+</div>
+<div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-body-sm font-body-sm text-outline">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">schedule</span>
+              10/09/2026 10:15
+            </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">person</span>
+              Host gom đơn: <span class="font-medium text-on-surface">Nguyễn Văn An (Tech Lead)</span>
+</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">storefront</span>
+<span class="font-medium text-on-surface">Phúc Long Coffee &amp; Tea</span>
+</span>
+</div>
+</div>
+<button class="text-outline hover:text-on-surface p-1 rounded hover:bg-surface-container transition-colors" id="closeDetailModalIcon" title="Đóng modal" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-6 overflow-y-auto space-y-6 max-h-[calc(85vh-160px)]">
+<!-- Itemized Breakdown Table -->
+<div>
+<div class="flex items-center justify-between mb-2.5">
+<h3 class="text-headline-sm font-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">lunch_dining</span>
+              Danh sách món đã đặt
+            </h3>
+<span class="text-caption font-caption text-outline">2 món trong đơn</span>
+</div>
+<div class="border border-outline-variant rounded-[6px] overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#F8FAFC] border-b border-outline-variant text-[11px] font-caption tracking-wider uppercase text-tertiary">
+<th class="py-2.5 px-3 font-semibold">Món ăn / Đồ uống</th>
+<th class="py-2.5 px-3 font-semibold">Tùy chọn ghi chú</th>
+<th class="py-2.5 px-3 text-center font-semibold">SL</th>
+<th class="py-2.5 px-3 text-right font-semibold">Đơn giá</th>
+<th class="py-2.5 px-3 text-right font-semibold">Thành tiền</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/60 text-body-sm font-body-sm">
+<!-- Item 1 -->
+<tr>
+<td class="py-3 px-3">
+<div class="font-semibold text-on-surface">Trà sữa Phúc Long</div>
+<span class="text-caption font-caption text-outline">Size L</span>
+</td>
+<td class="py-3 px-3 text-caption font-caption text-tertiary">
+<div class="bg-slate-50 border border-slate-200 rounded px-2 py-1 leading-snug">
+                      50% đường, 70% đá<br>
+<span class="text-primary font-medium">+ Thêm trân châu đen</span>
+</div>
+</td>
+<td class="py-3 px-3 text-center font-semibold font-mono">x1</td>
+<td class="py-3 px-3 text-right font-mono text-outline">65.000đ</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-on-surface">65.000đ</td>
+</tr>
+<!-- Item 2 -->
+<tr>
+<td class="py-3 px-3">
+<div class="font-semibold text-on-surface">Bánh Croissant bơ tỏi</div>
+<span class="text-caption font-caption text-outline">Bánh nướng trong ngày</span>
+</td>
+<td class="py-3 px-3 text-caption font-caption text-tertiary">
+<div class="bg-slate-50 border border-slate-200 rounded px-2 py-1 leading-snug">
+                      Nóng giòn, bọc giấy riêng
+                    </div>
+</td>
+<td class="py-3 px-3 text-center font-semibold font-mono">x1</td>
+<td class="py-3 px-3 text-right font-mono text-outline">20.000đ</td>
+<td class="py-3 px-3 text-right font-mono font-semibold text-on-surface">20.000đ</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Financial Calculation Box -->
+<div class="bg-[#F8FAFC] border border-outline-variant rounded-[8px] p-4">
+<h4 class="text-label-md font-label-md font-semibold text-on-surface mb-3 flex items-center justify-between">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary">account_balance_wallet</span>
+              Hộp tính toán tài chính minh bạch
+            </span>
+<span class="text-caption font-caption text-primary font-medium">Đối soát phòng ban tự động</span>
+</h4>
+<div class="space-y-2 text-body-sm font-body-sm divide-y divide-outline-variant/40">
+<div class="flex items-center justify-between pt-1">
+<span class="text-tertiary">Tạm tính đồ uống &amp; thức ăn:</span>
+<span class="font-mono font-medium text-on-surface">85.000đ</span>
+</div>
+<div class="flex items-center justify-between pt-2">
+<span class="text-tertiary flex items-center gap-1">
+                Phí ship Grab/ShopeeFood (chia đều 12 người):
+                <span class="material-symbols-outlined text-[14px] text-outline" title="Tổng ship 60.000đ / 12 thành viên trong room">info</span>
+</span>
+<span class="font-mono font-medium text-on-surface">+5.000đ</span>
+</div>
+<div class="flex items-center justify-between pt-2">
+<span class="text-primary font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">redeem</span>
+                Tài trợ công ty (Sponsor Pool - Quỹ Team Tech):
+              </span>
+<span class="font-mono font-semibold text-primary">-30.000đ</span>
+</div>
+<div class="flex items-center justify-between pt-2.5 text-body-lg font-body-lg">
+<span class="font-bold text-on-surface">Tổng thanh toán thực tế:</span>
+<span class="font-mono font-bold text-headline-sm text-primary">60.000đ</span>
+</div>
+</div>
+<!-- Payment Details Subcard -->
+<div class="mt-4 pt-3 border-t border-outline-variant bg-white -mx-4 -mb-4 p-4 rounded-b-[8px] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-caption font-caption">
+<div class="flex items-center gap-2.5">
+<div class="w-8 h-8 rounded bg-emerald-50 text-primary flex items-center justify-center shrink-0 border border-emerald-200">
+<span class="material-symbols-outlined text-[20px]">qr_code_2</span>
+</div>
+<div>
+<p class="font-semibold text-on-surface">VietQR Napas247 qua Techcombank</p>
+<p class="text-outline">Mã GD đối soát: <span class="font-mono text-on-surface font-medium">VQR-8492-TRUNG</span></p>
+</div>
+</div>
+<div class="text-right">
+<span class="inline-flex items-center gap-1 text-[#065F46] font-semibold bg-[#ECFDF5] px-2 py-1 rounded">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                Đã thanh toán lúc 10:18
+              </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Footer Actions -->
+<div class="p-4 px-6 border-t border-outline-variant bg-[#F8FAFC] flex flex-col sm:flex-row items-center justify-end gap-3">
+<button class="w-full sm:w-auto px-4 py-2 bg-white border border-outline-variant hover:bg-slate-50 text-on-surface rounded-[6px] text-label-md font-label-md transition-colors shadow-xs" id="closeDetailModalBtn" type="button">
+          Đóng
+        </button>
+<button class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary-container text-white rounded-[6px] text-label-md font-label-md font-medium transition-colors shadow-sm" id="openQrModalBtn" type="button">
+<span class="material-symbols-outlined text-[19px]">qr_code_scanner</span>
+<span class="">Xem mã VietQR thanh toán</span>
+</button>
+</div>
+</div>
+</div>
+<!-- MODAL: VIETQR THANH TOÁN (Phong cách /me/payments) -->
+<div aria-modal="true" class="hidden fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 sm:p-6" id="qrPaymentModal" role="dialog">
+<!-- Backdrop overlay -->
+<div class="fixed inset-0 bg-[#0F172A] bg-opacity-50 transition-opacity backdrop-blur-[2px]" id="qrModalBackdrop"></div>
+<!-- QR Card Container -->
+<div class="relative bg-surface-container-lowest border border-[#CBD5E1] rounded-[12px] max-w-md w-full shadow-2xl overflow-hidden z-10 flex flex-col my-6 animate-in fade-in zoom-in-95 duration-200">
+<!-- Modal Header -->
+<div class="p-4 px-5 border-b border-outline-variant bg-[#F8FAFC] flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">account_balance</span>
+<div>
+<h3 class="text-label-md font-headline-sm font-semibold text-on-surface leading-tight">Mã thanh toán VietQR Napas247</h3>
+<p class="text-caption font-caption text-outline">Hệ thống quét mã tự động gạch nợ 15-30s</p>
+</div>
+</div>
+<button class="text-outline hover:text-on-surface p-1 rounded-md hover:bg-slate-200 transition-colors" id="closeQrModalIcon" title="Đóng" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-5 flex flex-col items-center">
+<!-- QR Display Frame -->
+<div class="w-full max-w-[280px] bg-white border-2 border-emerald-500/30 rounded-xl p-3 shadow-md flex flex-col items-center text-center relative group">
+<!-- Header badges on QR card -->
+<div class="w-full flex items-center justify-between mb-2 px-1">
+<span class="text-[11px] font-bold tracking-wider text-[#006948] flex items-center gap-1 font-mono">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+VIETQR PRO
+</span>
+<span class="text-[11px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">Napas 247</span>
+</div>
+<!-- QR Code Visual with Corner Guides -->
+<div class="relative p-2 bg-white rounded-lg border border-slate-100 shadow-inner">
+<!-- Corner guides -->
+<div class="absolute top-1 left-1 w-3 h-3 border-t-2 border-l-2 border-primary"></div>
+<div class="absolute top-1 right-1 w-3 h-3 border-t-2 border-r-2 border-primary"></div>
+<div class="absolute bottom-1 left-1 w-3 h-3 border-b-2 border-l-2 border-primary"></div>
+<div class="absolute bottom-1 right-1 w-3 h-3 border-b-2 border-r-2 border-primary"></div>
+<svg class="w-52 h-52 text-slate-900" fill="none" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<!-- Finder Pattern Top-Left -->
+<rect fill="#0b1c30" height="50" rx="6" width="50" x="10" y="10"></rect>
+<rect fill="#ffffff" height="34" rx="4" width="34" x="18" y="18"></rect>
+<rect fill="#006948" height="22" rx="3" width="22" x="24" y="24"></rect>
+<!-- Finder Pattern Top-Right -->
+<rect fill="#0b1c30" height="50" rx="6" width="50" x="140" y="10"></rect>
+<rect fill="#ffffff" height="34" rx="4" width="34" x="148" y="18"></rect>
+<rect fill="#006948" height="22" rx="3" width="22" x="154" y="24"></rect>
+<!-- Finder Pattern Bottom-Left -->
+<rect fill="#0b1c30" height="50" rx="6" width="50" x="10" y="140"></rect>
+<rect fill="#ffffff" height="34" rx="4" width="34" x="18" y="148"></rect>
+<rect fill="#006948" height="22" rx="3" width="22" x="24" y="154"></rect>
+<!-- Alignment and timing patterns -->
+<line stroke="#0b1c30" stroke-dasharray="6 6" stroke-width="4" x1="68" x2="132" y1="20" y2="20"></line>
+<line stroke="#0b1c30" stroke-dasharray="6 6" stroke-width="4" x1="20" x2="20" y1="68" y2="132"></line>
+<!-- Data modules pseudo grid -->
+<rect fill="#0b1c30" height="10" width="10" x="68" y="32"></rect>
+<rect fill="#0b1c30" height="10" width="10" x="86" y="32"></rect>
+<rect fill="#006948" height="10" width="18" x="104" y="32"></rect>
+<rect fill="#0b1c30" height="10" width="18" x="68" y="50"></rect>
+<rect fill="#0b1c30" height="18" width="10" x="96" y="50"></rect>
+<rect fill="#0b1c30" height="10" width="18" x="114" y="50"></rect>
+<rect fill="#0b1c30" height="18" width="10" x="32" y="68"></rect>
+<rect fill="#006948" height="10" width="10" x="50" y="68"></rect>
+<rect fill="#0b1c30" height="10" width="10" x="68" y="68"></rect>
+<rect fill="#0b1c30" height="10" width="28" x="86" y="74"></rect>
+<rect fill="#0b1c30" height="20" width="10" x="122" y="68"></rect>
+<rect fill="#0b1c30" height="10" width="20" x="140" y="68"></rect>
+<rect fill="#006948" height="10" width="18" x="170" y="68"></rect>
+<rect fill="#0b1c30" height="10" width="20" x="32" y="94"></rect>
+<rect fill="#0b1c30" height="20" width="10" x="60" y="90"></rect>
+<rect fill="#006948" height="18" width="12" x="130" y="90"></rect>
+<rect fill="#0b1c30" height="20" width="10" x="150" y="90"></rect>
+<rect fill="#0b1c30" height="10" width="20" x="168" y="90"></rect>
+<rect fill="#0b1c30" height="10" width="18" x="68" y="116"></rect>
+<rect fill="#0b1c30" height="20" width="12" x="94" y="112"></rect>
+<rect fill="#006948" height="10" width="18" x="114" y="116"></rect>
+<rect fill="#0b1c30" height="18" width="10" x="140" y="116"></rect>
+<rect fill="#0b1c30" height="10" width="20" x="160" y="116"></rect>
+<rect fill="#0b1c30" height="20" width="10" x="68" y="140"></rect>
+<rect fill="#006948" height="10" width="20" x="86" y="140"></rect>
+<rect fill="#0b1c30" height="14" width="18" x="114" y="136"></rect>
+<rect fill="#0b1c30" height="20" width="12" x="140" y="140"></rect>
+<rect fill="#0b1c30" height="12" width="28" x="160" y="136"></rect>
+<rect fill="#006948" height="12" width="28" x="68" y="168"></rect>
+<rect fill="#0b1c30" height="20" width="18" x="104" y="160"></rect>
+<rect fill="#0b1c30" height="12" width="20" x="130" y="168"></rect>
+<rect fill="#0b1c30" height="24" width="12" x="160" y="156"></rect>
+<rect fill="#006948" height="12" width="12" x="178" y="168"></rect>
+<!-- Center Logo Shield -->
+<circle cx="100" cy="100" fill="#ffffff" r="18" stroke="#006948" stroke-width="2.5"></circle>
+<path d="M93 100L98 105L108 94" stroke="#006948" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+</svg>
+</div>
+<div class="mt-2 text-center">
+<p class="text-caption font-semibold text-slate-700 uppercase tracking-wide">Quét bằng App Ngân hàng hoặc Ví</p>
+<p class="text-[11px] text-outline">Tự động điền số tiền &amp; nội dung</p>
+</div>
+</div>
+<!-- Bank Transfer Detailed Fields -->
+<div class="w-full mt-4 bg-slate-50 border border-outline-variant/70 rounded-lg p-3.5 space-y-2.5 text-body-sm">
+<div class="flex items-center justify-between pb-2 border-b border-slate-200/80">
+<span class="text-outline text-caption">Ngân hàng thụ hưởng:</span>
+<span class="font-semibold text-on-surface flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-blue-600"></span>
+Ngân hàng Quân Đội (MB Bank)
+</span>
+</div>
+<div class="flex items-center justify-between pb-2 border-b border-slate-200/80">
+<span class="text-outline text-caption">Chủ tài khoản:</span>
+<span class="font-semibold text-on-surface tracking-wide uppercase">NGUYEN VAN AN</span>
+</div>
+<div class="flex items-center justify-between pb-2 border-b border-slate-200/80">
+<span class="text-outline text-caption">Số tài khoản:</span>
+<div class="flex items-center gap-2">
+<span class="font-mono font-bold text-on-surface text-[15px]">0987654321</span>
+<button class="copy-btn text-primary hover:text-primary-container p-0.5 rounded transition-colors" data-copy="0987654321" title="Sao chép STK" type="button">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between pb-2 border-b border-slate-200/80">
+<span class="text-outline text-caption">Số tiền thanh toán:</span>
+<div class="flex items-center gap-2">
+<span class="font-mono font-bold text-headline-sm text-primary">60.000đ</span>
+<button class="copy-btn text-primary hover:text-primary-container p-0.5 rounded transition-colors" data-copy="60000" title="Sao chép số tiền" type="button">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+</button>
+</div>
+</div>
+<div class="flex items-center justify-between pt-0.5">
+<div class="flex flex-col">
+<span class="text-outline text-caption">Nội dung chuyển tiền:</span>
+<span class="text-[10px] text-amber-600 font-medium">*Giữ nguyên để gạch nợ tự động</span>
+</div>
+<div class="flex items-center gap-2 bg-emerald-50 border border-emerald-300 px-2 py-1 rounded">
+<span class="font-mono font-bold text-primary text-body-sm">DF8492 TRUNG</span>
+<button class="copy-btn text-primary hover:text-primary-container p-0.5 rounded transition-colors" data-copy="DF8492 TRUNG" title="Sao chép nội dung" type="button">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Alert status banner -->
+<div class="w-full mt-3 p-2.5 bg-emerald-50/80 border border-[#A7F3D0] rounded-[6px] flex items-center gap-2 text-caption text-[#065F46]">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 animate-spin">sync</span>
+<span class="">Hệ thống đang lắng nghe giao dịch Napas247 và đối soát tức thì...</span>
+</div>
+</div>
+<!-- Modal Footer Actions -->
+<div class="p-3.5 px-5 border-t border-outline-variant bg-[#F8FAFC] flex items-center justify-between gap-3">
+<button class="px-3.5 py-1.5 bg-white border border-outline-variant hover:bg-slate-50 text-on-surface rounded-[6px] text-label-md font-label-md transition-colors shadow-xs" id="backToDetailBtn" type="button">
+          Quay lại đơn hàng
+        </button>
+<button class="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 bg-primary hover:bg-primary-container text-white rounded-[6px] text-label-md font-label-md font-medium transition-colors shadow-sm" id="confirmPaidBtn" type="button">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span class="">Tôi đã chuyển khoản</span>
+</button>
+</div>
+</div>
+</div>
+<!-- FOOTER -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant mt-auto"><div class="w-full max-w-[1200px] mx-auto px-6 py-8 flex flex-col md:flex-row justify-between items-center gap-4">
+  <div class="flex flex-col sm:flex-row items-center gap-2.5">
+    <div class="flex items-center gap-2">
+      <span class="text-headline-sm font-headline-sm font-bold text-on-surface">DrinkFlow</span>
+      <span class="text-caption font-caption text-primary bg-primary/10 px-1.5 py-0.2 rounded font-mono font-medium">v2.3.0</span>
+    </div>
+    <span class="hidden sm:inline text-outline">•</span>
+    <p class="text-body-sm font-body-sm text-outline text-center sm:text-left">
+      © 2024 DrinkFlow SaaS. Enterprise Group Coordination &amp; Order Consolidation.
+    </p>
+  </div>
+  <div class="flex flex-wrap items-center justify-center gap-6">
+    <a class="text-label-sm font-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Điều khoản dịch vụ</a>
+    <a class="text-label-sm font-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Chính sách bảo mật</a>
+    <a class="text-label-sm font-label-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Hỗ trợ người dùng</a>
+  </div>
+</div></footer>
+<!-- INTERACTIVE SCRIPTS -->
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const orderDetailModal = document.getElementById('orderDetailModal');
+    const orderDetailBackdrop = document.getElementById('orderDetailBackdrop');
+    const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
+    const closeDetailModalIcon = document.getElementById('closeDetailModalIcon');
+
+    const qrPaymentModal = document.getElementById('qrPaymentModal');
+    const qrModalBackdrop = document.getElementById('qrModalBackdrop');
+    const openQrModalBtn = document.getElementById('openQrModalBtn');
+    const closeQrModalIcon = document.getElementById('closeQrModalIcon');
+    const backToDetailBtn = document.getElementById('backToDetailBtn');
+    const confirmPaidBtn = document.getElementById('confirmPaidBtn');
+
+    const openDetailButtons = document.querySelectorAll('.open-detail-btn');
+    const copyButtons = document.querySelectorAll('.copy-btn');
+
+    // Mở modal chi tiết đơn hàng
+    function showDetailModal() {
+      orderDetailModal.classList.remove('hidden');
+      qrPaymentModal.classList.add('hidden');
+    }
+
+    // Đóng toàn bộ modals
+    function closeAllModals() {
+      orderDetailModal.classList.add('hidden');
+      qrPaymentModal.classList.add('hidden');
+    }
+
+    // Mở modal VietQR
+    function showQrModal() {
+      orderDetailModal.classList.add('hidden');
+      qrPaymentModal.classList.remove('hidden');
+    }
+
+    // Sự kiện nút chi tiết trên từng dòng
+    openDetailButtons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showDetailModal();
+      });
+    });
+
+    // Sự kiện đóng modal chi tiết
+    if (closeDetailModalBtn) closeDetailModalBtn.addEventListener('click', closeAllModals);
+    if (closeDetailModalIcon) closeDetailModalIcon.addEventListener('click', closeAllModals);
+    if (orderDetailBackdrop) orderDetailBackdrop.addEventListener('click', closeAllModals);
+
+    // Mở modal QR từ nút trong modal chi tiết
+    if (openQrModalBtn) {
+      openQrModalBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showQrModal();
+      });
+    }
+
+    // Các nút đóng / quay lại từ modal QR
+    if (closeQrModalIcon) closeQrModalIcon.addEventListener('click', closeAllModals);
+    if (qrModalBackdrop) qrModalBackdrop.addEventListener('click', closeAllModals);
+    if (backToDetailBtn) backToDetailBtn.addEventListener('click', showDetailModal);
+
+    if (confirmPaidBtn) {
+      confirmPaidBtn.addEventListener('click', () => {
+        const originalText = confirmPaidBtn.innerHTML;
+        confirmPaidBtn.innerHTML = '<span class="material-symbols-outlined text-[18px]">done_all</span><span>Đã ghi nhận thanh toán!</span>';
+        confirmPaidBtn.classList.remove('bg-primary');
+        confirmPaidBtn.classList.add('bg-emerald-600');
+        setTimeout(() => {
+          closeAllModals();
+          confirmPaidBtn.innerHTML = originalText;
+          confirmPaidBtn.classList.remove('bg-emerald-600');
+          confirmPaidBtn.classList.add('bg-primary');
+        }, 1200);
+      });
+    }
+
+    // Hỗ trợ Copy clipboard cho STK và Nội dung chuyển tiền
+    copyButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const text = btn.getAttribute('data-copy');
+        if (text) {
+          navigator.clipboard.writeText(text).then(() => {
+            const icon = btn.querySelector('.material-symbols-outlined');
+            if (icon) {
+              const originalIcon = icon.innerText;
+              icon.innerText = 'check';
+              icon.classList.add('text-emerald-600');
+              setTimeout(() => {
+                icon.innerText = originalIcon;
+                icon.classList.remove('text-emerald-600');
+              }, 1500);
+            }
+          });
+        }
+      });
+    });
+
+    // Bấm phím ESC để thoát modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAllModals();
+      }
+    });
+  });
+</script>
+
+
+</body></html>

@@ -1,0 +1,920 @@
+<!DOCTYPE html><html class="light" lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Users &amp; Room Members Directory - DrinkFlow Admin</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts: Hanken Grotesk & JetBrains Mono -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-tint": "#006c4a",
+            "secondary-fixed-dim": "#bec6e0",
+            "on-secondary-container": "#5c647a",
+            "secondary": "#565e74",
+            "on-surface": "#0b1c30",
+            "on-error": "#ffffff",
+            "primary": "#006948",
+            "background": "#f8f9ff",
+            "on-surface-variant": "#3d4a42",
+            "on-primary-fixed-variant": "#005137",
+            "secondary-fixed": "#dae2fd",
+            "on-secondary": "#ffffff",
+            "on-tertiary-container": "#f5fff6",
+            "on-primary-container": "#f5fff7",
+            "outline": "#6d7a72",
+            "primary-fixed-dim": "#68dba9",
+            "error": "#ba1a1a",
+            "inverse-surface": "#213145",
+            "tertiary-fixed": "#6ffbbe",
+            "inverse-on-surface": "#eaf1ff",
+            "on-background": "#0b1c30",
+            "on-tertiary-fixed": "#002113",
+            "tertiary-container": "#00855b",
+            "on-tertiary-fixed-variant": "#005236",
+            "primary-container": "#00855d",
+            "secondary-container": "#dae2fd",
+            "surface-container-high": "#dce9ff",
+            "tertiary-fixed-dim": "#4edea3",
+            "surface-container-highest": "#d3e4fe",
+            "surface": "#f8f9ff",
+            "on-primary-fixed": "#002114",
+            "surface-variant": "#d3e4fe",
+            "on-error-container": "#93000a",
+            "surface-container-lowest": "#ffffff",
+            "on-tertiary": "#ffffff",
+            "surface-container": "#e5eeff",
+            "on-secondary-fixed-variant": "#3f465c",
+            "outline-variant": "#bccac0",
+            "error-container": "#ffdad6",
+            "on-secondary-fixed": "#131b2e",
+            "surface-container-low": "#eff4ff",
+            "surface-bright": "#f8f9ff",
+            "primary-fixed": "#85f8c4",
+            "inverse-primary": "#68dba9",
+            "surface-dim": "#cbdbf5",
+            "on-primary": "#ffffff",
+            "tertiary": "#006947"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-sm": "0.5rem",
+            "margin": "1.5rem",
+            "space-md": "1rem",
+            "space-xs": "0.25rem",
+            "gutter": "1rem",
+            "space-xl": "2rem",
+            "space-lg": "1.5rem"
+          },
+          "fontFamily": {
+            "label-md": ["JetBrains Mono"],
+            "headline-lg": ["Hanken Grotesk"],
+            "body-lg": ["Hanken Grotesk"],
+            "label-lg": ["JetBrains Mono"],
+            "display-lg": ["Hanken Grotesk"],
+            "body-sm": ["Hanken Grotesk"],
+            "headline-sm": ["Hanken Grotesk"],
+            "body-md": ["Hanken Grotesk"],
+            "label-sm": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .material-symbols-outlined.fill-1 {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+    /* Custom scrollbars for dense table scanning */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex antialiased selection:bg-primary selection:text-white">
+<!-- ========================================================================= -->
+<!-- SHARED COMPONENT: SideNavBar                                              -->
+<!-- ========================================================================= -->
+<aside class="fixed top-0 left-0 h-screen w-64 flex flex-col z-30 bg-surface-container-lowest dark:bg-inverse-surface border-r border-outline-variant dark:border-outline">
+<div class="w-64 h-full p-4 flex flex-col justify-between">
+<!-- Top Section -->
+<div class="flex flex-col space-y-4">
+<!-- Brand & Team Selector -->
+<div class="flex items-center justify-between px-2 py-1">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold text-headline-sm shadow-sm" title="DrinkFlow Logistics Portal Icon">
+<span class="material-symbols-outlined fill-1 text-xl">local_bar</span>
+</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-headline-sm font-headline-sm font-bold text-on-surface dark:text-inverse-on-surface tracking-tight truncate">DrinkFlow Admin</span>
+<span class="text-label-sm font-label-sm text-secondary truncate">Logistics Operations</span>
+</div>
+</div>
+<button class="p-1 text-secondary hover:text-on-surface hover:bg-surface-container rounded transition-colors" title="Thu gọn sidebar">
+<span class="material-symbols-outlined text-base">menu_open</span>
+</button>
+</div>
+<!-- Room context pill badge -->
+
+<!-- CTA Button -->
+
+<!-- Main Navigation Navigation Labels -->
+<nav class="flex flex-col space-y-1 pt-2"><!-- 1. Dashboard -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="">Dashboard</span>
+</a>
+<!-- 2. Campaigns -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">campaign</span>
+<span class="">Campaigns</span>
+</a>
+<!-- 3. Orders -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="">Orders</span>
+</a>
+<!-- 4. Payments & Debt -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="">Payments &amp; Debt</span>
+</a>
+<!-- 5. Users (ACTIVE TAB) -->
+<a aria-current="page" class="flex items-center gap-3 px-3 py-2 bg-secondary-container text-on-secondary-container dark:bg-secondary dark:text-on-secondary rounded font-label-md text-label-md border-l-4 border-primary dark:border-inverse-primary" href="#">
+<span class="material-symbols-outlined fill-1">group</span>
+<span class="font-bold text-on-surface dark:text-on-secondary">Users</span>
+<span class="ml-auto bg-primary text-on-primary text-label-sm font-label-sm px-1.5 py-0.5 rounded-full">30</span>
+</a>
+<!-- 6. Reports -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="">Reports</span>
+</a>
+<!-- 7. Room Settings -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="">Room Settings</span>
+</a></nav>
+</div>
+<!-- Bottom System Actions -->
+<div class="pt-4 border-t border-outline-variant/60 flex flex-col space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">health_and_safety</span>
+<span class="">System Diagnostics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-error hover:bg-error-container/40 rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- MAIN WORKSPACE CONTENT CONTAINER                                         -->
+<!-- ========================================================================= -->
+<div class="flex-1 flex flex-col pl-64 min-w-0">
+<!-- ========================================================================= -->
+<!-- SHARED COMPONENT: TopNavBar                                               -->
+<!-- ========================================================================= -->
+<header class="sticky top-0 z-20 bg-surface-container-lowest dark:bg-inverse-surface border-b border-outline-variant dark:border-outline h-14 px-6 flex justify-between items-center w-full"><!-- Left side: Quick Search Bar -->
+<div class="flex items-center gap-4 w-96">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full h-9 pl-9 pr-8 text-body-sm font-body-sm bg-surface rounded border border-outline-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-outline" placeholder="Tìm nhanh SKU, thành viên, lệnh điều phối..." type="text">
+<span class="absolute right-2 top-1/2 -translate-y-1/2 text-label-sm font-label-sm text-outline border border-outline-variant/70 rounded px-1">⌘K</span>
+</div>
+</div>
+<!-- Right side: Actions & User Info -->
+<div class="flex items-center gap-3">
+<!-- Trailing Icon Actions -->
+<button class="relative p-2 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" title="Notifications">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-lg transition-colors" title="Help &amp; Guides">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="h-5 w-px bg-outline-variant mx-1"></div>
+<!-- Admin Profile -->
+<div class="flex items-center gap-2 pl-1 cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-label-md ring-1 ring-primary/20" title="Administrator Profile Photo">
+AD
+</div>
+<div class="hidden md:flex flex-col text-left">
+<span class="text-label-md font-label-md font-semibold leading-tight text-on-surface">Lâm Admin</span>
+<span class="text-label-sm font-label-sm text-secondary leading-tight">Super Dispatcher</span>
+</div>
+</div>
+<!-- Trailing Primary Action -->
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md transition-colors shadow-sm active:scale-[0.99]">
+<span class="material-symbols-outlined text-base">send</span>
+<span class="">Dispatch Action</span>
+</button>
+</div></header>
+<!-- ========================================================================= -->
+<!-- WORKSPACE CANVAS                                                         -->
+<!-- ========================================================================= -->
+<main class="p-6 space-y-6 flex-1 overflow-y-auto">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 text-label-sm font-label-sm text-secondary"><a class="hover:text-primary transition-colors" href="#">Admin</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Rooms</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">IT Team Operations</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-primary font-bold">Users &amp; Member Directory</span></nav>
+<!-- Page Header with Quick Actions -->
+<div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 pb-2 border-b border-outline-variant/60">
+<div class="space-y-1">
+<div class="flex items-center gap-3">
+<h1 class="text-headline-lg font-headline-lg text-on-surface">
+              Quản Lý Thành Viên Phòng Ban (Users &amp; Room Members)
+            </h1>
+<span class="px-2 py-0.5 rounded bg-emerald-50 text-primary border border-emerald-300 font-label-sm text-label-sm font-bold">
+              30 ACTIVE
+            </span>
+</div>
+<p class="text-body-sm font-body-sm text-secondary max-w-4xl">
+            Danh sách 30 thành viên thuộc phòng IT Team, cấu hình quyền hạn (Admin / Sponsor / Member), hạn mức nợ và mã VietQR cá nhân.
+          </p>
+</div>
+<!-- Quick Action Buttons -->
+<div class="flex flex-wrap items-center gap-2">
+<!-- Primary: Add Member -->
+<button class="inline-flex items-center gap-2 px-3.5 py-2 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md transition-colors shadow-sm active:scale-[0.99]" onclick="const modal = document.getElementById('add-member-modal'); if(modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }">
+<span class="material-symbols-outlined text-base">person_add</span>
+<span class="">+ Thêm Thành Viên</span>
+</button>
+<!-- Secondary: Import Slack / CSV -->
+
+<!-- Secondary: Policy & Ceiling Config -->
+
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- 3. SUMMARY KPI METRIC CARDS (Bento / High-Density Grid)                  -->
+<!-- ========================================================================= -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"><!-- Metric 1: Total Users -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col justify-between hover:border-primary/50 transition-colors shadow-sm">
+  <div class="flex items-center justify-between text-secondary">
+    <span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Tổng Tài Khoản</span>
+    <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+      <span class="material-symbols-outlined">group</span>
+    </div>
+  </div>
+  <div class="my-2">
+    <div class="text-headline-lg font-headline-lg text-on-surface font-bold">30 Users</div>
+    <div class="text-body-sm font-body-sm text-secondary mt-0.5">Phòng IT Team Directory</div>
+  </div>
+  <div class="pt-2 border-t border-slate-100 flex items-center gap-2 text-label-sm font-label-sm">
+    <span class="inline-flex items-center text-primary font-bold">28 Active</span>
+    <span class="text-outline-variant">•</span>
+    <span class="text-error font-medium">2 Inactive / Suspended</span>
+  </div>
+</div>
+
+<!-- Metric 2: Account Status -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col justify-between hover:border-primary/50 transition-colors shadow-sm">
+  <div class="flex items-center justify-between text-secondary">
+    <span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Trạng Thái Account</span>
+    <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-primary">
+      <span class="material-symbols-outlined">verified_user</span>
+    </div>
+  </div>
+  <div class="my-2">
+    <div class="flex items-baseline gap-2">
+      <span class="text-headline-lg font-headline-lg text-on-surface font-bold">28 Hoạt động</span>
+      <span class="text-label-sm font-label-sm text-primary font-bold bg-emerald-50 px-1.5 py-0.5 rounded">93.3%</span>
+    </div>
+    <div class="text-body-sm font-body-sm text-secondary mt-0.5">Tài khoản hợp lệ đang truy cập</div>
+  </div>
+  <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-label-sm font-label-sm">
+    <span class="text-secondary">Tạm khóa / Vô hiệu:</span>
+    <span class="px-2 py-0.5 rounded bg-red-50 text-error font-bold border border-red-200">2 tài khoản (6.7%)</span>
+  </div>
+</div>
+
+<!-- Metric 3: Verified Accounts -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col justify-between hover:border-primary/50 transition-colors shadow-sm">
+  <div class="flex items-center justify-between text-secondary">
+    <span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Đã Xác Thực (Verified)</span>
+    <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-primary">
+      <span class="material-symbols-outlined">check_circle</span>
+    </div>
+  </div>
+  <div class="my-2">
+    <div class="flex items-baseline gap-2">
+      <span class="text-headline-lg font-headline-lg text-primary font-bold">24 Tài khoản</span>
+      <span class="text-label-sm font-label-sm text-primary font-bold bg-emerald-50 px-1.5 py-0.5 rounded">80.0%</span>
+    </div>
+    <div class="text-body-sm font-body-sm text-secondary mt-0.5">Đã liên kết VietQR &amp; Slack ID thành công</div>
+  </div>
+  <div class="pt-2 border-t border-slate-100 flex items-center text-label-sm font-label-sm text-primary font-semibold">
+    <span class="material-symbols-outlined text-sm mr-1">task_alt</span>
+    Sẵn sàng điều phối tự động
+  </div>
+</div>
+
+<!-- Metric 4: Pending / Unverified -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col justify-between hover:border-amber-300 transition-colors shadow-sm">
+  <div class="flex items-center justify-between text-secondary">
+    <span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">Chờ / Chưa Xác Thực</span>
+    <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-700">
+      <span class="material-symbols-outlined">pending_actions</span>
+    </div>
+  </div>
+  <div class="my-2">
+    <div class="flex items-baseline gap-2">
+      <span class="text-headline-lg font-headline-lg text-amber-700 font-bold">6 Tài khoản</span>
+      <span class="text-label-sm font-label-sm text-amber-800 font-bold bg-amber-50 px-1.5 py-0.5 rounded">20.0%</span>
+    </div>
+    <div class="text-body-sm font-body-sm text-secondary mt-0.5">Cần cập nhật hồ sơ thanh toán / bot</div>
+  </div>
+  <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-label-sm font-label-sm text-secondary">
+    <span class="">4 Chờ VietQR</span>
+    <span class="text-outline-variant">•</span>
+    <span class="text-amber-800 font-medium">2 Chưa kết nối Slack</span>
+  </div>
+</div></div>
+<!-- ========================================================================= -->
+<!-- 4. FILTER CONTROLS & SEARCH BAR                                          -->
+<!-- ========================================================================= -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 flex flex-col lg:flex-row items-center justify-between gap-3 shadow-sm">
+<!-- Search Input -->
+<div class="relative w-full lg:w-96">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline">person_search</span>
+<input class="w-full h-9 pl-9 pr-3 text-body-sm font-body-sm bg-surface rounded border border-outline-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-outline" placeholder="Tìm theo tên, mã NV, email, @slack..." type="text">
+</div>
+<!-- Filter Dropdowns Cluster -->
+<div class="flex flex-wrap items-center gap-2 w-full lg:w-auto"><!-- Filter: Trạng thái Account -->
+<div class="flex items-center gap-1.5 bg-surface px-2.5 py-1.5 rounded border border-outline-variant">
+  <span class="text-label-sm font-label-sm text-secondary flex items-center gap-1">
+    <span class="material-symbols-outlined text-sm text-outline">manage_accounts</span> Trạng thái Account:
+  </span>
+  <select class="bg-transparent border-none text-body-sm font-body-sm font-medium text-on-surface focus:ring-0 p-0 pr-6 cursor-pointer">
+    <option value="all">Tất cả trạng thái (Hoạt động, Đang khóa, Chờ duyệt)</option>
+    <option value="active">Hoạt động (Active - 28)</option>
+    <option value="suspended">Tạm khóa (Suspended - 1)</option>
+    <option value="inactive">Vô hiệu hóa (Inactive - 1)</option>
+  </select>
+</div>
+<!-- Filter: Trạng thái Verify -->
+<div class="flex items-center gap-1.5 bg-surface px-2.5 py-1.5 rounded border border-outline-variant">
+  <span class="text-label-sm font-label-sm text-secondary flex items-center gap-1">
+    <span class="material-symbols-outlined text-sm text-outline">verified</span> Trạng thái Verify:
+  </span>
+  <select class="bg-transparent border-none text-body-sm font-body-sm font-medium text-on-surface focus:ring-0 p-0 pr-6 cursor-pointer">
+    <option value="all">Tất cả xác thực (Đã xác thực, Chờ VietQR, Chưa xác thực)</option>
+    <option value="verified">Đã xác thực (Verified - 24)</option>
+    <option value="pending_vietqr">Chờ xác thực VietQR (4)</option>
+    <option value="unlinked_slack">Chưa liên kết Slack (2)</option>
+  </select>
+</div></div>
+</div>
+<!-- ========================================================================= -->
+<!-- 5. HIGH-DENSITY MEMBERS TABLE                                            -->
+<!-- ========================================================================= -->
+
+<!-- ========================================================================= -->
+<!-- 7. AUDIT DRAWER & ROOM POLICY SUMMARY (Bento Bottom Strip)                 -->
+<!-- ========================================================================= -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden">
+  <!-- Table Header Bar / Controls -->
+  <div class="p-4 border-b border-outline-variant/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 bg-surface-container-low/40">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-primary text-lg">badge</span>
+      <h2 class="font-label-lg text-label-lg text-on-surface font-bold">Danh Sách Nhân Viên &amp; Thành Viên Phòng IT Team</h2>
+      <span class="bg-secondary-container text-on-secondary-container text-label-sm font-label-sm px-2 py-0.5 rounded-full font-semibold">30 nhân sự</span>
+    </div>
+    <div class="flex items-center gap-2 text-label-sm font-label-sm text-secondary">
+      <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> 28 Hoạt động</span>
+      <span class="text-outline-variant">•</span>
+      <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-error"></span> 2 Tạm khóa</span>
+      <span class="text-outline-variant">•</span>
+      <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> 4 Chờ VietQR</span>
+    </div>
+  </div>
+
+  <!-- Responsive Table -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-outline-variant/70 bg-surface-container-low/60 text-secondary font-label-sm text-label-sm uppercase tracking-wider"><th class="p-3 pl-4 font-semibold">Thành Viên</th>
+          <th class="p-3 font-semibold">Trạng Thái Account</th>
+          <th class="p-3 font-semibold">Xác Thực (Verify)</th>
+          <th class="p-3 pr-4 text-right font-semibold">Thao Tác</th></tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant/40 text-body-sm font-body-sm"><!-- Row 1: Active, Verified Admin -->
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="p-3 pl-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold text-label-md ring-1 ring-primary/20">
+                TL
+              </div>
+              <div class="flex flex-col">
+                <span class="font-semibold text-on-surface hover:text-primary cursor-pointer">Trần Tuấn Lâm</span>
+                <span class="text-label-sm font-label-sm text-secondary font-medium">NV-0428 • lam.tran@drinkflow.vn</span>
+              </div>
+            </div>
+          </td>
+          <td class="p-3">
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-label-sm font-label-sm font-bold bg-emerald-50 text-primary border border-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Hoạt động
+            </span>
+          </td>
+          <td class="p-3">
+            <div class="flex flex-col gap-0.5">
+              <span class="inline-flex items-center gap-1 text-primary text-label-sm font-label-sm font-semibold">
+                <span class="material-symbols-outlined text-sm">check_circle</span> Đã xác thực (MBBank)
+              </span>
+              <span class="text-label-sm font-label-sm text-secondary font-mono">@lam.tran (Slack ID: U04TLA)</span>
+            </div>
+          </td>
+          <td class="p-3 pr-4 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Xem chi tiết">
+                <span class="material-symbols-outlined text-base">visibility</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Sửa thành viên">
+                <span class="material-symbols-outlined text-base">edit</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-error hover:bg-red-50 rounded transition-colors" title="Khóa tài khoản">
+                <span class="material-symbols-outlined text-base">lock</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Row 2: Active, Sponsor -->
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="p-3 pl-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-amber-50 text-amber-800 border border-amber-300 flex items-center justify-center font-bold text-label-md">
+                MH
+              </div>
+              <div class="flex flex-col">
+                <span class="font-semibold text-on-surface hover:text-primary cursor-pointer">Mai Hoàng Nam</span>
+                <span class="text-label-sm font-label-sm text-secondary font-medium">NV-0112 • nam.mai@drinkflow.vn</span>
+              </div>
+            </div>
+          </td>
+          <td class="p-3">
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-label-sm font-label-sm font-bold bg-emerald-50 text-primary border border-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Hoạt động
+            </span>
+          </td>
+          <td class="p-3">
+            <div class="flex flex-col gap-0.5">
+              <span class="inline-flex items-center gap-1 text-primary text-label-sm font-label-sm font-semibold">
+                <span class="material-symbols-outlined text-sm">check_circle</span> Đã xác thực (Vietcombank)
+              </span>
+              <span class="text-label-sm font-label-sm text-secondary font-mono">@nam.mai (Slack ID: U01MHN)</span>
+            </div>
+          </td>
+          <td class="p-3 pr-4 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Xem chi tiết">
+                <span class="material-symbols-outlined text-base">visibility</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Sửa thành viên">
+                <span class="material-symbols-outlined text-base">edit</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-error hover:bg-red-50 rounded transition-colors" title="Khóa tài khoản">
+                <span class="material-symbols-outlined text-base">lock</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Row 3: Active, Pending VietQR -->
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="p-3 pl-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-surface-container text-secondary flex items-center justify-center font-bold text-label-md">
+                NH
+              </div>
+              <div class="flex flex-col">
+                <span class="font-semibold text-on-surface hover:text-primary cursor-pointer">Nguyễn Thị Hoa</span>
+                <span class="text-label-sm font-label-sm text-secondary font-medium">NV-0534 • hoa.nguyen@drinkflow.vn</span>
+              </div>
+            </div>
+          </td>
+          <td class="p-3">
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-label-sm font-label-sm font-bold bg-emerald-50 text-primary border border-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Hoạt động
+            </span>
+          </td>
+          <td class="p-3">
+            <div class="flex flex-col gap-0.5">
+              <span class="inline-flex items-center gap-1 text-amber-700 text-label-sm font-label-sm font-semibold">
+                <span class="material-symbols-outlined text-sm">pending</span> Chờ xác thực VietQR
+              </span>
+              <span class="text-label-sm font-label-sm text-secondary font-mono">@hoa.nguyen (Slack ID: U05NTH)</span>
+            </div>
+          </td>
+          <td class="p-3 pr-4 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Xem chi tiết">
+                <span class="material-symbols-outlined text-base">visibility</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Sửa thành viên">
+                <span class="material-symbols-outlined text-base">edit</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-error hover:bg-red-50 rounded transition-colors" title="Khóa tài khoản">
+                <span class="material-symbols-outlined text-base">lock</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Row 4: Suspended -->
+        <tr class="hover:bg-red-50/40 bg-red-50/20 transition-colors">
+          <td class="p-3 pl-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-red-50 text-error border border-red-200 flex items-center justify-center font-bold text-label-md">
+                LQ
+              </div>
+              <div class="flex flex-col">
+                <span class="font-semibold text-on-surface hover:text-primary cursor-pointer">Lê Quốc Quân</span>
+                <span class="text-label-sm font-label-sm text-secondary font-medium">NV-0289 • quan.le@drinkflow.vn</span>
+              </div>
+            </div>
+          </td>
+          <td class="p-3">
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-label-sm font-label-sm font-bold bg-red-50 text-error border border-red-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-error"></span> Tạm khóa (Quá nợ)
+            </span>
+          </td>
+          <td class="p-3">
+            <div class="flex flex-col gap-0.5">
+              <span class="inline-flex items-center gap-1 text-primary text-label-sm font-label-sm font-semibold">
+                <span class="material-symbols-outlined text-sm">check_circle</span> Đã xác thực (Techcombank)
+              </span>
+              <span class="text-label-sm font-label-sm text-secondary font-mono">@quan.le (Slack ID: U02LQQ)</span>
+            </div>
+          </td>
+          <td class="p-3 pr-4 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Gửi mã QR nhắc nợ">
+                <span class="material-symbols-outlined text-base text-amber-700">qr_code_2</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Sửa thành viên">
+                <span class="material-symbols-outlined text-base">edit</span>
+              </button>
+              <button class="p-1.5 text-primary hover:bg-emerald-50 rounded transition-colors" title="Mở khóa tài khoản">
+                <span class="material-symbols-outlined text-base">lock_open</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Row 5: Active, Unlinked Slack -->
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="p-3 pl-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-surface-container text-secondary flex items-center justify-center font-bold text-label-md">
+                DT
+              </div>
+              <div class="flex flex-col">
+                <span class="font-semibold text-on-surface hover:text-primary cursor-pointer">Đặng Thanh Tùng</span>
+                <span class="text-label-sm font-label-sm text-secondary font-medium">NV-0691 • tung.dang@drinkflow.vn</span>
+              </div>
+            </div>
+          </td>
+          <td class="p-3">
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-label-sm font-label-sm font-bold bg-emerald-50 text-primary border border-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Hoạt động
+            </span>
+          </td>
+          <td class="p-3">
+            <div class="flex flex-col gap-0.5">
+              <span class="inline-flex items-center gap-1 text-secondary text-label-sm font-label-sm font-semibold">
+                <span class="material-symbols-outlined text-sm text-outline">link_off</span> Chưa liên kết Slack
+              </span>
+              <span class="text-label-sm font-label-sm text-outline font-mono">VietQR: VPBank • Chờ pair</span>
+            </div>
+          </td>
+          <td class="p-3 pr-4 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Gửi liên kết Slack">
+                <span class="material-symbols-outlined text-base">send</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Sửa thành viên">
+                <span class="material-symbols-outlined text-base">edit</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-error hover:bg-red-50 rounded transition-colors" title="Khóa tài khoản">
+                <span class="material-symbols-outlined text-base">lock</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Row 6: Active, Verified Member -->
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="p-3 pl-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-surface-container text-secondary flex items-center justify-center font-bold text-label-md">
+                PA
+              </div>
+              <div class="flex flex-col">
+                <span class="font-semibold text-on-surface hover:text-primary cursor-pointer">Phạm Phương Anh</span>
+                <span class="text-label-sm font-label-sm text-secondary font-medium">NV-0455 • anh.pham@drinkflow.vn</span>
+              </div>
+            </div>
+          </td>
+          <td class="p-3">
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-label-sm font-label-sm font-bold bg-emerald-50 text-primary border border-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Hoạt động
+            </span>
+          </td>
+          <td class="p-3">
+            <div class="flex flex-col gap-0.5">
+              <span class="inline-flex items-center gap-1 text-primary text-label-sm font-label-sm font-semibold">
+                <span class="material-symbols-outlined text-sm">check_circle</span> Đã xác thực (ACB)
+              </span>
+              <span class="text-label-sm font-label-sm text-secondary font-mono">@anh.pham (Slack ID: U04PPA)</span>
+            </div>
+          </td>
+          <td class="p-3 pr-4 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Xem chi tiết">
+                <span class="material-symbols-outlined text-base">visibility</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Sửa thành viên">
+                <span class="material-symbols-outlined text-base">edit</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-error hover:bg-red-50 rounded transition-colors" title="Khóa tài khoản">
+                <span class="material-symbols-outlined text-base">lock</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Row 7: Inactive -->
+        <tr class="hover:bg-surface-container-low/50 opacity-75 transition-colors">
+          <td class="p-3 pl-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-surface-container text-outline flex items-center justify-center font-bold text-label-md">
+                VD
+              </div>
+              <div class="flex flex-col">
+                <span class="font-semibold text-secondary hover:text-primary cursor-pointer line-through">Vũ Đình Dũng</span>
+                <span class="text-label-sm font-label-sm text-outline font-medium">NV-0198 • dung.vu@drinkflow.vn</span>
+              </div>
+            </div>
+          </td>
+          <td class="p-3">
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-label-sm font-label-sm font-semibold bg-surface-container text-secondary border border-outline-variant">
+              <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Vô hiệu hóa
+            </span>
+          </td>
+          <td class="p-3">
+            <div class="flex flex-col gap-0.5">
+              <span class="inline-flex items-center gap-1 text-secondary text-label-sm font-label-sm">
+                <span class="material-symbols-outlined text-sm text-outline">remove_circle_outline</span> Tài khoản đã đóng
+              </span>
+              <span class="text-label-sm font-label-sm text-outline font-mono">Đã quyết toán nợ</span>
+            </div>
+          </td>
+          <td class="p-3 pr-4 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Xem lịch sử">
+                <span class="material-symbols-outlined text-base">history</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Khôi phục">
+                <span class="material-symbols-outlined text-base">restore</span>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Row 8: Active, Pending VietQR -->
+        <tr class="hover:bg-surface-container-low/50 transition-colors">
+          <td class="p-3 pl-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full bg-surface-container text-secondary flex items-center justify-center font-bold text-label-md">
+                KB
+              </div>
+              <div class="flex flex-col">
+                <span class="font-semibold text-on-surface hover:text-primary cursor-pointer">Kiều Bích Ngọc</span>
+                <span class="text-label-sm font-label-sm text-secondary font-medium">NV-0772 • ngoc.kieu@drinkflow.vn</span>
+              </div>
+            </div>
+          </td>
+          <td class="p-3">
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-label-sm font-label-sm font-bold bg-emerald-50 text-primary border border-emerald-300">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Hoạt động
+            </span>
+          </td>
+          <td class="p-3">
+            <div class="flex flex-col gap-0.5">
+              <span class="inline-flex items-center gap-1 text-amber-700 text-label-sm font-label-sm font-semibold">
+                <span class="material-symbols-outlined text-sm">pending</span> Chờ xác thực VietQR
+              </span>
+              <span class="text-label-sm font-label-sm text-secondary font-mono">@ngoc.kieu (Slack ID: U07KBN)</span>
+            </div>
+          </td>
+          <td class="p-3 pr-4 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Xem chi tiết">
+                <span class="material-symbols-outlined text-base">visibility</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-primary hover:bg-surface-container rounded transition-colors" title="Sửa thành viên">
+                <span class="material-symbols-outlined text-base">edit</span>
+              </button>
+              <button class="p-1.5 text-secondary hover:text-error hover:bg-red-50 rounded transition-colors" title="Khóa tài khoản">
+                <span class="material-symbols-outlined text-base">lock</span>
+              </button>
+            </div>
+          </td>
+        </tr></tbody>
+    </table>
+  </div>
+
+  <!-- Pagination & Records Footer -->
+  <div class="px-4 py-3 border-t border-outline-variant/60 flex flex-col md:flex-row items-center justify-between gap-3 bg-surface-container-low/30">
+    <!-- Counter & Page size selector -->
+    <div class="flex items-center gap-4 text-body-sm font-body-sm text-secondary">
+      <span class="">Hiển thị <span class="font-semibold text-on-surface">1 - 8</span> của <span class="font-semibold text-on-surface">30</span> thành viên</span>
+      <div class="flex items-center gap-1.5 text-label-sm font-label-sm">
+        <span class="text-outline">Dòng:</span>
+        <select class="bg-surface border border-outline-variant rounded px-2 py-0.5 text-label-sm font-label-sm font-medium text-on-surface focus:outline-none focus:border-primary cursor-pointer">
+          <option value="8" selected="">8 dòng / trang</option>
+          <option value="15">15 dòng / trang</option>
+          <option value="30">30 dòng / trang</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Pagination Navigation Controls -->
+    <div class="flex items-center gap-1 font-label-sm text-label-sm">
+      <button class="px-2 py-1 rounded border border-outline-variant bg-surface text-secondary hover:text-on-surface hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed" disabled="" title="Trang đầu">
+        <span class="material-symbols-outlined text-sm">first_page</span>
+      </button>
+      <button class="px-2 py-1 rounded border border-outline-variant bg-surface text-secondary hover:text-on-surface hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed" disabled="" title="Trang trước">
+        <span class="material-symbols-outlined text-sm">chevron_left</span>
+      </button>
+      
+      <!-- Active Page 1 -->
+      <button class="w-7 h-7 rounded font-bold bg-primary text-on-primary shadow-sm flex items-center justify-center">
+        1
+      </button>
+      <!-- Page 2 -->
+      <button class="w-7 h-7 rounded border border-outline-variant bg-surface text-on-surface hover:bg-surface-container flex items-center justify-center transition-colors">
+        2
+      </button>
+      <!-- Page 3 -->
+      <button class="w-7 h-7 rounded border border-outline-variant bg-surface text-on-surface hover:bg-surface-container flex items-center justify-center transition-colors">
+        3
+      </button>
+      <!-- Page 4 -->
+      <button class="w-7 h-7 rounded border border-outline-variant bg-surface text-on-surface hover:bg-surface-container flex items-center justify-center transition-colors">
+        4
+      </button>
+
+      <button class="px-2 py-1 rounded border border-outline-variant bg-surface text-secondary hover:text-on-surface hover:bg-surface-container transition-colors" title="Trang kế tiếp">
+        <span class="material-symbols-outlined text-sm">chevron_right</span>
+      </button>
+      <button class="px-2 py-1 rounded border border-outline-variant bg-surface text-secondary hover:text-on-surface hover:bg-surface-container transition-colors" title="Trang cuối">
+        <span class="material-symbols-outlined text-sm">last_page</span>
+      </button>
+    </div>
+  </div>
+</div>
+</main>
+</div>
+
+
+<!-- Modal Thêm Mới Thành Viên -->
+<div id="add-member-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-inverse-surface/50 backdrop-blur-xs p-4 overflow-y-auto" onclick="if(event.target === this) { this.classList.add('hidden'); this.classList.remove('flex'); }">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150" onclick="event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="px-6 py-4 border-b border-outline-variant/60 flex items-center justify-between bg-surface-container-low/40">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+          <span class="material-symbols-outlined text-lg">person_add</span>
+        </div>
+        <div>
+          <h3 class="text-headline-sm font-headline-sm font-bold text-on-surface">Thêm Thành Viên Mới</h3>
+          <p class="text-label-sm font-label-sm text-secondary">Cấu hình hồ sơ và tài khoản nhân sự phòng IT Team</p>
+        </div>
+      </div>
+      <button type="button" onclick="const m = document.getElementById('add-member-modal'); if(m){ m.classList.add('hidden'); m.classList.remove('flex'); }" class="p-1.5 text-secondary hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors" title="Đóng">
+        <span class="material-symbols-outlined text-lg">close</span>
+      </button>
+    </div>
+
+    <!-- Modal Form Body -->
+    <form class="p-6 space-y-4" onsubmit="event.preventDefault(); const m = document.getElementById('add-member-modal'); if(m){ m.classList.add('hidden'); m.classList.remove('flex'); }">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Họ và tên -->
+        <div class="space-y-1">
+          <label class="text-label-sm font-label-sm font-medium text-on-surface flex items-center gap-1">
+            Họ và tên <span class="text-error">*</span>
+          </label>
+          <input required="" type="text" placeholder="Ví dụ: Nguyễn Văn An" class="w-full h-9 px-3 text-body-sm bg-surface rounded border border-outline-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-outline">
+        </div>
+        <!-- Mã nhân viên -->
+        <div class="space-y-1">
+          <label class="text-label-sm font-label-sm font-medium text-on-surface flex items-center gap-1">
+            Mã nhân viên <span class="text-error">*</span>
+          </label>
+          <input required="" type="text" placeholder="NV-0xxx" class="w-full h-9 px-3 text-body-sm font-mono bg-surface rounded border border-outline-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-outline">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Email nội bộ -->
+        <div class="space-y-1">
+          <label class="text-label-sm font-label-sm font-medium text-on-surface flex items-center gap-1">
+            Email nội bộ <span class="text-error">*</span>
+          </label>
+          <input required="" type="email" placeholder="an.nguyen@drinkflow.vn" class="w-full h-9 px-3 text-body-sm bg-surface rounded border border-outline-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-outline">
+        </div>
+        <!-- Slack Member ID / Username -->
+        <div class="space-y-1">
+          <label class="text-label-sm font-label-sm font-medium text-on-surface flex items-center gap-1">
+            Slack Member ID / Username <span class="text-outline font-normal">(Tùy chọn)</span>
+          </label>
+          <input type="text" placeholder="@an.nguyen hoặc U08xxx" class="w-full h-9 px-3 text-body-sm font-mono bg-surface rounded border border-outline-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-outline">
+        </div>
+      </div>
+
+      <!-- Tên ngân hàng & Số tài khoản VietQR -->
+      <div class="space-y-1">
+        <label class="text-label-sm font-label-sm font-medium text-on-surface flex items-center gap-1">
+          Tên ngân hàng &amp; Số tài khoản VietQR
+        </label>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <input type="text" placeholder="Ngân hàng (MB, VCB,...)" class="w-full h-9 px-3 text-body-sm bg-surface rounded border border-outline-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-outline">
+          <input type="text" placeholder="Số tài khoản ngân hàng" class="md:col-span-2 w-full h-9 px-3 text-body-sm font-mono bg-surface rounded border border-outline-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-outline">
+        </div>
+      </div>
+
+      <!-- Trạng thái ban đầu -->
+      <div class="space-y-1">
+        <label class="text-label-sm font-label-sm font-medium text-on-surface">
+          Trạng thái ban đầu
+        </label>
+        <select class="w-full h-9 px-3 text-body-sm bg-surface rounded border border-outline-variant focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer">
+          <option value="active">Hoạt động (Active)</option>
+          <option value="pending">Chờ duyệt / Chờ liên kết (Pending)</option>
+        </select>
+      </div>
+
+      <!-- Modal Footer Action Buttons -->
+      <div class="pt-4 border-t border-outline-variant/60 flex items-center justify-end gap-2.5">
+        <button type="button" onclick="const m = document.getElementById('add-member-modal'); if(m){ m.classList.add('hidden'); m.classList.remove('flex'); }" class="px-4 py-2 bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low text-on-surface rounded font-label-md text-label-md transition-colors">
+          Hủy
+        </button>
+        <button type="submit" class="inline-flex items-center gap-1.5 px-4 py-2 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md transition-colors shadow-sm active:scale-[0.99]">
+          <span class="material-symbols-outlined text-base">check</span>
+          Lưu &amp; Xác nhận thêm
+        </button>
+      </div>
+    </form>
+  </div>
+</div></body></html>

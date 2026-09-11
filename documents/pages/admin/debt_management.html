@@ -1,0 +1,457 @@
+<!DOCTYPE html><html class="h-full" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Sổ Kế Toán &amp; Quản Lý Công Nợ Kép - DrinkFlow Admin</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#006948",
+            "primary-container": "#00855d",
+            "primary-fixed": "#85f8c4",
+            "primary-fixed-dim": "#68dba9",
+            "on-primary": "#ffffff",
+            "on-primary-container": "#f5fff7",
+            "on-primary-fixed": "#002114",
+            "secondary": "#565e74",
+            "secondary-container": "#dae2fd",
+            "on-secondary": "#ffffff",
+            "on-secondary-container": "#5c647a",
+            "surface": "#f8f9ff",
+            "surface-bright": "#f8f9ff",
+            "surface-dim": "#cbdbf5",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#eff4ff",
+            "surface-container": "#e5eeff",
+            "surface-container-high": "#dce9ff",
+            "surface-container-highest": "#d3e4fe",
+            "outline": "#6d7a72",
+            "outline-variant": "#bccac0",
+            "on-surface": "#0b1c30",
+            "on-surface-variant": "#3d4a42",
+            "background": "#f8f9ff",
+            "error": "#ba1a1a",
+            "error-container": "#ffdad6"
+          },
+          fontFamily: {
+            "display-lg": ["Hanken Grotesk"],
+            "headline-lg": ["Hanken Grotesk"],
+            "headline-sm": ["Hanken Grotesk"],
+            "body-lg": ["Hanken Grotesk"],
+            "body-md": ["Hanken Grotesk"],
+            "body-sm": ["Hanken Grotesk"],
+            "label-lg": ["JetBrains Mono"],
+            "label-md": ["JetBrains Mono"],
+            "label-sm": ["JetBrains Mono"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #bccac0;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #eff4ff;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface antialiased font-body-md h-full selection:bg-primary selection:text-on-primary">
+<!-- 1. COLLAPSIBLE SIDEBAR -->
+<aside class="fixed top-0 left-0 h-screen w-64 flex flex-col z-30 bg-surface-container-lowest border-r border-outline-variant transition-all duration-200 shadow-sm" id="sidebar">
+<div class="h-full p-4 flex flex-col justify-between">
+<!-- Top Section -->
+<div>
+<!-- Brand & Toggle Anchor -->
+<div class="flex items-center justify-between pb-3.5 border-b border-surface-container">
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded bg-primary flex items-center justify-center text-on-primary font-bold shadow-xs shrink-0">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">local_drink</span>
+</div>
+<div class="min-w-0 sidebar-text">
+<h1 class="text-base font-bold text-on-surface tracking-tight truncate font-headline-sm leading-snug">DrinkFlow Admin</h1>
+<div class="text-[11px] font-label-sm text-secondary truncate">Logistics Operations</div>
+</div>
+</div>
+<button class="p-1 text-secondary hover:text-on-surface rounded hover:bg-surface-container transition-colors" id="toggle-sidebar" title="Thu gọn / Mở rộng menu">
+<span class="material-symbols-outlined text-base">menu_open</span>
+</button>
+</div>
+<!-- Navigation items -->
+<nav class="mt-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="sidebar-text">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">campaign</span>
+<span class="sidebar-text">Campaigns</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="sidebar-text">Orders</span>
+</a>
+<!-- Active Tab: Payments & Debt with emerald accent indicator -->
+<a class="flex items-center gap-3 px-3 py-2 bg-emerald-50 text-primary rounded-lg font-label-md text-label-md border-l-4 border-primary shadow-2xs transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="font-bold sidebar-text">Payments &amp; Debt</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="sidebar-text">Users</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span class="sidebar-text">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="sidebar-text">Room Settings</span>
+</a>
+</nav>
+</div>
+<!-- Bottom items -->
+<div class="pt-4 border-t border-surface-container space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">health_and_safety</span>
+<span class="sidebar-text">System Diagnostics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-error hover:bg-rose-50 rounded-lg font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="sidebar-text">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- 2. TOP NAVBAR & HEADER SHELL WITH BREADCRUMB UNDER SEARCH -->
+<header class="fixed top-0 left-0 right-0 z-20 bg-surface-container-lowest border-b border-outline-variant shadow-xs">
+<div class="flex justify-between items-center w-full pl-72 pr-6 py-2 h-14">
+<!-- Left: Search & Quick Context -->
+<div class="flex flex-col justify-center flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-base">search</span>
+<input class="w-full bg-surface-container-low border border-outline-variant/70 rounded-md px-8 py-1.5 font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary h-8 transition-colors" placeholder="Tìm kiếm giao dịch, mã hóa đơn VietQR, hoặc nhân viên..." type="text">
+</div>
+</div>
+<!-- Right Actions & User Profile -->
+<div class="flex items-center gap-3">
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:bg-surface-container rounded-full transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500"></span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:bg-surface-container rounded-full transition-colors" title="Help &amp; Docs">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="h-4 w-px bg-outline-variant"></div>
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md shadow-xs transition-colors">
+<span class="material-symbols-outlined text-base">bolt</span>
+<span class="">Dispatch Action</span>
+</button>
+<div class="flex items-center gap-2 pl-2 border-l border-outline-variant/60 cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-secondary text-on-secondary font-label-sm flex items-center justify-center font-bold ring-2 ring-emerald-100">LA</div>
+<div class="text-left hidden lg:block">
+<div class="font-label-md text-label-md font-bold text-on-surface leading-tight">Lâm Admin</div>
+<div class="font-label-sm text-[10px] text-secondary">Super Dispatcher</div>
+</div>
+<span class="material-symbols-outlined text-xs text-secondary">expand_more</span>
+</div>
+</div>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="pl-64 pt-14 pb-14 min-h-screen bg-background">
+<div class="px-6 py-4 max-w-[1440px] mx-auto space-y-4">
+<!-- BREADCRUMB DIRECTLY UNDER SEARCH -->
+<div class="flex items-center gap-1.5 text-label-sm font-label-sm text-secondary pt-1">
+<a class="hover:text-primary transition-colors" href="#">Admin</a>
+<span class="">/</span>
+<a class="hover:text-primary transition-colors" href="#">Rooms</a>
+<span class="">/</span>
+<span class="text-secondary">IT Team Operations</span>
+<span class="">/</span>
+<span class="text-primary font-bold">Sổ Kế Toán &amp; Quản Lý Công Nợ Kép</span>
+</div>
+<!-- 2. PAGE HEADER & QUICK ACTIONS -->
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 pb-3 border-b border-surface-container-highest">
+<div>
+<h2 class="text-headline-lg font-headline-lg text-on-surface tracking-tight flex items-center gap-2 font-bold">
+            Sổ Kế Toán &amp; Quản Lý Công Nợ Kép (Payments &amp; Dual-Debt Management)
+          </h2>
+<!-- Subtitle / room tags -->
+<div class="flex flex-wrap items-center gap-2 mt-1.5 text-body-sm font-body-sm text-secondary">
+<span class="font-label-sm font-bold bg-surface-container text-on-surface-variant px-2 py-0.5 rounded border border-outline-variant/60">#RM-IT-04</span>
+<span class="">•</span>
+<span class="inline-flex items-center gap-1 font-medium text-on-surface">
+<span class="material-symbols-outlined text-sm text-secondary">group</span> 30 Thành viên
+            </span>
+<span class="">•</span>
+<span class="inline-flex items-center gap-1 font-medium text-primary">
+<span class="material-symbols-outlined text-sm">account_balance_wallet</span> Quỹ phòng: <strong class="text-on-surface font-label-md font-bold">3.420.000đ</strong>
+</span>
+
+
+</div>
+</div>
+<!-- Right Quick Action buttons -->
+<div class="flex flex-wrap items-center gap-2">
+<!-- Button 1: Slack Reminder -->
+<button class="flex items-center gap-2 px-3 py-1.5 bg-surface-container-lowest border border-outline-variant hover:bg-amber-50 hover:border-amber-300 text-on-surface rounded font-label-md text-label-md shadow-2xs transition-colors">
+<span class="material-symbols-outlined text-amber-600">bolt</span>
+<span class="">Gửi nhắc nợ tự động (Slack/Bot)</span>
+<span class="w-5 h-5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold flex items-center justify-center font-label-sm">8</span>
+</button>
+<!-- Button 2: Export CSV/Excel -->
+<button class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-lowest border border-outline-variant hover:bg-surface-container text-on-surface rounded font-label-md text-label-md shadow-2xs transition-colors">
+<span class="material-symbols-outlined text-secondary text-base">description</span>
+<span class="">Xuất Báo Cáo Quyết Toán CSV/Excel</span>
+</button>
+<!-- Button 3: VietQR & Bank Settings -->
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md transition-colors shadow-2xs font-semibold">
+<span class="material-symbols-outlined text-base">qr_code_scanner</span>
+<span class="">Cấu hình VietQR &amp; Ngân hàng phòng</span>
+</button>
+</div>
+</div>
+<!-- 3. FINANCIAL OVERVIEW BAR (4 PRIMARY KPI CARDS) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+<!-- Card 1: Total Receivable -->
+<div class="bg-surface-container-lowest border border-outline-variant/80 rounded-xl p-4 flex flex-col justify-between shadow-2xs hover:border-primary/50 transition-colors">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-secondary uppercase font-semibold tracking-wider">Tổng phải thu (Receivable)</span>
+<span class="p-1.5 rounded-lg bg-blue-50 text-blue-700">
+<span class="material-symbols-outlined text-base">request_quote</span>
+</span>
+</div>
+<div class="mt-2 text-2xl font-bold font-label-lg text-on-surface tracking-tight">
+            4.850.000đ
+          </div>
+<div class="mt-2 pt-2 border-t border-surface-container text-body-sm font-body-sm text-secondary">
+            Gồm công nợ thành viên và cam kết tài trợ
+          </div>
+</div>
+<!-- Card 2: Paid -->
+<div class="bg-surface-container-lowest border border-outline-variant/80 rounded-xl p-4 flex flex-col justify-between shadow-2xs hover:border-primary/50 transition-colors">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-secondary uppercase font-semibold tracking-wider">Đã thanh toán (Paid)</span>
+<span class="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
+<span class="material-symbols-outlined text-base">check_circle</span>
+</span>
+</div>
+<div class="mt-2 text-2xl font-bold font-label-lg text-primary tracking-tight">
+            4.100.000đ
+          </div>
+<div class="mt-2 pt-2 border-t border-surface-container text-body-sm font-body-sm text-emerald-700 font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+<span class="">84.5% tổng giá trị đối soát thành công</span>
+</div>
+</div>
+<!-- Card 3: User Debt -->
+<div class="bg-surface-container-lowest border border-rose-200/80 rounded-xl p-4 flex flex-col justify-between shadow-2xs hover:border-rose-300 transition-colors">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-rose-700 uppercase font-semibold tracking-wider">Công nợ thành viên (User)</span>
+<span class="p-1.5 rounded-lg bg-rose-50 text-rose-700">
+<span class="material-symbols-outlined text-base">person_off</span>
+</span>
+</div>
+<div class="mt-2 text-2xl font-bold font-label-lg text-rose-600 tracking-tight">
+            550.000đ
+          </div>
+<div class="mt-2 pt-2 border-t border-surface-container text-body-sm font-body-sm text-rose-700 flex items-center justify-between">
+<span class="">6 thành viên chưa tất toán</span>
+<span class="text-label-sm font-bold bg-rose-100 text-rose-800 px-1.5 py-0.5 rounded">Cảnh báo &gt;100k</span>
+</div>
+</div>
+<!-- Card 4: Sponsor Debt -->
+<div class="bg-surface-container-lowest border border-purple-200/80 rounded-xl p-4 flex flex-col justify-between shadow-2xs hover:border-purple-300 transition-colors">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-purple-800 uppercase font-semibold tracking-wider">Nợ nhà tài trợ / Sếp</span>
+<span class="p-1.5 rounded-lg bg-purple-50 text-purple-700">
+<span class="material-symbols-outlined text-base">military_tech</span>
+</span>
+</div>
+<div class="mt-2 text-2xl font-bold font-label-lg text-purple-700 tracking-tight">
+            200.000đ
+          </div>
+<div class="mt-2 pt-2 border-t border-surface-container text-body-sm font-body-sm text-purple-800 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">hourglass_top</span>
+<span class="">2 nhà tài trợ chưa giải ngân quỹ</span>
+</div>
+</div>
+</div>
+<!-- 4. FILTER TABS & TOOLBAR -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
+<!-- Segmented Tab Header -->
+<div class="border-b border-outline-variant bg-surface-container-lowest px-4 py-2 flex items-center justify-between flex-wrap gap-2"><div class="flex items-center gap-2 overflow-x-auto" id="tab-filter-container"><button type="button" data-tab="all" class="filter-tab flex items-center gap-2 px-3.5 py-2 border-b-2 border-primary text-primary font-bold text-body-md rounded-t bg-emerald-50/50 transition-colors"><span class="material-symbols-outlined text-base">format_list_bulleted</span><span class="">Tất cả (All)</span><span class="tab-badge px-2 py-0.5 bg-emerald-100 text-primary text-label-sm font-label-sm rounded-full font-bold">14</span></button><button type="button" data-tab="user" class="filter-tab flex items-center gap-2 px-3.5 py-2 text-secondary hover:text-on-surface hover:bg-surface-container-low font-semibold text-body-md border-b-2 border-transparent rounded-t transition-colors"><span class="material-symbols-outlined text-base">person</span><span class="">Nợ thành viên (User Debts)</span><span class="tab-badge px-2 py-0.5 bg-rose-100 text-rose-700 text-label-sm font-label-sm rounded-full font-bold">6</span></button><button type="button" data-tab="sponsor" class="filter-tab flex items-center gap-2 px-3.5 py-2 text-secondary hover:text-on-surface hover:bg-surface-container-low font-semibold text-body-md border-b-2 border-transparent rounded-t transition-colors"><span class="material-symbols-outlined text-base">workspace_premium</span><span class="">Nợ nhà tài trợ (Sponsor Debts)</span><span class="tab-badge px-2 py-0.5 bg-purple-100 text-purple-700 text-label-sm font-label-sm rounded-full font-bold">2</span></button><button type="button" data-tab="paid" class="filter-tab flex items-center gap-2 px-3.5 py-2 text-secondary hover:text-on-surface hover:bg-surface-container-low font-semibold text-body-md border-b-2 border-transparent rounded-t transition-colors"><span class="material-symbols-outlined text-base">task_alt</span><span class="">Đã thanh toán (Paid)</span><span class="tab-badge px-2 py-0.5 bg-surface-container-high text-secondary text-label-sm font-label-sm rounded-full font-bold">6</span></button></div></div>
+<!-- Filter & Search Toolbar with Dynamic Bulk Action Bar -->
+<div class="p-3.5 bg-surface-container-lowest border-b border-outline-variant/60 flex flex-wrap items-center justify-between gap-3 font-body-md"><div class="flex flex-wrap items-center gap-2.5 flex-1 min-w-[280px]"><div class="relative min-w-[240px] max-w-sm flex-1"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-base">search</span><input class="w-full bg-surface-bright border border-outline-variant rounded-md pl-9 pr-3 py-1.5 text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary h-9 transition-colors" placeholder="Tìm kiếm người nợ, mã nhân viên, chiến dịch..." type="text"></div><select class="h-9 bg-surface-bright border border-outline-variant rounded-md px-3 text-body-sm text-on-surface focus:outline-none focus:border-primary cursor-pointer hover:border-outline transition-colors"><option>Trạng thái: Tất cả</option><option>Chưa thanh toán</option><option>Thanh toán một phần</option><option>Đã tất toán 100%</option></select><select class="h-9 bg-surface-bright border border-outline-variant rounded-md px-3 text-body-sm text-on-surface focus:outline-none focus:border-primary cursor-pointer hover:border-outline transition-colors max-w-xs truncate"><option>Kỳ chiến dịch: Tất cả các run</option><option>#CMP-104 Highlands Coffee (Hôm nay)</option><option>#CMP-103 Phúc Long Tea</option><option>#CMP-102 PhinDeli</option></select></div><div class="flex flex-wrap items-center gap-2 bg-emerald-50/70 border border-emerald-200/80 px-3 py-1.5 rounded-lg shrink-0"><span class="text-label-sm font-label-sm font-bold text-primary flex items-center gap-1"><span class="material-symbols-outlined text-sm">checklist</span><span class="">Đã chọn 2 hàng</span></span><div class="h-4 w-px bg-emerald-200"></div><button class="px-2.5 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded-md font-label-sm text-label-sm font-bold shadow-2xs transition-colors flex items-center gap-1.5" onclick="openConfirmModal('bulk', 'Nhiều người', '244.000đ', '#CMP-104 &amp; #CMP-103')"><span class="material-symbols-outlined text-sm">verified</span><span class="">Xác nhận thanh toán (Bulk Confirm)</span></button><button class="px-2.5 py-1.5 bg-surface-container-lowest hover:bg-amber-50 text-amber-800 border border-amber-300 rounded-md font-label-sm text-label-sm font-semibold transition-colors flex items-center gap-1.5" title="Gửi bot reminder cho các hàng được chọn"><span class="material-symbols-outlined text-sm text-amber-600">send</span><span class="">Gửi nhắc nợ đã chọn</span></button></div></div>
+<!-- 5. DEBT TABLE LIST (STRICT COLUMNS IMPLEMENTED) -->
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse"><thead><tr class="h-10 bg-surface-container-low text-secondary font-label-sm text-label-sm uppercase tracking-wider border-b border-outline-variant"><th class="w-10 px-3.5 text-center"><input checked="" class="rounded border-outline text-primary focus:ring-primary h-4 w-4 cursor-pointer" title="Chọn tất cả" type="checkbox"></th><th class="px-3.5 min-w-[230px]">Người nợ / Nhân viên / Sếp</th><th class="px-3 min-w-[130px] text-center">Phân loại</th><th class="px-3.5 min-w-[210px]">Chiến dịch / Mã đơn</th><th class="px-3.5 text-right min-w-[140px]">Số tiền gốc</th><th class="px-3.5 text-right min-w-[120px]">Đã trả</th><th class="px-3.5 text-right min-w-[140px]">Còn nợ</th><th class="px-3.5 text-center w-20">Thao tác</th></tr></thead><tbody class="divide-y divide-surface-container font-body-sm text-body-sm text-on-surface bg-surface-container-lowest"><tr data-category="user" class="debt-row hover:bg-surface-container-low/60 transition-colors h-13 bg-rose-50/25"><td class="px-3.5 text-center"><input checked="" class="rounded border-outline text-primary focus:ring-primary h-4 w-4 cursor-pointer" type="checkbox"></td><td class="px-3.5"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-full bg-rose-100 text-rose-800 font-label-sm font-bold flex items-center justify-center border border-rose-200 shrink-0">PD</div><div><div class="font-bold text-on-surface flex items-center gap-1.5"><span class="">Phạm Hoàng D</span><span class="px-1.5 py-0.2 bg-rose-100 text-rose-700 font-label-sm text-[10px] rounded font-bold border border-rose-200">Khóa đơn &gt;150k</span></div><div class="text-label-sm font-label-sm text-secondary">PH_D12 • QA Engineer (Squad Core)</div></div></div></td><td class="px-3 text-center"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-label-sm text-label-sm font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"><span class="material-symbols-outlined text-xs">person</span><span class="">User</span></span></td><td class="px-3.5"><div class="font-medium text-on-surface">#CMP-104 Highlands Coffee</div><div class="text-label-sm font-label-sm text-secondary">Trà sen vàng size L + Bánh phô mai</div></td><td class="px-3.5 text-right font-label-md text-secondary">150.000đ</td><td class="px-3.5 text-right font-label-md text-emerald-700 font-medium">0đ</td><td class="px-3.5 text-right font-label-lg font-bold text-rose-600">150.000đ</td><td class="px-3.5 text-center relative"><div class="relative inline-block text-left"><button type="button" onclick="toggleRowMenu(event, 'menu-row-1')" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container rounded-full transition-colors"><span class="material-symbols-outlined text-base">more_vert</span></button><div id="menu-row-1" class="action-menu-dropdown hidden absolute right-0 mt-1 w-56 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl py-1.5 z-50 text-left font-body-sm"><button onclick="openConfirmModal('single', 'Phạm Hoàng D (PH_D12)', '150.000đ', '#CMP-104 Highlands Coffee'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-primary hover:bg-emerald-50 text-left font-medium"><span class="material-symbols-outlined text-base text-emerald-600">verified</span><span class="">Xác nhận thanh toán (Confirm Paid)</span></button><button onclick="alert('Đã gửi nhắc nợ tự động qua Slack bot!'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-on-surface hover:bg-surface-container-low text-left"><span class="material-symbols-outlined text-base text-amber-600">notifications_active</span><span class="">Gửi nhắc nợ tự động</span></button><button onclick="alert('Mở chi tiết hóa đơn đơn hàng #CMP-104'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-on-surface hover:bg-surface-container-low text-left"><span class="material-symbols-outlined text-base text-secondary">receipt_long</span><span class="">Xem chi tiết đơn hàng / công nợ</span></button><div class="my-1 border-t border-surface-container"></div><button onclick="alert('Mở biểu mẫu điều chỉnh / miễn giảm nợ'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-rose-700 hover:bg-rose-50 text-left"><span class="material-symbols-outlined text-base text-rose-600">edit_note</span><span class="">Miễn giảm / Điều chỉnh nợ</span></button></div></div></td></tr><tr data-category="user" class="debt-row hover:bg-surface-container-low/60 transition-colors h-13 bg-amber-50/15"><td class="px-3.5 text-center"><input checked="" class="rounded border-outline text-primary focus:ring-primary h-4 w-4 cursor-pointer" type="checkbox"></td><td class="px-3.5"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-label-sm font-bold flex items-center justify-center border border-amber-200 shrink-0">VL</div><div><div class="font-bold text-on-surface flex items-center gap-1.5"><span class="">Vũ Thị Lan</span><span class="px-1.5 py-0.2 bg-amber-50 text-amber-700 font-label-sm text-[10px] rounded border border-amber-200">Chờ thanh toán</span></div><div class="text-label-sm font-label-sm text-secondary">VT_L07 • Scrum Master</div></div></div></td><td class="px-3 text-center"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-label-sm text-label-sm font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"><span class="material-symbols-outlined text-xs">person</span><span class="">User</span></span></td><td class="px-3.5"><div class="font-medium text-on-surface">#CMP-104 Highlands Coffee</div><div class="text-label-sm font-label-sm text-secondary">Phần bù topping sữa tươi trân châu</div></td><td class="px-3.5 text-right font-label-md text-secondary">144.000đ</td><td class="px-3.5 text-right font-label-md text-emerald-700 font-medium">50.000đ</td><td class="px-3.5 text-right font-label-lg font-bold text-amber-700">94.000đ</td><td class="px-3.5 text-center relative"><div class="relative inline-block text-left"><button type="button" onclick="toggleRowMenu(event, 'menu-row-2')" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container rounded-full transition-colors"><span class="material-symbols-outlined text-base">more_vert</span></button><div id="menu-row-2" class="action-menu-dropdown hidden absolute right-0 mt-1 w-56 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl py-1.5 z-50 text-left font-body-sm"><button onclick="openConfirmModal('single', 'Vũ Thị Lan (VT_L07)', '94.000đ', '#CMP-104 Highlands Coffee'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-primary hover:bg-emerald-50 text-left font-medium"><span class="material-symbols-outlined text-base text-emerald-600">verified</span><span class="">Xác nhận thanh toán (Confirm Paid)</span></button><button onclick="alert('Đã gửi nhắc nợ tự động qua Slack bot!'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-on-surface hover:bg-surface-container-low text-left"><span class="material-symbols-outlined text-base text-amber-600">notifications_active</span><span class="">Gửi nhắc nợ tự động</span></button><button onclick="alert('Mở chi tiết hóa đơn đơn hàng #CMP-104'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-on-surface hover:bg-surface-container-low text-left"><span class="material-symbols-outlined text-base text-secondary">receipt_long</span><span class="">Xem chi tiết đơn hàng / công nợ</span></button><div class="my-1 border-t border-surface-container"></div><button onclick="alert('Mở biểu mẫu điều chỉnh / miễn giảm nợ'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-rose-700 hover:bg-rose-50 text-left"><span class="material-symbols-outlined text-base text-rose-600">edit_note</span><span class="">Miễn giảm / Điều chỉnh nợ</span></button></div></div></td></tr><tr data-category="sponsor" class="debt-row hover:bg-surface-container-low/60 transition-colors h-13 bg-purple-50/15"><td class="px-3.5 text-center"><input class="rounded border-outline text-primary focus:ring-primary h-4 w-4 cursor-pointer" type="checkbox"></td><td class="px-3.5"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-full bg-purple-100 text-purple-800 font-label-sm font-bold flex items-center justify-center border border-purple-200 shrink-0">NA</div><div><div class="font-bold text-on-surface flex items-center gap-1.5"><span class="">Nguyễn Văn A</span><span class="px-1.5 py-0.2 bg-purple-100 text-purple-800 font-label-sm text-[10px] rounded font-bold border border-purple-200">Sponsor Tài Trợ</span></div><div class="text-label-sm font-label-sm text-secondary">NV_A01 • Tech Lead (Quỹ Tài Trợ Tháng 10)</div></div></div></td><td class="px-3 text-center"><span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm font-bold bg-purple-100 text-purple-800 border border-purple-300"><span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">military_tech</span><span class="">Sponsor</span></span></td><td class="px-3.5"><div class="font-medium text-on-surface">#CMP-103 Phúc Long Tea</div><div class="text-label-sm font-label-sm text-secondary">Tài trợ 50% thức uống toàn squad</div></td><td class="px-3.5 text-right font-label-md text-secondary">300.000đ</td><td class="px-3.5 text-right font-label-md text-emerald-700 font-medium">100.000đ</td><td class="px-3.5 text-right font-label-lg font-bold text-purple-700">200.000đ</td><td class="px-3.5 text-center relative"><div class="relative inline-block text-left"><button type="button" onclick="toggleRowMenu(event, 'menu-row-3')" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container rounded-full transition-colors"><span class="material-symbols-outlined text-base">more_vert</span></button><div id="menu-row-3" class="action-menu-dropdown hidden absolute right-0 mt-1 w-56 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl py-1.5 z-50 text-left font-body-sm"><button onclick="openConfirmModal('single', 'Nguyễn Văn A (Tech Lead / Sponsor)', '200.000đ', '#CMP-103 Phúc Long Tea'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-primary hover:bg-emerald-50 text-left font-medium"><span class="material-symbols-outlined text-base text-emerald-600">verified</span><span class="">Xác nhận thanh toán (Confirm Paid)</span></button><button onclick="alert('Đã gửi thông báo đối soát giải ngân qua Slack!'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-on-surface hover:bg-surface-container-low text-left"><span class="material-symbols-outlined text-base text-amber-600">notifications_active</span><span class="">Gửi nhắc nợ tự động</span></button><button onclick="alert('Mở chi tiết cam kết tài trợ Phúc Long #CMP-103'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-on-surface hover:bg-surface-container-low text-left"><span class="material-symbols-outlined text-base text-secondary">receipt_long</span><span class="">Xem chi tiết đơn hàng / công nợ</span></button><div class="my-1 border-t border-surface-container"></div><button onclick="alert('Mở biểu mẫu điều chỉnh / miễn giảm nợ'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-rose-700 hover:bg-rose-50 text-left"><span class="material-symbols-outlined text-base text-rose-600">edit_note</span><span class="">Miễn giảm / Điều chỉnh nợ</span></button></div></div></td></tr><tr data-category="user" class="debt-row hover:bg-surface-container-low/60 transition-colors h-13"><td class="px-3.5 text-center"><input class="rounded border-outline text-primary focus:ring-primary h-4 w-4 cursor-pointer" type="checkbox"></td><td class="px-3.5"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-full bg-blue-100 text-blue-800 font-label-sm font-bold flex items-center justify-center border border-blue-200 shrink-0">LC</div><div><div class="font-bold text-on-surface">Lê Văn C</div><div class="text-label-sm font-label-sm text-secondary">LV_C03 • Frontend Engineer</div></div></div></td><td class="px-3 text-center"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-label-sm text-label-sm font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"><span class="material-symbols-outlined text-xs">person</span><span class="">User</span></span></td><td class="px-3.5"><div class="font-medium text-on-surface">#CMP-102 PhinDeli</div><div class="text-label-sm font-label-sm text-secondary">2 Cà phê muối đặc biệt</div></td><td class="px-3.5 text-right font-label-md text-secondary">120.000đ</td><td class="px-3.5 text-right font-label-md text-emerald-700 font-medium">0đ</td><td class="px-3.5 text-right font-label-lg font-bold text-rose-600">120.000đ</td><td class="px-3.5 text-center relative"><div class="relative inline-block text-left"><button type="button" onclick="toggleRowMenu(event, 'menu-row-4')" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container rounded-full transition-colors"><span class="material-symbols-outlined text-base">more_vert</span></button><div id="menu-row-4" class="action-menu-dropdown hidden absolute right-0 mt-1 w-56 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl py-1.5 z-50 text-left font-body-sm"><button onclick="openConfirmModal('single', 'Lê Văn C (LV_C03)', '120.000đ', '#CMP-102 PhinDeli'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-primary hover:bg-emerald-50 text-left font-medium"><span class="material-symbols-outlined text-base text-emerald-600">verified</span><span class="">Xác nhận thanh toán (Confirm Paid)</span></button><button onclick="alert('Đã gửi nhắc nợ tự động qua Slack bot!'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-on-surface hover:bg-surface-container-low text-left"><span class="material-symbols-outlined text-base text-amber-600">notifications_active</span><span class="">Gửi nhắc nợ tự động</span></button><button onclick="alert('Mở chi tiết hóa đơn đơn hàng #CMP-102'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-on-surface hover:bg-surface-container-low text-left"><span class="material-symbols-outlined text-base text-secondary">receipt_long</span><span class="">Xem chi tiết đơn hàng / công nợ</span></button><div class="my-1 border-t border-surface-container"></div><button onclick="alert('Mở biểu mẫu điều chỉnh / miễn giảm nợ'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-rose-700 hover:bg-rose-50 text-left"><span class="material-symbols-outlined text-base text-rose-600">edit_note</span><span class="">Miễn giảm / Điều chỉnh nợ</span></button></div></div></td></tr><tr data-category="user" class="debt-row hover:bg-surface-container-low/60 transition-colors h-13"><td class="px-3.5 text-center"><input class="rounded border-outline text-primary focus:ring-primary h-4 w-4 cursor-pointer" type="checkbox"></td><td class="px-3.5"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-full bg-surface-container-highest text-on-surface-variant font-label-sm font-bold flex items-center justify-center border border-outline-variant shrink-0">HK</div><div><div class="font-bold text-on-surface">Hoàng Minh K</div><div class="text-label-sm font-label-sm text-secondary">HM_K02 • DevOps Lead</div></div></div></td><td class="px-3 text-center"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-label-sm text-label-sm font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"><span class="material-symbols-outlined text-xs">person</span><span class="">User</span></span></td><td class="px-3.5"><div class="font-medium text-on-surface">#CMP-104 Highlands Coffee</div><div class="text-label-sm font-label-sm text-secondary">Phin sữa đá size L</div></td><td class="px-3.5 text-right font-label-md text-secondary">78.000đ</td><td class="px-3.5 text-right font-label-md text-emerald-700 font-medium">0đ</td><td class="px-3.5 text-right font-label-lg font-bold text-amber-700">78.000đ</td><td class="px-3.5 text-center relative"><div class="relative inline-block text-left"><button type="button" onclick="toggleRowMenu(event, 'menu-row-5')" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container rounded-full transition-colors"><span class="material-symbols-outlined text-base">more_vert</span></button><div id="menu-row-5" class="action-menu-dropdown hidden absolute right-0 mt-1 w-56 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl py-1.5 z-50 text-left font-body-sm"><button onclick="openConfirmModal('single', 'Hoàng Minh K (HM_K02)', '78.000đ', '#CMP-104 Highlands Coffee'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-primary hover:bg-emerald-50 text-left font-medium"><span class="material-symbols-outlined text-base text-emerald-600">verified</span><span class="">Xác nhận thanh toán (Confirm Paid)</span></button><button onclick="alert('Đã gửi nhắc nợ tự động qua Slack bot!'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-on-surface hover:bg-surface-container-low text-left"><span class="material-symbols-outlined text-base text-amber-600">notifications_active</span><span class="">Gửi nhắc nợ tự động</span></button><button onclick="alert('Mở chi tiết hóa đơn đơn hàng #CMP-104'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-on-surface hover:bg-surface-container-low text-left"><span class="material-symbols-outlined text-base text-secondary">receipt_long</span><span class="">Xem chi tiết đơn hàng / công nợ</span></button><div class="my-1 border-t border-surface-container"></div><button onclick="alert('Mở biểu mẫu điều chỉnh / miễn giảm nợ'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-rose-700 hover:bg-rose-50 text-left"><span class="material-symbols-outlined text-base text-rose-600">edit_note</span><span class="">Miễn giảm / Điều chỉnh nợ</span></button></div></div></td></tr><tr data-category="paid" class="debt-row hover:bg-surface-container-low/60 transition-colors h-13 bg-emerald-50/15"><td class="px-3.5 text-center"><input class="rounded border-outline text-primary focus:ring-primary h-4 w-4 cursor-pointer" type="checkbox"></td><td class="px-3.5"><div class="flex items-center gap-2.5"><div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-label-sm font-bold flex items-center justify-center border border-emerald-200 shrink-0">TM</div><div><div class="font-bold text-on-surface">Trần Thị Mai</div><div class="text-label-sm font-label-sm text-secondary">TT_M05 • Product Designer</div></div></div></td><td class="px-3 text-center"><span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-label-sm text-label-sm font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"><span class="material-symbols-outlined text-xs">person</span><span class="">User</span></span></td><td class="px-3.5"><div class="font-medium text-on-surface">#CMP-104 Highlands Coffee</div><div class="text-label-sm font-label-sm text-secondary">Trà thạch đào size M (Đã đối soát QR)</div></td><td class="px-3.5 text-right font-label-md text-secondary">94.000đ</td><td class="px-3.5 text-right font-label-md text-emerald-700 font-bold">94.000đ</td><td class="px-3.5 text-right font-label-md font-bold text-emerald-700"><span class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-label-sm text-[11px]"><span class="material-symbols-outlined text-xs">check</span>0đ (Đã tất toán)</span></td><td class="px-3.5 text-center relative"><div class="relative inline-block text-left"><button type="button" onclick="toggleRowMenu(event, 'menu-row-6')" class="w-8 h-8 flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container rounded-full transition-colors"><span class="material-symbols-outlined text-base">more_vert</span></button><div id="menu-row-6" class="action-menu-dropdown hidden absolute right-0 mt-1 w-56 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-xl py-1.5 z-50 text-left font-body-sm"><button onclick="alert('Hóa đơn đã được thanh toán 100%!'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-emerald-700 hover:bg-emerald-50 text-left font-medium"><span class="material-symbols-outlined text-base text-emerald-600">receipt</span><span class="">Xem biên lai VietQR</span></button><button onclick="alert('Mở chi tiết hóa đơn đơn hàng #CMP-104'); closeAllMenus();" class="w-full flex items-center gap-2.5 px-3.5 py-2 text-on-surface hover:bg-surface-container-low text-left"><span class="material-symbols-outlined text-base text-secondary">receipt_long</span><span class="">Xem chi tiết đơn hàng / công nợ</span></button></div></div></td></tr></tbody></table>
+</div>
+<!-- Responsive Pagination Bar -->
+<div class="px-4 py-3 bg-surface-container-low/40 border-t border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-3 text-label-sm font-label-sm">
+<div class="flex items-center gap-2 text-secondary">
+<span class="">Hiển thị <strong>1 - 6</strong> trên <strong>14</strong> bản ghi</span>
+<span class="text-outline-variant">|</span>
+<span class="text-on-surface font-medium">Tỷ lệ thu hồi nợ: <strong class="text-primary font-bold">84.5%</strong></span>
+</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 border border-outline-variant rounded bg-surface-container-lowest text-secondary hover:bg-surface-container disabled:opacity-50 transition-colors" disabled="">
+              Previous
+            </button>
+<button class="px-2.5 py-1 border border-primary bg-primary text-on-primary rounded font-bold transition-colors">
+              1
+            </button>
+<button class="px-2.5 py-1 border border-outline-variant rounded bg-surface-container-lowest text-secondary hover:bg-surface-container transition-colors">
+              2
+            </button>
+<button class="px-2.5 py-1 border border-outline-variant rounded bg-surface-container-lowest text-secondary hover:bg-surface-container transition-colors">
+              Next
+            </button>
+</div>
+</div>
+</div>
+<!-- 6. DUAL-DEBT RECONCILIATION & RULES SUMMARY -->
+
+</div>
+</main>
+<!-- 7. INTERACTIVE CONFIRMATION MODAL (SINGLE & BULK CONFIRM PAID) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-on-surface/40 backdrop-blur-xs hidden" id="paymentModal">
+<div class="bg-surface-container-lowest rounded-xl max-w-md w-full mx-4 shadow-xl border border-outline-variant overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+<!-- Modal Header -->
+<div class="p-4 border-b border-surface-container flex items-center justify-between bg-surface-container-low/50">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+<span class="material-symbols-outlined text-base">payments</span>
+</div>
+<div>
+<h3 class="font-headline-sm font-bold text-on-surface text-base">Xác nhận thanh toán (Confirm Paid)</h3>
+<p class="text-label-sm font-label-sm text-secondary">Gạch nợ kế toán &amp; cập nhật số dư quỹ</p>
+</div>
+</div>
+<button class="text-secondary hover:text-on-surface p-1 rounded-md hover:bg-surface-container" onclick="closeConfirmModal()">
+<span class="material-symbols-outlined text-base">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="p-4 space-y-3">
+<div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/60 space-y-1.5">
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-secondary">Đối tượng gạch nợ:</span>
+<span class="font-bold text-on-surface" id="modalTargetName">Nhiều người</span>
+</div>
+<div class="flex items-center justify-between text-body-sm">
+<span class="text-secondary">Chiến dịch áp dụng:</span>
+<span class="font-medium text-on-surface" id="modalCampaign">#CMP-104 &amp; #CMP-103</span>
+</div>
+<div class="flex items-center justify-between text-body-sm pt-1.5 border-t border-outline-variant/50">
+<span class="text-secondary font-semibold">Số tiền thanh toán:</span>
+<span class="font-label-lg font-bold text-emerald-700 text-lg" id="modalAmount">244.000đ</span>
+</div>
+</div>
+<div class="space-y-1.5">
+<label class="block text-label-sm font-label-sm font-bold text-on-surface">Phương thức xác nhận:</label>
+<div class="grid grid-cols-2 gap-2 text-label-md font-label-md">
+<label class="flex items-center gap-2 p-2 border border-primary bg-emerald-50/50 rounded-lg cursor-pointer">
+<input checked="" class="text-primary focus:ring-primary" name="paymethod" type="radio">
+<span class="">Đã chuyển VietQR</span>
+</label>
+<label class="flex items-center gap-2 p-2 border border-outline-variant rounded-lg cursor-pointer hover:bg-surface-container-low">
+<input class="text-primary focus:ring-primary" name="paymethod" type="radio">
+<span class="">Tiền mặt trao tay</span>
+</label>
+</div>
+</div>
+<div>
+<label class="block text-label-sm font-label-sm text-secondary mb-1">Ghi chú đối soát / Memo:</label>
+<input class="w-full bg-surface-bright border border-outline-variant rounded px-3 py-1.5 font-label-md text-label-md text-on-surface focus:outline-none focus:border-primary" type="text" value="CONFIRM_MANUAL_ADMIN_LA">
+</div>
+<div class="flex items-center gap-2 p-2 bg-amber-50 rounded text-amber-900 text-label-sm font-label-sm border border-amber-200">
+<span class="material-symbols-outlined text-sm text-amber-700">info</span>
+<span class="">Thao tác này sẽ cập nhật ngay lập tức vào sổ cái quỹ phòng và gửi bot xác nhận tới nhân viên.</span>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="p-4 border-t border-surface-container flex items-center justify-end gap-2 bg-surface-container-lowest">
+<button class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-label-md text-label-md transition-colors" onclick="closeConfirmModal()">
+          Hủy bỏ
+        </button>
+<button class="px-4 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md font-bold shadow-xs transition-colors" onclick="executeConfirm()">
+          Xác nhận gạch nợ thành công
+        </button>
+</div>
+</div>
+</div>
+<script>
+    // Sidebar collapsible toggle
+    const toggleBtn = document.getElementById('toggle-sidebar');
+    const sidebar = document.getElementById('sidebar');
+    const mainCanvas = document.querySelector('main');
+    const header = document.querySelector('header > div');
+    let isCollapsed = false;
+
+    toggleBtn.addEventListener('click', () => {
+      isCollapsed = !isCollapsed;
+      if (isCollapsed) {
+        sidebar.classList.remove('w-64');
+        sidebar.classList.add('w-20');
+        document.querySelectorAll('.sidebar-text').forEach(el => el.classList.add('hidden'));
+        mainCanvas.classList.remove('pl-64');
+        mainCanvas.classList.add('pl-20');
+        header.classList.remove('pl-72');
+        header.classList.add('pl-28');
+      } else {
+        sidebar.classList.remove('w-20');
+        sidebar.classList.add('w-64');
+        document.querySelectorAll('.sidebar-text').forEach(el => el.classList.remove('hidden'));
+        mainCanvas.classList.remove('pl-20');
+        mainCanvas.classList.add('pl-64');
+        header.classList.remove('pl-28');
+        header.classList.add('pl-72');
+      }
+    });
+
+    // Modal helpers
+    function openConfirmModal(type, debtor, amount, campaign) {
+      document.getElementById('modalTargetName').textContent = debtor;
+      document.getElementById('modalAmount').textContent = amount;
+      document.getElementById('modalCampaign').textContent = campaign;
+      document.getElementById('paymentModal').classList.remove('hidden');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('paymentModal').classList.add('hidden');
+    }
+
+    function executeConfirm() {
+      alert('Đã xác nhận gạch nợ thành công! Số dư phòng đã được cập nhật.');
+      closeConfirmModal();
+    }
+  </script>
+
+
+<script>function toggleRowMenu(event, menuId) { event.stopPropagation(); const menu = document.getElementById(menuId); const isCurrentlyOpen = !menu.classList.contains('hidden'); closeAllMenus(); if (!isCurrentlyOpen) { menu.classList.remove('hidden'); } } function closeAllMenus() { document.querySelectorAll('.action-menu-dropdown').forEach(m => m.classList.add('hidden')); } document.addEventListener('click', function(e) { if (!e.target.closest('.action-menu-dropdown')) { closeAllMenus(); } });</script>
+
+<script id="tab-filter-script">document.addEventListener('DOMContentLoaded', function() { initTabFiltering(); }); function initTabFiltering() { const tabs = document.querySelectorAll('.filter-tab'); const rows = document.querySelectorAll('.debt-row'); tabs.forEach(function(tab) { tab.addEventListener('click', function() { const targetTab = this.getAttribute('data-tab'); tabs.forEach(function(t) { t.classList.remove('border-primary', 'text-primary', 'font-bold', 'bg-emerald-50/50'); t.classList.add('text-secondary', 'border-transparent'); }); this.classList.remove('text-secondary', 'border-transparent'); this.classList.add('border-primary', 'text-primary', 'font-bold', 'bg-emerald-50/50'); rows.forEach(function(row) { const category = row.getAttribute('data-category'); if (targetTab === 'all' || category === targetTab) { row.classList.remove('hidden'); } else { row.classList.add('hidden'); } }); }); }); } initTabFiltering();</script>
+
+</body></html>

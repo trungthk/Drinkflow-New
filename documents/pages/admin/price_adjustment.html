@@ -1,0 +1,587 @@
+<!DOCTYPE html><html class="h-full" lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Order Detail &amp; Actual Price Adjustment - DrinkFlow Admin</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary-fixed-variant": "#005236",
+            "tertiary-fixed": "#6ffbbe",
+            "inverse-primary": "#68dba9",
+            "tertiary-container": "#00855b",
+            "surface-container-low": "#eff4ff",
+            "surface-variant": "#d3e4fe",
+            "secondary": "#565e74",
+            "surface-bright": "#f8f9ff",
+            "on-surface": "#0b1c30",
+            "tertiary": "#006947",
+            "surface-dim": "#cbdbf5",
+            "error-container": "#ffdad6",
+            "primary-container": "#00855d",
+            "on-surface-variant": "#3d4a42",
+            "outline": "#6d7a72",
+            "surface-container-highest": "#d3e4fe",
+            "on-primary-container": "#f5fff7",
+            "on-secondary-fixed-variant": "#3f465c",
+            "surface-container-lowest": "#ffffff",
+            "error": "#ba1a1a",
+            "secondary-container": "#dae2fd",
+            "surface-tint": "#006c4a",
+            "on-tertiary": "#ffffff",
+            "inverse-surface": "#213145",
+            "on-primary": "#ffffff",
+            "background": "#f8f9ff",
+            "on-error": "#ffffff",
+            "primary-fixed-dim": "#68dba9",
+            "primary-fixed": "#85f8c4",
+            "on-secondary-container": "#5c647a",
+            "surface": "#f8f9ff",
+            "surface-container": "#e5eeff",
+            "on-primary-fixed": "#002114",
+            "on-primary-fixed-variant": "#005137",
+            "on-tertiary-container": "#f5fff6",
+            "on-secondary": "#ffffff",
+            "secondary-fixed": "#dae2fd",
+            "tertiary-fixed-dim": "#4edea3",
+            "outline-variant": "#bccac0",
+            "on-error-container": "#93000a",
+            "surface-container-high": "#dce9ff",
+            "inverse-on-surface": "#eaf1ff",
+            "on-tertiary-fixed": "#002113",
+            "secondary-fixed-dim": "#bec6e0",
+            "on-secondary-fixed": "#131b2e",
+            "primary": "#006948",
+            "on-background": "#0b1c30"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-md": "1rem",
+            "space-xl": "2rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-lg": "1.5rem",
+            "margin": "1.5rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "display-lg": ["Hanken Grotesk"],
+            "headline-lg": ["Hanken Grotesk"],
+            "headline-sm": ["Hanken Grotesk"],
+            "label-md": ["JetBrains Mono"],
+            "body-md": ["Hanken Grotesk"],
+            "label-lg": ["JetBrains Mono"],
+            "label-sm": ["JetBrains Mono"],
+            "body-lg": ["Hanken Grotesk"],
+            "body-sm": ["Hanken Grotesk"]
+          },
+          "fontSize": {
+            "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      vertical-align: middle;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.2); }
+    }
+    .animate-pulse-dot {
+      animation: pulse-dot 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased h-full flex flex-col">
+<!-- Side Navigation Bar (Anchored Shared Component) -->
+<aside class="fixed top-0 left-0 h-screen w-64 flex flex-col z-30 bg-surface-container-lowest dark:bg-inverse-surface border-r border-outline-variant dark:border-outline">
+<div class="w-64 h-full p-4 flex flex-col justify-between">
+<!-- Brand & Room Header -->
+<div class="">
+<div class="flex items-center justify-between px-2 py-2 mb-6">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold text-lg shadow-sm">
+<span class="material-symbols-outlined text-[20px]">local_cafe</span>
+</div>
+<div>
+<h1 class="text-headline-sm font-headline-sm font-bold text-on-surface dark:text-inverse-on-surface tracking-tight leading-none">DrinkFlow Admin</h1>
+<span class="text-label-sm font-label-sm text-secondary flex items-center gap-1 mt-1">
+Logistics Operations
+</span>
+</div>
+</div>
+<button class="w-8 h-8 flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" title="Collapse Sidebar">
+<span class="material-symbols-outlined text-[20px]">menu_open</span>
+</button>
+</div>
+<!-- Main Navigation Links -->
+<nav class="space-y-1">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="">Dashboard</span>
+</a>
+<!-- Campaigns -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">campaign</span>
+<span class="">Campaigns</span>
+</a>
+<!-- Orders (ACTIVE) -->
+<a class="flex items-center gap-3 px-3 py-2 bg-secondary-container text-on-secondary-container dark:bg-secondary dark:text-on-secondary rounded font-label-md text-label-md border-l-4 border-primary dark:border-inverse-primary" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">local_shipping</span>
+<span class="font-semibold">Orders</span>
+</a>
+<!-- Payments & Debt -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">payments</span>
+<span class="">Payments &amp; Debt</span>
+</a>
+<!-- Users -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="">Users</span>
+</a>
+<!-- Reports -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">assessment</span>
+<span class="">Reports</span>
+</a>
+<!-- Room Settings -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="">Room Settings</span>
+</a>
+</nav>
+</div>
+<!-- Footer Navigation Items -->
+<div class="border-t border-outline-variant pt-3 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:text-on-surface dark:hover:text-inverse-on-surface hover:bg-surface-container-low dark:hover:bg-surface-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">health_and_safety</span>
+<span class="">System Diagnostics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-error hover:bg-error-container/30 rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Top Navigation Bar (Anchored Shared Component) -->
+<header class="docked full-width top border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-inverse-surface z-20">
+<div class="flex justify-between items-center w-full pl-72 pr-6 py-2 h-14"><!-- Left / Global Search Input -->
+<div class="flex items-center gap-4 flex-1 max-w-md">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-2 text-secondary text-[18px]">search</span>
+<input class="w-full h-9 bg-surface-container-low border border-outline-variant rounded-lg pl-9 pr-4 text-body-sm font-body-sm text-on-surface placeholder:text-secondary focus:ring-1 focus:ring-primary focus:border-primary" placeholder="Tìm kiếm đơn hàng, SKU, thành viên, phòng..." type="text">
+</div>
+</div>
+<!-- Right Header Actions -->
+<div class="flex items-center gap-3">
+<!-- Notification Action -->
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors relative" title="Notifications">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full ring-2 ring-white"></span>
+</button>
+<!-- Help Action -->
+<button class="w-8 h-8 flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-colors" title="Support &amp; Docs">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+<!-- Dispatch Action CTA -->
+<button class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-primary text-on-primary hover:bg-primary-container rounded font-label-md text-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+<span class="">Dispatch Action</span>
+</button>
+<div class="h-4 w-px bg-outline-variant mx-1"></div>
+<!-- Admin Profile -->
+<div class="flex items-center gap-2 pl-1 cursor-pointer">
+<div class="w-8 h-8 rounded bg-primary text-on-primary flex items-center justify-center font-semibold text-xs border border-outline-variant">
+LÂ
+</div>
+<div class="hidden lg:block text-left">
+<p class="text-label-sm font-label-sm font-semibold text-on-surface leading-tight">Lâm Admin</p>
+<p class="text-[10px] font-label-sm text-secondary leading-tight">Super Dispatcher</p>
+</div>
+</div>
+</div></div>
+</header>
+<!-- Main Work Area Container -->
+<main class="pl-64 flex-1 flex flex-col bg-background min-h-screen">
+<div class="p-6 max-w-[1600px] w-full mx-auto space-y-6">
+<!-- Navigation Return & Status Identity Bar -->
+<div class="space-y-4">
+<!-- Return Link -->
+<div class="flex items-center justify-between flex-wrap gap-2">
+<nav class="flex items-center gap-1.5 text-label-sm font-label-sm text-secondary overflow-x-auto whitespace-nowrap py-1">
+<a class="hover:text-primary transition-colors" href="#">Admin</a>
+<span class="text-outline-variant">/</span>
+<a class="hover:text-primary transition-colors" href="#">Rooms</a>
+<span class="text-outline-variant">/</span>
+<a class="hover:text-primary transition-colors" href="#">IT Team Operations</a>
+<span class="text-outline-variant">/</span>
+<a class="hover:text-primary transition-colors" href="#">Campaigns</a>
+<span class="text-outline-variant">/</span>
+<a class="hover:text-primary transition-colors" href="#">#CMP-104</a>
+<span class="text-outline-variant">/</span>
+<a class="hover:text-primary transition-colors" href="#">Orders</a>
+<span class="text-outline-variant">/</span>
+<span class="text-primary font-bold">#ORD-881</span>
+</nav>
+<a class="inline-flex items-center gap-1.5 text-label-sm font-label-sm text-secondary hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+<span class="">Quay lại Campaign #CMP-104</span>
+</a>
+</div>
+<!-- Order Identity Header -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm">
+<div class="space-y-2">
+<div class="flex flex-wrap items-center gap-3">
+<h2 class="text-headline-lg font-headline-lg text-on-surface font-bold tracking-tight">
+                Đơn hàng #ORD-881 - Nguyễn Văn A (NV_A01)
+              </h2>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-label-sm font-label-sm bg-red-50 text-red-700 border border-red-200">
+<span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse-dot"></span>
+<span class="">Live Processing</span>
+</span>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-label-sm font-label-sm bg-emerald-50 text-primary border border-emerald-200 font-semibold">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span class="">Paid (VietQR) - 58.000đ</span>
+</span>
+</div>
+<!-- Metadata Row -->
+<div class="flex flex-wrap items-center gap-4 text-label-md font-label-md text-secondary">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline">meeting_room</span>
+<span class="">Phòng: <strong class="text-on-surface">IT Team</strong></span>
+</span>
+<span class="text-outline-variant">•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline">campaign</span>
+<span class="">Chiến dịch: <strong class="text-on-surface">Friday Coffee - Highlands Coffee (#CMP-104)</strong></span>
+</span>
+<span class="text-outline-variant">•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline">schedule</span>
+<span class="">Gửi lúc: <strong class="text-on-surface">10:14 AM, Hôm nay</strong></span>
+</span>
+<span class="text-outline-variant">•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-outline">timer</span>
+<span class="">Giao mục tiêu: <strong class="text-on-surface">11:15 AM</strong></span>
+</span>
+</div>
+</div>
+<!-- Quick Actions Button Group -->
+
+</div>
+<!-- Price Surge Alert Banner -->
+<div class="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-start gap-3">
+<span class="material-symbols-outlined text-amber-700 text-[22px] flex-shrink-0 mt-0.5">warning</span>
+<div class="space-y-1">
+<div class="flex items-center gap-2">
+<h4 class="text-body-md font-body-md font-bold text-amber-900">
+                Chênh lệch giá giao hàng (Delivery App Price Mismatch)
+              </h4>
+<span class="text-label-sm font-label-sm uppercase px-1.5 py-0.2 bg-amber-200/80 text-amber-900 rounded font-semibold">Surge +4.000đ</span>
+</div>
+<p class="text-body-sm font-body-sm text-amber-800 leading-relaxed">
+              Menu Highlands trên Grab/ShopeeFood có phụ phí surge <strong>+4.000đ</strong> trên đồ uống cỡ L so với menu chuẩn nội bộ. Vui lòng cập nhật giá thực tế để tính lại phần tài trợ và công nợ.
+            </p>
+</div>
+</div>
+</div>
+<!-- Main Two-Column Layout -->
+<div class="space-y-6">
+<!-- 1. Full-width Order Items Table Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm w-full">
+<div class="p-4 border-b border-outline-variant flex items-center justify-between bg-surface-bright">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">format_list_bulleted</span>
+<h3 class="text-headline-sm font-headline-sm text-on-surface">Danh sách món &amp; Điều chỉnh giá thực tế</h3>
+</div>
+<span class="text-label-sm font-label-sm text-secondary bg-surface px-2.5 py-1 rounded border border-outline-variant">
+Chế độ nhập giá thực tế: <strong>Highlands Express API / Grab Slip</strong>
+</span>
+</div>
+<!-- High Density Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 border-b border-outline-variant text-label-sm font-label-sm text-secondary uppercase tracking-wider h-9">
+<th class="py-2 px-3 text-center w-12">STT</th>
+<th class="py-2 px-4">Tên món &amp; Tùy chọn (Specs)</th>
+<th class="py-2 px-3">SKU</th>
+<th class="py-2 px-3 text-right">Đơn giá gốc</th>
+<th class="py-2 px-3 text-center w-48">Giá thực tế Grab/Shopee</th>
+<th class="py-2 px-2 text-center w-14">SL</th>
+<th class="py-2 px-4 text-right">Thành tiền mới</th>
+<th class="py-2 px-3 text-center">Chênh lệch</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 text-body-sm font-body-sm">
+<!-- Row 1: Cà phê sữa đá (Surge item) -->
+<tr class="hover:bg-slate-50/80 transition-colors bg-amber-50/20">
+<td class="py-3 px-3 text-center font-label-md text-label-md text-secondary">01</td>
+<td class="py-3 px-4">
+<div class="font-semibold text-on-surface">2x Cà phê sữa đá</div>
+<div class="text-label-sm font-label-sm text-secondary mt-0.5">Size L • Ít ngọt • 50% đá</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700">HL-CF-SDA-L</span>
+</td>
+<td class="py-3 px-3 text-right font-label-md text-label-md text-secondary">
+<div class="">35.000đ</div>
+<div class="text-[10px] text-slate-400">(70.000đ)</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center justify-center gap-1">
+<button class="w-6 h-7 bg-slate-100 hover:bg-slate-200 border border-outline-variant rounded flex items-center justify-center text-secondary text-xs transition-colors" title="Giảm 1.000đ">-</button>
+<div class="relative w-28">
+<input class="w-full text-right font-label-md text-label-md font-semibold text-on-surface bg-white border border-primary focus:ring-1 focus:ring-primary focus:border-primary rounded py-1 px-2 shadow-xs" type="text" value="37.000">
+<span class="absolute right-6 top-1 text-label-xs text-secondary pointer-events-none hidden">đ</span>
+</div>
+<button class="w-6 h-7 bg-slate-100 hover:bg-slate-200 border border-outline-variant rounded flex items-center justify-center text-secondary text-xs transition-colors" title="Tăng 1.000đ">+</button>
+</div>
+<div class="text-center mt-1">
+<span class="text-[10px] font-label-sm text-amber-700 font-semibold bg-amber-100 px-1 py-0.2 rounded">+2.000đ/ly (+4.000đ)</span>
+</div>
+</td>
+<td class="py-3 px-2 text-center font-label-md text-label-md font-semibold">2</td>
+<td class="py-3 px-4 text-right font-label-md text-label-md font-bold text-on-surface">
+                      74.000đ
+                    </td>
+<td class="py-3 px-3 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm font-semibold bg-red-50 text-red-700 border border-red-200">
+                        +4.000đ
+                      </span>
+</td>
+</tr>
+<!-- Row 2: Bánh mì que phô mai (No change) -->
+<tr class="hover:bg-slate-50/80 transition-colors">
+<td class="py-3 px-3 text-center font-label-md text-label-md text-secondary">02</td>
+<td class="py-3 px-4">
+<div class="font-semibold text-on-surface">1x Bánh mì que phô mai</div>
+<div class="text-label-sm font-label-sm text-secondary mt-0.5">Topping nướng nóng giòn</div>
+</td>
+<td class="py-3 px-3">
+<span class="font-label-sm text-label-sm px-1.5 py-0.5 bg-slate-100 border border-slate-200 rounded text-slate-700">HL-BM-PM01</span>
+</td>
+<td class="py-3 px-3 text-right font-label-md text-label-md text-secondary">
+<div class="">19.000đ</div>
+</td>
+<td class="py-3 px-3">
+<div class="flex items-center justify-center gap-1">
+<button class="w-6 h-7 bg-slate-100 hover:bg-slate-200 border border-outline-variant rounded flex items-center justify-center text-secondary text-xs transition-colors" title="Giảm 1.000đ">-</button>
+<div class="relative w-28">
+<input class="w-full text-right font-label-md text-label-md text-on-surface bg-white border border-outline-variant focus:ring-1 focus:ring-primary focus:border-primary rounded py-1 px-2 shadow-xs" type="text" value="19.000">
+</div>
+<button class="w-6 h-7 bg-slate-100 hover:bg-slate-200 border border-outline-variant rounded flex items-center justify-center text-secondary text-xs transition-colors" title="Tăng 1.000đ">+</button>
+</div>
+<div class="text-center mt-1">
+<span class="text-[10px] font-label-sm text-secondary">0đ (Khớp giá)</span>
+</div>
+</td>
+<td class="py-3 px-2 text-center font-label-md text-label-md font-semibold">1</td>
+<td class="py-3 px-4 text-right font-label-md text-label-md font-bold text-on-surface">
+                      19.000đ
+                    </td>
+<td class="py-3 px-3 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-slate-100 text-slate-600 border border-slate-200">
+                        Khớp giá
+                      </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Subtotal Bar -->
+<div class="bg-slate-50 border-t border-outline-variant px-5 py-3 flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-2 text-label-sm font-label-sm text-secondary">
+<span class="material-symbols-outlined text-[16px]">info</span>
+<span class="">Hệ thống tự động đồng bộ chênh lệch giá theo từng dòng sản phẩm.</span>
+</div>
+<div class="flex items-center gap-6 font-label-md text-label-md">
+<div class="text-secondary">
+                  Giá gốc ban đầu: <strong class="text-on-surface">89.000đ</strong>
+</div>
+<span class="text-outline-variant">→</span>
+<div class="text-on-surface font-semibold">
+                  Giá thực tế giao hàng: <strong class="text-primary text-base">93.000đ</strong>
+<span class="text-error font-semibold text-xs ml-1">(+4.000đ)</span>
+</div>
+</div>
+</div>
+</div>
+
+<!-- 2. Side-by-side Grid: Căn cứ & Ngữ cảnh vs Lịch Sử Chỉnh Giá Đơn Hàng -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+<!-- Left Card: Căn cứ & Ngữ cảnh Điều Chỉnh Giá -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm space-y-4 h-full flex flex-col justify-between">
+<div class="space-y-4">
+<div class="flex items-center gap-2 pb-3 border-b border-outline-variant">
+<span class="material-symbols-outlined text-primary text-[20px]">assignment</span>
+<h3 class="text-headline-sm font-headline-sm text-on-surface">Căn cứ &amp; Ngữ cảnh Điều Chỉnh Giá</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Reason Dropdown -->
+<div class="space-y-1.5">
+<label class="block text-label-sm font-label-sm font-semibold text-on-surface">
+                  Lý do điều chỉnh giá (Adjustment Reason) <span class="text-error">*</span>
+</label>
+<div class="relative">
+<select class="w-full h-9 bg-white border border-outline-variant rounded px-3 py-1 text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary">
+<option selected="">Giá GrabFood/ShopeeFood tăng vào giờ cao điểm (Surge Price)</option>
+<option>Thay đổi size/topping theo thỏa thuận khách</option>
+<option>Phụ phí giao hàng/đóng gói phát sinh</option>
+<option>Khác (Ghi chú chi tiết)</option>
+</select>
+</div>
+</div>
+<!-- Delivery Reference Attachment / Slip ID -->
+<div class="space-y-1.5">
+<label class="block text-label-sm font-label-sm font-semibold text-on-surface">
+                  Mã tham chiếu đơn giao hàng (Delivery Slip ID)
+                </label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-2.5 text-secondary text-[18px]">receipt</span>
+<input class="w-full h-9 bg-white border border-outline-variant rounded pl-9 pr-24 text-label-md font-label-md font-semibold text-on-surface focus:ring-1 focus:ring-primary focus:border-primary uppercase" type="text" value="GRAB-8921-X9">
+<span class="absolute right-2 inline-flex items-center gap-1 text-[11px] font-label-sm text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                    Verified
+                  </span>
+</div>
+</div>
+</div>
+<!-- Custom Explanation Note -->
+<div class="space-y-1.5">
+<label class="block text-label-sm font-label-sm font-semibold text-on-surface">
+                Ghi chú điều chỉnh chi tiết (Auditor Audit Note)
+              </label>
+<textarea class="w-full bg-white border border-outline-variant rounded p-2.5 text-body-sm font-body-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary resize-none" rows="2">Giá thực tế trên GrabFood tăng 2.000đ/ly cà phê sữa đá cỡ L vào khung giờ 10:00 - 11:00. Đã chụp màn hình xác thực đơn vận chuyển.</textarea>
+</div>
+</div>
+<!-- Notification & Ledger Checkboxes -->
+<div class="pt-3 border-t border-outline-variant/60 space-y-2.5">
+<label class="flex items-start gap-2.5 cursor-pointer">
+<input checked="" class="mt-0.5 h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox">
+<span class="text-body-sm font-body-sm text-on-surface">
+                  Gửi thông báo cập nhật qua <strong>Slack bot (#room-it-orders)</strong> cho Nguyễn Văn A kèm chi tiết chênh lệch.
+                </span>
+</label>
+<label class="flex items-start gap-2.5 cursor-pointer">
+<input checked="" class="mt-0.5 h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary" type="checkbox">
+<span class="text-body-sm font-body-sm text-on-surface">
+                  Tự động ghi nhận khoản chênh lệch phát sinh vào <strong>Sổ nợ phòng (Room Debt Ledger)</strong> nếu thiếu hụt sau tính toán.
+                </span>
+</label>
+</div>
+</div>
+
+<!-- Right Card: Lịch Sử Chỉnh Giá Đơn Hàng & Ledger Integrity -->
+<div class="space-y-4">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+<div class="p-4 border-b border-outline-variant bg-surface-bright flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">history</span>
+<h3 class="text-headline-sm font-headline-sm text-on-surface">Lịch Sử Chỉnh Giá Đơn Hàng</h3>
+</div>
+<span class="text-label-sm font-label-sm text-secondary">2 Sự kiện</span>
+</div>
+<div class="p-4">
+<div class="relative pl-6 space-y-5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-outline-variant/60">
+<!-- Event 1: Recent Adjustment -->
+<div class="relative">
+<span class="absolute -left-6 top-1 w-3.5 h-3.5 rounded-full bg-primary ring-4 ring-emerald-100 flex items-center justify-center"></span>
+<div class="text-label-sm font-label-sm text-secondary flex items-center gap-2">
+<span class="font-bold text-on-surface">10:18 AM</span>
+<span class="text-outline-variant">•</span>
+<span class="text-primary font-semibold">Lâm Admin</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface mt-1">
+                    Điều chỉnh <strong class="text-on-surface">Cà phê sữa đá L</strong>: 35.000đ → <span class="text-error font-bold">37.000đ</span>
+</div>
+<div class="text-label-sm font-label-sm text-secondary mt-1 bg-slate-50 p-2 rounded border border-slate-100 italic">
+                    "GrabFood surge price tại khu vực Quận 1 (+2.000đ/ly)"
+                  </div>
+</div>
+<!-- Event 2: Order Created -->
+<div class="relative">
+<span class="absolute -left-6 top-1 w-3.5 h-3.5 rounded-full bg-slate-400 ring-4 ring-slate-100 flex items-center justify-center"></span>
+<div class="text-label-sm font-label-sm text-secondary flex items-center gap-2">
+<span class="font-bold text-on-surface">10:14 AM</span>
+<span class="text-outline-variant">•</span>
+<span class="text-on-surface font-semibold">Nguyễn Văn A</span>
+</div>
+<div class="text-body-sm font-body-sm text-on-surface mt-1">
+                    Gửi đơn hàng thành công qua Bot DrinkFlow (Hệ thống tạo đơn <span class="font-label-sm font-bold text-primary">#ORD-881</span>).
+                  </div>
+<div class="text-label-sm font-label-sm text-emerald-700 mt-1 flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[14px]">qr_code_2</span>
+                    VietQR đã nhận 71.200đ
+                  </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Micro-Widget: Ledger Integrity -->
+<div class="border border-outline-variant rounded-xl p-3.5 bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-[18px]">verified_user</span>
+<div>
+<p class="text-label-sm font-label-sm font-semibold text-on-surface leading-tight">Ledger Integrity: Synchronized</p>
+<p class="text-[10px] font-label-sm text-secondary leading-tight">Audit checksum #8912-A-OK</p>
+</div>
+</div>
+<span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+</div>
+</div>
+</div>
+
+<!-- 3. Full-width Action Footer -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm w-full">
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-secondary">
+<span class="material-symbols-outlined text-primary text-[20px]">sync</span>
+<span class="">Nhấn lưu sẽ kích hoạt tính lại hạn mức tài trợ 20% của Nguyễn Văn A &amp; Trần Văn B, cập nhật phần bù chênh lệch.</span>
+</div>
+<div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+<button class="px-4 py-2 border border-outline-variant bg-white text-on-surface hover:bg-slate-50 rounded font-label-md text-label-md transition-colors whitespace-nowrap">
+                Khôi phục giá gốc
+              </button>
+<button class="px-5 py-2 bg-primary hover:bg-primary-container text-on-primary rounded font-label-md text-label-md font-semibold transition-all shadow-sm flex items-center gap-2 whitespace-nowrap active:scale-[0.99]">
+<span class="material-symbols-outlined text-[18px]">calculate</span>
+<span class="">Tính toán lại &amp; Lưu thay đổi</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+
+</body></html>

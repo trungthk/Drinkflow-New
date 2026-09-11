@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DrinkFlow - Nền tảng đặt đồ uống &amp; quản lý campaign nội bộ doanh nghiệp</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-tertiary-fixed": "#131b2e",
+            "surface-container-low": "#eff4ff",
+            "on-background": "#0b1c30",
+            "background": "#f8f9ff",
+            "primary": "#006948",
+            "surface-variant": "#d3e4fe",
+            "inverse-surface": "#213145",
+            "surface-tint": "#006c4a",
+            "secondary-fixed-dim": "#4edea3",
+            "secondary-fixed": "#6ffbbe",
+            "surface-container-high": "#dce9ff",
+            "primary-fixed-dim": "#68dba9",
+            "on-surface": "#0b1c30",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-highest": "#d3e4fe",
+            "on-error-container": "#93000a",
+            "tertiary": "#545c72",
+            "surface": "#f8f9ff",
+            "inverse-primary": "#68dba9",
+            "tertiary-fixed": "#dae2fd",
+            "secondary-container": "#6cf8bb",
+            "on-primary-fixed-variant": "#005137",
+            "on-tertiary": "#ffffff",
+            "on-primary-container": "#f5fff7",
+            "surface-dim": "#cbdbf5",
+            "primary-container": "#00855d",
+            "secondary": "#006c49",
+            "error-container": "#ffdad6",
+            "inverse-on-surface": "#eaf1ff",
+            "outline": "#6d7a72",
+            "on-primary": "#ffffff",
+            "on-secondary-fixed": "#002113",
+            "tertiary-container": "#6c748b",
+            "outline-variant": "#bccac0",
+            "surface-container": "#e5eeff",
+            "surface-bright": "#f8f9ff",
+            "on-tertiary-container": "#fefcff",
+            "on-secondary": "#ffffff",
+            "tertiary-fixed-dim": "#bec6e0",
+            "on-secondary-fixed-variant": "#005236",
+            "on-secondary-container": "#00714d",
+            "on-tertiary-fixed-variant": "#3f465c",
+            "error": "#ba1a1a",
+            "on-primary-fixed": "#002114",
+            "on-error": "#ffffff",
+            "primary-fixed": "#85f8c4",
+            "on-surface-variant": "#3d4a42"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-xl": "3rem",
+            "space-xs": "0.5rem",
+            "space-lg": "2rem",
+            "space-sm": "1rem",
+            "space-2xl": "4rem",
+            "gutter": "1.5rem",
+            "margin": "1.5rem",
+            "space-md": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-lg": ["Inter"],
+            "caption": ["Inter"],
+            "headline-sm": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-xl": ["Inter"],
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "label-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "caption": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "600" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0", "fontWeight": "400" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#F8FAFC] text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-secondary-container selection:text-on-secondary-container">
+<!-- TOP NAVBAR (Shared Component) -->
+<header class="bg-surface-container-lowest border-b border-outline-variant/50 sticky top-0 z-40">
+<div class="w-full max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
+<!-- Brand Logo -->
+<div class="flex items-center gap-8">
+<a class="text-headline-md font-headline-md font-semibold text-on-surface flex items-center gap-2 tracking-tight" href="#">
+<span class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="local_cafe">local_cafe</span>
+</span>
+<span class="">DrinkFlow</span>
+</a>
+<!-- Desktop Navigation Links -->
+<nav class="hidden md:flex items-center gap-6 pt-3">
+<a class="text-primary border-b-2 border-primary pb-3 font-medium text-label-md font-label-md" href="#about">Giới thiệu</a>
+<a class="text-tertiary hover:text-on-surface pb-3 transition-colors text-label-md font-label-md" href="#terms">Điều khoản</a>
+<a class="text-tertiary hover:text-on-surface pb-3 transition-colors text-label-md font-label-md" href="#version">Phiên bản</a>
+</nav>
+</div>
+<!-- Trailing Actions Cluster -->
+<div class="flex items-center gap-3">
+<!-- Language Selector -->
+<button class="flex items-center gap-1.5 px-2.5 py-1.5 rounded text-body-sm font-label-md text-tertiary hover:bg-surface-container transition-colors duration-150 border border-transparent hover:border-outline-variant">
+<span class="text-xs">🇻🇳</span>
+<span class="font-medium text-on-surface">VN</span>
+<span class="material-symbols-outlined text-[16px] text-tertiary" data-icon="arrow_drop_down">arrow_drop_down</span>
+</button>
+<div class="h-4 w-px bg-outline-variant/60 mx-1"></div>
+<!-- Primary CTA Button -->
+<button class="btn-google-sso bg-[#059669] hover:bg-[#047857] text-white text-label-md font-label-md font-medium px-4 py-2 rounded-[6px] transition-transform active:scale-[0.98] duration-100 flex items-center gap-1.5 shadow-sm">
+<span class="">Bắt đầu sử dụng</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</header>
+<!-- MAIN CANVAS -->
+<main class="flex-1 w-full max-w-[1200px] mx-auto px-6 py-10 flex flex-col gap-16">
+<!-- HERO SECTION -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center pt-4 pb-6">
+<div class="lg:col-span-7 flex flex-col items-start gap-5">
+<!-- Pill Badge -->
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container border border-outline-variant/40 text-on-surface font-caption text-caption">
+<span class="flex h-2 w-2 rounded-full bg-[#059669]"></span>
+<span class="">🚀 Phiên bản nội bộ v2.3.0 đã sẵn sàng</span>
+</div>
+<!-- Headline -->
+<h1 class="font-headline-xl text-[40px] leading-[48px] font-bold text-[#0F172A] tracking-tight">
+          DrinkFlow — Order nhanh hơn. Quản lý campaign dễ hơn. Chia bill rõ ràng hơn.
+        </h1>
+<!-- Subtitle -->
+<p class="font-body-lg text-body-lg text-[#475569] max-w-xl leading-relaxed">
+          DrinkFlow giúp các team tổ chức những phiên đặt đồ uống, đồ ăn hoặc các chương trình tài trợ nội bộ nhanh chóng, minh bạch và thuận tiện.
+        </p>
+<!-- CTA Buttons -->
+<div class="flex flex-wrap items-center gap-3 pt-2">
+<button class="btn-google-sso bg-[#059669] hover:bg-[#047857] text-white text-label-md font-label-md font-medium px-5 py-2.5 rounded-[6px] transition-transform active:scale-[0.98] duration-100 shadow-sm flex items-center gap-2">
+<span class="">Bắt đầu sử dụng</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="login">login</span>
+</button>
+<a class="bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#0F172A] text-label-md font-label-md font-medium px-5 py-2.5 rounded-[6px] transition-colors flex items-center gap-2" href="#how-it-works">
+<span class="material-symbols-outlined text-[18px] text-tertiary" data-icon="play_circle">play_circle</span>
+<span class="">Xem cách hoạt động</span>
+</a>
+</div>
+<!-- Enterprise Trust Indicators -->
+<div class="flex items-center gap-6 pt-4 text-tertiary text-caption font-caption">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="verified_user">verified_user</span>
+<span class="">Google Workspace OAuth</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="qr_code_2">qr_code_2</span>
+<span class="">Chuẩn VietQR liên ngân hàng</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="bolt">bolt</span>
+<span class="">Realtime Socket Sync</span>
+</div>
+</div>
+</div>
+<!-- Mock Order Session Card (Level 1 Surface) -->
+<div class="lg:col-span-5 rounded-xl overflow-hidden border border-[#E2E8F0] shadow-sm bg-white relative aspect-[4/3] flex items-center justify-center"><img alt="Văn phòng thưởng thức đồ uống cùng đồng nghiệp DrinkFlow" class="w-full h-full object-cover object-center" src="https://lh3.googleusercontent.com/aida/AEtjO1UYa1wUbFrqUy3xqM74LNwVzTqN_RTZnwddr5eniE006aUZd9hwgQ4oZQ1VRkQzFfnpPckIQ1ztNNTYzyzy60MFB49JKopEiFjyUl51OGeAvL3KINx8fHZBZaRGw0pymm8tk3JUuijbkGMm6QQY_G7CdZEd1RtcsMqTKGoRRY0DAYTh3DAqEtc9PA9iXB_Y2yTVmbmA-vsUwYLuUynt9ujrknkzCOtDmor-vg-0ZShhPQn5pq-pK-WLLIyn"/></div>
+</section>
+<!-- SECTION: PROBLEM VS SOLUTION (12-Column Grid / 2 Col Cards) -->
+<section class="border-t border-[#E2E8F0] pt-12">
+<div class="text-center max-w-2xl mx-auto mb-10">
+<span class="text-primary font-label-md text-label-md uppercase tracking-wider font-semibold">Tối ưu hoá vận hành nội bộ</span>
+<h2 class="font-headline-lg text-headline-lg text-[#0F172A] mt-1 font-bold">Vấn đề truyền thống vs Giải pháp DrinkFlow</h2>
+<p class="text-tertiary text-body-md font-body-md mt-2">Chấm dứt sự hỗn loạn của việc tổng hợp order qua group chat và chuyển khoản lộn xộn mỗi buổi chiều.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<!-- Card: Vấn đề truyền thống -->
+<div class="bg-white border border-[#FEE2E2] rounded-lg p-6 shadow-sm">
+<div class="flex items-center gap-2 pb-4 mb-4 border-b border-[#FEE2E2]">
+<span class="w-8 h-8 rounded-full bg-[#FEF2F2] flex items-center justify-center text-error font-bold text-sm">✕</span>
+<div>
+<h3 class="text-headline-sm font-headline-sm text-[#0F172A]">Vấn đề truyền thống</h3>
+<p class="text-caption font-caption text-tertiary">Đặt món qua Chat &amp; Google Sheets</p>
+</div>
+</div>
+<ul class="space-y-4">
+<li class="flex items-start gap-3">
+<span class="text-error font-bold mt-0.5">❌</span>
+<span class="text-body-md font-body-md text-[#334155]">Order thủ công qua chat/sheet dễ sót món, lộn topping, nhầm người đặt.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="text-error font-bold mt-0.5">❌</span>
+<span class="text-body-md font-body-md text-[#334155]">Chuyển khoản riêng lẻ, khó đối soát ai đã trả tiền, ai chưa chuyển.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="text-error font-bold mt-0.5">❌</span>
+<span class="text-body-md font-body-md text-[#334155]">Host phải ứng trước tiền và tự tính chia bill, cộng trừ phí ship phức tạp.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="text-error font-bold mt-0.5">❌</span>
+<span class="text-body-md font-body-md text-[#334155]">Không kiểm soát được ngân sách tài trợ của công ty hoặc quỹ team theo quý.</span>
+</li>
+</ul>
+</div>
+<!-- Card: Giải pháp DrinkFlow -->
+<div class="bg-white border border-primary/30 rounded-lg p-6 shadow-sm">
+<div class="flex items-center gap-2 pb-4 mb-4 border-b border-outline-variant/40">
+<span class="w-8 h-8 rounded-full bg-[#ECFDF5] flex items-center justify-center text-[#059669] font-bold text-sm">✓</span>
+<div>
+<h3 class="text-headline-sm font-headline-sm text-primary">Giải pháp DrinkFlow</h3>
+<p class="text-caption font-caption text-tertiary">Nền tảng tự động hoá thông minh</p>
+</div>
+</div>
+<ul class="space-y-4">
+<li class="flex items-start gap-3">
+<span class="text-[#059669] font-bold mt-0.5">✅</span>
+<span class="text-body-md font-body-md text-[#0F172A] font-medium">Menu trực quan, mỗi người tự chọn món trong room riêng với tuỳ chọn chi tiết.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="text-[#059669] font-bold mt-0.5">✅</span>
+<span class="text-body-md font-body-md text-[#0F172A] font-medium">Tự động tạo VietQR kèm nội dung chuẩn, đối soát tức thì qua biến động số dư.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="text-[#059669] font-bold mt-0.5">✅</span>
+<span class="text-body-md font-body-md text-[#0F172A] font-medium">Hệ thống tự chia bill chuẩn từng hào, tách tiền ship công bằng và hiển thị minh bạch.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="text-[#059669] font-bold mt-0.5">✅</span>
+<span class="text-body-md font-body-md text-[#0F172A] font-medium">Quản lý ngân sách tài trợ (Sponsor) theo từng chiến dịch rõ ràng, báo cáo tự động.</span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- SECTION: KEY BENEFITS (4 Columns) -->
+<section class="border-t border-[#E2E8F0] pt-12">
+<div class="mb-8">
+<h2 class="font-headline-lg text-headline-lg text-[#0F172A] font-bold">Lợi ích cốt lõi cho văn phòng hiện đại</h2>
+<p class="text-tertiary text-body-md font-body-md mt-1">Được thiết kế tỉ mỉ để tối giản từng giây thao tác của cả Host lẫn Member.</p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Benefit 1 -->
+<div class="bg-white border border-[#E2E8F0] rounded-lg p-5 shadow-sm hover:border-primary/50 transition-colors">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary mb-3">
+<span class="material-symbols-outlined text-[24px]" data-icon="touch_app">touch_app</span>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface mb-2">Order siêu tốc &amp; Tự chọn món</h3>
+<p class="text-body-sm font-body-sm text-tertiary">Giao diện menu rõ ràng, chọn độ ngọt, lượng đá, topping tuỳ ý mà không cần ghi chép dài dòng.</p>
+</div>
+<!-- Benefit 2 -->
+<div class="bg-white border border-[#E2E8F0] rounded-lg p-5 shadow-sm hover:border-primary/50 transition-colors">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary mb-3">
+<span class="material-symbols-outlined text-[24px]" data-icon="fact_check">fact_check</span>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface mb-2">Không trùng lặp, Không sót đơn</h3>
+<p class="text-body-sm font-body-sm text-tertiary">Kiểm tra tự động giỏ hàng cá nhân theo email Google nội bộ, loại bỏ hoàn toàn đơn hàng ảo.</p>
+</div>
+<!-- Benefit 3 -->
+<div class="bg-white border border-[#E2E8F0] rounded-lg p-5 shadow-sm hover:border-primary/50 transition-colors">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary mb-3">
+<span class="material-symbols-outlined text-[24px]" data-icon="sync">sync</span>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface mb-2">Theo dõi realtime qua Socket.IO</h3>
+<p class="text-body-sm font-body-sm text-tertiary">Cập nhật trạng thái chốt đơn, đặt hàng, shipper giao tới ngay lập tức trên màn hình mọi thành viên.</p>
+</div>
+<!-- Benefit 4 -->
+<div class="bg-white border border-[#E2E8F0] rounded-lg p-5 shadow-sm hover:border-primary/50 transition-colors">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary mb-3">
+<span class="material-symbols-outlined text-[24px]" data-icon="payments">payments</span>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface mb-2">Thanh toán &amp; Chia bill minh bạch</h3>
+<p class="text-body-sm font-body-sm text-tertiary">Quét VietQR một chạm, tự động phân bổ phí ship công bằng, không ai phải chịu thiệt.</p>
+</div>
+</div>
+</section>
+<!-- SECTION: FEATURE OVERVIEW (3x2 Grid) -->
+<section class="border-t border-[#E2E8F0] pt-12">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+<div>
+<span class="text-primary font-label-md text-label-md uppercase tracking-wider font-semibold">Tính năng chuyên sâu</span>
+<h2 class="font-headline-lg text-headline-lg text-[#0F172A] font-bold mt-1">Toàn bộ công cụ quản trị chiến dịch trong 1 chỗ</h2>
+</div>
+<span class="text-body-sm font-body-sm text-tertiary">Khung chức năng tiêu chuẩn v2.3</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Feature 1 -->
+<div class="bg-white border border-[#E2E8F0] rounded-[8px] p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary text-[24px]" data-icon="campaign">campaign</span>
+<h3 class="font-headline-sm text-headline-sm text-[#0F172A]">Campaign Order</h3>
+</div>
+<p class="text-body-sm font-body-sm text-tertiary leading-relaxed">Thiết lập hạn chót, danh sách quán và quy định đặt món cho từng team hoặc toàn công ty.</p>
+</div>
+<!-- Feature 2 -->
+<div class="bg-white border border-[#E2E8F0] rounded-[8px] p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary text-[24px]" data-icon="manage_search">manage_search</span>
+<h3 class="font-headline-sm text-headline-sm text-[#0F172A]">Smart Search &amp; Filter</h3>
+</div>
+<p class="text-body-sm font-body-sm text-tertiary leading-relaxed">Tìm kiếm trà sữa, cà phê theo danh mục, mức giá và topping với bộ lọc cực nhanh.</p>
+</div>
+<!-- Feature 3 -->
+<div class="bg-white border border-[#E2E8F0] rounded-[8px] p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary text-[24px]" data-icon="sensors">sensors</span>
+<h3 class="font-headline-sm text-headline-sm text-[#0F172A]">Realtime Live Updates</h3>
+</div>
+<p class="text-body-sm font-body-sm text-tertiary leading-relaxed">Thông báo ngay khi chủ phòng gửi đơn quán qua Socket.IO mà không cần tải lại trang.</p>
+</div>
+<!-- Feature 4 -->
+<div class="bg-white border border-[#E2E8F0] rounded-[8px] p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary text-[24px]" data-icon="qr_code_scanner">qr_code_scanner</span>
+<h3 class="font-headline-sm text-headline-sm text-[#0F172A]">Tích hợp VietQR</h3>
+</div>
+<p class="text-body-sm font-body-sm text-tertiary leading-relaxed">Tạo mã QR thanh toán cá nhân hoá, tự động đối soát giao dịch ngân hàng theo cú pháp chuẩn.</p>
+</div>
+<!-- Feature 5 -->
+<div class="bg-white border border-[#E2E8F0] rounded-[8px] p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary text-[24px]" data-icon="account_balance_wallet">account_balance_wallet</span>
+<h3 class="font-headline-sm text-headline-sm text-[#0F172A]">Sponsor &amp; Budget Control</h3>
+</div>
+<p class="text-body-sm font-body-sm text-tertiary leading-relaxed">Phân bổ tiền tài trợ công ty chính xác tới từng thành viên, trừ trực tiếp trên hoá đơn.</p>
+</div>
+<!-- Feature 6 -->
+<div class="bg-white border border-[#E2E8F0] rounded-[8px] p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-3">
+<span class="material-symbols-outlined text-primary text-[24px]" data-icon="meeting_room">meeting_room</span>
+<h3 class="font-headline-sm text-headline-sm text-[#0F172A]">Multi-room Management</h3>
+</div>
+<p class="text-body-sm font-body-sm text-tertiary leading-relaxed">Chạy song song nhiều phòng đặt cho các phòng ban khác nhau trên cùng một workspace.</p>
+</div>
+</div>
+</section>
+<!-- SECTION: HOW IT WORKS (Horizontal 4-Step Chain) -->
+<section class="border-t border-[#E2E8F0] pt-12" id="how-it-works">
+<div class="mb-10 text-center max-w-xl mx-auto">
+<h2 class="font-headline-lg text-headline-lg text-[#0F172A] font-bold">Quy trình đặt đơn 4 bước đơn giản</h2>
+<p class="text-tertiary text-body-md font-body-md mt-1">Từ lúc khởi tạo đến lúc đồ uống được giao đến bàn làm việc.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
+<!-- Step 1 -->
+<div class="bg-white border border-[#E2E8F0] rounded-lg p-5 relative flex flex-col justify-between">
+<div>
+<span class="font-mono text-xs font-bold text-primary bg-[#ECFDF5] px-2 py-0.5 rounded">BƯỚC 01</span>
+<h3 class="text-headline-sm font-headline-sm text-on-surface mt-3 mb-1">Truy cập Room</h3>
+<p class="text-body-sm font-body-sm text-tertiary">Quét mã QR tại bảng tin văn phòng hoặc nhấp vào link phòng được Host chia sẻ qua Slack/Teams.</p>
+</div>
+<div class="pt-4 flex items-center text-caption font-caption text-primary">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="link">link</span> Liên kết nhanh
+          </div>
+</div>
+<!-- Step 2 -->
+<div class="bg-white border border-[#E2E8F0] rounded-lg p-5 relative flex flex-col justify-between">
+<div>
+<span class="font-mono text-xs font-bold text-primary bg-[#ECFDF5] px-2 py-0.5 rounded">BƯỚC 02</span>
+<h3 class="text-headline-sm font-headline-sm text-on-surface mt-3 mb-1">Xác thực email công ty</h3>
+<p class="text-body-sm font-body-sm text-tertiary">Đăng nhập bảo mật qua Google Workspace OAuth (@company.com) chỉ với một cú nhấp chuột.</p>
+</div>
+<div class="pt-4 flex items-center text-caption font-caption text-primary">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="lock">lock</span> Xác thực bảo mật
+          </div>
+</div>
+<!-- Step 3 -->
+<div class="bg-white border border-[#E2E8F0] rounded-lg p-5 relative flex flex-col justify-between">
+<div>
+<span class="font-mono text-xs font-bold text-primary bg-[#ECFDF5] px-2 py-0.5 rounded">BƯỚC 03</span>
+<h3 class="text-headline-sm font-headline-sm text-on-surface mt-3 mb-1">Chọn món &amp; đặt Order</h3>
+<p class="text-body-sm font-body-sm text-tertiary">Tự do chọn loại nước, lượng đá/đường, thêm topping và bổ sung ghi chú riêng cho quán.</p>
+</div>
+<div class="pt-4 flex items-center text-caption font-caption text-primary">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="check_circle">check_circle</span> Tự động lưu
+          </div>
+</div>
+<!-- Step 4 -->
+<div class="bg-white border border-[#E2E8F0] rounded-lg p-5 relative flex flex-col justify-between">
+<div>
+<span class="font-mono text-xs font-bold text-primary bg-[#ECFDF5] px-2 py-0.5 rounded">BƯỚC 04</span>
+<h3 class="text-headline-sm font-headline-sm text-on-surface mt-3 mb-1">Theo dõi &amp; Thanh toán</h3>
+<p class="text-body-sm font-body-sm text-tertiary">Quét VietQR trả tiền theo số tài khoản chủ phòng và nhận thông báo khi shipper giao đến sảnh.</p>
+</div>
+<div class="pt-4 flex items-center text-caption font-caption text-primary">
+<span class="material-symbols-outlined text-[16px] mr-1" data-icon="done_all">done_all</span> Hoàn tất phiên
+          </div>
+</div>
+</div>
+</section>
+<!-- SECTION: GOOGLE SINGLE SIGN-ON HIGHLIGHT BOX -->
+<section class="bg-white border border-[#E2E8F0] rounded-xl p-8 shadow-sm">
+<div class="flex flex-col md:flex-row items-start md:items-center gap-6">
+<div class="w-14 h-14 rounded-xl bg-surface-container flex items-center justify-center flex-shrink-0 border border-outline-variant/50">
+<span class="material-symbols-outlined text-[32px] text-primary" data-icon="shield">shield</span>
+</div>
+<div class="flex-1 space-y-1">
+<div class="flex items-center gap-2">
+<span class="bg-[#ECFDF5] text-[#065F46] text-caption font-caption px-2 py-0.5 rounded font-medium">Bảo mật chuẩn Enterprise</span>
+<span class="text-tertiary text-caption font-caption">SAML &amp; OAuth 2.0</span>
+</div>
+<h3 class="text-headline-md font-headline-md font-bold text-[#0F172A]">Bảo mật tài khoản doanh nghiệp với Google OAuth</h3>
+<p class="text-body-md font-body-md text-tertiary max-w-3xl">
+            Xác thực trực tiếp qua tài khoản Google Workspace công ty (<span class="font-mono text-xs bg-surface-container px-1 py-0.5 rounded">@company.com</span>), không bao giờ lưu trữ mật khẩu cá nhân. Hệ thống tự động phân quyền phòng ban và đồng bộ danh bạ nội bộ an toàn.
+          </p>
+</div>
+<div class="flex-shrink-0">
+<button class="btn-google-sso bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] text-on-surface font-label-md text-label-md px-4 py-2.5 rounded-[6px] flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-[18px] text-[#059669]" data-icon="domain">domain</span>
+<span class="">Kết nối Workspace</span>
+</button>
+</div>
+</div>
+</section>
+<!-- SECTION: FINAL HIGH-CONTRAST CTA SECTION -->
+<section class="bg-primary text-white rounded-xl p-10 md:p-12 text-center flex flex-col items-center justify-center shadow-sm">
+<div class="max-w-2xl mx-auto space-y-4">
+<span class="text-secondary-fixed font-mono text-xs uppercase tracking-widest font-semibold">Tự động hoá đặt nước văn phòng</span>
+<h2 class="text-headline-xl font-headline-xl font-bold text-white tracking-tight">Sẵn sàng đặt món cùng team?</h2>
+<p class="text-primary-fixed-dim text-body-lg font-body-lg">
+          Bắt đầu tạo chiến dịch đặt đồ uống đầu tiên cho phòng ban của bạn chỉ trong 30 giây mà không cần cài đặt phức tạp.
+        </p>
+<div class="pt-4 flex flex-wrap items-center justify-center gap-4">
+<button class="btn-google-sso bg-white hover:bg-[#F8FAFC] text-[#006948] font-label-md text-label-md font-semibold px-6 py-3 rounded-[6px] shadow transition-transform active:scale-[0.98] duration-100 flex items-center gap-2">
+<span class="">Bắt đầu sử dụng DrinkFlow</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<a class="border border-white/40 hover:bg-white/10 text-white font-label-md text-label-md font-medium px-5 py-3 rounded-[6px] transition-colors" href="#about">
+<span class="">Đọc tài liệu quản trị</span>
+</a>
+</div>
+</div>
+</section>
+</main>
+<!-- FOOTER (Shared Component) -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant/60 mt-16">
+<div class="w-full max-w-[1200px] mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+<!-- Brand & Version & Copyright -->
+<div class="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+<span class="text-headline-sm font-headline-sm font-semibold text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="local_cafe">local_cafe</span>
+          DrinkFlow
+        </span>
+<span class="hidden sm:inline text-outline-variant">|</span>
+<span class="text-body-sm font-body-sm text-tertiary">
+          © 2026 DrinkFlow Enterprise. Nền tảng đặt đồ uống nội bộ doanh nghiệp.
+        </span>
+<span class="font-mono text-caption text-primary bg-surface-container px-2 py-0.5 rounded">Phiên bản v2.3.0</span>
+</div>
+<!-- Footer Navigation Links -->
+<nav class="flex flex-wrap items-center justify-center gap-6 text-label-sm font-label-sm">
+<a class="text-tertiary hover:text-primary transition-colors duration-150" href="#about">Giới thiệu</a>
+<a class="text-tertiary hover:text-primary transition-colors duration-150" href="#terms">Điều khoản vận hành</a>
+<a class="text-tertiary hover:text-primary transition-colors duration-150" href="#version">Lịch sử phiên bản</a>
+</nav>
+</div>
+</footer>
+<!-- GOOGLE WORKSPACE SSO LOGIN / SIGN-UP MODAL -->
+<div aria-labelledby="modal-title" aria-modal="true" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4 transition-all duration-200 opacity-0 pointer-events-none" id="auth-modal" role="dialog">
+<div class="w-full max-w-[480px] bg-white rounded-xl border border-[#E2E8F0] shadow-2xl p-6 sm:p-8 relative transform scale-95 transition-all duration-200" id="modal-card">
+<!-- Close Button -->
+<button aria-label="Đóng cửa sổ" class="absolute top-5 right-5 text-[#64748B] hover:text-[#0F172A] hover:bg-slate-100 p-1.5 rounded-lg transition-colors" id="close-modal-btn" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+<!-- Modal Header -->
+<div class="flex flex-col items-center text-center">
+<div class="w-12 h-12 rounded-xl bg-[#006948] flex items-center justify-center text-white shadow-sm mb-4">
+<span class="material-symbols-outlined text-[28px]" data-icon="local_cafe">local_cafe</span>
+</div>
+<div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#ECFDF5] text-[#065F46] font-caption text-caption mb-2 font-medium">
+<span class="w-1.5 h-1.5 rounded-full bg-[#059669]"></span>
+        Google Workspace Enterprise SSO
+      </div>
+<h3 class="text-headline-md font-headline-md font-bold text-[#0F172A]" id="modal-title">
+        Đăng nhập với Google Workspace
+      </h3>
+<p class="text-body-sm font-body-sm text-[#475569] mt-2 max-w-sm">
+        Sử dụng tài khoản email doanh nghiệp (<span class="font-mono text-xs bg-[#F1F5F9] text-[#334155] px-1.5 py-0.5 rounded">@company.com</span>) để truy cập không gian DrinkFlow của đơn vị.
+      </p>
+</div>
+<!-- SSO Action Button -->
+<div class="mt-6 space-y-3">
+<button class="w-full flex items-center justify-center gap-3 bg-white border border-[#CBD5E1] hover:bg-[#F8FAFC] hover:border-[#94A3B8] text-[#0F172A] font-medium py-3 px-4 rounded-lg shadow-sm transition-all duration-150 active:scale-[0.99] group" type="button">
+<!-- Google 'G' SVG Logo -->
+<svg class="w-5 h-5 flex-shrink-0" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"></path>
+<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"></path>
+</svg>
+<span class="text-body-md font-semibold font-label-md">Tiếp tục với Google Workspace</span>
+</button>
+<p class="text-center text-[12px] text-tertiary">
+        Tự động nhận diện quyền Host / Member theo miền công ty
+      </p>
+</div>
+<!-- Security Information Callout Box -->
+<div class="mt-6 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg p-3.5 flex items-start gap-3">
+<span class="material-symbols-outlined text-[#006948] text-[20px] flex-shrink-0 mt-0.5" data-icon="shield">shield</span>
+<div class="text-[12px] leading-relaxed text-[#475569]">
+<strong class="text-[#0F172A] font-semibold">Chính sách bảo mật nội bộ:</strong> Chỉ cho phép các email thuộc tổ chức được cấu hình trước. Hệ thống không lưu trữ mật khẩu cá nhân.
+      </div>
+</div>
+<!-- Modal Footer -->
+<div class="mt-6 pt-4 border-t border-[#E2E8F0] flex items-center justify-between text-caption">
+<a class="text-[#006948] hover:underline flex items-center gap-1 font-medium" href="#about">
+<span class="material-symbols-outlined text-[15px]">help</span>
+<span>Cần hỗ trợ phân quyền email?</span>
+</a>
+<button class="text-[#64748B] hover:text-[#0F172A] px-2.5 py-1 rounded transition-colors font-medium" id="cancel-modal-btn" type="button">
+        Đóng
+      </button>
+</div>
+</div>
+</div>
+<!-- Modal Interactive JavaScript -->
+<script>
+  (function() {
+    const modal = document.getElementById('auth-modal');
+    const modalCard = document.getElementById('modal-card');
+    const closeBtn = document.getElementById('close-modal-btn');
+    const cancelBtn = document.getElementById('cancel-modal-btn');
+    const triggerButtons = document.querySelectorAll('.btn-google-sso');
+
+    function openModal(e) {
+      if (e) e.preventDefault();
+      modal.classList.remove('hidden');
+      modal.classList.remove('pointer-events-none');
+      // trigger animation
+      requestAnimationFrame(() => {
+        modal.classList.remove('opacity-0');
+        modalCard.classList.remove('scale-95');
+        modalCard.classList.add('scale-100');
+      });
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      modal.classList.add('opacity-0');
+      modalCard.classList.remove('scale-100');
+      modalCard.classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.add('pointer-events-none');
+        document.body.style.overflow = '';
+      }, 200);
+    }
+
+    triggerButtons.forEach(btn => {
+      btn.addEventListener('click', openModal);
+    });
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+    // Close when clicking background backdrop
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    // Close on Escape key press
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
+  })();
+</script>
+</body></html>

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>DrinkFlow - Room Portal</title><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "background": "#f8f9ff", "on-surface": "#0b1c30", "error-container": "#ffdad6", "on-surface-variant": "#3d4a42", "on-secondary-fixed": "#131b2e", "on-primary-fixed": "#002114", "primary-fixed": "#85f8c4", "primary-container": "#00855d", "on-primary-fixed-variant": "#005137", "secondary-fixed": "#dae2fd", "tertiary-fixed": "#ffdcc3", "surface-tint": "#006c4a", "on-error": "#ffffff", "surface-container-low": "#eff4ff", "outline-variant": "#bccac0", "inverse-on-surface": "#eaf1ff", "on-tertiary": "#ffffff", "on-secondary-container": "#5c647a", "surface-variant": "#d3e4fe", "on-error-container": "#93000a", "surface-container-highest": "#d3e4fe", "surface-dim": "#cbdbf5", "on-tertiary-fixed": "#2f1500", "outline": "#6d7a72", "on-background": "#0b1c30", "tertiary": "#8d4b00", "surface": "#f8f9ff", "inverse-surface": "#213145", "secondary-container": "#dae2fd", "primary": "#006948", "tertiary-container": "#b15f00", "tertiary-fixed-dim": "#ffb77d", "surface-container": "#e5eeff", "on-tertiary-container": "#fffbff", "surface-container-lowest": "#ffffff", "on-primary-container": "#f5fff7", "primary-fixed-dim": "#68dba9", "inverse-primary": "#68dba9", "surface-container-high": "#dce9ff", "on-secondary-fixed-variant": "#3f465c", "on-secondary": "#ffffff", "surface-bright": "#f8f9ff", "secondary": "#565e74", "secondary-fixed-dim": "#bec6e0", "on-primary": "#ffffff", "on-tertiary-fixed-variant": "#6e3900", "error": "#ba1a1a" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2rem", "space-md": "1rem", "space-lg": "1.5rem", "gutter": "1.5rem", "gutter-sm": "1rem", "space-sm": "0.5rem", "margin-sm": "1rem", "margin": "2rem", "space-xs": "0.25rem" }, "fontFamily": { "body-sm": [ "Inter" ], "label-md": [ "Inter" ], "headline-md": [ "Inter" ], "body-lg": [ "Inter" ], "display-lg": [ "Inter" ], "body-md": [ "Inter" ], "tabular-nums": [ "Inter" ], "label-sm": [ "Inter" ], "headline-sm": [ "Inter" ], "headline-lg": [ "Inter" ] }, "fontSize": { "body-sm": [ "12px", { "lineHeight": "16px", "fontWeight": "400" } ], "label-md": [ "14px", { "lineHeight": "20px", "fontWeight": "500" } ], "headline-md": [ "20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "display-lg": [ "32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "body-md": [ "14px", { "lineHeight": "20px", "fontWeight": "400" } ], "tabular-nums": [ "14px", { "lineHeight": "20px", "fontWeight": "500" } ], "label-sm": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" } ], "headline-sm": [ "16px", { "lineHeight": "24px", "fontWeight": "600" } ], "headline-lg": [ "24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" } ] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-40 bg-surface-container-lowest border-b border-outline-variant"><div class="h-14 border-b border-outline-variant bg-surface-container-lowest"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin h-full flex items-center justify-between"><div class="flex items-center gap-space-md"><a class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors" href="#"><span class="material-symbols-outlined text-[18px]">arrow_back</span><span>DrinkFlow</span></a><span class="h-4 w-px bg-outline-variant"></span><div class="flex items-center gap-space-sm"><img alt="DrinkFlow Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XNSZ79K0ZEolON069HpAGASvDOykI5SMkJCI6V21x39fZRBYt0wRYkT9zU7bruy-DqqYlmcf_AFVPu2WF3wth4FZmAyTbjkv1WlX1LGRgxgfzd-Ga1qxmuGURNyaqWajAL1CmuiO4xF9pTPAH0aT9bNYSRF7tjZ8Yg46-caHla1tVK6LRuWSoqpSgZvANZNlF7niBmwQOlKVEK5jlSj-e9sLMCRTSzdyfa8JIf4Eb4qXLEv_a0KRC3nKwJ"/><span class="font-headline-sm text-headline-sm text-on-surface">IT Team</span><button class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface hover:bg-surface-container-high border border-outline-variant font-label-md text-label-md text-on-surface transition-colors" type="button"><span>IT Team</span><span class="material-symbols-outlined text-[16px]">arrow_drop_down</span></button></div></div><div class="flex items-center gap-space-md"><button class="relative p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></button><span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm border border-primary-fixed-dim">TRUNGLT</span><div class="flex items-center gap-space-sm pl-space-xs"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDABv8Oe8xyc5YFfx-Urh180Ei9oWDlXncJYYMhGsQyXKi9hH-Ozqz3OugY2_1YBVNW7gx3_8lQ0e663-MZrk9sfuwQNx_hfyyQtK2Zhj_zZGIVtA4PdjFBpNhgR9tn9snH3UYWVQ68_CKNQt5duVHzjZFHBqTbF8GWsCP5QSCLqXnCkE_RM9NLeqxpc7hKb0xusaVGpsBgdlLGILxnD3Fq8gdCU6OgF-qluxXmwytHivLwPF5jc5JUug"/><span class="font-label-md text-label-md text-on-surface hidden md:inline-block">Lâm Thành Trung</span></div></div></div></div><div class="h-10 bg-surface-container-low border-b border-outline-variant"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin h-full flex items-center justify-between"><div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant"><a class="hover:text-on-surface transition-colors" href="#">DrinkFlow</a><span class="material-symbols-outlined text-[14px]">chevron_right</span><a class="hover:text-on-surface transition-colors" href="#">IT Team</a><span class="material-symbols-outlined text-[14px]">chevron_right</span><span class="text-on-surface font-semibold">Friday Coffee</span></div><div class="flex items-center gap-space-xs font-tabular-nums text-tabular-nums text-error bg-error-container text-on-error-container px-2 py-0.5 rounded"><span class="material-symbols-outlined text-[14px]">timer</span><span>Chốt đơn sau 14:22</span></div></div></div><div class="h-12 bg-surface-container-lowest"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin h-full flex items-center"><nav class="flex items-center h-full gap-space-xs overflow-x-auto" data-active-classes="border-b-2 border-primary text-primary font-bold bg-surface-container-low"><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="tong-quan" href="#">Tổng quan</a><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="chien-dich-and-menu" href="#">Chiến dịch &amp; Menu</a><a aria-current="page" class="h-full px-space-md inline-flex items-center transition-colors border-b-2 border-primary text-primary font-bold bg-surface-container-low" data-path="don-hang-cua-toi" href="#">Đơn hàng của tôi</a><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="thanh-toan-and-no" href="#">Thanh toán &amp; Nợ</a><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="thong-ke-room" href="#">Thống kê Room</a></nav></div></div></header><main class="w-full pt-36 bg-background min-h-screen"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin py-space-md"><div class="flex flex-col w-full gap-space-md">
+<!-- 1. Single Active Order Constraint Banner -->
+<div class="w-full bg-secondary-container rounded-lg p-space-md shadow-sm flex items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-8 h-8 rounded-lg bg-surface-container-lowest flex items-center justify-center flex-shrink-0 text-primary">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">info</span>
+</div>
+<div class="flex flex-col min-w-0">
+<p class="font-label-md text-label-md text-on-secondary-fixed font-semibold truncate">
+          Mỗi thành viên chỉ có 1 Order hoạt động trong Campaign này
+        </p>
+<p class="font-body-sm text-body-sm text-on-secondary-container">
+          Đơn hàng hiện đang được điều phối tập trung bởi Quản trị viên phòng IT Team.
+        </p>
+</div>
+</div>
+<div class="flex items-center gap-space-xs flex-shrink-0">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+        Trực tiếp
+      </span>
+</div>
+</div>
+<!-- 2. Order Meta & Header Profile -->
+<div class="w-full bg-surface-container-lowest rounded-lg p-space-lg shadow-sm">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">#DF-1024</span>
+<span class="px-2.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">
+            IT-ROOM-DIRECT
+          </span>
+<span class="px-2.5 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm font-semibold">
+            Đang xử lý
+          </span>
+</div>
+<div class="flex flex-wrap items-center gap-y-1 gap-x-space-md text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">schedule</span>
+            10:05 AM, Thứ Sáu 24/10/2025
+          </span>
+<span class="text-outline-variant">•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">groups</span>
+            Phòng: <strong class="text-on-surface font-semibold ml-0.5">IT Team</strong>
+</span>
+<span class="text-outline-variant">•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">storefront</span>
+            Chiến dịch: <strong class="text-on-surface font-semibold ml-0.5">Highlands Coffee - Friday Coffee</strong>
+</span>
+</div>
+</div>
+<div class="flex items-center gap-space-md bg-surface-container-low p-space-sm rounded-lg lg:self-auto self-start">
+<img class="w-10 h-10 rounded-lg object-cover flex-shrink-0" data-alt="Portrait photograph of professional software engineer Lâm Thành Trung smiling slightly in modern light workspace, corporate avatar photo with neutral clean tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHIzUx-2xtVi9Pbw_l5-cWH3VFQNHcunciWubINuh0R0EAK44oEh28LaISy5v9zUDCvlKix9BauhbNBPg_UR0RUdsxwy7yJWKba3THjpe1uBa1QldyzOy9fHRQ22lE9CPStReBa3QRWWBIfzd4Xj0b7la59D9ao072IVEbfAHYnKZ3zY2WIS4XMaCLJzQv-6FTdezBYHQZgVSwMXQzr5LAYuAajfJ1eXXUsaAFcv3Bs0w2VP1j3BGGnQ"/>
+<div class="flex flex-col pr-space-sm min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Người khởi tạo</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold truncate">Lâm Thành Trung</span>
+<span class="font-tabular-nums text-tabular-nums text-[11px] text-secondary">TRUNGLT • ID: 8841</span>
+</div>
+<button class="p-2 rounded bg-surface-container-lowest hover:bg-surface-container-high text-on-surface-variant transition-colors shadow-sm" onclick="navigator.clipboard?.writeText(window.location.href); showNotification('Đã sao chép liên kết đơn hàng!');" title="Sao chép liên kết đơn" type="button">
+<span class="material-symbols-outlined text-[18px]">share</span>
+</button>
+</div>
+</div>
+</div>
+<!-- 3. Horizontal 6-Stage Realtime Tracking Stepper -->
+<div class="w-full bg-surface-container-lowest rounded-lg p-space-lg shadow-sm">
+<div class="flex items-center justify-between pb-space-md mb-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[22px]">timeline</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Tiến độ đơn hàng thời gian thực</h3>
+</div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+<span>Cập nhật tự động</span>
+</div>
+</div>
+<!-- Stepper Pipeline -->
+<div class="w-full overflow-x-auto py-space-xs">
+<div class="min-w-[760px] grid grid-cols-6 gap-space-sm relative">
+<!-- Step 1: Completed -->
+<div class="flex flex-col items-start relative group">
+<div class="flex items-center w-full mb-space-sm">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center flex-shrink-0 shadow-sm z-10">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="h-1 flex-1 bg-primary rounded-full -ml-1"></div>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">1. Đã gửi</span>
+<span class="font-tabular-nums text-tabular-nums text-[12px] text-on-surface-variant mt-0.5">10:05 AM</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Thành công</span>
+</div>
+<!-- Step 2: Completed -->
+<div class="flex flex-col items-start relative group">
+<div class="flex items-center w-full mb-space-sm">
+<div class="w-8 h-8 rounded-full bg-primary text-on-primary flex items-center justify-center flex-shrink-0 shadow-sm z-10">
+<span class="material-symbols-outlined text-[18px]">check</span>
+</div>
+<div class="h-1 flex-1 bg-primary rounded-full -ml-1"></div>
+</div>
+<span class="font-label-md text-label-md text-primary font-bold">2. Đã xác nhận</span>
+<span class="font-tabular-nums text-tabular-nums text-[12px] text-on-surface-variant mt-0.5">10:08 AM</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">IT Host duyệt</span>
+</div>
+<!-- Step 3: ACTIVE (Glowing Pulse Ring) -->
+<div class="flex flex-col items-start relative group">
+<div class="flex items-center w-full mb-space-sm">
+<div class="relative flex items-center justify-center">
+<span class="absolute inline-flex h-10 w-10 rounded-full bg-primary-fixed opacity-75 animate-ping"></span>
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center flex-shrink-0 shadow-md relative z-10 ring-4 ring-primary-fixed">
+<span class="material-symbols-outlined text-[18px] animate-spin">sync</span>
+</div>
+</div>
+<div class="h-1 flex-1 bg-surface-container-high rounded-full -ml-1"></div>
+</div>
+<span class="font-label-md text-label-md text-primary font-extrabold flex items-center gap-1">
+            3. Đặt với quán
+          </span>
+<span class="font-tabular-nums text-tabular-nums text-[12px] text-primary font-bold mt-0.5">10:15 AM</span>
+<span class="font-body-sm text-[11px] text-primary font-semibold">Đang liên hệ Highlands</span>
+</div>
+<!-- Step 4: Pending -->
+<div class="flex flex-col items-start relative group">
+<div class="flex items-center w-full mb-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center flex-shrink-0 z-10">
+<span class="material-symbols-outlined text-[18px]">soup_kitchen</span>
+</div>
+<div class="h-1 flex-1 bg-surface-container-high rounded-full -ml-1"></div>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">4. Quán nhận</span>
+<span class="font-tabular-nums text-tabular-nums text-[12px] text-outline mt-0.5">--:--</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Chờ pha chế</span>
+</div>
+<!-- Step 5: Pending -->
+<div class="flex flex-col items-start relative group">
+<div class="flex items-center w-full mb-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center flex-shrink-0 z-10">
+<span class="material-symbols-outlined text-[18px]">two_wheeler</span>
+</div>
+<div class="h-1 flex-1 bg-surface-container-high rounded-full -ml-1"></div>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">5. Đang giao</span>
+<span class="font-tabular-nums text-tabular-nums text-[12px] text-outline mt-0.5">--:--</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Tài xế giao hàng</span>
+</div>
+<!-- Step 6: Pending -->
+<div class="flex flex-col items-start relative group">
+<div class="flex items-center w-full mb-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center flex-shrink-0 z-10">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</div>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant font-medium">6. Hoàn thành</span>
+<span class="font-tabular-nums text-tabular-nums text-[12px] text-outline mt-0.5">--:--</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Nhận đồ tại bàn</span>
+</div>
+</div>
+</div>
+<div class="mt-space-md p-space-sm bg-surface-container-low rounded flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[18px] text-primary">local_shipping</span>
+<span>Dự kiến giao hàng đến văn phòng trước <strong>10:45 AM</strong> (khoảng 30 phút nữa)</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary">Khớp tiến độ 50%</span>
+</div>
+</div>
+<!-- 4. Order Summary & Financial Breakdown (2 Columns) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md items-start">
+<!-- Left Column: Item Specifications (7 Cols) -->
+<div class="lg:col-span-7 flex flex-col gap-space-md">
+<div class="bg-surface-container-lowest rounded-lg p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">local_cafe</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Chi tiết món đã chọn</h4>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+            1 Phần
+          </span>
+</div>
+<!-- Item Detail Card -->
+<div class="bg-surface-container-low rounded-lg p-space-md flex flex-col sm:flex-row gap-space-md items-start">
+<img class="w-24 h-24 rounded-lg object-cover flex-shrink-0 shadow-sm" data-alt="Traditional rich Vietnamese iced coffee with sweetened condensed milk served in high glass cup with coffee dripping filter nearby, professional commercial studio food photography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoGlfhcbVtLmrZ1wTXK-HwuR5KdwVB2ZUKK_kRJMs35cLxIwwxupt8VjQaNGEqYgdA8yCC_1RrVGCh8BhX-0w4IU-sOFZWI97z6SeNTZ0gSJcWzveclwLzBh3zymA_cFnHzppPKDpZAITT0roASvokKOFArEY3u7YnGiuq2bSsdr6lbHZ29EUJPs-xxJ9_IbCrwaeGWG5jDllEiVNwx_ILcdzTeTv9_irbgusuDUfVXg9TmhpdRO9qeQ"/>
+<div class="flex-1 flex flex-col gap-space-xs min-w-0">
+<div class="flex items-start justify-between gap-space-sm">
+<div>
+<h5 class="font-headline-sm text-headline-sm text-on-surface font-bold">Cà phê sữa đá</h5>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Highlands Coffee Signature Roast</p>
+</div>
+<span class="font-tabular-nums text-tabular-nums text-headline-sm font-bold text-on-surface">
+                70.000đ
+              </span>
+</div>
+<!-- Customizations tags -->
+<div class="flex flex-wrap gap-1.5 pt-space-xs">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">format_size</span>
+                Size L (+10.000đ)
+              </span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">water_drop</span>
+                50% đường
+              </span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">ac_unit</span>
+                70% đá
+              </span>
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm flex items-center gap-1 font-medium">
+<span class="material-symbols-outlined text-[14px]">add_circle</span>
+                Thạch sương sáo (+10.000đ)
+              </span>
+</div>
+<!-- User Note Section -->
+<div class="mt-space-xs bg-surface-container-lowest rounded p-space-sm flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[16px] mt-0.5 flex-shrink-0">edit_note</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-secondary">Ghi chú pha chế:</span>
+<p class="font-body-sm text-body-sm text-on-surface italic">
+                  “Ít ngọt, đá riêng giúp em nhé ạ”
+                </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Room consolidated ordering footnote -->
+<div class="flex items-center gap-space-sm p-space-sm rounded bg-surface-container-lowest text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[18px] text-secondary">receipt_long</span>
+<span>Đơn ghép chung Batch #IT-2410-B1 với 14 đồng nghiệp khác.</span>
+</div>
+</div>
+<!-- 5. Delivery & Room Contact Info -->
+<div class="bg-surface-container-lowest rounded-lg p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">pin_drop</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Thông tin nhận hàng &amp; Liên hệ</h4>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Dropoff Location -->
+<div class="bg-surface-container-low rounded-lg p-space-md flex flex-col justify-between">
+<div class="flex items-start gap-space-sm mb-space-sm">
+<div class="p-2 rounded bg-surface-container-lowest text-primary shadow-sm flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">desk</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Điểm giao nội bộ</span>
+<p class="font-headline-sm text-headline-sm text-on-surface font-bold mt-0.5">Tầng 6, Khu B</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Bàn IT Support (Cạnh tủ server 02)</p>
+</div>
+</div>
+<div class="pt-space-xs flex items-center gap-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">domain</span>
+<span>Tòa nhà Innovation Hub, IT Dept</span>
+</div>
+</div>
+<!-- Room Coordinator / Host -->
+<div class="bg-surface-container-low rounded-lg p-space-md flex flex-col justify-between">
+<div class="flex items-start gap-space-sm mb-space-sm">
+<div class="p-2 rounded bg-surface-container-lowest text-secondary shadow-sm flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">support_agent</span>
+</div>
+<div class="min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Người phụ trách đặt đơn</span>
+<p class="font-headline-sm text-headline-sm text-on-surface font-bold mt-0.5 truncate">Tuấn Anh (IT Admin)</p>
+<p class="font-tabular-nums text-tabular-nums text-on-surface-variant">0901.xxx.xxx</p>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<a class="flex-1 py-1 px-space-sm rounded bg-surface-container-lowest hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm text-center shadow-sm transition-colors flex items-center justify-center gap-1" href="tel:0901000000">
+<span class="material-symbols-outlined text-[16px] text-primary">call</span>
+                Gọi điện
+              </a>
+<button class="flex-1 py-1 px-space-sm rounded bg-surface-container-lowest hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm text-center shadow-sm transition-colors flex items-center justify-center gap-1" onclick="showNotification('Đã ping IT Admin qua Slack nội bộ.');" type="button">
+<span class="material-symbols-outlined text-[16px] text-secondary">chat</span>
+                Slack Ping
+              </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Financial Settlement (5 Cols) -->
+<div class="lg:col-span-5 flex flex-col gap-space-md">
+<div class="bg-surface-container-lowest rounded-lg p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">account_balance_wallet</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Quyết toán tài chính</h4>
+</div>
+<!-- Amber Pending Badge -->
+<span class="px-2.5 py-1 rounded bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+            Chưa thanh toán
+          </span>
+</div>
+<!-- Ledger Calculation List -->
+<div class="flex flex-col gap-space-sm pt-space-xs">
+<div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
+<span>Giá món gốc (Cà phê sữa đá):</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium">70.000đ</span>
+</div>
+<div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
+<span>Topping &amp; Phụ thu:</span>
+<span class="font-tabular-nums text-tabular-nums text-on-surface font-medium">+20.000đ</span>
+</div>
+<div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant pl-space-sm text-[13px]">
+<span>↳ Size L phụ thu</span>
+<span class="font-tabular-nums text-tabular-nums">+10.000đ</span>
+</div>
+<div class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant pl-space-sm text-[13px]">
+<span>↳ Thạch sương sáo</span>
+<span class="font-tabular-nums text-tabular-nums">+10.000đ</span>
+</div>
+<div class="h-px w-full bg-surface-container-high my-space-xs"></div>
+<div class="flex items-center justify-between font-body-md text-body-md text-on-surface font-semibold">
+<span>Tạm tính đồ uống:</span>
+<span class="font-tabular-nums text-tabular-nums">90.000đ</span>
+</div>
+<div class="flex items-center justify-between font-body-md text-body-md text-primary font-medium bg-primary-fixed/20 p-2 rounded">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">redeem</span>
+              Hỗ trợ Quỹ Room (IT Sponsor):
+            </span>
+<span class="font-tabular-nums text-tabular-nums font-bold">-15.000đ</span>
+</div>
+<div class="h-px w-full bg-surface-container-high my-space-xs"></div>
+<!-- Total Payable -->
+<div class="flex items-baseline justify-between p-space-sm rounded bg-surface-container-low">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-bold">Cần thanh toán</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Đã khấu trừ quỹ nội bộ</span>
+</div>
+<div class="flex items-baseline gap-0.5">
+<span class="font-display-lg text-display-lg font-bold text-error tracking-tight font-tabular-nums">75.000</span>
+<span class="font-label-md text-label-md font-bold text-error">đ</span>
+</div>
+</div>
+</div>
+<!-- VietQR Payment Quick Action Box -->
+<div class="mt-space-xs bg-surface-container-low p-space-md rounded-lg flex flex-col gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">qr_code_scanner</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Thanh toán chuyển khoản VietQR</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Nội dung chuyển khoản tự động gắn mã hóa đơn <span class="font-semibold text-on-surface">DF1024 TRUNGLT</span> để hệ thống tự động gạch nợ.
+          </p>
+<button class="w-full py-2.5 px-space-md rounded bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md font-bold shadow transition-all flex items-center justify-center gap-space-sm active:scale-[0.99] cursor-pointer" onclick="openVietQRModal()" type="button">
+<span class="material-symbols-outlined text-[20px]">qr_code_2</span>
+<span>Thanh toán VietQR ngay (75.000đ)</span>
+</button>
+<div class="flex items-center justify-center gap-space-md pt-space-xs text-on-surface-variant font-body-sm text-[12px]">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-primary">check_circle</span>
+              Tự động khớp lệnh
+            </span>
+<span class="text-outline-variant">•</span>
+<span>Hỗ trợ mọi Ngân hàng &amp; Ví MoMo</span>
+</div>
+</div>
+<!-- Secondary helper actions -->
+<div class="flex items-center justify-end pt-space-xs">
+<button class="font-label-sm text-label-sm text-error hover:underline transition-colors flex items-center gap-1 cursor-pointer" onclick="openCancelModal()" type="button">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+            Yêu cầu hủy món
+          </button>
+</div>
+</div>
+<!-- Quick Room Sponsor Policy Insight -->
+<div class="bg-surface-container-low rounded-lg p-space-md flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[20px] mt-0.5">policy</span>
+<div class="flex flex-col text-on-surface-variant font-body-sm text-body-sm">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Chính sách quỹ IT Team Q4/2025</span>
+<p class="mt-0.5">
+            Mỗi thành viên chính thức được tài trợ tối đa 15.000đ/order cho các buổi Friday Coffee định kỳ.
+          </p>
+</div>
+</div>
+</div>
+</div>
+</div></div></main><footer class="w-full bg-surface-container-lowest border-t border-outline-variant py-space-lg mt-space-xl"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin flex flex-col sm:flex-row items-center justify-between gap-space-sm text-on-surface-variant font-body-sm text-body-sm"><div class="flex items-center gap-space-sm"><span>© 2025 DrinkFlow Enterprise Procurement System</span><span class="text-outline-variant">•</span><span>Phòng ban: IT Team</span></div><div class="flex items-center gap-space-md"><a class="hover:text-on-surface transition-colors" href="#">Chính sách đặt đồ uống</a><a class="hover:text-on-surface transition-colors" href="#">Hỗ trợ nội bộ</a></div></div></footer>
+<!-- Modal VietQR Thanh toán -->
+<div aria-labelledby="vietqrModalTitle" aria-modal="true" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-on-surface/50 backdrop-blur-xs transition-opacity duration-200" id="vietqrModal" role="dialog">
+<div class="bg-surface-container-lowest w-full max-w-md rounded-xl shadow-2xl border border-outline-variant overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+<!-- Header Modal -->
+<div class="p-space-md border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant">
+<span class="material-symbols-outlined text-[20px]">qr_code_2</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold" id="vietqrModalTitle">Thanh toán VietQR</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Đơn hàng #DF-1024 • IT Team</p>
+</div>
+</div>
+<button aria-label="Đóng" class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors" onclick="closeVietQRModal()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Body Modal -->
+<div class="p-space-md flex flex-col gap-space-md">
+<!-- QR Image & Amount Preview -->
+<div class="flex flex-col items-center justify-center p-space-md bg-surface-container-low rounded-lg border border-outline-variant/60">
+<div class="bg-surface-container-lowest p-3 rounded-lg shadow-sm border border-outline-variant flex flex-col items-center">
+<img alt="Mã VietQR 75.000đ cho đơn #DF-1024" class="w-48 h-48 object-contain rounded" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3-UctlUgEivhhJ_5Y0wRvMOPtTFSLUxJFMwUAO1ue6-DzPOOuU1nSlNobH1tqultm2HwsSU7_EGyX-2MmlO2b7quu7rBNPPANg6Xq86cDpSqLIyqckE9SIUNRnO1i58ivrrMxnAja8M7uVQB8_csD5juh52zFCXG9d3FtNge1Co6bRHaeKguh34EcfS0AY7wmZ9BtTwPtPtmuqWcfdGWQg-3ah9LCgZZLAJ5rgB1gEHARfaEMypFiXA"/>
+<div class="mt-2 flex items-center gap-1 text-[11px] font-label-sm text-secondary">
+<span class="material-symbols-outlined text-[14px]">bolt</span>
+<span>Quét bằng app ngân hàng / ví MoMo</span>
+</div>
+</div>
+<div class="mt-3 text-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Số tiền thanh toán:</span>
+<div class="font-display-lg text-display-lg font-bold text-error tracking-tight font-tabular-nums">
+            75.000 <span class="text-headline-sm font-semibold">đ</span>
+</div>
+</div>
+</div>
+<!-- Payment Transfer Details -->
+<div class="flex flex-col gap-space-xs bg-surface-container-lowest border border-outline-variant rounded-lg p-space-sm">
+<!-- Ngân hàng -->
+<div class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
+<span class="text-on-surface-variant">Ngân hàng:</span>
+<span class="font-semibold text-on-surface flex items-center gap-1">
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-[11px] font-bold text-primary">MB Bank</span>
+<span>(Quân Đội)</span>
+</span>
+</div>
+<!-- Số tài khoản -->
+<div class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
+<span class="text-on-surface-variant">Số tài khoản:</span>
+<div class="flex items-center gap-1">
+<span class="font-tabular-nums font-bold text-on-surface" id="bankAccNumber">0388 999 888</span>
+<button class="p-1 rounded hover:bg-surface-container-high text-primary transition-colors flex items-center" onclick="copyToClipboard('0388999888', this, 'Đã chép STK!')" title="Sao chép STK">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+</button>
+</div>
+</div>
+<!-- Chủ tài khoản -->
+<div class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
+<span class="text-on-surface-variant">Chủ tài khoản:</span>
+<span class="font-semibold text-on-surface uppercase">NGUYEN VAN ADMIN</span>
+</div>
+<!-- Cú pháp chuyển khoản -->
+<div class="flex items-center justify-between py-1.5 bg-primary-fixed/20 px-2 rounded mt-1 text-body-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-[11px] text-on-primary-fixed-variant font-medium">Cú pháp chuyển khoản:</span>
+<span class="font-tabular-nums font-bold text-primary tracking-wide" id="transferContent">DF1024 TRUNGLT</span>
+</div>
+<button class="px-2 py-1 rounded bg-primary text-on-primary font-label-sm text-[12px] flex items-center gap-1 hover:bg-primary-container transition-colors shadow-xs" onclick="copyToClipboard('DF1024 TRUNGLT', this, 'Đã chép cú pháp!')" title="Sao chép nội dung chuyển khoản">
+<span class="material-symbols-outlined text-[14px]">content_copy</span>
+<span>Sao chép</span>
+</button>
+</div>
+</div>
+<!-- Live Webhook Auto Sync Indicator -->
+<div class="flex items-center gap-space-sm p-space-sm rounded bg-surface-container-low border border-outline-variant/60 text-body-sm">
+<span class="relative flex h-3 w-3 flex-shrink-0">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+</span>
+<span class="text-on-surface-variant text-[12px]">
+          Đang chờ Webhook ngân hàng NAPAS 24/7 tự động gạch nợ sau khi nhận tiền.
+        </span>
+</div>
+</div>
+<!-- Footer Modal -->
+<div class="p-space-md border-t border-outline-variant bg-surface-container-low flex items-center gap-space-sm justify-end">
+<button class="px-space-md py-2 rounded border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors" onclick="closeVietQRModal()" type="button">
+        Đóng
+      </button>
+<button class="px-space-md py-2 rounded bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md font-semibold transition-colors flex items-center gap-1 shadow-xs" onclick="confirmPaymentTransferred()" type="button">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span>Tôi đã chuyển khoản</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Modal Confirm Hủy món -->
+<div aria-labelledby="cancelModalTitle" aria-modal="true" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-on-surface/50 backdrop-blur-xs transition-opacity duration-200" id="cancelModal" role="dialog">
+<div class="bg-surface-container-lowest w-full max-w-md rounded-xl shadow-2xl border border-outline-variant overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
+<!-- Header Modal -->
+<div class="p-space-md border-b border-outline-variant flex items-center justify-between bg-error-container/40">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-error text-on-error flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">warning</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold" id="cancelModalTitle">Xác nhận hủy món</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Yêu cầu hủy đơn hàng cá nhân</p>
+</div>
+</div>
+<button aria-label="Đóng" class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors" onclick="closeCancelModal()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Body Modal -->
+<div class="p-space-md flex flex-col gap-space-md">
+<div class="p-space-md bg-surface-container-low rounded-lg border border-outline-variant/60 flex flex-col gap-space-xs">
+<div class="flex items-center gap-2 text-on-surface font-semibold">
+<span class="material-symbols-outlined text-primary text-[20px]">local_cafe</span>
+<span>Cà phê sữa đá (Đơn #DF-1024)</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface mt-1">
+          Bạn có chắc chắn muốn yêu cầu hủy món <strong>Cà phê sữa đá</strong> (Đơn #DF-1024) không?
+        </p>
+</div>
+<div class="flex items-start gap-space-sm p-space-sm rounded bg-amber-500/10 border border-amber-500/30 text-amber-900">
+<span class="material-symbols-outlined text-amber-700 text-[20px] flex-shrink-0 mt-0.5">info</span>
+<p class="font-body-sm text-[12px] text-on-surface-variant leading-relaxed">
+<strong class="text-on-surface">Lưu ý:</strong> Nếu Admin/Host đã chốt đơn với quán thì sẽ không thể hủy. Yêu cầu hủy sẽ được gửi ngay đến IT Admin Tuấn Anh để kiểm tra.
+        </p>
+</div>
+</div>
+<!-- Footer Modal -->
+<div class="p-space-md border-t border-outline-variant bg-surface-container-low flex items-center gap-space-sm justify-end">
+<button class="px-space-md py-2 rounded border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors" onclick="closeCancelModal()" type="button">
+        Hủy bỏ
+      </button>
+<button class="px-space-md py-2 rounded bg-error hover:bg-error/90 text-on-error font-label-md text-label-md font-semibold transition-colors flex items-center gap-1 shadow-xs" onclick="confirmOrderCancellation()" type="button">
+<span class="material-symbols-outlined text-[18px]">delete_forever</span>
+<span>Xác nhận hủy món</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Dynamic Toast Notification Container -->
+<div class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none" id="toastContainer"></div>
+<script>
+  // Modal VietQR Functions
+  function openVietQRModal() {
+    const modal = document.getElementById('vietqrModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  function closeVietQRModal() {
+    const modal = document.getElementById('vietqrModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  }
+
+  // Modal Cancel Order Functions
+  function openCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    if (modal) {
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  function closeCancelModal() {
+    const modal = document.getElementById('cancelModal');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+  }
+
+  function confirmOrderCancellation() {
+    closeCancelModal();
+    showNotification('Đã gửi yêu cầu hủy món Cà phê sữa đá (#DF-1024) tới Host IT Team!', 'success');
+  }
+
+  function confirmPaymentTransferred() {
+    closeVietQRModal();
+    showNotification('Hệ thống đang kiểm tra giao dịch 75.000đ. Đơn sẽ tự động cập nhật khi Napas gạch nợ!', 'info');
+  }
+
+  // Copy to clipboard with visual feedback
+  function copyToClipboard(text, btnElement, successMsg) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        showNotification(successMsg || 'Đã sao chép vào bộ nhớ tạm!');
+        if (btnElement) {
+          const originalHtml = btnElement.innerHTML;
+          btnElement.innerHTML = '<span class="material-symbols-outlined text-[16px] text-primary">done</span>';
+          setTimeout(() => {
+            btnElement.innerHTML = originalHtml;
+          }, 1500);
+        }
+      }).catch(() => {
+        fallbackCopy(text);
+      });
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const input = document.createElement('input');
+    input.value = text;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    showNotification('Đã sao chép vào bộ nhớ tạm!');
+  }
+
+  // Toast notification helper
+  function showNotification(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    const isError = type === 'error';
+    const isInfo = type === 'info';
+    const bgClass = isError ? 'bg-error text-on-error' : isInfo ? 'bg-inverse-surface text-inverse-on-surface' : 'bg-primary text-on-primary';
+    const icon = isError ? 'error' : isInfo ? 'info' : 'check_circle';
+
+    toast.className = `${bgClass} shadow-xl rounded-lg px-4 py-3 text-body-sm font-medium flex items-center gap-2 transform transition-all duration-300 translate-y-2 opacity-0 pointer-events-auto`;
+    toast.innerHTML = `<span class="material-symbols-outlined text-[20px]">${icon}</span><span>${message}</span>`;
+
+    container.appendChild(toast);
+
+    // Trigger animate in
+    setTimeout(() => {
+      toast.classList.remove('translate-y-2', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+    }, 10);
+
+    // Fade out and remove
+    setTimeout(() => {
+      toast.classList.remove('opacity-100');
+      toast.classList.add('opacity-0', 'translate-y-2');
+      setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 300);
+    }, 4000);
+  }
+
+  // Close modals on click backdrop & ESC key
+  window.addEventListener('click', function(e) {
+    const vModal = document.getElementById('vietqrModal');
+    const cModal = document.getElementById('cancelModal');
+    if (e.target === vModal) closeVietQRModal();
+    if (e.target === cModal) closeCancelModal();
+  });
+
+  window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeVietQRModal();
+      closeCancelModal();
+    }
+  });
+</script>
+</body></html>

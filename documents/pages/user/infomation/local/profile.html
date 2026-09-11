@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><title>DrinkFlow - Room Portal</title><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base { html, body { margin: 0; padding: 0; } body { overscroll-behavior: none; } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "background": "#f8f9ff", "on-surface": "#0b1c30", "error-container": "#ffdad6", "on-surface-variant": "#3d4a42", "on-secondary-fixed": "#131b2e", "on-primary-fixed": "#002114", "primary-fixed": "#85f8c4", "primary-container": "#00855d", "on-primary-fixed-variant": "#005137", "secondary-fixed": "#dae2fd", "tertiary-fixed": "#ffdcc3", "surface-tint": "#006c4a", "on-error": "#ffffff", "surface-container-low": "#eff4ff", "outline-variant": "#bccac0", "inverse-on-surface": "#eaf1ff", "on-tertiary": "#ffffff", "on-secondary-container": "#5c647a", "surface-variant": "#d3e4fe", "on-error-container": "#93000a", "surface-container-highest": "#d3e4fe", "surface-dim": "#cbdbf5", "on-tertiary-fixed": "#2f1500", "outline": "#6d7a72", "on-background": "#0b1c30", "tertiary": "#8d4b00", "surface": "#f8f9ff", "inverse-surface": "#213145", "secondary-container": "#dae2fd", "primary": "#059669", "tertiary-container": "#b15f00", "tertiary-fixed-dim": "#ffb77d", "surface-container": "#e5eeff", "on-tertiary-container": "#fffbff", "surface-container-lowest": "#ffffff", "on-primary-container": "#f5fff7", "primary-fixed-dim": "#68dba9", "inverse-primary": "#68dba9", "surface-container-high": "#dce9ff", "on-secondary-fixed-variant": "#3f465c", "on-secondary": "#ffffff", "surface-bright": "#f8f9ff", "secondary": "#565e74", "secondary-fixed-dim": "#bec6e0", "on-primary": "#ffffff", "on-tertiary-fixed-variant": "#6e3900", "error": "#ba1a1a" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "space-xl": "2rem", "space-md": "1rem", "space-lg": "1.5rem", "gutter": "1.5rem", "gutter-sm": "1rem", "space-sm": "0.5rem", "margin-sm": "1rem", "margin": "2rem", "space-xs": "0.25rem" }, "fontFamily": { "body-sm": [ "Inter" ], "label-md": [ "Inter" ], "headline-md": [ "Inter" ], "body-lg": [ "Inter" ], "display-lg": [ "Inter" ], "body-md": [ "Inter" ], "tabular-nums": [ "Inter" ], "label-sm": [ "Inter" ], "headline-sm": [ "Inter" ], "headline-lg": [ "Inter" ] }, "fontSize": { "body-sm": [ "12px", { "lineHeight": "16px", "fontWeight": "400" } ], "label-md": [ "14px", { "lineHeight": "20px", "fontWeight": "500" } ], "headline-md": [ "20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "display-lg": [ "32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "body-md": [ "14px", { "lineHeight": "20px", "fontWeight": "400" } ], "tabular-nums": [ "14px", { "lineHeight": "20px", "fontWeight": "500" } ], "label-sm": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" } ], "headline-sm": [ "16px", { "lineHeight": "24px", "fontWeight": "600" } ], "headline-lg": [ "24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" } ] } } } };</script></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 w-full z-50 bg-surface-container-lowest border-b border-outline-variant"><div class="h-14 border-b border-outline-variant bg-surface-container-lowest"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin h-full flex items-center justify-between"><div class="flex items-center gap-space-md"><a class="flex items-center gap-space-xs font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors" href="#"><span class="material-symbols-outlined text-[18px]">arrow_back</span><span class="">DrinkFlow</span></a><span class="h-4 w-px bg-outline-variant"></span><div class="flex items-center gap-space-sm"><img alt="DrinkFlow Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1XNSZ79K0ZEolON069HpAGASvDOykI5SMkJCI6V21x39fZRBYt0wRYkT9zU7bruy-DqqYlmcf_AFVPu2WF3wth4FZmAyTbjkv1WlX1LGRgxgfzd-Ga1qxmuGURNyaqWajAL1CmuiO4xF9pTPAH0aT9bNYSRF7tjZ8Yg46-caHla1tVK6LRuWSoqpSgZvANZNlF7niBmwQOlKVEK5jlSj-e9sLMCRTSzdyfa8JIf4Eb4qXLEv_a0KRC3nKwJ"/><span class="font-headline-sm text-headline-sm text-on-surface">IT Team</span><button class="flex items-center gap-space-xs px-space-sm py-1 rounded bg-surface hover:bg-surface-container-high border border-outline-variant font-label-md text-label-md text-on-surface transition-colors" type="button"><span class="">IT Team</span><span class="material-symbols-outlined text-[16px]">arrow_drop_down</span></button></div></div><div class="flex items-center gap-space-md"><a class="relative p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors inline-flex items-center justify-center" data-path="trung-tam-thong-bao" href="#"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span></a><span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm border border-primary-fixed-dim">TRUNGLT</span><a class="flex items-center gap-space-sm pl-space-xs hover:opacity-80 transition-opacity" data-path="ho-so-ca-nhan" href="#"><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDABv8Oe8xyc5YFfx-Urh180Ei9oWDlXncJYYMhGsQyXKi9hH-Ozqz3OugY2_1YBVNW7gx3_8lQ0e663-MZrk9sfuwQNx_hfyyQtK2Zhj_zZGIVtA4PdjFBpNhgR9tn9snH3UYWVQ68_CKNQt5duVHzjZFHBqTbF8GWsCP5QSCLqXnCkE_RM9NLeqxpc7hKb0xusaVGpsBgdlLGILxnD3Fq8gdCU6OgF-qluxXmwytHivLwPF5jc5JUug"/><span class="font-label-md text-label-md text-on-surface hidden md:inline-block">Lâm Thành Trung</span></a></div></div></div><div class="h-10 bg-surface-container-low border-b border-outline-variant"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin h-full flex items-center justify-between"><div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant"><a class="hover:text-on-surface transition-colors" href="#">DrinkFlow</a><span class="material-symbols-outlined text-[14px]">chevron_right</span><a class="hover:text-on-surface transition-colors" href="#">IT Team</a><span class="material-symbols-outlined text-[14px]">chevron_right</span><span class="text-on-surface font-semibold">Friday Coffee</span></div><div class="flex items-center gap-space-xs font-tabular-nums text-tabular-nums text-error bg-error-container text-on-error-container px-2 py-0.5 rounded"><span class="material-symbols-outlined text-[14px]">timer</span><span class="">Chốt đơn sau 14:22</span></div></div></div><div class="h-12 bg-surface-container-lowest"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin h-full flex items-center"><nav class="flex items-center h-full gap-space-xs overflow-x-auto" data-active-classes="border-b-2 border-primary text-primary font-bold bg-surface-container-low"><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="tong-quan" href="#">Tổng quan</a><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="chien-dich-and-menu" href="#">Chiến dịch &amp; Menu</a><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="don-hang-cua-toi" href="#">Đơn hàng của tôi</a><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="thanh-toan-and-no" href="#">Thanh toán &amp; Nợ</a><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="thong-ke-room" href="#">Thống kê Room</a><a class="h-full px-space-md inline-flex items-center font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors" data-path="trung-tam-thong-bao" href="#">Thông báo</a><a aria-current="page" class="h-full px-space-md inline-flex items-center transition-colors border-b-2 border-primary text-primary font-bold bg-surface-container-low" data-path="ho-so-ca-nhan" href="#">Hồ sơ</a></nav></div></div></header><main class="w-full pt-36 bg-background min-h-screen"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin py-space-md"><div class="flex flex-col w-full gap-space-lg">
+<!-- Profile Header Card -->
+<section class="w-full bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden p-space-md lg:p-space-lg relative">
+<div class="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20"></div>
+<div class="flex flex-col lg:flex-row gap-space-lg items-start justify-between relative z-10">
+<!-- User Info & Avatar -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-space-md w-full lg:w-auto">
+<div class="relative shrink-0">
+<img alt="Lâm Thành Trung" class="w-24 h-24 lg:w-28 lg:h-28 rounded-xl object-cover shadow-sm ring-4 ring-surface-container-low" src="https://lh3.googleusercontent.com/aida/AEtjO1W9cZ-h7BF0vONkqJD-IRtqyYKUxK87RPLFN48cf1bMGYGXUrtqBrWL8_Tt5rcj0QWWbDFRzwYx8zI7hv6uKKkhrwYK0YQZi42BSS0dit1uy2NGBEHp9zagzshNLYh0kJ4E_PchAwKvlDYz-uj7KshWG-1cW89Y5uLRhE_LQ6PRR_4vWA-pGtBxSJtg4IyfKxIF2JgM59Ti7uDYC96OScmiBWJQVWFhBQ4gzwOCwm2383fvcklu0r1Rn3IN"/>
+<span class="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm shadow-sm flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[13px]">verified</span> TRUNGLT
+          </span>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex flex-wrap items-center gap-space-xs">
+<h1 class="font-headline-lg text-headline-lg text-on-surface" id="profile-display-name">Lâm Thành Trung</h1>
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span> Đang hoạt động
+            </span>
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">
+              Enterprise Verified
+            </span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">terminal</span>
+<span id="profile-display-dept">Senior Software Engineer • Phòng Công nghệ thông tin (IT Department)</span>
+</p>
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 mt-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1 hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[15px]">mail</span> <span id="profile-display-email">trunglt@company.com</span>
+</span>
+<span class="flex items-center gap-1 hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[15px]">phone</span> <span id="profile-display-phone">0988 123 456</span>
+</span>
+<span class="flex items-center gap-1 hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[15px]">alternate_email</span> <span id="profile-display-slack">@trung.lam</span>
+</span>
+</div>
+</div>
+</div>
+<!-- Header Action -->
+<div class="flex items-center gap-space-sm shrink-0 self-start sm:self-auto w-full sm:w-auto justify-end">
+<button class="h-9 px-space-md rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1 transition-all" onclick="openEditProfileModal()" type="button">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+<span class="">Chỉnh sửa hồ sơ</span>
+</button>
+<button class="h-9 px-space-md rounded bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md flex items-center gap-1 transition-all shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">local_cafe</span>
+<span class="">Đặt món ngay</span>
+</button>
+</div>
+</div>
+<!-- Quick Stats Metric Band -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-space-md mt-space-lg pt-space-md border-t border-surface-container">
+<!-- Metric 1 -->
+<div class="bg-surface-container-low rounded-lg p-space-md flex items-center gap-space-md">
+<div class="w-11 h-11 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[24px]">receipt_long</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tổng đơn hoàn tất</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md font-tabular-nums text-on-surface">64</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">đơn đã giao</span>
+</div>
+</div>
+</div>
+<!-- Metric 2 -->
+<div class="bg-surface-container-low rounded-lg p-space-md flex items-center gap-space-md">
+<div class="w-11 h-11 rounded-lg bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[24px]">savings</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Tiết kiệm trợ giá</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md font-tabular-nums text-primary">1.280.000₫</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">+18.5% so với TB</span>
+</div>
+</div>
+</div>
+<!-- Metric 3 -->
+<div class="bg-surface-container-low rounded-lg p-space-md flex items-center gap-space-md">
+<div class="w-11 h-11 rounded-lg bg-surface-container flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[24px]">verified_user</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Điểm uy tín thanh toán</span>
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md font-tabular-nums text-on-surface">100%</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">Tuyệt đối • Không trễ hạn</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Grid 2 Columns -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT COLUMN (7 Cols) -->
+<div class="lg:col-span-7 flex flex-col gap-space-lg">
+<!-- Drink Preferences Section - Updated: Only Quick Note Templates & Custom Note -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md lg:p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-[20px]">sticky_note_2</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Gu đồ uống mặc định (Quick Preferences)</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Chọn nhanh mẫu ghi chú pha chế thường dùng hoặc tùy chỉnh ghi chú cá nhân</p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+            Ghi chú mẫu
+          </span>
+</div>
+<form class="flex flex-col gap-space-md mt-1" id="drink-pref-form" onsubmit="event.preventDefault(); saveDrinkPreferences();">
+<!-- Sample Notes Section -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md text-on-surface font-medium flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary">bookmark_heart</span>
+<span>Các mẫu ghi chú thường dùng (Bấm để áp dụng nhanh)</span>
+</label>
+<span class="text-xs text-on-surface-variant font-normal">Click chọn</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+<!-- Template 1 -->
+<button class="group p-3 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-primary/10 hover:border-primary text-left transition-all flex items-start gap-2.5" onclick="applyNoteTemplate('Ít ngọt, ít đá')" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">local_cafe</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-semibold group-hover:text-primary transition-colors">Ít ngọt, ít đá</span>
+<span class="font-body-sm text-xs text-on-surface-variant">Phù hợp cà phê sữa, trà sữa nhẹ</span>
+</div>
+</button>
+<!-- Template 2 -->
+<button class="group p-3 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-primary/10 hover:border-primary text-left transition-all flex items-start gap-2.5" onclick="applyNoteTemplate('Không đường, nhiều đá, cho 2 ống hút')" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">icecream</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-semibold group-hover:text-primary transition-colors">Không đường, nhiều đá, cho 2 ống hút</span>
+<span class="font-body-sm text-xs text-on-surface-variant">Uống mát lạnh thanh lọc cơ thể</span>
+</div>
+</button>
+<!-- Template 3 -->
+<button class="group p-3 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-primary/10 hover:border-primary text-left transition-all flex items-start gap-2.5" onclick="applyNoteTemplate('Uống nóng, không topping')" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">mode_heat</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-semibold group-hover:text-primary transition-colors">Uống nóng, không topping</span>
+<span class="font-body-sm text-xs text-on-surface-variant">Dành cho ngày se lạnh hoặc trà thảo mộc</span>
+</div>
+</button>
+<!-- Template 4 -->
+<button class="group p-3 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-primary/10 hover:border-primary text-left transition-all flex items-start gap-2.5" onclick="applyNoteTemplate('Ít ngọt, cho sữa yến mạch nếu có')" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">spa</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-semibold group-hover:text-primary transition-colors">Ít ngọt, cho sữa yến mạch nếu có</span>
+<span class="font-body-sm text-xs text-on-surface-variant">Healthy &amp; Thuần thực vật (Oat Milk)</span>
+</div>
+</button>
+<!-- Template 5 -->
+<button class="group p-3 rounded-lg border border-outline-variant bg-surface-container-low hover:bg-primary/10 hover:border-primary text-left transition-all flex items-start gap-2.5 sm:col-span-2" onclick="applyNoteTemplate('Tách đá riêng mang về')" type="button">
+<span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">takeout_dining</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface font-semibold group-hover:text-primary transition-colors">Tách đá riêng mang về</span>
+<span class="font-body-sm text-xs text-on-surface-variant">Giữ trọn vị đậm đà không bị nhạt đá khi để lâu</span>
+</div>
+</button>
+</div>
+</div>
+<!-- Custom Note Textarea -->
+<div class="flex flex-col gap-space-xs mt-1">
+<label class="font-label-md text-label-md text-on-surface font-medium" for="default-note">Ghi chú pha chế cá nhân hiện tại</label>
+<div class="relative">
+<textarea class="w-full p-3 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-1 focus:ring-primary transition-all resize-none" id="default-note" placeholder="Nhập ghi chú cá nhân của bạn hoặc click chọn mẫu bên trên..." rows="3">Ít ngọt, cho ống hút giấy</textarea>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant absolute right-3 top-3">edit_note</span>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-xs">
+<span>Ghi chú này sẽ được tự động điền sẵn vào đơn hàng của bạn khi đặt món trong Room.</span>
+<button class="text-outline hover:text-error transition-colors" onclick="document.getElementById('default-note').value=''" type="button">Xóa nhanh</button>
+</div>
+</div>
+<!-- Submit & Reset Actions -->
+<div class="flex items-center justify-between pt-2 border-t border-surface-container">
+<button class="h-9 px-space-md rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1.5 transition-all" onclick="applyNoteTemplate('Ít ngọt, ít đá')" type="button">
+<span class="material-symbols-outlined text-[16px]">restart_alt</span>
+<span>Mặc định phổ biến</span>
+</button>
+<button class="h-9 px-space-lg rounded bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md flex items-center gap-2 shadow-sm transition-all" type="submit">
+<span class="material-symbols-outlined text-[18px]">save</span>
+<span>Lưu ghi chú pha chế</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+<!-- RIGHT COLUMN (5 Cols) -->
+<div class="lg:col-span-5 flex flex-col gap-space-lg">
+<!-- My Active Rooms Section -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md lg:p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-[20px]">groups</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Các Room đang tham gia</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">3 nhóm đặt trà sữa &amp; đồ ăn trưa</p>
+</div>
+</div>
+<span class="w-6 h-6 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface flex items-center justify-center font-bold">3</span>
+</div>
+<div class="flex flex-col gap-space-sm mt-1">
+<!-- Room 1 (Main) -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-xs transition-all hover:bg-surface-container">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold text-[14px]">
+                  IT
+                </div>
+<div>
+<div class="flex items-center gap-1">
+<span class="font-headline-sm text-headline-sm text-on-surface">IT Team</span>
+<span class="px-1.5 py-0.2 rounded bg-primary-fixed text-on-primary-fixed font-label-sm text-[10px]">Phòng chính</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Thành viên chính thức • 24 thành viên</span>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm">
+                Active
+              </span>
+</div>
+<div class="flex items-center justify-between mt-1 pt-2 border-t border-surface-container">
+<div class="flex items-center gap-1 text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">price_check</span>
+<span class="">Trợ giá: <strong>20.000₫/ngày</strong></span>
+</div>
+<button class="h-7 px-space-sm rounded bg-primary text-on-primary hover:bg-primary-container font-label-sm text-label-sm flex items-center gap-1 transition-all" type="button">
+<span class="">Vào Room</span>
+<span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Room 2 (Sport) -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-xs transition-all hover:bg-surface-container">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center font-bold text-[14px]">
+<span class="material-symbols-outlined text-[18px]">sports_tennis</span>
+</div>
+<div>
+<span class="font-headline-sm text-headline-sm text-on-surface">CLB Cầu Lông &amp; Chạy Bộ DrinkFlow</span>
+<div class="font-body-sm text-body-sm text-on-surface-variant">18 thành viên • Tự chi trả 100%</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm">
+                Active
+              </span>
+</div>
+</div>
+<!-- Room 3 (Project) -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-space-xs opacity-75 transition-all hover:opacity-100">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded-lg bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-[14px]">
+                  NX
+                </div>
+<div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Ban Dự Án NextGen</span>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Khu vực Tầng 4 • Tạm dừng kỳ chạy nước rút</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+                Tạm dừng
+              </span>
+</div>
+</div>
+</div>
+<button class="w-full h-9 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md flex items-center justify-center gap-1 transition-all mt-1" onclick="openJoinRoomModal()" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+<span class="">Tham gia thêm Room bằng mã mời</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Toast Notification Simulation -->
+<div class="fixed bottom-6 right-6 bg-inverse-surface text-inverse-on-surface px-space-md py-space-sm rounded-lg shadow-xl flex items-center gap-space-sm transform translate-y-24 opacity-0 transition-all duration-300 z-50 pointer-events-none" id="toast">
+<span class="material-symbols-outlined text-primary-fixed text-[20px]">check_circle</span>
+<span class="font-body-md text-body-md" id="toast-text">Đã cập nhật cấu hình mặc định thành công!</span>
+</div>
+</div></div>
+<!-- Edit Profile Modal -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/60 backdrop-blur-sm p-4 hidden opacity-0 transition-opacity duration-200" id="edit-profile-modal">
+<div class="bg-surface-container-lowest rounded-xl shadow-xl max-w-xl w-full max-h-[90vh] flex flex-col overflow-hidden transform transition-transform duration-200 scale-95" id="edit-profile-dialog">
+<div class="px-space-lg py-space-md border-b border-outline-variant flex items-center justify-between bg-surface-container-lowest">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-[20px]">badge</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Chỉnh sửa hồ sơ cá nhân</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Cập nhật thông tin nhận thông báo và tham gia đặt món</p>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" onclick="closeEditProfileModal()" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="p-space-lg overflow-y-auto flex flex-col gap-space-md">
+<div class="flex items-center gap-space-md p-space-sm rounded-xl bg-surface-container-low">
+<img alt="Avatar" class="w-16 h-16 rounded-xl object-cover ring-2 ring-surface-container" id="preview-avatar" src="https://lh3.googleusercontent.com/aida/AEtjO1W9cZ-h7BF0vONkqJD-IRtqyYKUxK87RPLFN48cf1bMGYGXUrtqBrWL8_Tt5rcj0QWWbDFRzwYx8zI7hv6uKKkhrwYK0YQZi42BSS0dit1uy2NGBEHp9zagzshNLYh0kJ4E_PchAwKvlDYz-uj7KshWG-1cW89Y5uLRhE_LQ6PRR_4vWA-pGtBxSJtg4IyfKxIF2JgM59Ti7uDYC96OScmiBWJQVWFhBQ4gzwOCwm2383fvcklu0r1Rn3IN"/>
+<div class="flex flex-col gap-1">
+<div class="font-label-md text-label-md text-on-surface font-semibold">Ảnh đại diện công ty</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant">Định dạng JPG, PNG kích thước tối đa 5MB</div>
+<button class="self-start h-7 px-space-sm rounded bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm inline-flex items-center gap-1 transition-all mt-1" onclick="showSavedToast('Vui lòng chọn tệp ảnh mới')" type="button">
+<span class="material-symbols-outlined text-[15px]">photo_camera</span>
+<span>Thay đổi ảnh</span>
+</button>
+</div>
+</div>
+<form class="flex flex-col gap-space-sm" id="profile-form" onsubmit="event.preventDefault(); saveProfileChanges();">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="input-fullname">Họ và tên</label>
+<input class="h-10 px-3 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:outline-none transition-all" id="input-fullname" required="" type="text" value="Lâm Thành Trung"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="input-title">Chức danh / Chức vụ</label>
+<input class="h-10 px-3 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:outline-none transition-all" id="input-title" required="" type="text" value="Senior Software Engineer"/>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="input-department">Phòng ban / Bộ phận</label>
+<input class="h-10 px-3 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:outline-none transition-all" id="input-department" required="" type="text" value="Phòng Công nghệ thông tin (IT Department)"/>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+<div class="flex flex-col gap-1 sm:col-span-1">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="input-email">Email công ty</label>
+<input class="h-10 px-3 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:outline-none transition-all" id="input-email" required="" type="email" value="trunglt@company.com"/>
+</div>
+<div class="flex flex-col gap-1 sm:col-span-1">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="input-phone">Số điện thoại</label>
+<input class="h-10 px-3 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:outline-none transition-all" id="input-phone" required="" type="text" value="0988 123 456"/>
+</div>
+<div class="flex flex-col gap-1 sm:col-span-1">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="input-slack">Slack ID</label>
+<input class="h-10 px-3 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:outline-none transition-all" id="input-slack" required="" type="text" value="@trung.lam"/>
+</div>
+</div>
+</form>
+</div>
+<div class="px-space-lg py-space-md border-t border-outline-variant bg-surface-container-low flex items-center justify-end gap-space-sm">
+<button class="h-9 px-space-md rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-all" onclick="closeEditProfileModal()" type="button">Hủy</button>
+<button class="h-9 px-space-lg rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md shadow-sm transition-all flex items-center gap-1" onclick="saveProfileChanges()" type="button">
+<span class="material-symbols-outlined text-[18px]">check</span>
+<span>Lưu thay đổi</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Join Room Modal -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/60 backdrop-blur-sm p-4 hidden opacity-0 transition-opacity duration-200" id="join-room-modal">
+<div class="bg-surface-container-lowest rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] flex flex-col overflow-hidden transform transition-transform duration-200 scale-95" id="join-room-dialog">
+<div class="px-space-lg py-space-md border-b border-outline-variant flex items-center justify-between bg-surface-container-lowest">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-[20px]">group_add</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Tham gia Room mới</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Nhập mã mời để tham gia nhóm đặt đồ uống nội bộ</p>
+</div>
+</div>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" onclick="closeJoinRoomModal()" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="p-space-lg overflow-y-auto flex flex-col gap-space-md">
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-start gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">info</span>
+<span>Nhập mã mời 6-12 ký tự hoặc đường link chia sẻ từ Quản trị viên phòng ban/CLB để tham gia.</span>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface font-medium" for="input-room-code">Mã mời Room hoặc liên kết</label>
+<div class="relative">
+<input class="w-full h-11 pl-10 pr-4 rounded-lg bg-surface-container-low border border-outline-variant text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:ring-1 focus:ring-primary focus:outline-none transition-all uppercase tracking-wider" id="input-room-code" placeholder="VD: DF-TECH-2025 hoặc IT-TEAM-88" type="text"/>
+<span class="material-symbols-outlined text-[20px] text-on-surface-variant absolute left-3 top-3">vpn_key</span>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs mt-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Room gợi ý cho phòng IT:</span>
+<div class="flex flex-col gap-2">
+<div class="p-space-sm rounded-lg border border-outline-variant hover:bg-surface-container-low flex items-center justify-between cursor-pointer transition-colors" onclick="selectSuggestedRoom('DES-TEAM-2025')">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-[12px]">DE</div>
+<div>
+<div class="font-label-sm text-label-sm text-on-surface font-semibold">Product &amp; Design Team</div>
+<div class="font-body-sm text-[11px] text-on-surface-variant">14 thành viên • Mã: DES-TEAM-2025</div>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded bg-surface-container font-label-sm text-label-sm text-primary hover:bg-primary hover:text-on-primary transition-colors">Chọn</span>
+</div>
+<div class="p-space-sm rounded-lg border border-outline-variant hover:bg-surface-container-low flex items-center justify-between cursor-pointer transition-colors" onclick="selectSuggestedRoom('BOARDGAME-FRI')">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center font-bold text-[12px]">BG</div>
+<div>
+<div class="font-label-sm text-label-sm text-on-surface font-semibold">CLB Boardgame Thứ Sáu</div>
+<div class="font-body-sm text-[11px] text-on-surface-variant">22 thành viên • Mã: BOARDGAME-FRI</div>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded bg-surface-container font-label-sm text-label-sm text-primary hover:bg-primary hover:text-on-primary transition-colors">Chọn</span>
+</div>
+<div class="p-space-sm rounded-lg border border-outline-variant hover:bg-surface-container-low flex items-center justify-between cursor-pointer transition-colors" onclick="selectSuggestedRoom('DATA-AI-LAB')">
+<div class="flex items-center gap-space-xs">
+<div class="w-8 h-8 rounded bg-primary-fixed text-on-primary-fixed-variant flex items-center justify-center font-bold text-[12px]">AI</div>
+<div>
+<div class="font-label-sm text-label-sm text-on-surface font-semibold">Data Science &amp; AI Lab</div>
+<div class="font-body-sm text-[11px] text-on-surface-variant">19 thành viên • Mã: DATA-AI-LAB</div>
+</div>
+</div>
+<span class="px-2.5 py-1 rounded bg-surface-container font-label-sm text-label-sm text-primary hover:bg-primary hover:text-on-primary transition-colors">Chọn</span>
+</div>
+</div>
+</div>
+</div>
+<div class="px-space-lg py-space-md border-t border-outline-variant bg-surface-container-low flex items-center justify-end gap-space-sm">
+<button class="h-9 px-space-md rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-all" onclick="closeJoinRoomModal()" type="button">Hủy</button>
+<button class="h-9 px-space-lg rounded-lg bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md shadow-sm transition-all flex items-center gap-1" onclick="submitJoinRoom()" type="button">
+<span class="material-symbols-outlined text-[18px]">check</span>
+<span>Xác nhận tham gia</span>
+</button>
+</div>
+</div>
+</div>
+<script>
+function showSavedToast(msg) {
+  const toast = document.getElementById('toast');
+  const toastText = document.getElementById('toast-text');
+  if (msg) toastText.textContent = msg;
+  else toastText.textContent = 'Đã cập nhật cấu hình mặc định thành công!';
+  toast.classList.remove('translate-y-24', 'opacity-0');
+  setTimeout(() => {
+    toast.classList.add('translate-y-24', 'opacity-0');
+  }, 3000);
+}
+
+function applyNoteTemplate(templateText) {
+  const noteInput = document.getElementById('default-note');
+  if (noteInput) {
+    noteInput.value = templateText;
+    noteInput.focus();
+    showSavedToast('Đã chọn mẫu: "' + templateText + '"');
+  }
+}
+
+function saveDrinkPreferences() {
+  const note = document.getElementById('default-note').value;
+  showSavedToast('Đã lưu ghi chú: "' + (note || 'Không có ghi chú') + '"');
+}
+
+function openEditProfileModal(){
+  const m=document.getElementById('edit-profile-modal');
+  const d=document.getElementById('edit-profile-dialog');
+  if(m&&d){
+    m.classList.remove('hidden');
+    requestAnimationFrame(()=>{
+      m.classList.remove('opacity-0');
+      d.classList.remove('scale-95');
+      d.classList.add('scale-100');
+    });
+  }
+}
+
+function closeEditProfileModal(){
+  const m=document.getElementById('edit-profile-modal');
+  const d=document.getElementById('edit-profile-dialog');
+  if(m&&d){
+    m.classList.add('opacity-0');
+    d.classList.remove('scale-100');
+    d.classList.add('scale-95');
+    setTimeout(()=>m.classList.add('hidden'),200);
+  }
+}
+
+function saveProfileChanges(){
+  const name=document.getElementById('input-fullname').value;
+  const title=document.getElementById('input-title').value;
+  const dept=document.getElementById('input-department').value;
+  const email=document.getElementById('input-email').value;
+  const phone=document.getElementById('input-phone').value;
+  const slack=document.getElementById('input-slack').value;
+  
+  const h1=document.getElementById('profile-display-name');
+  if(h1) h1.textContent=name;
+  
+  const p=document.getElementById('profile-display-dept');
+  if(p) p.textContent=title+' • '+dept;
+  
+  const emEl=document.getElementById('profile-display-email');
+  if(emEl) emEl.textContent=email;
+  
+  const phEl=document.getElementById('profile-display-phone');
+  if(phEl) phEl.textContent=phone;
+  
+  const slEl=document.getElementById('profile-display-slack');
+  if(slEl) slEl.textContent=slack;
+
+  closeEditProfileModal();
+  showSavedToast('Đã lưu thay đổi hồ sơ cá nhân thành công!');
+}
+
+function openJoinRoomModal(){
+  const m=document.getElementById('join-room-modal');
+  const d=document.getElementById('join-room-dialog');
+  if(m&&d){
+    m.classList.remove('hidden');
+    requestAnimationFrame(()=>{
+      m.classList.remove('opacity-0');
+      d.classList.remove('scale-95');
+      d.classList.add('scale-100');
+    });
+  }
+}
+
+function closeJoinRoomModal(){
+  const m=document.getElementById('join-room-modal');
+  const d=document.getElementById('join-room-dialog');
+  if(m&&d){
+    m.classList.add('opacity-0');
+    d.classList.remove('scale-100');
+    d.classList.add('scale-95');
+    setTimeout(()=>m.classList.add('hidden'),200);
+  }
+}
+
+function selectSuggestedRoom(code){
+  const inp=document.getElementById('input-room-code');
+  if(inp) {
+    inp.value=code;
+    inp.focus();
+  }
+}
+
+function submitJoinRoom(){
+  const inp=document.getElementById('input-room-code');
+  const val=inp?inp.value.trim():'';
+  if(!val){
+    showSavedToast('Vui lòng nhập mã mời Room!');
+    return;
+  }
+  closeJoinRoomModal();
+  if(inp) inp.value='';
+  showSavedToast('Đã gửi yêu cầu tham gia Room ' + val + ' thành công!');
+}
+
+document.getElementById('edit-profile-modal')?.addEventListener('click',function(e){if(e.target===this) closeEditProfileModal();});
+document.getElementById('join-room-modal')?.addEventListener('click',function(e){if(e.target===this) closeJoinRoomModal();});
+</script>
+</main><footer class="w-full bg-surface-container-lowest border-t border-outline-variant py-space-lg mt-space-xl"><div class="max-w-7xl mx-auto px-margin-sm lg:px-margin flex flex-col sm:flex-row items-center justify-between gap-space-sm text-on-surface-variant font-body-sm text-body-sm"><div class="flex items-center gap-space-sm"><span class="">© 2025 DrinkFlow Enterprise Procurement System</span><span class="text-outline-variant">•</span><span class="">Phòng ban: IT Team</span></div><div class="flex items-center gap-space-md"><a class="hover:text-on-surface transition-colors" href="#">Chính sách đặt đồ uống</a><a class="hover:text-on-surface transition-colors" href="#">Hỗ trợ nội bộ</a></div></div></footer>
+</body></html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html><html class="light" lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>DrinkFlow - Đánh giá &amp; Góp ý hệ thống</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-background": "#0b1c30",
+            "on-primary": "#ffffff",
+            "outline": "#6d7a72",
+            "on-surface-variant": "#3d4a42",
+            "on-secondary-fixed": "#002113",
+            "on-primary-fixed": "#002114",
+            "on-primary-container": "#f5fff7",
+            "on-secondary-container": "#00714d",
+            "inverse-on-surface": "#eaf1ff",
+            "on-secondary-fixed-variant": "#005236",
+            "tertiary-container": "#6c748b",
+            "on-tertiary-container": "#fefcff",
+            "inverse-surface": "#213145",
+            "outline-variant": "#bccac0",
+            "on-tertiary-fixed": "#131b2e",
+            "error-container": "#ffdad6",
+            "primary-fixed-dim": "#68dba9",
+            "surface-container-low": "#eff4ff",
+            "on-surface": "#0b1c30",
+            "primary": "#006948",
+            "on-secondary": "#ffffff",
+            "on-error": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "surface-dim": "#cbdbf5",
+            "primary-container": "#00855d",
+            "secondary": "#006c49",
+            "surface-container": "#e5eeff",
+            "surface-tint": "#006c4a",
+            "tertiary": "#545c72",
+            "inverse-primary": "#68dba9",
+            "surface-container-high": "#dce9ff",
+            "on-error-container": "#93000a",
+            "secondary-fixed": "#6ffbbe",
+            "on-tertiary-fixed-variant": "#3f465c",
+            "secondary-container": "#6cf8bb",
+            "surface-variant": "#d3e4fe",
+            "background": "#f8f9ff",
+            "tertiary-fixed-dim": "#bec6e0",
+            "on-tertiary": "#ffffff",
+            "surface-container-highest": "#d3e4fe",
+            "primary-fixed": "#85f8c4",
+            "error": "#ba1a1a",
+            "secondary-fixed-dim": "#4edea3",
+            "surface-bright": "#f8f9ff",
+            "tertiary-fixed": "#dae2fd",
+            "on-primary-fixed-variant": "#005137",
+            "surface": "#f8f9ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-2xl": "4rem",
+            "gutter": "1.5rem",
+            "space-sm": "1rem",
+            "space-lg": "2rem",
+            "space-md": "1.5rem",
+            "space-xl": "3rem",
+            "margin": "1.5rem",
+            "space-xs": "0.5rem"
+          },
+          "fontFamily": {
+            "headline-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "label-md": ["Inter"],
+            "body-md": ["Inter"],
+            "body-sm": ["Inter"],
+            "caption": ["Inter"],
+            "headline-xl": ["Inter"],
+            "headline-lg": ["Inter"],
+            "label-sm": ["Inter"],
+            "headline-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0", "fontWeight": "400" }],
+            "caption": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col antialiased selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Shared TopNavBar Component from JSON Blueprint -->
+<header class="w-full bg-surface-container-lowest dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shadow-sm dark:shadow-none sticky top-0 z-40"><div class="border-b border-outline-variant dark:border-outline bg-surface-container-lowest dark:bg-inverse-surface"><div class="w-full max-w-[1200px] mx-auto px-space-md flex items-center justify-between h-16"><div class="flex items-center gap-6"><a class="text-headline-md font-headline-md font-bold text-primary dark:text-inverse-primary tracking-tight flex items-center gap-2" href="#"><span class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center"><span class="material-symbols-outlined" data-icon="local_cafe" style="font-variation-settings: 'FILL' 1;">local_cafe</span></span><span class="">DrinkFlow</span></a></div><div class="flex items-center gap-3"><button aria-label="Trung tâm trợ giúp" class="p-2 text-on-surface-variant hover:text-primary rounded-lg hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined" data-icon="help_outline">help_outline</span></button><button aria-label="Thông báo" class="relative p-2 text-on-surface-variant hover:text-primary rounded-lg hover:bg-surface-container transition-colors" type="button"><span class="material-symbols-outlined" data-icon="notifications">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error"></span></button><div class="h-6 w-px bg-outline-variant mx-1 hidden sm:block"></div><div class="flex items-center gap-2 pl-1 cursor-pointer hover:opacity-90 transition-opacity"><div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-headline-sm text-label-sm font-semibold border border-outline-variant">TL</div><div class="hidden lg:flex flex-col text-left"><span class="text-label-sm font-label-sm font-medium text-on-surface leading-tight">Trung Lê</span><span class="text-caption font-caption text-tertiary">trung.lt@company.com</span></div><span class="material-symbols-outlined text-[18px] text-tertiary hidden lg:block" data-icon="keyboard_arrow_down">keyboard_arrow_down</span></div></div></div></div><div class="w-full bg-surface-container-lowest dark:bg-inverse-surface shadow-sm dark:shadow-none"><div class="w-full max-w-[1200px] mx-auto px-space-md flex items-center overflow-x-auto"><nav class="flex items-center gap-8 text-label-md font-label-md"><a class="text-on-surface-variant dark:text-surface-variant font-normal py-3 border-b-2 border-transparent hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150" href="#">Tổng quan</a><a class="text-on-surface-variant dark:text-surface-variant font-normal py-3 border-b-2 border-transparent hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150" href="#">Room của tôi</a><a class="text-on-surface-variant dark:text-surface-variant font-normal py-3 border-b-2 border-transparent hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150" href="#">Lịch sử Order</a><a class="text-on-surface-variant dark:text-surface-variant font-normal py-3 border-b-2 border-transparent hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150" href="#">Thanh toán</a><a class="text-on-surface-variant dark:text-surface-variant font-normal py-3 border-b-2 border-transparent hover:text-primary dark:hover:text-inverse-primary transition-colors duration-150" href="#">Thống kê</a><a class="text-primary dark:text-inverse-primary border-b-2 border-primary dark:border-inverse-primary font-semibold py-3" href="#">Đánh giá</a></nav></div></div></header>
+<!-- Main Canvas Content -->
+<main class="flex-grow w-full max-w-[1200px] mx-auto px-space-md py-6 space-y-6">
+<!-- Breadcrumb -->
+<nav class="flex items-center gap-2 text-caption font-caption text-tertiary">
+<a class="hover:text-primary transition-colors" href="#">DrinkFlow Portal</a>
+<span class="material-symbols-outlined text-[14px]" data-icon="chevron_right">chevron_right</span>
+<a class="hover:text-primary transition-colors" href="#">Cá nhân</a>
+<span class="material-symbols-outlined text-[14px]" data-icon="chevron_right">chevron_right</span>
+<span class="text-on-surface font-medium">Đánh giá &amp; Góp ý</span>
+</nav>
+<!-- Page Header & Banner -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-outline-variant">
+<div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight">Đánh giá &amp; Góp ý phát triển DrinkFlow</h1>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1">
+          Chia sẻ trải nghiệm sử dụng tính năng đặt món, tính năng chia bill và đối soát VietQR nhằm giúp hoàn thiện nền tảng.
+        </p>
+</div>
+<div class="flex items-center gap-2 self-start sm:self-center">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-caption font-caption bg-surface-container text-primary font-semibold border border-outline-variant">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+          DrinkFlow v2.3.4 Production
+        </span>
+</div>
+</div>
+<!-- Two-Section Layout: Form (Col 5) & Analytics/Feed (Col 7) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md items-start">
+<!-- Section 1: Biểu mẫu gửi góp ý (Submit Feedback Form Card) -->
+<section class="lg:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-lg p-space-md shadow-sm space-y-5">
+<div class="flex items-center justify-between border-b border-outline-variant pb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="rate_review">rate_review</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Góp ý của bạn hôm nay</h2>
+</div>
+<span class="text-caption font-caption px-2 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-medium">Nội bộ</span>
+</div>
+<form class="space-y-5" id="feedbackForm">
+<!-- Rating selector with interactive stars & sentiment label -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface mb-2">Mức độ hài lòng của bạn</label>
+<div class="bg-surface rounded-lg p-3 border border-outline-variant flex flex-col items-center justify-center gap-2">
+<div class="flex items-center gap-1 text-tertiary" id="starContainer">
+<button class="star-btn p-1 text-primary transition-transform active:scale-95 focus:outline-none" data-value="1" type="button">
+<span class="material-symbols-outlined text-[32px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+<button class="star-btn p-1 text-primary transition-transform active:scale-95 focus:outline-none" data-value="2" type="button">
+<span class="material-symbols-outlined text-[32px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+<button class="star-btn p-1 text-primary transition-transform active:scale-95 focus:outline-none" data-value="3" type="button">
+<span class="material-symbols-outlined text-[32px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+<button class="star-btn p-1 text-primary transition-transform active:scale-95 focus:outline-none" data-value="4" type="button">
+<span class="material-symbols-outlined text-[32px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+<button class="star-btn p-1 text-primary transition-transform active:scale-95 focus:outline-none" data-value="5" type="button">
+<span class="material-symbols-outlined text-[32px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</button>
+</div>
+<span class="text-label-md font-label-md text-primary font-semibold" id="sentimentLabel">
+                ★★★★★ 5/5 - Rất hài lòng
+              </span>
+</div>
+</div>
+<!-- Phân hệ liên quan (Tag / Radio Selector) -->
+<div>
+<label class="block text-label-md font-label-md text-on-surface mb-2">Phân hệ liên quan</label>
+<div class="flex flex-wrap gap-2">
+<label class="cursor-pointer">
+<input checked="" class="peer sr-only" name="subsystem" type="radio" value="all">
+<span class="inline-flex items-center px-3 py-1.5 rounded-lg text-body-sm font-label-sm border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary peer-checked:text-on-primary peer-checked:border-primary transition-all">
+                  Toàn hệ thống
+                </span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="subsystem" type="radio" value="room">
+<span class="inline-flex items-center px-3 py-1.5 rounded-lg text-body-sm font-label-sm border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary peer-checked:text-on-primary peer-checked:border-primary transition-all">
+                  Gom đơn &amp; Room
+                </span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="subsystem" type="radio" value="split_qr">
+<span class="inline-flex items-center px-3 py-1.5 rounded-lg text-body-sm font-label-sm border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary peer-checked:text-on-primary peer-checked:border-primary transition-all">
+                  Chia bill &amp; VietQR
+                </span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="subsystem" type="radio" value="socket">
+<span class="inline-flex items-center px-3 py-1.5 rounded-lg text-body-sm font-label-sm border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary peer-checked:text-on-primary peer-checked:border-primary transition-all">
+                  Tốc độ Socket.IO
+                </span>
+</label>
+<label class="cursor-pointer">
+<input class="peer sr-only" name="subsystem" type="radio" value="sponsor">
+<span class="inline-flex items-center px-3 py-1.5 rounded-lg text-body-sm font-label-sm border border-outline-variant bg-surface-container-lowest peer-checked:bg-primary peer-checked:text-on-primary peer-checked:border-primary transition-all">
+                  Trợ cấp Sponsor
+                </span>
+</label>
+</div>
+</div>
+<!-- Textarea input with live character counter -->
+<div>
+<div class="flex justify-between items-center mb-2">
+<label class="text-label-md font-label-md text-on-surface" for="feedbackContent">Nội dung chi tiết</label>
+<span class="text-caption font-caption text-tertiary" id="charCounter">0 / 1000</span>
+</div>
+<textarea class="w-full p-3 text-body-md font-body-md bg-surface border border-outline-variant rounded-lg text-on-surface placeholder:text-tertiary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none" id="feedbackContent" maxlength="1000" placeholder="Chia sẻ chi tiết trải nghiệm, đề xuất tính năng mới hoặc bất tiện bạn gặp phải khi đặt đồ uống cùng đồng nghiệp..." rows="4"></textarea>
+</div>
+<!-- Quota indicator callout -->
+<div class="p-3 bg-surface-container rounded-lg border border-outline-variant flex items-start gap-2.5">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5 flex-shrink-0" data-icon="info">info</span>
+<div class="text-caption font-caption text-on-surface-variant">
+<strong class="font-semibold text-on-surface">Lượt đánh giá trong ngày: 0 / 1 lượt</strong>
+<p class="mt-0.5 text-tertiary">Hạn mức 1 lượt/ngày để đảm bảo chất lượng phản hồi nội bộ và tính trung thực của các phiên gom đơn.</p>
+</div>
+</div>
+<!-- Action buttons -->
+<div class="flex items-center justify-end gap-3 pt-2">
+<button class="h-[38px] px-4 rounded-lg border border-outline-variant text-body-sm font-label-md text-on-surface bg-surface-container-lowest hover:bg-surface-container transition-colors duration-150" type="reset">
+              Nhập lại
+            </button>
+<button class="h-[38px] px-5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-body-sm font-label-md flex items-center gap-1.5 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2" type="submit">
+<span class="material-symbols-outlined text-[18px]" data-icon="send">send</span>
+<span class="">Gửi đánh giá</span>
+</button>
+</div>
+</form>
+</section>
+<!-- Section 2: Đánh giá & Phản hồi cộng đồng nội bộ (Community Reviews & Sentiment) -->
+<section class="lg:col-span-7 space-y-5">
+<!-- Top Aggregate Metric Box -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-space-md shadow-sm">
+<div class="flex items-center justify-between border-b border-outline-variant pb-3 mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" data-icon="analytics">analytics</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Thống kê mức độ hài lòng</h2>
+</div>
+<span class="text-caption font-caption text-tertiary">Cập nhật lúc 15:30 hôm nay</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+<!-- Điểm trung bình -->
+<div class="md:col-span-4 flex flex-col items-center md:items-start border-b md:border-b-0 md:border-r border-outline-variant pb-4 md:pb-0 md:pr-4">
+<div class="text-[40px] font-headline-xl font-bold text-on-surface leading-none tracking-tight">
+                4.8 <span class="text-headline-md font-headline-md text-tertiary font-normal">/ 5</span>
+</div>
+<div class="flex items-center gap-0.5 text-primary my-1.5">
+<span class="material-symbols-outlined text-[18px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="star_half" style="font-variation-settings: 'FILL' 1;">star_half</span>
+</div>
+<span class="text-caption font-caption text-tertiary text-center md:text-left">
+                Dựa trên 186 lượt đánh giá từ thành viên công ty
+              </span>
+</div>
+<!-- Rating breakdown bar chart -->
+<div class="md:col-span-8 space-y-1.5">
+<!-- 5 sao -->
+<div class="flex items-center gap-2 text-caption font-caption">
+<span class="w-10 text-on-surface-variant font-medium">5 sao</span>
+<div class="flex-grow h-2.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 82%;"></div>
+</div>
+<span class="w-8 text-right tabular-nums text-on-surface font-semibold">82%</span>
+</div>
+<!-- 4 sao -->
+<div class="flex items-center gap-2 text-caption font-caption">
+<span class="w-10 text-on-surface-variant font-medium">4 sao</span>
+<div class="flex-grow h-2.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed-dim rounded-full" style="width: 14%;"></div>
+</div>
+<span class="w-8 text-right tabular-nums text-on-surface font-semibold">14%</span>
+</div>
+<!-- 3 sao -->
+<div class="flex items-center gap-2 text-caption font-caption">
+<span class="w-10 text-on-surface-variant font-medium">3 sao</span>
+<div class="flex-grow h-2.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-outline-variant rounded-full" style="width: 3%;"></div>
+</div>
+<span class="w-8 text-right tabular-nums text-on-surface font-semibold">3%</span>
+</div>
+<!-- 2 sao -->
+<div class="flex items-center gap-2 text-caption font-caption">
+<span class="w-10 text-on-surface-variant font-medium">2 sao</span>
+<div class="flex-grow h-2.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-outline-variant rounded-full" style="width: 1%;"></div>
+</div>
+<span class="w-8 text-right tabular-nums text-on-surface font-semibold">1%</span>
+</div>
+<!-- 1 sao -->
+<div class="flex items-center gap-2 text-caption font-caption">
+<span class="w-10 text-on-surface-variant font-medium">1 sao</span>
+<div class="flex-grow h-2.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-outline-variant rounded-full" style="width: 0%;"></div>
+</div>
+<span class="w-8 text-right tabular-nums text-on-surface font-semibold">0%</span>
+</div>
+</div>
+</div>
+<!-- Highlight Metric: Tỷ lệ hài lòng gạch nợ VietQR -->
+<div class="mt-4 pt-3 border-t border-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]" data-icon="verified">verified</span>
+<span class="text-body-sm font-label-md text-on-surface">Tỷ lệ hài lòng gạch nợ VietQR:</span>
+</div>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm font-semibold bg-surface-container text-primary">
+              99.2% phản hồi tích cực
+            </span>
+</div>
+</div>
+<!-- Feed danh sách góp ý tiêu biểu (Recent Public Reviews - 4 cards) -->
+<div class="space-y-3">
+<div class="flex items-center justify-between px-1">
+<h3 class="text-headline-sm font-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px] text-tertiary" data-icon="chat_bubble_outline">chat_bubble_outline</span>
+              Góp ý tiêu biểu gần đây
+            </h3>
+<span class="text-caption font-caption text-tertiary">Hiển thị 4 phản hồi mới nhất</span>
+</div>
+<!-- Review Card 1 -->
+<article class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm hover:border-outline transition-colors">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container text-primary flex items-center justify-center font-bold text-caption border border-outline-variant">
+                  KT
+                </div>
+<div>
+<h4 class="text-label-md font-label-md text-on-surface">Thành viên Ban Kỹ thuật</h4>
+<span class="text-caption font-caption text-tertiary">10/10/2026 · Gom đơn &amp; Chia bill</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant leading-relaxed">
+              "Tính năng chia tiền ship tự động và quét mã VietQR kèm sẵn nội dung giúp host nhàn hơn rất nhiều, không còn cảnh đi đòi từng 20k-30k như trước."
+            </p>
+</article>
+<!-- Review Card 2 -->
+<article class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm hover:border-outline transition-colors">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container text-primary flex items-center justify-center font-bold text-caption border border-outline-variant">
+                  SP
+                </div>
+<div>
+<h4 class="text-label-md font-label-md text-on-surface">Thành viên Phòng Sản phẩm</h4>
+<span class="text-caption font-caption text-tertiary">08/10/2026 · Room đếm ngược</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant leading-relaxed">
+              "Giao diện v2.3 trực quan, có thêm thanh đếm ngược tự động khóa phòng trước 15 phút nên team không bị muộn giờ giao hàng."
+            </p>
+</article>
+<!-- Review Card 3 -->
+<article class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm hover:border-outline transition-colors">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container text-primary flex items-center justify-center font-bold text-caption border border-outline-variant">
+                  KD
+                </div>
+<div>
+<h4 class="text-label-md font-label-md text-on-surface">Thành viên Phòng Kinh doanh</h4>
+<span class="text-caption font-caption text-tertiary">05/10/2026 · Đề xuất tính năng</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px] text-outline-variant" data-icon="star">star</span>
+</div>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant leading-relaxed">
+              "Mong hệ thống bổ sung thêm tính năng lưu món yêu thích để ấn 1 nút là xong đơn."
+            </p>
+</article>
+<!-- Review Card 4 -->
+<article class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm hover:border-outline transition-colors">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-full bg-surface-container text-primary flex items-center justify-center font-bold text-caption border border-outline-variant">
+                  OP
+                </div>
+<div>
+<h4 class="text-label-md font-label-md text-on-surface">Nhân sự Ops</h4>
+<span class="text-caption font-caption text-tertiary">01/10/2026 · Trợ cấp Sponsor</span>
+</div>
+</div>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="text-body-md font-body-md text-on-surface-variant leading-relaxed">
+              "Phần đối soát tài trợ công ty minh bạch, xem được ngay số tiền được trừ thẳng vào hóa đơn cá nhân."
+            </p>
+</article>
+<div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 text-caption font-caption text-on-surface-variant"><div class="text-tertiary">Hiển thị <span class="font-semibold text-on-surface">1 - 4</span> trong số <span class="font-semibold text-on-surface">28</span> góp ý</div><div class="flex items-center gap-1.5"><button class="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-tertiary hover:bg-surface-container transition-colors disabled:opacity-50 disabled:cursor-not-allowed" type="button" disabled=""><span class="material-symbols-outlined text-[16px]" data-icon="chevron_left">chevron_left</span><span class="hidden sm:inline text-body-sm font-label-sm">Trước</span></button><div class="flex items-center gap-1"><button class="w-8 h-8 rounded-lg bg-primary text-on-primary font-semibold text-label-sm flex items-center justify-center shadow-sm" type="button">1</button><button class="w-8 h-8 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container text-on-surface text-label-sm flex items-center justify-center transition-colors" type="button">2</button><button class="w-8 h-8 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container text-on-surface text-label-sm flex items-center justify-center transition-colors" type="button">3</button><span class="w-6 text-center text-tertiary">...</span><button class="w-8 h-8 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container text-on-surface text-label-sm flex items-center justify-center transition-colors" type="button">7</button></div><button class="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container transition-colors" type="button"><span class="hidden sm:inline text-body-sm font-label-sm">Sau</span><span class="material-symbols-outlined text-[16px]" data-icon="chevron_right">chevron_right</span></button></div></div></div>
+</section>
+</div>
+</main>
+<!-- Shared Enterprise Footer Component from JSON Blueprint -->
+<footer class="w-full bg-surface-container-lowest dark:bg-inverse-surface border-t border-outline-variant dark:border-outline mt-12">
+<div class="w-full max-w-[1200px] mx-auto px-space-md py-space-md flex flex-col md:flex-row items-center justify-between gap-space-sm">
+<!-- Brand & Copyright -->
+<div class="flex flex-col sm:flex-row items-center gap-2 text-center sm:text-left">
+<span class="text-headline-sm font-headline-sm font-semibold text-on-surface dark:text-inverse-on-surface">DrinkFlow</span>
+<span class="hidden sm:inline text-tertiary">|</span>
+<span class="text-caption font-caption text-on-surface-variant dark:text-surface-variant">
+          © 2025 DrinkFlow Enterprise Platform. All rights reserved.
+        </span>
+</div>
+<!-- Links (verbatim from JSON) -->
+<nav class="flex flex-wrap items-center justify-center gap-4 text-label-sm font-label-sm"><a class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:underline transition-colors duration-150 active:opacity-80" href="#">Chính sách bảo mật</a><a class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:underline transition-colors duration-150 active:opacity-80" href="#">Điều khoản sử dụng</a><a class="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary hover:underline transition-colors duration-150 active:opacity-80" href="#">Trung tâm trợ giúp</a></nav>
+</div>
+</footer>
+<!-- Micro-interactions: Rating Selector & Live Char Counter -->
+<script>
+    (function () {
+      const starButtons = document.querySelectorAll('.star-btn');
+      const sentimentLabel = document.getElementById('sentimentLabel');
+      const textarea = document.getElementById('feedbackContent');
+      const charCounter = document.getElementById('charCounter');
+      const form = document.getElementById('feedbackForm');
+
+      const sentimentTexts = {
+        1: "★☆☆☆☆ 1/5 - Rất không hài lòng",
+        2: "★★☆☆☆ 2/5 - Chưa hài lòng",
+        3: "★★★☆☆ 3/5 - Bình thường",
+        4: "★★★★☆ 4/5 - Hài lòng",
+        5: "★★★★★ 5/5 - Rất hài lòng"
+      };
+
+      let currentRating = 5;
+
+      function updateStars(val) {
+        currentRating = val;
+        starButtons.forEach((btn) => {
+          const btnVal = parseInt(btn.getAttribute('data-value'), 10);
+          const icon = btn.querySelector('span');
+          if (btnVal <= val) {
+            btn.classList.add('text-primary');
+            btn.classList.remove('text-outline-variant');
+            icon.style.fontVariationSettings = "'FILL' 1";
+          } else {
+            btn.classList.remove('text-primary');
+            btn.classList.add('text-outline-variant');
+            icon.style.fontVariationSettings = "'FILL' 0";
+          }
+        });
+        sentimentLabel.textContent = sentimentTexts[val] || '';
+      }
+
+      starButtons.forEach((btn) => {
+        btn.addEventListener('click', function () {
+          const val = parseInt(this.getAttribute('data-value'), 10);
+          updateStars(val);
+        });
+      });
+
+      if (textarea && charCounter) {
+        textarea.addEventListener('input', function () {
+          const len = this.value.length;
+          charCounter.textContent = `${len} / 1000`;
+        });
+      }
+
+      if (form) {
+        form.addEventListener('reset', function () {
+          setTimeout(() => {
+            updateStars(5);
+            if (charCounter) charCounter.textContent = '0 / 1000';
+          }, 0);
+        });
+
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          alert('Cảm ơn bạn đã gửi đánh giá! Góp ý của bạn đã được ghi nhận vào hệ thống nội bộ DrinkFlow.');
+        });
+      }
+    })();
+  </script>
+
+
+</body></html>
