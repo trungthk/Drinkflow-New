@@ -5,9 +5,11 @@ return [
     'meta' => [
         'title' => 'DrinkFlow - Nền tảng đặt đồ uống & quản lý campaign nội bộ doanh nghiệp',
         'description' => 'Nền tảng tổ chức campaign đặt đồ uống, quản lý order và chia bill cho team minh bạch, nhanh chóng và tự động hoá.',
+        'keywords' => 'DrinkFlow, đặt đồ uống văn phòng, group order, chia bill tự động, VietQR, Google Workspace SSO, order trà sữa doanh nghiệp',
         'og_title' => 'DrinkFlow - Order cùng team nhanh và dễ dàng',
         'og_description' => 'Nền tảng tổ chức campaign đặt đồ uống, quản lý order và chia bill cho team.',
     ],
+    'contact_support' => 'Liên hệ & Hỗ trợ',
     'header' => [
         'about' => 'Giới thiệu',
         'terms' => 'Điều khoản',

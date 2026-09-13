@@ -5,9 +5,11 @@ return [
     'meta' => [
         'title' => 'DrinkFlow - 社内ドリンク共同注文＆社内キャンペーン管理プラットフォーム',
         'description' => '社内チームのドリンク注文キャンペーンの作成、注文管理、自動割り勘を透明かつスピーディーに実現。',
+        'keywords' => 'DrinkFlow, 社内ドリンク注文, 共同注文, 自動割り勘, VietQR, Google Workspace SSO, チーム注文',
         'og_title' => 'DrinkFlow - チームでのドリンク共同注文をすばやくスマートに',
         'og_description' => 'ドリンクキャンペーンの主催、注文管理、割り勘をチームで簡単かつ透明に行えます。',
     ],
+    'contact_support' => 'お問い合わせ・サポート',
     'header' => [
         'about' => '紹介',
         'terms' => '利用規約',

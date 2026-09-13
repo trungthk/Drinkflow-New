@@ -14,10 +14,13 @@ class GlobalFeedbackTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_accessing_me_feedback_redirects_to_login(): void
+    public function test_guest_accessing_me_feedback_redirects_to_home_or_referer(): void
     {
         $response = $this->get('/me/feedback');
-        $response->assertRedirect(route('auth.google'));
+        $response->assertRedirect('/');
+
+        $refererResponse = $this->from(url('/versions'))->get('/me/feedback');
+        $refererResponse->assertRedirect(url('/versions'));
     }
 
     public function test_authenticated_user_can_view_me_feedback_page_in_vietnamese(): void

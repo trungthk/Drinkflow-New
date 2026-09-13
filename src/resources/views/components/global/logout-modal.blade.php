@@ -11,7 +11,7 @@
       </p>
     </div>
     <div class="px-6 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end gap-3">
-      <button type="button" onclick="closeLogoutModal()" class="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer">
+      <button type="button" onclick="window.closeLogoutModal ? window.closeLogoutModal() : null" class="px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 hover:bg-slate-200/60 rounded-xl transition-colors cursor-pointer">
         {{ __('global.modal.cancel') }}
       </button>
       <form id="global-logout-form" action="{{ route('logout') }}" method="POST" class="m-0 p-0">
@@ -24,35 +24,3 @@
     </div>
   </div>
 </div>
-
-<script>
-  function openLogoutModal() {
-    const modal = document.getElementById('logout-confirm-modal');
-    const content = document.getElementById('logout-modal-content');
-    if (!modal || !content) return;
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    requestAnimationFrame(() => {
-      content.classList.remove('scale-95', 'opacity-0');
-      content.classList.add('scale-100', 'opacity-100');
-    });
-  }
-
-  function closeLogoutModal() {
-    const modal = document.getElementById('logout-confirm-modal');
-    const content = document.getElementById('logout-modal-content');
-    if (!modal || !content) return;
-    content.classList.remove('scale-100', 'opacity-100');
-    content.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }, 150);
-  }
-
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      closeLogoutModal();
-    }
-  });
-</script>

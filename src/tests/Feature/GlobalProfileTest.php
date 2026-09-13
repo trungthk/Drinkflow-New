@@ -24,7 +24,10 @@ class GlobalProfileTest extends TestCase
     public function test_guest_accessing_me_profile_redirects_to_google_login(): void
     {
         $response = $this->get('/me/profile');
-        $response->assertRedirect(route('auth.google'));
+        $response->assertRedirect('/');
+
+        $responseWithReferer = $this->from('/contact')->get('/me/profile');
+        $responseWithReferer->assertRedirect('/contact');
     }
 
     public function test_authenticated_user_can_view_me_profile_with_real_data(): void

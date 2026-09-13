@@ -56,4 +56,17 @@ class ContactRequest extends FormRequest
             'captcha' => __('contact.form.captcha'),
         ];
     }
+
+    /**
+     * Custom validation messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'captcha.captcha' => __('validation.captcha'),
+            'captcha.required' => __('validation.required', ['attribute' => __('contact.form.captcha')]),
+        ];
+    }
 }

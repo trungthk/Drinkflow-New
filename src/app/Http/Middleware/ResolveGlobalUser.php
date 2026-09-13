@@ -31,7 +31,11 @@ class ResolveGlobalUser
             if ($request->expectsJson()) {
                 abort(401, 'Unauthenticated.');
             }
-            return redirect()->guest(route('auth.google'));
+            $referer = $request->headers->get('referer') ?: url()->previous();
+            if ($referer && $referer !== $request->fullUrl() && $referer !== $request->url() && $referer !== url('/')) {
+                return redirect()->to($referer);
+            }
+            return redirect()->to('/');
         }
         if ($user->status?->value === 'blocked') {
             $request->attributes->set('global_user', $user);

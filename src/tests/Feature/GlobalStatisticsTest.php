@@ -17,7 +17,10 @@ class GlobalStatisticsTest extends TestCase
     public function test_guest_accessing_statistics_redirects_to_login(): void
     {
         $response = $this->get('/me/statistics');
-        $response->assertRedirect(route('auth.google'));
+        $response->assertRedirect('/');
+
+        $responseWithReferer = $this->from('/contact')->get('/me/statistics');
+        $responseWithReferer->assertRedirect('/contact');
     }
 
     public function test_authenticated_user_can_view_statistics_page(): void

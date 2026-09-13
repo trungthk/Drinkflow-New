@@ -27,24 +27,9 @@
       }
     };
   </script>
-  <style>
-    [x-cloak] { display: none !important; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f8f9ff;
-      color: #0b1c30;
-      -webkit-font-smoothing: antialiased;
-    }
-    .material-symbols-outlined {
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
-      font-size: 20px;
-      line-height: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      vertical-align: middle;
-    }
-  </style>
+  @if (file_exists(public_path('build/manifest.json')) || app()->isLocal())
+    @vite(['resources/css/global.css', 'resources/js/global.js'])
+  @endif
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 </head>
 <body 
@@ -88,11 +73,6 @@
 
         @php
           $currentLocale = app()->getLocale();
-          $locales = [
-              'vi' => ['name' => 'Tiếng Việt', 'flag' => '🇻🇳', 'code' => 'VI'],
-              'en' => ['name' => 'English', 'flag' => '🇺🇸', 'code' => 'EN'],
-              'ja' => ['name' => '日本語', 'flag' => '🇯🇵', 'code' => 'JA'],
-          ];
           $activeLocaleMeta = $locales[$currentLocale] ?? $locales['vi'];
         @endphp
         <!-- Language Selector Dropdown -->

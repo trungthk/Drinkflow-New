@@ -628,45 +628,4 @@
       </div>
     </div>
   </div>
-
-  <x-slot:scripts>
-    <script>
-      const supportModal = document.getElementById('support-modal');
-      const closeModalBtn = document.getElementById('close-modal-btn');
-      const modalConfirmBtn = document.getElementById('modal-confirm-btn');
-
-      function openSupportModal() {
-        if (supportModal) {
-          supportModal.classList.remove('hidden');
-          supportModal.classList.add('flex');
-          document.body.classList.add('overflow-hidden');
-        }
-      }
-
-      function closeSupportModal() {
-        if (supportModal) {
-          supportModal.classList.add('hidden');
-          supportModal.classList.remove('flex');
-          document.body.classList.remove('overflow-hidden');
-        }
-      }
-
-      if (closeModalBtn) closeModalBtn.addEventListener('click', closeSupportModal);
-      if (modalConfirmBtn) modalConfirmBtn.addEventListener('click', closeSupportModal);
-
-      if (supportModal) {
-        supportModal.addEventListener('click', (e) => {
-          if (e.target === supportModal) {
-            closeSupportModal();
-          }
-        });
-      }
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
-          closeSupportModal();
-        }
-      });
-    </script>
-  </x-slot:scripts>
 </x-global.layout>

@@ -38,9 +38,13 @@ class RoomController extends Controller
         if (! $user) {
             $request->session()->put('url.intended', url()->current());
             if ($request->expectsJson()) {
-                return response()->json(['requires_authentication' => true, 'redirect' => route('auth.google')], 401);
+                return response()->json(['requires_authentication' => true, 'redirect' => route('landing')], 401);
             }
-            return redirect()->guest(route('auth.google'));
+            $referer = $request->headers->get('referer') ?: url()->previous();
+            if ($referer && $referer !== $request->fullUrl() && $referer !== $request->url() && $referer !== url('/')) {
+                return redirect()->to($referer);
+            }
+            return redirect()->to('/');
         }
         $userStatus = $user->status instanceof \BackedEnum ? $user->status->value : (string) ($user->status ?? 'active');
         abort_unless($userStatus === 'active', 403);

@@ -1,9 +1,12 @@
 @props([
     'title' => null,
     'description' => null,
+    'keywords' => null,
     'ogTitle' => null,
     'ogDescription' => null,
     'ogType' => 'website',
+    'ogImage' => null,
+    'canonicalUrl' => null,
     'activeTab' => 'about',
     'version' => config('app.version', 'v2.3.0'),
     'termsUrl' => url('/terms'),
@@ -12,18 +15,65 @@
     'googleAuthUrl' => route('auth.google'),
 ])
 
+@php
+    $pageTitle = $title ?? __('public.meta.title');
+    $pageDescription = $description ?? __('public.meta.description');
+    $pageKeywords = $keywords ?? __('public.meta.keywords');
+    $pageOgTitle = $ogTitle ?? ($title ?? __('public.meta.og_title'));
+    $pageOgDescription = $ogDescription ?? ($description ?? __('public.meta.og_description'));
+    $pageOgImage = $ogImage ?? asset('images/default-avatar.svg');
+    $currentUrl = $canonicalUrl ?? url()->current();
+    $locale = app()->getLocale();
+    $ogLocale = $locale === 'vi' ? 'vi_VN' : ($locale === 'ja' ? 'ja_JP' : 'en_US');
+@endphp
+
 <!DOCTYPE html>
-<html class="light h-full" lang="{{ app()->getLocale() }}">
+<html class="light h-full" lang="{{ $locale }}">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     
-    <!-- SEO / Metadata -->
-    <title>{{ $title ?? __('public.meta.title') }}</title>
-    <meta name="description" content="{{ $description ?? __('public.meta.description') }}"/>
-    <meta property="og:title" content="{{ $ogTitle ?? ($title ?? __('public.meta.og_title')) }}"/>
-    <meta property="og:description" content="{{ $ogDescription ?? ($description ?? __('public.meta.og_description')) }}"/>
+    <!-- Primary SEO / Metadata -->
+    <title>{{ $pageTitle }}</title>
+    <meta name="description" content="{{ $pageDescription }}"/>
+    <meta name="keywords" content="{{ $pageKeywords }}"/>
+    <meta name="author" content="DrinkFlow"/>
+    <meta name="robots" content="index, follow"/>
+    <link rel="canonical" href="{{ $currentUrl }}"/>
+
+    <!-- Open Graph / Facebook / Zalo / LinkedIn -->
+    <meta property="og:site_name" content="DrinkFlow"/>
     <meta property="og:type" content="{{ $ogType }}"/>
+    <meta property="og:url" content="{{ $currentUrl }}"/>
+    <meta property="og:title" content="{{ $pageOgTitle }}"/>
+    <meta property="og:description" content="{{ $pageOgDescription }}"/>
+    <meta property="og:image" content="{{ $pageOgImage }}"/>
+    <meta property="og:locale" content="{{ $ogLocale }}"/>
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:url" content="{{ $currentUrl }}"/>
+    <meta name="twitter:title" content="{{ $pageOgTitle }}"/>
+    <meta name="twitter:description" content="{{ $pageOgDescription }}"/>
+    <meta name="twitter:image" content="{{ $pageOgImage }}"/>
+
+    <!-- Schema.org JSON-LD Structured Data for Rich Search Results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "DrinkFlow",
+      "url": "{{ url('/') }}",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "All",
+      "description": "{{ $pageDescription }}",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "VND"
+      }
+    }
+    </script>
 
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -68,18 +118,10 @@
             }
         }
     </script>
-    <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            font-size: 20px;
-            line-height: 1;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-    </style>
+
+    @if (file_exists(public_path('build/manifest.json')) || app()->isLocal())
+        @vite(['resources/css/public.css', 'resources/js/public.js'])
+    @endif
 
     @if(isset($head))
         {{ $head }}
@@ -115,7 +157,7 @@
         :termsUrl="$termsUrl"
     />
 
-    <!-- GO TO TOP BUTTON -->
+    <!-- FLOATING ACTIONS: CONTACT & GO TO TOP BUTTON -->
     <x-public.go-to-top />
 
     <!-- PUBLIC PAGE LOADING & SUBMIT OVERLAY -->

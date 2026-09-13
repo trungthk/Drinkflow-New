@@ -20,7 +20,11 @@ class ResolveRoomUser
             if ($request->expectsJson()) {
                 abort(401, 'Unauthenticated.');
             }
-            return redirect()->guest(route('auth.google'));
+            $referer = $request->headers->get('referer') ?: url()->previous();
+            if ($referer && $referer !== $request->fullUrl() && $referer !== $request->url() && $referer !== url('/')) {
+                return redirect()->to($referer);
+            }
+            return redirect()->to('/');
         }
 
         $roomUser = $globalUser->roomUsers()->where('room_id', $room->id)->first();

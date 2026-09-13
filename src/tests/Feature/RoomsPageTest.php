@@ -26,7 +26,10 @@ class RoomsPageTest extends TestCase
     public function test_guest_accessing_me_rooms_redirects_to_login(): void
     {
         $response = $this->get('/me/rooms');
-        $response->assertRedirect(route('auth.google'));
+        $response->assertRedirect('/');
+
+        $responseWithReferer = $this->from('/contact')->get('/me/rooms');
+        $responseWithReferer->assertRedirect('/contact');
     }
 
     public function test_user_without_rooms_accessing_me_rooms_redirects_to_dashboard(): void

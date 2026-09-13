@@ -11,22 +11,11 @@
     :contactUrl="$contactUrl ?? route('contact')"
     :googleAuthUrl="$googleAuthUrl ?? route('auth.google')"
 >
-    <x-slot:head>
-        <style>
-            html {
-                scroll-behavior: smooth;
-            }
-        </style>
-        @if (file_exists(public_path('build/manifest.json')))
-            @vite(['resources/css/app.css', 'resources/js/app.js'])
-        @endif
-    </x-slot:head>
-
     <!-- MAIN CONTAINER -->
-    <main class="flex-1 w-full max-w-[1200px] mx-auto px-6 py-8">
+    <main class="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <!-- Breadcrumb & Page Meta -->
         <div class="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-slate-200 gap-3">
-            <div class="flex items-center gap-2 text-xs text-[#545c72]">
+            <div class="flex items-center gap-2 text-xs text-[#545c72] flex-wrap">
                 <a class="hover:text-[#006948] transition-colors" href="{{ $landingUrl }}">{{ __('versions.breadcrumb_root') }}</a>
                 <span class="material-symbols-outlined text-[14px]">chevron_right</span>
                 <a class="hover:text-[#006948] transition-colors" href="{{ $versionsUrl }}">{{ __('versions.breadcrumb_history') }}</a>
@@ -42,10 +31,32 @@
             </div>
         </div>
 
+        <!-- MOBILE HORIZONTAL VERSION SELECTOR (Mobile only) -->
+        <div class="lg:hidden mt-4 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-[#0F172A] flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px] text-[#006948]">history</span>
+                    <span>{{ __('versions.sidebar_title') }}</span>
+                </span>
+                <span class="text-[11px] font-semibold text-[#006948] bg-[#eff4ff] px-2 py-0.5 rounded">{{ $versions->count() }} {{ __('versions.versions_count') }}</span>
+            </div>
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1" style="scrollbar-width: none; -ms-overflow-style: none;">
+                @foreach ($versions as $v)
+                    @php
+                        $isSelected = ($v->version === $currentVersion->version);
+                    @endphp
+                    <a href="{{ $versionsUrl }}/{{ $v->version }}"
+                       class="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all {{ $isSelected ? 'bg-[#006948] text-white shadow-xs' : 'bg-slate-50 text-slate-700 hover:bg-slate-100 hover:text-[#006948] border border-slate-200/80' }}">
+                        {{ $v->version }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
         <!-- 2-Panel Bento Grid -->
-        <div class="mt-6 grid grid-cols-12 gap-8 items-start">
-            <!-- LEFT SIDEBAR PANEL: Version List -->
-            <aside class="col-span-12 lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden flex flex-col">
+        <div class="mt-6 grid grid-cols-12 gap-6 lg:gap-8 items-start">
+            <!-- LEFT SIDEBAR PANEL: Version List (Desktop Only) -->
+            <aside class="hidden lg:flex col-span-12 lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden flex-col">
                 <div class="p-4 border-b border-slate-100 bg-white">
                     <div class="flex items-center justify-between mb-3">
                         <h2 class="text-base font-bold text-[#0F172A] flex items-center gap-2">
@@ -57,14 +68,14 @@
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-[#545c72]">search</span>
                         <input id="version-search-input"
-                               class="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 text-xs text-[#0F172A] placeholder:text-[#545c72] focus:outline-none focus:border-[#006948] bg-[#f8f9ff]"
-                               placeholder="{{ __('versions.sidebar_search_placeholder') }}"
-                               type="text">
+                                class="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 text-xs text-[#0F172A] placeholder:text-[#545c72] focus:outline-none focus:border-[#006948] bg-[#f8f9ff]"
+                                placeholder="{{ __('versions.sidebar_search_placeholder') }}"
+                                type="text">
                     </div>
                 </div>
 
                 <!-- Version Items -->
-                <div id="version-list-items" class="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
+                <div id="version-list-items" class="divide-y divide-slate-100 max-h-[260px] lg:max-h-[600px] overflow-y-auto">
                     @foreach ($versions as $v)
                         @php
                             $isSelected = ($v->version === $currentVersion->version);
@@ -155,16 +166,6 @@
                         <div class="flex items-center gap-1">
                             <span class="material-symbols-outlined text-[15px]">group</span>
                             <span>{{ __('versions.meta_author') }}: <strong class="text-[#0F172A]">{{ $currentVersion->author ?? 'DrinkFlow Core Team' }}</strong></span>
-                        </div>
-                        <span>•</span>
-                        <div class="flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[15px]">commit</span>
-                            <span>{{ __('versions.meta_commit') }}: <code class="font-mono text-[#006948] font-semibold">{{ $currentVersion->commit ?? '#a78f3c2' }}</code></span>
-                        </div>
-                        <span>•</span>
-                        <div class="flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-[#059669]"></span>
-                            <span>{{ __('versions.meta_status') }}: <strong class="text-[#047857]">{{ $currentVersion->status ?? __('versions.badge_production') }}</strong></span>
                         </div>
                     </div>
 
@@ -363,28 +364,4 @@
             </section>
         </div>
     </main>
-
-    <x-slot:scripts>
-        <!-- Live Filter Search Script for Version List -->
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const searchInput = document.getElementById('version-search-input');
-                const items = document.querySelectorAll('.version-item');
-
-                if (searchInput) {
-                    searchInput.addEventListener('input', (e) => {
-                        const query = e.target.value.toLowerCase().trim();
-                        items.forEach(item => {
-                            const text = item.textContent.toLowerCase();
-                            if (text.includes(query)) {
-                                item.style.display = '';
-                            } else {
-                                item.style.display = 'none';
-                            }
-                        });
-                    });
-                }
-            });
-        </script>
-    </x-slot:scripts>
 </x-public.layout>

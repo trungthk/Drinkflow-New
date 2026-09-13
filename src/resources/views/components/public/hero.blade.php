@@ -23,19 +23,19 @@
         </p>
 
         <!-- CTA Buttons -->
-        <div class="flex flex-wrap items-center gap-3 pt-2">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 w-full sm:w-auto">
             @auth('web')
-                <a href="{{ route('user.me.dashboard') }}" class="bg-[#059669] hover:bg-[#047857] text-white text-sm font-semibold px-5 py-2.5 rounded-[6px] transition-all active:scale-[0.98] duration-100 shadow-sm flex items-center gap-2 cursor-pointer">
+                <a href="{{ route('user.me.dashboard') }}" class="w-full sm:w-auto justify-center bg-[#059669] hover:bg-[#047857] text-white text-sm font-semibold px-5 py-2.5 rounded-[6px] transition-all active:scale-[0.98] duration-100 shadow-sm flex items-center gap-2 cursor-pointer">
                     <span>{{ __('public.hero.cta_primary') }}</span>
                     <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </a>
             @else
-                <button type="button" class="btn-google-sso bg-[#059669] hover:bg-[#047857] text-white text-sm font-semibold px-5 py-2.5 rounded-[6px] transition-all active:scale-[0.98] duration-100 shadow-sm flex items-center gap-2 cursor-pointer">
+                <button type="button" class="btn-google-sso w-full sm:w-auto justify-center bg-[#059669] hover:bg-[#047857] text-white text-sm font-semibold px-5 py-2.5 rounded-[6px] transition-all active:scale-[0.98] duration-100 shadow-sm flex items-center gap-2 cursor-pointer">
                     <span>{{ __('public.hero.cta_primary') }}</span>
                     <span class="material-symbols-outlined text-[18px]">login</span>
                 </button>
             @endauth
-            <button type="button" class="open-video-btn bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#0F172A] text-sm font-medium px-5 py-2.5 rounded-[6px] transition-colors flex items-center gap-2 shadow-2xs cursor-pointer">
+            <button type="button" class="open-video-btn w-full sm:w-auto justify-center bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] text-[#0F172A] text-sm font-medium px-5 py-2.5 rounded-[6px] transition-colors flex items-center gap-2 shadow-2xs cursor-pointer">
                 <span class="material-symbols-outlined text-[18px] text-[#006948]">play_circle</span>
                 <span>{{ __('public.hero.cta_video') }}</span>
             </button>

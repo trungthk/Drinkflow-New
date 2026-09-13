@@ -6,30 +6,3 @@
         class="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-[#006948] hover:bg-[#005137] text-white shadow-lg flex items-center justify-center cursor-pointer transition-all duration-300 opacity-0 pointer-events-none translate-y-3 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#006948] focus:ring-offset-2">
     <span class="material-symbols-outlined text-[20px]">arrow_upward</span>
 </button>
-
-<script>
-    (function() {
-        const btn = document.getElementById('global-go-to-top-btn');
-        if (!btn) return;
-
-        function handleScroll() {
-            if (window.scrollY > 240) {
-                btn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
-                btn.classList.add('opacity-100', 'translate-y-0');
-            } else {
-                btn.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
-                btn.classList.remove('opacity-100', 'translate-y-0');
-            }
-        }
-
-        btn.addEventListener('click', function() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
-
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        handleScroll();
-    })();
-</script>

@@ -11,20 +11,6 @@
     :contactUrl="$contactUrl ?? route('contact')"
     :googleAuthUrl="$googleAuthUrl ?? route('auth.google')"
 >
-    <x-slot:head>
-        <style>
-            #captcha-img-wrapper img {
-                display: block;
-                border-radius: 6px;
-                height: 38px;
-                width: auto;
-            }
-        </style>
-        @if (file_exists(public_path('build/manifest.json')))
-            @vite(['resources/css/app.css', 'resources/js/app.js'])
-        @endif
-    </x-slot:head>
-
     <!-- Hero Intro Section -->
     <section class="bg-white border-b border-slate-200/80 py-10 px-6">
         <div class="max-w-[1200px] mx-auto">
@@ -85,7 +71,7 @@
                             <input class="w-full h-[38px] px-3 rounded-lg border @error('full_name') border-red-500 @else border-slate-300 @enderror bg-white text-[#0b1c30] text-sm focus:border-[#006948] focus:ring-1 focus:ring-[#006948] outline-none transition-all placeholder:text-slate-400"
                                    id="full_name"
                                    name="full_name"
-                                   value="{{ old('full_name') }}"
+                                   value="{{ old('full_name', auth('web')->user()?->name ?? '') }}"
                                    placeholder="{{ __('contact.form.full_name_placeholder') }}"
                                    required
                                    type="text">
@@ -100,7 +86,7 @@
                             <input class="w-full h-[38px] px-3 rounded-lg border @error('work_email') border-red-500 @else border-slate-300 @enderror bg-white text-[#0b1c30] text-sm focus:border-[#006948] focus:ring-1 focus:ring-[#006948] outline-none transition-all placeholder:text-slate-400"
                                    id="work_email"
                                    name="work_email"
-                                   value="{{ old('work_email') }}"
+                                   value="{{ old('work_email', auth('web')->user()?->email ?? '') }}"
                                    placeholder="{{ __('contact.form.work_email_placeholder') }}"
                                    required
                                    type="email">
@@ -187,17 +173,23 @@
                             <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="captcha">
                                 {{ __('contact.form.captcha') }} <span class="text-[#ba1a1a]">*</span>
                             </label>
-                            <div class="flex flex-wrap sm:flex-nowrap items-center gap-3">
-                                <div id="captcha-img-wrapper" class="flex-shrink-0 cursor-pointer select-none rounded-lg border border-slate-300 overflow-hidden shadow-xs hover:border-[#006948] transition-colors" title="{{ __('contact.form.captcha_refresh') }}">
-                                    {!! captcha_img('contact') !!}
+                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                <div class="flex items-center gap-2">
+                                    <div id="captcha-img-wrapper"
+                                         data-captcha-api="{{ url('/captcha/api/contact') }}"
+                                         data-captcha-fallback="{{ captcha_src('contact') }}"
+                                         class="flex-shrink-0 cursor-pointer select-none rounded-lg border border-slate-300 overflow-hidden shadow-xs hover:border-[#006948] transition-colors bg-white flex items-center justify-center"
+                                         title="{{ __('contact.form.captcha_refresh') }}">
+                                        {!! captcha_img('contact') !!}
+                                    </div>
+                                    <button type="button"
+                                            id="refresh-captcha-btn"
+                                            class="p-2 text-slate-500 hover:text-[#006948] hover:bg-emerald-50 rounded-lg border border-slate-300 transition-all flex-shrink-0 cursor-pointer active:scale-95"
+                                            title="{{ __('contact.form.captcha_refresh') }}">
+                                        <span class="material-symbols-outlined text-[20px] transition-transform duration-300">refresh</span>
+                                    </button>
                                 </div>
-                                <button type="button"
-                                        id="refresh-captcha-btn"
-                                        class="p-2 text-slate-500 hover:text-[#006948] hover:bg-emerald-50 rounded-lg border border-slate-300 transition-colors flex-shrink-0 cursor-pointer"
-                                        title="{{ __('contact.form.captcha_refresh') }}">
-                                    <span class="material-symbols-outlined text-[20px]">refresh</span>
-                                </button>
-                                <input class="flex-1 h-[38px] px-3 rounded-lg border @error('captcha') border-red-500 @else border-slate-300 @enderror bg-white text-[#0b1c30] text-sm focus:border-[#006948] focus:ring-1 focus:ring-[#006948] outline-none transition-all placeholder:text-slate-400"
+                                <input class="flex-1 w-full h-[38px] px-3 rounded-lg border @error('captcha') border-red-500 @else border-slate-300 @enderror bg-white text-[#0b1c30] text-sm focus:border-[#006948] focus:ring-1 focus:ring-[#006948] outline-none transition-all placeholder:text-slate-400"
                                        id="captcha"
                                        name="captcha"
                                        placeholder="{{ __('contact.form.captcha_placeholder') }}"
@@ -320,63 +312,4 @@
             </button>
         </div>
     </div>
-
-    <x-slot:scripts>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                // Captcha Refresh
-                const refreshBtn = document.getElementById('refresh-captcha-btn');
-                const captchaWrapper = document.getElementById('captcha-img-wrapper');
-                const captchaImg = captchaWrapper ? captchaWrapper.querySelector('img') : null;
-
-                function refreshCaptcha() {
-                    if (captchaImg) {
-                        const currentSrc = captchaImg.getAttribute('src').split('?')[0];
-                        captchaImg.setAttribute('src', currentSrc + '?' + Math.random());
-                    }
-                }
-
-                if (refreshBtn) {
-                    refreshBtn.addEventListener('click', refreshCaptcha);
-                }
-                if (captchaWrapper) {
-                    captchaWrapper.addEventListener('click', refreshCaptcha);
-                }
-
-                // FAQ Accordion
-                const toggles = document.querySelectorAll('.faq-toggle');
-                toggles.forEach(toggle => {
-                    toggle.addEventListener('click', () => {
-                        const content = toggle.nextElementSibling;
-                        const icon = toggle.querySelector('.material-symbols-outlined');
-                        const isHidden = content.classList.contains('hidden');
-
-                        // Close all other FAQ contents
-                        document.querySelectorAll('.faq-content').forEach(c => c.classList.add('hidden'));
-                        document.querySelectorAll('.faq-toggle .material-symbols-outlined').forEach(i => {
-                            i.textContent = 'expand_more';
-                            i.classList.remove('rotate-180');
-                        });
-
-                        if (isHidden) {
-                            content.classList.remove('hidden');
-                            if (icon) {
-                                icon.textContent = 'expand_less';
-                            }
-                        }
-                    });
-                });
-
-                // Success Modal Close
-                const closeBtn = document.getElementById('closeSuccessModalBtn');
-                const modal = document.getElementById('successModal');
-                if (closeBtn && modal) {
-                    closeBtn.addEventListener('click', () => {
-                        modal.classList.add('hidden');
-                        modal.classList.remove('flex');
-                    });
-                }
-            });
-        </script>
-    </x-slot:scripts>
 </x-public.layout>

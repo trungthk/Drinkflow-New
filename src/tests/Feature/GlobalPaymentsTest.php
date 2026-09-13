@@ -18,7 +18,10 @@ class GlobalPaymentsTest extends TestCase
     public function test_guest_accessing_me_payments_redirects_to_login(): void
     {
         $response = $this->get('/me/payments');
-        $response->assertRedirect(route('auth.google'));
+        $response->assertRedirect('/');
+
+        $responseWithReferer = $this->from('/contact')->get('/me/payments');
+        $responseWithReferer->assertRedirect('/contact');
     }
 
     public function test_authenticated_user_can_view_me_payments_page(): void

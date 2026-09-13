@@ -13,11 +13,6 @@
     $user = $user ?? request()->attributes->get('global_user') ?? auth('web')->user();
     $roomUser = $roomUser ?? request()->attributes->get('room_user');
     $currentLocale = app()->getLocale();
-    $locales = [
-        'vi' => ['name' => 'Tiếng Việt', 'flag' => '🇻🇳'],
-        'en' => ['name' => 'English', 'flag' => '🇬🇧'],
-        'ja' => ['name' => '日本語', 'flag' => '🇯🇵'],
-    ];
 @endphp
 
 <header class="sticky top-0 w-full z-40 bg-white border-b border-slate-200/80 shadow-2xs" x-data="{ showRoomDropdown: false, showLangDropdown: false }">
@@ -95,7 +90,7 @@
                x-transition
                class="absolute right-0 mt-1.5 w-36 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50">
             @foreach($locales as $code => $info)
-              <a href="{{ route('lang.switch', $code) }}" class="flex items-center justify-between px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-[#006948] transition-colors {{ $currentLocale === $code ? 'bg-emerald-50 text-[#006948] font-semibold' : '' }}">
+              <a href="{{ route('locale.switch', $code) }}" class="flex items-center justify-between px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 hover:text-[#006948] transition-colors {{ $currentLocale === $code ? 'bg-emerald-50 text-[#006948] font-semibold' : '' }}">
                 <span class="flex items-center gap-1.5">
                   <span>{{ $info['flag'] }}</span>
                   <span>{{ $info['name'] }}</span>

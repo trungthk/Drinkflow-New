@@ -18,10 +18,13 @@ class GlobalDashboardTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_accessing_me_redirects_to_google_login(): void
+    public function test_guest_accessing_me_redirects_to_home_or_referer(): void
     {
         $response = $this->get('/me');
-        $response->assertRedirect(route('auth.google'));
+        $response->assertRedirect('/');
+
+        $refererResponse = $this->from(url('/contact'))->get('/me');
+        $refererResponse->assertRedirect(url('/contact'));
     }
 
     public function test_authenticated_user_without_rooms_does_not_see_stats_or_recent_sections(): void

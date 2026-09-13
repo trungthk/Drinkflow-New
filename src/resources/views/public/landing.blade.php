@@ -6,14 +6,8 @@
     :contactUrl="$contactUrl ?? route('contact')"
     :googleAuthUrl="$googleAuthUrl ?? route('auth.google')"
 >
-    <x-slot:head>
-        @if (file_exists(public_path('build/manifest.json')))
-            @vite(['resources/css/app.css', 'resources/js/app.js'])
-        @endif
-    </x-slot:head>
-
     <!-- MAIN CANVAS -->
-    <main class="flex-1 w-full max-w-[1200px] mx-auto px-6 py-10 flex flex-col gap-16">
+    <main class="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col gap-10 sm:gap-16">
         <!-- 1. HERO SECTION -->
         <x-public.hero
             :version="$version ?? 'v2.3.0'"

@@ -26,7 +26,7 @@ class LandingPageTest extends TestCase
         $response->assertSee('Google Workspace Enterprise SSO');
         $response->assertSee('v2.3.0');
         $response->assertSee('Giới thiệu về DrinkFlow');
-        $response->assertSee('about-drinkflow.mp4');
+        $response->assertDontSee('about-drinkflow.mp4');
         $response->assertSee('go-to-top-btn');
         $response->assertDontSee('Live Session:');
         $response->assertDontSee('28 người đang đặt');

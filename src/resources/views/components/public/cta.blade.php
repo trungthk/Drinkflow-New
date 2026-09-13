@@ -14,19 +14,19 @@
         <p class="text-emerald-100 text-sm sm:text-base leading-relaxed">
             {{ __('public.cta.subtitle') }}
         </p>
-        <div class="pt-4 flex flex-wrap items-center justify-center gap-4">
+        <div class="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
             @auth('web')
-                <a href="{{ route('user.me.dashboard') }}" class="bg-white hover:bg-[#F8FAFC] text-[#006948] text-sm font-semibold px-6 py-3 rounded-[6px] shadow-sm transition-all active:scale-[0.98] duration-100 flex items-center gap-2 cursor-pointer">
+                <a href="{{ route('user.me.dashboard') }}" class="w-full sm:w-auto justify-center bg-white hover:bg-[#F8FAFC] text-[#006948] text-sm font-semibold px-6 py-3 rounded-[6px] shadow-sm transition-all active:scale-[0.98] duration-100 flex items-center gap-2 cursor-pointer">
                     <span>{{ __('public.cta.btn_primary') }}</span>
                     <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </a>
             @else
-                <button type="button" class="btn-google-sso bg-white hover:bg-[#F8FAFC] text-[#006948] text-sm font-semibold px-6 py-3 rounded-[6px] shadow-sm transition-all active:scale-[0.98] duration-100 flex items-center gap-2 cursor-pointer">
+                <button type="button" class="btn-google-sso w-full sm:w-auto justify-center bg-white hover:bg-[#F8FAFC] text-[#006948] text-sm font-semibold px-6 py-3 rounded-[6px] shadow-sm transition-all active:scale-[0.98] duration-100 flex items-center gap-2 cursor-pointer">
                     <span>{{ __('public.cta.btn_primary') }}</span>
                     <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </button>
             @endauth
-            <button type="button" class="open-video-btn border border-white/40 hover:bg-white/10 text-white text-sm font-medium px-5 py-3 rounded-[6px] transition-colors flex items-center gap-2 cursor-pointer">
+            <button type="button" class="open-video-btn w-full sm:w-auto justify-center border border-white/40 hover:bg-white/10 text-white text-sm font-medium px-5 py-3 rounded-[6px] transition-colors flex items-center gap-2 cursor-pointer">
                 <span class="material-symbols-outlined text-[18px] text-emerald-300">play_circle</span>
                 <span>{{ __('public.cta.btn_video') }}</span>
             </button>

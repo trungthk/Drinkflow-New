@@ -14,11 +14,6 @@
     };
 
     $currentLocale = app()->getLocale();
-    $locales = [
-        'vi' => ['name' => 'Tiếng Việt', 'flag' => '🇻🇳', 'code' => 'VN'],
-        'en' => ['name' => 'English', 'flag' => '🇬🇧', 'code' => 'EN'],
-        'ja' => ['name' => '日本語', 'flag' => '🇯🇵', 'code' => 'JA'],
-    ];
     $activeLocaleMeta = $locales[$currentLocale] ?? $locales['vi'];
 
     $hasRooms = $user ? $user->roomUsers()->exists() : false;
@@ -92,7 +87,11 @@
                   <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200/60">{{ __('global.header.new_badge', ['count' => $unreadNotificationsCount]) }}</span>
                 @endif
               </div>
-              <button class="text-xs font-medium text-[#006948] hover:text-[#047857] transition-colors cursor-pointer" id="global-mark-all-read-btn">{{ __('global.header.mark_all_read') }}</button>
+              <button class="text-xs font-medium text-[#006948] hover:text-[#047857] transition-colors cursor-pointer"
+                      id="global-mark-all-read-btn"
+                      data-read-text="{{ __('global.header.all_read') }}">
+                {{ __('global.header.mark_all_read') }}
+              </button>
             </div>
             <div class="divide-y divide-slate-100 max-h-[380px] overflow-y-auto">
               @forelse($notifications as $notif)
@@ -254,93 +253,3 @@
     </div>
   </div>
 </header>
-
-<script>
-  (function() {
-    // Language dropdown toggle
-    const langBtn = document.getElementById('global-lang-btn');
-    const langMenu = document.getElementById('global-lang-menu');
-    const langSelector = document.getElementById('global-lang-selector');
-
-    if (langBtn && langMenu) {
-      langBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const isOpen = !langMenu.classList.contains('hidden');
-        if (isOpen) {
-          langMenu.classList.add('hidden');
-          langBtn.setAttribute('aria-expanded', 'false');
-        } else {
-          langMenu.classList.remove('hidden');
-          langBtn.setAttribute('aria-expanded', 'true');
-        }
-      });
-
-      document.addEventListener('click', function(e) {
-        if (langSelector && !langSelector.contains(e.target)) {
-          langMenu.classList.add('hidden');
-          langBtn.setAttribute('aria-expanded', 'false');
-        }
-      });
-    }
-
-    // User profile dropdown toggle
-    const userBtn = document.getElementById('global-user-menu-btn');
-    const userDropdown = document.getElementById('global-user-dropdown');
-    const userChevron = document.getElementById('global-user-chevron');
-    const userWrapper = document.getElementById('global-user-menu-wrapper');
-
-    if (userBtn && userDropdown) {
-      function toggleUserDropdown(show) {
-        const isHidden = userDropdown.classList.contains('hidden');
-        const shouldShow = typeof show === 'boolean' ? show : isHidden;
-        if (shouldShow) {
-          userDropdown.classList.remove('hidden');
-          userBtn.setAttribute('aria-expanded', 'true');
-          if (userChevron) userChevron.style.transform = 'rotate(180deg)';
-        } else {
-          userDropdown.classList.add('hidden');
-          userBtn.setAttribute('aria-expanded', 'false');
-          if (userChevron) userChevron.style.transform = 'rotate(0deg)';
-        }
-      }
-
-      userBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleUserDropdown();
-      });
-
-      document.addEventListener('click', function(e) {
-        if (userWrapper && !userWrapper.contains(e.target)) {
-          toggleUserDropdown(false);
-        }
-      });
-    }
-
-    // Notifications dropdown toggle
-    const notifBtn = document.getElementById('global-notification-btn');
-    const notifDropdown = document.getElementById('global-notification-dropdown');
-
-    if (notifBtn && notifDropdown) {
-      notifBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        notifDropdown.classList.toggle('hidden');
-      });
-
-      document.addEventListener('click', function(e) {
-        if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
-          notifDropdown.classList.add('hidden');
-        }
-      });
-    }
-
-    const markAllReadBtn = document.getElementById('global-mark-all-read-btn');
-    if (markAllReadBtn) {
-      markAllReadBtn.addEventListener('click', function() {
-        const badge = document.getElementById('global-notif-badge');
-        if (badge) badge.remove();
-        this.textContent = '{{ __("global.header.all_read") }}';
-        this.classList.add('opacity-50', 'pointer-events-none');
-      });
-    }
-  })();
-</script>

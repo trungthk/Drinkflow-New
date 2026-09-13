@@ -14,10 +14,13 @@ class GlobalDevicesTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_accessing_me_devices_redirects_to_login(): void
+    public function test_guest_accessing_me_devices_redirects_to_home_or_referer(): void
     {
         $response = $this->get('/me/devices');
-        $response->assertRedirect(route('auth.google'));
+        $response->assertRedirect('/');
+
+        $refererResponse = $this->from(url('/contact'))->get('/me/devices');
+        $refererResponse->assertRedirect(url('/contact'));
     }
 
     public function test_authenticated_user_can_view_me_devices_page(): void

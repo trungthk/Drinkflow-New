@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/user/global/**/*.blade.php';
+@source '../views/components/global/**/*.blade.php';
+@source '../js/global/**/*.js';
+@source '../js/global.js';
+
+@theme {
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --color-primary: #006948;
+    --color-primary-container: #00855d;
+    --color-primary-fixed: #85f8c4;
+    --color-primary-fixed-dim: #68dba9;
+    --color-on-primary: #ffffff;
+    --color-secondary: #006c49;
+    --color-secondary-container: #6cf8bb;
+    --color-secondary-fixed: #6ffbbe;
+    --color-on-secondary-container: #00714d;
+    --color-tertiary: #545c72;
+    --color-background: #f8f9ff;
+    --color-surface: #f8f9ff;
+    --color-on-surface: #0b1c30;
+    --color-on-surface-variant: #3d4a42;
+    --color-surface-container: #eff4ff;
+    --color-surface-container-low: #eff4ff;
+    --color-surface-container-high: #dce9ff;
+    --color-surface-container-lowest: #ffffff;
+    --color-outline: #6d7a72;
+    --color-outline-variant: #bccac0;
+    --color-error: #ba1a1a;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    font-size: 20px;
+    line-height: 1;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+:root {
+    --df-surface: #f8f9ff;
+    --df-ink: #0b1c30;
+    --df-muted: #45464d;
+    --df-border: #e2e8f0;
+    --df-slate: #0f172a;
+    --df-mint: #10b981;
+    --df-amber: #f59e0b;
+}
+
+.user-shell {
+    min-height: 100vh;
+    background: var(--df-surface);
+    color: var(--df-ink);
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: 'tnum' 1, 'cv05' 1;
+}
+
+body.min-h-screen.bg-slate-50.text-slate-900 {
+    background: var(--df-surface);
+    color: var(--df-ink);
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: 'tnum' 1, 'cv05' 1;
+}
+
+.user-shell .bg-white { background-color: #fff; }
+.user-shell .shadow-sm { box-shadow: 0 1px 3px rgba(15, 23, 42, .04), 0 1px 2px -1px rgba(15, 23, 42, .02); }
+.user-shell section, .user-shell form, .user-shell article { border: 1px solid var(--df-border); }
+body.min-h-screen.bg-slate-50.text-slate-900 section,
+body.min-h-screen.bg-slate-50.text-slate-900 form { border: 1px solid var(--df-border); }
+.user-shell .bg-indigo-600 { background-color: var(--df-slate); }
+.user-shell .hover\:bg-indigo-700:hover { background-color: #1e293b; }
+.user-shell .text-indigo-600, .user-shell .text-indigo-700 { color: #334155; }
+.user-shell .bg-indigo-50 { background-color: #eff4ff; }
+.user-shell .bg-emerald-50 { background-color: #ecfdf5; }
+.user-shell .text-emerald-900 { color: #047857; }
+.user-shell .design-card { border-radius: 1rem; background: #fff; border: 1px solid var(--df-border); }
+
+@media (max-width: 640px) {
+    .user-shell main { padding-bottom: 5.5rem; }
+}

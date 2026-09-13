@@ -13,11 +13,10 @@ class SetLocale
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $supportedLocales = ['vi', 'en', 'ja'];
-        $locale = session('locale', 'vi');
+        $locale = session('locale', \App\Constants\AppLocale::DEFAULT);
 
-        if (!in_array($locale, $supportedLocales, true)) {
-            $locale = 'vi';
+        if (!\App\Constants\AppLocale::isValid($locale)) {
+            $locale = \App\Constants\AppLocale::DEFAULT;
         }
 
         app()->setLocale($locale);

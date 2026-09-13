@@ -5,9 +5,11 @@ return [
     'meta' => [
         'title' => 'DrinkFlow - Corporate Drink Ordering & Internal Campaign Platform',
         'description' => 'A platform for corporate team drink ordering campaigns, order tracking, and transparent automatic bill splitting.',
+        'keywords' => 'DrinkFlow, office drink order, corporate group order, automatic bill split, VietQR, Google Workspace SSO',
         'og_title' => 'DrinkFlow - Quick & Easy Group Drink Ordering',
         'og_description' => 'Organize drink campaigns, track orders, and split bills effortlessly with your team.',
     ],
+    'contact_support' => 'Contact & Support',
     'header' => [
         'about' => 'About',
         'terms' => 'Terms',

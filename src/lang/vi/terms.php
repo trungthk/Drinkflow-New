@@ -5,7 +5,7 @@ return [
     'meta_description' => 'Điều khoản sử dụng, quy chế vận hành, chính sách bảo mật Google OAuth và phân bổ chi phí minh bạch trên nền tảng DrinkFlow.',
     'breadcrumb_home' => 'Trang chủ',
     'breadcrumb_legal' => 'Pháp lý',
-    'breadcrumb_current' => 'Điều khoản dịch vụ',
+    'breadcrumb_current' => 'Điều khoản sử dụng',
     'page_title' => 'Điều khoản sử dụng DrinkFlow',
     'badge_version' => 'Phiên bản :version',
     'badge_system' => 'DrinkFlow Enterprise',

@@ -12,10 +12,13 @@ class GlobalNotificationsTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_accessing_notifications_redirects_to_login(): void
+    public function test_guest_accessing_notifications_redirects_to_home_or_referer(): void
     {
         $response = $this->get('/me/notifications');
-        $response->assertRedirect(route('auth.google'));
+        $response->assertRedirect('/');
+
+        $refererResponse = $this->from(url('/terms'))->get('/me/notifications');
+        $refererResponse->assertRedirect(url('/terms'));
     }
 
     public function test_authenticated_user_can_view_notifications_page(): void

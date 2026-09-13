@@ -11,26 +11,13 @@
     :contactUrl="$contactUrl ?? route('contact')"
     :googleAuthUrl="$googleAuthUrl ?? route('auth.google')"
 >
-    <x-slot:head>
-        <style>
-            html {
-                scroll-behavior: smooth;
-            }
-        </style>
-        @if (file_exists(public_path('build/manifest.json')))
-            @vite(['resources/css/app.css', 'resources/js/app.js'])
-        @endif
-    </x-slot:head>
-
     <!-- MAIN DOCUMENTATION CONTAINER -->
-    <main class="flex-1 w-full max-w-[1200px] mx-auto px-6 py-8">
+    <main class="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <!-- Breadcrumb & Header Section -->
         <header class="mb-8 border-b border-slate-200 pb-8">
             <!-- Breadcrumb Navigation -->
             <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs text-[#545c72] mb-3">
                 <a class="hover:text-[#006948] transition-colors" href="{{ $landingUrl }}">{{ __('terms.breadcrumb_home') }}</a>
-                <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-                <span class="hover:text-[#006948] transition-colors">{{ __('terms.breadcrumb_legal') }}</span>
                 <span class="material-symbols-outlined text-[14px]">chevron_right</span>
                 <span class="text-[#0F172A] font-semibold">{{ __('terms.breadcrumb_current') }}</span>
             </nav>
@@ -57,7 +44,7 @@
             </div>
 
             <!-- Executive Notice Note -->
-            <p class="text-sm sm:text-base text-[#475569] max-w-3xl leading-relaxed">
+            <p class="text-sm sm:text-base text-[#475569] leading-relaxed">
                 {{ __('terms.notice_desc') }}
             </p>
         </header>
@@ -212,10 +199,10 @@
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-[#eff4ff] border-b border-slate-200 text-xs text-[#545c72] tracking-wider uppercase font-semibold">
-                                    <th class="py-3 px-4">{{ __('terms.content.sec4.th_role') }}</th>
-                                    <th class="py-3 px-4">{{ __('terms.content.sec4.th_permissions') }}</th>
-                                    <th class="py-3 px-4">{{ __('terms.content.sec4.th_obligations') }}</th>
-                                    <th class="py-3 px-4 text-center">{{ __('terms.content.sec4.th_status') }}</th>
+                                    <th class="py-3 px-4 whitespace-nowrap">{{ __('terms.content.sec4.th_role') }}</th>
+                                    <th class="py-3 px-4 min-w-[200px]">{{ __('terms.content.sec4.th_permissions') }}</th>
+                                    <th class="py-3 px-4 min-w-[200px]">{{ __('terms.content.sec4.th_obligations') }}</th>
+                                    <th class="py-3 px-4 text-center whitespace-nowrap">{{ __('terms.content.sec4.th_status') }}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 text-xs sm:text-sm">
@@ -226,8 +213,8 @@
                                             <span>{{ __('terms.content.sec4.role_host') }}</span>
                                         </div>
                                     </td>
-                                    <td class="py-3.5 px-4 text-[#334155]">{{ __('terms.content.sec4.host_perm') }}</td>
-                                    <td class="py-3.5 px-4 text-[#545c72]">{{ __('terms.content.sec4.host_obli') }}</td>
+                                    <td class="py-3.5 px-4 text-[#334155] min-w-[200px] leading-relaxed">{{ __('terms.content.sec4.host_perm') }}</td>
+                                    <td class="py-3.5 px-4 text-[#545c72] min-w-[200px] leading-relaxed">{{ __('terms.content.sec4.host_obli') }}</td>
                                     <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                         <span class="inline-block px-2.5 py-0.5 rounded-full text-xs bg-[#ECFDF5] text-[#065F46] font-semibold">{{ __('terms.content.sec4.status_full') }}</span>
                                     </td>
@@ -239,8 +226,8 @@
                                             <span>{{ __('terms.content.sec4.role_member') }}</span>
                                         </div>
                                     </td>
-                                    <td class="py-3.5 px-4 text-[#334155]">{{ __('terms.content.sec4.member_perm') }}</td>
-                                    <td class="py-3.5 px-4 text-[#545c72]">{{ __('terms.content.sec4.member_obli') }}</td>
+                                    <td class="py-3.5 px-4 text-[#334155] min-w-[200px] leading-relaxed">{{ __('terms.content.sec4.member_perm') }}</td>
+                                    <td class="py-3.5 px-4 text-[#545c72] min-w-[200px] leading-relaxed">{{ __('terms.content.sec4.member_obli') }}</td>
                                     <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                         <span class="inline-block px-2.5 py-0.5 rounded-full text-xs bg-[#eff4ff] text-[#545c72] font-semibold">{{ __('terms.content.sec4.status_standard') }}</span>
                                     </td>
@@ -252,8 +239,8 @@
                                             <span>{{ __('terms.content.sec4.role_sponsor') }}</span>
                                         </div>
                                     </td>
-                                    <td class="py-3.5 px-4 text-[#334155]">{{ __('terms.content.sec4.sponsor_perm') }}</td>
-                                    <td class="py-3.5 px-4 text-[#545c72]">{{ __('terms.content.sec4.sponsor_obli') }}</td>
+                                    <td class="py-3.5 px-4 text-[#334155] min-w-[200px] leading-relaxed">{{ __('terms.content.sec4.sponsor_perm') }}</td>
+                                    <td class="py-3.5 px-4 text-[#545c72] min-w-[200px] leading-relaxed">{{ __('terms.content.sec4.sponsor_obli') }}</td>
                                     <td class="py-3.5 px-4 text-center whitespace-nowrap">
                                         <span class="inline-block px-2.5 py-0.5 rounded-full text-xs bg-[#d3e4fe] text-[#0b1c30] font-semibold">{{ __('terms.content.sec4.status_subsidy') }}</span>
                                     </td>
@@ -372,45 +359,4 @@
             </div>
         </div>
     </main>
-
-    <x-slot:scripts>
-        <!-- Micro-interaction JS for Active Table of Contents Link Highlighting -->
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const sections = document.querySelectorAll('article[id]');
-                const navLinks = document.querySelectorAll('#toc-nav a');
-
-                function changeActiveToc() {
-                    let index = sections.length;
-
-                    while (--index && window.scrollY + 140 < sections[index].offsetTop) {}
-
-                    navLinks.forEach((link) => {
-                        link.classList.remove('text-[#006948]', 'bg-[#eff4ff]', 'font-semibold', 'border-l-2', 'border-[#006948]');
-                        link.classList.add('text-[#545c72]', 'hover:text-[#0F172A]');
-                        const arrow = link.querySelector('.material-symbols-outlined');
-                        if (arrow) {
-                            arrow.textContent = 'chevron_right';
-                            arrow.classList.add('opacity-40');
-                            arrow.classList.remove('opacity-70');
-                        }
-                    });
-
-                    if (navLinks[index]) {
-                        navLinks[index].classList.remove('text-[#545c72]', 'hover:text-[#0F172A]');
-                        navLinks[index].classList.add('text-[#006948]', 'bg-[#eff4ff]', 'font-semibold', 'border-l-2', 'border-[#006948]');
-                        const activeArrow = navLinks[index].querySelector('.material-symbols-outlined');
-                        if (activeArrow) {
-                            activeArrow.textContent = 'arrow_forward';
-                            activeArrow.classList.remove('opacity-40');
-                            activeArrow.classList.add('opacity-70');
-                        }
-                    }
-                }
-
-                changeActiveToc();
-                window.addEventListener('scroll', changeActiveToc, { passive: true });
-            });
-        </script>
-    </x-slot:scripts>
 </x-public.layout>

@@ -18,7 +18,10 @@ class GlobalOrdersTest extends TestCase
     public function test_guest_accessing_me_orders_redirects_to_login(): void
     {
         $response = $this->get('/me/orders');
-        $response->assertRedirect(route('auth.google'));
+        $response->assertRedirect('/');
+
+        $responseWithReferer = $this->from('/contact')->get('/me/orders');
+        $responseWithReferer->assertRedirect('/contact');
     }
 
     public function test_authenticated_user_can_view_me_orders_page(): void

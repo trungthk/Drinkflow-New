@@ -45,5 +45,7 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\RateLimiter::for('contact-submission', function (\Illuminate\Http\Request $request) {
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($request->ip());
         });
+
+        \Illuminate\Support\Facades\View::share('locales', \App\Constants\AppLocale::SUPPORTED);
     }
 }

@@ -17,10 +17,13 @@ class BlockedAccountTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_accessing_blocked_redirects_to_login(): void
+    public function test_guest_accessing_blocked_redirects_to_home_or_referer(): void
     {
         $response = $this->get('/blocked');
-        $response->assertRedirect(route('auth.google'));
+        $response->assertRedirect('/');
+
+        $refererResponse = $this->from(url('/terms'))->get('/blocked');
+        $refererResponse->assertRedirect(url('/terms'));
     }
 
     public function test_blocked_user_is_redirected_to_blocked_page_from_portal(): void

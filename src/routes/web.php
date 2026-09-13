@@ -14,7 +14,7 @@ Route::post('/contact', [\App\Http\Controllers\Public\ContactController::class, 
     ->name('contact.store');
 
 Route::get('/lang/{locale}', function (string $locale) {
-    if (in_array($locale, ['vi', 'en', 'ja'], true)) {
+    if (\App\Constants\AppLocale::isValid($locale)) {
         session(['locale' => $locale]);
     }
     return redirect()->back();
