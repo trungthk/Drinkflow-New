@@ -41,5 +41,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(CampaignCreated::class, PublishRealtimeEvent::class);
         Event::listen(CampaignClosed::class, NotifyCampaignClosed::class);
         Event::listen(CampaignClosed::class, PublishRealtimeEvent::class);
+
+        \Illuminate\Support\Facades\RateLimiter::for('contact-submission', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($request->ip());
+        });
     }
 }

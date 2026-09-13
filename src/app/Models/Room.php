@@ -15,6 +15,24 @@ class Room extends Model
         return ['settings' => 'array'];
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'slug';
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        if ($field) {
+            return $this->where($field, $value)->first();
+        }
+
+        if (is_numeric($value)) {
+            return $this->where('id', (int) $value)->orWhere('slug', (string) $value)->first();
+        }
+
+        return $this->where('slug', (string) $value)->first();
+    }
+
     public function roomUsers(): HasMany
     {
         return $this->hasMany(RoomUser::class);

@@ -27,7 +27,24 @@ class ResolveGlobalUser
                 auth('web')->login($user, true);
             }
         }
-        abort_unless($user && $user->status?->value === 'active', 403);
+        if (!$user) {
+            if ($request->expectsJson()) {
+                abort(401, 'Unauthenticated.');
+            }
+            return redirect()->guest(route('auth.google'));
+        }
+        if ($user->status?->value === 'blocked') {
+            $request->attributes->set('global_user', $user);
+            if ($request->routeIs('user.blocked', 'user.blocked.appeal', 'logout')) {
+                return $next($request);
+            }
+            if ($request->expectsJson()) {
+                abort(403, 'Tài khoản của bạn tạm thời bị khóa.');
+            }
+            return redirect()->route('user.blocked');
+        }
+
+        abort_unless($user->status?->value === 'active', 403);
         $request->attributes->set('global_user', $user);
         return $next($request);
     }

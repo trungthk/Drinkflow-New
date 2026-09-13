@@ -1,0 +1,150 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\CampaignStatus;
+use App\Enums\OrderStatus;
+use App\Models\Campaign;
+use App\Models\CampaignItem;
+use App\Models\GlobalUser;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\PaymentAccount;
+use App\Models\Room;
+use App\Models\RoomUser;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+
+class GlobalProfileTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_guest_accessing_me_profile_redirects_to_google_login(): void
+    {
+        $response = $this->get('/me/profile');
+        $response->assertRedirect(route('auth.google'));
+    }
+
+    public function test_authenticated_user_can_view_me_profile_with_real_data(): void
+    {
+        $user = GlobalUser::create([
+            'name' => 'Trung Lê',
+            'normalized_name' => 'TRUNG LE',
+            'email' => 'trung.lt@company.com',
+            'avatar_url' => 'https://example.com/avatar.jpg',
+            'status' => 'active',
+        ]);
+
+        $room = Room::create([
+            'name' => 'Ban Công nghệ & Kỹ thuật số',
+            'slug' => 'tech-team',
+            'status' => 'active',
+        ]);
+
+        RoomUser::create([
+            'room_id' => $room->id,
+            'global_user_id' => $user->id,
+            'user_code' => 'DF-EMP-4089',
+            'display_name' => 'Trung Lê',
+            'normalized_name' => 'TRUNG LE',
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($user, 'web')->get('/me/profile');
+
+        $response->assertOk();
+        $response->assertSee('Hồ sơ cá nhân &amp; Thiết lập tài khoản', false);
+        $response->assertSee('Trung Lê');
+        $response->assertSee('trung.lt@company.com');
+        $response->assertSee('DF-EMP-4089');
+        $response->assertSee('Ban Công nghệ &amp; Kỹ thuật số', false);
+        $response->assertSee('Xác thực Google Workspace @company.com');
+        $response->assertSee('Managed by IT Admin');
+        $response->assertDontSee('Tài khoản nhận tiền hoàn trả');
+        $response->assertSee('Ghi chú mặc định cho quán đồ uống');
+        $response->assertSee('Thống kê thành viên');
+    }
+
+    public function test_profile_shortcuts_and_default_avatar(): void
+    {
+        $userWithoutAvatar = GlobalUser::create([
+            'name' => 'Nguyễn Không Avatar',
+            'normalized_name' => 'NGUYEN KHONG AVATAR',
+            'email' => 'noavatar@company.com',
+            'status' => 'active',
+        ]);
+
+        $this->assertStringContainsString('default-avatar.svg', $userWithoutAvatar->avatar_url);
+
+        // User has NO rooms yet: should NOT see payments or statistics shortcuts
+        $responseNoRoom = $this->actingAs($userWithoutAvatar, 'web')->get('/me/profile');
+        $responseNoRoom->assertOk();
+        $responseNoRoom->assertSee(route('user.me.devices'));
+        $responseNoRoom->assertDontSee(route('user.me.payments'));
+        $responseNoRoom->assertDontSee(route('user.me.statistics'));
+        $responseNoRoom->assertSee('default-avatar.svg');
+
+        // User joins a room: should now see payments and statistics shortcuts
+        $room = Room::create([
+            'name' => 'Phòng Kỹ Thuật',
+            'slug' => 'tech-room',
+            'status' => 'active',
+        ]);
+
+        RoomUser::create([
+            'room_id' => $room->id,
+            'global_user_id' => $userWithoutAvatar->id,
+            'user_code' => 'DF-TECH-01',
+            'display_name' => 'Kỹ Thuật Viên',
+            'normalized_name' => 'KY THUAT VIEN',
+            'status' => 'active',
+        ]);
+
+        $responseWithRoom = $this->actingAs($userWithoutAvatar, 'web')->get('/me/profile');
+        $responseWithRoom->assertOk();
+        $responseWithRoom->assertSee(route('user.me.devices'));
+        $responseWithRoom->assertSee(route('user.me.payments'));
+        $responseWithRoom->assertSee(route('user.me.statistics'));
+    }
+
+    public function test_user_can_update_contact_details_and_preferences(): void
+    {
+        $user = GlobalUser::create([
+            'name' => 'Lê Minh',
+            'normalized_name' => 'LE MINH',
+            'email' => 'minh.l@company.com',
+            'status' => 'active',
+        ]);
+
+        $response = $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($user, 'web')
+            ->post('/me/profile', [
+            'phone' => '0912 345 678',
+            'desk_location' => 'Keangnam Tầng 20 #B12',
+            'delivery_location' => 'Bàn làm việc Tầng 20 Keangnam Landmark',
+            'sugar' => '30%',
+            'ice' => 'Ít đá (30%)',
+            'toppings' => ['Trân châu hoàng kim', 'Kem cheese'],
+            'note' => 'Không lấy ống hút nhựa',
+            'notify_campaign' => true,
+            'notify_sound' => false,
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('status');
+
+        $user->refresh();
+        $this->assertEquals('0912 345 678', $user->phone);
+        $this->assertEquals('Keangnam Tầng 20 #B12', $user->desk_location);
+        $this->assertEquals('Bàn làm việc Tầng 20 Keangnam Landmark', $user->delivery_location);
+        $this->assertIsArray($user->preferences);
+        $this->assertEquals('30%', $user->preferences['sugar']);
+        $this->assertEquals('Ít đá (30%)', $user->preferences['ice']);
+        $this->assertEquals(['Trân châu hoàng kim', 'Kem cheese'], $user->preferences['toppings']);
+        $this->assertEquals('Không lấy ống hút nhựa', $user->preferences['note']);
+        $this->assertTrue($user->preferences['notify_campaign']);
+        $this->assertFalse($user->preferences['notify_sound']);
+    }
+}

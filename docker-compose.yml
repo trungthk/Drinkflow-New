@@ -10,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-drinkflow} -d ${POSTGRES_DB:-drinkflow}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-drinkflow} -d ${POSTGRES_DB:-drinkflow}" ]
       interval: 5s
       timeout: 5s
       retries: 12
@@ -22,10 +22,14 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8000"
+    volumes:
+      - ./src:/var/www/html
     env_file:
       - ./src/.env
     environment:
       APP_URL: http://localhost:8080
+      SESSION_DRIVER: database
+      SESSION_LIFETIME: 10080
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: 5432
@@ -39,7 +43,7 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/ > /dev/null"]
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:8000/ > /dev/null" ]
       interval: 10s
       timeout: 5s
       retries: 5

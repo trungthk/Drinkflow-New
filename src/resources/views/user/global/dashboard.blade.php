@@ -1,0 +1,672 @@
+<x-global.layout
+  :title="'DrinkFlow - ' . __('global.dashboard.page_title')"
+  :user="$user"
+  :active-tab="'overview'"
+  :unread-notifications-count="$unreadNotificationsCount"
+  :notifications="$notifications"
+>
+  <!-- Main Canvas -->
+  <div class="space-y-6">
+    <!-- Status & Error Flash Alerts -->
+    @if(session('status'))
+      <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-sm font-medium flex items-center justify-between shadow-xs transition-all animate-fadeIn">
+        <div class="flex items-center gap-2.5">
+          <span class="w-7 h-7 rounded-lg bg-emerald-100 text-[#006948] flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-[18px]">check_circle</span>
+          </span>
+          <span>{{ session('status') }}</span>
+        </div>
+        <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-950 p-1 rounded-lg hover:bg-emerald-100/60 transition-colors cursor-pointer" title="{{ __('global.common.close') }}">
+          <span class="material-symbols-outlined text-[18px]">close</span>
+        </button>
+      </div>
+    @endif
+
+    <!-- Top Greeting Banner -->
+    <section>
+      <div class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-7 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
+        <div>
+          <div class="flex flex-wrap items-center gap-3">
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{{ __('global.dashboard.greeting', ['name' => $user->name]) }}</h1>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-medium border border-emerald-200/70">
+              <span class="material-symbols-outlined text-[14px] text-[#006948]" style="font-variation-settings: 'FILL' 1;">security</span>
+              {{ $workspaceText }}
+            </span>
+          </div>
+          <p class="text-sm text-slate-500 mt-1.5 max-w-2xl leading-relaxed">{{ __('global.dashboard.subtitle') }}</p>
+        </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="bg-slate-50 border border-slate-200/70 rounded-xl px-3.5 py-2 text-right hidden sm:block">
+            <span class="text-[11px] text-slate-400 block font-medium">{{ __('global.dashboard.session_title') }}</span>
+            <span class="text-xs font-mono font-semibold text-slate-700">#SES-{{ strtoupper(substr(session()->getId() ?: md5($user->id), 0, 8)) }}</span>
+          </div>
+          <span class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-center text-[#006948] shadow-2xs">
+            <span class="material-symbols-outlined text-[20px]">fingerprint</span>
+          </span>
+        </div>
+      </div>
+
+      @if($roomsCount > 0)
+        <!-- 4 Quick Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-5">
+          <!-- Stat 1: Rooms -->
+          <div class="bg-white border border-slate-200/80 hover:border-slate-300 rounded-2xl p-5 shadow-xs transition-all duration-150 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[22px]">meeting_room</span>
+            </div>
+            <div>
+              <span class="text-xs font-medium text-slate-500 block">{{ __('global.dashboard.stat_rooms') }}</span>
+              <div class="flex items-baseline gap-1 mt-0.5">
+                <span class="text-2xl font-bold text-slate-900 tracking-tight">{{ $roomsCount }}</span>
+                <span class="text-xs text-slate-400">{{ __('global.dashboard.stat_rooms_unit') }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stat 2: Orders -->
+          <div class="bg-white border border-slate-200/80 hover:border-slate-300 rounded-2xl p-5 shadow-xs transition-all duration-150 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[22px]">receipt_long</span>
+            </div>
+            <div>
+              <span class="text-xs font-medium text-slate-500 block">{{ __('global.dashboard.stat_orders') }}</span>
+              <div class="flex items-baseline gap-1 mt-0.5">
+                <span class="text-2xl font-bold text-slate-900 tracking-tight">{{ $totalOrdersCount }}</span>
+                <span class="text-xs text-slate-400">{{ __('global.dashboard.stat_orders_unit') }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stat 3: Spent -->
+          <div class="bg-white border border-slate-200/80 hover:border-slate-300 rounded-2xl p-5 shadow-xs transition-all duration-150 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
+            </div>
+            <div>
+              <span class="text-xs font-medium text-slate-500 block">{{ __('global.dashboard.stat_spent') }}</span>
+              <div class="flex items-baseline gap-1 mt-0.5">
+                <span class="text-2xl font-bold text-slate-900 tracking-tight">{{ number_format($totalSpent, 0, ',', '.') }}<span class="text-xs font-normal text-slate-400">{{ __('global.common.money_suffix') }}</span></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stat 4: Sponsor -->
+          <div class="bg-white border border-slate-200/80 hover:border-slate-300 rounded-2xl p-5 shadow-xs transition-all duration-150 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[22px]">savings</span>
+            </div>
+            <div>
+              <span class="text-xs font-medium text-slate-500 block">{{ __('global.dashboard.stat_sponsor') }}</span>
+              <div class="flex items-baseline gap-1 mt-0.5">
+                <span class="text-2xl font-bold text-slate-900 tracking-tight">{{ number_format($sponsorReceived, 0, ',', '.') }}<span class="text-xs font-normal text-slate-400">{{ __('global.common.money_suffix') }}</span></span>
+              </div>
+              <span class="text-[11px] text-emerald-700 font-medium block mt-0.5">{{ __('global.dashboard.stat_sponsor_hint', ['percent' => $savingsPercent]) }}</span>
+            </div>
+          </div>
+        </div>
+      @endif
+    </section>
+
+    @if($roomsCount > 0)
+      <!-- Section: Room Gần Đây -->
+      <section class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">group_work</span>
+            </span>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">{{ __('global.dashboard.recent_rooms') }}</h2>
+              <span class="text-xs text-slate-500 hidden sm:inline">{{ __('global.dashboard.recent_rooms_desc') }}</span>
+            </div>
+          </div>
+          <a class="text-[#006948] hover:text-emerald-700 text-xs sm:text-sm font-medium flex items-center gap-1 group" href="{{ route('user.me.rooms') }}">
+            <span>{{ __('global.dashboard.view_all_rooms', ['count' => $roomsCount]) }}</span>
+            <span class="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">chevron_right</span>
+          </a>
+        </div>
+
+        <!-- Cards Grid (1 to 4 cols) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          @forelse($recentRooms as $roomItem)
+            @if($roomItem['campaign'])
+              <!-- Room Card with Active Campaign -->
+              <div class="border border-emerald-200/90 hover:border-emerald-400 bg-white hover:bg-emerald-50/10 rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5">
+                <div>
+                  <div class="flex items-start justify-between gap-2 mb-2">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                      {{ __('global.dashboard.campaign_active') }}
+                    </span>
+                    <span class="text-xs text-rose-600 font-semibold flex items-center gap-0.5">
+                      <span class="material-symbols-outlined text-[13px]">timer</span>
+                      {{ $roomItem['campaign']['time_remaining'] }}
+                    </span>
+                  </div>
+                  <h3 class="text-sm font-bold text-slate-900 mt-1 truncate">{{ $roomItem['name'] }}</h3>
+                  <p class="text-xs text-slate-500 mt-0.5 truncate">{{ $roomItem['description'] }}</p>
+
+                  <!-- Integrated Campaign Banner -->
+                  <div class="mt-3 p-3 rounded-xl bg-slate-50/80 border border-slate-100">
+                    <div class="flex items-center justify-between text-xs font-semibold text-slate-800">
+                      <span class="truncate">{{ $roomItem['campaign']['restaurant'] }}</span>
+                      <span class="text-[#006948] font-bold text-[11px] shrink-0 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">{{ $roomItem['campaign']['discount_text'] }}</span>
+                    </div>
+                    <div class="mt-2 flex items-center justify-between text-xs text-slate-500">
+                      <span>{{ __('global.dashboard.cups_collected', ['cups' => $roomItem['campaign']['cups_collected']]) }}</span>
+                      <span class="text-slate-400">{{ __('global.dashboard.deadline', ['time' => $roomItem['campaign']['deadline_formatted']]) }}</span>
+                    </div>
+                    <div class="w-full bg-slate-200/70 rounded-full h-1.5 mt-2 overflow-hidden">
+                      <div class="bg-[#006948] h-1.5 rounded-full transition-all" style="width: {{ $roomItem['campaign']['progress_percent'] }}%"></div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-1.5 mt-3 text-xs text-slate-500">
+                    <span class="material-symbols-outlined text-[15px] text-slate-400">group</span>
+                    <span>{{ __('global.dashboard.members_count', ['count' => $roomItem['member_count']]) }} • <strong class="text-[#006948] font-semibold">{{ $roomItem['campaign']['sponsor_note'] }}</strong></span>
+                  </div>
+                </div>
+
+                <div class="pt-3.5 mt-3 border-t border-slate-100 flex items-center gap-2">
+                  <a class="flex-1 h-9 bg-[#059669] hover:bg-[#047857] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer" href="{{ $roomItem['campaign']['order_url'] }}">
+                    <span class="material-symbols-outlined text-[15px]">shopping_bag</span>
+                    <span>{{ __('global.dashboard.order_now') }}</span>
+                  </a>
+                  <a class="w-9 h-9 border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 rounded-xl flex items-center justify-center transition-colors shadow-2xs" href="{{ $roomItem['room_url'] }}" title="{{ __('global.dashboard.enter_room') }}">
+                    <span class="material-symbols-outlined text-[17px]">meeting_room</span>
+                  </a>
+                </div>
+              </div>
+            @else
+              <!-- Room Card Idle -->
+              <div class="border border-slate-200/80 hover:border-slate-300 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 shadow-xs hover:shadow-sm">
+                <div>
+                  <div class="flex items-start justify-between gap-2 mb-2">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200/60 text-xs font-medium">
+                      <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                      {{ __('global.dashboard.no_active_campaign') }}
+                    </span>
+                  </div>
+                  <h3 class="text-sm font-bold text-slate-900 mt-1 truncate">{{ $roomItem['name'] }}</h3>
+                  <p class="text-xs text-slate-500 mt-0.5 truncate">{{ $roomItem['description'] }}</p>
+
+                  <!-- Idle Banner -->
+                  <div class="mt-3 p-3 rounded-xl bg-slate-50/70 border border-dashed border-slate-200 flex items-center gap-2.5 text-xs text-slate-500">
+                    <span class="material-symbols-outlined text-slate-400 text-[18px]">bedtime</span>
+                    <span>{{ __('global.dashboard.waiting_host') }}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5 mt-3 text-xs text-slate-500">
+                    <span class="material-symbols-outlined text-[15px] text-slate-400">group</span>
+                    <span>{{ __('global.dashboard.members_count', ['count' => $roomItem['member_count']]) }}</span>
+                  </div>
+                </div>
+
+                <div class="pt-3.5 mt-3 border-t border-slate-100 flex items-center justify-between">
+                  <span class="text-xs text-slate-400">{{ __('global.dashboard.ready_for_deals') }}</span>
+                  <a class="inline-flex items-center gap-1 h-9 px-3.5 border border-slate-200 hover:border-emerald-500 hover:text-[#006948] text-slate-700 text-xs font-medium rounded-xl transition-colors shadow-2xs" href="{{ $roomItem['room_url'] }}">
+                    <span>{{ __('global.dashboard.enter_room') }}</span>
+                    <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+                  </a>
+                </div>
+              </div>
+            @endif
+          @empty
+            <div class="col-span-full p-8 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50 text-center">
+              <span class="material-symbols-outlined text-[32px] text-slate-300 mb-2">meeting_room</span>
+              <h3 class="text-sm font-semibold text-slate-800">{{ __('global.dashboard.no_rooms_joined') }}</h3>
+              <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">{{ __('global.dashboard.no_rooms_desc') }}</p>
+            </div>
+          @endforelse
+        </div>
+      </section>
+
+      <!-- Section: Đơn Hàng Gần Đây -->
+      <section class="bg-white border border-slate-200/80 rounded-2xl shadow-xs overflow-hidden">
+        <div class="p-6 pb-4 flex items-center justify-between border-b border-slate-100">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">history</span>
+            </span>
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">{{ __('global.dashboard.recent_orders') }}</h2>
+              <span class="text-xs text-slate-500 hidden sm:inline">{{ __('global.dashboard.recent_orders_desc') }}</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <a class="text-[#006948] hover:text-emerald-700 text-xs sm:text-sm font-medium flex items-center gap-1 group" href="{{ route('user.me.orders') }}">
+              <span>{{ __('global.dashboard.full_history') }}</span>
+              <span class="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">open_in_new</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Table structure -->
+        <div class="overflow-x-auto w-full">
+          <table class="w-full text-left border-collapse min-w-[850px]">
+            <thead>
+              <tr class="bg-slate-50/75 border-b border-slate-100 text-slate-500 text-xs font-semibold uppercase tracking-wider">
+                <th class="py-3 px-5">{{ __('global.dashboard.col_code') }}</th>
+                <th class="py-3 px-4">{{ __('global.dashboard.col_time') }}</th>
+                <th class="py-3 px-4">{{ __('global.dashboard.col_room') }}</th>
+                <th class="py-3 px-4">{{ __('global.dashboard.col_restaurant') }}</th>
+                <th class="py-3 px-4">{{ __('global.dashboard.col_items') }}</th>
+                <th class="py-3 px-4 text-right">{{ __('global.dashboard.col_amount') }}</th>
+                <th class="py-3 px-4 text-center">{{ __('global.dashboard.col_status') }}</th>
+                <th class="py-3 px-5 text-center">{{ __('global.dashboard.col_action') }}</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
+              @forelse($recentOrders as $order)
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                  <td class="py-3.5 px-5 font-mono text-xs text-[#006948] font-semibold whitespace-nowrap">
+                    <span class="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200">{{ $order['code'] }}</span>
+                  </td>
+                  <td class="py-3.5 px-4 whitespace-nowrap text-slate-400">{{ $order['time_formatted'] }}</td>
+                  <td class="py-3.5 px-4 font-medium whitespace-nowrap text-slate-900">{{ $order['room_name'] }}</td>
+                  <td class="py-3.5 px-4 text-slate-600 whitespace-nowrap">{{ $order['restaurant'] }}</td>
+                  <td class="py-3.5 px-4 font-medium max-w-[280px] truncate text-slate-800" title="{{ $order['items_summary'] }}">{{ $order['items_summary'] }}</td>
+                  <td class="py-3.5 px-4 text-right font-semibold tabular-nums whitespace-nowrap text-slate-900">{{ $order['final_amount_formatted'] }}</td>
+                  <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                    @if($order['is_paid'])
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium border border-emerald-200/70">
+                        <span class="material-symbols-outlined text-[13px]">check_circle</span>
+                        {{ __('global.dashboard.paid') }}
+                      </span>
+                    @elseif($order['is_pending'])
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-200/70">
+                        <span class="material-symbols-outlined text-[13px]">pending</span>
+                        {{ __('global.dashboard.unpaid') }}
+                      </span>
+                    @else
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-medium">
+                        {{ $order['status_label'] }}
+                      </span>
+                    @endif
+                  </td>
+                  <td class="py-3.5 px-5 text-center whitespace-nowrap">
+                    <a class="text-[#006948] hover:underline font-medium text-xs" href="{{ $order['detail_url'] }}">{{ __('global.common.details') }}</a>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="8" class="py-8 text-center text-slate-400 text-xs">
+                    <span class="material-symbols-outlined text-slate-300 text-[24px] mb-1 block">receipt_long</span>
+                    {{ __('global.dashboard.no_recent_orders') }}
+                  </td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Enterprise Standard Pagination Controls -->
+        <div class="px-6 py-3.5 bg-slate-50/60 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <div class="flex items-center gap-3">
+            <span>{{ __('global.dashboard.showing_orders', ['first' => count($recentOrders) > 0 ? 1 : 0, 'last' => count($recentOrders), 'total' => $totalOrdersCount]) }}</span>
+            <span class="hidden md:inline text-slate-300">•</span>
+            <div class="hidden md:flex items-center gap-1.5">
+              <span>{{ __('global.dashboard.rows_per_page') }}</span>
+              <select class="text-xs font-medium border border-slate-200 rounded-lg bg-white px-2 py-0.5 text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500" aria-label="{{ __('global.dashboard.rows_per_page') }}">
+                <option selected="">5</option>
+                <option>10</option>
+                <option>20</option>
+              </select>
+            </div>
+          </div>
+          <!-- Pagination Buttons -->
+          <div class="flex items-center gap-1">
+            <button class="h-8 w-8 rounded-lg border border-slate-200 text-slate-400 flex items-center justify-center hover:bg-slate-50 transition-colors disabled:opacity-40 disabled:pointer-events-none" disabled="" title="{{ __('global.dashboard.prev_page') }}" aria-label="{{ __('global.dashboard.prev_page') }}">
+              <span class="material-symbols-outlined text-[17px]">chevron_left</span>
+            </button>
+            <button class="h-8 min-w-[32px] px-2 rounded-lg bg-[#006948] text-white font-medium text-xs flex items-center justify-center shadow-xs">
+              1
+            </button>
+            <a class="h-8 w-8 rounded-lg border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-50 transition-colors" href="{{ route('user.me.orders') }}" title="{{ __('global.dashboard.next_page') }}">
+              <span class="material-symbols-outlined text-[17px]">chevron_right</span>
+            </a>
+          </div>
+        </div>
+      </section>
+    @else
+      <!-- Onboarding Hero Canvas when user hasn't joined any room -->
+      <section class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+        <!-- Background Ambient Accent -->
+        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-emerald-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+
+        <div class="w-full relative z-10">
+          <div class="flex flex-col md:flex-row items-start md:items-center gap-6 pb-8 border-b border-slate-100">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-[#006948] text-white flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
+              <span class="material-symbols-outlined text-[36px]">storefront</span>
+            </div>
+            <div class="flex-1">
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-[#006948] text-xs font-semibold mb-2 border border-emerald-200/70">
+                <span class="w-2 h-2 rounded-full bg-[#006948] animate-pulse"></span>
+                {{ __('global.dashboard.ready_to_join') }}
+              </div>
+              <h2 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{{ __('global.dashboard.onboarding_title') }}</h2>
+              <p class="text-sm text-slate-500 mt-1.5 leading-relaxed">
+                {{ __('global.dashboard.onboarding_desc') }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Fast Join Room Form -->
+          <div class="mt-6 pt-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[#006948] text-[18px]">link</span>
+              {{ __('global.dashboard.join_by_url') }}
+            </h3>
+            <form method="POST" action="{{ route('user.me.rooms.join') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              @csrf
+              <div class="relative flex-1">
+                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">link</span>
+                <input name="room_url"
+                       value="{{ old('room_url') }}"
+                       class="w-full pl-10 pr-4 h-11 bg-slate-50/70 border @error('room_url') border-red-500 @else border-slate-200 @enderror rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] font-mono transition-all outline-none"
+                       placeholder="{{ __('global.dashboard.join_placeholder') }}"
+                       type="url"
+                       required>
+              </div>
+              <button type="submit" class="h-11 px-6 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-2 shadow-xs whitespace-nowrap cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">login</span>
+                <span>{{ __('global.dashboard.join_button') }}</span>
+              </button>
+            </form>
+            @error('room_url')
+              <p class="text-xs text-red-600 mt-2 font-medium flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">error</span>
+                {{ $message }}
+              </p>
+            @enderror
+          </div>
+
+          <!-- 3 Highlights Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 pt-6 border-t border-slate-100">
+            <div class="p-4 rounded-xl bg-slate-50/60 border border-slate-200/80 flex items-start gap-3">
+              <div class="w-9 h-9 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[20px]">groups</span>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-slate-900">{{ __('global.dashboard.highlight_team') }}</h4>
+                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">{{ __('global.dashboard.highlight_team_desc') }}</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-50/60 border border-slate-200/80 flex items-start gap-3">
+              <div class="w-9 h-9 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[20px]">savings</span>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-slate-900">{{ __('global.dashboard.highlight_sponsor') }}</h4>
+                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">{{ __('global.dashboard.highlight_sponsor_desc') }}</p>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-50/60 border border-slate-200/80 flex items-start gap-3">
+              <div class="w-9 h-9 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+              </div>
+              <div>
+                <h4 class="text-xs font-bold text-slate-900">{{ __('global.dashboard.highlight_vietqr') }}</h4>
+                <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">{{ __('global.dashboard.highlight_vietqr_desc') }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    @endif
+
+    <!-- Section: Lối tắt nhanh -->
+    <section class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[18px]">bolt</span>
+          </span>
+          <h2 class="text-base sm:text-lg font-bold text-slate-900">{{ __('global.dashboard.quick_shortcuts') }}</h2>
+        </div>
+        <span class="text-xs text-slate-400 hidden sm:inline">{{ __('global.dashboard.shortcuts_desc') }}</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Action 1: Tất cả Room -->
+        @if($roomsCount > 0)
+          <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer" href="{{ route('user.me.rooms') }}">
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-[#006948] group-hover:bg-[#006948] group-hover:text-white transition-colors flex items-center justify-center shrink-0 border border-emerald-100">
+              <span class="material-symbols-outlined text-[20px]">groups</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-sm font-semibold text-slate-900 block truncate">{{ __('global.dashboard.shortcut_all_rooms') }}</span>
+              <span class="text-xs text-slate-500 block mt-0.5">{{ __('global.dashboard.shortcut_all_rooms_desc') }}</span>
+            </div>
+            <span class="material-symbols-outlined text-slate-300 group-hover:text-[#006948] group-hover:translate-x-0.5 transition-all text-[17px]">chevron_right</span>
+          </a>
+        @else
+          <div class="p-4 rounded-xl border border-slate-200/60 bg-slate-50/40 opacity-50 cursor-not-allowed flex items-center gap-3.5 select-none" title="{{ __('global.dashboard.no_rooms_joined') }}">
+            <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200/70">
+              <span class="material-symbols-outlined text-[20px]">groups</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-sm font-semibold text-slate-700 block truncate">{{ __('global.dashboard.shortcut_all_rooms') }}</span>
+              <span class="text-xs text-slate-400 block mt-0.5">{{ __('global.dashboard.shortcut_all_rooms_desc') }}</span>
+            </div>
+            <span class="material-symbols-outlined text-slate-300 text-[17px]">chevron_right</span>
+          </div>
+        @endif
+
+        <!-- Action 2: Quét mã VietQR -->
+        @if($roomsCount > 0)
+          <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer" href="{{ route('user.me.payments') }}">
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-[#006948] group-hover:bg-[#006948] group-hover:text-white transition-colors flex items-center justify-center shrink-0 border border-emerald-100">
+              <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-sm font-semibold text-slate-900 block truncate">{{ __('global.dashboard.shortcut_vietqr') }}</span>
+              <span class="text-xs text-slate-500 block mt-0.5">{{ __('global.dashboard.shortcut_vietqr_desc') }}</span>
+            </div>
+            <span class="material-symbols-outlined text-slate-300 group-hover:text-[#006948] group-hover:translate-x-0.5 transition-all text-[17px]">chevron_right</span>
+          </a>
+        @else
+          <div class="p-4 rounded-xl border border-slate-200/60 bg-slate-50/40 opacity-50 cursor-not-allowed flex items-center gap-3.5 select-none" title="{{ __('global.dashboard.no_rooms_joined') }}">
+            <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200/70">
+              <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-sm font-semibold text-slate-700 block truncate">{{ __('global.dashboard.shortcut_vietqr') }}</span>
+              <span class="text-xs text-slate-400 block mt-0.5">{{ __('global.dashboard.shortcut_vietqr_desc') }}</span>
+            </div>
+            <span class="material-symbols-outlined text-slate-300 text-[17px]">chevron_right</span>
+          </div>
+        @endif
+
+        <!-- Action 3: Báo cáo chi tiêu -->
+        @if($roomsCount > 0)
+          <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer" href="{{ route('user.me.statistics') }}">
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-[#006948] group-hover:bg-[#006948] group-hover:text-white transition-colors flex items-center justify-center shrink-0 border border-emerald-100">
+              <span class="material-symbols-outlined text-[20px]">bar_chart</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-sm font-semibold text-slate-900 block truncate">{{ __('global.dashboard.shortcut_stats') }}</span>
+              <span class="text-xs text-slate-500 block mt-0.5">{{ __('global.dashboard.shortcut_stats_desc') }}</span>
+            </div>
+            <span class="material-symbols-outlined text-slate-300 group-hover:text-[#006948] group-hover:translate-x-0.5 transition-all text-[17px]">chevron_right</span>
+          </a>
+        @else
+          <div class="p-4 rounded-xl border border-slate-200/60 bg-slate-50/40 opacity-50 cursor-not-allowed flex items-center gap-3.5 select-none" title="{{ __('global.dashboard.no_rooms_joined') }}">
+            <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200/70">
+              <span class="material-symbols-outlined text-[20px]">bar_chart</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-sm font-semibold text-slate-700 block truncate">{{ __('global.dashboard.shortcut_stats') }}</span>
+              <span class="text-xs text-slate-400 block mt-0.5">{{ __('global.dashboard.shortcut_stats_desc') }}</span>
+            </div>
+            <span class="material-symbols-outlined text-slate-300 text-[17px]">chevron_right</span>
+          </div>
+        @endif
+
+        <!-- Action 4 -->
+        <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer" href="{{ route('user.me.devices') }}">
+          <div class="w-11 h-11 rounded-xl bg-emerald-50 text-[#006948] group-hover:bg-[#006948] group-hover:text-white transition-colors flex items-center justify-center shrink-0 border border-emerald-100">
+            <span class="material-symbols-outlined text-[20px]">shield</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <span class="text-sm font-semibold text-slate-900 block truncate">{{ __('global.dashboard.shortcut_security') }}</span>
+            <span class="text-xs text-slate-500 block mt-0.5">{{ __('global.dashboard.shortcut_security_desc') }}</span>
+          </div>
+          <span class="material-symbols-outlined text-slate-300 group-hover:text-[#006948] group-hover:translate-x-0.5 transition-all text-[17px]">chevron_right</span>
+        </a>
+      </div>
+
+      <!-- Enterprise Workspace Policy Notice -->
+      <div class="mt-4 p-3.5 rounded-xl border border-emerald-200/70 bg-emerald-50/50 flex items-center gap-3 text-xs text-slate-600 leading-relaxed">
+        <span class="material-symbols-outlined text-[#006948] text-[18px] shrink-0">info</span>
+        <span>{{ __('global.dashboard.workspace_policy') }}</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal Thông tin hỗ trợ (Help & Support Center Modal) -->
+  <div class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-200" id="support-modal">
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden transform transition-all">
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center">
+            <span class="material-symbols-outlined text-[20px]">support_agent</span>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">{{ __('global.dashboard.support_center_title') }}</h3>
+            <p class="text-xs text-slate-500">{{ __('global.dashboard.support_center_subtitle') }}</p>
+          </div>
+        </div>
+        <button class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" id="close-modal-btn" title="{{ __('global.common.close') }}" aria-label="{{ __('global.common.close') }}">
+          <span class="material-symbols-outlined text-[19px]">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Content -->
+      <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+        <!-- Quick Contact Channels -->
+        <div>
+          <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[#006948] text-[16px]">contact_support</span>
+            {{ __('global.dashboard.contact_channels') }}
+          </h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-emerald-400 transition-all flex items-center gap-3">
+              <span class="w-9 h-9 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[18px]">call</span>
+              </span>
+              <div class="min-w-0">
+                <span class="text-[11px] text-slate-400 block">{{ __('global.dashboard.hotline_title') }}</span>
+                <span class="text-xs font-semibold text-slate-800">{{ __('global.dashboard.hotline_value') }}</span>
+              </div>
+            </div>
+            <div class="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-emerald-400 transition-all flex items-center gap-3">
+              <span class="w-9 h-9 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[18px]">forum</span>
+              </span>
+              <div class="min-w-0">
+                <span class="text-[11px] text-slate-400 block">{{ __('global.dashboard.slack_title') }}</span>
+                <span class="text-xs font-semibold text-slate-800">{{ __('global.dashboard.slack_value') }}</span>
+              </div>
+            </div>
+            <div class="sm:col-span-2 p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-emerald-400 transition-all flex items-center gap-3">
+              <span class="w-9 h-9 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[18px]">mail</span>
+              </span>
+              <div class="min-w-0">
+                <span class="text-[11px] text-slate-400 block">{{ __('global.dashboard.email_title') }}</span>
+                <span class="text-xs font-semibold text-[#006948]">{{ __('global.dashboard.email_value') }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div>
+          <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2.5 flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[#006948] text-[16px]">quiz</span>
+            {{ __('global.dashboard.faq_title') }}
+          </h4>
+          <div class="space-y-2">
+            <details class="group border border-slate-200/80 rounded-xl bg-slate-50/40 p-3.5 cursor-pointer hover:bg-slate-50/70 transition-colors">
+              <summary class="text-xs font-semibold text-slate-800 flex justify-between items-center select-none">
+                <span>{{ __('global.dashboard.faq_q1') }}</span>
+                <span class="material-symbols-outlined text-[17px] text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
+              </summary>
+              <p class="text-xs text-slate-600 mt-2.5 pt-2.5 border-t border-slate-100 leading-relaxed">
+                {{ __('global.dashboard.faq_a1') }}
+              </p>
+            </details>
+            <details class="group border border-slate-200/80 rounded-xl bg-slate-50/40 p-3.5 cursor-pointer hover:bg-slate-50/70 transition-colors">
+              <summary class="text-xs font-semibold text-slate-800 flex justify-between items-center select-none">
+                <span>{{ __('global.dashboard.faq_q2') }}</span>
+                <span class="material-symbols-outlined text-[17px] text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
+              </summary>
+              <p class="text-xs text-slate-600 mt-2.5 pt-2.5 border-t border-slate-100 leading-relaxed">
+                {{ __('global.dashboard.faq_a2') }}
+              </p>
+            </details>
+            <details class="group border border-slate-200/80 rounded-xl bg-slate-50/40 p-3.5 cursor-pointer hover:bg-slate-50/70 transition-colors">
+              <summary class="text-xs font-semibold text-slate-800 flex justify-between items-center select-none">
+                <span>{{ __('global.dashboard.faq_q3') }}</span>
+                <span class="material-symbols-outlined text-[17px] text-slate-400 group-open:rotate-180 transition-transform">expand_more</span>
+              </summary>
+              <p class="text-xs text-slate-600 mt-2.5 pt-2.5 border-t border-slate-100 leading-relaxed">
+                {{ __('global.dashboard.faq_a3') }}
+              </p>
+            </details>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50/60 border-t border-slate-100 flex justify-end">
+        <button class="px-5 h-9 rounded-xl bg-[#059669] hover:bg-[#047857] text-white text-xs font-semibold transition-colors cursor-pointer shadow-2xs" id="modal-confirm-btn">
+          {{ __('global.dashboard.understood') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <x-slot:scripts>
+    <script>
+      const supportModal = document.getElementById('support-modal');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+      const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+
+      function openSupportModal() {
+        if (supportModal) {
+          supportModal.classList.remove('hidden');
+          supportModal.classList.add('flex');
+          document.body.classList.add('overflow-hidden');
+        }
+      }
+
+      function closeSupportModal() {
+        if (supportModal) {
+          supportModal.classList.add('hidden');
+          supportModal.classList.remove('flex');
+          document.body.classList.remove('overflow-hidden');
+        }
+      }
+
+      if (closeModalBtn) closeModalBtn.addEventListener('click', closeSupportModal);
+      if (modalConfirmBtn) modalConfirmBtn.addEventListener('click', closeSupportModal);
+
+      if (supportModal) {
+        supportModal.addEventListener('click', (e) => {
+          if (e.target === supportModal) {
+            closeSupportModal();
+          }
+        });
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeSupportModal();
+        }
+      });
+    </script>
+  </x-slot:scripts>
+</x-global.layout>

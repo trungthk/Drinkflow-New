@@ -18,13 +18,17 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin.room' => \App\Http\Middleware\EnsureAdminRoomAccess::class,
             'superadmin' => \App\Http\Middleware\EnsureSuperadmin::class,
             'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
+            'user.has_rooms' => \App\Http\Middleware\EnsureUserHasRooms::class,
         ]);
         $middleware->redirectGuestsTo(function (Request $request): string {
             return $request->is('admin/*', 'superadmin/*')
                 ? route('admin.login.page')
                 : route('auth.google');
         });
-        $middleware->validateCsrfTokens(except: ['admin/*', 'superadmin/*']);
+        $middleware->validateCsrfTokens(except: ['admin/*', 'superadmin/*', 'logout']);
+        $middleware->web(append: [
+            \App\Http\Middleware\SetLocale::class,
+        ]);
         $middleware->append(\App\Http\Middleware\CheckMaintenanceMode::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

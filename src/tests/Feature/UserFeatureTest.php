@@ -17,13 +17,14 @@ class UserFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_authenticated_user_without_room_is_sent_to_profile_onboarding(): void
+    public function test_authenticated_user_accessing_landing_page_sees_landing_page(): void
     {
         $user = GlobalUser::create(['name' => 'New User', 'normalized_name' => 'NEW USER', 'email' => 'new-user@company.com']);
 
         $this->actingAs($user, 'web')
             ->get('/')
-            ->assertRedirect(route('user.profile.page'));
+            ->assertOk()
+            ->assertSee('DrinkFlow');
     }
 
     public function test_user_can_filter_campaign_items_without_cross_room_access(): void

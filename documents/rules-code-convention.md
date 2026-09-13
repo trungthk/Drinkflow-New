@@ -6,15 +6,14 @@ Tài liệu này là rule chung cho toàn bộ codebase DrinkFlow.
 
 Áp dụng cho:
 
-- Laravel 12.
-- PHP 8.3+.
-- Blade.
-- Blade Components.
+- Laravel 12 (mã nguồn đặt trong thư mục `src/`).
+- PHP 8.3+ (Docker container `drinkflow-new-app-1`).
+- Blade & Blade Components (`<x-public.layout>`, `<x-global.layout>`, v.v.).
 - TailwindCSS.
 - Alpine.js nếu cần.
-- Supabase PostgreSQL.
+- PostgreSQL 16 Alpine (Docker Compose service `postgres`, database `drinkflow`, KHÔNG sử dụng Supabase).
 - Redis optional.
-- Tiny Node.js Socket.IO Gateway.
+- Tiny Node.js Socket.IO Gateway (`realtime/` container trên port 3001).
 
 Mục tiêu:
 
@@ -48,7 +47,7 @@ Laravel là nơi duy nhất cho:
 
 Không đưa business logic sang Socket.IO Gateway.
 
-Không query Supabase trực tiếp từ browser.
+Không query Database trực tiếp từ browser (tuyệt đối không kết nối Supabase hay direct DB client). Mọi tương tác dữ liệu phải thông qua backend Laravel.
 
 ---
 
@@ -73,7 +72,7 @@ Action / Service
 Model / Query
   │
   ▼
-Database
+Database (PostgreSQL 16)
 ```
 
 Controller phải thin.
@@ -90,38 +89,67 @@ Controller không chứa:
 
 # 3. Folder Convention
 
+Toàn bộ mã nguồn Laravel nằm trong thư mục `src/`:
+
 ```text
-app/
-├── Actions/
-│   ├── Auth/
-│   ├── User/
-│   ├── Room/
-│   ├── Campaign/
-│   ├── Order/
-│   ├── Debt/
-│   └── Admin/
-├── Enums/
-├── Events/
-├── Http/
-│   ├── Controllers/
-│   │   ├── User/
-│   │   ├── Admin/
-│   │   └── Superadmin/
-│   ├── Middleware/
-│   └── Requests/
-├── Jobs/
-├── Listeners/
-├── Models/
-├── Policies/
-├── Queries/
-├── Services/
-│   ├── Auth/
-│   ├── VietQr/
-│   ├── Notification/
-│   ├── Crawler/
-│   └── Realtime/
-└── View/
-    └── Components/
+Drinkflow-New/
+├── docker-compose.yml
+├── Dockerfile
+├── documents/
+├── realtime/ (Socket.IO Gateway)
+└── src/ (Laravel 12 Application)
+    ├── app/
+    │   ├── Actions/
+    │   │   ├── Auth/
+    │   │   ├── User/
+    │   │   ├── Room/
+    │   │   ├── Campaign/
+    │   │   ├── Order/
+    │   │   ├── Debt/
+    │   │   └── Admin/
+    │   ├── Enums/
+    │   ├── Events/
+    │   ├── Http/
+    │   │   ├── Controllers/
+    │   │   │   ├── User/
+    │   │   │   │   ├── Global/ (Dashboard, Profile, Rooms, Orders, Analytics, Notification)
+    │   │   │   │   ├── DashboardController (Room level)
+    │   │   │   │   ├── CampaignController
+    │   │   │   │   ├── OrderController
+    │   │   │   │   ├── DebtController
+    │   │   │   │   └── RoomSettingController
+    │   │   │   ├── Admin/
+    │   │   │   └── Superadmin/
+    │   │   ├── Middleware/
+    │   │   └── Requests/
+    │   ├── Jobs/
+    │   ├── Listeners/
+    │   ├── Models/
+    │   ├── Policies/
+    │   ├── Queries/
+    │   ├── Services/
+    │   │   ├── Auth/
+    │   │   ├── VietQr/
+    │   │   ├── Notification/
+    │   │   ├── Crawler/
+    │   │   └── Realtime/
+    │   └── View/
+    │       └── Components/
+    ├── database/
+    │   ├── factories/
+    │   ├── migrations/
+    │   └── seeders/
+    ├── resources/
+    │   └── views/
+    │       ├── components/ (x-public.layout, x-global.layout, x-global.header, ...)
+    │       ├── user/ (global & room views)
+    │       ├── admin/
+    │       └── superadmin/
+    └── routes/
+        ├── web.php
+        ├── user.php
+        ├── admin.php
+        └── superadmin.php
 ```
 
 Không tạo folder mới nếu chỉ có một class không cần grouping.
@@ -604,7 +632,7 @@ room_user.blocked
 Socket.IO Gateway:
 
 - Transport only.
-- Không query Supabase.
+- Không query PostgreSQL Database trực tiếp.
 - Không update DB.
 - Không chứa business rule.
 - Không quyết định Room permission từ client input.
@@ -819,8 +847,8 @@ Google client secret
 Chatwork token
 Slack webhook
 Telegram bot token
-DB password
-Supabase credentials
+DB password / credentials
+Realtime internal secret
 ```
 
 phải:
@@ -1272,7 +1300,7 @@ Trước khi merge:
 
 - Có đúng Room scope không?
 - Có authorization server-side không?
-- Có query trực tiếp Supabase từ browser không?
+- Có query trực tiếp Database từ browser không?
 - Có secret nào leak HTML/API/log không?
 - Có trust client-calculated money không?
 - Có transaction cho operation nhiều bước không?
@@ -1294,7 +1322,7 @@ Khi Codex generate/refactor:
 1. Đọc docs trước.
 2. Không tự đổi architecture.
 3. Không thêm SPA framework.
-4. Không thêm Supabase JS client.
+4. Tuyệt đối không kết nối Supabase hay thêm Supabase JS client (chỉ sử dụng PostgreSQL nội bộ qua backend Laravel).
 5. Không đưa business logic vào Socket.IO Gateway.
 6. Preserve behavior hiện có.
 7. Refactor từng phase.

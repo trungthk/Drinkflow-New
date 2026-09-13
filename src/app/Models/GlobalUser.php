@@ -14,13 +14,33 @@ class GlobalUser extends Authenticatable
 
     protected $table = 'global_users';
 
-    protected $fillable = ['name', 'normalized_name', 'email', 'avatar_url', 'status', 'last_login_at'];
+    protected $fillable = [
+        'name',
+        'normalized_name',
+        'email',
+        'avatar_url',
+        'status',
+        'last_login_at',
+        'phone',
+        'desk_location',
+        'delivery_location',
+        'preferences',
+    ];
 
     protected $hidden = ['remember_token'];
 
     protected function casts(): array
     {
-        return ['last_login_at' => 'datetime', 'status' => GlobalUserStatus::class];
+        return [
+            'last_login_at' => 'datetime',
+            'status' => GlobalUserStatus::class,
+            'preferences' => 'array',
+        ];
+    }
+
+    public function getAvatarUrlAttribute(?string $value): string
+    {
+        return !empty($value) ? $value : asset('images/default-avatar.svg');
     }
 
     public function oauthIdentities(): HasMany

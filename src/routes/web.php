@@ -2,18 +2,23 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    if ($user = auth('web')->user()) {
-        /** @var \App\Models\GlobalUser $user */
-        $room = $user->roomUsers()->where('status', 'active')->with('room')->first();
-        if ($room?->room) return redirect()->route('user.dashboard', $room->room);
-        // A newly authenticated account may not have joined a Room yet. Send
-        // it to the authenticated profile/onboarding screen instead of
-        // rendering the anonymous landing page again.
-        return redirect()->route('user.profile.page');
+Route::get('/', \App\Http\Controllers\Public\LandingController::class)->name('landing');
+
+Route::get('/terms', \App\Http\Controllers\Public\TermsController::class)->name('terms');
+
+Route::get('/versions/{version?}', \App\Http\Controllers\Public\VersionController::class)->name('versions');
+
+Route::get('/contact', [\App\Http\Controllers\Public\ContactController::class, 'index'])->name('contact');
+Route::post('/contact', [\App\Http\Controllers\Public\ContactController::class, 'store'])
+    ->middleware('throttle:contact-submission')
+    ->name('contact.store');
+
+Route::get('/lang/{locale}', function (string $locale) {
+    if (in_array($locale, ['vi', 'en', 'ja'], true)) {
+        session(['locale' => $locale]);
     }
-    return view('landing');
-});
+    return redirect()->back();
+})->name('locale.switch');
 
 require __DIR__.'/user.php';
 require __DIR__.'/admin.php';

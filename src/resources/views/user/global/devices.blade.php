@@ -1,0 +1,458 @@
+<x-global.layout 
+    :title="'DrinkFlow - ' . __('global.devices.page_title')" 
+    :user="$user"
+    activeTab="devices" 
+    :breadcrumbs="$breadcrumbs"
+    :unreadNotificationsCount="$unreadNotificationsCount ?? 0"
+    :notifications="$notifications ?? collect()"
+>
+<div 
+    x-data="{
+        showSingleLogoutModal: false,
+        showLogoutAllModal: false,
+        showDeleteAccountModal: false,
+        showHelpModal: false,
+        targetSessionId: '',
+        targetDeviceName: '',
+        openSingleLogout(sessionId, deviceName) {
+            this.targetSessionId = sessionId;
+            this.targetDeviceName = deviceName;
+            this.showSingleLogoutModal = true;
+        }
+    }" 
+    class="space-y-6"
+>
+    <!-- Status & Alert Messages -->
+    @if(session('status'))
+        <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-2xs">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-600 text-[20px]">check_circle</span>
+                <span>{{ session('status') }}</span>
+            </div>
+            <button @click="$el.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm shadow-2xs">
+            <div class="flex items-center gap-2 font-semibold mb-1">
+                <span class="material-symbols-outlined text-rose-600 text-[20px]">error</span>
+                <span>{{ $errors->first() }}</span>
+            </div>
+        </div>
+    @endif
+
+    <!-- Page Header Area -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-200 pb-5">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">{{ __('global.devices.title') }}</h1>
+            <p class="text-sm text-slate-600 mt-1">{{ __('global.devices.subtitle') }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <span class="material-symbols-outlined text-[16px] text-emerald-600" style="font-variation-settings: 'FILL' 1;">security</span>
+                {{ __('global.devices.security_policy_badge') }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Section 1: Danh tính & Xác thực doanh nghiệp (Enterprise Identity Card) -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#006948] text-xl">badge</span>
+                <h2 class="text-base font-semibold text-slate-900">{{ __('global.devices.enterprise_auth_title') }}</h2>
+            </div>
+            <span class="text-[11px] font-medium uppercase tracking-wider text-slate-500 px-2 py-0.5 rounded bg-slate-50 border border-slate-200">{{ __('global.devices.oauth_managed') }}</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <!-- Single Sign-On Info Box 1 -->
+            <div class="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 flex flex-col justify-between">
+                <span class="text-xs text-slate-500">{{ __('global.devices.google_sso_account') }}</span>
+                <div class="mt-2">
+                    <p class="text-sm font-semibold text-slate-800 flex items-center gap-1.5 truncate">
+                        <span class="material-symbols-outlined text-[16px] text-[#006948]">mail</span>
+                        {{ $user->email }}
+                    </p>
+                    <p class="text-xs text-slate-500 mt-0.5 truncate">{{ $department }}</p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200/70 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">{{ __('global.devices.employee_id') }}</span>
+                    <span class="font-semibold text-slate-700 font-mono">{{ $userCode }}</span>
+                </div>
+            </div>
+
+            <!-- 2FA Status Box 2 -->
+            <div class="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 flex flex-col justify-between">
+                <span class="text-xs text-slate-500">{{ __('global.devices.mfa_status') }}</span>
+                <div class="mt-2">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-emerald-600" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+                        <span class="text-sm font-semibold text-slate-800">{{ __('global.devices.mfa_activated') }}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">{{ __('global.devices.mfa_methods') }}</p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200/70 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">{{ __('global.devices.protection_status') }}</span>
+                    <span class="text-emerald-700 font-semibold">{{ __('global.devices.protection_safe') }}</span>
+                </div>
+            </div>
+
+            <!-- Token Lifetime Box 3 -->
+            <div class="p-4 rounded-xl bg-slate-50/80 border border-slate-200/80 flex flex-col justify-between">
+                <span class="text-xs text-slate-500">{{ __('global.devices.token_policy') }}</span>
+                <div class="mt-2">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-slate-600">timer</span>
+                        <span class="text-sm font-semibold text-slate-800">{{ __('global.devices.token_expiry') }}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-0.5">{{ __('global.devices.token_policy_desc') }}</p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200/70 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">{{ __('global.devices.mechanism') }}</span>
+                    <span class="text-slate-700 font-medium">Automatic Refresh</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enterprise Note Box -->
+        <div class="rounded-xl bg-slate-50 border border-slate-200/90 p-3.5 flex items-start gap-3">
+            <span class="material-symbols-outlined text-[#006948] mt-0.5 text-[20px]" style="font-variation-settings: 'FILL' 1;">info</span>
+            <div class="text-xs text-slate-600">
+                <span class="font-semibold text-slate-800">{{ __('global.devices.admin_note') }}</span> {{ __('global.devices.admin_note_desc') }}
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 2: Thiết bị hiện tại (Current Device - Highlighted Card) -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs relative overflow-hidden">
+        <!-- Emerald Accent Line on Left -->
+        <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-[#006948]"></div>
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pl-2">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#006948] text-xl">devices</span>
+                <h2 class="text-base font-semibold text-slate-900">{{ __('global.devices.current_device_title') }}</h2>
+            </div>
+            <div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
+                    {{ __('global.devices.current_device_active') }}
+                </span>
+            </div>
+        </div>
+
+        <div class="pl-2 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+            <!-- Device Info Cluster -->
+            <div class="lg:col-span-8 flex items-start gap-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200/60 flex items-center justify-center shrink-0 text-[#006948]">
+                    <span class="material-symbols-outlined text-2xl">{{ $currentDeviceInfo['icon'] }}</span>
+                </div>
+                <div class="space-y-1 min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-base font-semibold text-slate-900">{{ $currentDeviceInfo['device_name'] }}</span>
+                        <span class="text-xs px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 font-mono">df-workstation-x86</span>
+                    </div>
+                    <p class="text-xs text-slate-600 flex items-center gap-1.5 flex-wrap">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400">lan</span>
+                        <span>{{ __('global.devices.connected_network', ['ip' => $currentIp]) }}</span>
+                    </p>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-xs text-slate-500">
+                        <span class="flex items-center gap-1 text-emerald-700 font-medium">
+                            <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+                            {{ __('global.devices.trusted_device') }}
+                        </span>
+                        <span class="text-slate-300">•</span>
+                        <span class="flex items-center gap-1 text-slate-500">
+                            <span class="material-symbols-outlined text-[15px]">schedule</span>
+                            {{ __('global.devices.last_active_label') }} <span class="text-slate-700 font-medium">{{ __('global.devices.last_active_now') }}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Management Status & Badge -->
+            <div class="lg:col-span-4 flex lg:justify-end">
+                <div class="w-full sm:w-auto p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-right flex flex-col justify-between items-start sm:items-end gap-2.5">
+                    <div class="text-left sm:text-right w-full">
+                        <span class="text-[11px] text-slate-400 block">{{ __('global.devices.auth_level') }}</span>
+                        <span class="text-xs font-semibold text-emerald-700 flex items-center sm:justify-end gap-1">
+                            <span class="material-symbols-outlined text-[16px]">shield</span>
+                            {{ __('global.devices.full_access') }}
+                        </span>
+                    </div>
+                    <span class="text-xs font-mono text-slate-500 font-medium">{{ __('global.devices.session_code', ['code' => $currentSessionCode]) }}</span>
+                    <button type="button" onclick="openLogoutModal()" class="w-full sm:w-auto px-3.5 py-1.5 rounded-xl border border-rose-200 bg-white hover:bg-rose-50 text-rose-600 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs">
+                        <span class="material-symbols-outlined text-[16px]">logout</span>
+                        <span>{{ __('global.devices.logout_current_session') }}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Các phiên đăng nhập & Thiết bị khác đang hoạt động (Active Sessions List) -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-200">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[#006948] text-xl">devices_other</span>
+                <h2 class="text-base font-semibold text-slate-900">{{ __('global.devices.other_sessions_title') }}</h2>
+            </div>
+            <span class="text-xs text-slate-500">{{ __('global.devices.devices_active_count', ['count' => count($otherSessions)]) }}</span>
+        </div>
+
+        <!-- Itemized Device List -->
+        <div class="divide-y divide-slate-100">
+            @forelse($otherSessions as $sess)
+                <div class="py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/70 px-2 rounded-xl transition-colors">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 text-slate-600 mt-0.5">
+                            <span class="material-symbols-outlined text-xl">{{ $sess['icon'] ?? 'devices' }}</span>
+                        </div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="text-sm font-semibold text-slate-800">{{ $sess['device_name'] }}</h3>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border {{ $sess['badge_class'] ?? 'bg-slate-100 text-slate-700 border-slate-200' }}">
+                                    {{ $sess['type_label'] }}
+                                </span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                                <span class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[15px] text-slate-400">location_on</span>
+                                    {{ __('global.devices.location_label') }} {{ $sess['location'] ?? 'Hà Nội' }}
+                                </span>
+                                <span class="text-slate-300">•</span>
+                                <span class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[15px] text-slate-400">schedule</span>
+                                    {{ __('global.devices.last_active_label') }} <span class="text-slate-700 font-medium">{{ $sess['last_active'] }}</span>
+                                </span>
+                                <span class="text-slate-300">•</span>
+                                <span class="font-mono text-[11px] text-slate-400">IP: {{ $sess['ip'] }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 self-end md:self-center">
+                        <button 
+                            type="button" 
+                            @click="openSingleLogout('{{ $sess['id'] }}', '{{ addslashes($sess['device_name']) }}')"
+                            class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-300 text-xs font-medium transition-colors flex items-center gap-1.5 focus:outline-none focus:ring-1 focus:ring-[#006948] cursor-pointer shadow-2xs"
+                        >
+                            <span class="material-symbols-outlined text-[16px] text-slate-400">logout</span>
+                            {{ __('global.devices.logout_session') }}
+                        </button>
+                    </div>
+                </div>
+            @empty
+                <div class="py-8 text-center text-slate-500 text-xs">
+                    <span class="material-symbols-outlined text-slate-300 text-[32px] mb-2 block">devices_off</span>
+                    {{ __('global.devices.no_other_sessions') }}
+                </div>
+            @endforelse
+        </div>
+    </section>
+
+    <!-- Section 4: Thao tác bảo mật khẩn cấp (Global Security Actions) -->
+    <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs">
+        <div class="flex items-center gap-2 mb-4">
+            <span class="material-symbols-outlined text-rose-600 text-xl">warning</span>
+            <h2 class="text-base font-semibold text-slate-900">{{ __('global.devices.emergency_actions_title') }}</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <!-- Emergency Sign-out Card -->
+            <div class="p-4 rounded-xl border border-rose-200 bg-rose-50/30 flex flex-col justify-between space-y-4">
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-rose-600 text-lg">gpp_bad</span>
+                        {{ __('global.devices.logout_remote_title') }}
+                    </h3>
+                    <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">
+                        {{ __('global.devices.logout_remote_desc') }}
+                    </p>
+                </div>
+                <div class="pt-2 border-t border-rose-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <span class="text-[11px] text-slate-400">{{ __('global.devices.sso_code_confirm') }}</span>
+                    <button 
+                        type="button" 
+                        @click="showLogoutAllModal = true"
+                        class="px-4 py-2 rounded-xl bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-semibold transition-colors flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-rose-500 cursor-pointer shadow-2xs"
+                    >
+                        <span class="material-symbols-outlined text-[17px]">no_accounts</span>
+                        {{ __('global.devices.logout_all_btn') }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Danger Zone / Delete Account Card -->
+            <div class="p-4 rounded-xl border border-rose-200 bg-rose-50/40 flex flex-col justify-between space-y-4">
+                <div class="space-y-1.5">
+                    <div>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700 border border-rose-200 mb-1">
+                            <span class="material-symbols-outlined text-[12px]">dangerous</span> {{ __('global.devices.danger_zone') }}
+                        </span>
+                        <h3 class="text-sm font-semibold text-rose-700 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-rose-600 text-lg">person_off</span> {{ __('global.devices.delete_account_title') }}
+                        </h3>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        {{ __('global.devices.delete_account_desc') }}
+                    </p>
+                </div>
+                <div class="pt-3 border-t border-rose-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <span class="text-[11px] text-rose-600 font-medium flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">error</span> {{ __('global.devices.irreversible') }}
+                    </span>
+                    <button 
+                        type="button" 
+                        @click="showDeleteAccountModal = true"
+                        class="px-4 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-rose-500 shadow-2xs cursor-pointer"
+                    >
+                        <span class="material-symbols-outlined text-[17px]">delete_forever</span> {{ __('global.devices.request_delete_btn') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal 1: Xác nhận đăng xuất thiết bị đơn lẻ -->
+    <div 
+        x-show="showSingleLogoutModal"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+        @click.self="showSingleLogoutModal = false"
+        @keydown.escape.window="showSingleLogoutModal = false"
+    >
+        <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-fadeIn">
+            <button @click="showSingleLogoutModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer" aria-label="{{ __('global.common.close') }}">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
+                    <span class="material-symbols-outlined text-xl">logout</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">{{ __('global.devices.modal_single_logout_title') }}</h3>
+                    <p class="text-xs text-slate-500">{{ __('global.devices.modal_single_logout_subtitle') }}</p>
+                </div>
+            </div>
+            <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+                {{ __('global.devices.modal_single_logout_desc', ['device' => '']) }}<strong class="text-slate-800" x-text="targetDeviceName"></strong>?
+            </p>
+            <form :action="'{{ url('/me/devices/logout') }}/' + targetSessionId" method="POST" class="flex justify-end gap-3">
+                @csrf
+                <button type="button" @click="showSingleLogoutModal = false" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium transition-colors cursor-pointer">
+                    {{ __('global.common.cancel') }}
+                </button>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700 text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">logout</span> {{ __('global.devices.logout_session') }}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Xác nhận đăng xuất tất cả thiết bị khác -->
+    <div 
+        x-show="showLogoutAllModal"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+        @click.self="showLogoutAllModal = false"
+        @keydown.escape.window="showLogoutAllModal = false"
+    >
+        <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-xl relative animate-fadeIn">
+            <button @click="showLogoutAllModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer" aria-label="{{ __('global.common.close') }}">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
+                    <span class="material-symbols-outlined text-xl">no_accounts</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">{{ __('global.devices.modal_logout_all_title') }}</h3>
+                    <p class="text-xs text-slate-500">{{ __('global.devices.modal_logout_all_subtitle') }}</p>
+                </div>
+            </div>
+            <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+                {{ __('global.devices.modal_logout_all_desc') }}
+            </p>
+            <form action="{{ route('user.me.devices.logout-all') }}" method="POST" class="flex justify-end gap-3">
+                @csrf
+                <button type="button" @click="showLogoutAllModal = false" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium transition-colors cursor-pointer">
+                    {{ __('global.common.cancel') }}
+                </button>
+                <button type="submit" class="px-4 py-2 rounded-xl bg-rose-600 text-white hover:bg-rose-700 text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">lock_reset</span> {{ __('global.devices.confirm_logout_all') }}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 3: Hủy bỏ tài khoản vĩnh viễn (Danger Zone Modal) -->
+    <div 
+        x-show="showDeleteAccountModal"
+        x-cloak
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+        @click.self="showDeleteAccountModal = false"
+        @keydown.escape.window="showDeleteAccountModal = false"
+    >
+        <div class="bg-white border border-rose-200 rounded-2xl max-w-lg w-full p-6 shadow-xl relative animate-fadeIn">
+            <button @click="showDeleteAccountModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer" aria-label="{{ __('global.common.close') }}">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
+                    <span class="material-symbols-outlined text-2xl">warning</span>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-rose-600">{{ __('global.devices.modal_delete_title') }}</h3>
+                    <p class="text-xs text-slate-500">{{ __('global.devices.modal_delete_subtitle') }}</p>
+                </div>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 mb-4 flex items-center gap-2.5">
+                <span class="material-symbols-outlined text-rose-600 text-[20px] shrink-0">dangerous</span>
+                <span class="text-xs font-bold text-rose-700">{{ __('global.devices.modal_delete_warning') }}</span>
+            </div>
+
+            <div class="space-y-2 mb-4 text-xs text-slate-600">
+                <p>{{ __('global.devices.modal_delete_scope') }}</p>
+                <ul class="space-y-1 list-disc pl-5 text-slate-500">
+                    <li>{{ __('global.devices.delete_scope_1') }}</li>
+                    <li>{{ __('global.devices.delete_scope_2') }}</li>
+                    <li>{{ __('global.devices.delete_scope_3') }}</li>
+                    <li>{{ __('global.devices.delete_scope_4') }}</li>
+                </ul>
+            </div>
+
+            <form action="{{ route('user.me.account.delete') }}" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 mb-1.5" for="confirm_delete">
+                        {{ __('global.devices.confirm_delete_prompt', ['email' => $user->email]) }}
+                    </label>
+                    <input 
+                        id="confirm_delete" 
+                        name="confirm_delete" 
+                        required
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500" 
+                        placeholder="{{ __('global.devices.confirm_delete_placeholder', ['email' => $user->email]) }}" 
+                        type="text"
+                    >
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-end gap-3 pt-2">
+                    <button type="button" @click="showDeleteAccountModal = false" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium transition-colors cursor-pointer">
+                        {{ __('global.devices.keep_account') }}
+                    </button>
+                    <button type="submit" class="px-4 py-2.5 rounded-xl bg-rose-600 text-white hover:bg-rose-700 text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-sm cursor-pointer">
+                        <span class="material-symbols-outlined text-[17px]">delete_forever</span> {{ __('global.devices.confirm_delete_btn') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</x-global.layout>

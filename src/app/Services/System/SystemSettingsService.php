@@ -16,7 +16,11 @@ class SystemSettingsService
      */
     public function get(string $key, mixed $default = null): mixed
     {
-        if (!Schema::hasTable('system_settings')) return $default;
+        try {
+            if (!Schema::hasTable('system_settings')) return $default;
+        } catch (\Throwable $e) {
+            return $default;
+        }
         $setting = SystemSetting::where('key', $key)->first();
         if (!$setting) return $default;
         $value = $setting->value;

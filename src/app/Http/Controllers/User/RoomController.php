@@ -7,8 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Room;
 use App\Services\Auth\DeviceTrustService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Contracts\View\View;
 
 class RoomController extends Controller
 {
@@ -16,9 +18,9 @@ class RoomController extends Controller
      * Handle the show operation.
      * @param Request $request Parameter value.
      * @param Room $room Parameter value.
-     * @return JsonResponse Result of the operation.
+     * @return JsonResponse|RedirectResponse|View Result of the operation.
      */
-    public function show(Request $request, Room $room): JsonResponse
+    public function show(Request $request, Room $room): JsonResponse|RedirectResponse|View
     {
         abort_unless($room->status === 'active', 404);
         $user = $request->user('web');
@@ -35,20 +37,47 @@ class RoomController extends Controller
         }
         if (! $user) {
             $request->session()->put('url.intended', url()->current());
-
-            return response()->json(['requires_authentication' => true, 'redirect' => route('auth.google')], 401);
+            if ($request->expectsJson()) {
+                return response()->json(['requires_authentication' => true, 'redirect' => route('auth.google')], 401);
+            }
+            return redirect()->guest(route('auth.google'));
         }
-        abort_unless($user->status?->value === 'active', 403);
+        $userStatus = $user->status instanceof \BackedEnum ? $user->status->value : (string) ($user->status ?? 'active');
+        abort_unless($userStatus === 'active', 403);
 
         $membership = $user->roomUsers()->where('room_id', $room->id)->first();
         if (! $membership) {
-            return response()->json([
-                'requires_confirmation' => true,
-                'profile' => $user->only(['name', 'email', 'avatar_url']),
-                'room' => $room->only(['id', 'name', 'slug', 'description', 'avatar_url']),
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'requires_confirmation' => true,
+                    'profile' => $user->only(['name', 'email', 'avatar_url']),
+                    'room' => $room->only(['id', 'name', 'slug', 'description', 'avatar_url']),
+                ]);
+            }
+            return view('user.join-room', [
+                'room' => $room,
+                'user' => $user,
+                'adminUser' => $room->admins()->first(),
             ]);
         }
-        abort_unless($membership->status?->value === 'active', 403);
+
+        $memStatus = $membership->status instanceof \BackedEnum ? $membership->status->value : (string) $membership->status;
+        if ($memStatus === 'blocked') {
+            if ($request->expectsJson()) {
+                abort(403, 'Tài khoản bị khóa.');
+            }
+            return response()->view('user.blocked-room', [
+                'room' => $room,
+                'roomUser' => $membership,
+                'adminUser' => $room->admins()->first(),
+            ], 403);
+        }
+
+        abort_unless($memStatus === 'active', 403);
+
+        if (! $request->expectsJson()) {
+            return redirect()->route('user.dashboard', $room->slug);
+        }
 
         return response()->json(['data' => $room->loadCount(['campaigns']), 'room_user' => $membership]);
     }
@@ -59,24 +88,25 @@ class RoomController extends Controller
      * @param Room $room Parameter value.
      * @param JoinRoomAction $action Parameter value.
      * @param DeviceTrustService $devices Parameter value.
-     * @return JsonResponse Result of the operation.
+     * @return JsonResponse|RedirectResponse Result of the operation.
      */
-    public function join(Request $request, Room $room, JoinRoomAction $action, DeviceTrustService $devices): JsonResponse
+    public function join(Request $request, Room $room, JoinRoomAction $action, DeviceTrustService $devices): JsonResponse|RedirectResponse
     {
         abort_unless($room->status === 'active', 404);
         $user = $request->user('web');
-        abort_unless($user && $user->status?->value === 'active', 401);
+        $userStatus = $user ? ($user->status instanceof \BackedEnum ? $user->status->value : (string) ($user->status ?? 'active')) : null;
+        abort_unless($user && $userStatus === 'active', 401);
         $deviceUuid = (string) ($request->cookie('drinkflow_device_uuid') ?: Str::uuid());
         $roomUser = $action->execute($user, $room, $deviceUuid, hash('sha256', Str::random(64)));
         $token = $devices->issue($roomUser, $deviceUuid);
 
         if (! $request->expectsJson()) {
-            return redirect()->route('user.dashboard', $room)
+            return redirect()->route('user.dashboard', $room->slug)
                 ->withCookie(cookie('drinkflow_device_uuid', $deviceUuid, 60 * 24 * 365, '/', null, $request->isSecure(), true, 'lax'))
                 ->withCookie(cookie('drinkflow_trusted_token', $token, 60 * 24 * 30, '/', null, $request->isSecure(), true, 'lax'));
         }
 
-        return response()->json(['data' => $roomUser->load('room'), 'redirect' => route('user.campaigns.index', $room)])
+        return response()->json(['data' => $roomUser->load('room'), 'redirect' => route('user.campaigns.index', $room->slug)])
             ->withCookie(cookie('drinkflow_device_uuid', $deviceUuid, 60 * 24 * 365, '/', null, $request->isSecure(), true, 'lax'))
             ->withCookie(cookie('drinkflow_trusted_token', $token, 60 * 24 * 30, '/', null, $request->isSecure(), true, 'lax'));
     }

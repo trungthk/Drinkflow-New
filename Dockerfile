@@ -19,8 +19,13 @@ RUN apt-get update \
         libpq-dev \
         libsqlite3-dev \
         libzip-dev \
+        libpng-dev \
+        libjpeg62-turbo-dev \
+        libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
         bcmath \
+        gd \
         mbstring \
         pdo_pgsql \
         pdo_sqlite \
@@ -44,7 +49,8 @@ COPY --from=frontend /build/public/build ./public/build
 RUN composer dump-autoload --optimize --no-scripts \
     && php artisan package:discover --ansi
 
-RUN mkdir -p \
+RUN if [ ! -f .env ]; then cp .env.example .env && php artisan key:generate --force; fi \
+    && mkdir -p \
         storage/framework/cache \
         storage/framework/sessions \
         storage/framework/views \

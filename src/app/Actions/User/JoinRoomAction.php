@@ -22,7 +22,8 @@ class JoinRoomAction
     {
         $globalUser->refresh();
         $room->refresh();
-        abort_unless($globalUser->status?->value === 'active', 403);
+        $userStatus = $globalUser->status instanceof \BackedEnum ? $globalUser->status->value : (string) ($globalUser->status ?? 'active');
+        abort_unless($userStatus === 'active', 403);
         abort_unless($room->status === 'active', 404);
 
         return DB::transaction(function () use ($globalUser, $room, $deviceUuid, $deviceTokenHash): RoomUser {
@@ -37,7 +38,8 @@ class JoinRoomAction
                 ],
             );
 
-            abort_unless($roomUser->status?->value === 'active', 403);
+            $roomUserStatus = $roomUser->status instanceof \BackedEnum ? $roomUser->status->value : (string) $roomUser->status;
+            abort_unless($roomUserStatus === 'active', 403);
             RoomUserDevice::updateOrCreate(
                 ['room_user_id' => $roomUser->id, 'device_uuid' => $deviceUuid],
                 ['token_hash' => $deviceTokenHash, 'verified_at' => now(), 'last_seen_at' => now(), 'revoked_at' => null],
