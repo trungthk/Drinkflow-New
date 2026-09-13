@@ -87,7 +87,7 @@
       <p class="text-[11px] text-slate-500 flex items-center justify-center gap-1.5">
         <span class="material-symbols-outlined text-[15px] text-slate-400">help</span>
         <span>{{ __('room.blocked.need_help') }}</span>
-        <a class="text-[#006948] hover:underline font-semibold" href="{{ route('public.contact') }}">{{ __('room.blocked.helpdesk') }}</a>
+        <a class="text-[#006948] hover:underline font-semibold" href="{{ route('contact') }}">{{ __('room.blocked.helpdesk') }}</a>
       </p>
     </div>
   </div>

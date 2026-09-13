@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\Campaign\ImportCampaignItemsAction;
@@ -44,7 +46,7 @@ class CrawlerController extends Controller
     {
         abort_unless($campaign->room_id === request()->attributes->get('room')->id, 404);
         if ($campaign->status?->value === 'closed') {
-            abort(422, 'Campaign Ä‘Ă£ Ä‘Ă³ng.');
+            abort(422, __('admin.campaign_closed'));
         }
         $items = $request->validated('items');
         if ($request->filled('preview_id')) {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\Campaign\CloseCampaignAction;
@@ -10,8 +12,9 @@ use App\Actions\Campaign\DuplicateCampaignAction;
 use App\Actions\Campaign\SplitCampaignBillAction;
 use App\Actions\Campaign\TransitionCampaignAction;
 use App\Actions\Campaign\UpdateCampaignItemAction;
+use App\Enums\PaymentAccountStatus;
+use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Room;
 use App\Http\Requests\SplitBillRequest;
 use App\Http\Requests\StoreCampaignItemRequest;
 use App\Http\Requests\StoreCampaignRequest;
@@ -22,34 +25,134 @@ use App\Models\Campaign;
 use App\Models\CampaignItem;
 use App\Models\CampaignItemSize;
 use App\Models\CampaignItemTopping;
+use App\Models\Room;
 use App\Services\Audit\AuditService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CampaignController extends Controller
 {
     /**
-     * Handle the index operation.
-     * @param Request $request Parameter value.
-     * @return JsonResponse Result of the operation.
+     * Display a listing of campaigns for the current room.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @return JsonResponse Paginated campaign list.
      */
     public function index(Request $request): JsonResponse
     {
         $room = $request->attributes->get('room');
-        $query = Campaign::query()->where('room_id', $room->id)->withCount('orders')->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->toString()))->latest();
+        $query = Campaign::query()
+            ->where('room_id', $room->id)
+            ->withCount('orders')
+            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->toString()))
+            ->latest();
+
         return response()->json(['data' => $query->paginate(20)]);
     }
 
     /**
-     * Handle the show operation.
-     * @param Room $room Parameter value.
-     * @param Campaign $campaign Parameter value.
-     * @return JsonResponse Result of the operation.
+     * Display the standalone Campaigns management view.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @param Room $room Room entity.
+     * @return View Blade view.
      */
-    public function show(Room $room, Campaign $campaign): JsonResponse
+    public function page(Request $request, Room $room): View
+    {
+        $campaigns = Campaign::query()
+            ->where('room_id', $room->id)
+            ->withCount('orders')
+            ->latest()
+            ->paginate(20);
+
+        return view('admin.campaigns', [
+            'room' => $room,
+            'campaigns' => $campaigns,
+        ]);
+    }
+
+    /**
+     * Show the campaign creation interface.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @param Room $room Room entity.
+     * @return View|JsonResponse Blade view or JSON response.
+     */
+    public function create(Request $request, Room $room): View|JsonResponse
+    {
+        $room = $request->attributes->get('room') ?? $room;
+        $paymentAccounts = $room->paymentAccounts()->where('is_active', true)->get();
+        $roomUsers = $room->roomUsers()->with('user')->where('status', RoomUserStatus::Active)->get();
+        $previousCampaigns = Campaign::query()
+            ->where('room_id', $room->id)
+            ->whereHas('items')
+            ->with(['items.sizes', 'items.toppings'])
+            ->latest()
+            ->take(10)
+            ->get();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'room' => $room,
+                'payment_accounts' => $paymentAccounts,
+                'room_users' => $roomUsers,
+                'previous_campaigns' => $previousCampaigns,
+            ]);
+        }
+
+        return view('admin.campaign-create', [
+            'room' => $room,
+            'paymentAccounts' => $paymentAccounts,
+            'roomUsers' => $roomUsers,
+            'previousCampaigns' => $previousCampaigns,
+        ]);
+    }
+
+    /**
+     * Retrieve previous campaigns with menu items for fast reuse.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @param Room $room Room entity.
+     * @return JsonResponse List of previous campaigns and their menu items.
+     */
+    public function previousMenus(Request $request, Room $room): JsonResponse
+    {
+        $campaigns = Campaign::query()
+            ->where('room_id', $room->id)
+            ->whereHas('items')
+            ->with(['items.sizes', 'items.toppings'])
+            ->latest()
+            ->take(15)
+            ->get();
+
+        return response()->json(['data' => $campaigns]);
+    }
+
+    /**
+     * Display the specified campaign details or JSON representation.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @param Room $room Room entity.
+     * @param Campaign $campaign Campaign entity.
+     * @param \App\Services\Admin\AdminCampaignDetailService $detailService Campaign detail service.
+     * @return JsonResponse|View Response payload or Blade view.
+     */
+    public function show(Request $request, Room $room, Campaign $campaign, \App\Services\Admin\AdminCampaignDetailService $detailService): JsonResponse|View
     {
         $this->assertCampaign($campaign);
-        return response()->json(['data' => $campaign->load(['items.sizes', 'items.toppings', 'paymentAccount', 'orders.roomUser.globalUser'])]);
+
+        if ($request->expectsJson()) {
+            $campaign->load(['items.sizes', 'items.toppings', 'paymentAccount', 'orders.roomUser.globalUser', 'orders.items', 'debts.roomUser.globalUser']);
+            return response()->json(['data' => $campaign]);
+        }
+
+        $data = $detailService->getCampaignViewData($room, $campaign);
+        $viewName = ($request->query('view') === 'live' || (in_array($campaign->status, ['active', 'closing', 'scheduled']) && $request->query('view') !== 'detail'))
+            ? 'admin.campaign-live'
+            : 'admin.campaign-detail';
+
+        return view($viewName, $data);
     }
 
     /**
@@ -64,8 +167,8 @@ class CampaignController extends Controller
     {
         $this->assertCampaign($campaign);
         $data = $request->validated();
-        if (isset($data['payment_account_id']) && $data['payment_account_id'] !== null && ! $campaign->room->paymentAccounts()->whereKey($data['payment_account_id'])->where('status', 'active')->exists()) {
-            abort(422, 'TĂ i khoáº£n thanh toĂ¡n khĂ´ng thuá»™c Room hoáº·c Ä‘Ă£ disabled.');
+        if (isset($data['payment_account_id']) && $data['payment_account_id'] !== null && ! $campaign->room->paymentAccounts()->whereKey($data['payment_account_id'])->where('status', PaymentAccountStatus::Active)->exists()) {
+            abort(422, __('admin.invalid_payment_account'));
         }
         $before = $campaign->toArray();
         $campaign->update(collect($data)->except(['status'])->all());
@@ -138,16 +241,19 @@ class CampaignController extends Controller
     }
 
     /**
-     * Handle the close operation.
-     * @param Room $room Parameter value.
-     * @param Campaign $campaign Parameter value.
-     * @param CloseCampaignAction $action Parameter value.
-     * @return JsonResponse Result of the operation.
+     * Handle the close campaign operation with optional allow_debt.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @param Room $room Room entity.
+     * @param Campaign $campaign Campaign entity.
+     * @param CloseCampaignAction $action Close campaign action.
+     * @return JsonResponse Response containing updated campaign payload.
      */
-    public function close(Room $room, Campaign $campaign, CloseCampaignAction $action): JsonResponse
+    public function close(Request $request, Room $room, Campaign $campaign, CloseCampaignAction $action): JsonResponse
     {
         $this->assertCampaign($campaign);
-        return response()->json(['data' => $action->execute($campaign)]);
+        $allowDebt = $request->boolean('allow_debt', true);
+        return response()->json(['data' => $action->execute($campaign, $allowDebt)]);
     }
 
     /**

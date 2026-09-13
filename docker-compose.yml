@@ -20,6 +20,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    command: sh -c "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8000 --no-reload"
     ports:
       - "8080:8000"
     volumes:
@@ -28,6 +29,7 @@ services:
       - ./src/.env
     environment:
       APP_URL: http://localhost:8080
+      PHP_CLI_SERVER_WORKERS: 4
       SESSION_DRIVER: database
       SESSION_LIFETIME: 10080
       DB_CONNECTION: pgsql
@@ -43,10 +45,10 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "curl -fsS http://localhost:8000/ > /dev/null" ]
-      interval: 10s
+      test: [ "CMD-SHELL", "curl -fsS http://localhost:8000/up > /dev/null" ]
+      interval: 15s
       timeout: 5s
-      retries: 5
+      retries: 3
     restart: unless-stopped
 
   realtime:

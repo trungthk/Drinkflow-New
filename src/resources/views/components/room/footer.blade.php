@@ -10,8 +10,8 @@
       <span>{{ __('room.footer.department', ['name' => $room->name ?? 'Room']) }}</span>
     </div>
     <div class="flex items-center gap-4">
-      <a class="hover:text-slate-900 transition-colors" href="{{ route('public.terms') }}">{{ __('room.footer.order_policy') }}</a>
-      <a class="hover:text-slate-900 transition-colors" href="{{ route('public.contact') }}">{{ __('room.footer.internal_support') }}</a>
+      <a class="hover:text-slate-900 transition-colors" href="{{ route('terms') }}">{{ __('room.footer.order_policy') }}</a>
+      <a class="hover:text-slate-900 transition-colors" href="{{ route('contact') }}">{{ __('room.footer.internal_support') }}</a>
     </div>
   </div>
 </footer>

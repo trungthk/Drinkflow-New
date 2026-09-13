@@ -3,9 +3,16 @@
     'termsUrl' => url('/terms'),
 ])
 
+@php
+    $hasLoginError = session()->has('login_error') || (isset($errors) && $errors->has('email'));
+    $loginErrorMessage = session('login_error') ?? (isset($errors) ? $errors->first('email') : null);
+    $hasAuthNotice = session()->has('auth_notice');
+    $authNoticeMessage = session('auth_notice');
+@endphp
+
 <!-- GOOGLE WORKSPACE SSO LOGIN / SIGN-UP MODAL -->
 <div id="auth-modal"
-     data-auto-open="{{ (session()->has('login_error') || $errors->has('email')) ? 'true' : 'false' }}"
+     data-auto-open="{{ ($hasLoginError || $hasAuthNotice) ? 'true' : 'false' }}"
      aria-labelledby="modal-title"
      aria-modal="true"
      role="dialog"
@@ -21,7 +28,7 @@
 
         <!-- Brand Icon / Security Header -->
         <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-xl bg-[#006948] flex items-center justify-center text-white shadow-sm flex-shrink-0">
+            <div class="w-10 h-10 rounded-xl bg-[#006948] border border-[#005137] ring-1 ring-emerald-500/20 flex items-center justify-center text-white shadow-sm flex-shrink-0">
                 <span class="material-symbols-outlined text-[22px]">local_cafe</span>
             </div>
             <div>
@@ -34,11 +41,20 @@
             </div>
         </div>
 
-        @if(session('login_error') || $errors->has('email'))
+        @if($hasAuthNotice && $authNoticeMessage)
+            <div class="mb-5 p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-start gap-2.5">
+                <span class="material-symbols-outlined text-[18px] text-emerald-600 flex-shrink-0 mt-0.5">meeting_room</span>
+                <span class="leading-relaxed font-medium">
+                    {{ $authNoticeMessage }}
+                </span>
+            </div>
+        @endif
+
+        @if($hasLoginError && $loginErrorMessage)
             <div class="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200/80 text-red-700 text-xs flex items-start gap-2.5 animate-shake">
                 <span class="material-symbols-outlined text-[18px] text-red-600 flex-shrink-0 mt-0.5">error</span>
                 <span class="leading-relaxed font-medium">
-                    {{ session('login_error') ?? $errors->first('email') }}
+                    {{ $loginErrorMessage }}
                 </span>
             </div>
         @endif

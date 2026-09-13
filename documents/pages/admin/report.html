@@ -1,0 +1,1136 @@
+<!DOCTYPE html><html class="h-full bg-surface" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>DrinkFlow Admin - Room Reports &amp; Analytics</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "secondary-fixed-dim": "#bec6e0",
+            "surface": "#f8f9ff",
+            "surface-container": "#e5eeff",
+            "tertiary-fixed-dim": "#4edea3",
+            "on-tertiary-fixed": "#002113",
+            "on-error": "#ffffff",
+            "surface-container-low": "#eff4ff",
+            "on-primary-fixed": "#002114",
+            "inverse-surface": "#213145",
+            "on-surface-variant": "#3d4a42",
+            "secondary": "#565e74",
+            "surface-tint": "#006c4a",
+            "primary": "#006948",
+            "surface-container-highest": "#d3e4fe",
+            "surface-container-lowest": "#ffffff",
+            "outline-variant": "#bccac0",
+            "on-tertiary-container": "#f5fff6",
+            "on-secondary-fixed": "#131b2e",
+            "on-secondary": "#ffffff",
+            "secondary-container": "#dae2fd",
+            "on-secondary-fixed-variant": "#3f465c",
+            "outline": "#6d7a72",
+            "tertiary-fixed": "#6ffbbe",
+            "error": "#ba1a1a",
+            "on-background": "#0b1c30",
+            "on-tertiary": "#ffffff",
+            "on-primary-fixed-variant": "#005137",
+            "tertiary-container": "#00855b",
+            "surface-variant": "#d3e4fe",
+            "surface-container-high": "#dce9ff",
+            "surface-dim": "#cbdbf5",
+            "primary-fixed": "#85f8c4",
+            "surface-bright": "#f8f9ff",
+            "on-primary": "#ffffff",
+            "inverse-primary": "#68dba9",
+            "primary-container": "#00855d",
+            "on-tertiary-fixed-variant": "#005236",
+            "error-container": "#ffdad6",
+            "on-primary-container": "#f5fff7",
+            "background": "#f8f9ff",
+            "on-error-container": "#93000a",
+            "on-secondary-container": "#5c647a",
+            "on-surface": "#0b1c30",
+            "tertiary": "#006947",
+            "primary-fixed-dim": "#68dba9",
+            "secondary-fixed": "#dae2fd",
+            "inverse-on-surface": "#eaf1ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-md": "1rem",
+            "margin": "1.5rem",
+            "space-xs": "0.25rem",
+            "space-lg": "1.5rem",
+            "gutter": "1rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2rem"
+          },
+          "fontFamily": {
+            "headline-lg": ["Hanken Grotesk"],
+            "headline-sm": ["Hanken Grotesk"],
+            "body-md": ["Hanken Grotesk"],
+            "label-sm": ["JetBrains Mono"],
+            "display-lg": ["Hanken Grotesk"],
+            "body-sm": ["Hanken Grotesk"],
+            "label-md": ["JetBrains Mono"],
+            "body-lg": ["Hanken Grotesk"],
+            "label-lg": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      vertical-align: middle;
+    }
+    .material-symbols-outlined.fill-icon {
+      font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+    }
+    /* Subtle custom scrollbars for high-density tables */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f8f9ff;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #bccac0;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6d7a72;
+    }
+  </style>
+</head>
+<body class="h-full font-body-md text-on-surface bg-surface antialiased flex overflow-hidden">
+<!-- ========================================================================= -->
+<!-- SHARED COMPONENT: SideNavBar                                             -->
+<!-- ========================================================================= -->
+<aside class="fixed top-0 left-0 h-screen w-64 flex flex-col z-30 bg-surface-container-lowest border-r border-outline-variant select-none">
+<!-- Header / Brand -->
+<div class="p-4 border-b border-outline-variant flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-9 h-9 rounded bg-primary text-on-primary flex items-center justify-center font-bold text-headline-sm shadow-sm">
+<span class="material-symbols-outlined text-[22px]" data-icon="local_shipping">local_shipping</span>
+</div>
+<div>
+<div class="text-headline-sm font-headline-sm font-bold text-on-surface tracking-tight">DrinkFlow Admin</div>
+<div class="text-body-sm font-body-sm text-outline flex items-center gap-1 cursor-pointer hover:text-primary">
+<span class="">IT Team ▼</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick CTA -->
+<div class="px-4 pt-3 pb-1">
+<button class="w-full bg-primary hover:bg-primary-container text-on-primary py-2 px-3 rounded flex items-center justify-center gap-2 text-label-md font-label-md transition-colors shadow-sm active:scale-[0.99]">
+<span class="material-symbols-outlined text-[18px]" data-icon="add_circle">add_circle</span>
+<span class="">Create New Order</span>
+</button>
+</div>
+<!-- Main Navigation Items -->
+<nav class="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+<!-- 1. Dashboard -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="dashboard">dashboard</span>
+<span class="">Dashboard</span>
+</a>
+<!-- 2. Overview -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="analytics">analytics</span>
+<span class="">Overview</span>
+</a>
+<!-- 3. Campaigns -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="campaign">campaign</span>
+<span class="">Campaigns</span>
+</a>
+<!-- 4. Orders -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="local_shipping">local_shipping</span>
+<span class="">Orders</span>
+</a>
+<!-- 5. Payments & Debt -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="payments">payments</span>
+<span class="">Payments &amp; Debt</span>
+</a>
+<!-- 6. Users -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="group">group</span>
+<span class="">Users</span>
+</a>
+<!-- 7. Reports (MANDATED ACTIVE TAB) -->
+<a class="flex items-center gap-3 px-3 py-2 bg-secondary-container text-on-secondary-container rounded font-label-md text-label-md border-l-4 border-primary" href="#">
+<span class="material-symbols-outlined text-[20px] text-primary" data-icon="assessment">assessment</span>
+<span class="font-semibold text-primary">Reports</span>
+</a>
+<!-- 8. Room Settings -->
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]" data-icon="settings">settings</span>
+<span class="">Room Settings</span>
+</a>
+</nav>
+<!-- Footer Controls -->
+<div class="p-3 border-t border-outline-variant space-y-1 bg-surface-container-lowest">
+<a class="flex items-center gap-3 px-3 py-1.5 text-on-surface-variant hover:bg-surface-container-low rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px] text-outline" data-icon="health_and_safety">health_and_safety</span>
+<span class="">System Diagnostics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-1.5 text-error hover:bg-error-container rounded font-label-md text-label-md transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]" data-icon="logout">logout</span>
+<span class="">Logout</span>
+</a>
+</div>
+</aside>
+<!-- ========================================================================= -->
+<!-- MAIN LAYOUT WRAPPER (Offset for Sidebar)                                 -->
+<!-- ========================================================================= -->
+<div class="pl-64 flex flex-col flex-1 h-screen overflow-hidden">
+<!-- TopNavBar (Shared Component) -->
+<header class="h-14 bg-surface-container-lowest border-b border-outline-variant flex items-center justify-between px-6 z-20 shrink-0">
+<!-- Left: Search Box -->
+<div class="flex items-center gap-3 w-80">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-outline text-[18px]" data-icon="search">search</span>
+<input class="w-full h-8 pl-8 pr-3 bg-surface border border-outline-variant rounded text-body-sm placeholder:text-outline focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-on-surface" placeholder="Search orders, SKU, users, campaigns..." type="text">
+</div>
+</div>
+<!-- Right: Action & Profile cluster -->
+<div class="flex items-center gap-4">
+<!-- Quick Action: Dispatch Action -->
+<button class="h-8 px-3 bg-primary hover:bg-primary-container text-on-primary rounded text-label-md font-label-md flex items-center gap-1.5 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="bolt">bolt</span>
+<span class="">Dispatch Action</span>
+</button>
+<!-- Notification & Help Icons -->
+<div class="flex items-center gap-1 text-on-surface-variant">
+<button class="p-1.5 hover:bg-surface-container rounded-full text-on-surface-variant hover:text-on-surface relative" title="Notifications">
+<span class="material-symbols-outlined text-[20px]" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full ring-2 ring-surface-container-lowest"></span>
+</button>
+<button class="p-1.5 hover:bg-surface-container rounded-full text-on-surface-variant hover:text-on-surface" title="Help">
+<span class="material-symbols-outlined text-[20px]" data-icon="help_outline">help_outline</span>
+</button>
+</div>
+<div class="h-5 w-[1px] bg-outline-variant"></div>
+<!-- Super Dispatcher Profile -->
+<div class="flex items-center gap-2 pl-1 cursor-pointer">
+<img class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="Portrait photo of Lâm Admin, a young Vietnamese professional male dispatcher wearing smart casual office attire against a clean neutral studio background, high definition enterprise headshot." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmtefuSE9GXVg1iJdiWrvqa2orqTWkU5o1WxNAqPBky5L9LMyyFGsVi9M8QYlRle4UKqef4hlOr1k7gYm-d5Z3jqFJ1RCkspWb749XqDIGSyPmuWRYA5aeX0OEwbRPN5GsKWJt_m_I0WVSxcmntXxR611U0mWxZUIpEUpTWMvtoih4fDzzCO8xzqa1CVIGEGWCUNKrSoO9CtNPFa-g3n3so9AbbYCVJiwAIHD4T5MqW6EtP3WJF4ou">
+<div class="text-left hidden lg:block">
+<div class="text-body-sm font-semibold leading-tight text-on-surface">Lâm Admin</div>
+<div class="text-label-sm text-outline leading-none mt-0.5">Super Dispatcher</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Sub-Header: Breadcrumbs Bar -->
+<div class="bg-surface-container-lowest border-b border-outline-variant px-6 py-2 flex items-center justify-between text-body-sm shrink-0">
+<nav class="flex items-center gap-2 text-outline font-label-md text-label-sm">
+<a class="hover:text-primary" href="#">Admin</a>
+<span class="">/</span>
+<a class="hover:text-primary" href="#">Rooms</a>
+<span class="">/</span>
+<a class="hover:text-primary" href="#">IT Team Operations</a>
+<span class="">/</span>
+<span class="text-on-surface font-semibold">Reports &amp; Analytics</span>
+</nav>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-surface-container text-secondary text-label-sm font-label-sm border border-outline-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span class="">Room Sync: Realtime</span>
+</span>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- SCROLLABLE WORKSPACE CANVAS                                               -->
+<!-- ========================================================================= -->
+<main class="flex-1 overflow-y-auto px-6 py-5 bg-surface space-y-5">
+<!-- 1. REPORT HEADER & GLOBAL FILTER BAR -->
+<section class="bg-surface-container-lowest rounded border border-outline-variant p-4">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<!-- Room Title Header & Meta Badge -->
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-secondary-container text-on-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[24px] text-primary" data-icon="assessment">assessment</span>
+</div>
+<div>
+<div class="flex items-center gap-2.5">
+<h1 class="text-headline-lg font-headline-lg font-bold text-on-surface tracking-tight">IT Team Reports</h1>
+<span class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-surface-container text-on-surface-variant border border-outline-variant font-medium">
+                  #RM-IT-04 • 30 Thành viên
+                </span>
+</div>
+<p class="text-body-sm font-body-sm text-outline mt-0.5">Báo cáo hợp nhất chu kỳ đặt đồ uống, tài trợ và đối soát dư nợ thành viên</p>
+</div>
+</div>
+<!-- Global Filter Controls -->
+<div class="flex items-center gap-3">
+<!-- Date Range Selector -->
+<div class="relative">
+<select class="h-9 pl-3 pr-8 bg-surface border border-outline-variant rounded text-label-md font-label-md text-on-surface cursor-pointer hover:border-primary focus:outline-none focus:ring-1 focus:ring-primary appearance-none">
+<option value="today">Hôm nay</option>
+<option selected="" value="this_week">Tuần này ▼</option>
+<option value="this_month">Tháng này</option>
+<option value="custom">Custom Range: 01/10 - 20/10</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-outline pointer-events-none text-[18px]" data-icon="calendar_today">calendar_today</span>
+</div>
+<!-- Export Action Button -->
+<button class="h-9 px-3.5 bg-surface-container-lowest hover:bg-surface-container border border-outline text-on-surface rounded text-label-md font-label-md flex items-center gap-2 transition-colors active:scale-[0.99]">
+<span class="material-symbols-outlined text-[18px] text-primary" data-icon="download">download</span>
+<span class="">Export CSV/Excel</span>
+</button>
+</div>
+</div>
+<!-- 4 Report Navigation Tabs -->
+<div class="mt-5 border-t border-outline-variant pt-3 flex items-center gap-2 overflow-x-auto">
+<button class="report-tab flex items-center gap-2 px-3.5 py-2 rounded text-label-md font-label-md border border-transparent text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" id="tab-btn-1" onclick="switchReportTab(1)">
+<span class="material-symbols-outlined text-[18px]" data-icon="analytics">analytics</span>
+<span class="">Campaign Report</span>
+</button>
+<button class="report-tab active-tab flex items-center gap-2 px-3.5 py-2 rounded text-label-md font-label-md border border-primary bg-primary text-on-primary font-semibold transition-all" id="tab-btn-2" onclick="switchReportTab(2)">
+<span class="material-symbols-outlined text-[18px]" data-icon="local_cafe">local_cafe</span>
+<span class="">Product Report</span>
+</button>
+<button class="report-tab flex items-center gap-2 px-3.5 py-2 rounded text-label-md font-label-md border border-transparent text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" id="tab-btn-3" onclick="switchReportTab(3)">
+<span class="material-symbols-outlined text-[18px]" data-icon="volunteer_activism">volunteer_activism</span>
+<span class="">Sponsor Report</span>
+</button>
+<button class="report-tab flex items-center gap-2 px-3.5 py-2 rounded text-label-md font-label-md border border-transparent text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all" id="tab-btn-4" onclick="switchReportTab(4)">
+<span class="material-symbols-outlined text-[18px]" data-icon="group">group</span>
+<span class="">User Report</span>
+</button>
+</div>
+</section>
+<!-- ========================================================================= -->
+<!-- TAB 1: CAMPAIGN ANALYTICS (Active View / Core Section)                   -->
+<!-- ========================================================================= -->
+<div class="report-content-panel space-y-5 hidden" id="tab-content-1">
+<!-- Operational Metric Cards (4 KPI Containers) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- KPI 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-none">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Total Campaigns Run</span>
+<span class="p-1 rounded bg-secondary-container text-primary material-symbols-outlined text-[18px]" data-icon="campaign">campaign</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="text-display-lg font-headline-lg font-bold text-on-surface">18</span>
+<span class="text-body-sm font-semibold text-primary">+2 so với tuần trước</span>
+</div>
+<div class="text-label-sm font-label-sm text-outline mt-1">100% tỷ lệ đúng khung giờ chốt</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-none">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Total Room Orders</span>
+<span class="p-1 rounded bg-secondary-container text-primary material-symbols-outlined text-[18px]" data-icon="shopping_cart_checkout">shopping_cart_checkout</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="text-display-lg font-headline-lg font-bold text-on-surface">284</span>
+<span class="text-body-sm font-semibold text-primary">Tỷ lệ hoàn thành 98.2%</span>
+</div>
+<div class="text-label-sm font-label-sm text-outline mt-1">5 đơn huỷ hợp lệ theo quy chế</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-none">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Total Subtotal Amount</span>
+<span class="p-1 rounded bg-secondary-container text-primary material-symbols-outlined text-[18px]" data-icon="receipt_long">receipt_long</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="text-display-lg font-headline-lg font-bold text-on-surface">14.820.000đ</span>
+</div>
+<div class="text-label-sm font-label-sm text-outline mt-1">Chi tiêu thực tế hoá đơn quán</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-none">
+<div class="flex items-center justify-between">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Sponsor Subsidies Applied</span>
+<span class="p-1 rounded bg-secondary-container text-primary material-symbols-outlined text-[18px]" data-icon="savings">savings</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="text-display-lg font-headline-lg font-bold text-primary">2.964.000đ</span>
+<span class="text-body-sm font-semibold text-outline">(20%)</span>
+</div>
+<div class="text-label-sm font-label-sm text-outline mt-1">20% trợ cấp phòng từ quỹ/sponsor</div>
+</div>
+</div>
+<!-- Participation Ratio Visualization Component -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4">
+<div class="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-outline-variant gap-2">
+<div>
+<h2 class="text-headline-sm font-headline-sm font-bold text-on-surface">Visual Participation Ratio per Campaign</h2>
+<p class="text-body-sm text-outline font-body-sm">Thống kê tương tác phản hồi của 30 thành viên phòng IT qua từng đợt gọi đồ</p>
+</div>
+<!-- Legend -->
+<div class="flex items-center gap-4 text-label-sm font-label-sm">
+<span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-primary inline-block"></span> Ordered (Tham gia)</span>
+<span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-secondary inline-block"></span> Declined (Từ chối)</span>
+<span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-[#D97706] inline-block"></span> No Action (Không chọn)</span>
+</div>
+</div>
+<!-- Stacked Bars Grid -->
+<div class="mt-4 space-y-3 font-label-sm text-label-sm">
+<!-- Item 1 -->
+<div>
+<div class="flex justify-between items-center mb-1 text-on-surface">
+<span class="font-semibold text-body-sm">Highlands Coffee - Landmark 72 (18/10)</span>
+<span class="">22 Ordered (73.3%) • 3 Declined • 5 No Action</span>
+</div>
+<div class="w-full h-4 bg-surface-container rounded-sm flex overflow-hidden">
+<div class="bg-primary hover:opacity-90 transition-all" style="width: 73.3%" title="Ordered: 22"></div>
+<div class="bg-secondary hover:opacity-90 transition-all" style="width: 10.0%" title="Declined: 3"></div>
+<div class="bg-[#D97706] hover:opacity-90 transition-all" style="width: 16.7%" title="No Action: 5"></div>
+</div>
+</div>
+<!-- Item 2 -->
+<div>
+<div class="flex justify-between items-center mb-1 text-on-surface">
+<span class="font-semibold text-body-sm">Phúc Long IPH (16/10)</span>
+<span class="">26 Ordered (86.7%) • 2 Declined • 2 No Action</span>
+</div>
+<div class="w-full h-4 bg-surface-container rounded-sm flex overflow-hidden">
+<div class="bg-primary hover:opacity-90 transition-all" style="width: 86.7%" title="Ordered: 26"></div>
+<div class="bg-secondary hover:opacity-90 transition-all" style="width: 6.6%" title="Declined: 2"></div>
+<div class="bg-[#D97706] hover:opacity-90 transition-all" style="width: 6.7%" title="No Action: 2"></div>
+</div>
+</div>
+<!-- Item 3 -->
+<div>
+<div class="flex justify-between items-center mb-1 text-on-surface">
+<span class="font-semibold text-body-sm">Katinat Cầu Giấy (14/10)</span>
+<span class="">24 Ordered (80.0%) • 4 Declined • 2 No Action</span>
+</div>
+<div class="w-full h-4 bg-surface-container rounded-sm flex overflow-hidden">
+<div class="bg-primary hover:opacity-90 transition-all" style="width: 80.0%" title="Ordered: 24"></div>
+<div class="bg-secondary hover:opacity-90 transition-all" style="width: 13.3%" title="Declined: 4"></div>
+<div class="bg-[#D97706] hover:opacity-90 transition-all" style="width: 6.7%" title="No Action: 2"></div>
+</div>
+</div>
+<!-- Item 4 -->
+<div>
+<div class="flex justify-between items-center mb-1 text-on-surface">
+<span class="font-semibold text-body-sm">Phê La Trung Kính (12/10)</span>
+<span class="">21 Ordered (70.0%) • 5 Declined • 4 No Action</span>
+</div>
+<div class="w-full h-4 bg-surface-container rounded-sm flex overflow-hidden">
+<div class="bg-primary hover:opacity-90 transition-all" style="width: 70.0%" title="Ordered: 21"></div>
+<div class="bg-secondary hover:opacity-90 transition-all" style="width: 16.7%" title="Declined: 5"></div>
+<div class="bg-[#D97706] hover:opacity-90 transition-all" style="width: 13.3%" title="No Action: 4"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Campaign Performance Table Container -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+<div class="p-4 border-b border-outline-variant flex items-center justify-between">
+<h2 class="text-headline-sm font-headline-sm font-bold text-on-surface">Campaign Performance Details</h2>
+<div class="text-label-sm font-label-sm text-outline">Showing 4 of 18 campaigns in selected range</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="h-8 bg-surface border-b border-outline-variant text-label-sm font-label-sm text-outline uppercase tracking-wider">
+<th class="px-4 py-2 text-left">Campaign Name</th>
+<th class="px-3 py-2 text-center">Date</th>
+<th class="px-3 py-2 text-center">Eligible Users</th>
+<th class="px-3 py-2 text-center">Ordered Count</th>
+<th class="px-3 py-2 text-center">Declined</th>
+<th class="px-3 py-2 text-center">No Action</th>
+<th class="px-3 py-2 text-right">Total Items</th>
+<th class="px-4 py-2 text-right">Final Amount</th>
+<th class="px-4 py-2 text-center">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#F1F5F9] text-body-sm font-body-sm">
+<!-- Row 1 -->
+<tr class="hover:bg-surface transition-colors">
+<td class="px-4 py-2.5">
+<div class="font-semibold text-on-surface">Highlands Coffee - Landmark 72</div>
+<div class="text-label-sm text-outline font-label-sm">#CMP-2410-018 • Chiều Thứ 6</div>
+</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md">18/10/2023</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md font-semibold">30</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-primary font-bold">22</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-secondary">3</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-[#D97706]">5</td>
+<td class="px-3 py-2.5 text-right font-label-md text-label-md">35 ly</td>
+<td class="px-4 py-2.5 text-right font-label-md text-label-md font-bold text-on-surface">1.326.000đ</td>
+<td class="px-4 py-2.5 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+                      Đã kết thúc
+                    </span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface transition-colors">
+<td class="px-4 py-2.5">
+<div class="font-semibold text-on-surface">Phúc Long IPH</div>
+<div class="text-label-sm text-outline font-label-sm">#CMP-2410-017 • Trưa Thứ 4</div>
+</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md">16/10/2023</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md font-semibold">30</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-primary font-bold">26</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-secondary">2</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-[#D97706]">2</td>
+<td class="px-3 py-2.5 text-right font-label-md text-label-md">41 ly</td>
+<td class="px-4 py-2.5 text-right font-label-md text-label-md font-bold text-on-surface">1.680.000đ</td>
+<td class="px-4 py-2.5 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+                      Đã kết thúc
+                    </span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface transition-colors">
+<td class="px-4 py-2.5">
+<div class="font-semibold text-on-surface">Katinat Cầu Giấy</div>
+<div class="text-label-sm text-outline font-label-sm">#CMP-2410-016 • Chiều Thứ 2</div>
+</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md">14/10/2023</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md font-semibold">30</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-primary font-bold">24</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-secondary">4</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-[#D97706]">2</td>
+<td class="px-3 py-2.5 text-right font-label-md text-label-md">38 ly</td>
+<td class="px-4 py-2.5 text-right font-label-md text-label-md font-bold text-on-surface">1.540.000đ</td>
+<td class="px-4 py-2.5 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+                      Đã kết thúc
+                    </span>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface transition-colors">
+<td class="px-4 py-2.5">
+<div class="font-semibold text-on-surface">Phê La Trung Kính</div>
+<div class="text-label-sm text-outline font-label-sm">#CMP-2410-015 • Sáng Thứ 7</div>
+</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md">12/10/2023</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md font-semibold">30</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-primary font-bold">21</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-secondary">5</td>
+<td class="px-3 py-2.5 text-center font-label-md text-label-md text-[#D97706]">4</td>
+<td class="px-3 py-2.5 text-right font-label-md text-label-md">32 ly</td>
+<td class="px-4 py-2.5 text-right font-label-md text-label-md font-bold text-on-surface">1.290.000đ</td>
+<td class="px-4 py-2.5 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+                      Đã kết thúc
+                    </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="p-3 border-t border-outline-variant bg-surface flex items-center justify-between text-label-sm font-label-sm text-outline">
+<div class="">Hiển thị 1 - 4 trên tổng số 18 chiến dịch</div>
+<div class="flex items-center gap-1">
+<button class="px-2.5 py-1 bg-surface-container-lowest border border-outline-variant rounded hover:bg-surface text-on-surface disabled:opacity-50" disabled="">Trang trước</button>
+<button class="px-2.5 py-1 bg-primary text-on-primary rounded font-bold">1</button>
+<button class="px-2.5 py-1 bg-surface-container-lowest border border-outline-variant rounded hover:bg-surface text-on-surface">2</button>
+<button class="px-2.5 py-1 bg-surface-container-lowest border border-outline-variant rounded hover:bg-surface text-on-surface">3</button>
+<button class="px-2.5 py-1 bg-surface-container-lowest border border-outline-variant rounded hover:bg-surface text-on-surface">Trang sau</button>
+</div>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- TAB 2: PRODUCT & MENU ANALYTICS PREVIEW / SECTION                        -->
+<!-- ========================================================================= -->
+<div class="report-content-panel space-y-5" id="tab-content-2">
+<!-- Top 5 Leaderboard Cards -->
+<div>
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-headline-sm font-headline-sm font-bold text-on-surface">Top 5 Best-Selling Beverage Items</h2>
+<span class="text-label-sm font-label-sm text-outline">Dựa trên 284 lượt order tuần này</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+<!-- #1 -->
+<div class="bg-surface-container-lowest border-2 border-primary rounded-xl p-3 relative shadow-sm">
+<span class="absolute top-2 right-2 text-label-lg font-bold text-primary font-label-lg">#1</span>
+<div class="text-body-sm font-bold text-on-surface truncate pr-6">Cà phê sữa đá</div>
+<div class="text-headline-sm font-bold text-primary mt-1 font-label-lg">120 <span class="text-label-sm font-normal text-outline">ly</span></div>
+<div class="text-label-sm text-outline font-label-sm mt-1">42 lượt gọi • 5.400.000đ</div>
+</div>
+<!-- #2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 relative">
+<span class="absolute top-2 right-2 text-label-lg font-bold text-secondary font-label-lg">#2</span>
+<div class="text-body-sm font-bold text-on-surface truncate pr-6">Trà sen vàng</div>
+<div class="text-headline-sm font-bold text-on-surface mt-1 font-label-lg">84 <span class="text-label-sm font-normal text-outline">ly</span></div>
+<div class="text-label-sm text-outline font-label-sm mt-1">31 lượt gọi • 4.116.000đ</div>
+</div>
+<!-- #3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 relative">
+<span class="absolute top-2 right-2 text-label-lg font-bold text-secondary font-label-lg">#3</span>
+<div class="text-body-sm font-bold text-on-surface truncate pr-6">Freeze Trà xanh</div>
+<div class="text-headline-sm font-bold text-on-surface mt-1 font-label-lg">56 <span class="text-label-sm font-normal text-outline">ly</span></div>
+<div class="text-label-sm text-outline font-label-sm mt-1">23 lượt gọi • 3.080.000đ</div>
+</div>
+<!-- #4 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 relative">
+<span class="absolute top-2 right-2 text-label-lg font-bold text-secondary font-label-lg">#4</span>
+<div class="text-body-sm font-bold text-on-surface truncate pr-6">Ô Long Sữa Phê La</div>
+<div class="text-headline-sm font-bold text-on-surface mt-1 font-label-lg">45 <span class="text-label-sm font-normal text-outline">ly</span></div>
+<div class="text-label-sm text-outline font-label-sm mt-1">19 lượt gọi • 2.700.000đ</div>
+</div>
+<!-- #5 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-3 relative">
+<span class="absolute top-2 right-2 text-label-lg font-bold text-secondary font-label-lg">#5</span>
+<div class="text-body-sm font-bold text-on-surface truncate pr-6">Bạc xỉu đá</div>
+<div class="text-headline-sm font-bold text-on-surface mt-1 font-label-lg">38 <span class="text-label-sm font-normal text-outline">ly</span></div>
+<div class="text-label-sm text-outline font-label-sm mt-1">18 lượt gọi • 1.330.000đ</div>
+</div>
+</div>
+</div>
+<!-- Popular Items Full Table -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+<div class="p-4 border-b border-outline-variant flex items-center justify-between">
+<h2 class="text-headline-sm font-headline-sm font-bold text-on-surface">Detailed Product Performance Table</h2>
+<div class="flex items-center gap-2">
+<input class="h-7 px-2.5 text-label-sm border border-outline-variant rounded bg-surface" placeholder="Lọc theo tên đồ uống..." type="text">
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="h-8 bg-surface border-b border-outline-variant text-label-sm font-label-sm text-outline uppercase tracking-wider">
+<th class="px-4 py-2 text-center w-16">Rank</th>
+<th class="px-4 py-2 text-left">Item Name</th>
+<th class="px-3 py-2 text-left">Category Tag</th>
+<th class="px-3 py-2 text-right">Total Qty</th>
+<th class="px-3 py-2 text-right">Unique Users</th>
+<th class="px-4 py-2 text-right">Unit Price</th>
+<th class="px-4 py-2 text-right">Total Amount</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#F1F5F9] text-body-sm font-body-sm">
+<tr class="hover:bg-surface">
+<td class="px-4 py-2.5 text-center font-label-md font-bold text-primary">#1</td>
+<td class="px-4 py-2.5 font-semibold text-on-surface">Cà phê sữa đá (Size M / Ít đường)</td>
+<td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-surface-container text-on-surface-variant">Traditional Coffee</span></td>
+<td class="px-3 py-2.5 text-right font-label-md font-bold text-primary">120</td>
+<td class="px-3 py-2.5 text-right font-label-md">42</td>
+<td class="px-4 py-2.5 text-right font-label-md text-outline">45.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md font-bold text-on-surface">5.400.000đ</td>
+</tr>
+<tr class="hover:bg-surface">
+<td class="px-4 py-2.5 text-center font-label-md font-bold text-on-surface">#2</td>
+<td class="px-4 py-2.5 font-semibold text-on-surface">Trà sen vàng (Củ năng)</td>
+<td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-surface-container text-on-surface-variant">Specialty Tea</span></td>
+<td class="px-3 py-2.5 text-right font-label-md font-bold text-on-surface">84</td>
+<td class="px-3 py-2.5 text-right font-label-md">31</td>
+<td class="px-4 py-2.5 text-right font-label-md text-outline">49.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md font-bold text-on-surface">4.116.000đ</td>
+</tr>
+<tr class="hover:bg-surface">
+<td class="px-4 py-2.5 text-center font-label-md font-bold text-on-surface">#3</td>
+<td class="px-4 py-2.5 font-semibold text-on-surface">Freeze Trà xanh (Kem whipping)</td>
+<td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-surface-container text-on-surface-variant">Ice Blended</span></td>
+<td class="px-3 py-2.5 text-right font-label-md font-bold text-on-surface">56</td>
+<td class="px-3 py-2.5 text-right font-label-md">23</td>
+<td class="px-4 py-2.5 text-right font-label-md text-outline">55.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md font-bold text-on-surface">3.080.000đ</td>
+</tr>
+<tr class="hover:bg-surface">
+<td class="px-4 py-2.5 text-center font-label-md font-bold text-on-surface">#4</td>
+<td class="px-4 py-2.5 font-semibold text-on-surface">Ô Long Sữa Phê La (Trân châu trắng)</td>
+<td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-surface-container text-on-surface-variant">Milk Tea</span></td>
+<td class="px-3 py-2.5 text-right font-label-md font-bold text-on-surface">45</td>
+<td class="px-3 py-2.5 text-right font-label-md">19</td>
+<td class="px-4 py-2.5 text-right font-label-md text-outline">60.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md font-bold text-on-surface">2.700.000đ</td>
+</tr>
+<tr class="hover:bg-surface">
+<td class="px-4 py-2.5 text-center font-label-md font-bold text-on-surface">#5</td>
+<td class="px-4 py-2.5 font-semibold text-on-surface">Bạc xỉu đá (Sữa béo)</td>
+<td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-surface-container text-on-surface-variant">Traditional Coffee</span></td>
+<td class="px-3 py-2.5 text-right font-label-md font-bold text-on-surface">38</td>
+<td class="px-3 py-2.5 text-right font-label-md">18</td>
+<td class="px-4 py-2.5 text-right font-label-md text-outline">35.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md font-bold text-on-surface">1.330.000đ</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- TAB 3: SPONSOR ANALYTICS SECTION                                        -->
+<!-- ========================================================================= -->
+<div class="report-content-panel space-y-5 hidden" id="tab-content-3">
+<!-- Overview Stat Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Total Sponsor Budget Committed</span>
+<div class="mt-2 text-headline-lg font-headline-lg font-bold text-on-surface">5.000.000đ</div>
+<div class="text-label-sm text-primary font-label-sm mt-1">2 cá nhân tài trợ phòng chu kỳ này</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4">
+<span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Total Sponsor Paid</span>
+<div class="mt-2 text-headline-lg font-headline-lg font-bold text-primary">4.200.000đ</div>
+<div class="text-label-sm text-outline font-label-sm mt-1">Đã chuyển khoản quyết toán ví Room</div>
+</div>
+<div class="bg-surface-container-lowest border border-error-container rounded-xl p-4 bg-[#FEF2F2]">
+<span class="text-label-sm font-label-sm text-error uppercase tracking-wider">Outstanding Sponsor Debt</span>
+<div class="mt-2 text-headline-lg font-headline-lg font-bold text-error">800.000đ</div>
+<div class="text-label-sm text-error font-label-sm mt-1">Cần thu hồi trước ngày 25/10</div>
+</div>
+</div>
+<!-- Sponsor Breakdown Table -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+<div class="p-4 border-b border-outline-variant flex items-center justify-between">
+<h2 class="text-headline-sm font-headline-sm font-bold text-on-surface">Sponsor Breakdown Table</h2>
+<button class="text-label-sm font-label-sm text-primary hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="send">send</span>
+<span class="">Gửi nhắc quyết toán nợ tài trợ</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="h-8 bg-surface border-b border-outline-variant text-label-sm font-label-sm text-outline uppercase tracking-wider">
+<th class="px-4 py-2 text-left">Sponsor Name (Verified Room User)</th>
+<th class="px-3 py-2 text-center">Campaigns Sponsored</th>
+<th class="px-4 py-2 text-right">Total Committed Amount</th>
+<th class="px-4 py-2 text-right">Paid Amount</th>
+<th class="px-4 py-2 text-right">Outstanding Debt</th>
+<th class="px-4 py-2 text-center">Status</th>
+<th class="px-4 py-2 text-center">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#F1F5F9] text-body-sm font-body-sm">
+<!-- Row 1 -->
+<tr class="hover:bg-surface">
+<td class="px-4 py-3">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-label-sm">
+                        NA
+                      </div>
+<div>
+<div class="font-semibold text-on-surface">Nguyễn Văn A</div>
+<div class="text-label-sm text-outline font-label-sm">IT Lead • User ID: #IT-001</div>
+</div>
+</div>
+</td>
+<td class="px-3 py-3 text-center font-label-md font-bold">10 campaigns</td>
+<td class="px-4 py-3 text-right font-label-md font-semibold text-on-surface">3.000.000đ</td>
+<td class="px-4 py-3 text-right font-label-md text-primary font-semibold">2.800.000đ</td>
+<td class="px-4 py-3 text-right font-label-md font-bold text-[#D97706]">200.000đ</td>
+<td class="px-4 py-3 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                      Debt Pending
+                    </span>
+</td>
+<td class="px-4 py-3 text-center">
+<button class="px-2.5 py-1 text-label-sm font-label-sm bg-surface-container hover:bg-secondary-container text-on-surface rounded transition-colors" onclick="openSponsorModal('Nguyễn Văn A', 'IT Lead', '#IT-001', '3.000.000đ', '2.800.000đ', '200.000đ', '10 campaigns')">
+                      Xem chi tiết
+                    </button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface">
+<td class="px-4 py-3">
+<div class="flex items-center gap-2.5">
+<div class="w-7 h-7 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center font-bold text-label-sm">
+                        TB
+                      </div>
+<div>
+<div class="font-semibold text-on-surface">Trần Văn B</div>
+<div class="text-label-sm text-outline font-label-sm">Principal DevOps • User ID: #IT-004</div>
+</div>
+</div>
+</td>
+<td class="px-3 py-3 text-center font-label-md font-bold">6 campaigns</td>
+<td class="px-4 py-3 text-right font-label-md font-semibold text-on-surface">2.000.000đ</td>
+<td class="px-4 py-3 text-right font-label-md text-primary font-semibold">1.400.000đ</td>
+<td class="px-4 py-3 text-right font-label-md font-bold text-[#D97706]">600.000đ</td>
+<td class="px-4 py-3 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                      Debt Pending
+                    </span>
+</td>
+<td class="px-4 py-3 text-center">
+<button class="px-2.5 py-1 text-label-sm font-label-sm bg-surface-container hover:bg-secondary-container text-on-surface rounded transition-colors" onclick="openSponsorModal('Trần Văn B', 'Principal DevOps', '#IT-004', '2.000.000đ', '1.400.000đ', '600.000đ', '6 campaigns')">
+                      Xem chi tiết
+                    </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- ========================================================================= -->
+<!-- TAB 4: USER ORDER & DEBT SECTION                                         -->
+<!-- ========================================================================= -->
+<div class="report-content-panel space-y-5 hidden" id="tab-content-4">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden">
+<div class="p-4 border-b border-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+<div>
+<h2 class="text-headline-sm font-headline-sm font-bold text-on-surface">User Order Summary &amp; Personal Debt Audit</h2>
+<p class="text-body-sm text-outline font-body-sm">Đối soát chi tiết chi tiêu, trợ cấp và tiền nợ còn thiếu theo từng nhân sự</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-8 px-3 bg-surface border border-outline text-on-surface rounded text-label-sm font-label-sm flex items-center gap-1 hover:bg-surface-container">
+<span class="material-symbols-outlined text-[16px]" data-icon="filter_list">filter_list</span>
+<span class="">Chỉ hiện người còn nợ</span>
+</button>
+<button class="h-8 px-3 bg-primary text-on-primary rounded text-label-sm font-label-sm flex items-center gap-1 hover:bg-primary-container">
+<span class="material-symbols-outlined text-[16px]" data-icon="notifications_active">notifications_active</span>
+<span class="">Gửi nhắc nợ toàn phòng</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="h-8 bg-surface border-b border-outline-variant text-label-sm font-label-sm text-outline uppercase tracking-wider">
+<th class="px-4 py-2 text-left">User Code</th>
+<th class="px-4 py-2 text-left">User Name</th>
+<th class="px-3 py-2 text-center">Total Orders Placed</th>
+<th class="px-4 py-2 text-right">Total Amount Spent</th>
+<th class="px-4 py-2 text-right">Total Sponsor Received</th>
+<th class="px-4 py-2 text-right">Personal Unpaid Debt</th>
+<th class="px-4 py-2 text-center">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#F1F5F9] text-body-sm font-body-sm">
+<!-- User 1 -->
+<tr class="hover:bg-surface">
+<td class="px-4 py-2.5 font-label-md text-label-md font-bold text-outline">TRUNGLT</td>
+<td class="px-4 py-2.5 font-semibold text-on-surface">Lâm Thành Trung</td>
+<td class="px-3 py-2.5 text-center font-label-md">24 orders</td>
+<td class="px-4 py-2.5 text-right font-label-md font-semibold text-on-surface">2.450.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md text-primary font-semibold">650.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md font-bold text-[#D97706]">90.000đ</td>
+<td class="px-4 py-2.5 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+                      Active
+                    </span>
+</td>
+</tr>
+<!-- User 2 -->
+<tr class="hover:bg-surface">
+<td class="px-4 py-2.5 font-label-md text-label-md font-bold text-outline">HOANGMK</td>
+<td class="px-4 py-2.5 font-semibold text-on-surface">Mai Kim Hoàng</td>
+<td class="px-3 py-2.5 text-center font-label-md">21 orders</td>
+<td class="px-4 py-2.5 text-right font-label-md font-semibold text-on-surface">1.890.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md text-primary font-semibold">480.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md font-bold text-primary">0đ <span class="font-normal text-outline text-[11px]">(Đã sạch nợ)</span></td>
+<td class="px-4 py-2.5 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+                      Active
+                    </span>
+</td>
+</tr>
+<!-- User 3 -->
+<tr class="hover:bg-surface">
+<td class="px-4 py-2.5 font-label-md text-label-md font-bold text-outline">LANVT</td>
+<td class="px-4 py-2.5 font-semibold text-on-surface">Vũ Thị Lan</td>
+<td class="px-3 py-2.5 text-center font-label-md">19 orders</td>
+<td class="px-4 py-2.5 text-right font-label-md font-semibold text-on-surface">1.620.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md text-primary font-semibold">410.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md font-bold text-[#D97706]">120.000đ</td>
+<td class="px-4 py-2.5 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+                      Active
+                    </span>
+</td>
+</tr>
+<!-- User 4 -->
+<tr class="hover:bg-surface">
+<td class="px-4 py-2.5 font-label-md text-label-md font-bold text-outline">CUONGNV</td>
+<td class="px-4 py-2.5 font-semibold text-on-surface">Nguyễn Văn Cường</td>
+<td class="px-3 py-2.5 text-center font-label-md">15 orders</td>
+<td class="px-4 py-2.5 text-right font-label-md font-semibold text-on-surface">1.350.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md text-primary font-semibold">320.000đ</td>
+<td class="px-4 py-2.5 text-right font-label-md font-bold text-[#D97706]">45.000đ</td>
+<td class="px-4 py-2.5 text-center">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+                      Active
+                    </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Operational Disclaimer Note -->
+<footer class="py-2 text-center">
+<p class="text-body-sm font-body-sm text-outline italic">
+          Báo cáo dùng cho mục đích vận hành và tổng hợp chi phí nội bộ Room, không dùng để đánh giá hiệu suất nhân sự.
+        </p>
+</footer>
+</main>
+</div>
+<!-- Tab Switching Micro-interaction Script -->
+<script>
+    function switchReportTab(tabIndex) {
+      // Hide all panels
+      for (let i = 1; i <= 4; i++) {
+        const panel = document.getElementById(`tab-content-${i}`);
+        const btn = document.getElementById(`tab-btn-${i}`);
+        if (panel && btn) {
+          if (i === tabIndex) {
+            panel.classList.remove('hidden');
+            btn.className = "report-tab active-tab flex items-center gap-2 px-3.5 py-2 rounded text-label-md font-label-md border border-primary bg-primary text-on-primary font-semibold transition-all";
+          } else {
+            panel.classList.add('hidden');
+            btn.className = "report-tab flex items-center gap-2 px-3.5 py-2 rounded text-label-md font-label-md border border-transparent text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all";
+          }
+        }
+      }
+    }
+  </script>
+
+
+<!-- Sponsor Detail & Debt Settlement Modal -->
+<div id="sponsor-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 transition-opacity duration-200 hidden select-none" onclick="handleBackdropClick(event)">
+  <div class="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden text-on-surface" onclick="event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="p-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-low shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold text-headline-sm shadow-sm">
+          <span class="material-symbols-outlined text-[22px]">volunteer_activism</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 id="modal-sponsor-name" class="text-headline-sm font-headline-sm font-bold text-on-surface">Chi tiết tài trợ &amp; Công nợ - Nguyễn Văn A</h3>
+            <span id="modal-sponsor-badge" class="px-2 py-0.5 rounded text-label-sm font-label-sm bg-surface-container text-on-surface-variant border border-outline-variant font-medium">#IT-001 • IT Lead</span>
+          </div>
+          <p class="text-body-sm font-body-sm text-outline mt-0.5">Lịch sử giải ngân trợ cấp phòng, đối soát chu kỳ và quản lý công nợ hoàn ứng</p>
+        </div>
+      </div>
+      <button onclick="closeSponsorModal()" class="p-1.5 rounded-full hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" title="Đóng modal">
+        <span class="material-symbols-outlined text-[22px]">close</span>
+      </button>
+    </div>
+
+    <!-- Modal Body (Scrollable) -->
+    <div class="p-5 overflow-y-auto space-y-4 flex-1">
+      <!-- Top Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 font-label-md">
+        <div class="bg-surface rounded-xl p-3 border border-outline-variant">
+          <span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Ngân sách cam kết</span>
+          <div id="modal-committed-amount" class="text-headline-sm font-bold text-on-surface mt-1">3.000.000đ</div>
+          <div id="modal-campaigns-count" class="text-label-sm text-outline mt-0.5 font-normal">10 campaigns bảo trợ</div>
+        </div>
+        <div class="bg-surface rounded-xl p-3 border border-outline-variant">
+          <span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Đã quyết toán</span>
+          <div id="modal-paid-amount" class="text-headline-sm font-bold text-primary mt-1">2.800.000đ</div>
+          <div class="text-label-sm text-primary mt-0.5 font-normal">Đã chuyển khoản quỹ room</div>
+        </div>
+        <div class="bg-[#FFFBEB] rounded-xl p-3 border border-[#FDE68A]">
+          <span class="text-label-sm font-label-sm text-[#D97706] uppercase tracking-wider">Dư nợ tài trợ tồn đọng</span>
+          <div id="modal-debt-amount" class="text-headline-sm font-bold text-[#D97706] mt-1">200.000đ</div>
+          <div class="text-label-sm text-[#D97706] mt-0.5 font-medium">Cần đối soát trước ngày 25/10</div>
+        </div>
+        <div class="bg-surface rounded-xl p-3 border border-outline-variant">
+          <span class="text-label-sm font-label-sm text-outline uppercase tracking-wider">Tỷ lệ tài trợ phòng</span>
+          <div class="text-headline-sm font-bold text-on-surface mt-1">20% <span class="text-label-sm font-normal text-outline">/ đơn</span></div>
+          <div class="text-label-sm text-outline mt-0.5 font-normal">Trần tối đa 30k/ly đồ uống</div>
+        </div>
+      </div>
+
+      <!-- Detailed Campaigns Sponsorship Table -->
+      <div class="border border-outline-variant rounded-xl overflow-hidden bg-surface-container-lowest mt-3">
+        <div class="px-4 py-3 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px] text-primary">receipt_long</span>
+            <span class="font-semibold text-body-sm text-on-surface">Danh sách chiến dịch đã bảo trợ &amp; Đối soát</span>
+          </div>
+          <span class="text-label-sm font-label-sm text-outline">Hiển thị 4 chiến dịch gần nhất</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-body-sm font-body-sm">
+            <thead>
+              <tr class="h-8 bg-surface border-b border-outline-variant text-label-sm font-label-sm text-outline uppercase tracking-wider">
+                <th class="px-4 py-2 text-left">Chiến dịch (#Mã)</th>
+                <th class="px-3 py-2 text-center">Ngày</th>
+                <th class="px-3 py-2 text-center">Ly trợ cấp</th>
+                <th class="px-3 py-2 text-right">Mức trợ cấp/ly</th>
+                <th class="px-4 py-2 text-right">Tiền tài trợ</th>
+                <th class="px-3 py-2 text-center">Trạng thái</th>
+                <th class="px-3 py-2 text-center">Chứng từ</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[#F1F5F9]">
+              <tr class="hover:bg-surface transition-colors">
+                <td class="px-4 py-2.5">
+                  <div class="font-semibold text-on-surface">Highlands Coffee - Landmark 72</div>
+                  <div class="text-label-sm text-outline font-label-sm">#CMP-2410-018 • Chiều Thứ 6</div>
+                </td>
+                <td class="px-3 py-2.5 text-center font-label-md text-label-md">18/10/2023</td>
+                <td class="px-3 py-2.5 text-center font-label-md font-bold text-on-surface">22 ly</td>
+                <td class="px-3 py-2.5 text-right font-label-md text-outline">12.000đ</td>
+                <td class="px-4 py-2.5 text-right font-label-md font-bold text-on-surface">264.000đ</td>
+                <td class="px-3 py-2.5 text-center">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+                    Chờ thanh toán
+                  </span>
+                </td>
+                <td class="px-3 py-2.5 text-center">
+                  <button class="p-1 text-primary hover:text-primary-container hover:bg-surface-container rounded" title="Xem hoá đơn đính kèm">
+                    <span class="material-symbols-outlined text-[16px]">description</span>
+                  </button>
+                </td>
+              </tr>
+              <tr class="hover:bg-surface transition-colors">
+                <td class="px-4 py-2.5">
+                  <div class="font-semibold text-on-surface">Phúc Long IPH</div>
+                  <div class="text-label-sm text-outline font-label-sm">#CMP-2410-017 • Trưa Thứ 4</div>
+                </td>
+                <td class="px-3 py-2.5 text-center font-label-md text-label-md">16/10/2023</td>
+                <td class="px-3 py-2.5 text-center font-label-md font-bold text-on-surface">26 ly</td>
+                <td class="px-3 py-2.5 text-right font-label-md text-outline">13.000đ</td>
+                <td class="px-4 py-2.5 text-right font-label-md font-bold text-primary">338.000đ</td>
+                <td class="px-3 py-2.5 text-center">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+                    Đã thanh toán
+                  </span>
+                </td>
+                <td class="px-3 py-2.5 text-center">
+                  <button class="p-1 text-primary hover:text-primary-container hover:bg-surface-container rounded" title="Xem hoá đơn đính kèm">
+                    <span class="material-symbols-outlined text-[16px]">receipt</span>
+                  </button>
+                </td>
+              </tr>
+              <tr class="hover:bg-surface transition-colors">
+                <td class="px-4 py-2.5">
+                  <div class="font-semibold text-on-surface">Katinat Cầu Giấy</div>
+                  <div class="text-label-sm text-outline font-label-sm">#CMP-2410-016 • Chiều Thứ 2</div>
+                </td>
+                <td class="px-3 py-2.5 text-center font-label-md text-label-md">14/10/2023</td>
+                <td class="px-3 py-2.5 text-center font-label-md font-bold text-on-surface">24 ly</td>
+                <td class="px-3 py-2.5 text-right font-label-md text-outline">12.500đ</td>
+                <td class="px-4 py-2.5 text-right font-label-md font-bold text-primary">300.000đ</td>
+                <td class="px-3 py-2.5 text-center">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+                    Đã thanh toán
+                  </span>
+                </td>
+                <td class="px-3 py-2.5 text-center">
+                  <button class="p-1 text-primary hover:text-primary-container hover:bg-surface-container rounded" title="Xem hoá đơn đính kèm">
+                    <span class="material-symbols-outlined text-[16px]">receipt</span>
+                  </button>
+                </td>
+              </tr>
+              <tr class="hover:bg-surface transition-colors">
+                <td class="px-4 py-2.5">
+                  <div class="font-semibold text-on-surface">Phê La Trung Kính</div>
+                  <div class="text-label-sm text-outline font-label-sm">#CMP-2410-015 • Sáng Thứ 7</div>
+                </td>
+                <td class="px-3 py-2.5 text-center font-label-md text-label-md">12/10/2023</td>
+                <td class="px-3 py-2.5 text-center font-label-md font-bold text-on-surface">21 ly</td>
+                <td class="px-3 py-2.5 text-right font-label-md text-outline">12.000đ</td>
+                <td class="px-4 py-2.5 text-right font-label-md font-bold text-primary">252.000đ</td>
+                <td class="px-3 py-2.5 text-center">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-label-sm font-label-sm bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+                    Đã thanh toán
+                  </span>
+                </td>
+                <td class="px-3 py-2.5 text-center">
+                  <button class="p-1 text-primary hover:text-primary-container hover:bg-surface-container rounded" title="Xem hoá đơn đính kèm">
+                    <span class="material-symbols-outlined text-[16px]">receipt</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div class="p-4 border-t border-outline-variant flex flex-col sm:flex-row items-center justify-between gap-3 bg-surface-container-low shrink-0">
+      <div class="flex items-center gap-2 text-label-sm font-label-sm text-outline">
+        <span class="material-symbols-outlined text-[16px] text-primary">verified</span>
+        <span class="">Đối soát đồng bộ tự động với Ví Room IT-04</span>
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+        <button onclick="alert('Đã khởi tạo VietQR thanh toán nợ tài trợ!')" class="h-8 px-3 bg-surface border border-outline hover:bg-surface-container text-on-surface rounded text-label-sm font-label-sm flex items-center gap-1.5 transition-colors">
+          <span class="material-symbols-outlined text-[16px] text-primary">qr_code_2</span>
+          <span class="">Tạo mã VietQR đối soát nợ</span>
+        </button>
+        <button onclick="confirmDebtSettled()" class="h-8 px-3 bg-primary hover:bg-primary-container text-on-primary rounded text-label-sm font-label-sm flex items-center gap-1.5 transition-colors active:scale-[0.99]">
+          <span class="material-symbols-outlined text-[16px]">check_circle</span>
+          <span id="modal-confirm-btn-text" class="">Xác nhận đã thanh toán nợ 200.000đ</span>
+        </button>
+        <button onclick="closeSponsorModal()" class="h-8 px-3.5 bg-surface-container hover:bg-secondary-container text-on-surface rounded text-label-sm font-label-sm transition-colors">
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openSponsorModal(name, role, userId, committed, paid, debt, campaigns) {
+    const modal = document.getElementById('sponsor-modal');
+    if (!modal) return;
+    document.getElementById('modal-sponsor-name').innerText = 'Chi tiết tài trợ & Công nợ - ' + name;
+    document.getElementById('modal-sponsor-badge').innerText = userId + ' • ' + role;
+    document.getElementById('modal-committed-amount').innerText = committed;
+    document.getElementById('modal-paid-amount').innerText = paid;
+    document.getElementById('modal-debt-amount').innerText = debt;
+    document.getElementById('modal-campaigns-count').innerText = campaigns + ' bảo trợ';
+    document.getElementById('modal-confirm-btn-text').innerText = 'Xác nhận đã thanh toán nợ ' + debt;
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeSponsorModal() {
+    const modal = document.getElementById('sponsor-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  }
+
+  function handleBackdropClick(event) {
+    if (event.target.id === 'sponsor-modal') {
+      closeSponsorModal();
+    }
+  }
+
+  function confirmDebtSettled() {
+    document.getElementById('modal-debt-amount').innerText = '0đ';
+    document.getElementById('modal-debt-amount').className = 'text-headline-sm font-bold text-primary mt-1';
+    document.getElementById('modal-confirm-btn-text').innerText = 'Đã quyết toán sạch nợ';
+    alert('Đã cập nhật trạng thái: Toàn bộ công nợ tài trợ đã được đối soát thành công!');
+  }
+</script></body></html>

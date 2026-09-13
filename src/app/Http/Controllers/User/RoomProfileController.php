@@ -1,66 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Models\Room;
+use App\Services\User\UserRoomProfileService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class RoomProfileController extends Controller
 {
-    public function index(Request $request, Room $room): View|JsonResponse
+    /**
+     * Hiển thị trang thông tin cá nhân và thống kê của người dùng trong phòng hoặc trả về JSON API (/rooms/{slug}/profile).
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
+     * @param  \App\Models\Room  $room  Đối tượng phòng hiện tại
+     * @param  \App\Services\User\UserRoomProfileService  $service  Service xử lý hồ sơ phòng
+     * @return \Illuminate\Contracts\View\View|\Illuminate\Http\JsonResponse  Giao diện View hoặc phản hồi JSON
+     */
+    public function index(Request $request, Room $room, UserRoomProfileService $service): View|JsonResponse
     {
         $room = $request->attributes->get('room') ?? $room;
         $roomUser = $request->attributes->get('room_user');
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $orders = $roomUser->orders()->with('items')->get();
-        $totalOrders = $orders->count();
-        $totalSpent = (int) $orders->sum('final_amount');
-        $totalSponsor = (int) $orders->sum('sponsor_amount');
-        $items = $orders->pluck('items')->flatten();
-        $favoriteItems = $items->groupBy('item_name')
-            ->map(fn ($rows, $name) => ['name' => $name, 'count' => (int) $rows->sum('quantity')])
-            ->sortByDesc('count')
-            ->take(5);
+        $result = $service->getRoomProfileData($room, $roomUser, $user, $request);
 
-        $unreadCount = DB::table('user_notifications')
-            ->where('global_user_id', $user->id)
-            ->where('is_read', false)
-            ->count();
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'room_user' => $roomUser,
-                'stats' => [
-                    'total_orders' => $totalOrders,
-                    'total_spent' => $totalSpent,
-                    'total_sponsor' => $totalSponsor,
-                ],
-                'favorite_items' => $favoriteItems,
-            ]);
+        if ($result['is_json']) {
+            return response()->json($result['data']);
         }
 
-        $activeCampaign = $room->campaigns()->where('status', 'active')->first();
-        $userRooms = $user ? $user->rooms()->where('rooms.status', 'active')->get() : collect();
-
-        return view('user.profile', [
-            'room' => $room,
-            'roomUser' => $roomUser,
-            'user' => $user,
-            'totalOrders' => $totalOrders,
-            'totalSpent' => $totalSpent,
-            'totalSponsor' => $totalSponsor,
-            'favoriteItems' => $favoriteItems,
-            'unreadNotificationsCount' => $unreadCount,
-            'activeCampaign' => $activeCampaign ? [
-                'name' => $activeCampaign->name,
-                'time_remaining' => $activeCampaign->deadline ? ($activeCampaign->deadline->isFuture() ? $activeCampaign->deadline->diffForHumans(['parts' => 2, 'short' => true]) : '00:00') : '14:22',
-            ] : null,
-            'userRooms' => $userRooms,
-        ]);
+        return view('user.profile', $result['view_data']);
     }
 }
+

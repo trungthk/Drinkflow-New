@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\User\SetRoomUserStatusAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SetStatusRequest;
+use App\Models\Room;
 use App\Models\RoomUser;
 use App\Models\RoomUserDevice;
 use App\Services\Auth\DeviceTrustService;
 use App\Services\Audit\AuditService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,12 +20,9 @@ class RoomUserController extends Controller
 {
     /**
      * Handle the index operation.
-     * @param Request $request Parameter value.
-     * @return JsonResponse Result of the operation.
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request, Room $room): JsonResponse
     {
-        $room = $request->attributes->get('room');
         $query = $room->roomUsers()->with('globalUser')->withCount(['devices', 'orders', 'debts'])->latest();
         if ($request->filled('q')) {
             $term = trim($request->string('q')->toString());
@@ -34,55 +35,64 @@ class RoomUserController extends Controller
     }
 
     /**
-     * Handle the show operation.
-     * @param RoomUser $roomUser Parameter value.
-     * @return JsonResponse Result of the operation.
+     * Display the standalone Room Users & Device Trust directory view.
+     *
+     * @param Request $request Incoming request.
+     * @param Room $room Room entity.
+     * @param \App\Services\Admin\AdminRoomUserService $userService Room user service.
+     * @return View Blade view.
      */
-    public function show(RoomUser $roomUser): JsonResponse
+    public function page(Request $request, Room $room, \App\Services\Admin\AdminRoomUserService $userService): View
     {
-        $this->assertRoom($roomUser);
-        $roomUser->load(['globalUser', 'orders.items.toppings', 'debts.campaign', 'devices']);
-        $roomUser->setRelation('devices', $roomUser->devices->map(fn (RoomUserDevice $device) => ['id' => $device->id, 'device_uuid' => substr($device->device_uuid, 0, 8).'â€¦', 'verified_at' => $device->verified_at, 'last_seen_at' => $device->last_seen_at, 'revoked_at' => $device->revoked_at, 'status' => $device->revoked_at ? 'revoked' : 'active']));
-        return response()->json(['data' => $roomUser]);
+        $roomUsers = $room->roomUsers()
+            ->with(['globalUser', 'devices'])
+            ->withCount(['devices', 'orders', 'debts'])
+            ->latest()
+            ->paginate(50);
+
+        $metrics = $userService->getDirectoryMetrics($room);
+
+        return view('admin.users', array_merge([
+            'room' => $room,
+            'roomUsers' => $roomUsers,
+        ], $metrics));
+    }
+
+    /**
+     * Handle the show operation.
+     */
+    public function show(Room $room, RoomUser $roomUser, \App\Services\Admin\AdminRoomUserService $userService): JsonResponse
+    {
+        $this->assertRoom($room, $roomUser);
+        return response()->json(['data' => $userService->formatUserDetail($roomUser)]);
     }
 
     /**
      * Handle the status operation.
-     * @param SetStatusRequest $request Parameter value.
-     * @param RoomUser $roomUser Parameter value.
-     * @param SetRoomUserStatusAction $action Parameter value.
-     * @return JsonResponse Result of the operation.
      */
-    public function status(SetStatusRequest $request, RoomUser $roomUser, SetRoomUserStatusAction $action): JsonResponse
+    public function status(SetStatusRequest $request, Room $room, RoomUser $roomUser, SetRoomUserStatusAction $action): JsonResponse
     {
-        $this->assertRoom($roomUser);
+        $this->assertRoom($room, $roomUser);
         return response()->json(['data' => $action->execute($roomUser, $request->validated('status'))]);
     }
 
     /**
      * Handle the revoke device operation.
-     * @param RoomUser $roomUser Parameter value.
-     * @param RoomUserDevice $device Parameter value.
-     * @param DeviceTrustService $trust Parameter value.
-     * @param AuditService $audit Parameter value.
-     * @return JsonResponse Result of the operation.
      */
-    public function revokeDevice(RoomUser $roomUser, RoomUserDevice $device, DeviceTrustService $trust, AuditService $audit): JsonResponse
+    public function revokeDevice(Room $room, RoomUser $roomUser, RoomUserDevice $device, DeviceTrustService $trust, AuditService $audit): JsonResponse
     {
-        $this->assertRoom($roomUser);
+        $this->assertRoom($room, $roomUser);
         abort_unless($device->room_user_id === $roomUser->id, 404);
         $trust->revoke($device);
-        $audit->record('room_user.device_revoked', 'room_user_device', $device->id, $roomUser->room_id, null, ['revoked_at' => $device->fresh()->revoked_at]);
+        $audit->record('room_user.device_revoked', 'room_user_device', $device->id, $roomUser->room_id, [], ['revoked_at' => $device->fresh()->revoked_at]);
         return response()->json(['data' => ['revoked' => true]]);
     }
 
     /**
-     * Handle the assert room operation.
-     * @param RoomUser $roomUser Parameter value.
-     * @return void Result of the operation.
+     * Assert that the room user belongs to the current room.
      */
-    private function assertRoom(RoomUser $roomUser): void
+    private function assertRoom(Room $room, RoomUser $roomUser): void
     {
-        abort_unless($roomUser->room_id === request()->attributes->get('room')->id, 404);
+        abort_unless($roomUser->room_id === $room->id, 404);
     }
 }

@@ -51,7 +51,7 @@
     }
   </script>
   @if (file_exists(public_path('build/manifest.json')) || app()->isLocal())
-    @vite(['resources/css/room.css', 'resources/js/global.js'])
+    @vite(['resources/css/room.css', 'resources/js/room.js'])
   @endif
   <!-- Alpine.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>

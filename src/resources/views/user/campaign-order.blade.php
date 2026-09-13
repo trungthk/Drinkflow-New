@@ -1,110 +1,87 @@
-@extends('user.layout')
+<x-room.layout
+  :title="'DrinkFlow - ' . ($campaign->name ?? 'Campaign') . ' - ' . ($room->name ?? 'Room')"
+  :room="$room"
+  :room-user="request()->attributes->get('room_user')"
+  :user="request()->attributes->get('global_user') ?? auth('web')->user()"
+  :active-tab="'campaigns'"
+  :breadcrumbs="[
+      ['title' => __('room.campaign.page_title'), 'url' => route('user.campaigns.index', $room->slug)],
+      ['title' => $campaign->name ?? 'Campaign', 'url' => '']
+  ]"
+>
+  <main class="w-full max-w-3xl mx-auto space-y-6"
+        data-campaign-order-container
+        data-detail-url="{{ route('user.campaigns.show', [$room, $campaign]) }}"
+        data-order-url="{{ route('user.orders.store', [$room, $campaign]) }}"
+        data-room-slug="{{ $room->slug }}"
+        data-msg-load-error="{{ __('room.campaign.menu_load_error', ['default' => 'Không thể tải menu.']) }}"
+        data-msg-empty-menu="{{ __('room.campaign.menu_empty', ['default' => 'Menu đang trống.']) }}"
+        data-msg-select-required="{{ __('room.campaign.select_item_required', ['default' => 'Hãy chọn ít nhất một món.']) }}"
+        data-msg-order-success="{{ __('room.campaign.order_success', ['default' => 'Đặt món thành công!']) }}"
+        data-msg-view-order="{{ __('room.orders.order_details', ['default' => 'Xem chi tiết đơn']) }}"
+        data-msg-error-generic="{{ __('room.campaign.error_generic', ['default' => 'Không thể tạo đơn. Vui lòng thử lại.']) }}"
+  >
+    <!-- Back to Campaigns -->
+    <div>
+      <a class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#006948] transition-colors" href="{{ route('user.campaigns.index', $room->slug) }}">
+        <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+        <span>{{ __('room.campaign.page_title') }}</span>
+      </a>
+    </div>
 
-@section('title', $campaign->name . ' · DrinkFlow')
-@section('content')
-    <main class="mx-auto max-w-4xl px-4 py-8">
-        <a class="text-sm text-indigo-600" href="{{ route('user.dashboard', $room) }}">← {{ $room->name }}</a>
-        <header class="mt-5">
-            <p class="text-sm text-slate-500">{{ $campaign->restaurant }}</p>
-            <h1 class="text-3xl font-semibold">{{ $campaign->name }}</h1>
-            <p class="mt-1 text-slate-600">Chọn món và gửi đơn. Giá sẽ được kiểm tra lại trên máy chủ.</p>
-        </header>
-        <form id="order-form" class="mt-6 space-y-5">
-            <div id="items" class="grid gap-4 sm:grid-cols-2">
-                <p class="text-slate-500">Đang tải menu…</p>
-            </div>
-            <div class="rounded-2xl bg-white p-5 shadow-sm">
-                <label class="block text-sm font-medium" for="payment">Thanh toán</label>
-                <select id="payment" class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2">
-                    <option value="transfer">Chuyển khoản / VietQR</option>
-                    <option value="cash">Tiền mặt</option>
-                </select>
-                <label class="mt-4 block text-sm font-medium" for="note">Ghi chú</label>
-                <textarea id="note" rows="2" class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2"
-                    maxlength="1000"></textarea>
-                <button
-                    class="mt-4 w-full rounded-lg bg-indigo-600 px-4 py-3 font-medium text-white hover:bg-indigo-700"
-                    type="submit">Gửi đơn hàng</button>
-                <p id="error" class="mt-3 hidden text-sm text-red-600"></p>
-            </div>
-        </form>
-        <section id="success" class="mt-6 hidden rounded-2xl bg-emerald-50 p-5 text-emerald-900"></section>
-    </main>
-@endsection
+    <!-- Header Section -->
+    <header class="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-xs">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold text-[#006948] uppercase tracking-wider">{{ $campaign->restaurant ?? 'Restaurant' }}</span>
+          <h1 class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">{{ $campaign->name }}</h1>
+          <p class="mt-1 text-xs sm:text-sm text-slate-500">{{ __('room.campaign.order_instruction', ['default' => 'Chọn món và gửi đơn. Giá sẽ được kiểm tra lại trên máy chủ.']) }}</p>
+        </div>
+      </div>
+    </header>
 
-@push('scripts')
-    <script>
-        const detailUrl = @json(route('user.campaigns.show', [$room, $campaign]));
-        const orderUrl = @json(route('user.orders.store', [$room, $campaign]));
-        const items = document.querySelector('#items');
-        const form = document.querySelector('#order-form');
-        let menu = [];
-        const esc = value => String(value).replace(/[&<>'"]/g, c => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            "'": '&#39;',
-            '"': '&quot;'
-        } [c]));
-        async function load() {
-            const response = await fetch(detailUrl, {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            if (!response.ok) {
-                items.innerHTML = '<p class="text-red-600">Không thể tải menu.</p>';
-                return;
-            }
-            menu = (await response.json()).data.items || [];
-            items.innerHTML = menu.map(item =>
-                `<label class="flex items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-sm"><span><span class="block font-medium">${esc(item.name)}</span><span class="text-sm text-slate-500">${Number(item.base_price).toLocaleString('vi-VN')} ₫</span></span><input data-item="${item.id}" class="w-20 rounded-lg border border-slate-200 px-3 py-2 text-center" type="number" min="0" max="99" value="0" aria-label="Số lượng ${esc(item.name)}"></label>`
-                ).join('') || '<p class="text-slate-500">Menu đang trống.</p>';
-        }
-        form.addEventListener('submit', async event => {
-            event.preventDefault();
-            const selected = [...document.querySelectorAll('[data-item]')].map(input => ({
-                item_id: Number(input.dataset.item),
-                quantity: Number(input.value)
-            })).filter(item => item.quantity > 0);
-            const error = document.querySelector('#error');
-            error.classList.add('hidden');
-            if (!selected.length) {
-                error.textContent = 'Hãy chọn ít nhất một món.';
-                error.classList.remove('hidden');
-                return;
-            }
-            const response = await fetch(orderUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
-                },
-                body: JSON.stringify({
-                    items: selected,
-                    payment_method: document.querySelector('#payment').value,
-                    note: document.querySelector('#note').value
-                })
-            });
-            const payload = await response.json();
-            if (!response.ok) {
-                error.innerHTML = esc(payload.message || Object.values(payload.errors || {}).flat()[0] ||
-                    'Không thể tạo đơn.');
-                if (payload.code === 'active_order_exists' && payload.order_url) {
-                    error.innerHTML +=
-                        ` <a class="font-semibold underline" href="${esc(payload.order_url)}">Xem đơn #${esc(payload.order_id)}</a>`;
-                }
-                error.classList.remove('hidden');
-                return;
-            }
-            form.classList.add('hidden');
-            const order = payload.data;
-            const success = document.querySelector('#success');
-            success.innerHTML =
-                `<h2 class="text-xl font-semibold">Đặt món thành công</h2><p class="mt-2">Đơn #${order.id} · ${Number(order.final_amount).toLocaleString('vi-VN')} ₫</p><a class="mt-3 inline-block font-medium underline" href="/rooms/{{ $room->id }}/orders/${order.id}/view">Xem chi tiết đơn</a>`;
-            success.classList.remove('hidden');
-        });
-        load();
-    </script>
-@endpush
+    <!-- Order Form Section -->
+    <form id="order-form" class="space-y-6">
+      <!-- Menu Item Grid Container -->
+      <div class="space-y-3">
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ __('room.campaign.filter_all') }}</h2>
+        <div id="items" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <p class="text-xs text-slate-400 py-4">{{ __('room.campaign.loading_menu', ['default' => 'Đang tải menu…']) }}</p>
+        </div>
+      </div>
+
+      <!-- Payment & Note Details Card -->
+      <div class="rounded-2xl bg-white border border-slate-200/80 p-5 sm:p-6 shadow-xs space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider" for="payment">
+            {{ __('room.campaign.policy_payment_title') }}
+          </label>
+          <select id="payment" class="mt-1.5 w-full rounded-xl border border-slate-200/80 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 bg-slate-50/50 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all">
+            <option value="transfer">{{ __('room.campaign.payment_transfer') }}</option>
+            <option value="cash">{{ __('room.campaign.payment_cash') }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider" for="note">
+            {{ __('room.campaign.note_label') }}
+          </label>
+          <textarea id="note" rows="2" class="mt-1.5 w-full rounded-xl border border-slate-200/80 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 bg-slate-50/50 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all"
+                    maxlength="1000"
+                    placeholder="{{ __('room.campaign.note_placeholder') }}"></textarea>
+        </div>
+
+        <button class="w-full flex items-center justify-center gap-2 rounded-xl bg-[#006948] hover:bg-[#005137] px-5 py-3.5 font-bold text-xs sm:text-sm text-white transition-colors shadow-sm cursor-pointer"
+                type="submit">
+          <span class="material-symbols-outlined text-[18px]">send</span>
+          <span>{{ __('room.campaign.add_to_order', ['amount' => __('global.common.confirm')]) }}</span>
+        </button>
+
+        <p id="error" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl p-3"></p>
+      </div>
+    </form>
+
+    <!-- Success Feedback Container -->
+    <section id="success" class="hidden rounded-2xl bg-emerald-50 border border-emerald-200/80 p-5 sm:p-6 text-emerald-900"></section>
+  </main>
+</x-room.layout>

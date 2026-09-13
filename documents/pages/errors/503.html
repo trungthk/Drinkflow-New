@@ -1,0 +1,325 @@
+<!DOCTYPE html><html class="light" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>503 - Dịch vụ tạm thời không khả dụng | DrinkFlow Operations</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Inter Google Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS v3 with Container Queries & Forms -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-variant": "#d3e4fe",
+            "on-tertiary-fixed-variant": "#3f465c",
+            "on-primary": "#ffffff",
+            "surface-container": "#e5eeff",
+            "secondary-container": "#6cf8bb",
+            "on-error-container": "#93000a",
+            "on-error": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-fixed": "#002113",
+            "tertiary-fixed-dim": "#bec6e0",
+            "on-surface-variant": "#3d4a42",
+            "on-primary-fixed-variant": "#005137",
+            "on-secondary-fixed-variant": "#005236",
+            "background": "#f8f9ff",
+            "on-tertiary-fixed": "#131b2e",
+            "secondary-fixed": "#6ffbbe",
+            "outline-variant": "#bccac0",
+            "on-secondary-container": "#00714d",
+            "surface-bright": "#f8f9ff",
+            "surface-container-high": "#dce9ff",
+            "error": "#ba1a1a",
+            "secondary-fixed-dim": "#4edea3",
+            "surface-dim": "#cbdbf5",
+            "tertiary-container": "#6c748b",
+            "on-background": "#0b1c30",
+            "primary": "#006948",
+            "surface-container-highest": "#d3e4fe",
+            "primary-fixed-dim": "#68dba9",
+            "on-secondary": "#ffffff",
+            "on-surface": "#0b1c30",
+            "on-primary-container": "#f5fff7",
+            "inverse-on-surface": "#eaf1ff",
+            "tertiary": "#545c72",
+            "primary-fixed": "#85f8c4",
+            "tertiary-fixed": "#dae2fd",
+            "surface": "#f8f9ff",
+            "error-container": "#ffdad6",
+            "on-tertiary-container": "#fefcff",
+            "inverse-primary": "#68dba9",
+            "secondary": "#006c49",
+            "surface-container-low": "#eff4ff",
+            "primary-container": "#00855d",
+            "on-primary-fixed": "#002114",
+            "surface-tint": "#006c4a",
+            "inverse-surface": "#213145",
+            "on-tertiary": "#ffffff",
+            "outline": "#6d7a72"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-md": "1.5rem",
+            "space-xs": "0.5rem",
+            "space-lg": "2rem",
+            "space-sm": "1rem",
+            "space-2xl": "4rem",
+            "gutter": "1.5rem",
+            "margin": "1.5rem",
+            "space-xl": "3rem"
+          },
+          "fontFamily": {
+            "body-md": ["Inter"],
+            "label-md": ["Inter"],
+            "label-sm": ["Inter"],
+            "caption": ["Inter"],
+            "headline-lg": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-sm": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-xl": ["Inter"]
+          },
+          "fontSize": {
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "500" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "caption": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "600" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen flex flex-col justify-between selection:bg-primary selection:text-on-primary antialiased">
+<!-- TopNavBar (Shared Component JSON Blueprint) -->
+<header class="bg-surface-container-lowest dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shadow-sm sticky top-0 z-50">
+<div class="w-full max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
+<!-- Brand & Context Identifier -->
+<div class="flex items-center gap-3">
+<a class="text-headline-md font-headline-md text-primary dark:text-primary-fixed tracking-tight font-bold flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="local_cafe" style="font-variation-settings: 'FILL' 1;">local_cafe</span>
+          DrinkFlow
+        </a>
+<div class="h-4 w-[1px] bg-outline-variant"></div>
+<span class="text-caption font-caption px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant border border-outline-variant font-medium">
+          Enterprise Operations
+        </span>
+</div>
+<!-- Action Utilities -->
+<div class="flex items-center gap-4">
+<a class="flex items-center gap-1.5 text-label-md font-label-md text-on-surface-variant hover:text-on-surface transition-colors duration-150" href="#help">
+<span class="material-symbols-outlined text-lg" data-icon="help_outline">help_outline</span>
+<span class="">Trợ giúp</span>
+</a>
+
+
+</div>
+</div>
+</header>
+<!-- Main Content Container: 503 Operational Maintenance View -->
+<main class="w-full max-w-[1200px] mx-auto px-6 py-10 flex-grow flex flex-col justify-center">
+<!-- Top System Alert Banner -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm mb-8 relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-primary"></div>
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+<!-- Left: Badge & 503 Visual Accent -->
+<div class="flex items-start gap-5">
+<div class="flex flex-col items-center justify-center bg-surface-container border border-outline-variant rounded-lg px-5 py-3 select-none">
+<span class="text-caption font-caption text-tertiary tracking-wider uppercase">HTTP STATUS</span>
+<span class="text-headline-xl font-headline-xl text-primary font-bold tracking-tight">503</span>
+</div>
+<div>
+<div class="flex flex-wrap items-center gap-2 mb-2">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-caption font-caption bg-error-container text-on-error-container border border-error/20">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+                MÃ LỖI HTTP: 503 - SERVICE UNAVAILABLE
+              </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-caption font-caption bg-surface-container text-tertiary border border-outline-variant">
+<span class="material-symbols-outlined text-xs" data-icon="build_circle">build_circle</span>
+                BẢO TRÌ NÂNG CẤP HỆ THỐNG ĐỊNH KỲ
+              </span>
+</div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight mb-2">
+              Hệ thống DrinkFlow đang bảo trì định kỳ hoặc quá tải tạm thời
+            </h1>
+<p class="text-body-md font-body-md text-on-surface-variant max-w-3xl">
+              Chúng tôi đang tiến hành cập nhật nâng cấp hạ tầng đối soát VietQR tự động và đồng bộ Socket.IO phục vụ giờ cao điểm đặt đồ uống trưa và chiều của các phòng ban. Dịch vụ dự kiến sẽ sớm hoạt động bình thường trở lại.
+            </p>
+</div>
+</div>
+<!-- Right: Primary Recovery Action -->
+<div class="flex flex-row lg:flex-col items-stretch w-full lg:w-auto gap-2">
+<button class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded bg-primary text-on-primary hover:bg-primary-container text-label-md font-label-md transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-secondary-fixed-dim" id="refreshBtn" onclick="location.reload()">
+<span class="material-symbols-outlined text-lg" data-icon="autorenew">autorenew</span>
+<span class="">Làm mới và kiểm tra lại</span>
+</button>
+<span class="text-caption font-caption text-tertiary text-center lg:text-right" id="countdownLabel">Tự động thử lại sau <span class="font-semibold text-on-surface" id="timer">27</span>s</span>
+</div>
+</div>
+</div>
+<!-- Operational Detail Bento Grid (8 Col workspace + 4 Col sidebar) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Column 1-8: Maintenance Progress & System Matrix -->
+<div class="lg:col-span-8 flex flex-col gap-6">
+<!-- Live Maintenance Status Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm">
+<div class="flex items-center justify-between border-b border-outline-variant pb-4 mb-5">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-xl" data-icon="schedule">schedule</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Khung thời gian bảo trì &amp; Tiến độ dự kiến</h2>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-caption font-caption text-on-surface-variant">Ước tính còn lại:</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface text-caption font-caption font-semibold border border-outline-variant">
+                ~14 phút
+              </span>
+</div>
+</div>
+<!-- Timeline Time Interval Pill -->
+<div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded bg-surface-container-low border border-outline-variant mb-6">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-surface-container-lowest rounded border border-outline-variant text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-lg" data-icon="timelapse">timelapse</span>
+</div>
+<div>
+<div class="text-label-sm font-label-sm text-tertiary uppercase tracking-wider">Khung giờ bảo trì kế hoạch</div>
+<div class="text-headline-sm font-headline-sm text-on-surface">11:30 - 12:00 <span class="text-label-sm font-label-sm text-tertiary font-normal">(Múi giờ GMT+7)</span></div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<div class="text-caption font-caption text-tertiary">Trạng thái tiến trình</div>
+<div class="text-label-sm font-label-sm font-semibold text-primary">Đang triển khai giai đoạn 2/3</div>
+</div>
+<div class="w-12 h-12 rounded-full border-2 border-primary border-t-transparent animate-spin flex items-center justify-center">
+<span class="text-caption font-caption text-primary font-bold">78%</span>
+</div>
+</div>
+</div>
+<!-- Service Sub-systems Status Matrix Table -->
+
+</div>
+<!-- Safe Operations Guarantee Panel -->
+
+</div>
+<!-- Column 9-12: Operational Help & Diagnostics Sidebar -->
+<div class="lg:col-span-4 flex flex-col gap-6">
+<!-- Action Links Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-5 shadow-sm">
+<h3 class="text-headline-sm font-headline-sm text-on-surface mb-4 pb-2 border-b border-outline-variant">
+            Kênh liên lạc &amp; Hỗ trợ
+          </h3>
+<div class="flex flex-col gap-3">
+<a class="w-full inline-flex items-center justify-between p-3 rounded border border-outline-variant hover:bg-surface-container-low text-on-surface transition-colors duration-150" href="#status-page">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="monitor_heart">monitor_heart</span>
+<span class="text-label-md font-label-md">Status Page (Trạng thái hạ tầng)</span>
+</div>
+<span class="material-symbols-outlined text-sm text-tertiary" data-icon="arrow_outward">arrow_outward</span>
+</a>
+<a class="w-full inline-flex items-center justify-between p-3 rounded border border-outline-variant hover:bg-surface-container-low text-on-surface transition-colors duration-150" href="#slack-support">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="support_agent">support_agent</span>
+<span class="text-label-md font-label-md">Kênh khẩn cấp Hotline/Slack</span>
+</div>
+<span class="material-symbols-outlined text-sm text-tertiary" data-icon="arrow_outward">arrow_outward</span>
+</a>
+<a class="w-full inline-flex items-center justify-between p-3 rounded border border-outline-variant hover:bg-surface-container-low text-on-surface transition-colors duration-150" href="#broadcast">
+<div class="flex items-center gap-2.5">
+<span class="material-symbols-outlined text-primary text-lg" data-icon="chat">chat</span>
+<span class="text-label-md font-label-md">Kênh thông báo nội bộ (#drinkflow-op)</span>
+</div>
+<span class="material-symbols-outlined text-sm text-tertiary" data-icon="arrow_outward">arrow_outward</span>
+</a>
+</div>
+</div>
+<!-- Technical Telemetry Box -->
+
+</div>
+</div>
+</main>
+<!-- Footer (Shared Component JSON Blueprint) -->
+<footer class="bg-surface-container-lowest dark:bg-inverse-surface border-t border-outline-variant dark:border-outline">
+<div class="w-full max-w-[1200px] mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+<!-- Brand & Copyright -->
+<div class="flex items-center gap-3">
+<span class="text-label-md font-label-md text-on-surface dark:text-inverse-on-surface font-semibold">DrinkFlow Operations</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant dark:text-outline-variant">
+          © 2025 DrinkFlow Operations. Tất cả các quyền được bảo lưu.
+        </span>
+</div>
+<!-- Links defined by Shared Component Blueprint -->
+<div class="flex items-center gap-6">
+<a class="text-body-sm font-body-sm text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-150" href="#terms">
+          Điều khoản dịch vụ
+        </a>
+<a class="text-body-sm font-body-sm text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-150" href="#privacy">
+          Chính sách bảo mật
+        </a>
+<a class="text-body-sm font-body-sm text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-150" href="#support">
+          Hỗ trợ người dùng
+        </a>
+</div>
+</div>
+</footer>
+<!-- Micro-interaction JS for Countdown & Reload Logic -->
+<script>
+    let secondsLeft = 30;
+    const timerElement = document.getElementById('timer');
+    const timestampElement = document.getElementById('currentTimestamp');
+
+    // Update real-time timestamp display
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      if (timestampElement) {
+        timestampElement.textContent = `${hours}:${minutes}:${seconds} GMT+7`;
+      }
+    }
+    setInterval(updateClock, 1000);
+
+    // Auto-refresh countdown
+    const interval = setInterval(() => {
+      secondsLeft--;
+      if (timerElement) {
+        timerElement.textContent = secondsLeft;
+      }
+      if (secondsLeft <= 0) {
+        clearInterval(interval);
+        window.location.reload();
+      }
+    }, 1000);
+  </script>
+
+
+</body></html>

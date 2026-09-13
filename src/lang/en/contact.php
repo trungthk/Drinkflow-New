@@ -35,8 +35,10 @@ return [
         'captcha' => 'Security Code',
         'captcha_placeholder' => 'Enter 4-character code',
         'captcha_refresh' => 'Refresh captcha code',
-        'submit' => 'Submit Contact Request',
-        'sla_commitment' => 'Committed to reviewing and responding officially within 2 - 4 business hours.',
+        'captcha_loading' => 'Loading...',
+        'validation_error_title' => 'Please check the form information again:',
+        'submit' => 'Send Contact Request',
+        'sla_commitment' => 'Committed to processing and official response within 2 - 4 business hours.',
     ],
     'rate_limit_exceeded' => 'Too many contact requests from your IP address. Please wait :seconds seconds before trying again.',
     'direct' => [

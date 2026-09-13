@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Campaign;
 
 use App\Models\Campaign;
@@ -10,27 +12,36 @@ use Illuminate\Validation\ValidationException;
 class CreateCampaignItemAction
 {
     /**
-     * Handle the execute operation.
-     * @param Campaign $campaign Parameter value.
-     * @param array $data Parameter value.
-     * @return CampaignItem Result of the operation.
+     * Create a menu item for a campaign.
+     *
+     * @param Campaign $campaign Parent campaign entity.
+     * @param array<string, mixed> $data Item data.
+     * @return CampaignItem Created item entity.
+     * @throws ValidationException If campaign is closed or cancelled.
      */
     public function execute(Campaign $campaign, array $data): CampaignItem
     {
         if ($campaign->status?->value === 'closed' || $campaign->status?->value === 'cancelled') {
-            throw ValidationException::withMessages(['campaign' => 'Campaign Ä‘Ă£ Ä‘Ă³ng.']);
+            throw ValidationException::withMessages([
+                'campaign' => __('admin.campaign_closed'),
+            ]);
         }
 
-        return DB::transaction(fn() => $campaign->items()->create(array_merge($data, ['normalized_name' => $this->normalize($data['name']), 'status' => $data['status'] ?? 'active'])));
+        return DB::transaction(fn (): CampaignItem => $campaign->items()->create(array_merge($data, [
+            'normalized_name' => $this->normalize($data['name']),
+            'status' => $data['status'] ?? 'active',
+        ])));
     }
 
     /**
-     * Handle the normalize operation.
-     * @param string $value Parameter value.
-     * @return string Result of the operation.
+     * Normalize item name for consistent search and fuzzy matching.
+     *
+     * @param string $value Raw item name.
+     * @return string Uppercase normalized ASCII representation.
      */
     private function normalize(string $value): string
     {
-        return strtoupper(trim(preg_replace('/\s+/', ' ', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) ?: $value)));
+        return strtoupper(trim((string) preg_replace('/\s+/', ' ', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) ?: $value)));
     }
 }
+

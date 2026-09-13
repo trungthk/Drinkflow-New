@@ -23,10 +23,10 @@ class LandingPageTest extends TestCase
         $response->assertSee('Lợi ích cốt lõi cho văn phòng hiện đại');
         $response->assertSee('Quy trình đặt đơn 4 bước đơn giản');
         $response->assertSee('Bảo mật tài khoản doanh nghiệp với Google OAuth');
-        $response->assertSee('Google Workspace Enterprise SSO');
+        $response->assertSee('SAML & OAuth 2.0');
         $response->assertSee('v2.3.0');
         $response->assertSee('Giới thiệu về DrinkFlow');
-        $response->assertDontSee('about-drinkflow.mp4');
+        $response->assertSee('about-drinkflow-player');
         $response->assertSee('go-to-top-btn');
         $response->assertDontSee('Live Session:');
         $response->assertDontSee('28 người đang đặt');

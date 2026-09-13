@@ -1,53 +1,63 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\User;
 
 use App\Actions\User\JoinRoomAction;
+use App\Enums\GlobalUserStatus;
+use App\Enums\RoomStatus;
+use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
+use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Services\Auth\DeviceTrustService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use Illuminate\Contracts\View\View;
 
 class RoomController extends Controller
 {
     /**
-     * Handle the show operation.
-     * @param Request $request Parameter value.
-     * @param Room $room Parameter value.
-     * @return JsonResponse|RedirectResponse|View Result of the operation.
+     * Show the room entry point, handling auth, membership check, and blocked states.
+     *
+     * @param Request $request Current HTTP request.
+     * @param Room $room Target room model resolved by slug/id.
+     * @param DeviceTrustService $devices Device trust verification service.
+     * @return JsonResponse|RedirectResponse|View|Response Rendered view, redirect, or JSON payload.
      */
-    public function show(Request $request, Room $room): JsonResponse|RedirectResponse|View
+    public function show(Request $request, Room $room, DeviceTrustService $devices): JsonResponse|RedirectResponse|View|Response
     {
-        abort_unless($room->status === 'active', 404);
+        abort_unless($room->status === RoomStatus::Active->value, 404);
+
+        /** @var GlobalUser|null $user */
         $user = $request->user('web');
         if (! $user) {
-            $device = app(DeviceTrustService::class)->resolve(
+            $device = $devices->resolve(
                 (string) $request->cookie('drinkflow_device_uuid', ''),
                 (string) $request->cookie('drinkflow_trusted_token', ''),
                 $room->id,
             );
             $user = $device?->roomUser?->globalUser;
             if ($user) {
-                auth('web')->login($user, true);
+                Auth::guard('web')->login($user, true);
             }
         }
+
         if (! $user) {
             $request->session()->put('url.intended', url()->current());
             if ($request->expectsJson()) {
                 return response()->json(['requires_authentication' => true, 'redirect' => route('landing')], 401);
             }
-            $referer = $request->headers->get('referer') ?: url()->previous();
-            if ($referer && $referer !== $request->fullUrl() && $referer !== $request->url() && $referer !== url('/')) {
-                return redirect()->to($referer);
-            }
-            return redirect()->to('/');
+            return redirect()->to('/')->with('auth_notice', __('public.auth_modal.require_login_room', ['room' => $room->name]));
         }
-        $userStatus = $user->status instanceof \BackedEnum ? $user->status->value : (string) ($user->status ?? 'active');
-        abort_unless($userStatus === 'active', 403);
+
+        $userStatus = $user->status instanceof \BackedEnum ? $user->status->value : (string) ($user->status ?? GlobalUserStatus::Active->value);
+        abort_unless($userStatus === GlobalUserStatus::Active->value, 403);
 
         $membership = $user->roomUsers()->where('room_id', $room->id)->first();
         if (! $membership) {
@@ -66,9 +76,9 @@ class RoomController extends Controller
         }
 
         $memStatus = $membership->status instanceof \BackedEnum ? $membership->status->value : (string) $membership->status;
-        if ($memStatus === 'blocked') {
+        if ($memStatus === RoomUserStatus::Blocked->value) {
             if ($request->expectsJson()) {
-                abort(403, 'Tài khoản bị khóa.');
+                abort(403, __('global.blocked.account_blocked'));
             }
             return response()->view('user.blocked-room', [
                 'room' => $room,
@@ -77,7 +87,7 @@ class RoomController extends Controller
             ], 403);
         }
 
-        abort_unless($memStatus === 'active', 403);
+        abort_unless($memStatus === RoomUserStatus::Active->value, 403);
 
         if (! $request->expectsJson()) {
             return redirect()->route('user.dashboard', $room->slug);
@@ -87,19 +97,23 @@ class RoomController extends Controller
     }
 
     /**
-     * Handle the join operation.
-     * @param Request $request Parameter value.
-     * @param Room $room Parameter value.
-     * @param JoinRoomAction $action Parameter value.
-     * @param DeviceTrustService $devices Parameter value.
-     * @return JsonResponse|RedirectResponse Result of the operation.
+     * Join the current user to the specified room.
+     *
+     * @param Request $request Current HTTP request.
+     * @param Room $room Target room model.
+     * @param JoinRoomAction $action Join room domain action.
+     * @param DeviceTrustService $devices Device trust issuance service.
+     * @return JsonResponse|RedirectResponse Redirect to dashboard or JSON response.
      */
     public function join(Request $request, Room $room, JoinRoomAction $action, DeviceTrustService $devices): JsonResponse|RedirectResponse
     {
-        abort_unless($room->status === 'active', 404);
+        abort_unless($room->status === RoomStatus::Active->value, 404);
+
+        /** @var GlobalUser|null $user */
         $user = $request->user('web');
-        $userStatus = $user ? ($user->status instanceof \BackedEnum ? $user->status->value : (string) ($user->status ?? 'active')) : null;
-        abort_unless($user && $userStatus === 'active', 401);
+        $userStatus = $user ? ($user->status instanceof \BackedEnum ? $user->status->value : (string) ($user->status ?? GlobalUserStatus::Active->value)) : null;
+        abort_unless($user && $userStatus === GlobalUserStatus::Active->value, 401);
+
         $deviceUuid = (string) ($request->cookie('drinkflow_device_uuid') ?: Str::uuid());
         $roomUser = $action->execute($user, $room, $deviceUuid, hash('sha256', Str::random(64)));
         $token = $devices->issue($roomUser, $deviceUuid);

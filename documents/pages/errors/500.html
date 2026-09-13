@@ -1,0 +1,368 @@
+<!DOCTYPE html><html class="light" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>DrinkFlow - 500 Lỗi máy chủ nội bộ (Internal Server Error)</title>
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Inter Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS with Forms & Container Queries -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "inverse-primary": "#68dba9",
+            "outline": "#6d7a72",
+            "on-secondary-fixed": "#002113",
+            "surface-variant": "#d3e4fe",
+            "on-primary": "#ffffff",
+            "on-surface-variant": "#3d4a42",
+            "secondary-container": "#6cf8bb",
+            "on-tertiary-container": "#fefcff",
+            "surface-container-lowest": "#ffffff",
+            "tertiary": "#545c72",
+            "secondary-fixed-dim": "#4edea3",
+            "tertiary-fixed-dim": "#bec6e0",
+            "primary-fixed-dim": "#68dba9",
+            "surface-dim": "#cbdbf5",
+            "outline-variant": "#bccac0",
+            "on-primary-container": "#f5fff7",
+            "tertiary-container": "#6c748b",
+            "surface": "#f8f9ff",
+            "tertiary-fixed": "#dae2fd",
+            "inverse-on-surface": "#eaf1ff",
+            "primary": "#006948",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed": "#131b2e",
+            "on-error": "#ffffff",
+            "surface-tint": "#006c4a",
+            "on-primary-fixed": "#002114",
+            "surface-bright": "#f8f9ff",
+            "on-secondary": "#ffffff",
+            "on-tertiary": "#ffffff",
+            "on-secondary-container": "#00714d",
+            "on-surface": "#0b1c30",
+            "error": "#ba1a1a",
+            "primary-container": "#00855d",
+            "surface-container-high": "#dce9ff",
+            "error-container": "#ffdad6",
+            "background": "#f8f9ff",
+            "secondary": "#006c49",
+            "secondary-fixed": "#6ffbbe",
+            "primary-fixed": "#85f8c4",
+            "inverse-surface": "#213145",
+            "on-secondary-fixed-variant": "#005236",
+            "surface-container-low": "#eff4ff",
+            "on-primary-fixed-variant": "#005137",
+            "on-background": "#0b1c30",
+            "on-tertiary-fixed-variant": "#3f465c",
+            "surface-container-highest": "#d3e4fe",
+            "surface-container": "#e5eeff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-sm": "1rem",
+            "space-xs": "0.5rem",
+            "space-md": "1.5rem",
+            "space-lg": "2rem",
+            "space-xl": "3rem",
+            "margin": "1.5rem",
+            "space-2xl": "4rem",
+            "gutter": "1.5rem"
+          },
+          "fontFamily": {
+            "headline-lg": ["Inter"],
+            "body-md": ["Inter"],
+            "headline-xl": ["Inter"],
+            "body-sm": ["Inter"],
+            "body-lg": ["Inter"],
+            "label-sm": ["Inter"],
+            "caption": ["Inter"],
+            "headline-sm": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "caption": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "600" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "500" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8f9ff;
+      color: #0b1c30;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      display: inline-block;
+      vertical-align: middle;
+      line-height: 1;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between bg-surface text-on-surface">
+<!-- 1. HEADER (TopNavBar based on Shared Components JSON) -->
+<header class="bg-surface-container-lowest dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shadow-sm sticky top-0 z-50">
+<div class="w-full max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
+<!-- Brand Logo & Context Anchor -->
+<div class="flex items-center gap-3">
+<a class="flex items-center gap-2 text-headline-md font-headline-md text-primary dark:text-primary-fixed tracking-tight font-bold transition-colors duration-150 ease-in-out" href="/me">
+<span class="material-symbols-outlined text-primary text-[26px]" style="font-variation-settings: 'FILL' 1;">local_cafe</span>
+<span class="">DrinkFlow</span>
+</a>
+<span class="h-4 w-[1px] bg-outline-variant"></span>
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-caption font-caption bg-surface-container text-on-surface-variant border border-outline-variant">
+<span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
+          Enterprise Operations
+        </span>
+</div>
+<!-- Navigation Links -->
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-label-md font-label-md text-on-surface-variant dark:text-outline-variant hover:text-on-surface transition-colors duration-150 ease-in-out" href="/me">Trang chủ</a>
+<a class="text-label-md font-label-md text-on-surface-variant dark:text-outline-variant hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">Giới thiệu</a>
+<a class="text-label-md font-label-md text-on-surface-variant dark:text-outline-variant hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">Điều khoản</a>
+<a class="text-label-md font-label-md text-on-surface-variant dark:text-outline-variant hover:text-on-surface transition-colors duration-150 ease-in-out flex items-center gap-1" href="#">
+          Phiên bản
+          <span class="text-caption font-caption bg-surface-container-high text-tertiary px-1.5 py-0.2 rounded">v2.4.1</span>
+</a>
+<a class="text-label-md font-label-md text-on-surface-variant dark:text-outline-variant hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">Liên hệ</a>
+</nav>
+<!-- Trailing Actions from JSON -->
+<div class="flex items-center gap-3">
+<!-- Help Action -->
+<button class="p-2 rounded hover:bg-surface-container-low dark:hover:bg-inverse-surface hover:text-on-surface text-on-surface-variant transition-colors duration-150 ease-in-out" title="Trung tâm trợ giúp" type="button">
+<span class="material-symbols-outlined text-[20px]">help_outline</span>
+</button>
+<!-- Google Workspace Identity Pill -->
+<div class="hidden lg:flex items-center gap-2 pl-2 pr-3 py-1 bg-surface-container-low border border-outline-variant rounded">
+<div class="w-5 h-5 rounded-full bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center">DF</div>
+<span class="text-label-sm font-label-sm text-on-surface truncate max-w-[120px]">ops@drinkflow.internal</span>
+</div>
+<!-- Trailing Secondary Action (Đăng xuất) -->
+
+</div>
+</div>
+</header>
+<!-- MAIN CANVAS (Error Workspace) -->
+<main class="w-full max-w-[1200px] mx-auto px-6 py-8 flex-1 flex flex-col gap-8">
+<!-- 2. BANNER MÃ LỖI HTTP 500 NỔI BẬT -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 lg:p-8 shadow-sm">
+<div class="flex flex-col lg:flex-row items-start justify-between gap-6 pb-6 border-b border-outline-variant">
+<!-- Status indicator & Big Error Heading -->
+<div class="flex-1 space-y-4">
+<div class="flex flex-wrap items-center gap-2">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-label-sm font-label-sm bg-error-container text-on-error-container font-semibold border border-error/20">
+<span class="w-2 h-2 rounded-full bg-error animate-ping"></span>
+              ● MÃ LỖI HTTP: 500 - INTERNAL SERVER ERROR
+            </span>
+<span class="px-2.5 py-1 rounded-full text-caption font-caption bg-surface-container-high text-on-surface-variant font-medium">
+              SỰ CỐ MÁY CHỦ HỆ THỐNG ĐỘT XUẤT
+            </span>
+</div>
+<h1 class="text-headline-xl font-headline-xl text-on-surface tracking-tight">
+            Đã xảy ra sự cố máy chủ nội bộ không mong muốn
+          </h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant max-w-3xl leading-relaxed">
+            Hệ thống DrinkFlow ghi nhận lỗi xử lý phía backend (<code class="bg-surface-container px-1 py-0.5 rounded text-error font-mono text-body-sm">Unhandled Exception</code> hoặc lỗi kết nối cụm dịch vụ). Đội ngũ DevOps và SRE đã tự động nhận cảnh báo khẩn cấp và đang khôi phục dịch vụ. Dữ liệu tài chính và giỏ hàng của bạn vẫn được an toàn.
+          </p>
+</div>
+<!-- Distinct Monospace 500 Stamp Graphic -->
+<div class="flex flex-col items-center justify-center p-6 bg-surface-container-low border border-outline-variant rounded-lg min-w-[200px] select-none">
+<div class="flex items-center text-error mb-1">
+<span class="material-symbols-outlined text-[36px]" style="font-variation-settings: 'FILL' 1;">cloud_off</span>
+</div>
+<div class="text-[52px] leading-none font-bold tracking-tighter text-error font-mono">
+            500
+          </div>
+<span class="text-caption font-caption text-outline uppercase tracking-wider mt-1">Cluster Failure</span>
+</div>
+</div>
+<!-- Action Cluster -->
+<div class="pt-6 flex flex-wrap items-center justify-between gap-4">
+<div class="flex flex-wrap items-center gap-3">
+<!-- Primary Action -->
+<button class="inline-flex items-center gap-2 bg-primary hover:bg-primary-container text-on-primary px-5 py-2 rounded text-label-md font-label-md shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2" id="retryBtn" onclick="location.reload();" type="button">
+<span class="material-symbols-outlined text-[18px] animate-spin" id="retryIcon">autorenew</span>
+<span class="">Thử tải lại trang (Retry)</span>
+<span class="ml-1 text-caption font-caption bg-on-primary/20 px-2 py-0.5 rounded-full" id="countdownBadge">14s</span>
+</button>
+<!-- Secondary Action -->
+<a class="inline-flex items-center gap-2 bg-surface-container-lowest hover:bg-surface-container-low text-on-surface border border-outline-variant px-4 py-2 rounded text-label-md font-label-md transition-colors" href="/me">
+<span class="material-symbols-outlined text-[18px]">home</span>
+<span class="">Về Trang chủ Portal (/me)</span>
+</a>
+<!-- Outline Action -->
+<button class="inline-flex items-center gap-2 bg-surface-container-lowest hover:bg-error-container/20 text-error border border-error/30 px-4 py-2 rounded text-label-md font-label-md transition-colors" onclick="alert('Đã gửi thông báo xác nhận sự cố đến kênh SRE On-call Duty.');" type="button">
+<span class="material-symbols-outlined text-[18px]">report_problem</span>
+<span class="">Báo cáo sự cố khẩn cấp</span>
+</button>
+</div>
+<!-- Telemetry Pill -->
+<div class="text-caption font-caption text-outline flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+          Auto-recovery sequence active · Incident Ticket #DF-7819
+        </div>
+</div>
+</section>
+<!-- 3. KHỐI CHẨN ĐOÁN KỸ THUẬT & TRẠNG THÁI DỊCH VỤ (Grid 8 / 4 Layout) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+<!-- CỘT 1: Support & Hotline Box -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col justify-between space-y-5">
+<div class="space-y-4">
+<div class="flex items-center gap-2 pb-3 border-b border-outline-variant">
+<span class="material-symbols-outlined text-primary text-[24px]">contact_support</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Kênh hỗ trợ khẩn cấp &amp; Hotline IT SRE</h2>
+</div>
+<div class="space-y-3.5 text-body-sm font-body-sm">
+<!-- Hotline Item -->
+<div class="p-3.5 bg-surface-container-low rounded border border-outline-variant flex items-center justify-between">
+<div>
+<span class="text-caption font-caption text-outline block">Hotline trực ban IT 24/7</span>
+<span class="text-headline-md font-headline-md text-primary font-bold">1900 6868</span>
+<span class="text-caption font-caption text-on-surface-variant ml-1">(Máy lẻ: 1088)</span>
+</div>
+<a class="p-2.5 rounded bg-primary text-on-primary hover:bg-primary-container transition-colors inline-flex items-center justify-center" href="tel:19006868" title="Gọi ngay">
+<span class="material-symbols-outlined text-[20px]">call</span>
+</a>
+</div>
+<!-- Slack Incident Channel -->
+<div class="p-3.5 bg-surface-container-low rounded border border-outline-variant flex items-center justify-between">
+<div>
+<span class="text-caption font-caption text-outline block">Kênh Slack Incident (Nội bộ)</span>
+<span class="font-mono text-body-sm font-semibold text-on-surface">#drinkflow-incidents</span>
+<div class="text-caption font-caption text-outline">hoặc #drinkflow-support</div>
+</div>
+<a class="px-3 py-1.5 rounded border border-outline-variant bg-surface-container-lowest text-label-sm font-label-sm hover:bg-surface-container text-on-surface transition-colors font-medium" href="#">
+Mở Slack
+</a>
+</div>
+<!-- Internal Status Page -->
+<div class="p-3.5 bg-surface-container-low rounded border border-outline-variant flex items-center justify-between">
+<div>
+<span class="text-caption font-caption text-outline block">Trang giám sát trực quan (Status Page)</span>
+<span class="font-mono text-body-sm text-primary font-medium">status.drinkflow.internal</span>
+</div>
+<a class="p-2 rounded hover:bg-surface-container text-outline hover:text-on-surface transition-colors inline-flex items-center justify-center" href="#" title="Xem trạng thái máy chủ">
+<span class="material-symbols-outlined text-[20px]">open_in_new</span>
+</a>
+</div>
+</div>
+</div>
+</div>
+
+<!-- CỘT 2: Troubleshooting Steps Box -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-6 shadow-sm flex flex-col justify-between space-y-5">
+<div class="space-y-4">
+<div class="flex items-center gap-2 pb-3 border-b border-outline-variant">
+<span class="material-symbols-outlined text-outline text-[22px]">checklist</span>
+<h2 class="text-headline-sm font-headline-sm text-on-surface">Các bước xử lý tạm thời cho nhân viên</h2>
+</div>
+<ul class="space-y-3.5 text-body-sm font-body-sm text-on-surface-variant">
+<li class="flex items-start gap-3">
+<span class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface font-semibold text-caption flex items-center justify-center shrink-0 mt-0.5">1</span>
+<span class="">Kiểm tra kết nối mạng nội bộ hoặc chứng chỉ bảo mật VPN công ty trước khi thử lại.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface font-semibold text-caption flex items-center justify-center shrink-0 mt-0.5">2</span>
+<span class=""><strong class="text-on-surface font-medium">Không spam tải lại liên tục (F5)</strong> nhằm tránh kích hoạt cơ chế phòng vệ Rate Limit (429 Too Many Requests).</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="w-5 h-5 rounded-full bg-surface-container-high text-on-surface font-semibold text-caption flex items-center justify-center shrink-0 mt-0.5">3</span>
+<span class="">Kiểm tra thông báo mới nhất trên kênh chat chung của công ty trước khi mở ticket hỗ trợ thủ công.</span>
+</li>
+</ul>
+</div>
+<div class="pt-3 border-t border-outline-variant">
+<a class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded bg-surface-container text-on-surface hover:bg-surface-container-high text-label-md font-label-md transition-colors border border-outline-variant" href="/me">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+Quay lại Bảng điều khiển tác vụ
+</a>
+</div>
+</div>
+</div>
+</main>
+<!-- 4. FOOTER (Based on Shared Components JSON) -->
+<footer class="bg-surface-container-lowest dark:bg-inverse-surface border-t border-outline-variant dark:border-outline mt-12">
+<div class="w-full max-w-[1200px] mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+<!-- Brand & Copyright -->
+<div class="flex items-center gap-3">
+<span class="text-label-md font-label-md text-on-surface dark:text-inverse-on-surface font-semibold">
+          DrinkFlow
+        </span>
+<span class="text-body-sm font-body-sm text-outline">|</span>
+<p class="text-body-sm font-body-sm text-on-surface-variant dark:text-outline-variant">
+          © 2025 DrinkFlow Operations. Tất cả các quyền được bảo lưu.
+        </p>
+</div>
+<!-- Footer Navigation Links from JSON -->
+<nav class="flex items-center gap-6">
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-150" href="#">
+          Điều khoản dịch vụ
+        </a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-150" href="#">
+          Chính sách bảo mật
+        </a>
+<a class="text-label-sm font-label-sm text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-150" href="#">
+          Hỗ trợ người dùng
+        </a>
+</nav>
+</div>
+</footer>
+<!-- Micro-interactions: Auto Retry Countdown & Copy Trace ID -->
+<script>
+    // 30-second Countdown Timer for Retry Button
+    let timeLeft = 30;
+    const countdownEl = document.getElementById('countdownBadge');
+    const timer = setInterval(() => {
+      timeLeft--;
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        countdownEl.innerText = "Đang thử lại...";
+        location.reload();
+      } else {
+        countdownEl.innerText = timeLeft + "s";
+      }
+    }, 1000);
+
+    // Copy Trace ID Functionality
+    function copyTraceId() {
+      const traceIdText = document.getElementById('traceId').innerText;
+      navigator.clipboard.writeText(traceIdText).then(() => {
+        const copyTextEl = document.getElementById('copyText');
+        const originalText = copyTextEl.innerText;
+        copyTextEl.innerText = "Đã chép!";
+        setTimeout(() => {
+          copyTextEl.innerText = originalText;
+        }, 2000);
+      });
+    }
+  </script>
+
+
+</body></html>

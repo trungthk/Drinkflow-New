@@ -1,23 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Realtime;
 
-use App\Models\RoomUser;
+use App\Enums\GlobalUserStatus;
+use App\Enums\RoomStatus;
+use App\Enums\RoomUserStatus;
 use App\Models\AdminAccount;
 use App\Models\Room;
+use App\Models\RoomUser;
 use Illuminate\Support\Str;
 
 class SocketTokenService
 {
     /**
-     * Handle the issue operation.
-     * @param RoomUser $roomUser Parameter value.
-     * @param int $ttlSeconds Parameter value.
-     * @return string Result of the operation.
+     * Issue a realtime socket authentication token for a room user.
+     *
+     * @param RoomUser $roomUser The room user entity requesting the token.
+     * @param int $ttlSeconds Time-to-live for the token in seconds.
+     * @return string Signed HMAC token string.
      */
     public function issue(RoomUser $roomUser, int $ttlSeconds = 300): string
     {
-        abort_unless($roomUser->globalUser?->status?->value === 'active' && $roomUser->status?->value === 'active', 403);
+        abort_unless(
+            $roomUser->globalUser?->status === GlobalUserStatus::Active
+            && $roomUser->status === RoomUserStatus::Active,
+            403
+        );
+
         $payload = [
             'actor_type' => 'user',
             'global_user_id' => $roomUser->global_user_id,
@@ -32,42 +43,61 @@ class SocketTokenService
     }
 
     /**
-     * Handle the issue for admin operation.
-     * @param AdminAccount $admin Parameter value.
-     * @param ?Room $room Parameter value.
-     * @param int $ttlSeconds Parameter value.
-     * @return string Result of the operation.
+     * Issue a realtime socket authentication token for an admin account.
+     *
+     * @param AdminAccount $admin The admin account instance.
+     * @param Room|null $room Optional specific room context.
+     * @param int $ttlSeconds Time-to-live for the token in seconds.
+     * @return string Signed HMAC token string.
      */
     public function issueForAdmin(AdminAccount $admin, ?Room $room = null, int $ttlSeconds = 300): string
     {
         abort_unless($admin->isActive(), 403);
-        $roomIds = $admin->isSuperadmin() ? Room::query()->where('status', 'active')->pluck('id')->all() : ($room ? [$room->id] : []);
-        if (! $admin->isSuperadmin() && (! $room || ! $admin->rooms()->whereKey($room->id)->exists())) abort(403);
-        $payload = ['actor_type' => $admin->isSuperadmin() ? 'superadmin' : 'admin', 'admin_id' => $admin->id, 'room_ids' => $roomIds, 'exp' => now()->addSeconds($ttlSeconds)->timestamp, 'jti' => (string) Str::uuid()];
+
+        $roomIds = $admin->isSuperadmin()
+            ? Room::query()->where('status', RoomStatus::Active->value)->pluck('id')->all()
+            : ($room ? [$room->id] : []);
+
+        if (! $admin->isSuperadmin() && (! $room || ! $admin->rooms()->whereKey($room->id)->exists())) {
+            abort(403);
+        }
+
+        $payload = [
+            'actor_type' => $admin->isSuperadmin() ? 'superadmin' : 'admin',
+            'admin_id' => $admin->id,
+            'room_ids' => $roomIds,
+            'exp' => now()->addSeconds($ttlSeconds)->timestamp,
+            'jti' => (string) Str::uuid(),
+        ];
         $encoded = $this->encode($payload);
+
         return $encoded.'.'.hash_hmac('sha256', $encoded, (string) config('app.key'));
     }
 
     /**
-     * Handle the verify operation.
-     * @param string $token Parameter value.
-     * @return ?array Result of the operation.
+     * Verify and decode a given realtime socket token.
+     *
+     * @param string $token The raw token string.
+     * @return array<string, mixed>|null Decoded payload array or null if invalid/expired.
      */
     public function verify(string $token): ?array
     {
         [$encoded, $signature] = array_pad(explode('.', $token, 2), 2, '');
+
         if ($encoded === '' || $signature === '' || ! hash_equals(hash_hmac('sha256', $encoded, (string) config('app.key')), $signature)) {
             return null;
         }
+
         $payload = json_decode((string) base64_decode(strtr($encoded, '-_', '+/')), true);
 
         return is_array($payload) && ($payload['actor_type'] ?? null) === 'user' && ($payload['exp'] ?? 0) >= now()->timestamp ? $payload : null;
     }
 
     /**
-     * Handle the encode operation.
-     * @param array $payload Parameter value.
-     * @return string Result of the operation.
+     * Encode payload data into base64url format.
+     *
+     * @param array<string, mixed> $payload The data payload to encode.
+     * @return string Base64url encoded string.
      */
     private function encode(array $payload): string
     {

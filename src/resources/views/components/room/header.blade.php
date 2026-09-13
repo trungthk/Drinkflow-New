@@ -33,7 +33,7 @@
                   @click.outside="showRoomDropdown = false"
                   type="button" 
                   class="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-slate-800 transition-all cursor-pointer">
-            <span class="w-6 h-6 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center font-bold text-xs shrink-0">
+            <span class="w-6 h-6 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-300 ring-1 ring-emerald-500/20 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
               <span class="material-symbols-outlined text-[15px]">corporate_fare</span>
             </span>
             <span class="font-bold text-xs sm:text-sm text-slate-900 truncate max-w-[140px] sm:max-w-[200px]">{{ $room->name ?? 'Room' }}</span>
@@ -125,9 +125,10 @@
         <!-- User Profile Pill -->
         <a href="{{ $room ? route('user.rooms.profile', $room->slug) : '#' }}" 
            class="flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200/70 transition-all group">
-          <img class="w-7 h-7 rounded-full object-cover ring-1 ring-slate-200" 
+          <img class="w-7 h-7 rounded-full object-cover border-2 border-white ring-2 ring-[#006948]/30 shadow-2xs" 
                src="{{ $user->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($user->name ?? 'User').'&background=006948&color=ffffff&bold=true' }}" 
-               alt="{{ $user->name ?? 'User' }}">
+               alt="{{ $user->name ?? 'User' }}"
+               loading="lazy">
           <span class="text-xs font-semibold text-slate-800 group-hover:text-[#006948] hidden lg:inline-block truncate max-w-[120px]">
             {{ $user->name ?? 'User' }}
           </span>

@@ -1,32 +1,41 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Campaign;
 
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Services\Audit\AuditService;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class SplitCampaignBillAction
 {
     /**
-     * Handle the execute operation.
-     * @param Campaign $campaign Parameter value.
-     * @param string $method Parameter value.
-     * @param array $custom Parameter value.
-     * @return array Result of the operation.
+     * Execute the bill splitting calculation and assign debts to room members.
+     *
+     * @param Campaign $campaign Campaign instance to split bills for.
+     * @param string $method Splitting algorithm ('by_order', 'sponsor_first', 'equal', 'flat_price', 'custom').
+     * @param array<int|string, int> $custom Custom allocation map [room_user_id => amount].
+     * @return array<string, mixed> Bill splitting calculation result payload.
+     * @throws ValidationException If campaign is not closed, has no orders, or allocations don't match total.
      */
     public function execute(Campaign $campaign, string $method, array $custom = []): array
     {
         return DB::transaction(function () use ($campaign, $method, $custom): array {
             $campaign = Campaign::query()->with(['orders' => fn ($query) => $query->whereNotIn('status', ['cancelled']), 'orders.roomUser'])->lockForUpdate()->findOrFail($campaign->id);
             if (! in_array($campaign->status?->value, ['closed', 'closing'], true)) {
-                throw ValidationException::withMessages(['campaign' => 'Chá»‰ split bill sau khi campaign Ä‘Ă£ Ä‘Ă³ng.']);
+                throw ValidationException::withMessages([
+                    'campaign' => __('admin.split_bill_only_closed'),
+                ]);
             }
             $byUser = $campaign->orders->groupBy('room_user_id');
             if ($byUser->isEmpty()) {
-                throw ValidationException::withMessages(['campaign' => 'Campaign chÆ°a cĂ³ order há»£p lá»‡.']);
+                throw ValidationException::withMessages([
+                    'campaign' => __('admin.campaign_no_valid_orders'),
+                ]);
             }
             $gross = $byUser->map(fn ($orders) => (int) $orders->sum(fn ($order) => $order->subtotal + $order->delivery_amount - $order->discount_amount));
             $orderNet = $byUser->map(fn ($orders) => (int) $orders->sum('final_amount'));
@@ -40,7 +49,9 @@ class SplitCampaignBillAction
                 default => collect(),
             };
             if ((int) $allocations->sum() !== $totalNet) {
-                throw ValidationException::withMessages(['allocations' => 'Tá»•ng phĂ¢n bá»• pháº£i báº±ng tá»•ng tiá»n order.']);
+                throw ValidationException::withMessages([
+                    'allocations' => __('admin.allocations_must_equal_total'),
+                ]);
             }
 
             $result = [];
@@ -64,12 +75,13 @@ class SplitCampaignBillAction
     }
 
     /**
-     * Handle the equalize operation.
-     * @param array $ids Parameter value.
-     * @param int $total Parameter value.
-     * @return \Illuminate\Support\Collection Result of the operation.
+     * Evenly distribute total amount across users.
+     *
+     * @param array<int|string> $ids Array of user IDs.
+     * @param int $total Total amount to distribute.
+     * @return Collection Collection mapping userId => distributed amount.
      */
-    private function equalize(array $ids, int $total): \Illuminate\Support\Collection
+    private function equalize(array $ids, int $total): Collection
     {
         $base = intdiv($total, count($ids));
         $remainder = $total % count($ids);
@@ -77,16 +89,20 @@ class SplitCampaignBillAction
     }
 
     /**
-     * Handle the flat price operation.
-     * @param array $ids Parameter value.
-     * @param ?int $flatPrice Parameter value.
-     * @param int $total Parameter value.
-     * @return \Illuminate\Support\Collection Result of the operation.
+     * Compute flat price allocation with rounding difference applied to first user.
+     *
+     * @param array<int|string> $ids Array of user IDs.
+     * @param ?int $flatPrice Configured flat price amount.
+     * @param int $total Total amount to distribute.
+     * @return Collection Collection mapping userId => allocated amount.
+     * @throws ValidationException If flat price is not positive integer.
      */
-    private function flatPrice(array $ids, ?int $flatPrice, int $total): \Illuminate\Support\Collection
+    private function flatPrice(array $ids, ?int $flatPrice, int $total): Collection
     {
         if (! $flatPrice || $flatPrice < 0) {
-            throw ValidationException::withMessages(['flat_price' => 'Campaign chÆ°a cáº¥u hĂ¬nh flat price há»£p lá»‡.']);
+            throw ValidationException::withMessages([
+                'flat_price' => __('admin.invalid_flat_price'),
+            ]);
         }
         $amounts = collect($ids)->mapWithKeys(fn ($id) => [(int) $id => $flatPrice]);
         $difference = $total - (int) $amounts->sum();

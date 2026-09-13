@@ -177,6 +177,44 @@
                     </div>
                 </div>
 
+                <!-- Anti-Spam Captcha Section -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="feedback-captcha">
+                        {{ __('global.feedback.captcha_label') }} <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        <div class="flex items-center gap-2">
+                            <div id="captcha-img-wrapper"
+                                 data-captcha-api="{{ url('/captcha/api/contact') }}"
+                                 data-captcha-fallback="{{ captcha_src('contact') }}"
+                                 data-loading-text="{{ __('global.feedback.captcha_loading') }}"
+                                 class="w-[120px] h-[38px] rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden cursor-pointer shrink-0 shadow-2xs hover:border-[#006948]/50 transition-colors"
+                                 title="{{ __('global.feedback.captcha_refresh') }}">
+                                {!! captcha_img('contact') !!}
+                            </div>
+                            <button type="button"
+                                    id="refresh-captcha-btn"
+                                    class="w-[38px] h-[38px] rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-[#006948] flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-2xs"
+                                    title="{{ __('global.feedback.captcha_refresh') }}">
+                                <span class="material-symbols-outlined text-[18px] transition-transform duration-300">sync</span>
+                            </button>
+                        </div>
+                        <input class="flex-1 w-full h-[38px] px-3 rounded-lg border @error('captcha') border-red-500 @else border-slate-200 @enderror bg-slate-50 text-slate-800 text-sm focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] outline-none transition-all placeholder:text-slate-400"
+                               id="feedback-captcha"
+                               name="captcha"
+                               type="text"
+                               maxlength="6"
+                               required
+                               placeholder="{{ __('global.feedback.captcha_placeholder') }}">
+                    </div>
+                    @error('captcha')
+                        <p class="text-xs text-red-500 mt-1.5 flex items-center gap-1 font-medium">
+                            <span class="material-symbols-outlined text-[14px]">error</span>
+                            {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+
                 <!-- Action buttons -->
                 <div class="flex items-center justify-end gap-3 pt-2">
                     <button 
@@ -278,47 +316,61 @@
                         <span class="material-symbols-outlined text-[18px] text-slate-400">chat_bubble_outline</span>
                         {{ __('global.feedback.recent_feedbacks') }}
                     </h3>
-                    <span class="text-xs text-slate-400">
-                        {{ __('global.feedback.showing_feedbacks', ['count' => $feedbacks->total()]) }}
+                    <span id="showing-feedbacks-count" class="text-xs text-slate-400" data-total="{{ $feedbacks->total() }}" data-current="{{ $feedbacks->count() }}">
+                        {{ __('global.feedback.showing_feedbacks', ['count' => $feedbacks->count()]) }} / {{ $feedbacks->total() }}
                     </span>
                 </div>
 
-                @if($feedbacks->count() > 0)
-                    @foreach($feedbacks as $fb)
-                        <article class="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs hover:border-slate-300 transition-colors">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-7 h-7 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center border border-emerald-200 shrink-0">
-                                        {{ strtoupper(mb_substr($fb->user_display_name ?: 'U', 0, 1)) }}
+                <div id="feedbacks-container" class="space-y-3">
+                    @if($feedbacks->count() > 0)
+                        @foreach($feedbacks as $fb)
+                            <article class="feedback-item bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs hover:border-slate-300 transition-colors">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center border border-emerald-200 shrink-0">
+                                            {{ strtoupper(mb_substr($fb->user_display_name ?: 'U', 0, 1)) }}
+                                        </div>
+                                        <div>
+                                            <h4 class="text-xs font-semibold text-slate-800">{{ $fb->user_display_name ?: __('global.feedback.anonymous_user') }}</h4>
+                                            <span class="text-[11px] text-slate-400">{{ $fb->created_at->format('d/m/Y') }} · {{ $fb->subsystem_label }}</span>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 class="text-xs font-semibold text-slate-800">{{ $fb->user_display_name ?: __('global.feedback.anonymous_user') }}</h4>
-                                        <span class="text-[11px] text-slate-400">{{ $fb->created_at->format('d/m/Y') }} · {{ $fb->subsystem_label }}</span>
+                                    <div class="flex items-center gap-0.5 text-[#006948]">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' {{ $i <= $fb->rating ? 1 : 0 }}; {{ $i > $fb->rating ? 'color: #cbd5e1;' : '' }}">star</span>
+                                        @endfor
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-0.5 text-[#006948]">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <span class="material-symbols-outlined text-[15px]" style="font-variation-settings: 'FILL' {{ $i <= $fb->rating ? 1 : 0 }}; {{ $i > $fb->rating ? 'color: #cbd5e1;' : '' }}">star</span>
-                                    @endfor
-                                </div>
+                                <p class="text-xs text-slate-600 leading-relaxed">
+                                    "{{ $fb->content }}"
+                                </p>
+                            </article>
+                        @endforeach
+                    @else
+                        <div id="empty-feedbacks-box" class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-2xs">
+                            <div class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                                <span class="material-symbols-outlined text-[24px]">chat_bubble_outline</span>
                             </div>
-                            <p class="text-xs text-slate-600 leading-relaxed">
-                                "{{ $fb->content }}"
-                            </p>
-                        </article>
-                    @endforeach
-
-                    <!-- Real pagination links -->
-                    <div class="pt-2">
-                        {{ $feedbacks->links() }}
-                    </div>
-                @else
-                    <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center shadow-2xs">
-                        <div class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-200/80 text-slate-400 flex items-center justify-center mx-auto mb-3">
-                            <span class="material-symbols-outlined text-[24px]">chat_bubble_outline</span>
+                            <h4 class="text-xs font-semibold text-slate-700">{{ __('global.feedback.empty_feedbacks_title') }}</h4>
+                            <p class="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">{{ __('global.feedback.empty_feedbacks_desc') }}</p>
                         </div>
-                        <h4 class="text-xs font-semibold text-slate-700">{{ __('global.feedback.empty_feedbacks_title') }}</h4>
-                        <p class="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">{{ __('global.feedback.empty_feedbacks_desc') }}</p>
+                    @endif
+                </div>
+
+                <!-- Load More Button -->
+                @if($feedbacks->hasMorePages())
+                    <div class="pt-2 text-center" id="load-more-wrapper">
+                        <button type="button"
+                                id="load-more-feedbacks-btn"
+                                data-next-page="2"
+                                data-url="{{ route('user.me.feedback') }}"
+                                data-loading-text="{{ __('global.feedback.loading_more') }}"
+                                data-all-loaded-text="{{ __('global.feedback.all_loaded') }}"
+                                data-showing-text="{{ __('global.feedback.showing_feedbacks', ['count' => '__COUNT__']) }}"
+                                class="w-full py-2.5 px-4 rounded-xl border border-slate-200 hover:border-[#006948] bg-white hover:bg-emerald-50/50 text-slate-700 hover:text-[#006948] text-xs font-semibold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer">
+                            <span class="material-symbols-outlined text-[18px]">expand_more</span>
+                            <span id="load-more-text">{{ __('global.feedback.load_more_btn') }}</span>
+                        </button>
                     </div>
                 @endif
             </div>

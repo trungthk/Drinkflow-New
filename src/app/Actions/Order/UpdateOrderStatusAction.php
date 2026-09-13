@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Order;
 
 use App\Enums\OrderStatus;
@@ -11,13 +13,24 @@ use Illuminate\Validation\ValidationException;
 
 class UpdateOrderStatusAction
 {
-    private array $allowed = ['submitted' => ['confirmed', 'cancelled'], 'confirmed' => ['ordering', 'cancelled'], 'ordering' => ['ordered', 'cancelled'], 'ordered' => ['delivering', 'completed'], 'delivering' => ['completed'], 'completed' => [], 'cancelled' => []];
+    /** @var array<string, array<string>> */
+    private array $allowed = [
+        OrderStatus::Submitted->value => [OrderStatus::Confirmed->value, OrderStatus::Cancelled->value],
+        OrderStatus::Confirmed->value => [OrderStatus::Ordering->value, OrderStatus::Cancelled->value],
+        OrderStatus::Ordering->value => [OrderStatus::Ordered->value, OrderStatus::Cancelled->value],
+        OrderStatus::Ordered->value => [OrderStatus::Delivering->value, OrderStatus::Completed->value],
+        OrderStatus::Delivering->value => [OrderStatus::Completed->value],
+        OrderStatus::Completed->value => [],
+        OrderStatus::Cancelled->value => [],
+    ];
 
     /**
-     * Handle the execute operation.
-     * @param Order $order Parameter value.
-     * @param string $next Parameter value.
-     * @return Order Result of the operation.
+     * Transition order status according to state machine rules.
+     *
+     * @param Order $order Order instance to transition.
+     * @param string $next Target status string.
+     * @return Order Updated order instance.
+     * @throws ValidationException If transition is not permitted.
      */
     public function execute(Order $order, string $next): Order
     {
@@ -25,13 +38,15 @@ class UpdateOrderStatusAction
             $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
             $current = $locked->status->value;
             if (! in_array($next, $this->allowed[$current] ?? [], true)) {
-                throw ValidationException::withMessages(['status' => 'Chuyá»ƒn tráº¡ng thĂ¡i order khĂ´ng há»£p lá»‡.']);
+                throw ValidationException::withMessages([
+                    'status' => __('admin.invalid_order_status_transition'),
+                ]);
             }
             $locked->status = OrderStatus::from($next);
-            if ($next === 'completed') {
+            if ($next === OrderStatus::Completed->value) {
                 $locked->completed_at = now();
             }
-            if ($next === 'cancelled') {
+            if ($next === OrderStatus::Cancelled->value) {
                 $locked->cancelled_at = now();
             }
             $locked->save();
@@ -44,3 +59,4 @@ class UpdateOrderStatusAction
         return $updated;
     }
 }
+

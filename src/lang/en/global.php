@@ -596,6 +596,13 @@ return [
         'anonymous_user' => 'DrinkFlow Member',
         'empty_feedbacks_title' => 'No feedback from members yet',
         'empty_feedbacks_desc' => 'Submit your feedback to help us improve DrinkFlow features and experience!',
+        'captcha_label' => 'Security Code',
+        'captcha_placeholder' => 'Enter 4-character code',
+        'captcha_refresh' => 'Refresh security code',
+        'captcha_loading' => 'Loading...',
+        'load_more_btn' => 'Load More Reviews',
+        'loading_more' => 'Loading more...',
+        'all_loaded' => 'All reviews loaded',
     ],
     'notifications' => [
         'page_title' => 'Notification Center - DrinkFlow',

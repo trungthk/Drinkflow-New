@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\User\Global;
 
 use App\Http\Controllers\Controller;
 use App\Models\GlobalUser;
 use App\Models\UserNotification;
+use App\Services\Notification\UserNotificationService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -13,100 +16,65 @@ use Illuminate\Http\Request;
 class NotificationController extends Controller
 {
     /**
-     * Handle the index operation for notifications.
+     * Hiển thị trang danh sách thông báo toàn hệ thống hoặc trả về JSON API (/me/notifications).
      *
-     * @param Request $request
-     * @return JsonResponse|View
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
+     * @param  \App\Services\Notification\UserNotificationService  $service  Service xử lý thông báo
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Contracts\View\View  Phản hồi JSON hoặc Giao diện View
      */
-    public function index(Request $request): JsonResponse|View
+    public function index(Request $request, UserNotificationService $service): JsonResponse|View
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
         // Return JSON if requested as API
         if ($request->expectsJson() || $request->routeIs('user.notifications.index')) {
-            $query = $user->notifications()->latest();
-            if ($request->boolean('unread')) {
-                $query->whereNull('read_at');
-            }
-            return response()->json(['data' => $query->paginate(30)]);
+            $data = $service->getNotificationsApiData($user, $request);
+            return response()->json(['data' => $data]);
         }
 
-        // Web view (/me/notifications)
-        $tab = $request->query('tab', 'all');
-        $baseQuery = $user->notifications();
+        $data = $service->getNotificationsPageData($user, $request);
 
-        // Calculate counts for filter tabs
-        $allCount = (clone $baseQuery)->count();
-        $unreadCount = (clone $baseQuery)->whereNull('read_at')->count();
-        $roomOrderCount = (clone $baseQuery)->whereIn('type', ['campaign.created', 'order.status', 'room.invite'])->count();
-        $paymentCount = (clone $baseQuery)->whereIn('type', ['payment.due', 'payment.confirmed', 'debt.reminder'])->count();
-        $securityCount = (clone $baseQuery)->whereIn('type', ['security.alert', 'device.new'])->count();
-
-        // Query by active tab
-        $query = (clone $baseQuery)->latest();
-        if ($tab === 'unread') {
-            $query->whereNull('read_at');
-        } elseif ($tab === 'room_order') {
-            $query->whereIn('type', ['campaign.created', 'order.status', 'room.invite']);
-        } elseif ($tab === 'payment') {
-            $query->whereIn('type', ['payment.due', 'payment.confirmed', 'debt.reminder']);
-        } elseif ($tab === 'security') {
-            $query->whereIn('type', ['security.alert', 'device.new']);
-        }
-
-        $notifications = $query->paginate(15)->appends(['tab' => $tab]);
-
-        $breadcrumbs = [
-            ['label' => __('global.rooms.breadcrumb_personal'), 'url' => route('user.me.dashboard')],
-            ['label' => __('global.notifications.breadcrumb_notifications'), 'url' => route('user.me.notifications')],
-        ];
-
-        return view('user.global.notifications', compact(
-            'user',
-            'tab',
-            'allCount',
-            'unreadCount',
-            'roomOrderCount',
-            'paymentCount',
-            'securityCount',
-            'notifications',
-            'breadcrumbs'
-        ));
+        return view('user.global.notifications', $data);
     }
 
     /**
-     * Mark all unread notifications as read.
+     * Đánh dấu toàn bộ thông báo chưa đọc của người dùng thành đã đọc.
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
+     * @param  \App\Services\Notification\UserNotificationService  $service  Service xử lý thông báo
+     * @return \Illuminate\Http\RedirectResponse  Phản hồi chuyển hướng quay lại kèm thông báo thành công
      */
-    public function markAllRead(Request $request): RedirectResponse
+    public function markAllRead(Request $request, UserNotificationService $service): RedirectResponse
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $user->notifications()->whereNull('read_at')->update(['read_at' => now()]);
+        $service->markAllAsRead($user);
 
         return back()->with('status', __('global.notifications.marked_all_read_status'));
     }
 
     /**
-     * Handle marking a single notification as read.
+     * Đánh dấu một thông báo cụ thể thành đã đọc (hỗ trợ cả Web Redirect và JSON API).
      *
-     * @param Request $request
-     * @param UserNotification $notification
-     * @return JsonResponse|RedirectResponse
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
+     * @param  \App\Models\UserNotification  $notification  Bản ghi thông báo cần đánh dấu
+     * @param  \App\Services\Notification\UserNotificationService  $service  Service xử lý thông báo
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse  Phản hồi JSON hoặc chuyển hướng
      */
-    public function read(Request $request, UserNotification $notification): JsonResponse|RedirectResponse
+    public function read(Request $request, UserNotification $notification, UserNotificationService $service): JsonResponse|RedirectResponse
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        abort_unless($notification->global_user_id === $user->id, 404);
-        $notification->update(['read_at' => now()]);
+        $updated = $service->markAsRead($user, $notification);
 
         if ($request->expectsJson()) {
-            return response()->json(['data' => $notification->fresh()]);
+            return response()->json(['data' => $updated]);
         }
 
         return back()->with('status', __('global.notifications.marked_read_status'));
     }
 }
+

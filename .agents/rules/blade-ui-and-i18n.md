@@ -23,3 +23,7 @@ Không duplicate cấu trúc HTML (doctype, head, meta, scripts, header, footer)
 - Các biểu mẫu gửi thông tin công khai (như form liên hệ, gửi góp ý không đăng nhập) phải có cơ chế chống spam bằng `mews/captcha`.
 - Luôn kiểm tra môi trường chạy có `ext-gd` hay không. Khi render ảnh captcha, đảm bảo đường dẫn font TTF là hợp lệ và có cơ chế fallback.
 - Đi kèm với Rate Limiting ở route/middleware (ví dụ: `throttle:5,1` cho 5 requests/phút).
+
+## 4. Tối ưu hình ảnh (Image Lazy Loading)
+- Mọi thẻ `<img>` trong template Blade bắt buộc phải có thuộc tính `loading="lazy"`.
+- Bắt buộc có thuộc tính `alt` có nghĩa (hoặc dùng hàm dịch `__('...')`), kèm theo xử lý lỗi fallback `onerror="this.onerror=null;this.src='...'"` để tránh broken image trên giao diện.

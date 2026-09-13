@@ -1,8 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Campaign;
 
+use App\Enums\CampaignItemStatus;
 use App\Enums\CampaignStatus;
+use App\Enums\OrderStatus;
+use App\Enums\PaymentAccountStatus;
 use App\Events\CampaignCreated;
 use App\Models\Campaign;
 use App\Models\PaymentAccount;
@@ -12,25 +17,35 @@ use Illuminate\Validation\ValidationException;
 class TransitionCampaignAction
 {
     /**
-     * Handle the activate operation.
-     * @param Campaign $campaign Parameter value.
-     * @return Campaign Result of the operation.
+     * Activate a campaign from draft/scheduled state.
+     *
+     * @param Campaign $campaign Campaign instance to activate.
+     * @return Campaign Activated campaign instance.
+     * @throws ValidationException If campaign state, deadline, items or payment account is invalid.
      */
     public function activate(Campaign $campaign): Campaign
     {
         $updated = DB::transaction(function () use ($campaign): Campaign {
             $campaign = Campaign::query()->with('items')->lockForUpdate()->findOrFail($campaign->id);
             if (! in_array($campaign->status, [CampaignStatus::Draft, CampaignStatus::Scheduled], true)) {
-                throw ValidationException::withMessages(['campaign' => 'Campaign khĂ´ng thá»ƒ má»Ÿ á»Ÿ tráº¡ng thĂ¡i hiá»‡n táº¡i.']);
+                throw ValidationException::withMessages([
+                    'campaign' => __('admin.campaign_cannot_activate_state'),
+                ]);
             }
             if ($campaign->deadline && $campaign->deadline->isPast()) {
-                throw ValidationException::withMessages(['deadline' => 'Deadline pháº£i náº±m trong tÆ°Æ¡ng lai.']);
+                throw ValidationException::withMessages([
+                    'deadline' => __('admin.deadline_must_be_future'),
+                ]);
             }
-            if (! $campaign->items->contains(fn ($item) => $item->status === 'active')) {
-                throw ValidationException::withMessages(['items' => 'Campaign pháº£i cĂ³ Ă­t nháº¥t má»™t mĂ³n Ä‘ang bĂ¡n.']);
+            if (! $campaign->items->contains(fn ($item) => $item->status === CampaignItemStatus::Active)) {
+                throw ValidationException::withMessages([
+                    'items' => __('admin.campaign_must_have_items'),
+                ]);
             }
-            if (! $campaign->payment_account_id || ! PaymentAccount::query()->whereKey($campaign->payment_account_id)->where('room_id', $campaign->room_id)->where('status', 'active')->exists()) {
-                throw ValidationException::withMessages(['payment_account_id' => 'Campaign pháº£i cĂ³ tĂ i khoáº£n thanh toĂ¡n active cá»§a Room.']);
+            if (! $campaign->payment_account_id || ! PaymentAccount::query()->whereKey($campaign->payment_account_id)->where('room_id', $campaign->room_id)->where('status', PaymentAccountStatus::Active)->exists()) {
+                throw ValidationException::withMessages([
+                    'payment_account_id' => __('admin.campaign_requires_payment_account'),
+                ]);
             }
 
             $campaign->update(['status' => CampaignStatus::Active, 'started_at' => now()]);
@@ -44,19 +59,31 @@ class TransitionCampaignAction
     }
 
     /**
-     * Handle the cancel operation.
-     * @param Campaign $campaign Parameter value.
-     * @return Campaign Result of the operation.
+     * Cancel an active or pending campaign.
+     *
+     * @param Campaign $campaign Campaign instance to cancel.
+     * @return Campaign Cancelled campaign instance.
+     * @throws ValidationException If campaign has active orders or cannot be cancelled.
      */
     public function cancel(Campaign $campaign): Campaign
     {
         return DB::transaction(function () use ($campaign): Campaign {
             $campaign = Campaign::query()->lockForUpdate()->findOrFail($campaign->id);
             if (! in_array($campaign->status, [CampaignStatus::Draft, CampaignStatus::Scheduled, CampaignStatus::Active], true)) {
-                throw ValidationException::withMessages(['campaign' => 'Campaign khĂ´ng thá»ƒ há»§y á»Ÿ tráº¡ng thĂ¡i hiá»‡n táº¡i.']);
+                throw ValidationException::withMessages([
+                    'campaign' => __('admin.campaign_cannot_cancel_state'),
+                ]);
             }
-            if ($campaign->orders()->whereIn('status', ['submitted', 'confirmed', 'ordering', 'ordered', 'delivering'])->exists()) {
-                throw ValidationException::withMessages(['campaign' => 'KhĂ´ng thá»ƒ há»§y khi cĂ²n order Ä‘ang hoáº¡t Ä‘á»™ng.']);
+            if ($campaign->orders()->whereIn('status', [
+                OrderStatus::Submitted->value,
+                OrderStatus::Confirmed->value,
+                OrderStatus::Ordering->value,
+                OrderStatus::Ordered->value,
+                OrderStatus::Delivering->value,
+            ])->exists()) {
+                throw ValidationException::withMessages([
+                    'campaign' => __('admin.campaign_has_active_orders'),
+                ]);
             }
             $campaign->update(['status' => CampaignStatus::Cancelled]);
 
@@ -65,16 +92,20 @@ class TransitionCampaignAction
     }
 
     /**
-     * Handle the archive operation.
-     * @param Campaign $campaign Parameter value.
-     * @return Campaign Result of the operation.
+     * Archive a closed or cancelled campaign.
+     *
+     * @param Campaign $campaign Campaign instance to archive.
+     * @return Campaign Archived campaign instance.
+     * @throws ValidationException If campaign is not closed or cancelled.
      */
     public function archive(Campaign $campaign): Campaign
     {
         return DB::transaction(function () use ($campaign): Campaign {
             $campaign = Campaign::query()->lockForUpdate()->findOrFail($campaign->id);
             if (! in_array($campaign->status, [CampaignStatus::Closed, CampaignStatus::Cancelled], true)) {
-                throw ValidationException::withMessages(['campaign' => 'Chá»‰ archive campaign Ä‘Ă£ Ä‘Ă³ng hoáº·c Ä‘Ă£ há»§y.']);
+                throw ValidationException::withMessages([
+                    'campaign' => __('admin.campaign_cannot_archive_state'),
+                ]);
             }
             $campaign->update(['status' => CampaignStatus::Archived]);
 
@@ -82,3 +113,4 @@ class TransitionCampaignAction
         });
     }
 }
+

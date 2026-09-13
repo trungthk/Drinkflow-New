@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -8,6 +10,10 @@ use Illuminate\Database\Eloquent\Model;
 class ContactInquiry extends Model
 {
     use HasFactory;
+
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_RESPONDED = 'responded';
+    public const STATUS_CLOSED = 'closed';
 
     protected $table = 'contact_inquiries';
 

@@ -60,15 +60,15 @@
     <!-- Schema.org JSON-LD Structured Data for Rich Search Results -->
     <script type="application/ld+json">
     {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
+      "@@context": "https://schema.org",
+      "@@type": "WebApplication",
       "name": "DrinkFlow",
       "url": "{{ url('/') }}",
       "applicationCategory": "BusinessApplication",
       "operatingSystem": "All",
       "description": "{{ $pageDescription }}",
       "offers": {
-        "@type": "Offer",
+        "@@type": "Offer",
         "price": "0",
         "priceCurrency": "VND"
       }
@@ -145,6 +145,7 @@
 
     <!-- SHARED FOOTER -->
     <x-public.footer
+        :activeTab="$activeTab"
         :version="$version"
         :termsUrl="$termsUrl"
         :versionsUrl="$versionsUrl"

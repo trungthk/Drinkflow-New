@@ -1,2 +1,6 @@
+@props([
+    'activeTab' => null,
+])
+
 <!-- Global User Shared Footer -->
-<x-public.footer :terms-url="route('terms')" :versions-url="route('versions')" />
+<x-public.footer :active-tab="$activeTab" :terms-url="route('terms')" :versions-url="route('versions')" />

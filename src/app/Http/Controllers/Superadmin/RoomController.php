@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Superadmin;
 
 use App\Actions\Superadmin\ManageRoomAction;
+use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SetStatusRequest;
 use App\Http\Requests\StoreRoomRequest;
@@ -20,7 +23,10 @@ class RoomController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Room::query()->withCount(['roomUsers', 'campaigns', 'admins', 'roomUsers as active_room_users_count' => fn ($q) => $q->where('status', 'active'), 'roomUsers as blocked_room_users_count' => fn ($q) => $q->where('status', 'blocked')])->latest();
+        $query = Room::query()->withCount(['roomUsers', 'campaigns', 'admins',
+            'roomUsers as active_room_users_count'  => fn ($q) => $q->where('status', RoomUserStatus::Active),
+            'roomUsers as blocked_room_users_count' => fn ($q) => $q->where('status', RoomUserStatus::Blocked),
+        ])->latest();
         if ($request->filled('q')) $query->where(fn ($q) => $q->where('name', 'like', '%'.$request->string('q').'%')->orWhere('slug', 'like', '%'.$request->string('q').'%'));
         if ($request->filled('status')) $query->where('status', $request->string('status')->toString());
         return response()->json(['data' => $query->paginate(50)]);

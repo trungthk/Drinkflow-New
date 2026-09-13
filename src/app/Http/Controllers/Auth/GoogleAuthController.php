@@ -1,51 +1,38 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Services\Auth\GoogleOAuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class GoogleAuthController extends Controller
 {
     /**
-     * Handle the redirect operation.
-     * @param Request $request Parameter value.
-     * @return RedirectResponse Result of the operation.
+     * Điều hướng người dùng sang trang xác thực Google OAuth 2.0.
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
+     * @param  \App\Services\Auth\GoogleOAuthService  $service  Service điều phối xác thực Google OAuth
+     * @return \Illuminate\Http\RedirectResponse  Phản hồi chuyển hướng sang Google
      */
-    public function redirect(Request $request): RedirectResponse
+    public function redirect(Request $request, GoogleOAuthService $service): RedirectResponse
     {
         abort_unless(config('services.google.client_id'), 503, 'Google authentication is not configured.');
 
-        $state = Str::random(40);
-        $request->session()->put('google_oauth_state', $state);
-
-        // Store origin page where user started login to redirect back gracefully on error
-        $loginSource = $request->header('referer') ?? url('/');
-        $request->session()->put('google_oauth_login_source', $loginSource);
-
-        $query = http_build_query([
-            'client_id' => config('services.google.client_id'),
-            'redirect_uri' => config('services.google.redirect'),
-            'response_type' => 'code',
-            'scope' => 'openid email profile',
-            'state' => $state,
-            'access_type' => 'online',
-            'prompt' => 'select_account',
-        ]);
-
-        return redirect()->away('https://accounts.google.com/o/oauth2/v2/auth?' . $query);
+        return redirect()->away($service->getAuthorizationUrl($request));
     }
 
     /**
-     * Handle the callback operation.
-     * @param Request $request Parameter value.
-     * @param GoogleOAuthService $service Parameter value.
-     * @return RedirectResponse Result of the operation.
+     * Xử lý callback trả về từ Google sau khi người dùng đồng ý ủy quyền đăng nhập.
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request chứa auth code và state
+     * @param  \App\Services\Auth\GoogleOAuthService  $service  Service xử lý trao đổi token và xác thực người dùng
+     * @return \Illuminate\Http\RedirectResponse  Phản hồi chuyển hướng người dùng về trang đích hoặc báo lỗi
      */
     public function callback(Request $request, GoogleOAuthService $service): RedirectResponse
     {
@@ -63,37 +50,9 @@ class GoogleAuthController extends Controller
         }
 
         try {
-            $tokenResponse = Http::asForm()->post('https://oauth2.googleapis.com/token', [
-                'code' => $request->string('code')->toString(),
-                'client_id' => config('services.google.client_id'),
-                'client_secret' => config('services.google.client_secret'),
-                'redirect_uri' => config('services.google.redirect'),
-                'grant_type' => 'authorization_code',
-            ]);
+            $user = $service->handleCallback($request);
 
-            if ($tokenResponse->failed()) {
-                return redirect()->to($loginSource)->with('login_error', __('global.auth.google_token_failed'));
-            }
-
-            $token = $tokenResponse->json();
-            $profileResponse = Http::withToken($token['access_token'] ?? '')
-                ->get('https://openidconnect.googleapis.com/v1/userinfo');
-
-            if ($profileResponse->failed()) {
-                return redirect()->to($loginSource)->with('login_error', __('global.auth.google_profile_failed'));
-            }
-
-            $profile = $profileResponse->json();
-
-            $user = $service->resolveUser([
-                'sub' => $profile['sub'] ?? null,
-                'email' => $profile['email'] ?? null,
-                'name' => $profile['name'] ?? '',
-                'picture' => $profile['picture'] ?? null,
-                'email_verified' => (bool) ($profile['email_verified'] ?? false),
-            ]);
-
-            auth('web')->login($user, true);
+            \Illuminate\Support\Facades\Auth::guard('web')->login($user, true);
             $request->session()->regenerate();
 
             $intended = $request->session()->pull('url.intended');

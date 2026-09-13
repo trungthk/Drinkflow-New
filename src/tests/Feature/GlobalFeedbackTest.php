@@ -102,6 +102,8 @@ class GlobalFeedbackTest extends TestCase
 
     public function test_user_can_submit_valid_feedback(): void
     {
+        \Illuminate\Support\Facades\Config::set('captcha.disable', true);
+
         $user = GlobalUser::create([
             'name' => 'Trung Lê',
             'normalized_name' => 'TRUNG LE',
@@ -128,8 +130,33 @@ class GlobalFeedbackTest extends TestCase
         ]);
     }
 
+    public function test_feedback_submission_requires_captcha_by_default(): void
+    {
+        \Illuminate\Support\Facades\Config::set('captcha.disable', false);
+
+        $user = GlobalUser::create([
+            'name' => 'Trung Lê',
+            'normalized_name' => 'TRUNG LE',
+            'email' => 'trung.lt@company.com',
+            'status' => 'active',
+        ]);
+
+        $response = $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($user, 'web')
+            ->post('/me/feedback', [
+                'rating' => 5,
+                'subsystem' => 'split_qr',
+                'content' => 'Feedback không kèm mã captcha.',
+                // omitted captcha
+            ]);
+
+        $response->assertSessionHasErrors(['captcha']);
+    }
+
     public function test_user_cannot_exceed_daily_quota_of_1_feedback(): void
     {
+        \Illuminate\Support\Facades\Config::set('captcha.disable', true);
+
         $user = GlobalUser::create([
             'name' => 'Trung Lê',
             'normalized_name' => 'TRUNG LE',
@@ -163,6 +190,8 @@ class GlobalFeedbackTest extends TestCase
 
     public function test_feedback_validation_requires_content_and_valid_rating(): void
     {
+        \Illuminate\Support\Facades\Config::set('captcha.disable', true);
+
         $user = GlobalUser::create([
             'name' => 'Trung Lê',
             'normalized_name' => 'TRUNG LE',
@@ -180,5 +209,73 @@ class GlobalFeedbackTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHasErrors(['rating', 'subsystem', 'content']);
+    }
+
+    public function test_feedback_load_more_returns_5_items_ordered_by_created_at_desc(): void
+    {
+        $user = GlobalUser::create([
+            'name' => 'Trung Lê',
+            'normalized_name' => 'TRUNG LE',
+            'email' => 'trung.lt@company.com',
+            'status' => 'active',
+        ]);
+
+        // Create 12 feedbacks with distinct timestamps
+        for ($i = 1; $i <= 12; $i++) {
+            Feedback::forceCreate([
+                'global_user_id' => $user->id,
+                'rating' => ($i % 5) + 1,
+                'subsystem' => 'all',
+                'content' => "Góp ý số {$i}",
+                'user_display_name' => "User {$i}",
+                'created_at' => now()->subMinutes(100 - $i),
+                'updated_at' => now()->subMinutes(100 - $i),
+            ]);
+        }
+
+        // Page 1: 5 items
+        $res1 = $this->actingAs($user, 'web')
+            ->getJson('/me/feedback?page=1');
+
+        $res1->assertOk()
+            ->assertJson([
+                'success' => true,
+                'current_page' => 1,
+                'has_more' => true,
+                'next_page' => 2,
+                'total' => 12,
+                'count' => 5,
+            ]);
+
+        $data1 = $res1->json('data');
+        $this->assertCount(5, $data1);
+        $this->assertSame('Góp ý số 12', $data1[0]['content']); // Latest first
+        $this->assertSame('Góp ý số 11', $data1[1]['content']);
+
+        // Page 2: next 5 items
+        $res2 = $this->actingAs($user, 'web')
+            ->getJson('/me/feedback?page=2');
+
+        $res2->assertOk()
+            ->assertJson([
+                'success' => true,
+                'current_page' => 2,
+                'has_more' => true,
+                'next_page' => 3,
+                'count' => 5,
+            ]);
+
+        // Page 3: final 2 items
+        $res3 = $this->actingAs($user, 'web')
+            ->getJson('/me/feedback?page=3');
+
+        $res3->assertOk()
+            ->assertJson([
+                'success' => true,
+                'current_page' => 3,
+                'has_more' => false,
+                'next_page' => null,
+                'count' => 2,
+            ]);
     }
 }

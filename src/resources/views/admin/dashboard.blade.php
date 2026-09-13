@@ -1,56 +1,377 @@
-@extends('admin.layout')
-
-@section('title', 'Tổng quan Room')
-@section('active', 'dashboard')
-
-@section('content')
-    <div class="superadmin-heading mb-5">
-        <div>
-            <p class="superadmin-eyebrow flex items-center gap-2"><span class="status-dot"></span>Enterprise Hub · Room Scope v2.4 · Realtime Active</p>
-            <h1>Tổng quan Phòng {{ $room->name }}</h1>
-            <p>Quản lý tập trung các đợt order nước uống, dòng tiền chia bill tự động và tiến độ chiến dịch phòng ban.</p>
+<x-admin.layout :title="__('admin.dashboard')" active="dashboard" :room="$room">
+    <div
+        data-admin-dashboard
+        data-dashboard-url="{{ route('admin.dashboard', $room) }}"
+        data-token-url="{{ route('admin.socket-token', $room) }}"
+        data-realtime-url="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}"
+        data-close-url-template="{{ url('admin/' . $room->id . '/campaigns/:id/close') }}"
+        class="space-y-6"
+    >
+        <!-- Page Header & Sync Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-outline-variant/40">
+            <div>
+                <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
+                    <span>Admin</span>
+                    <span>/</span>
+                    <span>Rooms</span>
+                    <span>/</span>
+                    <span class="text-on-surface font-semibold">{{ $room->name }} Operations</span>
+                </div>
+            <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.dashboard') }} · {{ $room->name }}</h1>
         </div>
-        <div class="superadmin-actions">
-            <a class="sa-button secondary" href="{{ route('admin.manage.page', [$room, 'tab' => 'reports']) }}"><span class="material-symbols-outlined">file_download</span>Xuất báo cáo tuần</a>
-            <a class="sa-button" href="{{ route('admin.manage.page', [$room, 'tab' => 'campaigns']) }}"><span class="material-symbols-outlined">bolt</span>Tạo đơn khẩn cấp</a>
+        <div class="flex items-center gap-2">
+            <button id="btn-sync-buffer" type="button" class="px-3 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-on-surface hover:bg-surface-container-low text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-[16px]">refresh</span>
+                <span>{{ __('admin.sync_buffer') }}</span>
+            </button>
+            <a href="{{ route('admin.manage.page', [$room, 'tab' => 'campaigns']) }}" class="px-3 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm no-underline">
+                <span class="material-symbols-outlined text-[16px]">add</span>
+                <span>{{ __('admin.fast_create_campaign') }}</span>
+            </a>
         </div>
     </div>
 
-    <section class="relative mb-4 overflow-hidden rounded-[14px] bg-[#131b2e] p-6 text-white shadow-[0_12px_26px_rgba(19,27,46,.15)] lg:flex lg:items-center lg:justify-between lg:gap-8">
-        <div class="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-emerald-400/15 blur-3xl"></div>
-        <div class="relative max-w-3xl">
-            <div class="flex flex-wrap items-center gap-2 text-[10px] font-bold"><span class="inline-flex items-center gap-2 rounded-full bg-[#006c49] px-2.5 py-1 uppercase"><span class="h-1.5 w-1.5 rounded-full bg-[#6ffbbe]"></span>Chiến dịch đang mở</span><span id="campaign-code" class="rounded-full bg-white/10 px-2.5 py-1">Room scope</span><span id="campaign-deadline" class="text-[#b9c4db]">Đang đồng bộ</span></div>
-            <h2 id="campaign-name" class="mt-4 text-2xl font-bold tracking-tight">Đang tải chiến dịch...</h2>
-            <p id="campaign-description" class="mt-1 text-[12px] leading-5 text-[#b9c4db]">Đồng bộ dữ liệu campaign và trạng thái gom đơn.</p>
-            <div class="mt-5 flex flex-wrap gap-x-7 gap-y-3 text-[10px] text-[#b9c4db]">
-                <p class="m-0">Thành viên đặt<strong id="campaign-members" class="mt-1 block text-[12px] text-white">—</strong></p><p class="m-0">Tạm tính giỏ hàng<strong id="campaign-total" class="mt-1 block text-[12px] text-white">—</strong></p><p class="m-0">Sponsor Fund<strong id="campaign-sponsor" class="mt-1 block text-[12px] text-white">—</strong></p>
+    <!-- 5 Summary Metrics Grid -->
+    <section id="metrics-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
+        <!-- Metric 1: Active Rooms -->
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between shadow-2xs">
+            <div class="flex items-center justify-between text-outline mb-1">
+                <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.active_rooms') }}</span>
+                <span class="material-symbols-outlined text-[18px]">meeting_room</span>
+            </div>
+            <div id="metric-active-rooms" class="text-2xl font-bold text-on-surface">—</div>
+            <div id="metric-rooms-hint" class="text-[11px] text-outline mt-1 font-mono">{{ __('admin.across_members', ['count' => '—']) }}</div>
+        </div>
+
+        <!-- Metric 2: Live Campaigns -->
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between shadow-2xs">
+            <div class="flex items-center justify-between text-outline mb-1">
+                <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.live_campaigns') }}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-error-container text-on-error-container font-bold uppercase">{{ __('admin.active_now') }}</span>
+            </div>
+            <div class="text-2xl font-bold text-error flex items-baseline gap-1.5">
+                <span id="metric-live-campaigns">0</span>
+                <span class="text-xs text-outline font-normal">runs</span>
+            </div>
+            <div id="metric-campaigns-hint" class="text-[11px] text-error mt-1 font-semibold flex items-center gap-1 font-mono">
+                <span class="w-1.5 h-1.5 rounded-full bg-error status-dot-pulse"></span>
+                <span id="metric-campaign-closing-text">{{ __('admin.closing_in', ['time' => '--:--']) }}</span>
             </div>
         </div>
-        <div class="relative mt-6 min-w-[235px] rounded-xl bg-white/10 p-4 text-center lg:mt-0"><p class="m-0 text-[10px] font-bold uppercase text-[#b9c4db]">Thời gian đóng đơn còn</p><strong id="campaign-timer" class="mt-1 block text-[29px] text-[#6ffbbe]">--:--</strong><small class="text-[9px] text-[#b9c4db]">phút : giây</small><a class="mt-3 flex items-center justify-center gap-1 rounded-lg bg-[#006c49] px-3 py-2 text-[11px] font-bold text-white no-underline" href="{{ route('admin.manage.page', [$room, 'tab' => 'orders']) }}"><span class="material-symbols-outlined text-[16px]">receipt_long</span>Xem Live Orders</a><a class="mt-2 flex items-center justify-center gap-1 rounded-lg bg-white/10 px-3 py-2 text-[11px] font-bold text-white no-underline" href="{{ route('admin.manage.page', [$room, 'tab' => 'campaigns']) }}">Quản lý chiến dịch</a></div>
+
+        <!-- Metric 3: Today's Orders -->
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between shadow-2xs">
+            <div class="flex items-center justify-between text-outline mb-1">
+                <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.todays_orders') }}</span>
+                <span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+            </div>
+            <div id="metric-orders-today" class="text-2xl font-bold text-on-surface">0</div>
+            <div id="metric-orders-growth" class="text-[11px] text-primary mt-1 font-semibold flex items-center gap-0.5 font-mono">
+                <span class="material-symbols-outlined text-[14px]">trending_up</span>
+                <span id="metric-orders-growth-val">+0% {{ __('admin.vs_yesterday') }}</span>
+            </div>
+        </div>
+
+        <!-- Metric 4: Total Value Today -->
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between shadow-2xs">
+            <div class="flex items-center justify-between text-outline mb-1">
+                <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.total_value_today') }}</span>
+                <span class="material-symbols-outlined text-[18px]">attach_money</span>
+            </div>
+            <div id="metric-total-value" class="text-2xl font-bold text-on-surface truncate">0 ₫</div>
+            <div id="metric-sponsors-val" class="text-[11px] text-outline mt-1 font-mono">{{ __('admin.sponsors_today', ['amount' => '0 ₫']) }}</div>
+        </div>
+
+        <!-- Metric 5: Unpaid Debt -->
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between shadow-2xs">
+            <div class="flex items-center justify-between text-outline mb-1">
+                <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.unpaid_debt') }}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-amber-100 text-amber-800 font-bold border border-amber-200">{{ __('admin.needs_settlement') }}</span>
+            </div>
+            <div id="metric-unpaid-debt" class="text-2xl font-bold text-amber-700 truncate">0 ₫</div>
+            <div id="metric-debt-users" class="text-[11px] text-amber-700 mt-1 font-semibold font-mono">{{ __('admin.pending_users', ['count' => '0']) }}</div>
+        </div>
     </section>
 
-    <div id="cards" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"></div>
-    <div class="mt-5 grid gap-5 xl:grid-cols-[1.55fr_.85fr]">
-        <div class="space-y-5">
-            <section class="sa-card sa-section !mt-0"><div class="sa-section-header"><div><h2>Mục tiêu gom đơn phòng ban</h2><p>Tiến độ campaign đang hoạt động trong Room.</p></div><strong id="goal-percent" class="text-xl text-[#006c49]">—</strong></div><div class="h-2 overflow-hidden rounded-full bg-[#dce9ff]"><div id="goal-progress" class="h-full rounded-full bg-[#006c49] transition-all" style="width:0%"></div></div><div class="mt-3 flex justify-between text-[11px] text-slate-500"><span>Đã gom <strong id="goal-orders" class="text-[#0b1c30]">—</strong></span><span>Mục tiêu <strong id="goal-target" class="text-[#0b1c30]">—</strong></span></div><div class="mt-6 rounded-xl bg-[#eff4ff] p-4"><div class="flex justify-between gap-2 text-[10px]"><strong>Phân bổ thời gian đặt món (Hôm nay)</strong><span class="text-slate-500">Socket realtime cập nhật</span></div><svg class="mt-2 h-28 w-full" viewBox="0 0 600 110"><path d="M20 90 C100 88 125 75 190 67 S270 21 325 28 S440 78 580 92 L580 100 L20 100Z" fill="rgba(0,108,73,.11)"/><path d="M20 90 C100 88 125 75 190 67 S270 21 325 28 S440 78 580 92" fill="none" stroke="#006c49" stroke-linecap="round" stroke-width="3"/><circle cx="325" cy="28" r="5" fill="#006c49" stroke="white" stroke-width="3"/></svg></div></section>
-            <section class="sa-card sa-section !mt-0"><div class="sa-section-header"><div><h2>Chiến dịch gần đây của phòng</h2><p>Lịch sử gom đơn và tổng kết chiết khấu.</p></div><a class="text-[11px] font-bold text-[#006c49] no-underline" href="{{ route('admin.manage.page', [$room, 'tab' => 'campaigns']) }}">Xem tất cả →</a></div><div id="campaigns" class="sa-table-wrap"></div></section>
+    <!-- Weekly Trend Chart Section -->
+    <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-outline-variant/60">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[20px] text-primary">monitoring</span>
+                    <h2 class="text-base font-bold text-on-surface tracking-tight">{{ __('admin.weekly_trend_title') }}</h2>
+                    <span id="chart-date-range" class="px-2 py-0.5 rounded-full text-[11px] font-mono bg-surface-container text-on-surface-variant font-medium border border-outline-variant/60">{{ __('admin.days_7_recent') }}</span>
+                </div>
+                <p class="text-xs text-outline mt-0.5">{{ __('admin.weekly_trend_desc') }}</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center gap-3 text-xs font-mono">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-3 rounded bg-primary inline-block"></span>
+                        <span class="text-on-surface-variant">{{ __('admin.campaign_count_bar') }}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3 h-1 bg-[#2563eb] rounded-full inline-block"></span>
+                        <span class="w-2 h-2 rounded-full border-2 border-[#2563eb] bg-white inline-block -ml-2"></span>
+                        <span class="text-on-surface-variant">{{ __('admin.spending_vnd_line') }}</span>
+                    </div>
+                </div>
+                <div class="px-2.5 py-1 bg-surface-container-low rounded border border-outline-variant/60 text-xs font-mono font-semibold text-primary flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                    <span id="chart-summary-badge">{{ __('admin.weekly_total_summary', ['campaigns' => '0', 'amount' => '0 ₫']) }}</span>
+                </div>
+            </div>
         </div>
-        <aside class="space-y-5">
-            <section class="sa-card sa-section !mt-0"><div class="sa-section-header"><div><h2 class="flex items-center gap-1"><span class="material-symbols-outlined text-[#006c49]">qr_code_2</span>Đối soát &amp; VietQR</h2><p>Tài khoản nhận tiền theo Room.</p></div><span class="status-pill status-healthy">Auto Split</span></div><div class="flex gap-3 rounded-xl bg-[#eff4ff] p-3"><span class="material-symbols-outlined grid h-11 w-11 place-items-center rounded-lg bg-white text-[27px]">qr_code</span><div><small class="block text-[9px] uppercase text-slate-500">Tài khoản thụ hưởng phòng</small><strong id="payment-account" class="mt-1 block text-[12px]">Đang kiểm tra...</strong><p id="payment-status" class="mt-1 text-[10px] text-[#006c49]">Tự động đối soát VietQR theo bill</p></div></div><a class="sa-button mt-4 w-full justify-center" href="{{ route('admin.manage.page', [$room, 'tab' => 'payments']) }}">Quản lý VietQR</a></section>
-            <section class="sa-card sa-section !mt-0"><div class="sa-section-header"><div><h2 class="flex items-center gap-2"><span class="status-dot"></span>Hoạt động tức thì</h2><p>Luồng dữ liệu từ Socket.IO.</p></div><span class="text-[10px] font-bold text-slate-500">Room Stream</span></div><div id="activity" class="space-y-2"><div class="flex gap-2 rounded-lg bg-[#eff4ff] p-3"><span class="material-symbols-outlined grid h-7 w-7 place-items-center rounded-full bg-[#d1fae5] text-[16px] text-[#006c49]">wifi_tethering</span><div><strong class="block text-[11px]">Đang kết nối realtime</strong><small class="text-[10px] text-slate-500">Chờ event order và campaign.</small></div></div></div></section>
-        </aside>
-    </div>
-    <section class="sa-card sa-section mt-5"><div class="sa-section-header"><div><h2>Đơn hàng gần đây</h2><p>Danh sách order được cập nhật tự động khi có event realtime.</p></div><a class="sa-button secondary" href="{{ route('admin.manage.page', [$room, 'tab' => 'orders']) }}">Mở quản lý đơn</a></div><div id="orders" class="sa-table-wrap"></div></section>
-@endsection
 
-@push('scripts')
-<script src="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}/socket.io/socket.io.js"></script>
-<script>
-const dashboardUrl=@json(route('admin.dashboard',$room)),socketTokenUrl=@json(route('admin.socket-token',$room)),realtimeUrl=@json(rtrim(config('services.realtime.public_url','http://localhost:3001'),'/'));
-const money=v=>new Intl.NumberFormat('vi-VN').format(Number(v||0))+' ₫',escapeHtml=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-const pill=s=>{s=String(s||'draft');const tone=['active','completed','paid','enabled'].includes(s)?'status-active':['blocked','cancelled','failed'].includes(s)?'status-blocked':'status-pending',names={active:'Đang mở',completed:'Hoàn tất',closed:'Đã chốt',draft:'Bản nháp',scheduled:'Đã lên lịch'};return `<span class="status-pill ${tone}">${escapeHtml(names[s]||s)}</span>`};let timer;
-function countdown(deadline){clearInterval(timer);const el=document.querySelector('#campaign-timer'),tick=()=>{const sec=deadline?Math.max(0,Math.floor((new Date(deadline)-Date.now())/1000)):0;el.textContent=sec?`${String(Math.floor(sec/60)).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`:'--:--'};tick();if(deadline)timer=setInterval(tick,1000)}
-function render(d){const cards=[['Campaign active',d.active_campaigns,'campaign','Room scope realtime'],['Orders hôm nay',d.orders_today,'receipt_long','Đơn mới trong ngày'],['Công nợ còn lại',money(d.outstanding_debts),'account_balance_wallet','Cần đối soát'],['Room users active',d.active_room_users,'groups','Thành viên đang hoạt động']];document.querySelector('#cards').innerHTML=cards.map(([l,v,i,h])=>`<article class="sa-card relative overflow-hidden p-[17px]"><span class="material-symbols-outlined absolute right-4 top-4 text-[21px] text-[#006c49]">${i}</span><p class="m-0 text-[10px] font-bold uppercase text-slate-500">${l}</p><strong class="mt-3 block text-[25px] tracking-tight">${v}</strong><small class="mt-1 block text-[10px] text-[#00875a]">${h}</small></article>`).join('');const a=d.active_campaign||d.last_campaign;if(a){document.querySelector('#campaign-name').textContent=a.name||'Campaign đang mở';document.querySelector('#campaign-code').textContent=a.code||`#CAM-${a.id}`;document.querySelector('#campaign-description').textContent=a.description||a.restaurant||'Campaign gom đơn đang hoạt động.';document.querySelector('#campaign-members').textContent=`${a.orders_count||0} lượt đặt`;document.querySelector('#campaign-total').textContent=money(a.total_amount);document.querySelector('#campaign-sponsor').textContent=money(a.sponsor_total);document.querySelector('#campaign-deadline').textContent=a.deadline?`Chốt ${new Date(a.deadline).toLocaleString('vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'})}`:'Chưa đặt hạn chốt';countdown(a.deadline)}const current=Number(a?.orders_count||d.orders_today||0),target=Math.max(current,1),percent=Math.min(100,Math.round(current/target*100));document.querySelector('#goal-orders').textContent=current;document.querySelector('#goal-target').textContent=target;document.querySelector('#goal-percent').textContent=`${percent}%`;document.querySelector('#goal-progress').style.width=`${percent}%`;const campaigns=d.recent_campaigns||(d.last_campaign?[d.last_campaign]:[]);document.querySelector('#campaigns').innerHTML=`<table class="sa-table"><thead><tr><th>Chiến dịch</th><th>Nhà hàng</th><th>Số đơn</th><th>Trạng thái</th><th class="text-right">Tổng tiền</th></tr></thead><tbody>${campaigns.map(c=>`<tr><td><strong>${escapeHtml(c.name)}</strong></td><td>${escapeHtml(c.restaurant)}</td><td>${c.orders_count||0} ly</td><td>${pill(c.status)}</td><td class="text-right"><strong>${money(c.total_amount)}</strong></td></tr>`).join('')||'<tr><td class="sa-empty" colspan="5">Chưa có campaign.</td></tr>'}</tbody></table>`;document.querySelector('#orders').innerHTML=`<table class="sa-table"><thead><tr><th>#</th><th>Thành viên</th><th>Campaign</th><th>Thực thu</th><th>Trạng thái</th></tr></thead><tbody>${(d.recent_orders||[]).map(o=>`<tr><td>#${o.id}</td><td><strong>${escapeHtml(o.room_user?.global_user?.name||o.room_user?.display_name)}</strong></td><td>${escapeHtml(o.campaign?.name)}</td><td><strong>${money(o.final_amount)}</strong></td><td>${pill(o.status)}</td></tr>`).join('')||'<tr><td class="sa-empty" colspan="5">Chưa có đơn hàng.</td></tr>'}</tbody></table>`;const account=(d.payment_accounts||[])[0];if(account){document.querySelector('#payment-account').textContent=`${account.bank_name||account.bank_code} · ${account.account_number_masked||''}`;document.querySelector('#payment-status').textContent=account.status||'configured'}}
-async function refresh(){const r=await fetch(dashboardUrl,{headers:{Accept:'application/json'}});if(!r.ok)throw Error('dashboard');render((await r.json()).data||{})}refresh().catch(()=>document.querySelector('#cards').innerHTML='<p class="sa-notice is-visible error">Không tải được dashboard.</p>');fetch(socketTokenUrl,{headers:{Accept:'application/json'}}).then(r=>r.json()).then(({data})=>{if(!window.io)throw Error('socket');const s=window.io(realtimeUrl,{auth:{token:data.token},transports:['websocket','polling']});s.on('connect',()=>document.querySelector('#socket-state').innerHTML='<span class="status-dot"></span>Socket Connected');['order.created','order.updated','order.deleted','campaign.created','campaign.closed'].forEach(e=>s.on(e,()=>{document.querySelector('#activity').insertAdjacentHTML('afterbegin',`<div class="rounded-lg bg-[#eff4ff] p-3 text-[11px]"><strong>${e}</strong><small class="ml-2 text-slate-500">${new Date().toLocaleTimeString('vi-VN')}</small></div>`);refresh()}))}).catch(()=>document.querySelector('#socket-state').innerHTML='<span class="status-dot"></span>Socket Unavailable');
-</script>
-@endpush
+        <!-- SVG Trend Chart Container -->
+        <div class="relative w-full overflow-x-auto">
+            <div class="min-w-[680px]">
+                <div class="flex justify-between items-center text-[10px] font-mono text-outline px-1 pb-1">
+                    <span>{{ __('admin.axis_left_campaigns') }}</span>
+                    <span>{{ __('admin.axis_right_spending') }}</span>
+                </div>
+                <div class="relative h-60 w-full" id="svg-chart-wrapper">
+                    <!-- Dynamic SVG chart injected by script -->
+                    <div class="h-full flex items-center justify-center text-outline text-xs font-mono">{{ __('admin.no_weekly_data') }}</div>
+                </div>
+                <div id="chart-day-labels" class="grid grid-cols-7 text-center pt-2 border-t border-outline-variant/60 ml-[45px] mr-[45px]"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Campaign Control Panels (Primary Live Alert & Secondary Card) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Primary High-Priority Campaign Hero Card (Col Span 2) -->
+        <div id="hero-campaign-card" class="lg:col-span-2 bg-surface-container-lowest border-2 border-primary/40 rounded-xl p-5 flex flex-col justify-between relative overflow-hidden shadow-sm">
+            <div class="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
+            <div>
+                <!-- Header Row -->
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="flex items-center gap-1.5 px-2 py-0.5 bg-error-container text-on-error-container rounded text-[11px] font-mono font-bold border border-error/30">
+                            <span class="w-2 h-2 rounded-full bg-error status-dot-pulse"></span>
+                            {{ __('admin.live_now') }}
+                        </span>
+                        <h3 id="hero-campaign-title" class="text-lg font-bold text-on-surface">{{ __('admin.loading_campaign') }}</h3>
+                        <span id="hero-campaign-code" class="text-xs font-mono text-outline">#CMP</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-mono text-outline">
+                        <span>Room: <strong class="text-on-surface">{{ $room->name }}</strong></span>
+                        <span>•</span>
+                        <span id="hero-campaign-time">{{ __('admin.ready') }}</span>
+                    </div>
+                </div>
+
+                <!-- Countdown Timer & Participation Banner -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 bg-surface rounded-lg border border-outline-variant mb-4">
+                    <!-- Digital Countdown -->
+                    <div class="flex flex-col justify-center border-r-0 md:border-r border-outline-variant pr-2">
+                        <span class="text-[10px] font-mono text-outline uppercase font-semibold">{{ __('admin.time_remaining_lock') }}</span>
+                        <div id="hero-timer" class="text-2xl font-mono font-bold text-error tracking-widest mt-0.5">--:--:--</div>
+                    </div>
+                    <!-- Participation Progress -->
+                    <div class="flex flex-col justify-center border-r-0 md:border-r border-outline-variant pr-2">
+                        <div class="flex justify-between text-xs font-mono mb-1">
+                            <span class="text-outline">{{ __('admin.orders_placed') }}</span>
+                            <span id="hero-participation-text" class="font-bold text-on-surface">0 / {{ $room->roomUsers()->where('status', 'active')->count() }}</span>
+                        </div>
+                        <div class="w-full bg-surface-container h-2.5 rounded-full overflow-hidden">
+                            <div id="hero-progress-bar" class="bg-primary h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <!-- Net Summary -->
+                    <div class="flex flex-col justify-center pl-1">
+                        <span class="text-[10px] font-mono text-outline uppercase font-semibold">{{ __('admin.net_payable') }}</span>
+                        <span id="hero-net-payable" class="text-lg font-bold text-primary">0 ₫</span>
+                        <span id="hero-gross-subtotal" class="text-[10px] font-mono text-outline">{{ __('admin.gross_subtotal') }}: 0 ₫</span>
+                    </div>
+                </div>
+
+                <!-- Multi-Sponsor Contribution Row -->
+                <div class="bg-surface-container-low p-2.5 rounded border border-outline-variant/60 flex flex-wrap items-center justify-between text-xs gap-2 mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[16px] text-tertiary">volunteer_activism</span>
+                        <span class="text-on-surface-variant font-medium">{{ __('admin.multi_sponsor_title') }}</span>
+                        <strong id="hero-sponsor-total" class="font-bold text-tertiary font-mono">-0 ₫</strong>
+                    </div>
+                    <div id="hero-sponsor-names" class="flex items-center gap-3 text-outline text-[11px] font-mono">
+                        <span>{{ __('admin.loading_sponsors') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Action Buttons -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-outline-variant">
+                <a href="{{ route('admin.manage.page', [$room, 'tab' => 'orders']) }}" class="bg-primary hover:bg-primary-container text-on-primary px-4 py-2 rounded text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-sm no-underline">
+                    <span class="material-symbols-outlined text-[16px]">checklist</span>
+                    <span>{{ __('admin.view_orders_adjust') }}</span>
+                </a>
+                <button type="button" id="btn-open-close-modal" class="text-error hover:bg-error-container/60 border border-error/30 rounded px-3 py-2 text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">lock_clock</span>
+                    <span>{{ __('admin.close_campaign_early') }}</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Secondary Live Campaign Quick Card (Col Span 1) -->
+        <div id="secondary-campaign-card" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 flex flex-col justify-between shadow-2xs">
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <span class="flex items-center gap-1 text-[11px] font-mono text-primary font-bold">
+                        <span class="w-2 h-2 rounded-full bg-primary"></span>
+                        {{ __('admin.running_secondary') }}
+                    </span>
+                    <span id="sec-campaign-code" class="text-xs font-mono text-outline">#CMP</span>
+                </div>
+                <h3 id="sec-campaign-title" class="text-base font-bold text-on-surface mb-1 truncate">{{ __('admin.no_secondary_campaign') }}</h3>
+                <p id="sec-campaign-vendor" class="text-xs text-outline mb-4 font-mono">—</p>
+                <div class="space-y-3 p-3 bg-surface rounded-lg border border-outline-variant mb-4 font-mono text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="text-outline">{{ __('admin.deadline_label') }}</span>
+                        <span id="sec-campaign-deadline" class="text-on-surface font-bold">--:--</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-outline">{{ __('admin.orders_count_label') }}</span>
+                        <span id="sec-campaign-orders" class="text-on-surface font-semibold">0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-outline">{{ __('admin.subtotal_label') }}</span>
+                        <span id="sec-campaign-subtotal" class="text-primary font-bold">0 ₫</span>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-2 border-t border-outline-variant flex items-center justify-between">
+                <span id="sec-campaign-arrival" class="text-[11px] font-mono text-outline">{{ __('admin.target_arrival', ['time' => '--:--']) }}</span>
+                <a href="{{ route('admin.manage.page', [$room, 'tab' => 'campaigns']) }}" class="bg-surface-container-low hover:bg-surface-container border border-outline-variant text-on-surface px-3 py-1.5 rounded text-xs font-semibold transition-colors flex items-center gap-1 no-underline">
+                    <span>{{ __('admin.manage') }}</span>
+                    <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Stream Activity & Orders Table -->
+    <div class="grid grid-cols-1 xl:grid-cols-[1.6fr_.9fr] gap-4">
+        <!-- Left: Recent Orders Table -->
+        <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-2xs space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-outline-variant">
+                <div>
+                    <h3 class="text-base font-bold text-on-surface">{{ __('admin.recent_orders_title') }}</h3>
+                    <p class="text-xs text-outline mt-0.5">{{ __('admin.recent_orders_desc') }}</p>
+                </div>
+                <a href="{{ route('admin.manage.page', [$room, 'tab' => 'orders']) }}" class="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
+                    <span>{{ __('admin.open_orders_list') }}</span>
+                    <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+                </a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                    <thead>
+                        <tr class="border-b border-outline-variant/60 text-outline uppercase font-mono text-[10px]">
+                            <th class="py-2.5 px-3">{{ __('admin.order_code') }}</th>
+                            <th class="py-2.5 px-3">{{ __('admin.placed_by') }}</th>
+                            <th class="py-2.5 px-3">{{ __('admin.campaigns') }}</th>
+                            <th class="py-2.5 px-3 text-right">{{ __('admin.net_payable') }}</th>
+                            <th class="py-2.5 px-3 text-center">{{ __('admin.order_status') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-tbody" class="divide-y divide-outline-variant/30">
+                        @for($i = 0; $i < 4; $i++)
+                            <tr class="animate-pulse">
+                                <td class="py-2.5 px-3"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-12"></div></td>
+                                <td class="py-2.5 px-3"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-28"></div></td>
+                                <td class="py-2.5 px-3"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-24"></div></td>
+                                <td class="py-2.5 px-3 text-right"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-16 ml-auto"></div></td>
+                                <td class="py-2.5 px-3 text-center"><div class="h-5 bg-slate-200 dark:bg-slate-800 rounded-full w-14 mx-auto"></div></td>
+                            </tr>
+                        @endfor
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Right: Realtime Stream Feed & VietQR Reconciliation -->
+        <div class="space-y-4">
+            <!-- VietQR Card -->
+            <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-2xs">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-[20px]">qr_code_2</span>
+                        <h3 class="text-sm font-bold text-on-surface">{{ __('admin.room_vietqr_account') }}</h3>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-emerald-50 text-emerald-700 font-bold border border-emerald-200">Auto Split Bill</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 rounded-lg bg-surface-container-low border border-outline-variant/60">
+                    <span class="material-symbols-outlined text-2xl text-slate-700 p-2 bg-white rounded border border-outline-variant">account_balance</span>
+                    <div>
+                        <div id="payment-bank-name" class="text-xs font-bold text-on-surface">{{ __('admin.checking_account') }}</div>
+                        <div id="payment-account-masked" class="text-[11px] font-mono text-outline mt-0.5">•••• •••• ••••</div>
+                    </div>
+                </div>
+                <a href="{{ route('admin.manage.page', [$room, 'tab' => 'payments']) }}" class="mt-3 block w-full text-center py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded text-xs font-semibold transition-colors no-underline">
+                    {{ __('admin.config_vietqr') }}
+                </a>
+            </section>
+
+            <!-- Realtime Activity Log -->
+            <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-2xs">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <h3 class="text-sm font-bold text-on-surface">{{ __('admin.live_event_stream') }}</h3>
+                    </div>
+                    <span class="text-[10px] font-mono text-outline">{{ __('admin.socket_room_stream') }}</span>
+                </div>
+                <div id="activity-stream" class="space-y-2 max-h-56 overflow-y-auto">
+                    <div class="p-2.5 rounded bg-surface-container-low text-xs flex items-center justify-between">
+                        <span class="text-on-surface-variant font-medium">{{ __('admin.initializing_socket') }}</span>
+                        <span class="text-[10px] font-mono text-outline">{{ __('admin.ready') }}</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Close Campaign Early Modal -->
+    <div id="close-campaign-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+        <div id="modal-backdrop" class="absolute inset-0"></div>
+        <div class="relative z-10 w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-xl p-6 space-y-4 shadow-2xl">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-2.5 text-error">
+                    <span class="material-symbols-outlined text-[24px]">warning</span>
+                    <h3 id="modal-title" class="text-lg font-bold text-on-surface">{{ __('admin.close_early_title', ['code' => '#CMP']) }}</h3>
+                </div>
+                <button type="button" id="btn-close-modal-icon" class="text-outline hover:text-on-surface p-1 rounded hover:bg-surface-container-low transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+            <div class="text-xs text-outline space-y-2">
+                <p class="font-medium text-on-surface">{{ __('admin.campaigns') }}: <strong id="modal-campaign-name" class="text-primary font-bold">—</strong></p>
+                <p class="leading-relaxed text-on-surface-variant">{{ __('admin.close_early_confirm') }}</p>
+            </div>
+            <div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/60 flex items-center justify-between text-xs font-mono">
+                <div class="flex items-center gap-1.5 text-on-surface-variant font-medium">
+                    <span class="material-symbols-outlined text-[16px] text-primary">check_circle</span>
+                    <span id="modal-members-count">{{ __('admin.members_ordered_unit', ['count' => 0]) }}</span>
+                </div>
+                <strong id="modal-subtotal-val" class="font-bold text-primary">{{ __('admin.subtotal_label') }} 0 ₫</strong>
+            </div>
+            <div class="pt-1">
+                <label class="flex items-center gap-2.5 cursor-pointer text-xs text-on-surface-variant select-none">
+                    <input type="checkbox" id="modal-notify-slack" checked class="rounded border-outline-variant text-primary focus:ring-primary w-4 h-4">
+                    <span class="font-medium">{{ __('admin.close_early_notify_slack') }}</span>
+                </label>
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-outline-variant">
+                <button type="button" id="btn-cancel-modal" class="px-4 py-2 border border-outline-variant text-on-surface hover:bg-surface-container-low rounded-lg text-xs font-semibold transition-colors cursor-pointer">
+                    {{ __('admin.cancel') }}
+                </button>
+                <button type="button" id="btn-confirm-close" class="px-4 py-2 bg-error hover:bg-error-container text-on-error hover:text-on-error-container border border-error/30 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">lock</span>
+                    <span>{{ __('admin.confirm_close_now') }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    </div>
+</x-admin.layout>

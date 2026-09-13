@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Order;
 
 use App\Events\OrderDeleted;
@@ -11,16 +13,20 @@ use Illuminate\Validation\ValidationException;
 class DeleteOrderAction
 {
     /**
-     * Handle the execute operation.
-     * @param Order $order Parameter value.
-     * @return void Result of the operation.
+     * Delete an uncompleted order from the campaign.
+     *
+     * @param Order $order Order instance to delete.
+     * @return void
+     * @throws ValidationException If order has already completed.
      */
     public function execute(Order $order): void
     {
         $payload = DB::transaction(function () use ($order): array {
             $order = Order::query()->with('roomUser')->lockForUpdate()->findOrFail($order->id);
             if ($order->status->value === 'completed') {
-                throw ValidationException::withMessages(['order' => 'KhĂ´ng thá»ƒ xĂ³a order Ä‘Ă£ hoĂ n táº¥t.']);
+                throw ValidationException::withMessages([
+                    'order' => __('admin.cannot_delete_completed_order'),
+                ]);
             }
             $data = ['order_id' => $order->id, 'room_id' => $order->room_id, 'room_user_id' => $order->room_user_id, 'global_user_id' => $order->roomUser->global_user_id];
             app(AuditService::class)->record('order.deleted', 'order', $order->id, $order->room_id, $order->toArray(), [], ['reason' => 'admin_delete']);
@@ -32,3 +38,4 @@ class DeleteOrderAction
         OrderDeleted::dispatch($payload);
     }
 }
+

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Crawler;
 
 use Illuminate\Support\Facades\Http;
@@ -8,16 +10,20 @@ use Illuminate\Validation\ValidationException;
 class FoodCrawlerService
 {
     /**
-     * Handle the preview operation.
-     * @param string $url Parameter value.
-     * @return array Result of the operation.
+     * Fetch and parse restaurant menu items from a public web URL.
+     *
+     * @param string $url Target store URL.
+     * @return array<int, array<string, mixed>> Extracted menu items.
+     * @throws ValidationException If URL is unsafe or request fails.
      */
     public function preview(string $url): array
     {
         $this->assertSafeUrl($url);
         $response = Http::timeout(10)->retry(2, 250)->withHeaders(['User-Agent' => 'DrinkFlow Menu Preview/1.0'])->get($url);
         if (! $response->successful()) {
-            throw ValidationException::withMessages(['url' => 'KhĂ´ng thá»ƒ táº£i ná»™i dung nhĂ  hĂ ng tá»« URL nĂ y.']);
+            throw ValidationException::withMessages([
+                'url' => __('admin.crawler_fetch_failed'),
+            ]);
         }
 
         $html = $response->body();
@@ -25,7 +31,7 @@ class FoodCrawlerService
         if ($items === []) {
             $title = trim(strip_tags((string) preg_replace('/.*?<title[^>]*>(.*?)<\/title>.*/is', '$1', $html)));
             $items = [[
-                'name' => $title !== '' ? $title : 'MĂ³n chÆ°a xĂ¡c Ä‘á»‹nh',
+                'name' => $title !== '' ? $title : __('admin.crawler_unnamed_item'),
                 'category' => null,
                 'description' => null,
                 'image_url' => null,
@@ -38,9 +44,10 @@ class FoodCrawlerService
     }
 
     /**
-     * Handle the from json ld operation.
-     * @param string $html Parameter value.
-     * @return array Result of the operation.
+     * Extract products from JSON-LD schema scripts.
+     *
+     * @param string $html HTML page source.
+     * @return array<int, array<string, mixed>> Extracted product list.
      */
     private function fromJsonLd(string $html): array
     {
@@ -74,9 +81,10 @@ class FoodCrawlerService
     }
 
     /**
-     * Handle the flatten operation.
-     * @param mixed $value Parameter value.
-     * @return array Result of the operation.
+     * Flatten graph-based JSON-LD objects.
+     *
+     * @param mixed $value JSON decoded structure.
+     * @return array<mixed>
      */
     private function flatten(mixed $value): array
     {
@@ -90,9 +98,10 @@ class FoodCrawlerService
     }
 
     /**
-     * Handle the price operation.
-     * @param mixed $price Parameter value.
-     * @return int Result of the operation.
+     * Sanitize and format price to integer VND.
+     *
+     * @param mixed $price Raw price string or number.
+     * @return int Parsed price.
      */
     private function price(mixed $price): int
     {
@@ -100,20 +109,26 @@ class FoodCrawlerService
     }
 
     /**
-     * Handle the assert safe url operation.
-     * @param string $url Parameter value.
-     * @return void Result of the operation.
+     * Assert URL is valid and does not target private or local networks (SSRF defense).
+     *
+     * @param string $url Target URL.
+     * @return void
+     * @throws ValidationException If invalid host or private IP.
      */
     private function assertSafeUrl(string $url): void
     {
         $parts = parse_url($url);
         $host = strtolower((string) ($parts['host'] ?? ''));
         if (! in_array($parts['scheme'] ?? '', ['http', 'https'], true) || $host === '' || in_array($host, ['localhost', '127.0.0.1', '::1'], true) || str_ends_with($host, '.local')) {
-            throw ValidationException::withMessages(['url' => 'URL khĂ´ng há»£p lá»‡ hoáº·c khĂ´ng Ä‘Æ°á»£c phĂ©p.']);
+            throw ValidationException::withMessages([
+                'url' => __('admin.crawler_invalid_url'),
+            ]);
         }
         $ip = gethostbyname($host);
         if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false && filter_var($ip, FILTER_VALIDATE_IP)) {
-            throw ValidationException::withMessages(['url' => 'URL trá» tá»›i Ä‘á»‹a chá»‰ máº¡ng ná»™i bá»™.']);
+            throw ValidationException::withMessages([
+                'url' => __('admin.crawler_private_network_forbidden'),
+            ]);
         }
     }
 }

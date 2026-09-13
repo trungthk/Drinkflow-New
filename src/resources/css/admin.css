@@ -1,34 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../views/admin/**/*.blade.php';
+@source '../views/components/**/*.blade.php';
 @source '../js/**/*.js';
 
 @theme {
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-sans: 'Hanken Grotesk', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
     --color-primary: #006948;
     --color-primary-container: #00855d;
     --color-primary-fixed: #85f8c4;
     --color-primary-fixed-dim: #68dba9;
     --color-on-primary: #ffffff;
-    --color-secondary: #006c49;
-    --color-secondary-container: #6cf8bb;
-    --color-secondary-fixed: #6ffbbe;
-    --color-on-secondary-container: #00714d;
-    --color-tertiary: #545c72;
+    --color-secondary: #565e74;
+    --color-secondary-container: #dae2fd;
+    --color-secondary-fixed: #dae2fd;
+    --color-on-secondary-container: #5c647a;
+    --color-tertiary: #006947;
+    --color-tertiary-container: #00855b;
+    --color-tertiary-fixed: #6ffbbe;
+    --color-tertiary-fixed-dim: #4edea3;
     --color-background: #f8f9ff;
     --color-surface: #f8f9ff;
+    --color-surface-dim: #cbdbf5;
+    --color-surface-bright: #f8f9ff;
     --color-on-surface: #0b1c30;
     --color-on-surface-variant: #3d4a42;
-    --color-surface-container: #eff4ff;
+    --color-surface-container: #e5eeff;
     --color-surface-container-low: #eff4ff;
     --color-surface-container-high: #dce9ff;
+    --color-surface-container-highest: #d3e4fe;
     --color-surface-container-lowest: #ffffff;
     --color-outline: #6d7a72;
     --color-outline-variant: #bccac0;
     --color-error: #ba1a1a;
+    --color-error-container: #ffdad6;
+    --color-on-error: #ffffff;
+    --color-on-error-container: #93000a;
+}
+
+@keyframes pulse-subtle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+}
+.status-dot-pulse {
+    animation: pulse-subtle 1.6s infinite ease-in-out;
 }
 
 html {

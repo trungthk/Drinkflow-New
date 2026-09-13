@@ -200,7 +200,7 @@
                   @endif
                 </div>
                 <h3 class="text-sm font-bold text-slate-900 leading-snug truncate">{{ $item->name }}</h3>
-                <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{{ $item->description ?? 'Đồ uống thơm ngon, pha chế tươi mới.' }}</p>
+                <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{{ $item->description ?? __('room.campaign.default_drink_desc') }}</p>
               </div>
 
               <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
@@ -216,7 +216,7 @@
           @empty
             <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
               <span class="material-symbols-outlined text-[36px] text-slate-300 mb-2">restaurant_menu</span>
-              <p class="text-xs font-semibold text-slate-700">Chưa có món nào trong menu chiến dịch này</p>
+              <p class="text-xs font-semibold text-slate-700">{{ __('room.campaign.menu_empty') }}</p>
             </div>
           @endforelse
         </div>
@@ -264,7 +264,7 @@
                             class="p-2.5 rounded-xl border text-left transition-all cursor-pointer"
                             :class="selectedSize?.id === size.id ? 'border-[#006948] bg-emerald-50/50 text-[#006948] font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'">
                       <span class="text-xs block" x-text="'Size ' + size.name"></span>
-                      <span class="text-[11px] font-mono opacity-80" x-text="size.price_delta > 0 ? '+' + new Intl.NumberFormat('vi-VN').format(size.price_delta) + 'đ' : 'Tiêu chuẩn'"></span>
+                      <span class="text-[11px] font-mono opacity-80" x-text="size.price_delta > 0 ? '+' + new Intl.NumberFormat('vi-VN').format(size.price_delta) + 'đ' : '{{ __('room.campaign.standard_size') }}'"></span>
                     </button>
                   </template>
                 </div>

@@ -584,6 +584,7 @@
                     :src="getQrUrl()"
                     alt="VietQR Code"
                     class="w-48 h-48 object-contain rounded-lg"
+                    loading="lazy"
                     onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=vietqr';"
                   />
                 </div>

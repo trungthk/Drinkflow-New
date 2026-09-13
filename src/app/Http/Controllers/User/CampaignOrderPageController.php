@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
@@ -10,10 +12,11 @@ use Illuminate\Http\Request;
 class CampaignOrderPageController extends Controller
 {
     /**
-     * Invoke the controller.
-     * @param Request $request Parameter value.
-     * @param Campaign $campaign Parameter value.
-     * @return View Result of the operation.
+     * Hiển thị trang giao diện chọn món và đặt hàng trong chiến dịch của phòng.
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
+     * @param  \App\Models\Campaign  $campaign  Chiến dịch đồ uống
+     * @return \Illuminate\Contracts\View\View  Giao diện đặt món
      */
     public function __invoke(Request $request, Campaign $campaign): View
     {

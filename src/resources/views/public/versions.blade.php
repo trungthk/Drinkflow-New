@@ -79,29 +79,12 @@
                     @foreach ($versions as $v)
                         @php
                             $isSelected = ($v->version === $currentVersion->version);
-                            $isLatest = ($latestVersion && $v->version === $latestVersion->version);
-                            $badgeType = $v->badge ?? ($isLatest ? 'Latest' : 'Feature');
                         @endphp
                         <a href="{{ $versionsUrl }}/{{ $v->version }}"
                            class="version-item block p-4 transition-colors {{ $isSelected ? 'bg-[#eff4ff] border-l-4 border-[#006948]' : 'hover:bg-slate-50' }}">
                             <div class="flex items-center justify-between mb-1.5">
                                 <span class="text-sm font-bold {{ $isSelected ? 'text-[#006948]' : 'text-[#0F172A]' }} font-mono">{{ $v->version }}</span>
                                 <span class="text-xs text-[#545c72]">{{ $v->release_date }}</span>
-                            </div>
-                            <div class="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                                @if ($isLatest)
-                                    <span class="text-[11px] px-2 py-0.2 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold">Latest</span>
-                                @elseif ($badgeType === 'Maintenance')
-                                    <span class="text-[11px] px-2 py-0.2 rounded-full bg-slate-100 text-slate-700 border border-slate-200 font-medium">Maintenance</span>
-                                @elseif ($badgeType === 'Major')
-                                    <span class="text-[11px] px-2 py-0.2 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-semibold">Major</span>
-                                @else
-                                    <span class="text-[11px] px-2 py-0.2 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-medium">Feature</span>
-                                @endif
-
-                                @if (!empty($v->important))
-                                    <span class="text-[11px] px-2 py-0.2 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-semibold">{{ __('versions.badge_important') }}</span>
-                                @endif
                             </div>
                             <p class="text-xs text-[#545c72] line-clamp-2 leading-relaxed">
                                 {{ $v->title }}
@@ -129,28 +112,6 @@
             <section class="col-span-12 lg:col-span-8 bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-2xs space-y-6">
                 <!-- Header area -->
                 <div class="pb-6 border-b border-slate-100">
-                    <!-- Badges Row -->
-                    <div class="flex flex-wrap items-center gap-2 mb-3">
-                        @if ($latestVersion && $currentVersion->version === $latestVersion->version)
-                            <span class="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[14px]">verified</span>
-                                {{ __('versions.latest_release', ['version' => $currentVersion->version]) }}
-                            </span>
-                        @endif
-                        <span class="text-xs px-2.5 py-1 rounded-full bg-[#eff4ff] text-[#0b1c30] border border-slate-200 font-medium">
-                            {{ __('versions.official_release') }}
-                        </span>
-                        <span class="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 font-medium flex items-center gap-1">
-                            <span class="material-symbols-outlined text-[14px]">shield</span>
-                            {{ __('versions.security_verified') }}
-                        </span>
-                        @if (!empty($currentVersion->important))
-                            <span class="text-xs px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
-                                {{ __('versions.important_update') }}
-                            </span>
-                        @endif
-                    </div>
-
                     <!-- Main Title -->
                     <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold text-[#0F172A] tracking-tight">
                         DrinkFlow {{ $currentVersion->version }} - {{ $currentVersion->title }}

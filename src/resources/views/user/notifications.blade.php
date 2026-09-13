@@ -5,7 +5,7 @@
         notifications: {{ Js::from($notifications) }},
         async markAllRead() {
             try {
-                await fetch('{{ route('notifications.read.all') }}', {
+                await fetch('{{ route('user.me.notifications.read-all') }}', {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -50,7 +50,7 @@
                         <h1 class="font-display-lg text-display-lg text-on-surface tracking-tight">{{ __('room.notifications.page_title') }}</h1>
                         <span class="unread-count-badge inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold" x-show="unreadCount > 0">
                             <span class="w-1.5 h-1.5 rounded-full bg-error animate-pulse"></span>
-                            <span x-text="unreadCount + ' mới'"></span>
+                            <span x-text="unreadCount + ' ' + '{{ __('room.notifications.unread_badge_suffix') }}'"></span>
                         </span>
                         <span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded">
                             {{ $room->name }} Workspace
@@ -134,7 +134,7 @@
                     <div class="flex items-center gap-1 shrink-0 self-center" x-show="!item.is_read">
                         <button class="p-1.5 rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
                                 @click="markSingleRead(item.id)"
-                                title="Đánh dấu đã đọc">
+                                title="{{ __('room.notifications.mark_read') }}">
                             <span class="material-symbols-outlined text-[18px]">check</span>
                         </button>
                     </div>

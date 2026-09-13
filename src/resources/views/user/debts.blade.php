@@ -19,7 +19,7 @@
         },
         copyText(text) {
             navigator.clipboard?.writeText(text);
-            alert('Đã sao chép: ' + text);
+            alert('{{ __('room.debts.copied_alert', ['text' => '']) }}' + text);
         }
     }">
         <!-- Header Banner -->
@@ -39,7 +39,7 @@
                         @else
                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold">
                                 <span class="material-symbols-outlined text-[14px]">check</span>
-                                Đã thanh toán hết
+                                {{ __('room.debts.all_paid') }}
                             </span>
                         @endif
                     </div>
@@ -50,7 +50,7 @@
                 <button class="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-bold shadow transition-all inline-flex items-center gap-2 self-start md:self-auto cursor-pointer"
                         @click="openQr({{ $totalUnpaidAmount }}, '{{ number_format($totalUnpaidAmount, 0, ',', '.') }}đ', '{{ $vietqrData['transfer_content'] ?? ('DRINKFLOW-DEBT-' . $roomUser->id) }}', '{{ $vietqrData['qr_url'] ?? '' }}')">
                     <span class="material-symbols-outlined text-[20px]">qr_code_2</span>
-                    <span>Thanh toán toàn bộ ({{ number_format($totalUnpaidAmount, 0, ',', '.') }}đ)</span>
+                    <span>{{ __('room.debts.pay_all', ['amount' => number_format($totalUnpaidAmount, 0, ',', '.') . 'đ']) }}</span>
                 </button>
             @endif
         </div>
@@ -74,14 +74,14 @@
                             {{ __('room.debts.unpaid_count', ['count' => $unpaidDebts->count()]) }}
                         </span>
                     </div>
-                    <p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">Đơn cần đối soát thanh toán định kỳ</p>
+                    <p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">{{ __('room.debts.unpaid_hint') }}</p>
                 </div>
                 <div class="mt-space-md pt-space-sm flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm border-t border-outline-variant/20">
                     <span class="flex items-center gap-1 {{ $totalUnpaidAmount > 0 ? 'text-error' : 'text-primary' }}">
                         <span class="material-symbols-outlined text-[16px]">{{ $totalUnpaidAmount > 0 ? 'error' : 'check_circle' }}</span>
-                        {{ $totalUnpaidAmount > 0 ? 'Cần chuyển khoản' : 'Không có nợ đọng' }}
+                        {{ $totalUnpaidAmount > 0 ? __('room.debts.transfer_needed') : __('room.debts.no_debt') }}
                     </span>
-                    <a class="text-primary hover:underline font-medium" href="#unpaid-bills">Chi tiết nợ →</a>
+                    <a class="text-primary hover:underline font-medium" href="#unpaid-bills">{{ __('room.debts.debt_details') }}</a>
                 </div>
             </div>
 
@@ -102,12 +102,12 @@
                             {{ __('room.debts.paid_count', ['count' => $totalPaidMonthCount]) }}
                         </span>
                     </div>
-                    <p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">Đã hoàn tất đối soát biên lai nội bộ</p>
+                    <p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">{{ __('room.debts.paid_reconciliation_hint') }}</p>
                 </div>
                 <div class="mt-space-md pt-space-sm flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant border-t border-outline-variant/20">
                     <span class="flex items-center gap-1 text-primary">
                         <span class="material-symbols-outlined text-[16px]">verified</span>
-                        100% khớp lệnh
+                        {{ __('room.debts.matched_percent') }}
                     </span>
                     <span class="text-on-surface-variant font-tabular-nums">{{ now()->format('m/Y') }}</span>
                 </div>
@@ -116,7 +116,7 @@
             <!-- Card 3: Sponsor Saved -->
             <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm border border-outline-variant/30 relative overflow-hidden flex flex-col justify-between">
                 <div class="flex justify-between items-start">
-                    <span class="font-label-md text-label-md text-on-surface-variant font-medium">Tổng tiền được Quỹ tài trợ</span>
+                    <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ __('room.debts.sponsor_saved_title') }}</span>
                     <span class="w-8 h-8 rounded-lg bg-secondary-container text-on-secondary-container flex items-center justify-center">
                         <span class="material-symbols-outlined text-[20px]">redeem</span>
                     </span>
@@ -126,16 +126,16 @@
                         <span class="font-display-lg text-display-lg text-secondary tracking-tight font-bold font-tabular-nums">
                             {{ number_format($roomUser->total_spent > 0 ? (int)($roomUser->total_spent * 0.25) : 150000, 0, ',', '.') }}đ
                         </span>
-                        <span class="font-label-sm text-label-sm text-secondary bg-secondary-container px-2 py-0.5 rounded">Quỹ {{ $room->name }}</span>
+                        <span class="font-label-sm text-label-sm text-secondary bg-secondary-container px-2 py-0.5 rounded">{{ __('room.profile.from_fund', ['name' => $room->name]) }}</span>
                     </div>
-                    <p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">Trợ giá tự động từ quỹ phòng cho các đợt order</p>
+                    <p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">{{ __('room.debts.sponsor_saved_desc') }}</p>
                 </div>
                 <div class="mt-space-md pt-space-sm flex items-center justify-between font-label-sm text-label-sm text-on-surface-variant border-t border-outline-variant/20">
                     <span class="flex items-center gap-1 text-on-surface-variant">
                         <span class="material-symbols-outlined text-[16px]">savings</span>
-                        Phúc lợi phòng ban
+                        {{ __('room.debts.welfare_label') }}
                     </span>
-                    <span class="text-secondary font-medium">Tiết kiệm ~25%</span>
+                    <span class="text-secondary font-medium">{{ __('room.debts.saved_percent') }}</span>
                 </div>
             </div>
         </div>
@@ -146,10 +146,10 @@
                 <div class="p-space-md flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm bg-surface-container-lowest border-b border-outline-variant/30">
                     <div>
                         <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">{{ __('room.debts.history_title') }}</h3>
-                        <p class="font-body-sm text-body-sm text-on-surface-variant">Quản lý phần nợ cá nhân, tiền quỹ tài trợ và trạng thái đối soát</p>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant">{{ __('room.debts.subtitle') }}</p>
                     </div>
                     <div class="flex items-center gap-2">
-                        <span class="font-label-sm text-label-sm px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-medium">Tất cả khoản nợ</span>
+                        <span class="font-label-sm text-label-sm px-2.5 py-1 rounded bg-surface-container-high text-on-surface font-medium">{{ __('room.debts.all_debts_badge') }}</span>
                     </div>
                 </div>
 
@@ -157,14 +157,14 @@
                     <table class="w-full text-left font-body-sm text-body-sm">
                         <thead>
                             <tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider border-b border-outline-variant/20">
-                                <th class="py-3 px-space-md">Mã giao dịch</th>
-                                <th class="py-3 px-space-sm">Thời gian</th>
-                                <th class="py-3 px-space-sm">Chiến dịch / Mục</th>
-                                <th class="py-3 px-space-sm text-right">Tổng nợ</th>
-                                <th class="py-3 px-space-sm text-right">Đã trả</th>
-                                <th class="py-3 px-space-sm text-right">Còn lại</th>
-                                <th class="py-3 px-space-sm text-center">Trạng thái</th>
-                                <th class="py-3 px-space-md text-center">Thao tác</th>
+                                <th class="py-3 px-space-md">{{ __('room.debts.table_tx_id') }}</th>
+                                <th class="py-3 px-space-sm">{{ __('room.debts.table_time') }}</th>
+                                <th class="py-3 px-space-sm">{{ __('room.debts.table_campaign') }}</th>
+                                <th class="py-3 px-space-sm text-right">{{ __('room.debts.table_total') }}</th>
+                                <th class="py-3 px-space-sm text-right">{{ __('room.debts.table_paid') }}</th>
+                                <th class="py-3 px-space-sm text-right">{{ __('room.debts.table_remaining') }}</th>
+                                <th class="py-3 px-space-sm text-center">{{ __('room.debts.table_status') }}</th>
+                                <th class="py-3 px-space-md text-center">{{ __('room.debts.table_action') }}</th>
                             </tr>
                         </thead>
                         <tbody class="text-on-surface divide-y divide-outline-variant/20">
@@ -174,8 +174,8 @@
                                     <td class="py-4 px-space-sm text-on-surface-variant whitespace-nowrap">{{ $debt->created_at?->format('d/m/Y H:i') }}</td>
                                     <td class="py-4 px-space-sm font-medium">
                                         <div class="flex flex-col">
-                                            <span class="text-on-surface font-semibold">{{ $debt->campaign?->name ?? 'Order đồ uống' }}</span>
-                                            <span class="text-[11px] text-on-surface-variant">{{ $debt->order_id ? 'Đơn #DF-' . $debt->order_id : 'Phí chia đều' }}</span>
+                                            <span class="text-on-surface font-semibold">{{ $debt->campaign?->name ?? 'Order' }}</span>
+                                            <span class="text-[11px] text-on-surface-variant">{{ $debt->order_id ? '#DF-' . $debt->order_id : '' }}</span>
                                         </div>
                                     </td>
                                     <td class="py-4 px-space-sm text-right font-tabular-nums">{{ number_format($debt->total_amount, 0, ',', '.') }}đ</td>
@@ -186,7 +186,7 @@
                                     <td class="py-4 px-space-sm text-center">
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm {{ $debt->status === 'paid' ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-error-container text-on-error-container' }} font-medium">
                                             <span class="w-1.5 h-1.5 rounded-full {{ $debt->status === 'paid' ? 'bg-primary' : 'bg-error' }}"></span>
-                                            {{ $debt->status === 'paid' ? 'Đã gạch nợ' : 'Chờ thanh toán' }}
+                                            {{ $debt->status === 'paid' ? __('room.debts.status_paid') : __('room.debts.status_unpaid') }}
                                         </span>
                                     </td>
                                     <td class="py-4 px-space-md text-center">
@@ -194,12 +194,12 @@
                                             <button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm hover:bg-primary-container transition-all inline-flex items-center gap-1 shadow-sm cursor-pointer"
                                                     @click="openQr({{ (int)$debt->remaining_amount }}, '{{ number_format($debt->remaining_amount, 0, ',', '.') }}đ', 'DFDB{{ $debt->id }} {{ $roomUser->room_user_code }}')">
                                                 <span class="material-symbols-outlined text-[16px]">qr_code</span>
-                                                <span>Xem QR</span>
+                                                <span>{{ __('room.debts.btn_view_qr') }}</span>
                                             </button>
                                         @else
                                             <span class="inline-flex items-center gap-1 text-[12px] text-primary">
                                                 <span class="material-symbols-outlined text-[14px]">verified</span>
-                                                Xong
+                                                {{ __('room.debts.status_done') }}
                                             </span>
                                         @endif
                                     </td>
@@ -228,18 +228,18 @@
                     <div class="flex items-center justify-between mb-space-sm">
                         <h4 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
                             <span class="material-symbols-outlined text-primary text-[22px]">policy</span>
-                            <span>Quy định gạch nợ tự động</span>
+                            <span>{{ __('room.debts.rule_title') }}</span>
                         </h4>
                         <span class="font-label-sm text-label-sm text-primary flex items-center gap-1 font-semibold">
-                            <span class="material-symbols-outlined text-[16px]">info</span> Hướng dẫn
+                            <span class="material-symbols-outlined text-[16px]">info</span> {{ __('room.debts.rule_guide') }}
                         </span>
                     </div>
                     <div class="flex gap-3 items-start p-space-sm rounded-lg bg-surface-container-low">
                         <span class="material-symbols-outlined text-primary text-[22px] mt-0.5 shrink-0">timer</span>
                         <div>
-                            <span class="font-semibold text-on-surface">Đồng bộ tức thời chuẩn Napas 247</span>
+                            <span class="font-semibold text-on-surface">{{ __('room.debts.rule_heading') }}</span>
                             <p class="text-[13px] text-on-surface-variant mt-1 leading-relaxed">
-                                Ngay khi tài khoản ngân hàng nhận tiền, hệ thống quét đúng cú pháp sẽ lập tức gạch nợ và tự động chuyển trạng thái đơn hàng sang "Đã thanh toán" trong 30 - 60 giây.
+                                {{ __('room.debts.rule_desc') }}
                             </p>
                         </div>
                     </div>
@@ -249,18 +249,18 @@
                     <div class="flex items-center justify-between mb-space-sm">
                         <h4 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
                             <span class="material-symbols-outlined text-tertiary text-[22px]">help</span>
-                            <span>Xử lý sự cố & Sai cú pháp</span>
+                            <span>{{ __('room.debts.support_title') }}</span>
                         </h4>
                         <span class="font-label-sm text-label-sm text-tertiary flex items-center gap-1 font-semibold">
-                            <span class="material-symbols-outlined text-[16px]">support_agent</span> Trợ giúp
+                            <span class="material-symbols-outlined text-[16px]">support_agent</span> {{ __('room.debts.support_btn') }}
                         </span>
                     </div>
                     <div class="flex gap-3 items-start p-space-sm rounded-lg bg-surface-container-low">
                         <span class="material-symbols-outlined text-tertiary text-[22px] mt-0.5 shrink-0">receipt_long</span>
                         <div>
-                            <span class="font-semibold text-on-surface">Quên ghi hoặc sai nội dung chuyển khoản?</span>
+                            <span class="font-semibold text-on-surface">{{ __('room.debts.support_heading') }}</span>
                             <p class="text-[13px] text-on-surface-variant mt-1 leading-relaxed">
-                                Vui lòng nhắn tin trực tiếp cho Quản trị viên Room kèm ảnh chụp màn hình giao dịch chuyển tiền thành công để được hỗ trợ gạch nợ thủ công.
+                                {{ __('room.debts.support_desc') }}
                             </p>
                         </div>
                     </div>
@@ -277,7 +277,7 @@
                             <span class="material-symbols-outlined text-[20px]">qr_code_2</span>
                         </div>
                         <div>
-                            <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Thanh toán VietQR</h3>
+                            <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">{{ __('room.debts.vietqr_modal_title') }}</h3>
                             <p class="font-body-sm text-body-sm text-on-surface-variant">{{ $room->name }}</p>
                         </div>
                     </div>
@@ -288,26 +288,26 @@
                 <div class="p-space-md flex flex-col gap-space-md">
                     <div class="flex flex-col items-center justify-center p-space-md bg-surface-container-low rounded-xl border border-outline-variant/60">
                         <div class="bg-surface-container-lowest p-3 rounded-xl shadow-sm border border-outline-variant flex flex-col items-center">
-                            <img :src="qrData.qrUrl" alt="VietQR" class="w-48 h-48 object-contain rounded"/>
+                            <img :src="qrData.qrUrl" alt="VietQR" class="w-48 h-48 object-contain rounded" loading="lazy"/>
                             <div class="mt-2 flex items-center gap-1 text-[11px] font-label-sm text-secondary">
                                 <span class="material-symbols-outlined text-[14px]">bolt</span>
-                                <span>Quét bằng app ngân hàng / ví MoMo</span>
+                                <span>{{ __('room.debts.vietqr_scan_hint') }}</span>
                             </div>
                         </div>
                         <div class="mt-3 text-center">
-                            <span class="font-body-sm text-body-sm text-on-surface-variant">Số tiền thanh toán:</span>
+                            <span class="font-body-sm text-body-sm text-on-surface-variant">{{ __('room.debts.vietqr_amount_label') }}</span>
                             <div class="font-display-lg text-display-lg font-bold text-error tracking-tight font-tabular-nums" x-text="qrData.formattedAmount"></div>
                         </div>
                     </div>
                     <div class="flex flex-col gap-space-xs bg-surface-container-lowest border border-outline-variant rounded-xl p-space-sm">
                         <div class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
-                            <span class="text-on-surface-variant">Ngân hàng:</span>
+                            <span class="text-on-surface-variant">{{ __('room.debts.vietqr_bank_label') }}</span>
                             <span class="font-semibold text-on-surface flex items-center gap-1">
                                 <span class="px-1.5 py-0.5 rounded bg-surface-container-high text-[11px] font-bold text-primary" x-text="qrData.bankName"></span>
                             </span>
                         </div>
                         <div class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
-                            <span class="text-on-surface-variant">Số tài khoản:</span>
+                            <span class="text-on-surface-variant">{{ __('room.debts.vietqr_account_number') }}</span>
                             <div class="flex items-center gap-1">
                                 <span class="font-tabular-nums font-bold text-on-surface" x-text="qrData.accountNumber"></span>
                                 <button class="p-1 rounded hover:bg-surface-container-high text-primary transition-colors flex items-center cursor-pointer" @click="copyText(qrData.accountNumber)">
@@ -316,12 +316,12 @@
                             </div>
                         </div>
                         <div class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
-                            <span class="text-on-surface-variant">Chủ tài khoản:</span>
+                            <span class="text-on-surface-variant">{{ __('room.debts.vietqr_account_name') }}</span>
                             <span class="font-semibold text-on-surface uppercase" x-text="qrData.accountName"></span>
                         </div>
                         <div class="flex items-center justify-between py-1.5 bg-primary-fixed/20 px-2 rounded-lg mt-1 text-body-sm">
                             <div class="flex flex-col">
-                                <span class="font-label-sm text-[11px] text-on-primary-fixed-variant font-medium">Cú pháp chuyển khoản:</span>
+                                <span class="font-label-sm text-[11px] text-on-primary-fixed-variant font-medium">{{ __('room.debts.vietqr_transfer_content') }}</span>
                                 <span class="font-tabular-nums font-bold text-primary tracking-wide" x-text="qrData.transferContent"></span>
                             </div>
                             <button class="p-1 rounded hover:bg-primary-fixed text-primary transition-colors flex items-center cursor-pointer" @click="copyText(qrData.transferContent)">

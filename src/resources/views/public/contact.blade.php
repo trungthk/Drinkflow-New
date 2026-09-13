@@ -49,7 +49,7 @@
                     <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
                         <div class="flex items-center gap-2 font-semibold mb-1">
                             <span class="material-symbols-outlined text-[18px]">error</span>
-                            <span>Vui lòng kiểm tra lại thông tin biểu mẫu:</span>
+                            <span>{{ __('contact.form.validation_error_title') }}</span>
                         </div>
                         <ul class="list-disc list-inside space-y-0.5 text-xs text-red-600 mt-1">
                             @foreach($errors->all() as $error)
@@ -178,7 +178,8 @@
                                     <div id="captcha-img-wrapper"
                                          data-captcha-api="{{ url('/captcha/api/contact') }}"
                                          data-captcha-fallback="{{ captcha_src('contact') }}"
-                                         class="flex-shrink-0 cursor-pointer select-none rounded-lg border border-slate-300 overflow-hidden shadow-xs hover:border-[#006948] transition-colors bg-white flex items-center justify-center"
+                                         data-loading-text="{{ __('contact.form.captcha_loading') }}"
+                                         class="w-[120px] h-[38px] flex-shrink-0 cursor-pointer select-none rounded-lg border border-slate-300 overflow-hidden shadow-xs hover:border-[#006948] transition-colors bg-white flex items-center justify-center"
                                          title="{{ __('contact.form.captcha_refresh') }}">
                                         {!! captcha_img('contact') !!}
                                     </div>

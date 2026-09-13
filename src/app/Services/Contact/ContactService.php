@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Contact;
 
 use App\Models\ContactInquiry;
@@ -10,10 +12,10 @@ class ContactService
     /**
      * Store a new contact inquiry.
      *
-     * @param array<string, mixed> $data
-     * @param string|null $ipAddress
-     * @param string|null $userAgent
-     * @return ContactInquiry
+     * @param array<string, mixed> $data Form input payload.
+     * @param string|null $ipAddress Client IP address.
+     * @param string|null $userAgent Client user-agent string.
+     * @return ContactInquiry Created contact inquiry instance.
      */
     public function createInquiry(array $data, ?string $ipAddress = null, ?string $userAgent = null): ContactInquiry
     {
@@ -21,20 +23,22 @@ class ContactService
 
         return ContactInquiry::create([
             'ticket_code' => $ticketCode,
-            'full_name' => trim($data['full_name']),
-            'work_email' => strtolower(trim($data['work_email'])),
-            'phone' => trim($data['phone']),
-            'company' => trim($data['company']),
-            'topic' => $data['topic'],
-            'message' => trim($data['message']),
-            'status' => 'pending',
+            'full_name' => trim((string) ($data['full_name'] ?? '')),
+            'work_email' => strtolower(trim((string) ($data['work_email'] ?? ''))),
+            'phone' => trim((string) ($data['phone'] ?? '')),
+            'company' => trim((string) ($data['company'] ?? '')),
+            'topic' => (string) ($data['topic'] ?? ''),
+            'message' => trim((string) ($data['message'] ?? '')),
+            'status' => ContactInquiry::STATUS_PENDING,
             'ip_address' => $ipAddress,
             'user_agent' => $userAgent ? Str::limit($userAgent, 500) : null,
         ]);
     }
 
     /**
-     * Generate unique ticket code format #DF-XXXXX
+     * Generate a unique ticket code with format #DF-XXXXX.
+     *
+     * @return string Unique ticket code string.
      */
     protected function generateUniqueTicketCode(): string
     {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
@@ -13,10 +15,12 @@ class ContactController extends Controller
 {
     /**
      * Show the enterprise contact page.
+     *
+     * @return View Rendered contact page view.
      */
     public function index(): View
     {
-        $appVersion = config('app.version', 'v2.3.0');
+        $appVersion = (string) config('app.version', 'v2.3.0');
         $googleAuthUrl = route('auth.google');
         $termsUrl = route('terms');
         $versionsUrl = route('versions');
@@ -35,6 +39,10 @@ class ContactController extends Controller
 
     /**
      * Store an incoming enterprise contact inquiry.
+     *
+     * @param ContactRequest $request Validated contact form request.
+     * @param ContactService $contactService Service processing the inquiry creation.
+     * @return JsonResponse|RedirectResponse JSON response or redirect with flash ticket.
      */
     public function store(ContactRequest $request, ContactService $contactService): JsonResponse|RedirectResponse
     {

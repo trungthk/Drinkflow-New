@@ -15,6 +15,8 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/public.js',
                 'resources/js/global.js',
+                'resources/js/room.js',
+                'resources/js/admin.js',
             ],
             refresh: true,
         }),

@@ -88,10 +88,36 @@ src/app/Http/Controllers/
 
 ---
 
-## 6. QUY TRÌNH KIỂM THỬ VÀ ĐẢM BẢO CHẤT LƯỢNG (DEFINITION OF DONE)
+## 6. QUY TẮC GIAO DIỆN HÌNH ẢNH (IMAGE LAZY LOADING)
+
+- Tất cả thẻ `<img>` trong toàn bộ hệ thống giao diện Blade (`src/resources/views/`) bắt buộc phải có thuộc tính `loading="lazy"`.
+- Đi kèm với `alt` có ý nghĩa hoặc đa ngôn ngữ `__('...')`, và fallback khi ảnh lỗi (`onerror`).
+
+---
+
+## 7. QUY CHUẨN CODE PHP (STRICT TYPING, DOCBLOCK & CONST/ENUM)
+
+1. **Strict Types & Type Hinting Đầy Đủ**:
+   - Mỗi file PHP class/service/controller/action phải khai báo `declare(strict_types=1);`.
+   - Tất cả parameters (tham số), return types (kiểu trả về) của method, và class properties đều phải có kiểu dữ liệu (Type) đầy đủ rõ ràng (ví dụ: `int`, `string`, `bool`, `array`, `?Model`, v.v.).
+2. **Document Hàm Đầy Đủ (PHPDoc)**:
+   - Tất cả function/method phải có DocBlock đầy đủ gồm:
+     - Dòng mô tả mục đích hoạt động của method.
+     - `@param <type> $<name> <mô tả>` cho từng tham số.
+     - `@return <type> <mô tả>` cho giá trị trả về.
+     - `@throws <exception>` nếu có bắn ngoại lệ.
+3. **Thiết Kế Service Ưu Tiên Tái Sử Dụng (Reusable Service)**:
+   - Các Service không gắn chặt với một ngữ cảnh controller đơn lẻ; ưu tiên viết các helper/query methods có thể tái sử dụng qua lại giữa Web Controller, API Controller, Console Command, Job và Realtime Gateway.
+4. **Quản Lý Hằng Số Bằng Model Enum Hoặc Model Const**:
+   - Tuyệt đối không hardcode string/int rải rác trong code ("magic strings/numbers").
+   - Trạng thái, loại (type), role, permissions, cấu hình cố định phải được quản lý bằng **PHP Enum (`App\Enums\*`)** hoặc hằng số trong Model (`const STATUS_ACTIVE = 'active';`).
+
+---
+
+## 8. QUY TRÌNH KIỂM THỬ VÀ ĐẢM BẢO CHẤT LƯỢNG (DEFINITION OF DONE)
 
 Một tác vụ/tính năng chỉ hoàn thành khi:
-1. Logic nghiệp vụ hoàn thiện, controller thin, validation rõ ràng.
+1. Logic nghiệp vụ hoàn thiện, controller thin, validation rõ ràng, type hint và phpdoc đầy đủ.
 2. Không leak secret, token, credentials.
 3. Đã chạy kiểm tra tự động:
    ```bash

@@ -25,3 +25,20 @@ Mọi luồng xử lý tuân thủ thứ tự:
   - Quản trị viên phòng (Room Owner/Admin).
 - **Superadmin (`App\Http\Controllers\Superadmin\*`):**
   - Quản trị viên hệ thống toàn cục.
+
+## 4. Chuẩn mực code PHP (Strict Typing, DocBlock, Enums/Consts)
+- **Strict Types & Full Typing**:
+  - Luôn đặt `declare(strict_types=1);` ở đầu mọi file PHP.
+  - Khai báo kiểu (Type hint) cho mọi tham số truyền vào (params), giá trị trả về (return type) của function/method, và class properties.
+- **Đầy đủ PHP Document (PHPDoc)**:
+  - Mọi function/method phải có block comment `/** ... */` đầy đủ:
+    - Mô tả chức năng ngắn gọn, rõ ràng.
+    - `@param <Type> $<name> <Mô tả tham số>`
+    - `@return <Type> <Mô tả giá trị trả về>`
+    - `@throws <Exception> <Trường hợp ném lỗi (nếu có)>`
+- **Tối ưu khả năng tái sử dụng Service (Reusable Services)**:
+  - Service không được phụ thuộc trực tiếp vào HTTP Request instance của Web nếu không cần thiết; nhận tham số dạng primitives hoặc Model instance.
+  - Các logic truy vấn hoặc tính toán chung phải được đóng gói thành các hàm độc lập để có thể tái sử dụng ở Controller, Job, Command hoặc Event Listener.
+- **Quản lý hằng số qua Model Enum hoặc Model Const**:
+  - Tuyệt đối không dùng magic strings/magic numbers trong code.
+  - Sử dụng **PHP 8.1+ Enums (`App\Enums\*`)** (ví dụ `RoomStatus`, `CampaignStatus`, `PaymentStatus`, ...) hoặc hằng số `const` định nghĩa trong Eloquent Model tương ứng.

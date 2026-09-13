@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\User;
 
+use App\Enums\RoomUserStatus;
 use App\Models\RoomUser;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\DB;
@@ -10,19 +13,28 @@ use Illuminate\Validation\ValidationException;
 class SetRoomUserStatusAction
 {
     /**
-     * Handle the execute operation.
-     * @param RoomUser $roomUser Parameter value.
-     * @param string $status Parameter value.
-     * @return RoomUser Result of the operation.
+     * Change room user member status with audit trail logging.
+     *
+     * @param RoomUser $roomUser Room user entity instance.
+     * @param string $status New status string ('active', 'blocked', 'removed').
+     * @return RoomUser Updated room user instance.
+     * @throws ValidationException If status string is invalid.
      */
     public function execute(RoomUser $roomUser, string $status): RoomUser
     {
-        if (!in_array($status, ['active', 'blocked', 'removed'], true)) throw ValidationException::withMessages(['status' => 'Tráº¡ng thĂ¡i khĂ´ng há»£p lá»‡.']);
-        return DB::transaction(function () use ($roomUser, $status) {
+        if (RoomUserStatus::tryFrom($status) === null) {
+            throw ValidationException::withMessages([
+                'status' => __('admin.invalid_status'),
+            ]);
+        }
+
+        return DB::transaction(function () use ($roomUser, $status): RoomUser {
             $before = $roomUser->status->value;
             $roomUser->update(['status' => $status]);
             app(AuditService::class)->record('room_user.status_updated', 'room_user', $roomUser->id, $roomUser->room_id, ['status' => $before], ['status' => $status]);
+
             return $roomUser->fresh();
         });
     }
 }
+

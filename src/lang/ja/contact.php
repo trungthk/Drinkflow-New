@@ -35,8 +35,10 @@ return [
         'captcha' => '認証コード',
         'captcha_placeholder' => '画像の4文字を入力',
         'captcha_refresh' => '認証コードを再読み込み',
-        'submit' => 'お問い合わせを送信する',
-        'sla_commitment' => '営業時間内であれば2〜4時間以内に公式な回答・ご連絡をお約束いたします。',
+        'captcha_loading' => '読み込み中...',
+        'validation_error_title' => '入力内容をご確認ください:',
+        'submit' => 'お問い合わせを送信',
+        'sla_commitment' => '通常、2〜4営業時間以内に専任担当者よりご連絡いたします。',
     ],
     'rate_limit_exceeded' => '送信回数の上限を超えました。:seconds 秒後にもう一度お試しください。',
     'direct' => [

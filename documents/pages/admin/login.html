@@ -1,0 +1,149 @@
+<!DOCTYPE html><html class="h-full" lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>DrinkFlow Admin - Cổng Quản Trị &amp; Xác Thực Vận Hành</title>
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "outline-variant": "#bccac0",
+            "surface-container-lowest": "#ffffff",
+            "surface-dim": "#cbdbf5",
+            "surface-container-highest": "#d3e4fe",
+            "surface-container": "#e5eeff",
+            "on-primary": "#ffffff",
+            "on-tertiary-container": "#f5fff6",
+            "tertiary": "#006947",
+            "secondary-fixed-dim": "#bec6e0",
+            "on-secondary-fixed-variant": "#3f465c",
+            "on-primary-fixed-variant": "#005137",
+            "primary-fixed-dim": "#68dba9",
+            "surface": "#f8f9ff",
+            "inverse-surface": "#213145",
+            "primary-container": "#00855d",
+            "on-secondary": "#ffffff",
+            "inverse-primary": "#68dba9",
+            "primary-fixed": "#85f8c4",
+            "on-surface": "#0b1c30",
+            "on-error": "#ffffff",
+            "tertiary-fixed": "#6ffbbe",
+            "error-container": "#ffdad6",
+            "secondary": "#565e74",
+            "on-tertiary": "#ffffff",
+            "surface-tint": "#006c4a",
+            "inverse-on-surface": "#eaf1ff",
+            "tertiary-container": "#00855b",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed": "#002113",
+            "on-surface-variant": "#3d4a42",
+            "on-secondary-fixed": "#131b2e",
+            "on-primary-container": "#f5fff7",
+            "on-tertiary-fixed-variant": "#005236",
+            "secondary-container": "#dae2fd",
+            "surface-bright": "#f8f9ff",
+            "on-primary-fixed": "#002114",
+            "on-background": "#0b1c30",
+            "surface-container-low": "#eff4ff",
+            "secondary-fixed": "#dae2fd",
+            "surface-container-high": "#dce9ff",
+            "on-secondary-container": "#5c647a",
+            "outline": "#6d7a72",
+            "background": "#f8f9ff",
+            "error": "#ba1a1a",
+            "primary": "#006948",
+            "tertiary-fixed-dim": "#4edea3",
+            "surface-variant": "#d3e4fe"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "margin": "1.5rem",
+            "space-xs": "0.25rem",
+            "gutter": "1rem",
+            "space-sm": "0.5rem",
+            "space-xl": "2rem",
+            "space-lg": "1.5rem",
+            "space-md": "1rem"
+          },
+          "fontFamily": {
+            "body-sm": ["Hanken Grotesk"],
+            "headline-sm": ["Hanken Grotesk"],
+            "body-md": ["Hanken Grotesk"],
+            "body-lg": ["Hanken Grotesk"],
+            "display-lg": ["Hanken Grotesk"],
+            "label-lg": ["JetBrains Mono"],
+            "label-md": ["JetBrains Mono"],
+            "headline-lg": ["Hanken Grotesk"],
+            "label-sm": ["JetBrains Mono"]
+          },
+          "fontSize": {
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full bg-surface text-on-surface font-body-md antialiased selection:bg-primary selection:text-on-primary">
+<!-- Authentication Destination: Global App Shell is intentionally suppressed as per Linear/Authentication Mandate -->
+<div class="h-screen overflow-hidden flex flex-col lg:flex-row"><div class="lg:w-5/12 xl:w-1/2 bg-inverse-surface text-surface-bright flex flex-col p-6 lg:py-6 lg:px-8 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-outline/30 justify-between"><div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#68dba9 1px, transparent 1px); background-size: 24px 24px;"></div><div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/20 blur-3xl pointer-events-none"></div><div class="relative z-10"><div class="flex items-center gap-3"><div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm border border-primary-fixed-dim/30"><span class="material-symbols-outlined text-xl" data-icon="local_shipping">local_shipping</span></div><div><div class="flex items-center gap-2"><span class="font-headline-lg text-xl tracking-tight text-surface-bright font-extrabold">DrinkFlow Admin</span><span class="px-2 py-0.5 rounded text-primary-fixed bg-primary-fixed-dim/20 border border-primary-fixed-dim/30 font-label-sm text-label-sm uppercase tracking-wider font-semibold">ENGINE</span></div><p class="font-label-sm text-label-sm text-surface-dim uppercase tracking-wider">Logistics &amp; Office Beverage Operations Engine</p></div></div></div><div class="relative z-10 space-y-3 my-auto"><div><h1 class="text-2xl lg:text-3xl font-bold text-surface-bright leading-tight tracking-tight mb-2">Quản lý chiến dịch đặt đồ uống tập trung cho doanh nghiệp</h1><p class="font-body-md text-body-md text-surface-dim max-w-lg leading-relaxed">Hạ tầng số hóa quy trình dispatching F&amp;B nội bộ, điều phối đơn số lượng lớn, đối soát số dư ví và tích hợp tự động qua hạ tầng doanh nghiệp.</p></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1"><div class="p-2.5 rounded-xl bg-surface-container-highest/10 border border-outline/40 backdrop-blur-sm"><div class="flex items-center gap-2 text-primary-fixed mb-1"><span class="material-symbols-outlined text-base" data-icon="dinner_dining">dinner_dining</span><span class="font-label-md text-label-md text-surface-bright font-semibold">Bulk Kitchen Batch</span></div><p class="font-body-sm text-body-sm text-surface-dim leading-snug">Tự động gom đơn từ hàng trăm nhân sự thành 1 đơn tối ưu chiết khấu và tối giản phí ship.</p></div><div class="p-2.5 rounded-xl bg-surface-container-highest/10 border border-outline/40 backdrop-blur-sm"><div class="flex items-center gap-2 text-primary-fixed mb-1"><span class="material-symbols-outlined text-base" data-icon="qr_code_2">qr_code_2</span><span class="font-label-md text-label-md text-surface-bright font-semibold">VietQR Napas 247</span></div><p class="font-body-sm text-body-sm text-surface-dim leading-snug">Chia tiền tự động từng cốc, đồng bộ biến động số dư và quản lý quỹ nợ không sót đơn vị.</p></div><div class="p-2.5 rounded-xl bg-surface-container-highest/10 border border-outline/40 backdrop-blur-sm sm:col-span-2"><div class="flex items-center justify-between mb-1"><div class="flex items-center gap-2 text-primary-fixed"><span class="material-symbols-outlined text-base" data-icon="hub">hub</span><span class="font-label-md text-label-md text-surface-bright font-semibold">Webhook &amp; ChatOps Ready</span></div><span class="font-label-sm text-label-sm text-primary-fixed-dim px-2 py-0.5 rounded bg-primary/30">Latency &lt; 85ms</span></div><p class="font-body-sm text-body-sm text-surface-dim leading-snug">Đồng bộ thông báo chốt menu, nhắc chuyển khoản và phiếu giao hàng qua Slack Bots, Chatwork, Microsoft Teams và Telegram Channels.</p></div></div></div><div class="relative z-10 pt-2 border-t border-outline/20 font-label-sm text-label-sm text-surface-dim flex items-center justify-between"><span class="">Cluster: prod-hcm-edge-01</span><span class="">Security Level 4</span></div></div><div class="lg:w-7/12 xl:w-1/2 flex flex-col p-6 lg:py-5 lg:px-10 justify-between bg-surface-container-lowest overflow-y-auto"><div class="flex items-center justify-between pb-2"><div class="flex items-center gap-2"><span class="inline-flex items-center justify-center w-6 h-6 rounded bg-surface-container text-on-surface-variant"><span class="material-symbols-outlined text-sm" data-icon="language">language</span></span><select class="bg-transparent border-0 font-label-md text-label-md text-on-surface cursor-pointer focus:ring-0 p-0 pr-6"><option value="vi">Tiếng Việt (VN)</option><option value="en">English (US)</option></select></div><a class="flex items-center gap-1.5 font-label-md text-label-md text-secondary hover:text-primary transition-colors" href="#it-support"><span class="material-symbols-outlined text-base" data-icon="contact_support">contact_support</span><span class="">Liên hệ IT Support</span></a></div><div class="w-full max-w-md mx-auto my-auto py-1"><div class="mb-4"><div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm mb-2"><span class="material-symbols-outlined text-sm" data-icon="admin_panel_settings">admin_panel_settings</span><span class="">RESTRICTED ACCESS AREA</span></div><h2 class="font-headline-lg text-2xl font-bold text-on-surface tracking-tight">Đăng nhập Cổng Quản Trị</h2><p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Dành riêng cho Dispatcher, Room Manager &amp; IT Admin</p></div><div class="mb-3"><button type="button" class="w-full h-10 flex items-center justify-center gap-3 px-4 rounded border border-outline-variant hover:bg-surface hover:border-outline text-on-surface font-body-md text-body-md font-semibold transition-colors duration-150 active:scale-[0.99] shadow-sm"><svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"></path><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"></path><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"></path><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"></path></svg><span class="">Đăng nhập bằng Google Workspace</span></button></div><div class="relative my-3 text-center"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-outline-variant/60"></div></div><span class="relative bg-surface-container-lowest px-3 font-label-sm text-label-sm uppercase tracking-wider text-outline">hoặc đăng nhập với email</span></div><form class="space-y-3" id="admin-login-form" onsubmit="event.preventDefault(); handleLogin();"><div><label for="admin-email" class="block font-label-md text-label-md font-semibold text-on-surface mb-1">Email công vụ</label><div class="relative"><div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-secondary"><span class="material-symbols-outlined text-lg" data-icon="mail">mail</span></div><input id="admin-email" type="email" required="" value="admin.dispatch@drinkflow.internal" placeholder="name@company.com" class="block w-full h-9 pl-10 pr-10 bg-surface-container-lowest border border-outline-variant rounded font-body-md text-body-md text-on-surface placeholder:text-outline/70 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all"><div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-primary"><span class="material-symbols-outlined text-base" data-icon="check_circle">check_circle</span></div></div></div><div><div class="flex items-center justify-between mb-1"><label for="admin-password" class="block font-label-md text-label-md font-semibold text-on-surface">Mật khẩu</label><a href="#reset-auth" class="font-label-sm text-label-sm text-primary hover:underline">Quên mật khẩu?</a></div><div class="relative"><div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-secondary"><span class="material-symbols-outlined text-lg" data-icon="lock">lock</span></div><input id="admin-password" type="password" required="" value="EnterpriseAdmin2024!#" placeholder="••••••••••••" class="block w-full h-9 pl-10 pr-10 bg-surface-container-lowest border border-outline-variant rounded font-body-md text-body-md text-on-surface placeholder:text-outline/70 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all font-label-md"><button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-outline hover:text-on-surface focus:outline-none" aria-label="Toggle password visibility"><span id="eye-icon" class="material-symbols-outlined text-lg" data-icon="visibility">visibility</span></button></div></div><div class="flex items-center justify-between pt-0.5"><label class="flex items-center gap-2 cursor-pointer select-none"><input type="checkbox" checked="" class="w-4 h-4 rounded text-primary border-outline-variant focus:ring-primary focus:ring-offset-0"><span class="font-body-sm text-body-sm text-on-surface">Ghi nhớ đăng nhập</span></label><a href="#2fa-request" class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors flex items-center gap-1"><span class="material-symbols-outlined text-sm" data-icon="key">key</span><span class="">Cấp lại mã 2FA</span></a></div><div class="pt-1.5"><button id="submit-btn" type="submit" class="w-full h-10 flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-headline-sm text-base font-semibold rounded shadow-sm hover:shadow transition-all duration-150 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"><span class="material-symbols-outlined text-lg" data-icon="verified_user">verified_user</span><span class="">Đăng nhập hệ thống</span><span class="material-symbols-outlined text-base" data-icon="arrow_forward">arrow_forward</span></button></div></form><div class="hidden mt-3 p-2.5 rounded bg-surface-container border border-primary text-primary-container flex items-start gap-2 text-left" id="login-alert"><span class="material-symbols-outlined text-base text-primary flex-shrink-0 mt-0.5" data-icon="lock_clock">lock_clock</span><div class="font-body-sm text-body-sm"><span class="font-semibold block text-on-surface">Xác minh mã bảo mật 2FA (TOTP)</span>Vui lòng nhập 6 chữ số từ ứng dụng Google Authenticator hoặc tin nhắn xác thực bảo mật để hoàn tất phiên.</div></div><div class="p-2.5 rounded bg-surface border border-outline-variant/60 flex items-start gap-2.5 mt-3"><div class="p-1 rounded bg-primary-fixed-dim/20 text-primary flex-shrink-0"><span class="material-symbols-outlined text-sm" data-icon="vpn_key">vpn_key</span></div><div><div class="font-label-sm text-label-sm font-semibold text-on-surface flex items-center gap-1.5">Bảo mật End-to-End Encryption<span class="inline-block px-1.5 py-0.2 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-[9px] font-bold">MFA REQUIRED</span></div><p class="font-body-sm text-[11px] text-on-surface-variant leading-tight mt-0.5">Hỗ trợ FIDO2 WebAuthn, hardware security keys &amp; chuẩn RFC 6238 TOTP. Mọi thao tác đều được ghi nhật ký audit trail thời gian thực.</p></div></div><p class="text-center font-label-sm text-[10px] text-outline leading-tight mt-2.5">Cảnh báo: Hệ thống được giám sát 24/7. Truy cập trái phép vào dữ liệu nội bộ bị nghiêm cấm theo quy chế bảo mật công ty và Pháp luật hiện hành.</p></div><div class="pt-2 border-t border-outline-variant/40 flex flex-col sm:flex-row items-center justify-between gap-2 font-label-sm text-label-sm text-outline mt-auto"><div class="">© 2025 DrinkFlow Logistics Technologies Ltd. All rights reserved.</div></div></div></div>
+<!-- Interactive Client-side Script -->
+<script>
+    function togglePasswordVisibility() {
+      const passwordInput = document.getElementById('admin-password');
+      const eyeIcon = document.getElementById('eye-icon');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.textContent = 'visibility_off';
+      } else {
+        passwordInput.type = 'password';
+        eyeIcon.textContent = 'visibility';
+      }
+    }
+
+    function handleLogin() {
+      const submitBtn = document.getElementById('submit-btn');
+      const alertBox = document.getElementById('login-alert');
+      
+      // Temporary loading indicator
+      submitBtn.innerHTML = `
+        <span class="material-symbols-outlined text-lg animate-spin" data-icon="sync">sync</span>
+        <span>Đang mã hóa & xác thực...</span>
+      `;
+      submitBtn.classList.add('opacity-90', 'cursor-wait');
+
+      setTimeout(() => {
+        submitBtn.innerHTML = `
+          <span class="material-symbols-outlined text-xl" data-icon="verified_user">verified_user</span>
+          <span>Yêu cầu mã xác thực 2FA</span>
+          <span class="material-symbols-outlined text-base" data-icon="arrow_forward">arrow_forward</span>
+        `;
+        submitBtn.classList.remove('opacity-90', 'cursor-wait');
+        alertBox.classList.remove('hidden');
+      }, 700);
+    }
+  </script>
+
+
+</body></html>

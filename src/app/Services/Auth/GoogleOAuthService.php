@@ -1,19 +1,94 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Auth;
 
 use App\Models\GlobalUser;
 use App\Models\OAuthIdentity;
 use App\Models\SecurityEvent;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class GoogleOAuthService
 {
     /**
-     * Handle the validate profile operation.
-     * @param array $profile Parameter value.
-     * @return void Result of the operation.
+     * Tạo đường dẫn cấp quyền xác thực Google OAuth và lưu state vào session.
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
+     * @return string  URL chuyển hướng đến trang đăng nhập Google
+     */
+    public function getAuthorizationUrl(Request $request): string
+    {
+        $state = Str::random(40);
+        $request->session()->put('google_oauth_state', $state);
+
+        $loginSource = $request->header('referer') ?? url('/');
+        $request->session()->put('google_oauth_login_source', $loginSource);
+
+        $query = http_build_query([
+            'client_id' => config('services.google.client_id'),
+            'redirect_uri' => config('services.google.redirect'),
+            'response_type' => 'code',
+            'scope' => 'openid email profile',
+            'state' => $state,
+            'access_type' => 'online',
+            'prompt' => 'select_account',
+        ]);
+
+        return 'https://accounts.google.com/o/oauth2/v2/auth?' . $query;
+    }
+
+    /**
+     * Trao đổi authorization code lấy thông tin hồ sơ Google và xác thực/tạo tài khoản GlobalUser.
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request chứa mã code trả về từ Google
+     * @return \App\Models\GlobalUser  Tài khoản người dùng toàn hệ thống đã được xác thực
+     * @throws \RuntimeException  Khi không lấy được access token hoặc thông tin hồ sơ
+     * @throws \Illuminate\Validation\ValidationException  Khi email chưa xác thực, domain không được phép hoặc thiếu sub
+     */
+    public function handleCallback(Request $request): GlobalUser
+    {
+        $tokenResponse = Http::asForm()->post('https://oauth2.googleapis.com/token', [
+            'code' => $request->string('code')->toString(),
+            'client_id' => config('services.google.client_id'),
+            'client_secret' => config('services.google.client_secret'),
+            'redirect_uri' => config('services.google.redirect'),
+            'grant_type' => 'authorization_code',
+        ]);
+
+        if ($tokenResponse->failed()) {
+            throw new \RuntimeException(__('global.auth.google_token_failed'));
+        }
+
+        $token = $tokenResponse->json();
+        $profileResponse = Http::withToken($token['access_token'] ?? '')
+            ->get('https://openidconnect.googleapis.com/v1/userinfo');
+
+        if ($profileResponse->failed()) {
+            throw new \RuntimeException(__('global.auth.google_profile_failed'));
+        }
+
+        $profile = $profileResponse->json();
+
+        return $this->resolveUser([
+            'sub' => $profile['sub'] ?? null,
+            'email' => $profile['email'] ?? null,
+            'name' => $profile['name'] ?? '',
+            'picture' => $profile['picture'] ?? null,
+            'email_verified' => (bool) ($profile['email_verified'] ?? false),
+        ]);
+    }
+
+    /**
+     * Kiểm tra tính hợp lệ của thông tin hồ sơ nhận từ Google (email verified, whitelist domains, subject id).
+     *
+     * @param  array<string, mixed>  $profile  Dữ liệu hồ sơ người dùng từ Google
+     * @return void
+     * @throws \Illuminate\Validation\ValidationException  Khi dữ liệu hồ sơ vi phạm chính sách bảo mật
      */
     public function validateProfile(array $profile): void
     {
@@ -23,7 +98,7 @@ class GoogleOAuthService
                 'severity' => 'medium',
                 'metadata' => ['reason' => 'unverified_email'],
             ]);
-            throw ValidationException::withMessages(['email' => 'Email Google chưa được xác minh.']);
+            throw ValidationException::withMessages(['email' => __('public.auth_modal.error_unverified_email')]);
         }
 
         $email = strtolower(trim((string) ($profile['email'] ?? '')));
@@ -38,10 +113,10 @@ class GoogleOAuthService
             ]);
 
             $message = $domain === 'google.com'
-                ? "Tài khoản có domain 'google.com' không hỗ trợ đăng nhập. Vui lòng sử dụng tài khoản email doanh nghiệp được cấp phép."
+                ? __('public.auth_modal.error_domain_unsupported', ['domain' => 'google.com'])
                 : ($domain
-                    ? "Tài khoản có domain '{$domain}' không hỗ trợ đăng nhập. Vui lòng sử dụng tài khoản email doanh nghiệp được cấp phép."
-                    : 'Email không hợp lệ.');
+                    ? __('public.auth_modal.error_domain_unsupported', ['domain' => $domain])
+                    : __('public.auth_modal.error_email_invalid'));
 
             throw ValidationException::withMessages(['email' => $message]);
         }
@@ -52,14 +127,16 @@ class GoogleOAuthService
                 'severity' => 'high',
                 'metadata' => ['reason' => 'missing_subject'],
             ]);
-            throw ValidationException::withMessages(['email' => 'Google identity không hợp lệ.']);
+            throw ValidationException::withMessages(['email' => __('public.auth_modal.error_invalid_identity')]);
         }
     }
 
     /**
-     * Handle the resolve user operation.
-     * @param array $profile Parameter value.
-     * @return GlobalUser Result of the operation.
+     * Tìm hoặc khởi tạo tài khoản GlobalUser và liên kết với danh tính OAuthIdentity tương ứng.
+     *
+     * @param  array<string, mixed>  $profile  Thông tin hồ sơ Google đã qua kiểm duyệt
+     * @return \App\Models\GlobalUser  Tài khoản người dùng toàn hệ thống
+     * @throws \Illuminate\Validation\ValidationException  Khi identity đã gắn với người dùng khác
      */
     public function resolveUser(array $profile): GlobalUser
     {
@@ -87,7 +164,7 @@ class GoogleOAuthService
                     'normalized_name' => $this->normalize($profile['name']),
                     'email' => strtolower($profile['email']),
                     'avatar_url' => $profile['picture'] ?? null,
-                    'status' => 'active',
+                    'status' => \App\Enums\GlobalUserStatus::Active->value,
                 ]);
             }
 
@@ -114,9 +191,10 @@ class GoogleOAuthService
     }
 
     /**
-     * Handle the normalize operation.
-     * @param string $name Parameter value.
-     * @return string Result of the operation.
+     * Chuẩn hóa chuỗi họ tên người dùng thành không dấu để hỗ trợ tìm kiếm nhanh.
+     *
+     * @param  string  $name  Họ tên người dùng
+     * @return string  Tên đã được chuyển thành chữ thường không dấu
      */
     private function normalize(string $name): string
     {

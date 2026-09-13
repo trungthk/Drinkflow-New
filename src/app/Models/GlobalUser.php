@@ -1,16 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\GlobalUserStatus;
+use App\Models\Concerns\HasNormalizedName;
+use App\Models\Concerns\HasStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class GlobalUser extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasStatus, HasNormalizedName;
 
     protected $table = 'global_users';
 
@@ -33,11 +38,17 @@ class GlobalUser extends Authenticatable
     {
         return [
             'last_login_at' => 'datetime',
-            'status' => GlobalUserStatus::class,
-            'preferences' => 'array',
+            'status'        => GlobalUserStatus::class,
+            'preferences'   => 'array',
         ];
     }
 
+    /**
+     * Trả về URL avatar của người dùng, fallback về ảnh mặc định nếu chưa có.
+     *
+     * @param  string|null  $value  Giá trị avatar_url trong DB.
+     * @return string URL ảnh đại diện.
+     */
     public function getAvatarUrlAttribute(?string $value): string
     {
         return !empty($value) ? $value : asset('images/default-avatar.svg');
@@ -51,6 +62,13 @@ class GlobalUser extends Authenticatable
     public function roomUsers(): HasMany
     {
         return $this->hasMany(RoomUser::class);
+    }
+
+    public function rooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Room::class, 'room_users', 'global_user_id', 'room_id')
+            ->withPivot(['id', 'status', 'user_code', 'last_active_at'])
+            ->withTimestamps();
     }
 
     public function notifications(): HasMany

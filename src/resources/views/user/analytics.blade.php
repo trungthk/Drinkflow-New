@@ -4,11 +4,11 @@
         <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md pb-space-sm">
             <div class="flex flex-col gap-space-xs">
                 <div class="flex items-center gap-space-xs">
-                    <span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold">Báo cáo nội bộ</span>
+                    <span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold">{{ __('room.analytics.internal_report') }}</span>
                     <span class="font-body-sm text-body-sm text-on-surface-variant">{{ __('room.analytics.updated_at', ['time' => now()->format('H:i')]) }}</span>
                 </div>
                 <h1 class="font-display-lg text-display-lg text-on-surface tracking-tight">{{ __('room.analytics.page_title') }} {{ $room->name }}</h1>
-                <p class="font-body-md text-body-md text-on-surface-variant">{{ __('room.analytics.subtitle') }} dành cho <span class="font-semibold text-on-surface">{{ $user->name }}</span>.</p>
+                <p class="font-body-md text-body-md text-on-surface-variant">{{ __('room.analytics.subtitle') }} {{ __('room.analytics.for_user') }} <span class="font-semibold text-on-surface">{{ $user->name }}</span>.</p>
             </div>
             <div class="flex items-center gap-space-sm self-start lg:self-auto">
                 <div class="flex items-center bg-surface-container rounded-xl p-1 border border-outline-variant/30">
@@ -32,7 +32,7 @@
                 <div class="mt-space-md">
                     <div class="flex items-baseline gap-space-xs">
                         <span class="font-display-lg text-display-lg text-on-surface font-bold tracking-tight">{{ $totalOrders }}</span>
-                        <span class="font-headline-sm text-headline-sm text-on-surface-variant">đơn ({{ $totalCups }} ly)</span>
+                        <span class="font-headline-sm text-headline-sm text-on-surface-variant">{{ __('room.analytics.orders_unit', ['cups' => $totalCups]) }}</span>
                     </div>
                     <div class="mt-space-xs flex items-center gap-1.5 text-primary font-label-sm text-label-sm font-semibold">
                         <span class="material-symbols-outlined text-[14px]">check_circle</span>
@@ -70,7 +70,7 @@
             <!-- Card 3: Sponsor nhận được -->
             <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
                 <div class="flex items-start justify-between">
-                    <span class="font-label-md text-label-md text-on-surface-variant font-medium">Sponsor đã nhận từ Room</span>
+                    <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ __('room.analytics.sponsor_received') }}</span>
                     <div class="w-9 h-9 rounded-xl bg-primary-fixed text-on-primary-fixed flex items-center justify-center">
                         <span class="material-symbols-outlined text-[20px]">redeem</span>
                     </div>
@@ -82,7 +82,7 @@
                     </div>
                     <div class="mt-space-xs flex items-center gap-1.5 text-primary font-label-sm text-label-sm font-semibold">
                         <span class="material-symbols-outlined text-[14px]">savings</span>
-                        <span>Tiết kiệm ~25% chi phí</span>
+                        <span>{{ __('room.analytics.saved_cost_hint') }}</span>
                     </div>
                 </div>
                 <div class="w-full bg-surface-container h-1.5 rounded-full mt-space-md overflow-hidden">
@@ -93,7 +93,7 @@
             <!-- Card 4: Món ruột -->
             <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
                 <div class="flex items-start justify-between">
-                    <span class="font-label-md text-label-md text-on-surface-variant font-medium">Món yêu thích</span>
+                    <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ __('room.analytics.favorite_drink') }}</span>
                     <div class="w-9 h-9 rounded-xl bg-surface-container-low flex items-center justify-center text-tertiary">
                         <span class="material-symbols-outlined text-[20px]">stars</span>
                     </div>
@@ -106,7 +106,7 @@
                     </div>
                     <div class="mt-space-xs flex items-center gap-1.5 text-on-surface-variant font-label-sm text-label-sm">
                         <span class="material-symbols-outlined text-[14px]">repeat</span>
-                        <span>Đã order {{ $topItems->first()['quantity'] ?? 1 }} lần</span>
+                        <span>{{ __('room.analytics.ordered_times', ['count' => $topItems->first()['quantity'] ?? 1]) }}</span>
                     </div>
                 </div>
                 <div class="w-full bg-surface-container h-1.5 rounded-full mt-space-md overflow-hidden">
@@ -128,10 +128,10 @@
                 <table class="w-full text-left font-body-sm text-body-sm">
                     <thead>
                         <tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider border-b border-outline-variant/20">
-                            <th class="py-3 px-space-md">Hạng</th>
-                            <th class="py-3 px-space-sm">Tên đồ uống</th>
-                            <th class="py-3 px-space-sm text-right">Số lượng đã đặt</th>
-                            <th class="py-3 px-space-sm text-right">Tổng chi tiêu</th>
+                            <th class="py-3 px-space-md">{{ __('room.analytics.table_rank') }}</th>
+                            <th class="py-3 px-space-sm">{{ __('room.analytics.table_item_name') }}</th>
+                            <th class="py-3 px-space-sm text-right">{{ __('room.analytics.table_quantity') }}</th>
+                            <th class="py-3 px-space-sm text-right">{{ __('room.analytics.table_total_amount') }}</th>
                         </tr>
                     </thead>
                     <tbody class="text-on-surface divide-y divide-outline-variant/20">
@@ -146,13 +146,13 @@
                                     </span>
                                     <span>{{ $item['name'] }}</span>
                                 </td>
-                                <td class="py-4 px-space-sm text-right font-tabular-nums font-bold text-on-surface">{{ $item['quantity'] }} ly</td>
+                                <td class="py-4 px-space-sm text-right font-tabular-nums font-bold text-on-surface">{{ __('room.analytics.cups_count', ['count' => $item['quantity']]) }}</td>
                                 <td class="py-4 px-space-sm text-right font-tabular-nums font-bold text-primary">{{ number_format($item['total_amount'], 0, ',', '.') }}đ</td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="4" class="py-8 text-center text-on-surface-variant font-body-sm">
-                                    Chưa có dữ liệu thống kê đồ uống nào.
+                                    {{ __('room.analytics.no_data') }}
                                 </td>
                             </tr>
                         @endforelse

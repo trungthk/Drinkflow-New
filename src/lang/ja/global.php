@@ -596,6 +596,13 @@ return [
         'anonymous_user' => '社内メンバー',
         'empty_feedbacks_title' => 'メンバーからのフィードバックはまだありません',
         'empty_feedbacks_desc' => 'DrinkFlowのサービスと機能向上のため、ご意見をお寄せください！',
+        'captcha_label' => '認証コード',
+        'captcha_placeholder' => '画像の4文字を入力',
+        'captcha_refresh' => '認証コードを再読み込み',
+        'captcha_loading' => '読み込み中...',
+        'load_more_btn' => 'さらに読み込む',
+        'loading_more' => '読み込み中...',
+        'all_loaded' => 'すべての評価を表示しました',
     ],
     'notifications' => [
         'page_title' => '通知センター - DrinkFlow',

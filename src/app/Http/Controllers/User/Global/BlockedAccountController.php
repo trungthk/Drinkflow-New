@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\User\Global;
 
 use App\Http\Controllers\Controller;
-use App\Models\Debt;
 use App\Models\GlobalUser;
+use App\Services\User\UserBlockedService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,45 +14,27 @@ use Illuminate\Http\Request;
 class BlockedAccountController extends Controller
 {
     /**
-     * Display the blocked account notice page.
+     * Hiển thị trang thông báo tài khoản bị khóa và thống kê công nợ chưa trả (/me/blocked).
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
+     * @param  \App\Services\User\UserBlockedService  $service  Service xử lý dữ liệu tài khoản bị khóa
+     * @return \Illuminate\Contracts\View\View  Giao diện thông báo khóa tài khoản
      */
-    public function show(Request $request): View
+    public function show(Request $request, UserBlockedService $service): View
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $incidentCode = '#BLK-' . date('Y') . '-' . str_pad((string) $user->id, 5, '0', STR_PAD_LEFT);
-        $recordedAt = now()->format('H:i • d/m/Y') . ' (GMT+7)';
+        $data = $service->getBlockedNoticeData($user);
 
-        $roomUserIds = $user->roomUsers()->pluck('id');
-        $dbDebts = Debt::with(['room', 'roomUser'])
-            ->whereIn('room_user_id', $roomUserIds)
-            ->where('remaining_amount', '>', 0)
-            ->latest()
-            ->get();
-
-        $totalDebt = (int) $dbDebts->sum('remaining_amount');
-
-        $pendingDebts = [];
-        foreach ($dbDebts as $debt) {
-            $pendingDebts[] = [
-                'title' => __('global.blocked.debt_item_title', ['id' => $debt->id, 'room' => $debt->room?->name ?? __('global.blocked.internal_room')]),
-                'subtitle' => __('global.blocked.debt_item_subtitle', ['date' => $debt->created_at ? $debt->created_at->format('d/m/Y') : __('global.common.recently')]),
-                'amount' => (int) $debt->remaining_amount,
-            ];
-        }
-
-        return view('user.global.blocked', compact(
-            'user',
-            'incidentCode',
-            'recordedAt',
-            'pendingDebts',
-            'totalDebt'
-        ));
+        return view('user.global.blocked', $data);
     }
 
     /**
-     * Submit an unlock request or appeal.
+     * Tiếp nhận yêu cầu khiếu nại hoặc giải trình mở khóa tài khoản từ người dùng.
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request chứa lý do khiếu nại
+     * @return \Illuminate\Http\RedirectResponse  Phản hồi chuyển hướng kèm thông báo tiếp nhận
      */
     public function appeal(Request $request): RedirectResponse
     {
@@ -62,3 +46,4 @@ class BlockedAccountController extends Controller
         return back()->with('status', __('global.blocked.appeal_submitted_status'));
     }
 }
+

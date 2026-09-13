@@ -178,7 +178,7 @@
               </div>
             </div>
             <div class="flex items-center justify-between bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-              <span class="text-xs text-slate-500 font-medium">{{ __('room.dashboard.total_pool_value', ['amount' => '']) }}</span>
+              <span class="text-xs text-slate-500 font-medium">{{ __('room.dashboard.total_pool_value_label') }}</span>
               <span class="text-base font-bold font-mono text-[#006948]">{{ number_format($activeCampaign['total_pool_value'], 0, ',', '.') }}đ</span>
             </div>
           </div>
@@ -207,7 +207,7 @@
                   <div class="text-right shrink-0">
                     <span class="text-xs font-bold font-mono text-slate-900 block">{{ number_format($order->final_amount, 0, ',', '.') }}đ</span>
                     <span class="text-[10px] px-2 py-0.5 rounded-full {{ $order->status?->value === 'completed' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600' }} font-medium inline-block mt-0.5">
-                      {{ $order->status?->value ?? 'pending' }}
+                      {{ __('room.orders.status_' . ($order->status?->value ?? 'pending')) }}
                     </span>
                   </div>
                 </div>

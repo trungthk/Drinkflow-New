@@ -1,13 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\User;
 
 use App\Actions\Order\CreateOrderAction;
+use App\Enums\CampaignStatus;
+use App\Enums\OrderStatus;
+use App\Enums\RoomStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
 use App\Models\Campaign;
+use App\Models\GlobalUser;
 use App\Models\Order;
+use App\Models\PaymentAccount;
 use App\Models\Room;
+use App\Models\RoomUser;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -18,14 +26,18 @@ use Illuminate\Support\Facades\DB;
 class OrderController extends Controller
 {
     /**
-     * Handle the index operation.
-     * @param Request $request Parameter value.
-     * @return JsonResponse|View Result of the operation.
+     * Display a paginated list of user's orders in the room, or JSON response for API requests.
+     *
+     * @param Request $request Current HTTP request.
+     * @return JsonResponse|View View response or JSON payload.
      */
     public function index(Request $request): JsonResponse|View
     {
+        /** @var Room $room */
         $room = $request->attributes->get('room');
+        /** @var RoomUser $roomUser */
         $roomUser = $request->attributes->get('room_user');
+        /** @var GlobalUser|null $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
         $query = $roomUser->orders()->where('room_id', $room->id)->with(['items.toppings', 'campaign.paymentAccount'])->latest();
@@ -45,9 +57,9 @@ class OrderController extends Controller
             return response()->json(['data' => $orders]);
         }
 
-        $activeCampaign = $room->campaigns()->where('status', 'active')->first();
-        $userRooms = $user ? $user->rooms()->where('rooms.status', 'active')->get() : collect();
-        $unreadCount = DB::table('user_notifications')->where('global_user_id', $user->id)->where('is_read', false)->count();
+        $activeCampaign = $room->campaigns()->where('status', CampaignStatus::Active->value)->first();
+        $userRooms = $user ? $user->rooms()->where('rooms.status', RoomStatus::Active->value)->get() : collect();
+        $unreadCount = $user ? DB::table('user_notifications')->where('global_user_id', $user->id)->whereNull('read_at')->count() : 0;
 
         return view('user.orders', [
             'room' => $room,
@@ -64,28 +76,39 @@ class OrderController extends Controller
     }
 
     /**
-     * Handle the store operation.
-     * @param StoreOrderRequest $request Parameter value.
-     * @param Room $room Parameter value.
-     * @param Campaign $campaign Parameter value.
-     * @param CreateOrderAction $action Parameter value.
-     * @return JsonResponse|RedirectResponse Result of the operation.
+     * Store a newly created order for the specified campaign.
+     *
+     * @param StoreOrderRequest $request Validated order store request.
+     * @param Room $room Current room model.
+     * @param Campaign $campaign Target campaign model.
+     * @param CreateOrderAction $action Domain action to create order.
+     * @return JsonResponse|RedirectResponse Redirect to orders list or JSON response.
      */
     public function store(StoreOrderRequest $request, Room $room, Campaign $campaign, CreateOrderAction $action): JsonResponse|RedirectResponse
     {
         try {
-            $order = $action->execute($campaign, $request->attributes->get('room_user'), $request->validated());
+            /** @var RoomUser $roomUser */
+            $roomUser = $request->attributes->get('room_user');
+            $order = $action->execute($campaign, $roomUser, $request->validated());
         } catch (QueryException $exception) {
             $message = $exception->getMessage();
             if (str_contains($message, 'orders_one_active_per_user_campaign')
                 || str_contains($message, 'UNIQUE constraint failed: orders.campaign_id, orders.room_user_id')) {
+                /** @var RoomUser|null $roomUser */
                 $roomUser = $request->attributes->get('room_user');
                 $activeOrder = $roomUser?->orders()
                     ->where('campaign_id', $campaign->id)
-                    ->whereIn('status', ['submitted', 'confirmed', 'ordering', 'ordered', 'delivering'])
+                    ->whereIn('status', [
+                        OrderStatus::Submitted->value,
+                        OrderStatus::Confirmed->value,
+                        OrderStatus::Ordering->value,
+                        OrderStatus::Ordered->value,
+                        OrderStatus::Delivering->value,
+                    ])
                     ->latest()
                     ->first();
-                $room = $request->attributes->get('room');
+                /** @var Room|null $roomAttr */
+                $roomAttr = $request->attributes->get('room');
 
                 if ($request->expectsJson()) {
                     return response()->json([
@@ -93,7 +116,7 @@ class OrderController extends Controller
                         'code' => 'active_order_exists',
                         'order_id' => $activeOrder?->id,
                         'order_status' => $activeOrder?->status?->value,
-                        'order_url' => $activeOrder && $room ? route('user.orders.page', [$room, $activeOrder]) : null,
+                        'order_url' => $activeOrder && $roomAttr ? route('user.orders.page', [$roomAttr, $activeOrder]) : null,
                     ], 422);
                 }
 
@@ -110,14 +133,16 @@ class OrderController extends Controller
     }
 
     /**
-     * Handle the show operation.
-     * @param Request $request Parameter value.
-     * @param Room $room Parameter value.
-     * @param Order $order Parameter value.
-     * @return JsonResponse|View Result of the operation.
+     * Display the specified order details or redirect to order page.
+     *
+     * @param Request $request Current HTTP request.
+     * @param Room $room Current room model.
+     * @param Order $order Target order model.
+     * @return JsonResponse|View|RedirectResponse JSON payload or redirect response.
      */
-    public function show(Request $request, Room $room, Order $order): JsonResponse|View
+    public function show(Request $request, Room $room, Order $order): JsonResponse|View|RedirectResponse
     {
+        /** @var RoomUser $roomUser */
         $roomUser = $request->attributes->get('room_user');
         abort_unless($order->room_id === $room->id && $order->room_user_id === $roomUser->id, 404);
 
@@ -129,18 +154,23 @@ class OrderController extends Controller
     }
 
     /**
-     * Handle the payment operation.
-     * @param Request $request Parameter value.
-     * @param Room $room Parameter value.
-     * @param Order $order Parameter value.
-     * @return JsonResponse Result of the operation.
+     * Retrieve payment details and QR code for an order.
+     *
+     * @param Request $request Current HTTP request.
+     * @param Room $room Current room model.
+     * @param Order $order Target order model.
+     * @return JsonResponse JSON payload containing bank info and QR payment link.
      */
     public function payment(Request $request, Room $room, Order $order): JsonResponse
     {
+        /** @var RoomUser $roomUser */
         $roomUser = $request->attributes->get('room_user');
         abort_unless($order->room_id === $room->id && $order->room_user_id === $roomUser->id, 404);
+
+        /** @var PaymentAccount|null $account */
         $account = $order->campaign()->with('paymentAccount')->first()?->paymentAccount;
-        abort_unless($account && $account->status === 'active', 404);
+        abort_unless($account && $account->status === PaymentAccount::STATUS_ACTIVE, 404);
+
         $amount = (int) $order->final_amount;
         $content = 'DRINKFLOW-'.$order->id;
 
@@ -151,7 +181,13 @@ class OrderController extends Controller
             'account_name' => $account->account_name,
             'amount' => $amount,
             'transfer_content' => $content,
-            'qr_url' => sprintf('https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s', rawurlencode($account->bank_code), rawurlencode($account->account_number), $amount, rawurlencode($content)),
+            'qr_url' => sprintf(
+                'https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s',
+                rawurlencode((string) $account->bank_code),
+                rawurlencode((string) $account->account_number),
+                $amount,
+                rawurlencode($content)
+            ),
         ]]);
     }
 }

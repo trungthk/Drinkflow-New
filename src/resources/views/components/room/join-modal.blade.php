@@ -19,7 +19,7 @@
         <span class="w-2 h-2 rounded-full bg-[#006948] animate-pulse"></span>
         <span>{{ __('room.join.badge') }}</span>
       </div>
-      <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center mb-2 shadow-xs">
+      <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-[#006948] border-2 border-emerald-200 ring-1 ring-emerald-500/20 flex items-center justify-center mb-2 shadow-xs">
         <span class="material-symbols-outlined text-[32px]">corporate_fare</span>
       </div>
       <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
@@ -37,9 +37,10 @@
     <!-- User Identity Card -->
     <div class="mt-6 p-4 bg-slate-50/80 rounded-xl border border-slate-200/70 flex items-center gap-3.5">
       <div class="relative shrink-0">
-        <img class="w-13 h-13 rounded-full object-cover ring-2 ring-white shadow-xs" 
+        <img class="w-13 h-13 rounded-full object-cover border-2 border-white ring-2 ring-emerald-600/30 shadow-xs" 
              src="{{ $user->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($user->name ?? 'User').'&background=006948&color=ffffff&bold=true' }}" 
-             alt="{{ $user->name ?? 'User' }}">
+             alt="{{ $user->name ?? 'User' }}"
+             loading="lazy">
         <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full ring-2 ring-white" title="{{ __('room.join.ready_badge') }}"></span>
       </div>
       <div class="flex flex-col min-w-0 flex-1">

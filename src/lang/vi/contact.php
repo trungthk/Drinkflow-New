@@ -35,6 +35,8 @@ return [
         'captcha' => 'Mã bảo vệ',
         'captcha_placeholder' => 'Nhập 4 ký tự mã',
         'captcha_refresh' => 'Làm mới mã bảo vệ',
+        'captcha_loading' => 'Đang tải...',
+        'validation_error_title' => 'Vui lòng kiểm tra lại thông tin biểu mẫu:',
         'submit' => 'Gửi yêu cầu liên hệ',
         'sla_commitment' => 'Cam kết xử lý và phản hồi chính thức trong vòng 2 - 4 giờ làm việc hành chính.',
     ],

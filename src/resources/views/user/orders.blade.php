@@ -20,7 +20,7 @@
         },
         copyText(text) {
             navigator.clipboard?.writeText(text);
-            alert('Đã sao chép: ' + text);
+            alert('{{ __('room.orders.copied_alert', ['text' => '']) }}' + text);
         }
     }">
         @if(session('status'))
@@ -80,7 +80,7 @@
                     <div class="flex items-center gap-space-xs flex-shrink-0">
                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm shadow-sm">
                             <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
-                            Live Status
+                            {{ __('room.orders.live_status') }}
                         </span>
                     </div>
                 </div>
@@ -95,7 +95,7 @@
                                     {{ $room->code ?? $room->slug }}
                                 </span>
                                 <span class="px-2.5 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm font-semibold capitalize">
-                                    {{ $status }}
+                                    {{ __('room.orders.status_' . $status) }}
                                 </span>
                             </div>
                             <div class="flex flex-wrap items-center gap-y-1 gap-x-space-md text-on-surface-variant font-body-sm text-body-sm">
@@ -106,23 +106,23 @@
                                 <span class="text-outline-variant">•</span>
                                 <span class="flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[16px] text-secondary">groups</span>
-                                    Phòng: <strong class="text-on-surface font-semibold ml-0.5">{{ $room->name }}</strong>
+                                    {{ __('room.orders.room_label') }}: <strong class="text-on-surface font-semibold ml-0.5">{{ $room->name }}</strong>
                                 </span>
                                 <span class="text-outline-variant">•</span>
                                 <span class="flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[16px] text-secondary">storefront</span>
-                                    Chiến dịch: <strong class="text-on-surface font-semibold ml-0.5">{{ $activeOrder->campaign?->name ?? 'Direct' }}</strong>
+                                    {{ __('room.orders.campaign_label') }}: <strong class="text-on-surface font-semibold ml-0.5">{{ $activeOrder->campaign?->name ?? 'Direct' }}</strong>
                                 </span>
                             </div>
                         </div>
                         <div class="flex items-center gap-space-md bg-surface-container-low p-space-sm rounded-xl lg:self-auto self-start">
-                            <img class="w-10 h-10 rounded-full object-cover flex-shrink-0" src="{{ $user->avatar_url ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDABv8Oe8xyc5YFfx-Urh180Ei9oWDlXncJYYMhGsQyXKi9hH-Ozqz3OugY2_1YBVNW7gx3_8lQ0e663-MZrk9sfuwQNx_hfyyQtK2Zhj_zZGIVtA4PdjFBpNhgR9tn9snH3UYWVQ68_CKNQt5duVHzjZFHBqTbF8GWsCP5QSCLqXnCkE_RM9NLeqxpc7hKb0xusaVGpsBgdlLGILxnD3Fq8gdCU6OgF-qluxXmwytHivLwPF5jc5JUug' }}" alt="{{ $user->name }}"/>
+                            <img class="w-10 h-10 rounded-full object-cover flex-shrink-0 border-2 border-white ring-2 ring-[#006948]/30 shadow-xs" src="{{ $user->avatar_url ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDABv8Oe8xyc5YFfx-Urh180Ei9oWDlXncJYYMhGsQyXKi9hH-Ozqz3OugY2_1YBVNW7gx3_8lQ0e663-MZrk9sfuwQNx_hfyyQtK2Zhj_zZGIVtA4PdjFBpNhgR9tn9snH3UYWVQ68_CKNQt5duVHzjZFHBqTbF8GWsCP5QSCLqXnCkE_RM9NLeqxpc7hKb0xusaVGpsBgdlLGILxnD3Fq8gdCU6OgF-qluxXmwytHivLwPF5jc5JUug' }}" alt="{{ $user->name }}" loading="lazy"/>
                             <div class="flex flex-col pr-space-sm min-w-0">
-                                <span class="font-label-sm text-label-sm text-on-surface-variant">Người đặt</span>
+                                <span class="font-label-sm text-label-sm text-on-surface-variant">{{ __('room.orders.orderer_label') }}</span>
                                 <span class="font-label-md text-label-md text-on-surface font-semibold truncate">{{ $user->name }}</span>
                                 <span class="font-tabular-nums text-tabular-nums text-[11px] text-secondary">{{ $roomUser->room_user_code }}</span>
                             </div>
-                            <button class="p-2 rounded-lg bg-surface-container-lowest hover:bg-surface-container-high text-on-surface-variant transition-colors shadow-sm cursor-pointer" @click="copyText(window.location.href)" title="Sao chép">
+                            <button class="p-2 rounded-lg bg-surface-container-lowest hover:bg-surface-container-high text-on-surface-variant transition-colors shadow-sm cursor-pointer" @click="copyText(window.location.href)" title="{{ __('room.orders.copy') }}">
                                 <span class="material-symbols-outlined text-[18px]">share</span>
                             </button>
                         </div>
@@ -134,11 +134,11 @@
                     <div class="flex items-center justify-between pb-space-md mb-space-md border-b border-outline-variant/20">
                         <div class="flex items-center gap-space-sm">
                             <span class="material-symbols-outlined text-primary text-[22px]">timeline</span>
-                            <h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Tiến độ đơn hàng thời gian thực</h3>
+                            <h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">{{ __('room.orders.realtime_progress') }}</h3>
                         </div>
                         <div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
                             <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                            <span>Cập nhật tự động</span>
+                            <span>{{ __('room.orders.auto_updating') }}</span>
                         </div>
                     </div>
 
@@ -152,8 +152,8 @@
                                     </div>
                                     <div class="h-1 flex-1 {{ $currentStep > 1 ? 'bg-primary' : 'bg-surface-container-high' }} rounded-full -ml-1"></div>
                                 </div>
-                                <span class="font-label-md text-label-md {{ $currentStep >= 1 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">1. Đã gửi</span>
-                                <span class="font-body-sm text-[11px] text-on-surface-variant">Thành công</span>
+                                <span class="font-label-md text-label-md {{ $currentStep >= 1 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_1_title') }}</span>
+                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_1_desc') }}</span>
                             </div>
 
                             <!-- Step 2: Đã xác nhận -->
@@ -164,8 +164,8 @@
                                     </div>
                                     <div class="h-1 flex-1 {{ $currentStep > 2 ? 'bg-primary' : 'bg-surface-container-high' }} rounded-full -ml-1"></div>
                                 </div>
-                                <span class="font-label-md text-label-md {{ $currentStep >= 2 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">2. Đã xác nhận</span>
-                                <span class="font-body-sm text-[11px] text-on-surface-variant">Host duyệt</span>
+                                <span class="font-label-md text-label-md {{ $currentStep >= 2 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_2_title') }}</span>
+                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_2_desc') }}</span>
                             </div>
 
                             <!-- Step 3: Đặt với quán -->
@@ -176,8 +176,8 @@
                                     </div>
                                     <div class="h-1 flex-1 {{ $currentStep > 3 ? 'bg-primary' : 'bg-surface-container-high' }} rounded-full -ml-1"></div>
                                 </div>
-                                <span class="font-label-md text-label-md {{ $currentStep >= 3 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">3. Đặt với quán</span>
-                                <span class="font-body-sm text-[11px] text-on-surface-variant">Đang chốt đơn</span>
+                                <span class="font-label-md text-label-md {{ $currentStep >= 3 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_3_title') }}</span>
+                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_3_desc') }}</span>
                             </div>
 
                             <!-- Step 4: Quán pha chế -->
@@ -188,8 +188,8 @@
                                     </div>
                                     <div class="h-1 flex-1 {{ $currentStep > 4 ? 'bg-primary' : 'bg-surface-container-high' }} rounded-full -ml-1"></div>
                                 </div>
-                                <span class="font-label-md text-label-md {{ $currentStep >= 4 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">4. Quán nhận</span>
-                                <span class="font-body-sm text-[11px] text-on-surface-variant">Pha chế</span>
+                                <span class="font-label-md text-label-md {{ $currentStep >= 4 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_4_title') }}</span>
+                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_4_desc') }}</span>
                             </div>
 
                             <!-- Step 5: Đang giao -->
@@ -200,8 +200,8 @@
                                     </div>
                                     <div class="h-1 flex-1 {{ $currentStep > 5 ? 'bg-primary' : 'bg-surface-container-high' }} rounded-full -ml-1"></div>
                                 </div>
-                                <span class="font-label-md text-label-md {{ $currentStep >= 5 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">5. Đang giao</span>
-                                <span class="font-body-sm text-[11px] text-on-surface-variant">Shipper tới</span>
+                                <span class="font-label-md text-label-md {{ $currentStep >= 5 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_5_title') }}</span>
+                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_5_desc') }}</span>
                             </div>
 
                             <!-- Step 6: Hoàn tất -->
@@ -211,8 +211,8 @@
                                         <span class="material-symbols-outlined text-[18px]">verified</span>
                                     </div>
                                 </div>
-                                <span class="font-label-md text-label-md {{ $currentStep >= 6 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">6. Hoàn thành</span>
-                                <span class="font-body-sm text-[11px] text-on-surface-variant">Nhận món</span>
+                                <span class="font-label-md text-label-md {{ $currentStep >= 6 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_6_title') }}</span>
+                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_6_desc') }}</span>
                             </div>
                         </div>
                     </div>
@@ -229,7 +229,7 @@
                                     <h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">{{ __('room.orders.items_list') }}</h4>
                                 </div>
                                 <span class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
-                                    {{ $activeOrder->items->count() }} {{ __('room.campaign.unit_price') }}
+                                    {{ $activeOrder->items->count() }} {{ __('room.orders.items_count_suffix') }}
                                 </span>
                             </div>
 
@@ -244,7 +244,7 @@
                                             <div class="flex items-start justify-between gap-space-sm">
                                                 <div>
                                                     <h5 class="font-headline-sm text-headline-sm text-on-surface font-bold">{{ $item->item_name }}</h5>
-                                                    <p class="font-label-sm text-label-sm text-on-surface-variant">SL: {{ $item->quantity }} x {{ number_format($item->unit_price, 0, ',', '.') }}đ</p>
+                                                    <p class="font-label-sm text-label-sm text-on-surface-variant">{{ __('room.orders.qty_prefix') }}: {{ $item->quantity }} x {{ number_format($item->unit_price, 0, ',', '.') }}đ</p>
                                                 </div>
                                                 <span class="font-tabular-nums text-tabular-nums text-headline-sm font-bold text-on-surface">
                                                     {{ number_format($item->total_price, 0, ',', '.') }}đ
@@ -262,13 +262,13 @@
                                                 @if($item->sugar_level)
                                                     <span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm flex items-center gap-1">
                                                         <span class="material-symbols-outlined text-[14px]">water_drop</span>
-                                                        {{ $item->sugar_level }} đường
+                                                        {{ $item->sugar_level }} {{ __('room.orders.sugar') }}
                                                     </span>
                                                 @endif
                                                 @if($item->ice_level)
                                                     <span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm flex items-center gap-1">
                                                         <span class="material-symbols-outlined text-[14px]">ac_unit</span>
-                                                        {{ $item->ice_level }} đá
+                                                        {{ $item->ice_level }} {{ __('room.orders.ice') }}
                                                     </span>
                                                 @endif
                                                 @foreach($item->toppings as $top)
@@ -291,7 +291,7 @@
                                     </div>
                                 @empty
                                     <div class="p-4 text-center text-on-surface-variant font-body-sm">
-                                        Không có món nào trong đơn
+                                        {{ __('room.orders.empty_items') }}
                                     </div>
                                 @endforelse
                             </div>
@@ -308,7 +308,7 @@
                                 </div>
                                 <span class="px-2.5 py-1 rounded {{ $activeOrder->payment_status === 'paid' ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-tertiary-fixed text-on-tertiary-fixed-variant' }} font-label-sm text-label-sm font-semibold flex items-center gap-1">
                                     <span class="w-1.5 h-1.5 rounded-full {{ $activeOrder->payment_status === 'paid' ? 'bg-primary' : 'bg-tertiary' }}"></span>
-                                    {{ $activeOrder->payment_status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán' }}
+                                    {{ $activeOrder->payment_status === 'paid' ? __('room.orders.status_paid') : __('room.orders.status_unpaid') }}
                                 </span>
                             </div>
 
@@ -340,7 +340,7 @@
                                 <div class="flex items-baseline justify-between p-space-sm rounded-xl bg-surface-container-low">
                                     <div class="flex flex-col">
                                         <span class="font-label-md text-label-md text-on-surface font-bold">{{ __('room.orders.final_amount') }}</span>
-                                        <span class="font-body-sm text-[11px] text-on-surface-variant">Đã khấu trừ quỹ nội bộ</span>
+                                        <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.deducted_fund') }}</span>
                                     </div>
                                     <div class="flex items-baseline gap-0.5">
                                         <span class="font-display-lg text-display-lg font-bold text-error tracking-tight font-tabular-nums">
@@ -356,10 +356,10 @@
                                 <div class="mt-space-xs bg-surface-container-low p-space-md rounded-xl flex flex-col gap-space-sm">
                                     <div class="flex items-center gap-space-sm">
                                         <span class="material-symbols-outlined text-primary text-[20px]">qr_code_scanner</span>
-                                        <span class="font-label-md text-label-md text-on-surface font-semibold">Thanh toán chuyển khoản VietQR</span>
+                                        <span class="font-label-md text-label-md text-on-surface font-semibold">{{ __('room.orders.vietqr_pay_title') }}</span>
                                     </div>
                                     <p class="font-body-sm text-body-sm text-on-surface-variant">
-                                        Nội dung chuyển khoản tự động gắn mã hóa đơn <span class="font-semibold text-on-surface">DF{{ $activeOrder->id }} {{ $roomUser->room_user_code }}</span> để hệ thống tự động gạch nợ.
+                                        {!! __('room.orders.vietqr_pay_desc', ['code' => '<span class="font-semibold text-on-surface">DF' . $activeOrder->id . ' ' . $roomUser->room_user_code . '</span>']) !!}
                                     </p>
                                     <button class="w-full py-2.5 px-space-md rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md font-bold shadow transition-all flex items-center justify-center gap-space-sm active:scale-[0.99] cursor-pointer"
                                             @click="openQr({{ $activeOrder->id }}, {{ (int)$activeOrder->final_amount }}, '{{ number_format($activeOrder->final_amount, 0, ',', '.') }}đ', '{{ $roomUser->room_user_code }}')"
@@ -377,8 +377,8 @@
             <!-- All Orders Table List -->
             <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden mt-space-md">
                 <div class="p-space-md border-b border-outline-variant/20 flex items-center justify-between">
-                    <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Lịch sử đơn trong Room</h3>
-                    <span class="font-label-sm text-label-sm text-on-surface-variant">Tổng {{ $orders->total() }} đơn</span>
+                    <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">{{ __('room.orders.room_history') }}</h3>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant">{{ __('room.orders.total_orders_count', ['count' => $orders->total()]) }}</span>
                 </div>
                 <div class="w-full overflow-x-auto">
                     <table class="w-full text-left font-body-sm text-body-sm">
@@ -388,8 +388,8 @@
                                 <th class="py-3 px-space-sm">{{ __('room.orders.order_time') }}</th>
                                 <th class="py-3 px-space-sm">{{ __('room.orders.items_list') }}</th>
                                 <th class="py-3 px-space-sm text-right">{{ __('room.orders.final_amount') }}</th>
-                                <th class="py-3 px-space-sm text-center">Trạng thái</th>
-                                <th class="py-3 px-space-md text-center">Thao tác</th>
+                                <th class="py-3 px-space-sm text-center">{{ __('room.orders.table_status') }}</th>
+                                <th class="py-3 px-space-md text-center">{{ __('room.orders.table_action') }}</th>
                             </tr>
                         </thead>
                         <tbody class="text-on-surface divide-y divide-outline-variant/20">
@@ -405,7 +405,7 @@
                                     </td>
                                     <td class="py-4 px-space-sm text-center">
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm {{ $ord->payment_status === 'paid' ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-error-container text-on-error-container' }}">
-                                            {{ $ord->payment_status === 'paid' ? 'Đã thanh toán' : 'Chưa thanh toán' }}
+                                            {{ $ord->payment_status === 'paid' ? __('room.orders.status_paid') : __('room.orders.status_unpaid') }}
                                         </span>
                                     </td>
                                     <td class="py-4 px-space-md text-center">
@@ -413,10 +413,10 @@
                                             <button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm hover:bg-primary-container transition-all inline-flex items-center gap-1 shadow-sm cursor-pointer"
                                                     @click="openQr({{ $ord->id }}, {{ (int)$ord->final_amount }}, '{{ number_format($ord->final_amount, 0, ',', '.') }}đ', '{{ $roomUser->room_user_code }}')">
                                                 <span class="material-symbols-outlined text-[16px]">qr_code</span>
-                                                <span>Xem QR</span>
+                                                <span>{{ __('room.orders.view_qr') }}</span>
                                             </button>
                                         @else
-                                            <span class="text-on-surface-variant text-[13px]">Hoàn tất</span>
+                                            <span class="text-on-surface-variant text-[13px]">{{ __('room.orders.status_completed') }}</span>
                                         @endif
                                     </td>
                                 </tr>
@@ -452,26 +452,26 @@
                 <div class="p-space-md flex flex-col gap-space-md">
                     <div class="flex flex-col items-center justify-center p-space-md bg-surface-container-low rounded-xl border border-outline-variant/60">
                         <div class="bg-surface-container-lowest p-3 rounded-xl shadow-sm border border-outline-variant flex flex-col items-center">
-                            <img :src="qrData.qrUrl" alt="VietQR" class="w-48 h-48 object-contain rounded"/>
+                            <img :src="qrData.qrUrl" alt="VietQR" class="w-48 h-48 object-contain rounded" loading="lazy"/>
                             <div class="mt-2 flex items-center gap-1 text-[11px] font-label-sm text-secondary">
                                 <span class="material-symbols-outlined text-[14px]">bolt</span>
-                                <span>Quét bằng app ngân hàng / ví MoMo</span>
+                                <span>{{ __('room.orders.scan_banking_app') }}</span>
                             </div>
                         </div>
                         <div class="mt-3 text-center">
-                            <span class="font-body-sm text-body-sm text-on-surface-variant">Số tiền thanh toán:</span>
+                            <span class="font-body-sm text-body-sm text-on-surface-variant">{{ __('room.orders.payment_amount_label') }}:</span>
                             <div class="font-display-lg text-display-lg font-bold text-error tracking-tight font-tabular-nums" x-text="qrData.formattedAmount"></div>
                         </div>
                     </div>
                     <div class="flex flex-col gap-space-xs bg-surface-container-lowest border border-outline-variant rounded-xl p-space-sm">
                         <div class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
-                            <span class="text-on-surface-variant">Ngân hàng:</span>
+                            <span class="text-on-surface-variant">{{ __('room.orders.bank_label') }}:</span>
                             <span class="font-semibold text-on-surface flex items-center gap-1">
                                 <span class="px-1.5 py-0.5 rounded bg-surface-container-high text-[11px] font-bold text-primary" x-text="qrData.bankName"></span>
                             </span>
                         </div>
                         <div class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
-                            <span class="text-on-surface-variant">Số tài khoản:</span>
+                            <span class="text-on-surface-variant">{{ __('room.orders.account_number_label') }}:</span>
                             <div class="flex items-center gap-1">
                                 <span class="font-tabular-nums font-bold text-on-surface" x-text="qrData.accountNumber"></span>
                                 <button class="p-1 rounded hover:bg-surface-container-high text-primary transition-colors flex items-center cursor-pointer" @click="copyText(qrData.accountNumber)">
@@ -481,7 +481,7 @@
                         </div>
                         <div class="flex items-center justify-between py-1.5 bg-primary-fixed/20 px-2 rounded-lg mt-1 text-body-sm">
                             <div class="flex flex-col">
-                                <span class="font-label-sm text-[11px] text-on-primary-fixed-variant font-medium">Cú pháp chuyển khoản:</span>
+                                <span class="font-label-sm text-[11px] text-on-primary-fixed-variant font-medium">{{ __('room.orders.transfer_content_label') }}:</span>
                                 <span class="font-tabular-nums font-bold text-primary tracking-wide" x-text="qrData.transferContent"></span>
                             </div>
                             <button class="p-1 rounded hover:bg-primary-fixed text-primary transition-colors flex items-center cursor-pointer" @click="copyText(qrData.transferContent)">

@@ -1,6 +1,7 @@
 import './bootstrap';
 
 import { initPublicHeader } from './public/header';
+import { initFooterNav } from './public/footer';
 import { initAuthModal } from './public/auth-modal';
 import { initVideoModal } from './public/video-modal';
 import { initPublicLoading } from './public/loading';
@@ -11,6 +12,7 @@ import { initVersionsPage } from './public/versions';
 
 document.addEventListener('DOMContentLoaded', () => {
     initPublicHeader();
+    initFooterNav();
     initAuthModal();
     initVideoModal();
     initPublicLoading();

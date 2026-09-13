@@ -3,6 +3,8 @@
 namespace App\Actions\Superadmin;
 
 use App\Enums\AdminRole;
+use App\Enums\AdminStatus;
+use App\Enums\GlobalUserStatus;
 use App\Models\AdminAccount;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\DB;
@@ -51,8 +53,8 @@ class ManageAdminAction
     public function setStatus(AdminAccount $admin, string $status): AdminAccount
     {
         return DB::transaction(function () use ($admin, $status): AdminAccount {
-            if (! in_array($status, ['active', 'blocked', 'disabled'], true)) throw ValidationException::withMessages(['status' => 'Tráº¡ng thĂ¡i admin khĂ´ng há»£p lá»‡.']);
-            if ($status !== 'active' && $admin->isSuperadmin()) $this->ensureAnotherSuperadmin($admin);
+            if (GlobalUserStatus::tryFrom($status) === null) throw ValidationException::withMessages(['status' => 'Tráº¡ng thĂ¡i admin khĂ´ng há»£p lá»‡.']);
+            if ($status !== GlobalUserStatus::Active->value && $admin->isSuperadmin()) $this->ensureAnotherSuperadmin($admin);
             $before = ['status' => $admin->status];
             $admin->update(['status' => $status]);
             app(AuditService::class)->record('admin.status_updated', 'admin', $admin->id, null, $before, ['status' => $status]);
@@ -144,7 +146,7 @@ class ManageAdminAction
      */
     private function ensureAnotherSuperadmin(AdminAccount $admin): void
     {
-        $query = AdminAccount::query()->where('role', AdminRole::SuperAdmin->value)->where('status', 'active')->where('id', '<>', $admin->id);
+        $query = AdminAccount::query()->where('role', AdminRole::SuperAdmin->value)->where('status', AdminStatus::Active)->where('id', '<>', $admin->id);
         if (! $query->exists()) throw ValidationException::withMessages(['admin' => 'Pháº£i giá»¯ láº¡i Ă­t nháº¥t má»™t superadmin.']);
     }
 

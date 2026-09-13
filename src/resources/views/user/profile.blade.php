@@ -7,9 +7,10 @@
                 <!-- User Info & Avatar -->
                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-space-md w-full lg:w-auto">
                     <div class="relative shrink-0">
-                        <img class="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl object-cover shadow-sm ring-4 ring-surface-container-low"
+                        <img class="w-24 h-24 lg:w-28 lg:h-28 rounded-2xl object-cover shadow-sm border-2 border-[#006948]/30 ring-4 ring-emerald-500/10"
                              src="{{ $user->avatar_url ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDABv8Oe8xyc5YFfx-Urh180Ei9oWDlXncJYYMhGsQyXKi9hH-Ozqz3OugY2_1YBVNW7gx3_8lQ0e663-MZrk9sfuwQNx_hfyyQtK2Zhj_zZGIVtA4PdjFBpNhgR9tn9snH3UYWVQ68_CKNQt5duVHzjZFHBqTbF8GWsCP5QSCLqXnCkE_RM9NLeqxpc7hKb0xusaVGpsBgdlLGILxnD3Fq8gdCU6OgF-qluxXmwytHivLwPF5jc5JUug' }}"
-                             alt="{{ $user->name }}"/>
+                             alt="{{ $user->name }}"
+                             loading="lazy"/>
                         <span class="absolute -bottom-1 -right-1 px-2.5 py-0.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm shadow-sm flex items-center gap-0.5">
                             <span class="material-symbols-outlined text-[13px]">verified</span> {{ $roomUser->room_user_code }}
                         </span>
@@ -26,17 +27,17 @@
                         </div>
                         <p class="font-label-md text-label-md text-on-surface-variant flex items-center gap-1">
                             <span class="material-symbols-outlined text-[16px] text-primary">terminal</span>
-                            <span>{{ $roomUser->role === 'admin' ? 'Quản trị viên phòng' : 'Thành viên phòng' }} • {{ $room->name }}</span>
+                            <span>{{ $roomUser->role === 'admin' ? __('room.profile.role_admin') : __('room.profile.role_member') }} • {{ $room->name }}</span>
                         </p>
                         <div class="flex flex-wrap items-center gap-x-space-md gap-y-1 mt-1 text-on-surface-variant font-body-sm text-body-sm">
                             <span class="flex items-center gap-1">
                                 <span class="material-symbols-outlined text-[15px]">mail</span> {{ $user->email }}
                             </span>
                             <span class="flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[15px]">badge</span> Mã TV: {{ $roomUser->room_user_code }}
+                                <span class="material-symbols-outlined text-[15px]">badge</span> {{ __('room.profile.member_code_prefix') }}: {{ $roomUser->room_user_code }}
                             </span>
                             <span class="flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[15px]">calendar_today</span> Tham gia: {{ $roomUser->created_at?->format('d/m/Y') }}
+                                <span class="material-symbols-outlined text-[15px]">calendar_today</span> {{ __('room.profile.joined_date_prefix') }}: {{ $roomUser->created_at?->format('d/m/Y') }}
                             </span>
                         </div>
                     </div>
@@ -44,7 +45,7 @@
 
                 <!-- Header Action -->
                 <div class="flex items-center gap-space-sm shrink-0 self-start sm:self-auto w-full sm:w-auto justify-end">
-                    <a href="{{ route('profile.edit') }}" class="h-9 px-space-md rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1 transition-all">
+                    <a href="{{ route('user.me.profile') }}" class="h-9 px-space-md rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1 transition-all">
                         <span class="material-symbols-outlined text-[18px]">edit</span>
                         <span>{{ __('room.profile.edit_profile') }}</span>
                     </a>
@@ -66,7 +67,7 @@
                         <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('room.profile.total_orders') }}</span>
                         <div class="flex items-baseline gap-1">
                             <span class="font-headline-md text-headline-md font-tabular-nums text-on-surface font-bold">{{ $totalOrders }}</span>
-                            <span class="font-body-sm text-body-sm text-on-surface-variant">đơn đã đặt</span>
+                            <span class="font-body-sm text-body-sm text-on-surface-variant">{{ __('room.profile.orders_unit') }}</span>
                         </div>
                     </div>
                 </div>
@@ -80,7 +81,7 @@
                         <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('room.profile.total_sponsor') }}</span>
                         <div class="flex items-baseline gap-1">
                             <span class="font-headline-md text-headline-md font-tabular-nums text-primary font-bold">{{ number_format($totalSponsor, 0, ',', '.') }}₫</span>
-                            <span class="font-label-sm text-label-sm text-primary font-semibold">từ Quỹ {{ $room->name }}</span>
+                            <span class="font-label-sm text-label-sm text-primary font-semibold">{{ __('room.profile.from_fund', ['name' => $room->name]) }}</span>
                         </div>
                     </div>
                 </div>
@@ -94,7 +95,7 @@
                         <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">{{ __('room.profile.total_spent') }}</span>
                         <div class="flex items-baseline gap-1">
                             <span class="font-headline-md text-headline-md font-tabular-nums text-on-surface font-bold">{{ number_format($totalSpent, 0, ',', '.') }}₫</span>
-                            <span class="font-label-sm text-label-sm text-secondary font-semibold">Tích lũy</span>
+                            <span class="font-label-sm text-label-sm text-secondary font-semibold">{{ __('room.profile.accumulated') }}</span>
                         </div>
                     </div>
                 </div>
@@ -123,12 +124,12 @@
                                     <span class="font-semibold text-on-surface">{{ $fav['name'] }}</span>
                                 </div>
                                 <span class="px-3 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-bold">
-                                    Đã uống {{ $fav['count'] }} lần
+                                    {{ __('room.profile.ordered_times', ['count' => $fav['count']]) }}
                                 </span>
                             </div>
                         @empty
                             <div class="p-6 text-center text-on-surface-variant font-body-sm">
-                                Bạn chưa có món ruột nào trong phòng.
+                                {{ __('room.profile.no_favorite_drinks') }}
                             </div>
                         @endforelse
                     </div>
@@ -145,19 +146,19 @@
 
                     <div class="flex flex-col gap-3">
                         <div class="flex justify-between items-center py-2 border-b border-outline-variant/20 text-body-sm">
-                            <span class="text-on-surface-variant">Phòng ban:</span>
+                            <span class="text-on-surface-variant">{{ __('room.profile.department_label') }}</span>
                             <span class="font-bold text-on-surface">{{ $room->name }}</span>
                         </div>
                         <div class="flex justify-between items-center py-2 border-b border-outline-variant/20 text-body-sm">
-                            <span class="text-on-surface-variant">Mã Room:</span>
+                            <span class="text-on-surface-variant">{{ __('room.profile.room_code_label') }}</span>
                             <span class="font-bold text-primary">{{ $room->code ?? $room->slug }}</span>
                         </div>
                         <div class="flex justify-between items-center py-2 border-b border-outline-variant/20 text-body-sm">
-                            <span class="text-on-surface-variant">Vai trò nội bộ:</span>
+                            <span class="text-on-surface-variant">{{ __('room.profile.role_label') }}</span>
                             <span class="font-bold text-on-surface capitalize">{{ $roomUser->role }}</span>
                         </div>
                         <div class="flex justify-between items-center py-2 border-b border-outline-variant/20 text-body-sm">
-                            <span class="text-on-surface-variant">Trạng thái thành viên:</span>
+                            <span class="text-on-surface-variant">{{ __('room.profile.member_status_label') }}</span>
                             <span class="font-bold text-primary capitalize">{{ $roomUser->status }}</span>
                         </div>
                     </div>

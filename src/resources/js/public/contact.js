@@ -8,7 +8,6 @@ export function initContactPage() {
     async function refreshCaptcha(e) {
         if (e) e.preventDefault();
         const wrapper = document.getElementById('captcha-img-wrapper');
-        const img = wrapper ? wrapper.querySelector('img') : null;
         const btn = document.getElementById('refresh-captcha-btn');
         const icon = btn ? btn.querySelector('.material-symbols-outlined') : null;
 
@@ -18,6 +17,17 @@ export function initContactPage() {
 
         const captchaApiUrl = (wrapper && wrapper.dataset.captchaApi) || '/captcha/api/contact';
         const captchaFallbackUrl = (wrapper && wrapper.dataset.captchaFallback) || '/captcha/contact';
+        const loadingText = (wrapper && wrapper.dataset.loadingText) || 'Đang tải...';
+
+        // 1. Immediately remove old image and show loading indicator
+        if (wrapper) {
+            wrapper.innerHTML = `
+                <div class="flex items-center justify-center gap-1.5 px-2 py-1 text-xs text-slate-500 font-medium animate-pulse">
+                    <span class="w-3.5 h-3.5 border-2 border-[#006948] border-t-transparent rounded-full animate-spin"></span>
+                    <span>${loadingText}</span>
+                </div>
+            `;
+        }
 
         try {
             const res = await fetch(captchaApiUrl + '?' + Date.now(), {
@@ -28,17 +38,42 @@ export function initContactPage() {
             });
             if (res.ok) {
                 const data = await res.json();
-                if (data && data.img && img) {
-                    img.src = data.img;
-                } else if (img) {
-                    img.src = captchaFallbackUrl + '?' + Date.now();
+                if (data && data.img && wrapper) {
+                    // data.img is either full <img ...> tag or base64 data URL
+                    if (data.img.trim().startsWith('<img')) {
+                        wrapper.innerHTML = data.img;
+                    } else {
+                        const newImg = document.createElement('img');
+                        newImg.src = data.img;
+                        newImg.alt = 'captcha';
+                        newImg.className = 'w-full h-full object-cover select-none cursor-pointer';
+                        wrapper.innerHTML = '';
+                        wrapper.appendChild(newImg);
+                    }
+                } else if (wrapper) {
+                    const newImg = document.createElement('img');
+                    newImg.src = captchaFallbackUrl + '?' + Date.now();
+                    newImg.alt = 'captcha';
+                    newImg.className = 'w-full h-full object-cover select-none cursor-pointer';
+                    wrapper.innerHTML = '';
+                    wrapper.appendChild(newImg);
                 }
-            } else if (img) {
-                img.src = captchaFallbackUrl + '?' + Date.now();
+            } else if (wrapper) {
+                const newImg = document.createElement('img');
+                newImg.src = captchaFallbackUrl + '?' + Date.now();
+                newImg.alt = 'captcha';
+                newImg.className = 'w-full h-full object-cover select-none cursor-pointer';
+                wrapper.innerHTML = '';
+                wrapper.appendChild(newImg);
             }
         } catch (err) {
-            if (img) {
-                img.src = captchaFallbackUrl + '?' + Date.now();
+            if (wrapper) {
+                const newImg = document.createElement('img');
+                newImg.src = captchaFallbackUrl + '?' + Date.now();
+                newImg.alt = 'captcha';
+                newImg.className = 'w-full h-full object-cover select-none cursor-pointer';
+                wrapper.innerHTML = '';
+                wrapper.appendChild(newImg);
             }
         } finally {
             setTimeout(() => {

@@ -3,15 +3,18 @@
  */
 export function initGoToTop() {
     const goToTopBtn = document.getElementById('go-to-top-btn');
+    const goToTopTooltip = document.getElementById('go-to-top-tooltip');
     if (!goToTopBtn) return;
 
     function handleScroll() {
         if (window.scrollY > 280) {
             goToTopBtn.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
             goToTopBtn.classList.add('opacity-100', 'translate-y-0');
+            if (goToTopTooltip) goToTopTooltip.classList.remove('hidden');
         } else {
             goToTopBtn.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
             goToTopBtn.classList.remove('opacity-100', 'translate-y-0');
+            if (goToTopTooltip) goToTopTooltip.classList.add('hidden');
         }
     }
 

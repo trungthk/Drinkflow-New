@@ -596,6 +596,13 @@ return [
         'anonymous_user' => 'Thành viên DrinkFlow',
         'empty_feedbacks_title' => 'Chưa có lượt góp ý nào từ thành viên',
         'empty_feedbacks_desc' => 'Hãy gửi ý kiến đánh giá để giúp cải thiện dịch vụ và tính năng của DrinkFlow!',
+        'captcha_label' => 'Mã bảo vệ',
+        'captcha_placeholder' => 'Nhập 4 ký tự mã',
+        'captcha_refresh' => 'Làm mới mã bảo vệ',
+        'captcha_loading' => 'Đang tải...',
+        'load_more_btn' => 'Tải thêm đánh giá',
+        'loading_more' => 'Đang tải thêm...',
+        'all_loaded' => 'Đã hiển thị toàn bộ đánh giá',
     ],
     'notifications' => [
         'page_title' => 'Trung tâm thông báo - DrinkFlow',

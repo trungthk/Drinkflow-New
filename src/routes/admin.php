@@ -2,8 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::post('/admin/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('admin.login');
+// Admin Authentication & Password Recovery Routes
 Route::get('/admin/login', [\App\Http\Controllers\Admin\AuthController::class, 'loginPage'])->name('admin.login.page');
+Route::post('/admin/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('admin.login');
+Route::get('/admin/forgot-password', [\App\Http\Controllers\Admin\AuthController::class, 'forgotPasswordPage'])->name('admin.forgot-password.page');
+Route::post('/admin/forgot-password', [\App\Http\Controllers\Admin\AuthController::class, 'sendResetOtp'])->name('admin.forgot-password.send');
+Route::get('/admin/verify-otp', [\App\Http\Controllers\Admin\AuthController::class, 'verifyOtpPage'])->name('admin.verify-otp.page');
+Route::post('/admin/verify-otp', [\App\Http\Controllers\Admin\AuthController::class, 'verifyOtp'])->name('admin.verify-otp.submit');
+Route::get('/admin/reset-password', [\App\Http\Controllers\Admin\AuthController::class, 'resetPasswordPage'])->name('admin.reset-password.page');
+Route::post('/admin/reset-password', [\App\Http\Controllers\Admin\AuthController::class, 'resetPassword'])->name('admin.reset-password.submit');
 Route::get('/admin', [\App\Http\Controllers\Admin\AuthController::class, 'landing'])->middleware('auth:admin')->name('admin.landing');
 Route::post('/admin/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->middleware('auth:admin')->name('admin.logout');
 
@@ -14,7 +21,22 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/manage', [\App\Http\Controllers\Admin\DashboardController::class, 'manage'])->name('admin.manage.page');
     Route::get('/dashboard/data', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/socket-token', \App\Http\Controllers\Admin\SocketTokenController::class)->name('admin.socket-token');
+
+    // Dedicated Standalone Page Views
+    Route::get('/campaigns/list', [\App\Http\Controllers\Admin\CampaignController::class, 'page'])->name('admin.campaigns.page');
+    Route::get('/orders/manage', [\App\Http\Controllers\Admin\OrderController::class, 'page'])->name('admin.orders.page');
+    Route::get('/debts/ledger', [\App\Http\Controllers\Admin\DebtController::class, 'page'])->name('admin.debts.page');
+    Route::get('/room-users/directory', [\App\Http\Controllers\Admin\RoomUserController::class, 'page'])->name('admin.room-users.page');
+    Route::get('/payment-accounts/settings', [\App\Http\Controllers\Admin\PaymentAccountController::class, 'page'])->name('admin.payment-accounts.page');
+    Route::get('/settings/general', [\App\Http\Controllers\Admin\RoomSettingsController::class, 'page'])->name('admin.settings.page');
+    Route::get('/notification-channels/integrations', [\App\Http\Controllers\Admin\NotificationChannelController::class, 'page'])->name('admin.notification-channels.page');
+    Route::get('/reports/analytics', [\App\Http\Controllers\Admin\ReportController::class, 'page'])->name('admin.reports.page');
+    Route::get('/audit/logs', [\App\Http\Controllers\Admin\AuditController::class, 'page'])->name('admin.audit.page');
+
+    // Campaign CRUD & Lifecycle API
     Route::get('/campaigns', [\App\Http\Controllers\Admin\CampaignController::class, 'index'])->name('admin.campaigns.index');
+    Route::get('/campaigns/create', [\App\Http\Controllers\Admin\CampaignController::class, 'create'])->name('admin.campaigns.create');
+    Route::get('/campaigns/previous-menus', [\App\Http\Controllers\Admin\CampaignController::class, 'previousMenus'])->name('admin.campaigns.previous-menus');
     Route::get('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'show'])->name('admin.campaigns.show');
     Route::get('/orders', [\App\Http\Controllers\Admin\OrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/orders/aggregate', [\App\Http\Controllers\Admin\CampaignController::class, 'aggregate'])->name('admin.orders.aggregate');

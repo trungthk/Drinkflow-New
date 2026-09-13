@@ -69,7 +69,7 @@
   </main>
 
   <!-- Shared Global Footer -->
-  <x-global.footer />
+  <x-global.footer :active-tab="$activeTab ?? null" />
 
   <!-- Shared Logout Confirmation Modal -->
   <x-global.logout-modal />

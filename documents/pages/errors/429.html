@@ -1,0 +1,281 @@
+<!DOCTYPE html><html class="light" lang="vi"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Lỗi 429 - Quá Nhiều Yêu Cầu | DrinkFlow Operations</title>
+<!-- Material Symbols Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Inter Font -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-variant": "#d3e4fe",
+            "on-tertiary-fixed-variant": "#3f465c",
+            "on-primary": "#ffffff",
+            "surface-container": "#e5eeff",
+            "secondary-container": "#6cf8bb",
+            "on-error-container": "#93000a",
+            "on-error": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "on-secondary-fixed": "#002113",
+            "tertiary-fixed-dim": "#bec6e0",
+            "on-surface-variant": "#3d4a42",
+            "on-primary-fixed-variant": "#005137",
+            "on-secondary-fixed-variant": "#005236",
+            "background": "#f8f9ff",
+            "on-tertiary-fixed": "#131b2e",
+            "secondary-fixed": "#6ffbbe",
+            "outline-variant": "#bccac0",
+            "on-secondary-container": "#00714d",
+            "surface-bright": "#f8f9ff",
+            "surface-container-high": "#dce9ff",
+            "error": "#ba1a1a",
+            "secondary-fixed-dim": "#4edea3",
+            "surface-dim": "#cbdbf5",
+            "tertiary-container": "#6c748b",
+            "on-background": "#0b1c30",
+            "primary": "#006948",
+            "surface-container-highest": "#d3e4fe",
+            "primary-fixed-dim": "#68dba9",
+            "on-secondary": "#ffffff",
+            "on-surface": "#0b1c30",
+            "on-primary-container": "#f5fff7",
+            "inverse-on-surface": "#eaf1ff",
+            "tertiary": "#545c72",
+            "primary-fixed": "#85f8c4",
+            "tertiary-fixed": "#dae2fd",
+            "surface": "#f8f9ff",
+            "error-container": "#ffdad6",
+            "on-tertiary-container": "#fefcff",
+            "inverse-primary": "#68dba9",
+            "secondary": "#006c49",
+            "surface-container-low": "#eff4ff",
+            "primary-container": "#00855d",
+            "on-primary-fixed": "#002114",
+            "surface-tint": "#006c4a",
+            "inverse-surface": "#213145",
+            "on-tertiary": "#ffffff",
+            "outline": "#6d7a72"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "space-md": "1.5rem",
+            "space-xs": "0.5rem",
+            "space-lg": "2rem",
+            "space-sm": "1rem",
+            "space-2xl": "4rem",
+            "gutter": "1.5rem",
+            "margin": "1.5rem",
+            "space-xl": "3rem"
+          },
+          "fontFamily": {
+            "body-md": ["Inter"],
+            "label-md": ["Inter"],
+            "label-sm": ["Inter"],
+            "caption": ["Inter"],
+            "headline-lg": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-sm": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-md": ["Inter"],
+            "headline-xl": ["Inter"]
+          },
+          "fontSize": {
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "400" }],
+            "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0", "fontWeight": "500" }],
+            "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "caption": ["11px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "400" }],
+            "headline-sm": ["16px", { "lineHeight": "24px", "letterSpacing": "0", "fontWeight": "600" }],
+            "body-sm": ["13px", { "lineHeight": "18px", "letterSpacing": "0", "fontWeight": "400" }],
+            "headline-md": ["20px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface min-h-screen flex flex-col font-body-md antialiased selection:bg-primary selection:text-on-primary">
+<!-- TopNavBar (Shared Component) -->
+<header class="bg-surface-container-lowest dark:bg-inverse-surface border-b border-outline-variant dark:border-outline shadow-sm sticky top-0 z-40">
+<div class="w-full max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
+<div class="flex items-center space-x-6">
+<a class="flex items-center gap-2.5" href="/">
+<div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]">local_cafe</span>
+</div>
+<span class="text-headline-md font-headline-md text-primary dark:text-primary-fixed tracking-tight font-bold">DrinkFlow</span>
+</a>
+<div class="h-4 w-px bg-outline-variant"></div>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-caption font-caption bg-surface-container text-on-surface-variant border border-outline-variant">
+          Enterprise Operations
+        </span>
+<nav class="hidden md:flex items-center space-x-5 pl-2 text-label-md font-label-md">
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">Trang chủ</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">Giới thiệu</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">Điều khoản</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">Phiên bản</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-on-surface transition-colors duration-150 ease-in-out" href="#">Liên hệ</a>
+</nav>
+</div>
+<div class="flex items-center space-x-3">
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-label-sm font-label-sm rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors duration-150" type="button">
+<span class="material-symbols-outlined text-[18px]">help_outline</span>
+<span class="hidden sm:inline">Hỗ trợ nội bộ</span>
+</button>
+
+</div>
+</div>
+</header>
+<!-- Main Content Container -->
+<main class="flex-grow w-full max-w-[1200px] mx-auto px-6 py-8">
+<div class="max-w-4xl mx-auto space-y-6">
+<!-- Primary 429 Status Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
+<!-- Subtle amber top status bar indicator -->
+<div class="absolute top-0 left-0 right-0 h-1.5 bg-amber-500"></div>
+<div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-outline-variant">
+<div class="space-y-2">
+<!-- Warning Badge -->
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-caption font-caption bg-amber-50 text-amber-800 border border-amber-200">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+<span class="">MÃ LỖI HTTP: 429 - RATE LIMIT EXCEEDED</span>
+</div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight">
+              Bạn đang gửi quá nhiều yêu cầu cùng lúc
+            </h1>
+</div>
+<!-- Numeric visual anchor -->
+<div class="flex items-center px-4 py-2 rounded-xl bg-surface-container border border-outline-variant select-none">
+<span class="text-[44px] font-bold text-amber-700 tracking-tighter leading-none">429</span>
+</div>
+</div>
+<!-- Description Paragraph -->
+<p class="text-body-md font-body-md text-on-surface-variant pt-4 leading-relaxed">
+          Hệ thống DrinkFlow phát hiện lưu lượng truy cập bất thường hoặc thao tác nhấn liên tục (như spam đặt món, làm mới đơn hàng hoặc tra cứu VietQR liên tục). Để đảm bảo an toàn và tính sẵn sàng cho toàn bộ doanh nghiệp, yêu cầu của bạn tạm thời bị điều tiết.
+        </p>
+<!-- Cooldown Timer Card -->
+<div class="mt-6 p-5 rounded-lg bg-surface-container-low border border-outline-variant space-y-3">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">timer</span>
+<span class="text-label-md font-label-md text-on-surface">Tự động thử lại sau: <span class="font-bold text-primary" id="timer-text">00:13</span> giây</span>
+</div>
+<span class="text-caption font-caption text-on-surface-variant">Hàng đợi tái nạp Token Bucket</span>
+</div>
+<!-- Progress Bar -->
+<div class="w-full bg-surface-container-high rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-2 rounded-full transition-all duration-1000 ease-linear" id="progress-bar" style="width: 78.3333%;"></div>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+<span class="text-caption font-caption text-tertiary">
+              Cửa sổ giới hạn trượt (Sliding Window): 60 giây
+            </span>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-label-sm font-label-sm shadow-sm transition-colors duration-150" id="btn-retry" onclick="manualRetry()">
+<span class="material-symbols-outlined text-[16px]" id="retry-icon">refresh</span>
+<span class="">Thử tải lại trang ngay</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Rate Limit Diagnostics Panel -->
+
+<!-- User Instruction & Recommendations Card -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm space-y-3">
+<h3 class="text-label-md font-label-md text-on-surface font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">info</span>
+          Hướng dẫn khắc phục sự cố:
+        </h3>
+<ul class="space-y-2.5 text-body-sm font-body-sm text-on-surface-variant">
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5">check_circle</span>
+<span class="">Chờ thanh tiến trình hoàn tất không tắt trình duyệt để token truy cập được nạp lại tự động.</span>
+</li>
+<li class="flex items-start gap-2">
+<span class="material-symbols-outlined text-amber-600 text-[18px] mt-0.5">warning</span>
+<span class="">Tránh chạy các extension tự động click, script auto-order hoặc bot cào dữ liệu menu quán cà phê.</span>
+</li>
+<li class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-[18px] mt-0.5">support_agent</span>
+<span class="">Nếu vẫn gặp sự cố sau khi đợi, vui lòng liên hệ IT Helpdesk qua email nội bộ <a href="mailto:it-support@drinkflow.internal" class="px-1.5 py-0.5 bg-surface-container rounded text-primary font-medium hover:underline">it-support@drinkflow.internal</a> để được hỗ trợ kiểm tra và gỡ chặn lưu lượng.</span></li>
+</ul>
+</div>
+<!-- Action Buttons Row (CTA) -->
+<div class="flex flex-col sm:flex-row items-center justify-end gap-3 pt-2">
+<a class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-label-md font-label-md shadow-sm transition-colors duration-150" href="/">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span class="">Quay lại Trang chủ</span>
+</a>
+
+<a class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low text-on-surface text-label-md font-label-md transition-colors duration-150" href="mailto:it-support@drinkflow.internal">
+<span class="material-symbols-outlined text-[18px]">headset_mic</span>
+<span class="">Liên hệ hỗ trợ IT</span>
+</a>
+</div>
+</div>
+</main>
+<!-- Footer (Shared Component) -->
+<footer class="bg-surface-container-lowest dark:bg-inverse-surface border-t border-outline-variant dark:border-outline mt-auto">
+<div class="w-full max-w-[1200px] mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+<div class="flex items-center space-x-3">
+<span class="text-label-md font-label-md text-on-surface dark:text-inverse-on-surface font-semibold">DrinkFlow</span>
+<span class="text-on-surface-variant dark:text-outline-variant">|</span>
+<p class="text-body-sm font-body-sm text-on-surface-variant dark:text-outline-variant">
+          © 2025 DrinkFlow Operations. Tất cả các quyền được bảo lưu.
+        </p>
+</div>
+<div class="flex flex-wrap items-center space-x-6 text-label-sm font-label-sm">
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-150" href="#">Điều khoản dịch vụ</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-150" href="#">Chính sách bảo mật</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed transition-colors duration-150" href="#">Hỗ trợ người dùng</a>
+</div>
+</div>
+</footer>
+<!-- Script for Realtime Cooldown Timer Simulation -->
+<script>
+    let countdown = 28;
+    const totalTime = 60;
+    const timerText = document.getElementById('timer-text');
+    const progressBar = document.getElementById('progress-bar');
+    const retryIcon = document.getElementById('retry-icon');
+
+    const timerInterval = setInterval(() => {
+      if (countdown > 0) {
+        countdown--;
+        const formattedSeconds = countdown < 10 ? '0' + countdown : countdown;
+        timerText.textContent = `00:${formattedSeconds}`;
+        const percentage = ((totalTime - countdown) / totalTime) * 100;
+        progressBar.style.width = `${percentage}%`;
+      } else {
+        clearInterval(timerInterval);
+        timerText.textContent = "00:00";
+        progressBar.style.width = '100%';
+        manualRetry();
+      }
+    }, 1000);
+
+    function manualRetry() {
+      if (retryIcon) {
+        retryIcon.classList.add('animate-spin');
+      }
+      setTimeout(() => {
+        window.location.reload();
+      }, 600);
+    }
+  </script>
+
+
+</body></html>

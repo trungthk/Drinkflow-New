@@ -1,464 +1,197 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\User\Global;
 
-use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreFeedbackRequest;
+use App\Http\Requests\UpdateGlobalProfileRequest;
 use App\Models\Feedback;
 use App\Models\GlobalUser;
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\PaymentAccount;
-use App\Models\RoomUserDevice;
-use Carbon\Carbon;
+use App\Services\User\UserFeedbackService;
+use App\Services\User\UserProfileService;
+use App\Services\User\UserSessionService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class ProfileController extends Controller
 {
     /**
-     * Display the global user profile page.
+     * Chuyển tiếp request đến phương thức hiển thị hồ sơ cá nhân.
      *
-     * @param Request $request
-     * @return View
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
+     * @param  \App\Services\User\UserProfileService  $service  Service xử lý dữ liệu hồ sơ
+     * @return \Illuminate\Contracts\View\View  Giao diện thông tin cá nhân
      */
-    public function __invoke(Request $request): View
+    public function __invoke(Request $request, UserProfileService $service): View
     {
-        return $this->index($request);
+        return $this->index($request, $service);
     }
 
     /**
-     * Display the profile index view.
+     * Hiển thị trang hồ sơ cá nhân toàn hệ thống (/me/profile).
      *
-     * @param Request $request
-     * @return View
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
+     * @param  \App\Services\User\UserProfileService  $service  Service xử lý dữ liệu hồ sơ
+     * @return \Illuminate\Contracts\View\View  Giao diện hồ sơ cá nhân
      */
-    public function index(Request $request): View
+    public function index(Request $request, UserProfileService $service): View
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        // Extract Workspace domain from user email
-        $domain = Str::after((string) $user->email, '@');
-        $workspaceText = __('global.profile.workspace_auth_domain', ['domain' => $domain ?: 'company.com']);
+        $data = $service->getProfileData($user, $request);
 
-        // Query active room users of current user
-        $roomUsers = $user->roomUsers()
-            ->with([
-                'room' => function ($q) {
-                    $q->with(['paymentAccounts' => function ($pa) {
-                        $pa->where('status', 'active');
-                    }]);
-                },
-            ])
-            ->where('status', 'active')
-            ->orderByDesc('last_active_at')
-            ->orderByDesc('updated_at')
-            ->get();
-
-        $primaryRoomUser = $roomUsers->first();
-        $primaryRoom = $primaryRoomUser?->room;
-        $department = $primaryRoom?->name ?? __('global.profile.default_dept');
-        $userCode = $primaryRoomUser?->user_code ?? ('DF-EMP-' . str_pad((string) $user->id, 4, '0', STR_PAD_LEFT));
-        $role = $primaryRoomUser ? __('global.profile.role_member', ['name' => $primaryRoom->name]) : __('global.profile.default_role');
-
-        // Order metrics across all user memberships
-        $roomUserIds = $user->roomUsers()->pluck('id');
-        $ordersQuery = Order::query()->whereIn('room_user_id', $roomUserIds);
-        $totalOrdersCount = (clone $ordersQuery)->count();
-
-        $completedStatuses = [
-            OrderStatus::Submitted->value,
-            OrderStatus::Confirmed->value,
-            OrderStatus::Completed->value,
-            'submitted',
-            'confirmed',
-            'paid',
-            'completed',
-        ];
-
-        $totalSpent = (int) (clone $ordersQuery)->whereIn('status', $completedStatuses)->sum('final_amount');
-        $paidOrdersCount = (clone $ordersQuery)->whereIn('status', ['paid', 'completed', OrderStatus::Completed->value])->count();
-        $totalCups = (int) OrderItem::query()
-            ->whereIn('order_id', function ($q) use ($roomUserIds) {
-                $q->select('id')->from('orders')
-                    ->whereIn('room_user_id', $roomUserIds);
-            })
-            ->sum('quantity');
-
-        $paymentRate = $totalOrdersCount > 0 ? (int) round(($paidOrdersCount / $totalOrdersCount) * 100) : 100;
-
-        // Gamification / Member Level tier
-        if ($totalOrdersCount >= 30) {
-            $memberLevel = 'Diamond';
-            $memberTitle = __('global.profile.tier_diamond_title');
-            $memberSubtitle = __('global.profile.tier_diamond_sub');
-            $badgeIcon = 'military_tech';
-        } elseif ($totalOrdersCount >= 10) {
-            $memberLevel = 'Gold';
-            $memberTitle = __('global.profile.tier_gold_title');
-            $memberSubtitle = __('global.profile.tier_gold_sub');
-            $badgeIcon = 'workspace_premium';
-        } else {
-            $memberLevel = 'Standard';
-            $memberTitle = __('global.profile.tier_standard_title');
-            $memberSubtitle = __('global.profile.tier_standard_sub');
-            $badgeIcon = 'verified';
-        }
-
-        $joinedDate = $user->created_at ? $user->created_at->translatedFormat('m/Y') : now()->translatedFormat('m/Y');
-        $joinedDuration = $user->created_at ? $user->created_at->diffForHumans(['parts' => 1]) : __('global.profile.just_joined');
-
-        // Bank / Payment info from real database
-        $defaultPayment = PaymentAccount::query()->where('is_default', true)->first();
-        if (!$defaultPayment && $primaryRoom) {
-            $defaultPayment = $primaryRoom->paymentAccounts->first();
-        }
-        $bankData = $defaultPayment ? [
-            'bank_name' => $defaultPayment->bank_name,
-            'bank_code' => $defaultPayment->bank_code,
-            'account_number' => $defaultPayment->getRawOriginal('account_number'),
-            'account_name' => $defaultPayment->account_name,
-            'branch' => __('global.profile.default_branch'),
-        ] : null;
-
-        // Preferences & contact details (Real database fields)
-        $phone = $user->phone ?? '';
-        $deskLocation = $user->desk_location ?? '';
-        $deliveryLocation = $user->delivery_location ?? '';
-        $preferences = is_array($user->preferences) ? $user->preferences : [];
-        $sugar = $preferences['sugar'] ?? '';
-        $ice = $preferences['ice'] ?? '';
-        $toppings = $preferences['toppings'] ?? [];
-        $orderNote = $preferences['note'] ?? '';
-        $notifyCampaign = $preferences['notify_campaign'] ?? true;
-        $notifySound = $preferences['notify_sound'] ?? true;
-
-        $unreadNotificationsCount = $user->notifications()->whereNull('read_at')->count();
-        $notifications = $user->notifications()->latest()->take(5)->get();
-
-        $breadcrumbs = [
-            ['label' => __('global.rooms.breadcrumb_personal'), 'url' => route('user.me.dashboard')],
-            ['label' => __('global.profile.breadcrumb_profile'), 'url' => route('user.me.profile')],
-        ];
-
-        $hasRooms = $user->roomUsers()->where('status', 'active')->exists();
-
-        return view('user.global.profile', compact(
-            'user',
-            'hasRooms',
-            'workspaceText',
-            'department',
-            'userCode',
-            'role',
-            'totalOrdersCount',
-            'totalSpent',
-            'totalCups',
-            'paymentRate',
-            'memberLevel',
-            'memberTitle',
-            'memberSubtitle',
-            'badgeIcon',
-            'joinedDate',
-            'joinedDuration',
-            'phone',
-            'deskLocation',
-            'deliveryLocation',
-            'sugar',
-            'ice',
-            'toppings',
-            'orderNote',
-            'notifyCampaign',
-            'notifySound',
-            'unreadNotificationsCount',
-            'notifications',
-            'breadcrumbs'
-        ));
+        return view('user.global.profile', $data);
     }
 
     /**
-     * Update contact details and preferences.
+     * Cập nhật thông tin liên hệ và sở thích gọi đồ của người dùng.
      *
-     * @param Request $request
-     * @return RedirectResponse
+     * @param  \App\Http\Requests\UpdateGlobalProfileRequest  $request  Đối tượng Form Request đã xác thực
+     * @param  \App\Services\User\UserProfileService  $service  Service xử lý cập nhật
+     * @return \Illuminate\Http\RedirectResponse  Phản hồi chuyển hướng kèm thông báo thành công
      */
-    public function update(Request $request): RedirectResponse
+    public function update(UpdateGlobalProfileRequest $request, UserProfileService $service): RedirectResponse
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $validated = $request->validate([
-            'phone' => 'nullable|string|max:30',
-            'desk_location' => 'nullable|string|max:100',
-            'delivery_location' => 'nullable|string|max:255',
-            'sugar' => 'nullable|string|max:10',
-            'ice' => 'nullable|string|max:20',
-            'toppings' => 'nullable|array',
-            'toppings.*' => 'string|max:100',
-            'note' => 'nullable|string|max:500',
-            'notify_campaign' => 'nullable|boolean',
-            'notify_sound' => 'nullable|boolean',
-        ]);
+        $validated = $request->validated();
 
-        $updates = [];
-        if ($request->has('phone')) {
-            $updates['phone'] = $validated['phone'];
-        }
-        if ($request->has('desk_location')) {
-            $updates['desk_location'] = $validated['desk_location'];
-        }
-        if ($request->has('delivery_location')) {
-            $updates['delivery_location'] = $validated['delivery_location'];
-        }
-
-        $preferences = is_array($user->preferences) ? $user->preferences : [];
-        if ($request->has('sugar')) {
-            $preferences['sugar'] = $validated['sugar'];
-        }
-        if ($request->has('ice')) {
-            $preferences['ice'] = $validated['ice'];
-        }
-        if ($request->has('toppings')) {
-            $preferences['toppings'] = array_values(array_filter($validated['toppings']));
-        }
-        if ($request->has('note')) {
-            $preferences['note'] = $validated['note'];
-        }
-        if ($request->has('notify_campaign')) {
-            $preferences['notify_campaign'] = $request->boolean('notify_campaign');
-        }
-        if ($request->has('notify_sound')) {
-            $preferences['notify_sound'] = $request->boolean('notify_sound');
-        }
-
-        $updates['preferences'] = $preferences;
-        $user->update($updates);
+        $service->updateProfile($user, $validated, $request);
 
         return back()->with('status', __('global.profile.update_success_status'));
     }
 
     /**
-     * Return JSON for global user profile.
+     * Trả về dữ liệu JSON hồ sơ người dùng cho các client API hoặc realtime frontend.
      *
-     * @param Request $request
-     * @return JsonResponse
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
+     * @return \Illuminate\Http\JsonResponse  Dữ liệu JSON chứa thông tin người dùng và các liên kết
      */
     public function show(Request $request): JsonResponse
     {
         $user = $request->attributes->get('global_user') ?? $request->user('web');
+
         return response()->json(['data' => $user->load(['oauthIdentities', 'roomUsers.room'])]);
     }
 
     /**
-     * Payments sub-page.
+     * Trang đối soát và lịch sử thanh toán cá nhân (/me/payments).
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request
+     * @return \Illuminate\Contracts\View\View|\Illuminate\Http\JsonResponse  Giao diện hoặc dữ liệu JSON thanh toán
      */
-    public function payments(Request $request): View|\Illuminate\Http\JsonResponse
+    public function payments(Request $request): View|JsonResponse
     {
         return app(PaymentsController::class)->index($request);
     }
 
     /**
-     * Devices sub-page (/me/devices).
+     * Hiển thị trang quản lý thiết bị và phiên đăng nhập (/me/devices).
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request
+     * @param  \App\Services\User\UserSessionService  $service  Service xử lý phiên làm việc
+     * @return \Illuminate\Contracts\View\View  Giao diện quản lý thiết bị
      */
-    public function devices(Request $request): View
+    public function devices(Request $request, UserSessionService $service): View
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $domain = Str::after((string) $user->email, '@') ?: 'company.com';
-        $primaryRoomUser = $user->roomUsers()->with('room')->where('status', 'active')->orderByDesc('last_active_at')->first();
-        $department = $primaryRoomUser?->room?->name ?? __('global.profile.default_dept');
-        $userCode = $primaryRoomUser?->user_code ?? ('DF-EMP-' . str_pad((string) $user->id, 4, '0', STR_PAD_LEFT));
+        $data = $service->getDevicesData($user, $request);
 
-        // Current session & device details
-        $currentSessionId = $request->session()->getId();
-        $currentUa = $request->userAgent() ?: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/128.0.0.0';
-        $currentDeviceInfo = $this->parseUserAgent($currentUa);
-        $currentIp = $request->ip() ?: '14.161.28.92';
-        $currentSessionCode = '#SES-' . strtoupper(substr(md5((string) $currentSessionId), 0, 4)) . '-VN';
-
-        // Query other sessions from database sessions table
-        $dbSessions = DB::table('sessions')
-            ->where('user_id', $user->id)
-            ->where('id', '!=', $currentSessionId)
-            ->orderByDesc('last_activity')
-            ->get();
-
-        $otherSessions = [];
-        foreach ($dbSessions as $sess) {
-            $parsed = $this->parseUserAgent($sess->user_agent);
-            $lastActivity = Carbon::createFromTimestamp($sess->last_activity);
-            $otherSessions[] = [
-                'id' => $sess->id,
-                'device_name' => $parsed['device_name'],
-                'type_label' => $parsed['type_label'],
-                'badge_class' => $parsed['badge_class'],
-                'icon' => $parsed['icon'],
-                'ip' => $sess->ip_address ?: __('global.devices.internal_network'),
-                'location' => __('global.devices.default_country'),
-                'last_active' => $lastActivity->diffForHumans(),
-                'is_real_session' => true,
-            ];
-        }
-
-        $breadcrumbs = [
-            ['label' => __('global.rooms.breadcrumb_personal'), 'url' => route('user.me.dashboard')],
-            ['label' => __('global.devices.breadcrumb_devices'), 'url' => route('user.me.devices')],
-        ];
-
-        $unreadNotificationsCount = $user->notifications()->whereNull('read_at')->count();
-        $notifications = $user->notifications()->latest()->take(5)->get();
-
-        return view('user.global.devices', compact(
-            'user',
-            'domain',
-            'department',
-            'userCode',
-            'currentDeviceInfo',
-            'currentIp',
-            'currentSessionCode',
-            'otherSessions',
-            'breadcrumbs',
-            'unreadNotificationsCount',
-            'notifications'
-        ));
+        return view('user.global.devices', $data);
     }
 
     /**
-     * Terminate a single remote session.
+     * Đăng xuất một thiết bị / phiên làm việc từ xa cụ thể.
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request
+     * @param  \App\Services\User\UserSessionService  $service  Service xử lý phiên
+     * @param  string  $sessionId  Mã định danh phiên làm việc cần thu hồi
+     * @return \Illuminate\Http\RedirectResponse  Phản hồi chuyển hướng quay lại
      */
-    public function logoutDevice(Request $request, string $sessionId): RedirectResponse
+    public function logoutDevice(Request $request, UserSessionService $service, string $sessionId): RedirectResponse
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        DB::table('sessions')
-            ->where('id', $sessionId)
-            ->where('user_id', $user->id)
-            ->delete();
+        $service->logoutDevice($user, $sessionId);
 
         return back()->with('status', __('global.devices.logout_device_success'));
     }
 
     /**
-     * Terminate all other remote sessions.
+     * Đăng xuất tất cả các thiết bị và phiên làm việc khác ngoại trừ phiên hiện tại.
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request
+     * @param  \App\Services\User\UserSessionService  $service  Service xử lý phiên
+     * @return \Illuminate\Http\RedirectResponse  Phản hồi chuyển hướng quay lại
      */
-    public function logoutOtherDevices(Request $request): RedirectResponse
+    public function logoutOtherDevices(Request $request, UserSessionService $service): RedirectResponse
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
-        $currentSessionId = $request->session()->getId();
 
-        DB::table('sessions')
-            ->where('user_id', $user->id)
-            ->where('id', '!=', $currentSessionId)
-            ->delete();
-
-        // Revoke trusted device tokens
-        $roomUserIds = $user->roomUsers()->pluck('id');
-        RoomUserDevice::query()->whereIn('room_user_id', $roomUserIds)->update(['revoked_at' => now()]);
+        $service->logoutOtherDevices($user, $request->session()->getId());
 
         return back()->with('status', __('global.devices.logout_other_devices_success'));
     }
 
     /**
-     * Deactivate / delete personal account.
+     * Xử lý yêu cầu vô hiệu hóa hoặc xóa tài khoản cá nhân.
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request chứa chuỗi xác nhận
+     * @param  \App\Services\User\UserProfileService  $service  Service xử lý hồ sơ
+     * @return \Illuminate\Http\RedirectResponse  Chuyển hướng về trang chủ sau khi xóa
      */
-    public function deleteAccount(Request $request): RedirectResponse
+    public function deleteAccount(Request $request, UserProfileService $service): RedirectResponse
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $confirmText = trim((string) $request->input('confirm_delete'));
-        if ($confirmText !== $user->email && $confirmText !== 'XÓA TÀI KHOẢN' && $confirmText !== 'DELETE ACCOUNT') {
+        $deleted = $service->deleteAccount($user, $request);
+        if (!$deleted) {
             return back()->withErrors(['confirm_delete' => __('global.devices.delete_confirm_invalid')]);
         }
-
-        $user->update(['status' => \App\Enums\GlobalUserStatus::Disabled]);
-
-        Auth::guard('web')->logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
 
         return redirect('/')->with('status', __('global.devices.delete_account_success'));
     }
 
     /**
-     * Feedback & Reviews page (/me/feedback).
+     * Hiển thị danh sách hoặc dữ liệu JSON góp ý phản hồi của người dùng (/me/feedback).
+     *
+     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request
+     * @param  \App\Services\User\UserFeedbackService  $service  Service quản lý góp ý
+     * @return \Illuminate\Contracts\View\View|\Illuminate\Http\JsonResponse  Giao diện hoặc phản hồi JSON
      */
-    public function feedback(Request $request): View
+    public function feedback(Request $request, UserFeedbackService $service): View|JsonResponse
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $primaryRoomUser = $user->roomUsers()->with('room')->where('status', 'active')->orderByDesc('last_active_at')->first();
-        $department = $primaryRoomUser?->room?->name ?? 'Ban Kỹ thuật';
+        $result = $service->getFeedbackData($user, $request);
 
-        // Daily quota: 1 submission per day
-        $todayCount = Feedback::query()
-            ->where('global_user_id', $user->id)
-            ->whereDate('created_at', now()->toDateString())
-            ->count();
-        $canSubmit = $todayCount < 1;
-
-        // Aggregate statistics
-        $totalCount = Feedback::count();
-        if ($totalCount > 0) {
-            $avgScore = round((float) Feedback::avg('rating'), 1);
-            $countsByStar = [];
-            for ($s = 5; $s >= 1; $s--) {
-                $countS = Feedback::where('rating', $s)->count();
-                $countsByStar[$s] = [
-                    'count' => $countS,
-                    'percent' => (int) round(($countS / $totalCount) * 100),
-                ];
-            }
-        } else {
-            $avgScore = 0;
-            $countsByStar = [
-                5 => ['count' => 0, 'percent' => 0],
-                4 => ['count' => 0, 'percent' => 0],
-                3 => ['count' => 0, 'percent' => 0],
-                2 => ['count' => 0, 'percent' => 0],
-                1 => ['count' => 0, 'percent' => 0],
-            ];
+        if ($result['is_json']) {
+            return response()->json($result['data']);
         }
 
-        // Recent feedbacks list
-        $feedbacks = Feedback::with('globalUser')->latest()->paginate(4);
-
-        $breadcrumbs = [
-            ['label' => __('global.rooms.breadcrumb_personal'), 'url' => route('user.me.dashboard')],
-            ['label' => __('global.feedback.breadcrumb_feedback'), 'url' => route('user.me.feedback')],
-        ];
-
-        $unreadNotificationsCount = $user->notifications()->whereNull('read_at')->count();
-        $notifications = $user->notifications()->latest()->take(5)->get();
-
-        return view('user.global.feedback', compact(
-            'user',
-            'department',
-            'todayCount',
-            'canSubmit',
-            'totalCount',
-            'avgScore',
-            'countsByStar',
-            'feedbacks',
-            'breadcrumbs',
-            'unreadNotificationsCount',
-            'notifications'
-        ));
+        return view('user.global.feedback', $result['view_data']);
     }
 
     /**
-     * Handle feedback submission.
+     * Tiếp nhận và lưu trữ góp ý mới từ người dùng toàn hệ thống.
+     *
+     * @param  \App\Http\Requests\StoreFeedbackRequest  $request  Đối tượng Form Request chứa nội dung góp ý
+     * @param  \App\Services\User\UserFeedbackService  $service  Service xử lý lưu góp ý
+     * @return \Illuminate\Http\RedirectResponse  Phản hồi chuyển hướng kèm thông báo thành công
      */
-    public function storeFeedback(Request $request): RedirectResponse
+    public function storeFeedback(StoreFeedbackRequest $request, UserFeedbackService $service): RedirectResponse
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
@@ -472,78 +205,11 @@ class ProfileController extends Controller
             return back()->withErrors(['quota' => __('global.feedback.quota_exceeded_error')]);
         }
 
-        $validated = $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
-            'subsystem' => 'required|string|in:all,room,split_qr,socket,sponsor',
-            'content' => 'required|string|min:3|max:1000',
-        ]);
+        $validated = $request->validated();
 
-        $primaryRoomUser = $user->roomUsers()->with('room')->where('status', 'active')->orderByDesc('last_active_at')->first();
-        $department = $primaryRoomUser?->room?->name ?? 'Ban Công nghệ & Kỹ thuật số';
-
-        Feedback::create([
-            'global_user_id' => $user->id,
-            'rating' => $validated['rating'],
-            'subsystem' => $validated['subsystem'],
-            'content' => $validated['content'],
-            'user_display_name' => $user->name ?: __('global.feedback.anonymous_user'),
-            'department_name' => $department,
-        ]);
+        $service->storeFeedback($user, $validated);
 
         return back()->with('status', __('global.feedback.submit_success_status'));
     }
-
-    /**
-     * Parse User Agent into readable client info.
-     */
-    protected function parseUserAgent(?string $userAgent): array
-    {
-        $ua = $userAgent ?: '';
-        $browser = 'Chrome';
-        $os = 'Windows 11 Pro';
-        $icon = 'laptop_windows';
-        $type = 'Desktop Workstation';
-        $badgeClass = 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]';
-
-        if (stripos($ua, 'iPhone') !== false || stripos($ua, 'iPad') !== false) {
-            $os = 'iPhone 15 Pro Max';
-            $browser = 'Safari';
-            $icon = 'smartphone';
-            $type = 'Mobile Client';
-            $badgeClass = 'bg-[#FFFBEB] text-[#92400E] border-amber-200';
-        } elseif (stripos($ua, 'Android') !== false) {
-            $os = 'Android';
-            $browser = 'Chrome Mobile';
-            $icon = 'smartphone';
-            $type = 'Mobile Client';
-            $badgeClass = 'bg-[#FFFBEB] text-[#92400E] border-amber-200';
-        } elseif (stripos($ua, 'Macintosh') !== false || stripos($ua, 'Mac OS') !== false) {
-            $os = 'Macbook Pro M2';
-            $browser = 'Chrome';
-            $icon = 'laptop_mac';
-            $type = 'Trusted Device';
-            $badgeClass = 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]';
-        } elseif (stripos($ua, 'Edge') !== false || stripos($ua, 'Edg') !== false) {
-            $os = 'Máy trạm Lab Kỹ thuật';
-            $browser = 'Microsoft Edge';
-            $icon = 'desktop_windows';
-            $type = 'Shared Lab PC';
-            $badgeClass = 'bg-[#F1F5F9] text-[#475569] border-slate-200';
-        } elseif (stripos($ua, 'Firefox') !== false) {
-            $browser = 'Firefox';
-            $os = 'Linux / Ubuntu';
-            $icon = 'desktop_windows';
-            $type = 'Workstation';
-            $badgeClass = 'bg-[#F1F5F9] text-[#475569] border-slate-200';
-        }
-
-        return [
-            'browser' => $browser,
-            'os' => $os,
-            'device_name' => __('global.devices.device_on_os', ['browser' => $browser, 'os' => $os]),
-            'icon' => $icon,
-            'type_label' => $type,
-            'badge_class' => $badgeClass,
-        ];
-    }
 }
+
