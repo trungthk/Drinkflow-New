@@ -59,7 +59,7 @@ export function initSearchDebounceAndClear() {
                 detail: { query: input.value.trim().toLowerCase() }
             });
             input.dispatchEvent(event);
-        }, 250);
+        }, Number(input.dataset.debounce || 300));
 
         input.addEventListener('input', () => {
             toggleClearBtn();
@@ -378,7 +378,7 @@ export function initFormSubmitLoading() {
             if (!submitBtn || submitBtn.disabled) return;
 
             const originalHtml = submitBtn.innerHTML;
-            const loadingText = submitBtn.dataset.loadingText || form.dataset.loadingText || 'Đang xử lý...';
+            const loadingText = submitBtn.dataset.loadingText || form.dataset.loadingText || document.body.dataset.processingText || '';
 
             submitBtn.dataset.originalContent = originalHtml;
             submitBtn.disabled = true;
@@ -431,6 +431,116 @@ export function initAdminSidebar() {
 }
 
 /**
+ * Initialize header notification and workspace switcher dropdowns.
+ *
+ * These controls intentionally use vanilla JavaScript because the admin bundle
+ * does not boot Alpine.js, while their Blade markup is shared by every admin page.
+ *
+ * @returns {void}
+ */
+export function initAdminLayoutDropdowns() {
+    const dropdowns = [
+        {
+            root: document.querySelector('[data-admin-workspace-switcher]'),
+            toggleSelector: '[data-workspace-toggle]',
+            menuSelector: '[data-workspace-menu]',
+            chevronSelector: '[data-workspace-chevron]',
+        },
+        {
+            root: document.querySelector('[data-admin-notifications]'),
+            toggleSelector: '[data-notifications-toggle]',
+            menuSelector: '[data-notifications-menu]',
+        },
+    ];
+
+    dropdowns.forEach(({ root, toggleSelector, menuSelector, chevronSelector }) => {
+        if (!root) return;
+
+        const toggle = root.querySelector(toggleSelector);
+        const menu = root.querySelector(menuSelector);
+        const chevron = chevronSelector ? root.querySelector(chevronSelector) : null;
+
+        if (!toggle || !menu) return;
+
+        const setOpen = (isOpen) => {
+            menu.classList.toggle('hidden', !isOpen);
+            toggle.setAttribute('aria-expanded', String(isOpen));
+            chevron?.classList.toggle('rotate-180', isOpen);
+        };
+
+        toggle.addEventListener('click', () => {
+            const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+            setOpen(!isOpen);
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!root.contains(event.target)) setOpen(false);
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') setOpen(false);
+        });
+    });
+
+    const notificationsRoot = document.querySelector('[data-admin-notifications]');
+    const notificationsMenu = notificationsRoot?.querySelector('[data-notifications-menu]');
+    const markAllReadButton = notificationsRoot?.querySelector('[data-mark-all-read]');
+
+    markAllReadButton?.addEventListener('click', async () => {
+        const endpoint = notificationsMenu?.dataset.markAllUrl;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+        if (!endpoint || !csrfToken) return;
+
+        markAllReadButton.disabled = true;
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                },
+            });
+
+            if (!response.ok) throw new Error('Unable to mark notifications as read.');
+
+            notificationsRoot.querySelectorAll('[data-unread-notification]').forEach((item) => item.remove());
+            notificationsRoot.querySelector('[data-unread-count]')?.remove();
+            notificationsRoot.querySelector('[data-unread-indicator]')?.remove();
+
+            const list = notificationsRoot.querySelector('[data-notifications-menu] .max-h-64');
+            if (list && !list.querySelector('[data-unread-notification]')) {
+                list.innerHTML = `<div class="px-4 py-6 text-center text-outline text-xs"><span class="material-symbols-outlined text-[28px] text-outline/60 block mx-auto mb-1">notifications_off</span><span>${notificationsMenu.dataset.emptyText || ''}</span></div>`;
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            markAllReadButton.disabled = false;
+        }
+    });
+
+    const languageRoot = document.querySelector('[data-admin-language-switcher]');
+    const languageToggle = languageRoot?.querySelector('[data-language-toggle]');
+    const languageMenu = languageRoot?.querySelector('[data-language-menu]');
+    const languageChevron = languageRoot?.querySelector('[data-language-chevron]');
+
+    if (languageRoot && languageToggle && languageMenu) {
+        const setLanguageMenuOpen = (isOpen) => {
+            languageMenu.classList.toggle('hidden', !isOpen);
+            languageToggle.setAttribute('aria-expanded', String(isOpen));
+            languageChevron?.classList.toggle('rotate-180', isOpen);
+        };
+
+        languageToggle.addEventListener('click', () => setLanguageMenuOpen(languageToggle.getAttribute('aria-expanded') !== 'true'));
+        document.addEventListener('click', (event) => {
+            if (!languageRoot.contains(event.target)) setLanguageMenuOpen(false);
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') setLanguageMenuOpen(false);
+        });
+    }
+}
+
+/**
  * Master Initialize all UI Enhancements
  */
 export function initUiEnhancements() {
@@ -439,5 +549,5 @@ export function initUiEnhancements() {
     initDateRangePickers();
     initFormSubmitLoading();
     initAdminSidebar();
+    initAdminLayoutDropdowns();
 }
-

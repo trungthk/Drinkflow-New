@@ -142,18 +142,18 @@
             <!-- Right Actions: Language Switcher & User Session Chip -->
             <div class="flex items-center gap-2 sm:gap-3 self-start sm:self-auto">
                 <!-- Language Switcher Dropdown -->
-                <div class="relative" x-data="{ langOpen: false }">
+                <div class="relative" data-admin-language-switcher>
                     <button type="button"
-                            @click="langOpen = !langOpen"
+                            data-language-toggle aria-expanded="false" aria-controls="admin-language-menu"
                             class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors bg-surface-container-lowest border border-outline-variant/60 shadow-xs cursor-pointer">
                         <span>{{ $activeLocaleMeta['flag'] }}</span>
                         <span class="font-semibold text-on-surface">{{ $activeLocaleMeta['code'] }}</span>
-                        <span class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200" :class="{ 'rotate-180': langOpen }">arrow_drop_down</span>
+                        <span data-language-chevron class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200">arrow_drop_down</span>
                     </button>
 
                     <!-- Dropdown Menu -->
-                    <div x-show="langOpen" @click.away="langOpen = false" x-cloak
-                         class="absolute right-0 mt-1.5 w-36 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant/80 py-1.5 z-50">
+                    <div id="admin-language-menu" data-language-menu
+                         class="hidden absolute right-0 mt-1.5 w-36 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant/80 py-1.5 z-50">
                         @foreach($locales as $code => $meta)
                             <a href="{{ route('locale.switch', $code) }}"
                                class="flex items-center justify-between px-3 py-2 text-xs text-on-surface hover:bg-primary/10 hover:text-primary transition-colors {{ $currentLocale === $code ? 'font-semibold text-primary bg-primary/5' : '' }}">
@@ -176,7 +176,7 @@
                     </div>
                     <div class="flex flex-col text-left">
                         <div class="flex items-center gap-1.5">
-                            <span class="font-headline-sm text-[13px] leading-tight font-semibold text-on-surface">{{ $admin->name }}</span>
+                            <a href="{{ route('admin.profile') }}" class="font-headline-sm text-[13px] leading-tight font-semibold text-on-surface hover:text-primary transition-colors no-underline" title="{{ __('admin.profile_security') }}">{{ $admin->name }}</a>
                             <span class="inline-block w-1.5 h-1.5 rounded-full bg-primary" title="Active"></span>
                             <span class="font-label-sm text-label-sm text-outline">{{ $admin->role ?? __('admin.room_manager_role') }}</span>
                         </div>
@@ -316,7 +316,7 @@
                                     <span class="font-label-sm text-label-sm text-outline block">{{ __('admin.metric_members') }}</span>
                                     <div class="flex items-baseline gap-1 mt-0.5">
                                         <span class="font-headline-sm text-[20px] font-bold text-on-surface">{{ $r->active_members_count }}</span>
-                                        <span class="font-label-sm text-label-sm text-outline">active</span>
+                                        <span class="font-label-sm text-label-sm text-outline">{{ __('admin.status_active') }}</span>
                                     </div>
                                 </div>
                                 <div>
@@ -336,7 +336,7 @@
                                     <span class="font-label-sm text-label-sm text-outline block">{{ __('admin.metric_today_orders') }}</span>
                                     <div class="flex items-baseline gap-1 mt-0.5">
                                         <span class="font-headline-sm text-[20px] font-bold text-on-surface">{{ $r->today_orders_count }}</span>
-                                        <span class="font-label-sm text-label-sm text-primary font-semibold">orders</span>
+                                        <span class="font-label-sm text-label-sm text-primary font-semibold">{{ __('admin.orders') }}</span>
                                     </div>
                                 </div>
                             </div>

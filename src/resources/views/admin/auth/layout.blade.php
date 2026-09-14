@@ -39,7 +39,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="text-xl font-bold tracking-tight text-white">{{ __('admin.brand_title') }}</span>
-                            <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wider">ENGINE</span>
+                            <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wider">{{ __('admin.engine_badge') }}</span>
                         </div>
                         <p class="text-[10px] font-mono tracking-widest text-emerald-400/80 uppercase block mt-0.5">{{ __('admin.brand_subtitle') }}</p>
                     </div>
@@ -53,10 +53,10 @@
                 @else
                     <div>
                         <h1 class="text-2xl lg:text-3xl font-bold text-white leading-tight tracking-tight mb-2">
-                            Quản lý chiến dịch đặt đồ uống tập trung cho doanh nghiệp
+                            {{ __('admin.auth_hero_title') }}
                         </h1>
                         <p class="text-xs lg:text-sm text-slate-300/80 leading-relaxed">
-                            Hạ tầng số hóa quy trình dispatching F&B nội bộ, điều phối đơn số lượng lớn, đối soát số dư ví và tích hợp tự động qua hạ tầng doanh nghiệp.
+                            {{ __('admin.auth_hero_desc') }}
                         </p>
                     </div>
 
@@ -64,20 +64,20 @@
                         <div class="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
                             <div class="flex items-center gap-2 text-emerald-400 mb-1">
                                 <span class="material-symbols-outlined text-[18px]">dinner_dining</span>
-                                <strong class="text-xs font-semibold text-white">Bulk Kitchen Batch</strong>
+                                <strong class="text-xs font-semibold text-white">{{ __('admin.bulk_kitchen_title') }}</strong>
                             </div>
                             <p class="text-[11px] text-slate-400 leading-snug">
-                                Tự động gom đơn từ hàng trăm nhân sự thành 1 đơn tối ưu chiết khấu và tối giản phí ship.
+                                {{ __('admin.bulk_kitchen_desc') }}
                             </p>
                         </div>
 
                         <div class="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
                             <div class="flex items-center gap-2 text-emerald-400 mb-1">
                                 <span class="material-symbols-outlined text-[18px]">qr_code_2</span>
-                                <strong class="text-xs font-semibold text-white">VietQR Napas 247</strong>
+                                <strong class="text-xs font-semibold text-white">{{ __('admin.vietqr_napas_title') }}</strong>
                             </div>
                             <p class="text-[11px] text-slate-400 leading-snug">
-                                Chia tiền tự động từng cốc, đồng bộ biến động số dư và quản lý quỹ nợ không sót đơn vị.
+                                {{ __('admin.vietqr_napas_desc') }}
                             </p>
                         </div>
 
@@ -85,12 +85,12 @@
                             <div class="flex items-center justify-between mb-1">
                                 <div class="flex items-center gap-2 text-emerald-400">
                                     <span class="material-symbols-outlined text-[18px]">hub</span>
-                                    <strong class="text-xs font-semibold text-white">Webhook & ChatOps Ready</strong>
+                                    <strong class="text-xs font-semibold text-white">{{ __('admin.webhook_chatops_title') }}</strong>
                                 </div>
-                                <span class="text-[10px] font-mono font-bold text-emerald-300 px-2 py-0.5 rounded bg-emerald-500/20">Latency &lt; 85ms</span>
+                                <span class="text-[10px] font-mono font-bold text-emerald-300 px-2 py-0.5 rounded bg-emerald-500/20">{{ __('admin.latency_badge') }}</span>
                             </div>
                             <p class="text-[11px] text-slate-400 leading-snug">
-                                Đồng bộ thông báo chốt menu, nhắc chuyển khoản và phiếu giao hàng qua Slack Bots, Microsoft Teams và Telegram Channels.
+                                {{ __('admin.webhook_chatops_desc') }}
                             </p>
                         </div>
                     </div>

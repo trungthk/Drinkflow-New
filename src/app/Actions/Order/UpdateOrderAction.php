@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Order;
 
 use App\Models\Order;
+use App\Events\OrderUpdated;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -76,8 +77,9 @@ class UpdateOrderAction
             $updated = $order->fresh(['roomUser.globalUser', 'items.toppings', 'campaign']);
             app(AuditService::class)->record('order.updated', 'order', $order->id, $order->room_id, $before, $updated->only(['payment_method', 'note', 'subtotal', 'final_amount']));
 
+            OrderUpdated::dispatch($updated, $order->status->value);
+
             return $updated;
         });
     }
 }
-

@@ -3,9 +3,9 @@
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
             <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">Admin</a>
+                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
                 <span>/</span>
-                <span>Rooms</span>
+                <span>{{ __('admin.breadcrumb_rooms') }}</span>
                 <span>/</span>
                 <span class="text-on-surface font-semibold">{{ $room->name }}</span>
                 <span>/</span>
@@ -69,8 +69,8 @@
         </div>
         <div class="flex items-center gap-1.5">
             <button type="button" data-status="all" class="user-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-primary text-on-primary transition-colors">{{ __('admin.filter_all') }}</button>
-            <button type="button" data-status="active" class="user-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">Active</button>
-            <button type="button" data-status="blocked" class="user-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">Blocked</button>
+            <button type="button" data-status="active" class="user-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.status_active') }}</button>
+            <button type="button" data-status="blocked" class="user-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.status_blocked') }}</button>
         </div>
     </div>
 
@@ -115,7 +115,7 @@
                             </td>
                             <td class="py-3.5 px-4">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] border {{ $roleClass }}">
-                                    {{ ucfirst($roleVal) }}
+                                    {{ __('admin.role_' . $roleVal) }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-center font-mono">
@@ -129,7 +129,7 @@
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border {{ $statusVal === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}">
-                                    {{ ucfirst($statusVal) }}
+                                    {{ __('admin.status_' . $statusVal) }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-center">

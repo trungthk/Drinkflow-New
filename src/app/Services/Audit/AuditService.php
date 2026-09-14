@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\Audit;
 
 use App\Models\AuditLog;
+use App\Models\AdminNotification;
+use App\Models\Room;
 use Illuminate\Http\Request;
 
 class AuditService
@@ -24,6 +28,27 @@ class AuditService
         $admin = $request->user('admin');
         $actor = $admin ?? $request->user('web');
         $actorType = $admin ? ($admin->isSuperadmin() ? 'superadmin' : 'admin') : ($actor ? 'user' : 'system');
-        return AuditLog::create(['actor_type' => $actorType, 'actor_id' => $actor?->id, 'event' => $event, 'target_type' => $targetType, 'target_id' => $targetId, 'room_id' => $roomId, 'ip_address' => $request->ip(), 'user_agent' => $request->userAgent(), 'before_data' => $before, 'after_data' => $after, 'metadata' => $metadata, 'created_at' => now()]);
+        $auditLog = AuditLog::create(['actor_type' => $actorType, 'actor_id' => $actor?->id, 'event' => $event, 'target_type' => $targetType, 'target_id' => $targetId, 'room_id' => $roomId, 'ip_address' => $request->ip(), 'user_agent' => $request->userAgent(), 'before_data' => $before, 'after_data' => $after, 'metadata' => $metadata, 'created_at' => now()]);
+
+        if ($admin) {
+            $auditLog->admins()->syncWithoutDetaching([$admin->id]);
+        }
+
+        if ($roomId && \Illuminate\Support\Facades\Schema::hasTable('admin_notifications')) {
+            $room = Room::find($roomId);
+            $room?->admins()->each(function ($recipient) use ($auditLog, $roomId, $event): void {
+                AdminNotification::create([
+                    'admin_id' => $recipient->id,
+                    'room_id' => $roomId,
+                    'audit_log_id' => $auditLog->id,
+                    'type' => $event,
+                    'title' => $event,
+                    'body' => null,
+                    'data' => ['audit_log_id' => $auditLog->id],
+                ]);
+            });
+        }
+
+        return $auditLog;
     }
 }

@@ -3,9 +3,9 @@
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
             <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">Admin</a>
+                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
                 <span>/</span>
-                <span>Rooms</span>
+                <span>{{ __('admin.breadcrumb_rooms') }}</span>
                 <span>/</span>
                 <span class="text-on-surface font-semibold">{{ $room->name }}</span>
                 <span>/</span>
@@ -44,7 +44,7 @@
                                 <p class="text-[11px] text-outline">{{ __('admin.campaign_syntax_template') }}</p>
                             </div>
                         </div>
-                        <span class="px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold rounded">Dynamic Tags</span>
+                        <span class="px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold rounded">{{ __('admin.dynamic_tags') }}</span>
                     </div>
 
                     <div>
@@ -73,7 +73,7 @@
                                 <p class="text-[11px] text-outline">{{ __('admin.default_order_window_desc') }}</p>
                             </div>
                         </div>
-                        <span class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold rounded">Auto-Lock</span>
+                        <span class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold rounded">{{ __('admin.auto_lock_countdown') }}</span>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">

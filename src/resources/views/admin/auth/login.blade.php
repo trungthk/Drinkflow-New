@@ -21,6 +21,19 @@
         </div>
     @endif
 
+    @if(session()->has('admin_google_2fa_admin_id'))
+        <div class="mb-4 rounded-xl border border-primary/25 bg-primary/10 p-4 space-y-3">
+            <div class="flex items-start gap-2 text-xs text-on-primary-fixed-variant">
+                <span class="material-symbols-outlined text-primary">verified_user</span>
+                <span>{{ __('admin.google_workspace_continue') }}</span>
+            </div>
+            <a href="{{ route('auth.google') }}" class="w-full h-10 rounded-lg bg-primary text-on-primary text-sm font-semibold hover:bg-primary-container transition-colors inline-flex items-center justify-center gap-2 no-underline cursor-pointer">
+                <span class="material-symbols-outlined text-[18px]">account_circle</span>
+                {{ __('admin.sign_in_google_workspace') }}
+            </a>
+        </div>
+    @endif
+
     <form method="post" action="{{ route('admin.login') }}" data-loading-form="true" class="space-y-4">
         @csrf
         <div>

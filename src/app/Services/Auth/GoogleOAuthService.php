@@ -52,6 +52,19 @@ class GoogleOAuthService
      */
     public function handleCallback(Request $request): GlobalUser
     {
+        return $this->resolveUser($this->fetchProfile($request));
+    }
+
+    /**
+     * Exchange the OAuth callback code for a validated Google profile.
+     *
+     * @param Request $request OAuth callback request.
+     * @return array<string, mixed> Validated Google profile.
+     * @throws \RuntimeException When Google rejects the token or profile request.
+     * @throws ValidationException When the Google identity is not permitted.
+     */
+    public function fetchProfile(Request $request): array
+    {
         $tokenResponse = Http::asForm()->post('https://oauth2.googleapis.com/token', [
             'code' => $request->string('code')->toString(),
             'client_id' => config('services.google.client_id'),
@@ -74,13 +87,17 @@ class GoogleOAuthService
 
         $profile = $profileResponse->json();
 
-        return $this->resolveUser([
+        $profile = [
             'sub' => $profile['sub'] ?? null,
             'email' => $profile['email'] ?? null,
             'name' => $profile['name'] ?? '',
             'picture' => $profile['picture'] ?? null,
             'email_verified' => (bool) ($profile['email_verified'] ?? false),
-        ]);
+        ];
+
+        $this->validateProfile($profile);
+
+        return $profile;
     }
 
     /**

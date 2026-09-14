@@ -7,9 +7,9 @@ export function initPublicLoading() {
     const title = document.getElementById('public-loading-title');
     let autoHideTimer = null;
 
-    const defaultTitle = (title && title.dataset.defaultTitle) || 'Đang xử lý dữ liệu...';
-    const connectingGoogleTitle = (title && title.dataset.googleTitle) || 'Đang kết nối Google Workspace...';
-    const submittingTitle = (title && title.dataset.submitTitle) || 'Đang gửi thông tin...';
+    const defaultTitle = title?.dataset.defaultTitle || '';
+    const connectingGoogleTitle = title?.dataset.googleTitle || defaultTitle;
+    const submittingTitle = title?.dataset.submitTitle || defaultTitle;
 
     window.showPublicLoading = function(t) {
         if (!overlay || !card) return;
@@ -75,11 +75,6 @@ export function initPublicLoading() {
         if (submitBtn) {
             if (submitBtn.hasAttribute('data-loading-title')) {
                 customTitle = submitBtn.getAttribute('data-loading-title');
-            } else if (submitBtn.textContent.trim()) {
-                const raw = submitBtn.textContent.trim().replace(/\s+/g, ' ');
-                if (raw.length <= 20) {
-                    customTitle = `Đang ${raw.toLowerCase()}...`;
-                }
             }
         }
 
@@ -101,8 +96,7 @@ export function initPublicLoading() {
     });
 
     // Reset loading on bfcache
-    window.addEventListener('pageshow', function(e) {
-        if (e.persisted) {
+    window.addEventListener('pageshow', function() {
             window.hidePublicLoading();
             document.querySelectorAll('button[disabled], a.pointer-events-none').forEach(btn => {
                 btn.disabled = false;
@@ -111,6 +105,7 @@ export function initPublicLoading() {
                     btn.innerHTML = btn.dataset.originalHtml;
                 }
             });
-        }
     });
+
+    window.addEventListener('beforeunload', () => window.showPublicLoading(defaultTitle));
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class AuditLog extends Model
 {
@@ -16,5 +17,15 @@ class AuditLog extends Model
     public function room(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Room::class);
+    }
+
+    /**
+     * Get admin accounts linked to this activity record.
+     *
+     * @return BelongsToMany<AdminAccount, $this>
+     */
+    public function admins(): BelongsToMany
+    {
+        return $this->belongsToMany(AdminAccount::class, 'admin_audit_logs', 'audit_log_id', 'admin_id');
     }
 }

@@ -7,6 +7,8 @@ export function initAdminCampaigns() {
     const rows = document.querySelectorAll('[data-campaign-row]');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
+    const duplicateModal = document.querySelector('#duplicate-campaign-modal');
+    let campaignToDuplicate = null;
 
     if (!searchInput && !rows.length) return;
 
@@ -21,7 +23,7 @@ export function initAdminCampaigns() {
         });
     }
 
-    searchInput?.addEventListener('input', applyFilters);
+    searchInput?.addEventListener('admin:search', applyFilters);
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             filterBtns.forEach(b => {
@@ -34,22 +36,35 @@ export function initAdminCampaigns() {
         });
     });
 
-    window.duplicateCampaign = async function(id) {
-        if (!confirm('Duplicate this campaign?')) return;
+    const closeDuplicateModal = () => {
+        duplicateModal?.classList.add('hidden');
+        duplicateModal?.classList.remove('flex');
+        campaignToDuplicate = null;
+    };
+
+    window.duplicateCampaign = function(id) {
+        campaignToDuplicate = id;
+        duplicateModal?.classList.remove('hidden');
+        duplicateModal?.classList.add('flex');
+    };
+
+    document.querySelector('[data-duplicate-cancel]')?.addEventListener('click', closeDuplicateModal);
+    document.querySelector('[data-duplicate-confirm]')?.addEventListener('click', async () => {
+        if (!campaignToDuplicate) return;
         const slug = roomSlug || window.__DF_ROOM_SLUG__;
         try {
-            const res = await fetch(`/admin/${slug}/campaigns/${id}/duplicate`, {
+            const res = await fetch(`/admin/${slug}/campaigns/${campaignToDuplicate}/duplicate`, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
             });
             if (res.ok) {
                 window.location.reload();
             } else {
-                alert('An error occurred while duplicating campaign.');
+                closeDuplicateModal();
             }
         } catch (e) {
             console.error(e);
-            alert('Server error.');
+            closeDuplicateModal();
         }
-    };
+    });
 }

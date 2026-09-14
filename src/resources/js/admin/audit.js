@@ -21,4 +21,9 @@ export function initAdminAudit() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     };
+
+    document.addEventListener('admin:daterange-change', (event) => {
+        if (event.target?.id !== 'audit-date-range') return;
+        document.getElementById('audit-filter-form')?.requestSubmit();
+    });
 }

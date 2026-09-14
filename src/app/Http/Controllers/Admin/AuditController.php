@@ -24,8 +24,10 @@ class AuditController extends Controller
         $query = AuditLog::query()->where('room_id', $room->id)->latest('created_at');
         if ($request->filled('event')) $query->where('event', $request->string('event')->toString());
         if ($request->filled('target_type')) $query->where('target_type', $request->string('target_type')->toString());
-        if ($request->filled('from')) $query->whereDate('created_at', '>=', $request->date('from'));
-        if ($request->filled('to')) $query->whereDate('created_at', '<=', $request->date('to'));
+        $dateFrom = $request->input('date_from', $request->input('from'));
+        $dateTo = $request->input('date_to', $request->input('to'));
+        if ($dateFrom) $query->whereDate('created_at', '>=', $dateFrom);
+        if ($dateTo) $query->whereDate('created_at', '<=', $dateTo);
         return response()->json(['data' => $query->paginate(50)]);
     }
 
@@ -60,13 +62,10 @@ class AuditController extends Controller
             });
         }
 
-        if ($request->filled('from')) {
-            $query->whereDate('created_at', '>=', $request->date('from'));
-        }
-
-        if ($request->filled('to')) {
-            $query->whereDate('created_at', '<=', $request->date('to'));
-        }
+        $dateFrom = $request->input('date_from', $request->input('from'));
+        $dateTo = $request->input('date_to', $request->input('to'));
+        if ($dateFrom) $query->whereDate('created_at', '>=', $dateFrom);
+        if ($dateTo) $query->whereDate('created_at', '<=', $dateTo);
 
         $logs = $query->paginate(50)->withQueryString();
 
@@ -82,8 +81,8 @@ class AuditController extends Controller
                 'event' => $request->input('event', ''),
                 'target_type' => $request->input('target_type', ''),
                 'actor' => $request->input('actor', ''),
-                'from' => $request->input('from', ''),
-                'to' => $request->input('to', ''),
+                'date_from' => $dateFrom ?? '',
+                'date_to' => $dateTo ?? '',
             ],
         ]);
     }

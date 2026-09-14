@@ -3,9 +3,9 @@
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
             <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">Admin</a>
+                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
                 <span>/</span>
-                <span>Rooms</span>
+                <span>{{ __('admin.breadcrumb_rooms') }}</span>
                 <span>/</span>
                 <span class="text-on-surface font-semibold">{{ $room->name }}</span>
                 <span>/</span>
@@ -55,7 +55,8 @@
                 <tbody id="campaigns-tbody" class="divide-y divide-outline-variant/50">
                     @forelse($campaigns as $camp)
                         @php
-                            $stClass = match($camp->status) {
+                            $statusValue = $camp->status instanceof \BackedEnum ? $camp->status->value : (string) $camp->status;
+                            $stClass = match($statusValue) {
                                 'active' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                                 'closing' => 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse',
                                 'scheduled' => 'bg-blue-50 text-blue-700 border-blue-200',
@@ -63,16 +64,16 @@
                                 'archived' => 'bg-gray-100 text-gray-500 border-gray-200',
                                 default => 'bg-surface text-outline border-outline-variant'
                             };
-                            $stLabel = match($camp->status) {
+                            $stLabel = match($statusValue) {
                                 'active' => __('admin.filter_active'),
                                 'closing' => __('admin.status_closing'),
                                 'scheduled' => __('admin.filter_scheduled'),
                                 'closed' => __('admin.filter_closed'),
                                 'archived' => __('admin.filter_archived'),
-                                default => $camp->status
+                                default => $statusValue
                             };
                         @endphp
-                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-campaign-row data-status="{{ $camp->status }}" data-search="{{ strtolower($camp->title . ' ' . $camp->restaurant) }}">
+                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-campaign-row data-status="{{ $statusValue }}" data-search="{{ strtolower($camp->title . ' ' . $camp->restaurant) }}">
                             <td class="py-3.5 px-4">
                                 <div class="font-bold text-on-surface text-sm">{{ $camp->title }}</div>
                                 <div class="text-secondary flex items-center gap-1.5 mt-0.5">
@@ -100,7 +101,7 @@
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
-                                    @if(in_array($camp->status, ['active', 'closing', 'scheduled']))
+                                    @if(in_array($statusValue, ['active', 'closing', 'scheduled'], true))
                                         <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}" class="px-2.5 py-1 bg-primary text-on-primary hover:bg-primary/90 rounded text-[11px] font-semibold flex items-center gap-1 no-underline">
                                             <span class="material-symbols-outlined text-[14px]">sensors</span>
                                             <span>{{ __('admin.live_control_btn') }}</span>
@@ -111,9 +112,11 @@
                                             <span>{{ __('admin.reconcile_btn') }}</span>
                                         </a>
                                     @endif
+                                    @if($statusValue === 'closed')
                                     <button type="button" onclick="duplicateCampaign({{ $camp->id }})" class="p-1 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors" title="{{ __('admin.duplicate_campaign') }}">
                                         <span class="material-symbols-outlined text-[16px]">content_copy</span>
                                     </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -136,5 +139,16 @@
                 {{ $campaigns->links() }}
             </div>
         @endif
+    </div>
+
+    <div id="duplicate-campaign-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+        <div class="w-full max-w-sm rounded-xl bg-surface-container-lowest p-5 shadow-xl">
+            <h2 class="text-base font-bold text-on-surface">{{ __('admin.duplicate_campaign') }}</h2>
+            <p class="mt-2 text-xs text-outline">{{ __('admin.confirm_duplicate_campaign') }}</p>
+            <div class="mt-5 flex justify-end gap-2">
+                <button type="button" data-duplicate-cancel class="px-3 py-2 rounded text-xs font-semibold bg-surface-container">{{ __('admin.cancel') }}</button>
+                <button type="button" data-duplicate-confirm class="px-3 py-2 rounded text-xs font-semibold bg-primary text-on-primary">{{ __('admin.confirm_duplicate') }}</button>
+            </div>
+        </div>
     </div>
 </x-admin.layout>

@@ -26,7 +26,7 @@ export function initAdminUsers() {
         });
     }
 
-    searchInput?.addEventListener('input', applyUserFilters);
+    searchInput?.addEventListener('admin:search', applyUserFilters);
     statusBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             statusBtns.forEach(b => {

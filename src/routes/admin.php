@@ -29,6 +29,13 @@ Route::post('/admin/reset-password', [\App\Http\Controllers\Admin\AuthController
     ->name('admin.reset-password.submit');
 Route::get('/admin', [\App\Http\Controllers\Admin\AuthController::class, 'landing'])->middleware('auth:admin')->name('admin.landing');
 Route::post('/admin/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->middleware(['auth:admin', 'throttle:admin-login'])->name('admin.logout');
+Route::middleware('auth:admin')->prefix('admin/profile')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\ProfileController::class, 'show'])->name('admin.profile');
+    Route::patch('/', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('admin.profile.update');
+    Route::post('/avatar', [\App\Http\Controllers\Admin\ProfileController::class, 'uploadAvatar'])->name('admin.profile.avatar');
+    Route::patch('/password', [\App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('admin.profile.password');
+    Route::patch('/two-factor', [\App\Http\Controllers\Admin\ProfileController::class, 'updateTwoFactor'])->name('admin.profile.two-factor');
+});
 
 Route::middleware(['auth:admin', 'admin.room'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
@@ -37,6 +44,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/manage', [\App\Http\Controllers\Admin\DashboardController::class, 'manage'])->name('admin.manage.page');
     Route::get('/dashboard/data', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/socket-token', \App\Http\Controllers\Admin\SocketTokenController::class)->name('admin.socket-token');
+    Route::post('/notifications/read-all', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllRead'])->name('admin.notifications.read-all');
 
     // Dedicated Standalone Page Views
     Route::get('/campaigns/list', [\App\Http\Controllers\Admin\CampaignController::class, 'page'])->name('admin.campaigns.page');

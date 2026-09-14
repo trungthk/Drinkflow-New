@@ -16,6 +16,7 @@ import { initAdminPayments } from './admin/payments';
 import { initAdminReports } from './admin/reports';
 import { initAdminSettings } from './admin/settings';
 import { initAdminUsers } from './admin/users';
+import { initAdminLoading } from './admin/loading';
 
 export {
     initAdminGoToTop,
@@ -37,6 +38,7 @@ export {
     initAdminReports,
     initAdminSettings,
     initAdminUsers,
+    initAdminLoading,
 };
 
 // Expose globals for Alpine and inline calls
@@ -66,5 +68,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminReports();
     initAdminSettings();
     initAdminUsers();
+    initAdminLoading();
 });
-

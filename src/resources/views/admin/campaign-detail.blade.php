@@ -1,7 +1,7 @@
 <x-admin.layout :title="__('admin.brand_title') . ' · ' . $campaign->name" active="campaigns" :room="$room">
     <!-- Breadcrumbs -->
     <nav class="flex items-center gap-1.5 text-xs text-outline select-none pb-2 border-b border-outline-variant/40">
-        <a href="{{ route('admin.landing') }}" class="hover:text-on-surface transition-colors no-underline text-outline">Admin</a>
+        <a href="{{ route('admin.landing') }}" class="hover:text-on-surface transition-colors no-underline text-outline">{{ __('admin.breadcrumb_admin') }}</a>
         <span class="text-outline-variant">/</span>
         <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-on-surface transition-colors no-underline text-outline">{{ $room->name }}</a>
         <span class="text-outline-variant">/</span>
@@ -18,13 +18,13 @@
                 <div class="flex flex-wrap items-center gap-2">
                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full {{ $campaign->status?->value === 'active' ? 'bg-error-container border border-error/30 text-on-error-container' : 'bg-emerald-50 border border-emerald-200 text-emerald-800' }} font-mono text-xs font-semibold">
                         <span class="w-2 h-2 rounded-full {{ $campaign->status?->value === 'active' ? 'bg-error status-dot-pulse' : 'bg-emerald-600' }}"></span>
-                        {{ strtoupper($campaign->status?->value ?? 'CLOSED') }}
+                        {{ __('admin.status_' . ($campaign->status?->value ?? 'closed')) }}
                     </span>
                     <span class="text-xs text-outline bg-surface-container-low border border-outline-variant px-2 py-0.5 rounded font-mono">
                         #CMP-{{ $campaign->id }} • {{ $campaign->restaurant }}
                     </span>
                     <span class="text-xs text-on-surface-variant bg-surface-container-lowest border border-outline-variant px-2 py-0.5 rounded">
-                        Room: <strong>{{ $room->name }}</strong>
+                        {{ __('admin.room_label') }} <strong>{{ $room->name }}</strong>
                     </span>
                 </div>
 
@@ -35,12 +35,12 @@
                 <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-outline">
                     <span class="flex items-center gap-1">
                         <span class="material-symbols-outlined text-[16px] text-amber-600">schedule</span>
-                        Deadline: <strong class="text-on-surface font-mono">{{ $campaign->deadline?->format('H:i d/m/Y') ?? '11:15' }}</strong>
+                        {{ __('admin.deadline_label') }} <strong class="text-on-surface font-mono">{{ $campaign->deadline?->format('H:i d/m/Y') ?? '11:15' }}</strong>
                     </span>
                     <span class="text-outline-variant">•</span>
                     <span class="flex items-center gap-1">
                         <span class="material-symbols-outlined text-[16px] text-primary">account_circle</span>
-                        Dispatcher: <span class="text-on-surface font-medium">{{ auth('admin')->user()?->name ?? 'Lead Dispatcher' }}</span>
+                        {{ __('admin.room_manager_role') }}: <span class="text-on-surface font-medium">{{ auth('admin')->user()?->name ?? __('admin.breadcrumb_admin') }}</span>
                     </span>
                 </div>
 
@@ -402,7 +402,7 @@
                                 <td class="px-3 py-3 text-right font-mono font-bold text-on-surface">{{ number_format($order->final_amount, 0, ',', '.') }} ₫</td>
                                 <td class="px-4 py-3 text-center">
                                     <span class="inline-block px-2.5 py-0.5 rounded font-mono text-[10px] font-bold {{ $order->status->value === 'completed' ? 'bg-emerald-50 text-primary border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200' }}">
-                                        {{ strtoupper($order->status->value) }}
+                                        {{ __('admin.status_' . ($order->status instanceof \BackedEnum ? $order->status->value : (string) $order->status)) }}
                                     </span>
                                 </td>
                             </tr>

@@ -20,7 +20,7 @@
     <!-- Breadcrumb & Top Bar -->
     <div class="flex items-center justify-between gap-4 pb-2 border-b border-outline-variant/60">
         <div class="flex items-center gap-2 text-xs font-mono text-outline">
-            <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-on-surface">Admin</a>
+            <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-on-surface">{{ __('admin.breadcrumb_admin') }}</a>
             <span>/</span>
             <a href="{{ route('admin.campaigns.page', $room) }}" class="hover:text-on-surface">{{ __('admin.campaigns') }}</a>
             <span>/</span>

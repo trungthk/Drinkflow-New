@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminAccount;
 use App\Services\Auth\GoogleOAuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +51,28 @@ class GoogleAuthController extends Controller
         }
 
         try {
+            $pendingAdminId = $request->session()->pull('admin_google_2fa_admin_id');
+            if ($pendingAdminId) {
+                $profile = $service->fetchProfile($request);
+                $admin = AdminAccount::query()
+                    ->whereKey((int) $pendingAdminId)
+                    ->where('email', strtolower((string) $profile['email']))
+                    ->where('status', 'active')
+                    ->first();
+
+                if (! $admin) {
+                    throw ValidationException::withMessages([
+                        'email' => __('admin.google_workspace_identity_mismatch'),
+                    ]);
+                }
+
+                \Illuminate\Support\Facades\Auth::guard('admin')->login($admin, true);
+                $request->session()->regenerate();
+                $admin->update(['last_login_at' => now()]);
+
+                return redirect()->route('admin.landing');
+            }
+
             $user = $service->handleCallback($request);
 
             \Illuminate\Support\Facades\Auth::guard('web')->login($user, true);

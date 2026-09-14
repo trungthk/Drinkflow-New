@@ -18,7 +18,7 @@ class AdminAccount extends Authenticatable
 
     protected $table = 'admin_accounts';
 
-    protected $fillable = ['name', 'email', 'password', 'role', 'status'];
+    protected $fillable = ['name', 'email', 'password', 'role', 'status', 'last_login_at', 'avatar_url', 'phone', 'department', 'two_factor_enabled'];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -29,6 +29,7 @@ class AdminAccount extends Authenticatable
             'role'          => AdminRole::class,
             'status'        => AdminStatus::class,
             'last_login_at' => 'datetime',
+            'two_factor_enabled' => 'boolean',
         ];
     }
 
@@ -40,6 +41,26 @@ class AdminAccount extends Authenticatable
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class, 'actor_id')->where('actor_type', 'admin');
+    }
+
+    /**
+     * Get activity logs linked to this admin through the audit pivot table.
+     *
+     * @return BelongsToMany<AuditLog, $this>
+     */
+    public function linkedAuditLogs(): BelongsToMany
+    {
+        return $this->belongsToMany(AuditLog::class, 'admin_audit_logs', 'admin_id', 'audit_log_id');
+    }
+
+    /**
+     * Get notifications addressed to this admin.
+     *
+     * @return HasMany<AdminNotification, $this>
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(AdminNotification::class, 'admin_id');
     }
 
     /**

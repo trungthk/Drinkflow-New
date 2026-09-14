@@ -211,9 +211,9 @@
                     <span class="material-symbols-outlined text-[20px]">menu</span>
                 </button>
                 <nav class="flex items-center gap-2 text-xs text-outline font-medium">
-                    <span>Admin</span>
+                    <span>{{ __('admin.breadcrumb_admin') }}</span>
                     <span>/</span>
-                    <a href="{{ route('admin.landing') }}" class="hover:text-on-surface transition-colors">Rooms</a>
+                    <a href="{{ route('admin.landing') }}" class="hover:text-on-surface transition-colors">{{ __('admin.breadcrumb_rooms') }}</a>
                     @if($room)
                     <span>/</span>
                     <span class="text-on-surface font-semibold truncate max-w-[180px] sm:max-w-none">{{ $roomLabel }}</span>

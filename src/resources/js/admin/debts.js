@@ -26,7 +26,7 @@ export function initAdminDebts() {
         });
     }
 
-    searchInput?.addEventListener('input', applyDebtFilters);
+    searchInput?.addEventListener('admin:search', applyDebtFilters);
     statusBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             statusBtns.forEach(b => {

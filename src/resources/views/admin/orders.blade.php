@@ -1,11 +1,30 @@
+@php
+    $orderI18n = [
+        'orderedItems' => __('admin.ordered_items'),
+        'unitPrice' => __('admin.unit_price'),
+        'subtotal' => __('admin.subtotal_label_short'),
+        'finalPayable' => __('admin.final_payable_amount'),
+        'adjustmentReason' => __('admin.adjustment_reason'),
+        'save' => __('admin.save_price_adjustment'),
+        'cancel' => __('admin.cancel'),
+        'deleteConfirm' => __('admin.confirm_delete_order'),
+        'cancelOrderConfirm' => __('admin.cancel_order_confirm'),
+        'deleteFailed' => __('admin.delete_order_failed'),
+        'updateFailed' => __('admin.update_order_failed'),
+        'loadFailed' => __('admin.load_order_failed'),
+    ];
+@endphp
+
 <x-admin.layout :title="__('admin.orders_management')" active="orders" :room="$room">
+    <div id="admin-orders-page"
+         data-i18n="{{ json_encode($orderI18n, JSON_HEX_APOS | JSON_HEX_QUOT) }}">
     <!-- Header & Action Ribbon -->
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
             <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">Admin</a>
+                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
                 <span>/</span>
-                <span>Rooms</span>
+                <span>{{ __('admin.breadcrumb_rooms') }}</span>
                 <span>/</span>
                 <span class="text-on-surface font-semibold">{{ $room->name }}</span>
                 <span>/</span>
@@ -16,7 +35,7 @@
         <div class="flex items-center gap-2">
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
                 <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-                <span>Live Sync Socket</span>
+                <span>{{ __('admin.socket_room_stream') }}</span>
             </span>
         </div>
     </div>
@@ -107,7 +126,7 @@
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border {{ $stClass }}">
-                                    {{ ucfirst($ord->status) }}
+                                    {{ __('admin.status_' . ($ord->status instanceof \BackedEnum ? $ord->status->value : (string) $ord->status)) }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-right font-mono">
@@ -133,6 +152,9 @@
                                             <span class="material-symbols-outlined text-[16px]">cancel</span>
                                         </button>
                                     @endif
+                                    <button type="button" onclick="deleteOrder({{ $ord->id }})" class="p-1 text-secondary hover:text-error rounded hover:bg-error-container/40 transition-colors" title="{{ __('admin.delete_order_btn') }}">
+                                        <span class="material-symbols-outlined text-[16px]">delete</span>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -179,5 +201,6 @@
                 <!-- Dynamically rendered via JS -->
             </div>
         </div>
+    </div>
     </div>
 </x-admin.layout>

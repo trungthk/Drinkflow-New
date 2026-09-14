@@ -3,9 +3,9 @@
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
             <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">Admin</a>
+                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
                 <span>/</span>
-                <span>Rooms</span>
+                <span>{{ __('admin.breadcrumb_rooms') }}</span>
                 <span>/</span>
                 <span class="text-on-surface font-semibold">{{ $room->name }}</span>
                 <span>/</span>
@@ -59,7 +59,7 @@
                                             {{ $chTypeVal }}
                                         </span>
                                         <span class="px-2 py-0.5 rounded text-[10px] font-semibold border {{ $chStatusVal === 'enabled' || $chStatusVal === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-500' }}">
-                                            {{ ucfirst($chStatusVal) }}
+                                            {{ __('admin.status_' . $chStatusVal) }}
                                         </span>
                                     </div>
                                     <div class="text-xs text-outline mt-0.5">
@@ -109,10 +109,10 @@
                     <div>
                         <label class="block font-semibold text-on-surface mb-1">{{ __('admin.webhook_form_platform') }}</label>
                         <select id="ch-type" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface font-semibold" required>
-                            <option value="telegram">Telegram Bot</option>
-                            <option value="slack">Slack Webhook</option>
-                            <option value="chatwork">Chatwork API</option>
-                            <option value="webhook">Custom Webhook</option>
+                            <option value="telegram">{{ __('admin.platform_telegram') }}</option>
+                            <option value="slack">{{ __('admin.platform_slack') }}</option>
+                            <option value="chatwork">{{ __('admin.platform_chatwork') }}</option>
+                            <option value="webhook">{{ __('admin.platform_webhook') }}</option>
                         </select>
                     </div>
 

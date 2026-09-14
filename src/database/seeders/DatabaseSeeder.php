@@ -27,6 +27,11 @@ class DatabaseSeeder extends Seeder
     /** Seed a rich, repeatable workspace for local testing, demos, and join-room flows. */
     public function run(): void
     {
+        // Eloquent models with timestamps enabled automatically use this run's
+        // current time for created_at and updated_at. Raw query inserts below
+        // set both timestamp columns explicitly.
+        $now = now();
+
         // 1. Core Admins
         $admin = AdminAccount::updateOrCreate(
             ['email' => 'admin@drinkflow.local'],
@@ -258,7 +263,7 @@ class DatabaseSeeder extends Seeder
             DB::table('user_notifications')->where('global_user_id', $gUser->id)->where('type', 'campaign.created')->delete();
             DB::table('user_notifications')->updateOrInsert(
                 ['global_user_id' => $gUser->id, 'type' => 'campaign.created', 'room_user_id' => $rUser->id],
-                ['title' => 'Chiến dịch mới mở', 'body' => 'Trà chiều Thứ 6 - Highlands & Phúc Long đang nhận đơn.', 'data' => json_encode(['campaign_id' => $techCampaign->id]), 'created_at' => now(), 'updated_at' => now()],
+                ['title' => 'Chiến dịch mới mở', 'body' => 'Trà chiều Thứ 6 - Highlands & Phúc Long đang nhận đơn.', 'data' => json_encode(['campaign_id' => $techCampaign->id]), 'created_at' => $now, 'updated_at' => $now],
             );
         }
 

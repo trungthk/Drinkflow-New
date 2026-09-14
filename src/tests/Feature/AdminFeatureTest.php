@@ -9,6 +9,7 @@ use App\Models\CampaignItem;
 use App\Models\PaymentAccount;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AdminFeatureTest extends TestCase
@@ -17,7 +18,7 @@ class AdminFeatureTest extends TestCase
 
     private function admin(string $email = 'admin@example.test'): AdminAccount
     {
-        return AdminAccount::create(['name' => 'Room Admin', 'email' => $email, 'password' => 'secret', 'role' => AdminRole::Admin, 'status' => 'active']);
+        return AdminAccount::create(['name' => 'Room Admin', 'email' => $email, 'password' => Hash::make('secret'), 'role' => AdminRole::Admin, 'status' => 'active']);
     }
 
     private function roomFor(AdminAccount $admin, string $slug = 'admin-room'): Room
@@ -49,14 +50,88 @@ class AdminFeatureTest extends TestCase
             ->assertSee('Live Coffee');
     }
 
+    public function test_admin_can_view_and_update_own_profile(): void
+    {
+        $admin = $this->admin('profile@example.test');
+        $this->roomFor($admin, 'profile-room');
+
+        $this->actingAs($admin, 'admin')->get('/admin/profile')
+            ->assertOk()
+            ->assertViewIs('admin.profile')
+            ->assertSee($admin->email)
+            ->assertSee('/admin/profile');
+
+        $this->actingAs($admin, 'admin')->patch('/admin/profile', [
+            'name' => 'Updated Admin',
+            'phone' => '0900000000',
+            'department' => 'Operations',
+        ])->assertRedirect('/admin/profile');
+
+        $this->actingAs($admin->fresh(), 'admin')->patch('/admin/profile/two-factor', [
+            'current_password' => 'secret',
+            'two_factor_enabled' => true,
+        ])->assertRedirect('/admin/profile');
+
+        $this->assertDatabaseHas('admin_accounts', [
+            'id' => $admin->id,
+            'name' => 'Updated Admin',
+            'phone' => '0900000000',
+            'department' => 'Operations',
+            'two_factor_enabled' => true,
+        ]);
+    }
+
+    public function test_guest_cannot_access_admin_profile(): void
+    {
+        $this->get('/admin/profile')->assertRedirect(route('admin.login.page'));
+    }
+
+    public function test_admin_login_updates_last_login_at(): void
+    {
+        config()->set('captcha.disable', true);
+        $admin = $this->admin('last-login@example.test');
+        $admin->update(['password' => Hash::make('CorrectPassword123!')]);
+
+        $this->assertTrue(Hash::check('CorrectPassword123!', (string) $admin->password));
+
+        $this->post('/admin/login', [
+            'email' => $admin->email,
+            'password' => 'CorrectPassword123!',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertNotNull($admin->fresh()->last_login_at);
+    }
+
     public function test_admin_dashboard_is_limited_to_assigned_room(): void
     {
         $admin = $this->admin();
         $room = $this->roomFor($admin);
         $otherRoom = Room::create(['name' => 'Other', 'slug' => 'other-room', 'status' => 'active']);
 
+        $this->actingAs($admin, 'admin')->get("/admin/{$room->slug}/dashboard")
+            ->assertOk()
+            ->assertSee('/lang/en')
+            ->assertSee('/lang/ja');
+
         $this->actingAs($admin, 'admin')->getJson("/admin/{$room->id}/dashboard/data")->assertOk()->assertJsonPath('data.active_campaigns', 0);
         $this->actingAs($admin, 'admin')->getJson("/admin/{$otherRoom->id}/dashboard/data")->assertForbidden();
+    }
+
+    public function test_admin_can_create_payment_account(): void
+    {
+        $admin = $this->admin('payments-create@example.test');
+        $room = $this->roomFor($admin, 'payments-create-room');
+
+        $this->actingAs($admin, 'admin')->postJson("/admin/{$room->slug}/payment-accounts", [
+            'bank_code' => 'VCB',
+            'bank_name' => 'Vietcombank',
+            'account_number' => '0123456789',
+            'account_name' => 'DRINKFLOW',
+            'is_default' => true,
+            'status' => 'active',
+        ])->assertCreated()->assertJsonPath('data.bank_code', 'VCB');
+
+        $this->assertDatabaseHas('payment_accounts', ['room_id' => $room->id, 'account_number' => '0123456789']);
     }
 
     public function test_admin_can_activate_a_campaign_after_menu_and_payment_validation(): void
@@ -312,4 +387,3 @@ class AdminFeatureTest extends TestCase
         ]);
     }
 }
-

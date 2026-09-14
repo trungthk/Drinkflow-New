@@ -68,15 +68,10 @@ export function initGlobalLoading() {
         }
 
         const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-        let customTitle = 'Đang lưu...';
+        let customTitle = loadingTitle?.dataset.submitTitle || '';
         if (submitBtn) {
             if (submitBtn.hasAttribute('data-loading-title')) {
                 customTitle = submitBtn.getAttribute('data-loading-title');
-            } else if (submitBtn.textContent.trim()) {
-                const raw = submitBtn.textContent.trim().replace(/\s+/g, ' ');
-                if (raw.length <= 20) {
-                    customTitle = `Đang ${raw.toLowerCase()}...`;
-                }
             }
         }
 
@@ -89,10 +84,23 @@ export function initGlobalLoading() {
         }
     });
 
+    document.addEventListener('click', function (event) {
+        const link = event.target.closest('a[href]');
+        if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+        const href = link.getAttribute('href') || '';
+        if (link.target === '_blank' || link.hasAttribute('download') || href === '' || href.startsWith('#') || href.startsWith('javascript:')) return;
+
+        const destination = new URL(link.href, window.location.href);
+        if (destination.origin === window.location.origin && destination.href !== window.location.href) {
+            window.showGlobalLoading();
+        }
+    });
+
     // Reset loading on back button (browser bfcache)
     window.addEventListener('pageshow', function(e) {
+        window.hideGlobalLoading();
         if (e.persisted) {
-            window.hideGlobalLoading();
             document.querySelectorAll('button[type="submit"][disabled]').forEach(btn => {
                 btn.disabled = false;
                 btn.classList.remove('opacity-75', 'cursor-wait');
@@ -102,4 +110,6 @@ export function initGlobalLoading() {
             });
         }
     });
+
+    window.addEventListener('beforeunload', () => window.showGlobalLoading());
 }

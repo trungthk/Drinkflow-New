@@ -23,7 +23,9 @@ export function initAdminPayments() {
 
     form?.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const bankCode = document.querySelector('#acc-bank-code').value;
+        const bankSelect = document.querySelector('#acc-bank-code');
+        const bankCode = bankSelect.value;
+        const bankName = bankSelect.options[bankSelect.selectedIndex]?.dataset.bankName || bankSelect.options[bankSelect.selectedIndex]?.text || bankCode;
         const accountNumber = document.querySelector('#acc-number').value.trim();
         const accountName = document.querySelector('#acc-name').value.trim();
         const branch = document.querySelector('#acc-branch').value.trim();
@@ -35,6 +37,7 @@ export function initAdminPayments() {
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
                 body: JSON.stringify({
                     bank_code: bankCode,
+                    bank_name: bankName,
                     account_number: accountNumber,
                     account_name: accountName,
                     branch: branch,

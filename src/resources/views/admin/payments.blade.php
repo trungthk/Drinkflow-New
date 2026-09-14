@@ -3,9 +3,9 @@
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
             <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">Admin</a>
+                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
                 <span>/</span>
-                <span>Rooms</span>
+                <span>{{ __('admin.breadcrumb_rooms') }}</span>
                 <span>/</span>
                 <span class="text-on-surface font-semibold">{{ $room->name }}</span>
                 <span>/</span>
@@ -47,7 +47,7 @@
                                             <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">{{ __('admin.default_badge') }}</span>
                                         @endif
                                         <span class="px-2 py-0.5 rounded text-[10px] font-semibold border {{ $accStatusVal === 'active' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500' }}">
-                                            {{ ucfirst($accStatusVal) }}
+                                            {{ __('admin.status_' . $accStatusVal) }}
                                         </span>
                                     </div>
                                     <div class="text-xs font-semibold text-secondary uppercase mt-0.5">{{ $acc->account_name }}</div>
@@ -88,7 +88,7 @@
                         <label class="block font-semibold text-on-surface mb-1">{{ __('admin.bank_code') }}:</label>
                         <select id="acc-bank-code" data-searchable="true" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface font-semibold" required>
                             @foreach($banks ?? app(\App\Services\Common\BankService::class)->getAllBanks() as $bank)
-                                <option value="{{ $bank['code'] }}">{{ $bank['code'] }} - {{ $bank['short_name'] }} ({{ $bank['name'] }})</option>
+                                <option value="{{ $bank['code'] }}" data-bank-name="{{ $bank['name'] }}">{{ $bank['code'] }} - {{ $bank['short_name'] }} ({{ $bank['name'] }})</option>
                             @endforeach
                         </select>
                     </div>

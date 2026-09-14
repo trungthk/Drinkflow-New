@@ -158,6 +158,17 @@ class AuthController extends Controller
     {
         $admin = $authService->login($request);
 
+        if ($admin->two_factor_enabled) {
+            auth('admin')->logout();
+            $request->session()->put('admin_google_2fa_admin_id', $admin->id);
+
+            if ($request->expectsJson()) {
+                return response()->json(['two_factor_required' => true]);
+            }
+
+            return redirect()->route('admin.login.page')->with('status', __('admin.google_workspace_continue'));
+        }
+
         if ($request->expectsJson()) {
             return response()->json(['data' => $admin]);
         }
@@ -302,4 +313,3 @@ class AuthController extends Controller
         return redirect()->route('admin.login.page')->with('status', __('admin.password_reset_success'));
     }
 }
-

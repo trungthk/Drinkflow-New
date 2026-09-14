@@ -29,12 +29,13 @@
         $assignedRoomsList = $assignedRoomsList->prepend($room);
     }
 
-    $unreadNotifications = collect();
-    $unreadCount = 0;
-    if ($room) {
-        $unreadNotifications = \App\Models\AuditLog::where('room_id', $room->id)->latest('created_at')->take(5)->get();
-        $unreadCount = \App\Models\Debt::where('room_id', $room->id)->whereIn('status', \App\Enums\DebtStatus::outstandingValues())->count();
-    }
+    $unreadNotifications = $room && $adminUser
+        ? app(\App\Services\Notification\AdminNotificationService::class)->unreadForRoom($adminUser, $room)
+        : collect();
+    $unreadCount = $unreadNotifications->count();
+    $currentLocale = app()->getLocale();
+    $locales = $locales ?? \App\Constants\AppLocale::SUPPORTED;
+    $activeLocaleMeta = \App\Constants\AppLocale::get($currentLocale);
 @endphp
 <!doctype html>
 <html lang="{{ app()->getLocale() }}">
@@ -67,7 +68,7 @@
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
 </head>
 
-<body data-room-slug="{{ $room?->slug }}" class="bg-surface text-on-surface font-sans min-h-screen flex antialiased">
+<body data-room-slug="{{ $room?->slug }}" data-processing-text="{{ __('admin.processing') }}" class="bg-surface text-on-surface font-sans min-h-screen flex antialiased">
     <!-- ================= LEFT SIDEBAR ================= -->
     <aside id="admin-sidebar" class="fixed top-0 left-0 h-screen w-64 flex flex-col z-30 bg-surface-container-lowest border-r border-outline-variant -translate-x-full lg:translate-x-0">
         <div class="w-full h-full p-3.5 flex flex-col justify-between overflow-y-auto overflow-x-hidden">
@@ -89,27 +90,23 @@
                     <button type="button" class="lg:hidden w-8 h-8 flex items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors" onclick="document.querySelector('#admin-sidebar')?.classList.toggle('-translate-x-full')">
                         <span class="material-symbols-outlined text-[20px]">close</span>
                     </button>
-                    <!-- Desktop Sidebar Toggle Button inside Header -->
-                    <button type="button" onclick="toggleAdminSidebar()" class="hidden lg:flex sidebar-text w-7 h-7 items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer" title="{{ __('admin.toggle_sidebar') }}">
-                        <span class="material-symbols-outlined text-[18px] sidebar-collapse-toggle-icon">dock_to_left</span>
-                    </button>
                 </div>
 
                 <!-- Active Workspace Dropdown Trigger -->
-                <div class="mb-5 relative" x-data="{ open: false }">
+                <div class="mb-5 relative" data-admin-workspace-switcher>
                     <label class="text-[10px] font-mono text-outline block mb-1 uppercase tracking-wider font-semibold sidebar-text">{{ __('admin.active_workspace') }}</label>
-                    <button type="button" @click="open = !open" class="sidebar-nav-link relative group w-full flex items-center justify-between px-3 py-2 bg-surface border border-outline-variant rounded hover:border-outline text-left transition-colors cursor-pointer" title="{{ $room ? $roomLabel : __('admin.select_room_title') }}">
+                    <button type="button" data-workspace-toggle aria-expanded="false" aria-controls="workspace-menu" class="sidebar-nav-link relative group w-full flex items-center justify-between px-3 py-2 bg-surface border border-outline-variant rounded hover:border-outline text-left transition-colors cursor-pointer" title="{{ $room ? $roomLabel : __('admin.select_room_title') }}">
                         <div class="flex items-center gap-2 truncate">
                             <span class="w-2.5 h-2.5 rounded-full {{ $room ? 'bg-primary' : 'bg-outline' }} inline-block shrink-0"></span>
                             <span class="text-xs font-semibold text-on-surface truncate sidebar-text">{{ $room ? $roomLabel : __('admin.select_room_title') }}</span>
                         </div>
-                        <span class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200 sidebar-text" :class="{ 'rotate-180': open }">expand_more</span>
+                        <span data-workspace-chevron class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200 sidebar-text">expand_more</span>
                         <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
                             {{ $room ? $roomLabel : __('admin.select_room_title') }}
                         </div>
                     </button>
 
-                    <div x-show="open" @click.away="open = false" x-cloak class="absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 py-1 max-h-56 overflow-y-auto min-w-[200px]">
+                    <div id="workspace-menu" data-workspace-menu class="hidden absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 py-1 max-h-56 overflow-y-auto min-w-[200px]">
                         @if($assignedRoomsList->isNotEmpty())
                             <div class="px-2.5 py-1 text-[10px] font-mono uppercase text-outline tracking-wider font-semibold">{{ __('admin.assigned_rooms') }}</div>
                             @foreach($assignedRoomsList as $assigned)
@@ -234,7 +231,7 @@
             <!-- Footer Action Links & Admin Info -->
             <div class="pt-4 border-t border-outline-variant space-y-2 text-xs">
                 <!-- Admin Profile Info Chip -->
-                <div class="flex items-center gap-2.5 p-2 rounded-lg bg-surface-container border border-outline-variant/60 relative group" title="{{ $adminUser?->name }} ({{ $adminUser?->email }})">
+                <a href="{{ route('admin.profile') }}" class="flex items-center gap-2.5 p-2 rounded-lg bg-surface-container border border-outline-variant/60 relative group no-underline" title="{{ __('admin.profile_security') }}">
                     <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary font-mono text-xs flex items-center justify-center font-bold ring-1 ring-emerald-600/30 shrink-0 mx-auto lg:mx-0">
                         {{ mb_strtoupper(mb_substr($adminUser?->name ?? 'AD', 0, 2)) }}
                     </div>
@@ -245,7 +242,7 @@
                     <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
                         {{ $adminUser?->name }} ({{ $adminUser?->email }})
                     </div>
-                </div>
+                </a>
 
                 <!-- Logout Button -->
                 <button type="button" onclick="openAdminLogoutModal()" class="sidebar-nav-link btn-admin-logout relative group w-full flex items-center gap-2.5 px-3 py-2 text-error hover:bg-error-container/40 rounded-lg font-medium transition-colors text-left cursor-pointer" title="{{ __('admin.logout') }}">
@@ -276,42 +273,75 @@
                     <span>Admin</span>
                     <span>/</span>
                     <a href="{{ route('admin.landing') }}" class="hover:text-on-surface transition-colors">Rooms</a>
-                    @if($room)
+                    @if(request()->routeIs('admin.profile'))
+                    <span>/</span>
+                    <span class="text-on-surface font-semibold">{{ __('admin.profile') }}</span>
+                    @elseif($room)
                     <span>/</span>
                     <span class="text-on-surface font-semibold truncate max-w-[180px] sm:max-w-none">{{ $roomLabel }}</span>
                     @endif
                 </nav>
             </div>
 
-            <!-- Right side: Notifications Dropdown, Fast Action -->
+            <!-- Right side: Language, Notifications Dropdown, Fast Action -->
             <div class="flex items-center gap-3">
+                <div class="relative" data-admin-language-switcher>
+                    <button type="button"
+                        data-language-toggle aria-expanded="false" aria-controls="admin-language-menu"
+                        class="flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors border border-outline-variant/60 cursor-pointer">
+                        <span>{{ $activeLocaleMeta['flag'] }}</span>
+                        <span class="hidden sm:inline font-semibold text-on-surface">{{ $activeLocaleMeta['code'] }}</span>
+                        <span data-language-chevron class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200">arrow_drop_down</span>
+                    </button>
+
+                    <div id="admin-language-menu" data-language-menu class="hidden absolute right-0 top-full mt-2 w-40 bg-surface-container-lowest rounded-xl shadow-xl border border-outline-variant/80 py-1.5 z-50">
+                        @foreach($locales as $code => $meta)
+                        <a href="{{ route('locale.switch', $code) }}" class="flex items-center justify-between px-3 py-2 text-xs text-on-surface hover:bg-primary/10 hover:text-primary transition-colors {{ $currentLocale === $code ? 'font-semibold text-primary bg-primary/5' : '' }}">
+                            <span class="flex items-center gap-2">
+                                <span>{{ $meta['flag'] }}</span>
+                                <span>{{ $meta['name'] }}</span>
+                            </span>
+                            @if($currentLocale === $code)
+                            <span class="material-symbols-outlined text-[16px] text-primary">check</span>
+                            @endif
+                        </a>
+                        @endforeach
+                    </div>
+                </div>
+
                 @if($room)
                 <!-- Notifications Dropdown -->
-                <div class="relative" x-data="{ notifOpen: false }">
-                    <button type="button" @click="notifOpen = !notifOpen" class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors relative cursor-pointer" title="{{ __('admin.notifications') }}">
+                <div class="relative" data-admin-notifications>
+                    <button type="button" data-notifications-toggle aria-expanded="false" aria-controls="admin-notifications-menu" class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors relative cursor-pointer" title="{{ __('admin.notifications') }}">
                         <span class="material-symbols-outlined text-[20px]">notifications</span>
                         @if($unreadCount > 0 || $unreadNotifications->isNotEmpty())
-                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-surface"></span>
+                        <span data-unread-indicator class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-surface"></span>
                         @endif
                     </button>
 
-                    <div x-show="notifOpen" @click.away="notifOpen = false" x-cloak class="absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 py-2 overflow-hidden">
+                    <div id="admin-notifications-menu" data-notifications-menu data-mark-all-url="{{ route('admin.notifications.read-all', $room) }}" data-empty-text="{{ __('admin.no_unread_notifications') }}" class="hidden absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 py-2 overflow-hidden">
                         <div class="px-4 py-2 border-b border-outline-variant/60 flex items-center justify-between">
                             <span class="font-bold text-xs text-on-surface">{{ __('admin.unread_notifications') }}</span>
-                            @if($unreadCount > 0)
-                            <span class="px-1.5 py-0.5 rounded-full bg-error-container text-error text-[10px] font-mono font-bold">{{ $unreadCount }}</span>
-                            @endif
+                            <div class="flex items-center gap-2">
+                                @if($unreadCount > 0)
+                                <span data-unread-count class="px-1.5 py-0.5 rounded-full bg-error-container text-error text-[10px] font-mono font-bold">{{ $unreadCount }}</span>
+                                @endif
+                                <button type="button" data-mark-all-read class="text-[10px] font-semibold text-primary hover:underline disabled:opacity-50">{{ __('admin.mark_all_read') }}</button>
+                            </div>
                         </div>
 
                         <div class="max-h-64 overflow-y-auto divide-y divide-outline-variant/40">
                             @forelse($unreadNotifications as $notif)
-                            <div class="px-4 py-2.5 hover:bg-surface-container-low transition-colors">
+                            <div data-unread-notification class="px-4 py-2.5 hover:bg-surface-container-low transition-colors">
                                 <div class="flex items-start gap-2.5">
                                     <span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
                                         <span class="material-symbols-outlined text-[14px]">info</span>
                                     </span>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-xs font-medium text-on-surface leading-snug">{{ $notif->event ?? 'Hệ thống cập nhật' }}</p>
+                                        <p class="text-xs font-medium text-on-surface leading-snug">{{ $notif->title }}</p>
+                                        @if($notif->body)
+                                        <p class="mt-0.5 text-[11px] text-outline leading-snug">{{ $notif->body }}</p>
+                                        @endif
                                         <span class="text-[10px] font-mono text-outline">{{ $notif->created_at ? $notif->created_at->diffForHumans() : 'Vừa xong' }}</span>
                                     </div>
                                 </div>
@@ -349,6 +379,9 @@
 
     <!-- Admin Logout Confirmation Modal -->
     <x-admin.logout-modal />
+
+    <!-- Admin Page Navigation & Submit Loading Overlay -->
+    <x-admin.loading />
 
     <!-- Admin Go To Top Floating Button -->
     <x-admin.go-to-top />

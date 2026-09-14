@@ -270,4 +270,4 @@ html {
         border-color: transparent #0b1c30 transparent transparent;
     }
 }
-
+button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: pointer; }

@@ -9,7 +9,7 @@
 @endphp
 
 <!doctype html>
-<html class="h-full" lang="{{ app()->getLocale() }}">
+<html class="h-full" lang="{{ $currentLocale }}">
 
 <head>
     <meta charset="utf-8">

@@ -9,16 +9,16 @@
             <div>
                 <h1 class="text-xl font-bold text-on-surface tracking-tight flex items-center gap-2">
                     {{ __('admin.fast_create_campaign') }}
-                    <span class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-primary/10 text-primary uppercase border border-primary/20">Fast Dispatcher</span>
+                    <span class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-primary/10 text-primary uppercase border border-primary/20">{{ __('admin.fast_dispatcher_badge') }}</span>
                 </h1>
-                <p class="text-xs text-outline">{{ __('admin.campaign_create_subtitle', ['room' => $room->name]) ?? 'Khởi tạo đợt đặt món mới với nguồn thực đơn linh hoạt và chia sẻ chi phí tự động' }}</p>
+                <p class="text-xs text-outline">{{ __('admin.campaign_create_subtitle', ['room' => $room->name]) }}</p>
             </div>
         </div>
 
         <div class="flex items-center gap-2.5 self-end sm:self-auto">
             <button type="button" @click="saveDraft()" :disabled="submitting" class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-1.5 disabled:opacity-50">
                 <span class="material-symbols-outlined text-[16px]">save</span>
-                <span>{{ __('admin.save_draft') ?? 'Lưu bản nháp' }}</span>
+                <span>{{ __('admin.save_draft') }}</span>
             </button>
             <button type="button" @click="publishCampaign()" :disabled="submitting" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50">
                 <span class="material-symbols-outlined text-[16px]">rocket_launch</span>
@@ -78,11 +78,11 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.campaign_name') }} <span class="text-error">*</span></label>
-                        <input type="text" x-model="form.name" placeholder="Ví dụ: Trà Chiều Thứ Sáu ☕" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                        <input type="text" x-model="form.name" placeholder="{{ __('admin.campaign_name_example') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.restaurant_brand') }} <span class="text-error">*</span></label>
-                        <input type="text" x-model="form.restaurant" placeholder="Ví dụ: Highlands Coffee - Chi nhánh Bitexco" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                        <input type="text" x-model="form.restaurant" placeholder="{{ __('admin.restaurant_example') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                     </div>
                 </div>
 
@@ -206,7 +206,7 @@
                 <div x-show="menuTab === 'crawler'" class="space-y-3">
                     <div class="text-xs text-outline">{{ __('admin.crawler_desc') }}</div>
                     <div class="flex gap-2">
-                        <input type="url" x-model="crawlerUrl" placeholder="https://shopeefood.vn/ho-chi-minh/highlands-coffee-..." class="flex-1 px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                        <input type="url" x-model="crawlerUrl" placeholder="{{ __('admin.crawler_url_placeholder') }}" class="flex-1 px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                         <button type="button" @click="previewCrawler()" :disabled="crawlerLoading || !crawlerUrl" class="px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:bg-primary-container disabled:opacity-50 transition-colors flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-[16px]" :class="crawlerLoading ? 'animate-spin' : ''">sync</span>
                             <span>{{ __('admin.crawl_menu_btn') }}</span>
@@ -221,7 +221,7 @@
                         <span class="text-xs text-outline">{{ __('admin.json_import_desc') }}</span>
                         <button type="button" @click="loadSampleJson()" class="text-xs text-primary hover:underline font-medium">{{ __('admin.view_sample_json') }}</button>
                     </div>
-                    <textarea x-model="rawJson" rows="6" placeholder='[{"name": "Trà Sen Vàng", "price": 45000, "category": "Trà"}, {"name": "Freeze Trà Xanh", "price": 55000, "category": "Freeze"}]' class="w-full font-mono text-xs p-3 bg-surface border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary"></textarea>
+                    <textarea x-model="rawJson" rows="6" placeholder="{{ __('admin.json_menu_placeholder') }}" class="w-full font-mono text-xs p-3 bg-surface border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary"></textarea>
                     <button type="button" @click="importJson()" class="px-4 py-1.5 bg-primary/10 text-primary border border-primary/30 rounded text-xs font-semibold hover:bg-primary/20 transition-colors">
                         {{ __('admin.apply_json_to_menu') }}
                     </button>
@@ -240,7 +240,7 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_name_label') }}</label>
-                    <input type="text" x-model="form.sponsor_name" placeholder="Ví dụ: Team Leader, Quỹ Phòng, Sếp Dũng..." class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                    <input type="text" x-model="form.sponsor_name" placeholder="{{ __('admin.sponsor_example') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                 </div>
 
                 <div>

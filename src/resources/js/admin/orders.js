@@ -1,190 +1,126 @@
+import { debounce } from './ui-enhancements';
+
 /**
- * Admin Realtime Orders Controller
+ * Initialize order search, filtering, deletion, and price adjustment.
+ *
+ * @returns {void}
  */
 export function initAdminOrders() {
-    const searchInput = document.querySelector('#order-search');
-    const campaignSelect = document.querySelector('#campaign-filter-select');
-    const statusSelect = document.querySelector('#status-filter-select');
-    const rows = document.querySelectorAll('[data-order-row]');
-    const modal = document.querySelector('#price-adjust-modal');
-    const modalBackdrop = document.querySelector('#modal-backdrop');
-    const modalBody = document.querySelector('#modal-body');
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-    const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
+    const page = document.querySelector('#admin-orders-page');
+    if (!page) return;
 
-    if (!searchInput && !rows.length && !modal) return;
+    const i18n = JSON.parse(page.dataset.i18n || '{}');
+    const search = page.querySelector('#order-search');
+    const campaign = page.querySelector('#campaign-filter-select');
+    const status = page.querySelector('#status-filter-select');
+    const modal = page.querySelector('#price-adjust-modal');
+    const body = page.querySelector('#modal-body');
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const room = document.querySelector('meta[name="room-slug"]')?.content || window.__DF_ROOM_SLUG__ || '';
+    const escape = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[char]));
 
-    modalBackdrop?.addEventListener('click', closePriceAdjustModal);
-
-    function applyOrderFilters() {
-        const term = searchInput?.value.trim().toLowerCase() || '';
-        const campId = campaignSelect?.value || '';
-        const activeStatus = statusSelect?.value || 'all';
-
-        rows.forEach(row => {
-            const matchesSearch = row.dataset.search?.includes(term);
-            const matchesCamp = !campId || row.dataset.campaignId === campId;
-            const matchesStatus = activeStatus === 'all' || row.dataset.status === activeStatus;
-            row.style.display = (matchesSearch && matchesCamp && matchesStatus) ? '' : 'none';
+    /**
+     * Apply active filters to order rows.
+     *
+     * @returns {void}
+     */
+    const filterRows = () => {
+        const keyword = search?.value.trim().toLowerCase() || '';
+        page.querySelectorAll('[data-order-row]').forEach((row) => {
+            const matches = row.dataset.search?.includes(keyword)
+                && (!campaign?.value || row.dataset.campaignId === campaign.value)
+                && (status?.value === 'all' || row.dataset.status === status?.value);
+            row.style.display = matches ? '' : 'none';
         });
-    }
+    };
+    search?.addEventListener('admin:search', filterRows);
+    campaign?.addEventListener('change', filterRows);
+    status?.addEventListener('change', filterRows);
 
-    searchInput?.addEventListener('input', applyOrderFilters);
-    campaignSelect?.addEventListener('change', applyOrderFilters);
-    statusSelect?.addEventListener('change', applyOrderFilters);
+    /**
+     * Close the adjustment modal.
+     *
+     * @returns {void}
+     */
+    const closeModal = () => {
+        modal?.classList.add('hidden');
+        modal?.classList.remove('flex');
+    };
+    page.querySelector('#modal-backdrop')?.addEventListener('click', closeModal);
+    window.closePriceAdjustModal = closeModal;
 
-    const openAdjustModalFn = async function(orderId) {
-        if (!modal || !modalBody) return;
-        modalBody.innerHTML = '<div class="py-8 text-center text-outline"><span class="material-symbols-outlined animate-spin text-[24px]">progress_activity</span></div>';
+    /**
+     * Display editable item prices for an order.
+     *
+     * @param {number} orderId Order ID.
+     * @returns {Promise<void>}
+     */
+    window.openPriceAdjustmentModal = async (orderId) => {
+        if (!modal || !body) return;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-
+        body.innerHTML = '<div class="py-8 text-center text-outline"><span class="material-symbols-outlined animate-spin text-[24px]">progress_activity</span></div>';
         try {
-            const res = await fetch(`/admin/${roomSlug}/orders/${orderId}`, {
-                headers: { 'Accept': 'application/json' }
-            });
-            const { data: order } = await res.json();
-            const modalTitle = document.querySelector('#modal-order-title');
-            if (modalTitle) modalTitle.textContent = `#ORD-${order.id} - ${order.room_user?.display_name || 'Member'}`;
-
-            modalBody.innerHTML = `
-                <div class="space-y-3">
-                    <div class="bg-surface-container-low rounded-lg p-3 border border-outline-variant">
-                        <div class="font-semibold text-on-surface mb-2">Ordered Items:</div>
-                        <div class="space-y-2">
-                            ${(order.items || []).map(it => `
-                                <div class="flex items-center justify-between gap-3 bg-surface-container-lowest p-2 rounded border border-outline-variant/60">
-                                    <div class="flex-1">
-                                        <div class="font-bold text-on-surface">${it.quantity}x ${it.item_name} ${it.size ? `(${it.size})` : ''}</div>
-                                        <div class="text-[11px] text-outline">${it.toppings?.map(t => t.name).join(', ') || '—'}</div>
-                                    </div>
-                                    <div class="text-right">
-                                        <div class="text-[11px] text-outline line-through">${new Intl.NumberFormat('vi-VN').format(it.unit_price || 0)} ₫</div>
-                                        <div class="font-bold text-primary">${new Intl.NumberFormat('vi-VN').format(it.final_price || it.unit_price || 0)} ₫</div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-
-                    <form id="price-adjust-form" class="space-y-3">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block font-semibold text-on-surface mb-1">Shared Ship Fee:</label>
-                                <input type="number" id="adj-shipping" value="${order.shipping_fee || 0}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono font-bold text-on-surface">
-                            </div>
-                            <div>
-                                <label class="block font-semibold text-on-surface mb-1">Voucher / Discount:</label>
-                                <input type="number" id="adj-discount" value="${order.discount_amount || 0}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono font-bold text-emerald-600">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block font-semibold text-on-surface mb-1">Final Payable Amount:</label>
-                            <input type="number" id="adj-final" value="${order.final_amount || order.subtotal_amount || 0}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono font-bold text-base text-primary">
-                        </div>
-
-                        <div>
-                            <label class="block font-semibold text-on-surface mb-1">Adjustment Reason / Note:</label>
-                            <textarea id="adj-reason" rows="2" placeholder="..." class="w-full p-2.5 bg-surface border border-outline-variant rounded text-xs text-on-surface" required></textarea>
-                        </div>
-
-                        <div class="pt-3 border-t border-outline-variant flex items-center justify-end gap-2">
-                            <button type="button" onclick="closePriceAdjustModal()" class="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-semibold">Cancel</button>
-                            <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded font-semibold">Save Changes</button>
-                        </div>
-                    </form>
-                </div>
-            `;
-
-            document.querySelector('#price-adjust-form')?.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const submitBtn = e.target.querySelector('button[type="submit"]');
-                const origBtnHtml = submitBtn ? submitBtn.innerHTML : '';
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = `<span class="inline-flex items-center gap-1.5"><svg class="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>Saving...</span>`;
-                }
-
-                const finalAmount = document.querySelector('#adj-final')?.value;
-                const shipping = document.querySelector('#adj-shipping')?.value;
-                const discount = document.querySelector('#adj-discount')?.value;
-                const reason = document.querySelector('#adj-reason')?.value;
-
+            const response = await fetch('/admin/' + room + '/orders/' + orderId, { headers: { Accept: 'application/json' } });
+            if (!response.ok) throw new Error(i18n.loadFailed);
+            const order = (await response.json()).data;
+            const title = page.querySelector('#modal-order-title');
+            if (title) title.textContent = '#ORD-' + order.id + ' - ' + (order.room_user?.display_name || '');
+            const items = (order.items || []).map((item) => '<div class="grid grid-cols-[1fr_7rem] gap-3 items-center p-2.5 rounded border border-outline-variant/60"><div class="min-w-0"><div class="font-bold text-on-surface truncate">' + escape(item.quantity) + '× ' + escape(item.item_name) + (item.size ? ' (' + escape(item.size) + ')' : '') + '</div><div class="text-[11px] text-outline truncate">' + escape(item.toppings?.map((topping) => topping.name).join(', ') || '—') + '</div></div><input type="number" min="0" data-price data-id="' + escape(item.id) + '" data-quantity="' + escape(item.quantity) + '" value="' + escape(item.unit_price) + '" class="w-full h-9 px-2 bg-surface border border-outline-variant rounded font-mono font-bold text-right text-primary"></div>').join('');
+            body.innerHTML = '<form id="price-adjust-form" class="space-y-4"><div class="space-y-2"><h4 class="font-semibold text-on-surface">' + escape(i18n.orderedItems) + '</h4>' + items + '</div><div class="flex justify-between rounded-lg bg-surface-container-low p-3 text-sm"><span class="font-semibold">' + escape(i18n.subtotal) + '</span><span id="adjusted-subtotal" class="font-mono font-bold text-primary"></span></div><div><label class="block font-semibold text-on-surface mb-1" for="adj-reason">' + escape(i18n.adjustmentReason) + '</label><textarea id="adj-reason" rows="2" required class="w-full p-2.5 bg-surface border border-outline-variant rounded text-xs"></textarea></div><div class="pt-3 border-t border-outline-variant flex justify-end gap-2"><button type="button" data-close class="px-4 py-2 bg-surface-container rounded font-semibold">' + escape(i18n.cancel) + '</button><button type="submit" class="px-4 py-2 bg-primary text-on-primary rounded font-semibold">' + escape(i18n.save) + '</button></div></form>';
+            const refreshTotal = () => {
+                const total = [...body.querySelectorAll('[data-price]')].reduce((sum, input) => sum + (Number(input.value) || 0) * (Number(input.dataset.quantity) || 0), 0);
+                body.querySelector('#adjusted-subtotal').textContent = new Intl.NumberFormat(document.documentElement.lang || 'vi-VN').format(total) + ' ₫';
+            };
+            body.querySelectorAll('[data-price]').forEach((input) => input.addEventListener('input', debounce(refreshTotal, 150)));
+            body.querySelector('[data-close]')?.addEventListener('click', closeModal);
+            refreshTotal();
+            body.querySelector('#price-adjust-form')?.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const submit = event.currentTarget.querySelector('[type="submit"]');
+                submit.disabled = true;
+                const payload = { items: [...body.querySelectorAll('[data-price]')].map((input) => ({ id: Number(input.dataset.id), unit_price: Number(input.value) })), reason: body.querySelector('#adj-reason').value };
                 try {
-                    const updateRes = await fetch(`/admin/${roomSlug}/orders/${order.id}`, {
-                        method: 'PATCH',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            final_amount: Number(finalAmount),
-                            shipping_fee: Number(shipping),
-                            discount_amount: Number(discount),
-                            note: reason
-                        })
-                    });
-                    if (updateRes.ok) {
-                        closePriceAdjustModal();
-                        window.location.reload();
-                    } else {
-                        alert('Could not update order price.');
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.innerHTML = origBtnHtml;
-                        }
-                    }
-                } catch(e) {
-                    console.error(e);
-                    alert('Server connection error.');
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = origBtnHtml;
-                    }
+                    const update = await fetch('/admin/' + room + '/orders/' + order.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' }, body: JSON.stringify(payload) });
+                    if (!update.ok) throw new Error(i18n.updateFailed);
+                    closeModal();
+                    window.location.reload();
+                } catch (error) {
+                    window.alert(error.message || i18n.updateFailed);
+                    submit.disabled = false;
                 }
             });
-        } catch (e) {
-            console.error(e);
-            modalBody.innerHTML = '<div class="py-8 text-center text-error">Error loading order.</div>';
+        } catch (error) {
+            body.innerHTML = '<div class="py-8 text-center text-error">' + escape(error.message || i18n.loadFailed) + '</div>';
         }
     };
 
-    window.openPriceAdjustmentModal = openAdjustModalFn;
-    window.openPriceAdjustModal = openAdjustModalFn;
-
-    window.closePriceAdjustModal = function() {
-        if (!modal) return;
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+    /**
+     * Cancel an order after confirmation.
+     *
+     * @param {number} orderId Order ID.
+     * @returns {Promise<void>}
+     */
+    window.cancelOrder = async (orderId) => {
+        if (!window.confirm(i18n.cancelOrderConfirm)) return;
+        const response = await fetch('/admin/' + room + '/orders/' + orderId + '/cancel', { method: 'POST', headers: { 'X-CSRF-TOKEN': csrf, Accept: 'application/json' } });
+        if (response.ok) window.location.reload();
     };
 
-    window.unlockOrder = async function(id) {
-        if (!confirm('Unlock order?')) return;
+    /**
+     * Delete an order after confirmation; backend emits order.deleted.
+     *
+     * @param {number} orderId Order ID.
+     * @returns {Promise<void>}
+     */
+    window.deleteOrder = async (orderId) => {
+        if (!window.confirm(i18n.deleteConfirm)) return;
         try {
-            const res = await fetch(`/admin/${roomSlug}/orders/${id}/unlock`, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
-            });
-            if (res.ok) window.location.reload();
-            else alert('Could not unlock order.');
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    window.cancelOrder = async function(id) {
-        if (!confirm('Cancel order?')) return;
-        try {
-            const res = await fetch(`/admin/${roomSlug}/orders/${id}/cancel`, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
-            });
-            if (res.ok) window.location.reload();
-            else alert('Could not cancel order.');
-        } catch (e) {
-            console.error(e);
+            const response = await fetch('/admin/' + room + '/orders/' + orderId, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf, Accept: 'application/json' } });
+            if (!response.ok) throw new Error(i18n.deleteFailed);
+            window.location.reload();
+        } catch (error) {
+            window.alert(error.message || i18n.deleteFailed);
         }
     };
 }

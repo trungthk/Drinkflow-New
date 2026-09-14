@@ -11,19 +11,13 @@
         <div class="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-outline-variant/40">
             <div>
                 <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                    <span>Admin</span>
+                    <span>{{ __('admin.breadcrumb_admin') }}</span>
                     <span>/</span>
-                    <span>Rooms</span>
+                    <span>{{ __('admin.breadcrumb_rooms') }}</span>
                     <span>/</span>
-                    <span class="text-on-surface font-semibold">{{ $room->name }} Operations</span>
+                    <span class="text-on-surface font-semibold">{{ $room->name }} {{ __('admin.operations') }}</span>
                 </div>
                 <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.dashboard') }} · {{ $room->name }}</h1>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('admin.campaigns.create', $room) }}" class="px-3 py-1.5 bg-primary hover:bg-primary-container text-on-primary rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs no-underline">
-                    <span class="material-symbols-outlined text-[16px]">add</span>
-                    <span>{{ __('admin.fast_create_campaign') }}</span>
-                </a>
             </div>
         </div>
 
@@ -381,4 +375,3 @@
         </div>
     </div>
 </x-admin.layout>
-

@@ -3,9 +3,9 @@
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
             <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">Admin</a>
+                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
                 <span>/</span>
-                <span>Rooms</span>
+                <span>{{ __('admin.breadcrumb_rooms') }}</span>
                 <span>/</span>
                 <span class="text-on-surface font-semibold">{{ $room->name }}</span>
                 <span>/</span>
@@ -22,8 +22,8 @@
     </div>
 
     <!-- Filter Toolbar -->
-    <form method="GET" action="{{ route('admin.audit.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-xs mb-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+    <form id="audit-filter-form" method="GET" action="{{ route('admin.audit.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-xs mb-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <!-- Event Filter -->
             <div>
                 <label class="block text-[11px] font-mono uppercase text-outline font-semibold mb-1">{{ __('admin.filter_event') }}</label>
@@ -52,16 +52,9 @@
                 <input type="text" name="actor" value="{{ $filters['actor'] ?? '' }}" placeholder="{{ __('admin.filter_actor_placeholder') }}" class="w-full h-9 px-2.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
             </div>
 
-            <!-- Date From Filter -->
             <div>
-                <label class="block text-[11px] font-mono uppercase text-outline font-semibold mb-1">{{ __('admin.from_date') }}</label>
-                <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="w-full h-9 px-2.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
-            </div>
-
-            <!-- Date To Filter -->
-            <div>
-                <label class="block text-[11px] font-mono uppercase text-outline font-semibold mb-1">{{ __('admin.to_date') }}</label>
-                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="w-full h-9 px-2.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                <label class="block text-[11px] font-mono uppercase text-outline font-semibold mb-1">{{ __('admin.date_range') }}</label>
+                <x-admin.date-range-filter id="audit-date-range" :date-from="$filters['date_from'] ?? ''" :date-to="$filters['date_to'] ?? ''" form-id="audit-filter-form" />
             </div>
         </div>
 
@@ -122,7 +115,7 @@
                         <tr>
                             <td colspan="6" class="py-12 text-center text-outline font-sans">
                                 <span class="material-symbols-outlined text-4xl text-outline-variant mb-1">history_toggle_off</span>
-                                <p class="text-xs">No audit records found.</p>
+                                <p class="text-xs">{{ __('admin.no_audit_records') }}</p>
                             </td>
                         </tr>
                     @endforelse

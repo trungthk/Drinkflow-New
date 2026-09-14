@@ -3,9 +3,9 @@
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
             <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">Admin</a>
+                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
                 <span>/</span>
-                <span>Rooms</span>
+                <span>{{ __('admin.breadcrumb_rooms') }}</span>
                 <span>/</span>
                 <span class="text-on-surface font-semibold">{{ $room->name }}</span>
                 <span>/</span>
@@ -95,14 +95,15 @@
                     @forelse($debts as $debt)
                         @php
                             $member = $debt->roomUser?->globalUser?->name ?? $debt->roomUser?->display_name ?? 'Member #' . $debt->room_user_id;
-                            $stClass = match($debt->status) {
+                            $debtStatusValue = $debt->status instanceof \BackedEnum ? $debt->status->value : (string) $debt->status;
+                            $stClass = match($debtStatusValue) {
                                 'paid' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                                 'partial' => 'bg-blue-50 text-blue-700 border-blue-200',
                                 'unpaid' => 'bg-amber-50 text-amber-700 border-amber-200 font-bold',
                                 default => 'bg-surface-container text-secondary border-outline-variant'
                             };
                         @endphp
-                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-debt-row data-status="{{ $debt->status }}" data-search="{{ strtolower($member . ' ' . $debt->id . ' ' . ($debt->campaign?->title ?? '')) }}">
+                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-debt-row data-status="{{ $debtStatusValue }}" data-search="{{ strtolower($member . ' ' . $debt->id . ' ' . ($debt->campaign?->title ?? '')) }}">
                             <td class="py-3.5 px-4">
                                 <div class="font-bold text-on-surface text-sm flex items-center gap-1.5">
                                     <span>{{ $member }}</span>
@@ -116,7 +117,7 @@
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border {{ $stClass }}">
-                                    {{ ucfirst($debt->status) }}
+                                    {{ __('admin.status_' . $debtStatusValue) }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-right font-mono text-secondary">
