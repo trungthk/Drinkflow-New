@@ -78,12 +78,11 @@ export function initPublicLoading() {
             }
         }
 
-        window.showPublicLoading(customTitle);
-
         if (submitBtn && !submitBtn.disabled) {
             submitBtn.dataset.originalHtml = submitBtn.innerHTML;
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-75', 'cursor-wait');
+            submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>';
         }
     });
 

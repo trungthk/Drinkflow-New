@@ -115,7 +115,7 @@
                     id="btn-export-statement"
                     data-campaign-id="{{ $campaign->id }}"
                     data-orders="{{ json_encode($orders->map(fn($o) => [
-                        'member' => $o->roomUser?->display_name ?? 'Member',
+                        'member' => $o->roomUser?->display_name ?? __('admin.member'),
                         'code' => $o->roomUser?->user_code ?? '',
                         'items_count' => $o->items->count(),
                         'subtotal' => $o->subtotal,
@@ -388,7 +388,7 @@
                                             {{ mb_strtoupper(mb_substr($roomUser?->display_name ?? 'U', 0, 2)) }}
                                         </div>
                                         <div>
-                                            <div class="font-semibold text-on-surface">{{ $roomUser?->display_name ?? 'Member' }}</div>
+                                            <div class="font-semibold text-on-surface">{{ $roomUser?->display_name ?? __('admin.member') }}</div>
                                             <div class="text-[10px] font-mono text-outline">{{ $roomUser?->user_code ?? '' }} • {{ $globalUser?->email ?? '' }}</div>
                                         </div>
                                     </div>

@@ -112,7 +112,7 @@
         }
     </style>
 
-    @vite(['resources/css/admin.css', 'resources/js/app.js'])
+    @vite(['resources/css/admin.css', 'resources/js/admin.js'])
 </head>
 
 <body class="bg-surface text-on-surface min-h-screen flex flex-col justify-between antialiased selection:bg-primary-container selection:text-on-primary-container">

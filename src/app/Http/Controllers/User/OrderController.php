@@ -7,6 +7,7 @@ namespace App\Http\Controllers\User;
 use App\Actions\Order\CreateOrderAction;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
+use App\Enums\PaymentAccountStatus;
 use App\Enums\RoomStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
@@ -16,6 +17,7 @@ use App\Models\Order;
 use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Services\Payment\VietQrService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -169,25 +171,22 @@ class OrderController extends Controller
 
         /** @var PaymentAccount|null $account */
         $account = $order->campaign()->with('paymentAccount')->first()?->paymentAccount;
-        abort_unless($account && $account->status === PaymentAccount::STATUS_ACTIVE, 404);
+        abort_unless($account && $account->status === PaymentAccountStatus::Active, 404);
 
-        $amount = (int) $order->final_amount;
+        $amount  = (int) $order->final_amount;
         $content = 'DRINKFLOW-'.$order->id;
 
+        /** @var VietQrService $vietQr */
+        $vietQr = app(VietQrService::class);
+
         return response()->json(['data' => [
-            'bank_code' => $account->bank_code,
-            'bank_name' => $account->bank_name,
-            'account_number' => $account->account_number,
-            'account_name' => $account->account_name,
-            'amount' => $amount,
+            'bank_code'        => $account->bank_code,
+            'bank_name'        => $account->bank_name,
+            'account_number'   => $account->account_number,
+            'account_name'     => $account->account_name,
+            'amount'           => $amount,
             'transfer_content' => $content,
-            'qr_url' => sprintf(
-                'https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s',
-                rawurlencode((string) $account->bank_code),
-                rawurlencode((string) $account->account_number),
-                $amount,
-                rawurlencode($content)
-            ),
+            'qr_url'           => $vietQr->imageUrl($account, $amount, $content),
         ]]);
     }
 }

@@ -120,7 +120,7 @@
                             <span class="material-symbols-outlined text-[18px]">campaign</span>
                             <span>{{ __('admin.campaigns') }}</span>
                         </div>
-                        <span id="nav-live-badge" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-error-container text-on-error-container font-bold hidden">Live</span>
+                        <span id="nav-live-badge" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-error-container text-on-error-container font-bold hidden">{{ __('admin.live_badge') }}</span>
                     </a>
 
                     <!-- Orders -->
@@ -186,8 +186,8 @@
                         {{ mb_strtoupper(mb_substr($adminUser?->name ?? 'AD', 0, 2)) }}
                     </div>
                     <div class="flex flex-col min-w-0 flex-1">
-                        <span class="text-xs font-semibold text-on-surface truncate leading-tight">{{ $adminUser?->name ?? 'Admin' }}</span>
-                        <span class="text-[10px] text-outline font-mono truncate leading-tight">{{ $adminUser?->email ?? ($adminUser?->isSuperadmin() ? 'Super Admin' : 'Room Dispatcher') }}</span>
+                        <span class="text-xs font-semibold text-on-surface truncate leading-tight">{{ $adminUser?->name ?? __('admin.default_admin_name') }}</span>
+                        <span class="text-[10px] text-outline font-mono truncate leading-tight">{{ $adminUser?->email ?? ($adminUser?->isSuperadmin() ? __('admin.super_admin_role') : __('admin.room_dispatcher_role')) }}</span>
                     </div>
                 </div>
 
@@ -249,8 +249,8 @@
                                         <span class="material-symbols-outlined text-[14px]">info</span>
                                     </span>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-xs font-medium text-on-surface leading-snug">{{ $notif->event ?? 'Hệ thống cập nhật' }}</p>
-                                        <span class="text-[10px] font-mono text-outline">{{ $notif->created_at ? $notif->created_at->diffForHumans() : 'Vừa xong' }}</span>
+                                        <p class="text-xs font-medium text-on-surface leading-snug">{{ $notif->event ?? __('admin.system_updated') }}</p>
+                                        <span class="text-[10px] font-mono text-outline">{{ $notif->created_at ? $notif->created_at->diffForHumans() : __('admin.just_now') }}</span>
                                     </div>
                                 </div>
                             </div>

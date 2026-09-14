@@ -39,27 +39,27 @@
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
             <button type="button" @click="applyPreset('highlands')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
                 <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Highlands Coffee</div>
-                <div class="text-[10px] text-outline truncate">Cà phê, Phin Freeze, Trà</div>
+                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_highlands_description') }}</div>
             </button>
             <button type="button" @click="applyPreset('phuclong')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
                 <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Phúc Long Tea</div>
-                <div class="text-[10px] text-outline truncate">Trà Ô Long, Trà Đào sữa</div>
+                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_phuclong_description') }}</div>
             </button>
             <button type="button" @click="applyPreset('gongcha')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
                 <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Gong Cha</div>
-                <div class="text-[10px] text-outline truncate">Trà sữa trân châu hoàng kim</div>
+                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_gongcha_description') }}</div>
             </button>
             <button type="button" @click="applyPreset('tocotoco')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
                 <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">TocoToco Tea</div>
-                <div class="text-[10px] text-outline truncate">Trà sữa Panda, Ba Anh Em</div>
+                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_tocotoco_description') }}</div>
             </button>
             <button type="button" @click="applyPreset('starbucks')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
                 <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Starbucks</div>
-                <div class="text-[10px] text-outline truncate">Frappuccino, Cold Brew</div>
+                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_starbucks_description') }}</div>
             </button>
             <button type="button" @click="applyPreset('comtam')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
                 <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Cơm Tấm Phúc Lộc</div>
-                <div class="text-[10px] text-outline truncate">Cơm sườn bì chả, trứng ốp</div>
+                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_comtam_description') }}</div>
             </button>
         </div>
     </div>

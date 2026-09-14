@@ -12,10 +12,13 @@ use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Services\Payment\VietQrService;
 use Illuminate\Support\Facades\DB;
 
 class UserRoomDebtService
 {
+    public function __construct(private readonly VietQrService $vietQr) {}
+
     /**
      * Thu thập danh sách công nợ trong phòng, tính toán tổng nợ chưa trả và tạo payload VietQR chuyển khoản nhanh.
      *
@@ -50,13 +53,13 @@ class UserRoomDebtService
         if ($paymentAccount && $totalUnpaidAmount > 0) {
             $transferContent = 'DRINKFLOW-DEBT-'.$roomUser->id;
             $vietqrData = [
-                'bank_code' => $paymentAccount->bank_code,
-                'bank_name' => $paymentAccount->bank_name,
-                'account_number' => $paymentAccount->account_number,
-                'account_name' => $paymentAccount->account_name,
-                'amount' => $totalUnpaidAmount,
+                'bank_code'       => $paymentAccount->bank_code,
+                'bank_name'       => $paymentAccount->bank_name,
+                'account_number'  => $paymentAccount->account_number,
+                'account_name'    => $paymentAccount->account_name,
+                'amount'          => $totalUnpaidAmount,
                 'transfer_content' => $transferContent,
-                'qr_url' => sprintf('https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s', rawurlencode($paymentAccount->bank_code), rawurlencode($paymentAccount->account_number), $totalUnpaidAmount, rawurlencode($transferContent)),
+                'qr_url'          => $this->vietQr->imageUrl($paymentAccount, $totalUnpaidAmount, $transferContent),
             ];
         }
 

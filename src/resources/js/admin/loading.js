@@ -29,7 +29,6 @@ export function initAdminLoading() {
         const destination = new URL(link.href, window.location.href);
         if (destination.origin === window.location.origin && destination.href !== window.location.href) show();
     });
-    document.addEventListener('submit', (event) => { if (!event.target.hasAttribute('data-no-loading') && event.target.checkValidity()) show(); });
     window.addEventListener('pageshow', hide);
     window.addEventListener('beforeunload', show);
 }

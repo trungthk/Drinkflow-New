@@ -8,10 +8,10 @@ export function initAdminAudit() {
 
     modalBackdrop?.addEventListener('click', closePayloadModal);
 
-    window.viewAuditPayload = function(log) {
+    window.viewAuditPayload = function(log, eventLabel = '') {
         const titleEl = document.querySelector('#payload-title');
         const contentEl = document.querySelector('#payload-content');
-        if (titleEl) titleEl.textContent = `Audit #${log.id} - ${log.event}`;
+        if (titleEl) titleEl.textContent = `Audit #${log.id} - ${eventLabel || log.event}`;
         if (contentEl) contentEl.textContent = JSON.stringify(log, null, 2);
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -21,6 +21,12 @@ export function initAdminAudit() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     };
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+            window.closePayloadModal();
+        }
+    });
 
     document.addEventListener('admin:daterange-change', (event) => {
         if (event.target?.id !== 'audit-date-range') return;

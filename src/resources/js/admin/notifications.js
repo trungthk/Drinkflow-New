@@ -6,6 +6,7 @@ export function initAdminNotifications() {
     const typeSelect = document.querySelector('#ch-type');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
+    const translations = document.querySelector('#notice')?.dataset || {};
 
     if (!form && !document.querySelector('[data-notification-channel]')) return;
 
@@ -62,14 +63,14 @@ export function initAdminNotifications() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert('Saved successfully.');
+                alert(translations.notificationSaved || 'Saved successfully.');
                 window.location.reload();
             } else {
-                alert(data.message || 'Could not save webhook.');
+                alert(data.message || translations.notificationSaveFailed || 'Could not save webhook.');
             }
         } catch (e) {
             console.error(e);
-            alert('Server error.');
+            alert(translations.notificationServerError || 'Server error.');
         }
     });
 
@@ -81,25 +82,25 @@ export function initAdminNotifications() {
             });
             const data = await res.json();
             if (res.ok) {
-                alert('Test ping sent successfully.');
+                alert(translations.notificationTestSent || 'Test ping sent successfully.');
             } else {
-                alert(data.message || 'Could not send test ping.');
+                alert(data.message || translations.notificationTestFailed || 'Could not send test ping.');
             }
         } catch (e) {
             console.error(e);
-            alert('Server error.');
+            alert(translations.notificationServerError || 'Server error.');
         }
     };
 
     window.deleteChannel = async function(id) {
-        if (!confirm('Delete this channel?')) return;
+        if (!confirm(translations.notificationDeleteConfirm || 'Delete this channel?')) return;
         try {
             const res = await fetch(`/admin/${roomSlug}/notification-channels/${id}`, {
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
             });
             if (res.ok) window.location.reload();
-            else alert('Could not delete channel.');
+            else alert(translations.notificationDeleteFailed || 'Could not delete channel.');
         } catch (e) {
             console.error(e);
         }

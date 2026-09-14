@@ -105,6 +105,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::post('/payment-accounts', [\App\Http\Controllers\Admin\PaymentAccountController::class, 'store'])->name('admin.payment-accounts.store');
     Route::patch('/payment-accounts/{account}', [\App\Http\Controllers\Admin\PaymentAccountController::class, 'update'])->name('admin.payment-accounts.update');
     Route::delete('/payment-accounts/{account}', [\App\Http\Controllers\Admin\PaymentAccountController::class, 'destroy'])->name('admin.payment-accounts.destroy');
+    Route::get('/payment-accounts/{account}/qr', [\App\Http\Controllers\Admin\PaymentAccountController::class, 'qr'])->name('admin.payment-accounts.qr');
     Route::get('/settings', [\App\Http\Controllers\Admin\RoomSettingsController::class, 'show'])->name('admin.settings.show');
     Route::patch('/settings', [\App\Http\Controllers\Admin\RoomSettingsController::class, 'update'])->name('admin.settings.update');
     Route::get('/notification-channels', [\App\Http\Controllers\Admin\NotificationChannelController::class, 'index'])->name('admin.notification-channels.index');

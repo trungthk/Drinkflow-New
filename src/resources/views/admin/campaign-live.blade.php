@@ -269,7 +269,7 @@
                             <span class="text-[10px] text-outline font-mono">{{ $order->created_at->format('H:i') }}</span>
                         </td>
                         <td class="py-2.5 px-3 whitespace-nowrap">
-                            <span class="font-bold block text-on-surface">{{ $order->roomUser?->user?->name ?? 'Member #' . $order->room_user_id }}</span>
+                            <span class="font-bold block text-on-surface">{{ $order->roomUser?->user?->name ?? __('admin.member_with_id', ['id' => $order->room_user_id]) }}</span>
                             <span class="text-[10px] text-secondary font-mono">{{ $order->roomUser?->user?->email ?? '' }}</span>
                         </td>
                         <td class="py-2.5 px-3">

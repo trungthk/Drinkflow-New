@@ -22,7 +22,14 @@
     </div>
 
     <!-- Notice Notification Banner -->
-    <div id="notice" class="hidden mb-4 rounded-xl px-4 py-3 text-xs font-medium"></div>
+    <div id="notice" class="hidden mb-4 rounded-xl px-4 py-3 text-xs font-medium"
+         data-notification-saved="{{ __('admin.notification_channel_saved') }}"
+         data-notification-save-failed="{{ __('admin.notification_channel_save_failed') }}"
+         data-notification-test-sent="{{ __('admin.notification_channel_test_sent') }}"
+         data-notification-test-failed="{{ __('admin.notification_channel_test_failed') }}"
+         data-notification-server-error="{{ __('admin.notification_channel_server_error') }}"
+         data-notification-delete-confirm="{{ __('admin.notification_channel_delete_confirm') }}"
+         data-notification-delete-failed="{{ __('admin.notification_channel_delete_failed') }}"></div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left: Configured Channels List -->

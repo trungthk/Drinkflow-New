@@ -6,10 +6,13 @@ export function initAdminPayments() {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
 
-    if (!form && !document.querySelector('#qr-preview-card')) return;
+    if (!form) return;
+    const qrModal = document.querySelector('#payment-qr-modal');
+    const deleteModal = document.querySelector('#payment-delete-modal');
+    let deleteId = null;
 
     window.previewQR = function(bankCode, accNumber, accName) {
-        const qrCard = document.querySelector('#qr-preview-card');
+        const qrCard = qrModal;
         const qrImg = document.querySelector('#qr-image');
         const qrDetails = document.querySelector('#qr-details');
         if (!qrCard || !qrImg || !qrDetails) return;
@@ -18,7 +21,17 @@ export function initAdminPayments() {
         qrImg.src = qrUrl;
         qrDetails.textContent = `${bankCode} · ${accNumber} · ${accName}`;
         qrCard.classList.remove('hidden');
-        qrCard.scrollIntoView({ behavior: 'smooth' });
+        qrCard.classList.add('flex');
+    };
+
+    window.editPaymentAccount = function(id, bankCode, bankName, number, name, isDefault) {
+        document.querySelector('#payment-account-id').value = id;
+        document.querySelector('#acc-bank-code').value = bankCode;
+        document.querySelector('#acc-number').value = number;
+        document.querySelector('#acc-name').value = name;
+        document.querySelector('#acc-default').checked = isDefault;
+        document.querySelector('#payment-form-title').textContent = 'Edit payment account';
+        form.scrollIntoView({ behavior: 'smooth', block: 'center' });
     };
 
     form?.addEventListener('submit', async (e) => {
@@ -32,8 +45,9 @@ export function initAdminPayments() {
         const isDefault = document.querySelector('#acc-default').checked;
 
         try {
-            const res = await fetch(`/admin/${roomSlug}/payment-accounts`, {
-                method: 'POST',
+            const id = document.querySelector('#payment-account-id').value;
+            const res = await fetch(`/admin/${roomSlug}/payment-accounts${id ? `/${id}` : ''}`, {
+                method: id ? 'PATCH' : 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
                 body: JSON.stringify({
                     bank_code: bankCode,
@@ -57,9 +71,16 @@ export function initAdminPayments() {
     });
 
     window.deleteAccount = async function(id) {
-        if (!confirm('Delete this account?')) return;
+        deleteId = id;
+        deleteModal?.classList.remove('hidden');
+        deleteModal?.classList.add('flex');
+    };
+    document.querySelector('[data-close-qr]')?.addEventListener('click', () => { qrModal?.classList.add('hidden'); qrModal?.classList.remove('flex'); });
+    document.querySelector('[data-close-delete]')?.addEventListener('click', () => { deleteModal?.classList.add('hidden'); deleteModal?.classList.remove('flex'); });
+    document.querySelector('#confirm-payment-delete')?.addEventListener('click', async () => {
+        if (!deleteId) return;
         try {
-            const res = await fetch(`/admin/${roomSlug}/payment-accounts/${id}`, {
+            const res = await fetch(`/admin/${roomSlug}/payment-accounts/${deleteId}`, {
                 method: 'DELETE',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
             });
@@ -68,5 +89,5 @@ export function initAdminPayments() {
         } catch (e) {
             console.error(e);
         }
-    };
+    });
 }

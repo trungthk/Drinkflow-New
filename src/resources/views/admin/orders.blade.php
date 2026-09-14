@@ -112,10 +112,10 @@
                                 </div>
                             </td>
                             <td class="py-3.5 px-4">
-                                <div class="font-semibold text-on-surface">{{ $ord->campaign?->title ?? 'N/A' }}</div>
+                                <div class="font-semibold text-on-surface">{{ $ord->campaign?->title ?? __('admin.not_available') }}</div>
                                 <div class="text-[11px] text-outline flex items-center gap-1 mt-0.5">
                                     <span class="material-symbols-outlined text-[12px]">storefront</span>
-                                    <span>{{ $ord->campaign?->restaurant ?? 'N/A' }}</span>
+                                    <span>{{ $ord->campaign?->restaurant ?? __('admin.not_available') }}</span>
                                 </div>
                             </td>
                             <td class="py-3.5 px-4 max-w-xs">

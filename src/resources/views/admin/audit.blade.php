@@ -30,7 +30,11 @@
                 <select name="event" class="w-full h-9 px-2.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
                     <option value="">{{ __('admin.all_events') }}</option>
                     @foreach($events as $ev)
-                        <option value="{{ $ev }}" {{ ($filters['event'] ?? '') === $ev ? 'selected' : '' }}>{{ $ev }}</option>
+                        @php
+                            $eventKey = 'admin.audit_event_' . str_replace('.', '_', $ev);
+                            $eventLabel = __($eventKey);
+                        @endphp
+                        <option value="{{ $ev }}" {{ ($filters['event'] ?? '') === $ev ? 'selected' : '' }}>{{ $eventLabel === $eventKey ? $ev : $eventLabel }}</option>
                     @endforeach
                 </select>
             </div>
@@ -86,13 +90,18 @@
                 </thead>
                 <tbody class="divide-y divide-outline-variant/50">
                     @forelse($logs as $log)
+                        @php
+                            $auditEventKey = 'admin.audit_event_' . str_replace('.', '_', $log->event);
+                            $auditEventLabel = __($auditEventKey);
+                            if ($auditEventLabel === $auditEventKey) $auditEventLabel = $log->event;
+                        @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors font-mono">
                             <td class="py-3.5 px-4 text-secondary">
                                 {{ $log->created_at ? $log->created_at->format('H:i:s d/m/Y') : 'N/A' }}
                             </td>
                             <td class="py-3.5 px-4">
                                 <span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-bold text-[11px] border border-outline-variant">
-                                    {{ $log->event }}
+                                    {{ $auditEventLabel }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-on-surface">
@@ -106,7 +115,7 @@
                                 {{ $log->ip_address ?: '127.0.0.1' }}
                             </td>
                             <td class="py-3.5 px-4 text-center font-sans">
-                                <button type="button" onclick="viewAuditPayload(@json($log))" class="px-2 py-1 bg-surface-container hover:bg-surface-container-high rounded text-[11px] font-semibold text-on-surface border border-outline-variant transition-colors">
+                                <button type="button" onclick="viewAuditPayload(@json($log), @json($auditEventLabel))" class="px-2 py-1 bg-surface-container hover:bg-surface-container-high rounded text-[11px] font-semibold text-on-surface border border-outline-variant transition-colors">
                                     {{ __('admin.view_json') }}
                                 </button>
                             </td>
@@ -130,7 +139,7 @@
     </div>
 
     <!-- Payload Inspector Modal -->
-    <div id="payload-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    <div id="payload-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="payload-title">
         <div id="payload-backdrop" class="absolute inset-0"></div>
         <div class="relative z-10 w-full max-w-xl bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-3 border-b border-outline-variant mb-4">

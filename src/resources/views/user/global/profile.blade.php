@@ -6,7 +6,12 @@
   :unread-notifications-count="$unreadNotificationsCount"
   :notifications="$notifications"
 >
-  <div class="space-y-6">
+  <style>
+    .profile-page-content .bg-white:has(#preferences-form),
+    .profile-page-content .bg-white:has(#notifications-form),
+    .profile-page-content .bg-white:has(#profile-shortcuts-title) { display: none; }
+  </style>
+  <div class="profile-page-content space-y-6">
     <!-- Success Status Alert -->
     @if(session('status'))
       <div class="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-sm font-medium flex items-center justify-between shadow-xs transition-all animate-fadeIn">
@@ -59,10 +64,6 @@
               </span>
               <h2 class="text-base sm:text-lg font-bold text-slate-900">{{ __('global.profile.identity_card_title') }}</h2>
             </div>
-            <span class="inline-flex items-center gap-1 text-xs font-medium text-slate-400 bg-white px-2.5 py-1 rounded-full border border-slate-200/80 shadow-2xs">
-              <span class="material-symbols-outlined text-[13px] text-slate-400">lock</span>
-              {{ __('global.profile.managed_by_it') }}
-            </span>
           </div>
 
           <div class="p-6 space-y-6">
@@ -106,22 +107,21 @@
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Phone -->
                 <div class="space-y-1.5">
-                  <label for="contact-phone" class="text-xs font-semibold text-slate-700 flex items-center justify-between">
+                  <label for="contact-phone" class="h-5 text-xs font-semibold text-slate-700 flex items-center">
                     <span>{{ __('global.profile.phone_label') }}</span>
-                    <span class="text-[11px] font-medium text-[#006948]">{{ __('global.profile.phone_hint') }}</span>
                   </label>
                   <div class="relative">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">call</span>
-                    <input id="contact-phone" name="phone" type="text" value="{{ old('phone', $phone) }}" placeholder="{{ __('global.profile.phone_placeholder') }}" class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] transition-all">
+                    <input id="contact-phone" name="phone" type="text" value="{{ old('phone', $phone) }}" placeholder="{{ __('global.profile.phone_placeholder') }}" class="w-full h-10 pl-9 pr-3.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] transition-all">
                   </div>
                 </div>
 
                 <!-- Desk / Floor Identifier -->
                 <div class="space-y-1.5">
-                  <label for="contact-desk" class="text-xs font-semibold text-slate-700">{{ __('global.profile.desk_label') }}</label>
+                  <label for="contact-desk" class="h-5 flex items-center text-xs font-semibold text-slate-700">{{ __('global.profile.desk_label') }}</label>
                   <div class="relative">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">desk</span>
-                    <input id="contact-desk" name="desk_location" type="text" value="{{ old('desk_location', $deskLocation) }}" placeholder="{{ __('global.profile.desk_placeholder') }}" class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] transition-all">
+                    <input id="contact-desk" name="desk_location" type="text" value="{{ old('desk_location', $deskLocation) }}" placeholder="{{ __('global.profile.desk_placeholder') }}" class="w-full h-10 pl-9 pr-3.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] transition-all">
                   </div>
                 </div>
               </div>
@@ -133,7 +133,12 @@
                   <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">apartment</span>
                   <input id="contact-delivery" name="delivery_location" type="text" value="{{ old('delivery_location', $deliveryLocation) }}" placeholder="{{ __('global.profile.delivery_placeholder') }}" class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] transition-all">
                 </div>
-                <p class="text-xs text-slate-400">{{ __('global.profile.delivery_hint') }}</p>
+              </div>
+
+              <div class="space-y-1.5">
+                <label for="pref-note" class="text-xs font-semibold text-slate-800">{{ __('global.profile.notes_label') }}</label>
+                <textarea id="pref-note" name="note" rows="3" class="w-full p-3.5 bg-slate-50/70 rounded-xl border border-slate-200 text-xs sm:text-sm text-slate-800 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] transition-all resize-none leading-relaxed" placeholder="{{ __('global.profile.notes_placeholder') }}">{{ old('note', $orderNote) }}</textarea>
+                <p class="text-xs text-slate-400">{{ __('global.profile.notes_hint') }}</p>
               </div>
 
               <div class="pt-2 flex justify-end">
@@ -277,7 +282,7 @@
         @endphp
         <!-- Card 5: Liên kết & Lối tắt nhanh -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 space-y-3">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500">{{ __('global.profile.shortcuts_title') }}</h3>
+          <h3 id="profile-shortcuts-title" class="text-xs font-bold uppercase tracking-wider text-slate-500">{{ __('global.profile.shortcuts_title') }}</h3>
           <div class="space-y-2">
             <a href="{{ route('user.me.devices') }}" class="flex items-center justify-between p-3 rounded-xl border border-slate-200/80 hover:bg-slate-50 transition-colors group">
               <div class="flex items-center gap-2.5">
