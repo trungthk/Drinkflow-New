@@ -93,13 +93,15 @@
                         @php
                             $name = $ru->globalUser?->name ?? $ru->display_name ?? 'Member #' . $ru->id;
                             $email = $ru->globalUser?->email ?? 'N/A';
-                            $roleClass = match($ru->role) {
+                            $statusVal = $ru->status instanceof \BackedEnum ? $ru->status->value : (string) ($ru->status ?? 'active');
+                            $roleVal = $ru->role instanceof \BackedEnum ? $ru->role->value : (string) ($ru->role ?? 'member');
+                            $roleClass = match($roleVal) {
                                 'owner' => 'bg-amber-50 text-amber-800 border-amber-300 font-bold',
                                 'admin' => 'bg-purple-50 text-purple-700 border-purple-200 font-semibold',
                                 default => 'bg-surface-container text-secondary border-outline-variant'
                             };
                         @endphp
-                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-user-row data-status="{{ $ru->status }}" data-search="{{ strtolower($name . ' ' . $email . ' ' . $ru->user_code) }}">
+                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-user-row data-status="{{ $statusVal }}" data-search="{{ strtolower($name . ' ' . $email . ' ' . $ru->user_code) }}">
                             <td class="py-3.5 px-4">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">
@@ -113,7 +115,7 @@
                             </td>
                             <td class="py-3.5 px-4">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] border {{ $roleClass }}">
-                                    {{ ucfirst($ru->role) }}
+                                    {{ ucfirst($roleVal) }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-center font-mono">
@@ -126,8 +128,8 @@
                                 {{ __('admin.orders_unit', ['count' => $ru->orders_count ?? 0]) }}
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border {{ $ru->status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}">
-                                    {{ ucfirst($ru->status) }}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border {{ $statusVal === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}">
+                                    {{ ucfirst($statusVal) }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-center">
@@ -135,8 +137,8 @@
                                     <button type="button" onclick="openDeviceTrustModal({{ $ru->id }}, '{{ addslashes($name) }}')" class="p-1 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors" title="{{ __('admin.manage_devices') }}">
                                         <span class="material-symbols-outlined text-[16px]">security</span>
                                     </button>
-                                    <button type="button" onclick="toggleUserStatus({{ $ru->id }}, '{{ $ru->status === 'active' ? 'blocked' : 'active' }}')" class="p-1 rounded hover:bg-surface-container transition-colors {{ $ru->status === 'active' ? 'text-secondary hover:text-rose-600' : 'text-emerald-600' }}" title="{{ $ru->status === 'active' ? __('admin.btn_block_user') : __('admin.btn_unblock_user') }}">
-                                        <span class="material-symbols-outlined text-[16px]">{{ $ru->status === 'active' ? 'lock' : 'lock_open' }}</span>
+                                    <button type="button" onclick="toggleUserStatus({{ $ru->id }}, '{{ $statusVal === 'active' ? 'blocked' : 'active' }}')" class="p-1 rounded hover:bg-surface-container transition-colors {{ $statusVal === 'active' ? 'text-secondary hover:text-rose-600' : 'text-emerald-600' }}" title="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.btn_unblock_user') }}">
+                                        <span class="material-symbols-outlined text-[16px]">{{ $statusVal === 'active' ? 'lock' : 'lock_open' }}</span>
                                     </button>
                                 </div>
                             </td>

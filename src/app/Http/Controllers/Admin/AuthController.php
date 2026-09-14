@@ -140,6 +140,7 @@ class AuthController extends Controller
             'rooms' => $rooms,
             'roomsData' => $roomsData,
             'admin' => $admin,
+            'locales' => \App\Constants\AppLocale::SUPPORTED,
             'liveCount' => $liveCount,
             'debtCount' => $debtCount,
             'idleCount' => $idleCount,

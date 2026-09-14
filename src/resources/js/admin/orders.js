@@ -4,7 +4,7 @@
 export function initAdminOrders() {
     const searchInput = document.querySelector('#order-search');
     const campaignSelect = document.querySelector('#campaign-filter-select');
-    const statusBtns = document.querySelectorAll('.order-status-filter');
+    const statusSelect = document.querySelector('#status-filter-select');
     const rows = document.querySelectorAll('[data-order-row]');
     const modal = document.querySelector('#price-adjust-modal');
     const modalBackdrop = document.querySelector('#modal-backdrop');
@@ -19,7 +19,7 @@ export function initAdminOrders() {
     function applyOrderFilters() {
         const term = searchInput?.value.trim().toLowerCase() || '';
         const campId = campaignSelect?.value || '';
-        const activeStatus = document.querySelector('.order-status-filter.bg-primary')?.dataset.status || 'all';
+        const activeStatus = statusSelect?.value || 'all';
 
         rows.forEach(row => {
             const matchesSearch = row.dataset.search?.includes(term);
@@ -31,17 +31,7 @@ export function initAdminOrders() {
 
     searchInput?.addEventListener('input', applyOrderFilters);
     campaignSelect?.addEventListener('change', applyOrderFilters);
-    statusBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            statusBtns.forEach(b => {
-                b.classList.remove('bg-primary', 'text-on-primary');
-                b.classList.add('bg-surface-container', 'text-on-surface');
-            });
-            btn.classList.add('bg-primary', 'text-on-primary');
-            btn.classList.remove('bg-surface-container', 'text-on-surface');
-            applyOrderFilters();
-        });
-    });
+    statusSelect?.addEventListener('change', applyOrderFilters);
 
     const openAdjustModalFn = async function(orderId) {
         if (!modal || !modalBody) return;

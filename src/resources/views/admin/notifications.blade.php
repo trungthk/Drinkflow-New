@@ -38,35 +38,46 @@
 
                 <div class="divide-y divide-outline-variant/50">
                     @forelse($channels as $ch)
-                        <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-container-low/40 transition-colors">
+                        @php
+                            $chStatusVal = is_array($ch) ? ($ch['status'] ?? 'enabled') : ($ch->status instanceof \BackedEnum ? $ch->status->value : (string) ($ch->status ?? 'enabled'));
+                            $chTypeVal = is_array($ch) ? ($ch['type'] ?? 'webhook') : (string) ($ch->type ?? 'webhook');
+                            $chName = is_array($ch) ? ($ch['name'] ?? ucfirst($chTypeVal)) : ($ch->name ?? ucfirst($chTypeVal));
+                            $chId = is_array($ch) ? $ch['id'] : $ch->id;
+                            $chConfigured = is_array($ch) ? ($ch['configured'] ?? false) : true;
+                        @endphp
+                        <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-container-low/40 transition-colors" data-notification-channel>
                             <div class="flex items-start gap-3">
                                 <div class="w-10 h-10 rounded bg-primary/10 text-primary flex items-center justify-center font-bold text-sm shrink-0">
                                     <span class="material-symbols-outlined text-[20px]">
-                                        {{ match($ch['type'] ?? '') { 'telegram' => 'send', 'discord' => 'sports_esports', 'slack' => 'tag', 'zalo' => 'chat', default => 'webhook' } }}
+                                        {{ match($chTypeVal) { 'telegram' => 'send', 'slack' => 'tag', 'chatwork' => 'chat', default => 'webhook' } }}
                                     </span>
                                 </div>
                                 <div>
                                     <div class="flex items-center gap-2">
-                                        <span class="font-bold text-sm text-on-surface uppercase">{{ $ch['type'] ?? 'Webhook' }}</span>
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border {{ ($ch['status'] ?? '') === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-500' }}">
-                                            {{ ucfirst($ch['status'] ?? 'active') }}
+                                        <span class="font-bold text-sm text-on-surface">{{ $chName }}</span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-surface-container text-on-surface border border-outline-variant">
+                                            {{ $chTypeVal }}
+                                        </span>
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border {{ $chStatusVal === 'enabled' || $chStatusVal === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-500' }}">
+                                            {{ ucfirst($chStatusVal) }}
                                         </span>
                                     </div>
-                                    <div class="text-xs font-mono text-outline mt-0.5 truncate max-w-sm">{{ $ch['webhook_url'] ?? 'https://...' }}</div>
-                                    <div class="text-[11px] text-secondary mt-1 flex items-center gap-1.5 flex-wrap">
-                                        @foreach(($ch['events'] ?? []) as $ev)
-                                            <span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface text-[10px] font-mono">{{ $ev }}</span>
-                                        @endforeach
+                                    <div class="text-xs text-outline mt-0.5">
+                                        @if($chConfigured)
+                                            <span class="text-emerald-700 font-medium">✓ {{ __('admin.configured_status') }}</span>
+                                        @else
+                                            <span class="text-rose-700 font-medium">⚠ {{ __('admin.not_configured_status') }}</span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
 
                             <div class="flex items-center gap-2 shrink-0">
-                                <button type="button" onclick="testChannel({{ $ch['id'] }})" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-xs font-semibold flex items-center gap-1 transition-colors">
+                                <button type="button" onclick="testChannel({{ $chId }})" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer">
                                     <span class="material-symbols-outlined text-[14px]">bolt</span>
                                     <span>{{ __('admin.test_ping') }}</span>
                                 </button>
-                                <button type="button" onclick="deleteChannel({{ $ch['id'] }})" class="p-1.5 text-secondary hover:text-rose-600 rounded hover:bg-surface-container transition-colors" title="Delete channel">
+                                <button type="button" onclick="deleteChannel({{ $chId }})" class="p-1.5 text-secondary hover:text-rose-600 rounded hover:bg-surface-container transition-colors cursor-pointer" title="{{ __('admin.btn_delete_channel') }}">
                                     <span class="material-symbols-outlined text-[16px]">delete</span>
                                 </button>
                             </div>
@@ -91,49 +102,66 @@
 
                 <form id="add-channel-form" data-loading-form="true" class="space-y-3 text-xs">
                     <div>
+                        <label class="block font-semibold text-on-surface mb-1">{{ __('admin.channel_name_label') }}</label>
+                        <input type="text" id="ch-name" placeholder="{{ __('admin.channel_name_placeholder') }}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-medium text-xs text-on-surface" required>
+                    </div>
+
+                    <div>
                         <label class="block font-semibold text-on-surface mb-1">{{ __('admin.webhook_form_platform') }}</label>
                         <select id="ch-type" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface font-semibold" required>
-                            <option value="slack">Slack Incoming Webhook</option>
-                            <option value="telegram">Telegram Bot Channel</option>
-                            <option value="discord">Discord Webhook</option>
-                            <option value="zalo">Zalo OA Webhook</option>
+                            <option value="telegram">Telegram Bot</option>
+                            <option value="slack">Slack Webhook</option>
+                            <option value="chatwork">Chatwork API</option>
+                            <option value="webhook">Custom Webhook</option>
                         </select>
                     </div>
 
-                    <div>
-                        <label class="block font-semibold text-on-surface mb-1">{{ __('admin.webhook_form_url') }}</label>
-                        <input type="url" id="ch-url" placeholder="https://hooks.slack.com/services/..." class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface" required>
+                    <!-- Platform Fields: Telegram -->
+                    <div id="platform-telegram" class="platform-config-fields space-y-3">
+                        <div>
+                            <label class="block font-semibold text-on-surface mb-1">{{ __('admin.telegram_bot_token') }}</label>
+                            <input type="password" id="ch-tg-token" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-on-surface mb-1">{{ __('admin.telegram_chat_id') }}</label>
+                            <input type="text" id="ch-tg-chat-id" placeholder="-1001234567890" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block font-semibold text-on-surface mb-1">{{ __('admin.webhook_form_token') }}</label>
-                        <input type="text" id="ch-token" placeholder="Optional security token" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
+                    <!-- Platform Fields: Slack -->
+                    <div id="platform-slack" class="platform-config-fields space-y-3 hidden">
+                        <div>
+                            <label class="block font-semibold text-on-surface mb-1">{{ __('admin.slack_webhook_url') }}</label>
+                            <input type="url" id="ch-slack-url" placeholder="https://hooks.slack.com/services/..." class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
+                        </div>
                     </div>
 
-                    <div>
-                        <label class="block font-semibold text-on-surface mb-1.5">{{ __('admin.webhook_form_events') }}</label>
-                        <div class="space-y-1.5 p-3 bg-surface-container-low border border-outline-variant rounded-lg">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="events[]" value="campaign.created" checked class="rounded border-outline-variant text-primary focus:ring-primary">
-                                <span>{{ __('admin.event_campaign_created') }}</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="events[]" value="campaign.auto_lock_warning" checked class="rounded border-outline-variant text-primary focus:ring-primary">
-                                <span>{{ __('admin.event_lock_warning') }}</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="events[]" value="campaign.closed" checked class="rounded border-outline-variant text-primary focus:ring-primary">
-                                <span>{{ __('admin.event_campaign_closed') }}</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" name="events[]" value="debt.payment_recorded" checked class="rounded border-outline-variant text-primary focus:ring-primary">
-                                <span>{{ __('admin.event_payment_recorded') }}</span>
-                            </label>
+                    <!-- Platform Fields: Chatwork -->
+                    <div id="platform-chatwork" class="platform-config-fields space-y-3 hidden">
+                        <div>
+                            <label class="block font-semibold text-on-surface mb-1">{{ __('admin.chatwork_api_token') }}</label>
+                            <input type="password" id="ch-cw-token" placeholder="abcdef0123456789abcdef0123456789" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-on-surface mb-1">{{ __('admin.chatwork_room_id') }}</label>
+                            <input type="text" id="ch-cw-room-id" placeholder="12345678" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
+                        </div>
+                    </div>
+
+                    <!-- Platform Fields: Webhook -->
+                    <div id="platform-webhook" class="platform-config-fields space-y-3 hidden">
+                        <div>
+                            <label class="block font-semibold text-on-surface mb-1">{{ __('admin.webhook_endpoint_url') }}</label>
+                            <input type="url" id="ch-wh-url" placeholder="https://api.yourdomain.com/webhook" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-on-surface mb-1">{{ __('admin.webhook_secret_token') }} ({{ __('admin.optional') }})</label>
+                            <input type="password" id="ch-wh-secret" placeholder="secret-token-key" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
                         </div>
                     </div>
 
                     <div class="pt-3">
-                        <button type="submit" class="w-full h-9 bg-primary hover:bg-primary/90 text-on-primary rounded font-bold transition-colors">
+                        <button type="submit" class="w-full h-9 bg-primary hover:bg-primary/90 text-on-primary rounded font-bold transition-colors cursor-pointer">
                             {{ __('admin.save_webhook') }}
                         </button>
                     </div>

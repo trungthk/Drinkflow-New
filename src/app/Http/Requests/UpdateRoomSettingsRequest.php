@@ -36,6 +36,14 @@ class UpdateRoomSettingsRequest extends FormRequest
             'language' => ['sometimes', 'required', 'in:vi,en,ja'],
             'default_sponsor' => ['sometimes', 'nullable', 'string', 'max:160'],
             'default_payment_account_id' => ['sometimes', 'nullable', 'integer'],
+            'campaign_title_template' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'default_start_time' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'default_end_time' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'auto_close_warning_minutes' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:120'],
+            'max_campaign_budget' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'allow_internal_debt' => ['sometimes', 'nullable', 'boolean'],
+            'personal_debt_ceiling' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'auto_lock_on_debt_limit' => ['sometimes', 'nullable', 'boolean'],
         ];
     }
 

@@ -83,18 +83,28 @@ class AdminReportService
     {
         $now = Carbon::now($timezone ?: config('app.timezone'));
 
-        if ($request->filled('from') || $request->filled('to')) {
-            return [
-                Carbon::parse($request->input('from', $now->copy()->startOfDay()), $timezone)->startOfDay(),
-                Carbon::parse($request->input('to', $now), $timezone)->endOfDay(),
-            ];
+        $fromInput = $request->input('date_from') ?: $request->input('from');
+        $toInput = $request->input('date_to') ?: $request->input('to');
+
+        if (!empty($fromInput) || !empty($toInput)) {
+            $start = !empty($fromInput)
+                ? Carbon::parse((string) $fromInput, $timezone)->startOfDay()
+                : Carbon::parse('2020-01-01', $timezone)->startOfDay();
+            $end = !empty($toInput)
+                ? Carbon::parse((string) $toInput, $timezone)->endOfDay()
+                : $now->copy()->endOfDay();
+
+            return [$start, $end];
         }
 
         $start = match ($request->string('period', 'month')->toString()) {
             'today' => $now->copy()->startOfDay(),
-            'week' => $now->copy()->startOfWeek(),
+            'yesterday' => $now->copy()->subDay()->startOfDay(),
+            '7days', 'last_7_days', 'week' => $now->copy()->subDays(6)->startOfDay(),
+            '30days', 'last_30_days' => $now->copy()->subDays(29)->startOfDay(),
             'quarter' => $now->copy()->firstOfQuarter()->startOfDay(),
             'year' => $now->copy()->startOfYear(),
+            'all' => Carbon::parse('2020-01-01', $timezone)->startOfDay(),
             default => $now->copy()->startOfMonth(),
         };
 

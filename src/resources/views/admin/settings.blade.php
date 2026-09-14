@@ -116,7 +116,7 @@
                     <div>
                         <label class="block font-semibold text-xs text-on-surface mb-1">{{ __('admin.max_budget_ceiling') }} (₫):</label>
                         <div class="relative">
-                            <input type="number" id="set-max-budget" value="{{ $settings['max_campaign_budget'] ?? 2000000 }}" class="w-full h-10 pl-3 pr-16 bg-surface border border-outline-variant rounded font-mono font-bold text-sm text-primary">
+                            <input type="text" inputmode="numeric" id="set-max-budget" data-format-currency="true" value="{{ number_format((int)($settings['max_campaign_budget'] ?? 2000000), 0, ',', '.') }}" class="w-full h-10 pl-3 pr-16 bg-surface border border-outline-variant rounded font-mono font-bold text-sm text-primary">
                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-outline">{{ __('admin.vnd_unit') }}</span>
                         </div>
                     </div>
@@ -146,7 +146,7 @@
                     <div>
                         <label class="block font-semibold text-xs text-on-surface mb-1">{{ __('admin.personal_debt_ceiling') }} (₫):</label>
                         <div class="relative">
-                            <input type="number" id="set-debt-ceiling" value="{{ $settings['personal_debt_ceiling'] ?? 150000 }}" class="w-full h-9 pl-3 pr-16 bg-surface border border-outline-variant rounded font-mono font-bold text-xs text-on-surface">
+                            <input type="text" inputmode="numeric" id="set-debt-ceiling" data-format-currency="true" value="{{ number_format((int)($settings['personal_debt_ceiling'] ?? 150000), 0, ',', '.') }}" class="w-full h-9 pl-3 pr-16 bg-surface border border-outline-variant rounded font-mono font-bold text-xs text-on-surface">
                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-outline">{{ __('admin.vnd_unit') }}</span>
                         </div>
                     </div>

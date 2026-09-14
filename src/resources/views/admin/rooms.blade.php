@@ -1,6 +1,9 @@
 @php
     $roomsCount = $rooms->count();
     $adminInitials = strtoupper(substr($admin->name ?? 'Admin', 0, 2));
+    $currentLocale = app()->getLocale();
+    $locales = $locales ?? \App\Constants\AppLocale::SUPPORTED;
+    $activeLocaleMeta = \App\Constants\AppLocale::get($currentLocale);
 @endphp
 <!DOCTYPE html>
 <html class="h-full" lang="{{ app()->getLocale() }}">
@@ -132,31 +135,62 @@
                         <span class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight">DrinkFlow</span>
                         <span class="font-label-sm text-label-sm uppercase px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-semibold">Admin Core</span>
                     </div>
-                    <p class="font-label-md text-label-md text-outline">{{ __('admin.brand_subtitle') }} — {{ __('admin.select_room_subheading') }}</p>
+                    <p class="font-label-md text-label-md text-outline">{{ __('admin.brand_subtitle') }}</p>
                 </div>
             </div>
 
-            <!-- User Session & Enterprise SSO Chip -->
-            <div class="flex items-center gap-3 bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-1.5 pr-4 shadow-xs self-start sm:self-auto">
-                <div class="w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center font-label-md text-label-md font-bold">
-                    {{ $adminInitials }}
-                </div>
-                <div class="flex flex-col text-left">
-                    <div class="flex items-center gap-1.5">
-                        <span class="font-headline-sm text-[13px] leading-tight font-semibold text-on-surface">{{ $admin->name }}</span>
-                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-primary" title="Active"></span>
-                        <span class="font-label-sm text-label-sm text-outline">{{ $admin->role ?? __('admin.room_manager_role') }}</span>
+            <!-- Right Actions: Language Switcher & User Session Chip -->
+            <div class="flex items-center gap-2 sm:gap-3 self-start sm:self-auto">
+                <!-- Language Switcher Dropdown -->
+                <div class="relative" x-data="{ langOpen: false }">
+                    <button type="button"
+                            @click="langOpen = !langOpen"
+                            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors bg-surface-container-lowest border border-outline-variant/60 shadow-xs cursor-pointer">
+                        <span>{{ $activeLocaleMeta['flag'] }}</span>
+                        <span class="font-semibold text-on-surface">{{ $activeLocaleMeta['code'] }}</span>
+                        <span class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200" :class="{ 'rotate-180': langOpen }">arrow_drop_down</span>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div x-show="langOpen" @click.away="langOpen = false" x-cloak
+                         class="absolute right-0 mt-1.5 w-36 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant/80 py-1.5 z-50">
+                        @foreach($locales as $code => $meta)
+                            <a href="{{ route('locale.switch', $code) }}"
+                               class="flex items-center justify-between px-3 py-2 text-xs text-on-surface hover:bg-primary/10 hover:text-primary transition-colors {{ $currentLocale === $code ? 'font-semibold text-primary bg-primary/5' : '' }}">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ $meta['flag'] }}</span>
+                                    <span>{{ $meta['name'] }}</span>
+                                </div>
+                                @if($currentLocale === $code)
+                                    <span class="material-symbols-outlined text-[16px] text-primary">check</span>
+                                @endif
+                            </a>
+                        @endforeach
                     </div>
-                    <span class="font-label-sm text-label-sm text-outline-variant flex items-center gap-1">
-                        {{ $admin->email }}
-                    </span>
                 </div>
-                <div class="h-6 w-[1px] bg-outline-variant/50 mx-1"></div>
-                <button class="text-on-surface-variant hover:text-error transition-colors flex items-center gap-1 font-label-sm text-label-sm cursor-pointer"
-                        title="{{ __('admin.logout') }}" type="button" onclick="openAdminLogoutModal()">
-                    <span class="material-symbols-outlined text-[16px]">logout</span>
-                    <span class="hidden md:inline">{{ __('admin.logout') }}</span>
-                </button>
+
+                <!-- User Session & Enterprise SSO Chip -->
+                <div class="flex items-center gap-3 bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-1.5 pr-4 shadow-xs">
+                    <div class="w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center font-label-md text-label-md font-bold">
+                        {{ $adminInitials }}
+                    </div>
+                    <div class="flex flex-col text-left">
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-headline-sm text-[13px] leading-tight font-semibold text-on-surface">{{ $admin->name }}</span>
+                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-primary" title="Active"></span>
+                            <span class="font-label-sm text-label-sm text-outline">{{ $admin->role ?? __('admin.room_manager_role') }}</span>
+                        </div>
+                        <span class="font-label-sm text-label-sm text-outline-variant flex items-center gap-1">
+                            {{ $admin->email }}
+                        </span>
+                    </div>
+                    <div class="h-6 w-[1px] bg-outline-variant/50 mx-1"></div>
+                    <button class="text-on-surface-variant hover:text-error transition-colors flex items-center gap-1 font-label-sm text-label-sm cursor-pointer"
+                            title="{{ __('admin.logout') }}" type="button" onclick="openAdminLogoutModal()">
+                        <span class="material-symbols-outlined text-[16px]">logout</span>
+                        <span class="hidden md:inline">{{ __('admin.logout') }}</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>

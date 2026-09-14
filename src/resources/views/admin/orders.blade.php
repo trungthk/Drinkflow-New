@@ -36,13 +36,13 @@
                     <option value="{{ $c->id }}">{{ $c->title }} ({{ $c->restaurant }})</option>
                 @endforeach
             </select>
-            <div class="flex items-center gap-1">
-                <button type="button" data-status="all" class="order-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-primary text-on-primary transition-colors">{{ __('admin.filter_all') }}</button>
-                <button type="button" data-status="pending" class="order-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.status_pending') }}</button>
-                <button type="button" data-status="confirmed" class="order-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.status_confirmed') }}</button>
-                <button type="button" data-status="paid" class="order-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.status_paid') }}</button>
-                <button type="button" data-status="cancelled" class="order-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.status_cancelled') }}</button>
-            </div>
+            <select id="status-filter-select" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                <option value="all">{{ __('admin.filter_all') }}</option>
+                <option value="pending">{{ __('admin.status_pending') }}</option>
+                <option value="confirmed">{{ __('admin.status_confirmed') }}</option>
+                <option value="paid">{{ __('admin.status_paid') }}</option>
+                <option value="cancelled">{{ __('admin.status_cancelled') }}</option>
+            </select>
         </div>
     </div>
 

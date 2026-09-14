@@ -23,6 +23,12 @@ return [
     'logout' => 'Đăng xuất',
     'dispatch_action' => 'Phát động nhanh',
     'go_to_top' => 'Cuộn lên đầu trang',
+    'notifications' => 'Thông báo',
+    'unread_notifications' => 'Thông báo chưa đọc',
+    'no_unread_notifications' => 'Không có thông báo mới',
+    'view_all_notifications' => 'Xem tất cả thông báo',
+    'assigned_rooms' => 'Phòng ban được phân quyền',
+    'all_rooms' => 'Tất cả phòng ban',
 
     // Room selector
     'select_room_title' => 'Chọn Room',
@@ -408,9 +414,25 @@ return [
     'channels_count_unit' => ':count kênh',
     'no_webhooks_found' => 'Chưa có kênh webhook bot nào được kích hoạt.',
     'webhook_form_platform' => 'Nền tảng (Platform):',
+    'webhook_form_name' => 'Tên kênh gợi nhớ:',
     'webhook_form_url' => 'Webhook URL / Endpoint:',
-    'webhook_form_token' => 'Secret Token / Bot Token (nếu có):',
+    'webhook_form_bot_token' => 'Telegram Bot Token:',
+    'webhook_form_chat_id' => 'Telegram Chat ID / Channel ID:',
+    'webhook_form_api_token' => 'Chatwork API Token:',
+    'webhook_form_room_id' => 'Chatwork Room ID:',
+    'webhook_form_token' => 'Secret Token / Header Authorization (tùy chọn):',
     'webhook_form_events' => 'Sự kiện gửi thông báo (Events):',
+    'filter_status_all' => 'Tất cả trạng thái',
+    'filter_event' => 'Sự kiện',
+    'filter_target' => 'Đối tượng',
+    'filter_actor' => 'Người thực hiện',
+    'filter_actor_placeholder' => 'Nhập actor hoặc ID...',
+    'from_date' => 'Từ ngày',
+    'to_date' => 'Đến ngày',
+    'all_events' => 'Tất cả sự kiện',
+    'all_targets' => 'Tất cả đối tượng',
+    'filter_apply' => 'Áp dụng bộ lọc',
+    'filter_reset' => 'Đặt lại',
 
     // Reports & Analytics
     'reports_analytics_title' => 'Báo Cáo & Phân Tích Logistics',
@@ -706,4 +728,20 @@ return [
     'submitting' => 'Đang lưu dữ liệu...',
     'loading_data' => 'Đang tải dữ liệu...',
     'no_options_found' => 'Không tìm thấy lựa chọn nào',
+
+    // Notification Channel Updates
+    'btn_delete_channel' => 'Xóa kênh thông báo',
+    'configured_status' => 'Đã cấu hình',
+    'not_configured_status' => 'Chưa hoàn tất cấu hình',
+
+    // Sidebar & Campaign Close Enhancements
+    'toggle_sidebar' => 'Thu gọn / Mở rộng thanh bên',
+    'close_reason_label' => 'Nguyên nhân đóng chiến dịch',
+    'close_reason_placeholder' => 'Nhập hoặc chọn nguyên nhân đóng chiến dịch...',
+    'close_reason_opt_time_up' => 'Hết thời gian đặt món',
+    'close_reason_opt_quota_reached' => 'Đã đủ số lượng món',
+    'close_reason_opt_store_cutoff' => 'Quán thông báo chốt món',
+    'close_reason_opt_driver_arrived' => 'Tài xế chuẩn bị lấy đơn',
+    'close_reason_opt_other' => 'Lý do khác',
+    'auto_create_debt_record' => 'Tự động tạo bản ghi công nợ cho các đơn chưa thanh toán',
 ];

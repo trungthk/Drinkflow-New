@@ -21,6 +21,62 @@
         </div>
     </div>
 
+    <!-- Filter Toolbar -->
+    <form method="GET" action="{{ route('admin.audit.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-xs mb-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <!-- Event Filter -->
+            <div>
+                <label class="block text-[11px] font-mono uppercase text-outline font-semibold mb-1">{{ __('admin.filter_event') }}</label>
+                <select name="event" class="w-full h-9 px-2.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                    <option value="">{{ __('admin.all_events') }}</option>
+                    @foreach($events as $ev)
+                        <option value="{{ $ev }}" {{ ($filters['event'] ?? '') === $ev ? 'selected' : '' }}>{{ $ev }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Target Object Filter -->
+            <div>
+                <label class="block text-[11px] font-mono uppercase text-outline font-semibold mb-1">{{ __('admin.filter_target') }}</label>
+                <select name="target_type" class="w-full h-9 px-2.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                    <option value="">{{ __('admin.all_targets') }}</option>
+                    @foreach($targetTypes as $tt)
+                        <option value="{{ $tt }}" {{ ($filters['target_type'] ?? '') === $tt ? 'selected' : '' }}>{{ $tt }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <!-- Actor Filter -->
+            <div>
+                <label class="block text-[11px] font-mono uppercase text-outline font-semibold mb-1">{{ __('admin.filter_actor') }}</label>
+                <input type="text" name="actor" value="{{ $filters['actor'] ?? '' }}" placeholder="{{ __('admin.filter_actor_placeholder') }}" class="w-full h-9 px-2.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+            </div>
+
+            <!-- Date From Filter -->
+            <div>
+                <label class="block text-[11px] font-mono uppercase text-outline font-semibold mb-1">{{ __('admin.from_date') }}</label>
+                <input type="date" name="from" value="{{ $filters['from'] ?? '' }}" class="w-full h-9 px-2.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+            </div>
+
+            <!-- Date To Filter -->
+            <div>
+                <label class="block text-[11px] font-mono uppercase text-outline font-semibold mb-1">{{ __('admin.to_date') }}</label>
+                <input type="date" name="to" value="{{ $filters['to'] ?? '' }}" class="w-full h-9 px-2.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+            </div>
+        </div>
+
+        <div class="mt-3 flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/40">
+            <a href="{{ route('admin.audit.page', $room) }}" class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant rounded text-xs font-semibold no-underline transition-colors flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">refresh</span>
+                <span>{{ __('admin.filter_reset') }}</span>
+            </a>
+            <button type="submit" class="px-4 py-1.5 bg-primary hover:bg-primary/90 text-on-primary rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1 cursor-pointer">
+                <span class="material-symbols-outlined text-[14px]">filter_alt</span>
+                <span>{{ __('admin.filter_apply') }}</span>
+            </button>
+        </div>
+    </form>
+
     <!-- Audit Logs Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">

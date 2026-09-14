@@ -192,9 +192,27 @@ export function initAdminDashboard() {
         // Weekly Trend Chart
         renderTrendChart(data.weekly_trend, data.weekly_total_campaigns, data.weekly_total_spending);
 
-        // Hero Campaign
-        const hero = data.active_campaign || data.last_campaign;
+        // Campaign Control Panels
+        const campaignPanels = document.querySelector('#campaign-panels-container');
+        const hero = data.active_campaign;
+        const sec = data.secondary_campaign;
+
         if (hero) {
+            if (campaignPanels) campaignPanels.classList.remove('hidden');
+            const heroCard = document.querySelector('#hero-campaign-card');
+            const secCard = document.querySelector('#secondary-campaign-card');
+
+            if (heroCard) {
+                heroCard.classList.remove('hidden');
+                if (sec) {
+                    heroCard.classList.remove('lg:col-span-3');
+                    heroCard.classList.add('lg:col-span-2');
+                } else {
+                    heroCard.classList.remove('lg:col-span-2');
+                    heroCard.classList.add('lg:col-span-3');
+                }
+            }
+
             activeCampaignId = hero.id;
             const heroTitle = document.querySelector('#hero-campaign-title');
             const heroCode = document.querySelector('#hero-campaign-code');
@@ -242,26 +260,27 @@ export function initAdminDashboard() {
                     <span>Sponsor: <strong>${money(sponsor)}</strong></span>
                 `;
             }
-        }
 
-        // Secondary Campaign
-        const sec = data.secondary_campaign;
-        const secCard = document.querySelector('#secondary-campaign-card');
-        if (sec && secCard) {
-            secCard.classList.remove('opacity-50');
-            const secCode = document.querySelector('#sec-campaign-code');
-            const secTitle = document.querySelector('#sec-campaign-title');
-            const secVendor = document.querySelector('#sec-campaign-vendor');
-            const secDeadline = document.querySelector('#sec-campaign-deadline');
-            const secOrders = document.querySelector('#sec-campaign-orders');
-            const secSubtotal = document.querySelector('#sec-campaign-subtotal');
+            if (sec && secCard) {
+                secCard.classList.remove('hidden', 'opacity-50');
+                const secCode = document.querySelector('#sec-campaign-code');
+                const secTitle = document.querySelector('#sec-campaign-title');
+                const secVendor = document.querySelector('#sec-campaign-vendor');
+                const secDeadline = document.querySelector('#sec-campaign-deadline');
+                const secOrders = document.querySelector('#sec-campaign-orders');
+                const secSubtotal = document.querySelector('#sec-campaign-subtotal');
 
-            if (secCode) secCode.textContent = sec.code || `#CMP-${sec.id}`;
-            if (secTitle) secTitle.textContent = sec.name || 'Secondary';
-            if (secVendor) secVendor.textContent = `Quán: ${sec.restaurant || 'Phúc Long'}`;
-            if (secDeadline) secDeadline.textContent = sec.deadline ? new Date(sec.deadline).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : 'Hôm nay';
-            if (secOrders) secOrders.textContent = `${sec.orders_count || 0}`;
-            if (secSubtotal) secSubtotal.textContent = money(sec.total_amount);
+                if (secCode) secCode.textContent = sec.code || `#CMP-${sec.id}`;
+                if (secTitle) secTitle.textContent = sec.name || 'Secondary';
+                if (secVendor) secVendor.textContent = `Quán: ${sec.restaurant || 'Phúc Long'}`;
+                if (secDeadline) secDeadline.textContent = sec.deadline ? new Date(sec.deadline).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : 'Hôm nay';
+                if (secOrders) secOrders.textContent = `${sec.orders_count || 0}`;
+                if (secSubtotal) secSubtotal.textContent = money(sec.total_amount);
+            } else if (secCard) {
+                secCard.classList.add('hidden');
+            }
+        } else {
+            if (campaignPanels) campaignPanels.classList.add('hidden');
         }
 
         // Payment account
@@ -273,13 +292,23 @@ export function initAdminDashboard() {
             if (pMasked) pMasked.textContent = acc.account_number_masked || '•••• •••• ••••';
         }
 
-        // Orders Table
+        // Orders Table & Section Visibility
+        const ordersSection = document.querySelector('#recent-orders-section');
+        const ordersStreamContainer = document.querySelector('#orders-stream-container');
+        const sideStreamContainer = document.querySelector('#side-stream-container');
         const tbody = document.querySelector('#orders-tbody');
         const orders = data.recent_orders || [];
-        if (tbody) {
-            if (!orders.length) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-outline">Không có đơn hàng</td></tr>`;
-            } else {
+
+        if (orders && orders.length > 0) {
+            if (ordersSection) ordersSection.classList.remove('hidden');
+            if (ordersStreamContainer) {
+                ordersStreamContainer.classList.add('xl:grid-cols-[1.6fr_.9fr]');
+            }
+            if (sideStreamContainer) {
+                sideStreamContainer.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-4', 'space-y-0');
+                sideStreamContainer.classList.add('space-y-4');
+            }
+            if (tbody) {
                 tbody.innerHTML = orders.map(o => `
                     <tr class="hover:bg-surface-container-low/50 transition-colors">
                         <td class="py-2.5 px-3 font-mono text-outline">#${o.id}</td>
@@ -294,18 +323,23 @@ export function initAdminDashboard() {
                     </tr>
                 `).join('');
             }
+        } else {
+            if (ordersSection) ordersSection.classList.add('hidden');
+            if (ordersStreamContainer) {
+                ordersStreamContainer.classList.remove('xl:grid-cols-[1.6fr_.9fr]');
+            }
+            if (sideStreamContainer) {
+                sideStreamContainer.classList.remove('space-y-4');
+                sideStreamContainer.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-4', 'space-y-0');
+            }
+            if (tbody) {
+                tbody.innerHTML = '';
+            }
         }
     }
 
     async function loadDashboard() {
         if (!dashboardUrl) return;
-        const tbody = document.querySelector('#orders-tbody');
-        if (tbody) {
-            tbody.innerHTML = `
-                <tr class="animate-pulse"><td class="py-2.5 px-3"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-12"></div></td><td class="py-2.5 px-3"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-28"></div></td><td class="py-2.5 px-3"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-24"></div></td><td class="py-2.5 px-3 text-right"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-16 ml-auto"></div></td><td class="py-2.5 px-3 text-center"><div class="h-5 bg-slate-200 dark:bg-slate-800 rounded-full w-14 mx-auto"></div></td></tr>
-                <tr class="animate-pulse"><td class="py-2.5 px-3"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-12"></div></td><td class="py-2.5 px-3"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-28"></div></td><td class="py-2.5 px-3"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-24"></div></td><td class="py-2.5 px-3 text-right"><div class="h-3.5 bg-slate-200 dark:bg-slate-800 rounded w-16 ml-auto"></div></td><td class="py-2.5 px-3 text-center"><div class="h-5 bg-slate-200 dark:bg-slate-800 rounded-full w-14 mx-auto"></div></td></tr>
-            `;
-        }
         try {
             const res = await fetch(dashboardUrl, { headers: { Accept: 'application/json' } });
             if (!res.ok) throw new Error('Failed to load dashboard data');
@@ -317,11 +351,6 @@ export function initAdminDashboard() {
     }
 
     loadDashboard();
-
-    // Sync Button
-    document.querySelector('#btn-sync-buffer')?.addEventListener('click', () => {
-        loadDashboard();
-    });
 
     // Close Modal Controls
     const modal = document.querySelector('#close-campaign-modal');

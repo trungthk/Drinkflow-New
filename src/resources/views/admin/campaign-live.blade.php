@@ -345,9 +345,53 @@
                 {{ __('admin.close_early_confirm') }}
             </p>
 
+            <!-- Lý do đóng chiến dịch (Reason / Suggestions) -->
+            <div class="space-y-2">
+                <label class="block text-xs font-semibold text-on-surface">{{ __('admin.close_reason_label') }}</label>
+                
+                <!-- Gợi ý nhanh nguyên nhân (Quick Reason Chips) -->
+                <div class="flex flex-wrap gap-1.5">
+                    <button type="button" @click="closeReason = '{{ __('admin.close_reason_opt_time_up') }}'"
+                            :class="closeReason === '{{ __('admin.close_reason_opt_time_up') }}' ? 'bg-primary text-on-primary border-primary' : 'bg-surface-container-low text-on-surface-variant border-outline-variant hover:border-primary/50'"
+                            class="px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer">
+                        ⏰ {{ __('admin.close_reason_opt_time_up') }}
+                    </button>
+                    <button type="button" @click="closeReason = '{{ __('admin.close_reason_opt_quota_reached') }}'"
+                            :class="closeReason === '{{ __('admin.close_reason_opt_quota_reached') }}' ? 'bg-primary text-on-primary border-primary' : 'bg-surface-container-low text-on-surface-variant border-outline-variant hover:border-primary/50'"
+                            class="px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer">
+                        🎯 {{ __('admin.close_reason_opt_quota_reached') }}
+                    </button>
+                    <button type="button" @click="closeReason = '{{ __('admin.close_reason_opt_store_cutoff') }}'"
+                            :class="closeReason === '{{ __('admin.close_reason_opt_store_cutoff') }}' ? 'bg-primary text-on-primary border-primary' : 'bg-surface-container-low text-on-surface-variant border-outline-variant hover:border-primary/50'"
+                            class="px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer">
+                        🏪 {{ __('admin.close_reason_opt_store_cutoff') }}
+                    </button>
+                    <button type="button" @click="closeReason = '{{ __('admin.close_reason_opt_driver_arrived') }}'"
+                            :class="closeReason === '{{ __('admin.close_reason_opt_driver_arrived') }}' ? 'bg-primary text-on-primary border-primary' : 'bg-surface-container-low text-on-surface-variant border-outline-variant hover:border-primary/50'"
+                            class="px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer">
+                        🛵 {{ __('admin.close_reason_opt_driver_arrived') }}
+                    </button>
+                    <button type="button" @click="closeReason = '{{ __('admin.close_reason_opt_other') }}'"
+                            :class="closeReason === '{{ __('admin.close_reason_opt_other') }}' ? 'bg-primary text-on-primary border-primary' : 'bg-surface-container-low text-on-surface-variant border-outline-variant hover:border-primary/50'"
+                            class="px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors cursor-pointer">
+                        📝 {{ __('admin.close_reason_opt_other') }}
+                    </button>
+                </div>
+
+                <!-- Input nhập lý do chi tiết -->
+                <input type="text" x-model="closeReason" placeholder="{{ __('admin.close_reason_placeholder') }}"
+                       class="w-full h-9 px-3 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary transition-all">
+            </div>
+
+            <!-- Cho phép ghi nhận công nợ tự động -->
+            <div class="flex items-center gap-2 pt-1">
+                <input type="checkbox" id="allowDebtCheck" x-model="allowDebt" class="rounded border-outline-variant text-primary focus:ring-primary cursor-pointer">
+                <label for="allowDebtCheck" class="text-xs text-on-surface font-medium cursor-pointer">{{ __('admin.auto_create_debt_record') }}</label>
+            </div>
+
             <div class="flex items-center justify-end gap-2 pt-3 border-t border-outline-variant">
-                <button type="button" @click="openCloseModal = false" class="px-4 py-2 border border-outline-variant rounded-lg text-xs font-semibold hover:bg-surface-container-low">{{ __('admin.cancel') }}</button>
-                <button type="button" @click="confirmCloseCampaign()" class="px-4 py-2 bg-primary hover:bg-primary-container text-on-primary rounded-lg text-xs font-semibold shadow-sm">
+                <button type="button" @click="openCloseModal = false" class="px-4 py-2 border border-outline-variant rounded-lg text-xs font-semibold hover:bg-surface-container-low cursor-pointer">{{ __('admin.cancel') }}</button>
+                <button type="button" @click="confirmCloseCampaign()" class="px-4 py-2 bg-primary hover:bg-primary-container text-on-primary rounded-lg text-xs font-semibold shadow-xs cursor-pointer">
                     {{ __('admin.confirm_close_now') }}
                 </button>
             </div>

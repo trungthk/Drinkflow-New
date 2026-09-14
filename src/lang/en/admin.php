@@ -23,6 +23,12 @@ return [
     'logout' => 'Log out',
     'dispatch_action' => 'Fast Dispatch',
     'go_to_top' => 'Go to top',
+    'notifications' => 'Notifications',
+    'unread_notifications' => 'Unread Notifications',
+    'no_unread_notifications' => 'No new notifications',
+    'view_all_notifications' => 'View all notifications',
+    'assigned_rooms' => 'Assigned Rooms',
+    'all_rooms' => 'All Rooms',
 
     // Room selector
     'select_room_title' => 'Select Room',
@@ -408,9 +414,25 @@ return [
     'channels_count_unit' => ':count channels',
     'no_webhooks_found' => 'No webhook bot channels active yet.',
     'webhook_form_platform' => 'Platform:',
+    'webhook_form_name' => 'Channel Display Name:',
     'webhook_form_url' => 'Webhook URL / Endpoint:',
-    'webhook_form_token' => 'Secret Token / Bot Token (optional):',
+    'webhook_form_bot_token' => 'Telegram Bot Token:',
+    'webhook_form_chat_id' => 'Telegram Chat ID / Channel ID:',
+    'webhook_form_api_token' => 'Chatwork API Token:',
+    'webhook_form_room_id' => 'Chatwork Room ID:',
+    'webhook_form_token' => 'Secret Token / Header Authorization (optional):',
     'webhook_form_events' => 'Notification Events:',
+    'filter_status_all' => 'All statuses',
+    'filter_event' => 'Event',
+    'filter_target' => 'Target',
+    'filter_actor' => 'Actor',
+    'filter_actor_placeholder' => 'Enter actor or ID...',
+    'from_date' => 'From date',
+    'to_date' => 'To date',
+    'all_events' => 'All events',
+    'all_targets' => 'All targets',
+    'filter_apply' => 'Apply filter',
+    'filter_reset' => 'Reset',
 
     // Reports & Analytics
     'reports_analytics_title' => 'Logistics Reports & Analytics',
@@ -706,4 +728,20 @@ return [
     'submitting' => 'Saving data...',
     'loading_data' => 'Loading data...',
     'no_options_found' => 'No options found',
+
+    // Notification Channel Updates
+    'btn_delete_channel' => 'Delete Channel',
+    'configured_status' => 'Configured',
+    'not_configured_status' => 'Not Configured',
+
+    // Sidebar & Campaign Close Enhancements
+    'toggle_sidebar' => 'Toggle Sidebar',
+    'close_reason_label' => 'Reason for Closing Campaign',
+    'close_reason_placeholder' => 'Enter or select reason for closing...',
+    'close_reason_opt_time_up' => 'Order time is up',
+    'close_reason_opt_quota_reached' => 'Item quota reached',
+    'close_reason_opt_store_cutoff' => 'Restaurant cutoff',
+    'close_reason_opt_driver_arrived' => 'Driver arriving soon',
+    'close_reason_opt_other' => 'Other reason',
+    'auto_create_debt_record' => 'Automatically record debt for unpaid orders',
 ];

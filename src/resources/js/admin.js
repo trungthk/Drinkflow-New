@@ -1,7 +1,7 @@
 import './bootstrap';
 
 import { initAdminGoToTop } from './admin/go-to-top';
-import { initUiEnhancements, renderTableSkeleton, debounce } from './admin/ui-enhancements';
+import { initUiEnhancements, renderTableSkeleton, debounce, toggleAdminSidebar } from './admin/ui-enhancements';
 import { initAdminAuth } from './admin/auth';
 import { initAdminAudit } from './admin/audit';
 import { initAdminCampaigns } from './admin/campaigns';
@@ -22,6 +22,7 @@ export {
     initUiEnhancements,
     renderTableSkeleton,
     debounce,
+    toggleAdminSidebar,
     initAdminAuth,
     initAdminAudit,
     initAdminCampaigns,
@@ -44,6 +45,7 @@ if (typeof window !== 'undefined') {
     window.liveCampaignComponent = liveCampaignComponent;
     window.renderTableSkeleton = renderTableSkeleton;
     window.debounce = debounce;
+    window.toggleAdminSidebar = toggleAdminSidebar;
     window.__DF_ROOM_SLUG__ = window.__DF_ROOM_SLUG__ || document.querySelector('meta[name="room-slug"]')?.content || document.body?.dataset?.roomSlug || '';
 }
 

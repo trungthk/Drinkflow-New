@@ -1,9 +1,33 @@
 @php
     $active = trim($__env->yieldContent('active')) ?: 'dashboard';
     $pageTitle = trim($__env->yieldContent('title')) ?: __('admin.dashboard');
-    $roomLabel = $room->name;
+    $roomLabel = $room?->name ?? 'DrinkFlow';
     $adminUser = auth('admin')->user();
-    $assignedRoomsList = isset($assignedRooms) && $assignedRooms->isNotEmpty() ? $assignedRooms : collect([$room]);
+    
+    if (!isset($assignedRooms) || $assignedRooms === null) {
+        if ($adminUser) {
+            if ($adminUser->isSuperadmin()) {
+                $assignedRoomsList = \App\Models\Room::where('status', \App\Enums\RoomStatus::Active)->orderBy('name')->get();
+            } else {
+                $assignedRoomsList = $adminUser->rooms()->where('status', \App\Enums\RoomStatus::Active)->orderBy('name')->get();
+            }
+        } else {
+            $assignedRoomsList = collect();
+        }
+    } else {
+        $assignedRoomsList = $assignedRooms;
+    }
+
+    if ($room && !$assignedRoomsList->contains('id', $room->id)) {
+        $assignedRoomsList = $assignedRoomsList->prepend($room);
+    }
+
+    $unreadNotifications = collect();
+    $unreadCount = 0;
+    if ($room) {
+        $unreadNotifications = \App\Models\AuditLog::where('room_id', $room->id)->latest('created_at')->take(5)->get();
+        $unreadCount = \App\Models\Debt::where('room_id', $room->id)->whereIn('status', \App\Enums\DebtStatus::outstandingValues())->count();
+    }
 @endphp
 <!doctype html>
 <html lang="{{ app()->getLocale() }}">
@@ -31,7 +55,7 @@
             <div>
                 <!-- Brand Logo & Header -->
                 <div class="flex items-center gap-2 mb-5 px-1 justify-between">
-                    <div class="flex items-center gap-2.5">
+                    <a href="{{ route('admin.landing') }}" class="flex items-center gap-2.5 no-underline group hover:opacity-90 transition-opacity">
                         <span class="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-xs shrink-0"
                               style="background: linear-gradient(135deg, #006948 0%, #047857 100%); background-color: #006948; border: 1px solid #005137; box-shadow: 0 1px 2px rgba(0,0,0,0.08);">
                             <svg class="w-4.5 h-4.5 text-white fill-current" viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px; fill: #ffffff; color: #ffffff;">
@@ -42,7 +66,7 @@
                             <span class="text-base font-bold text-on-surface tracking-tight block leading-tight">{{ __('admin.brand_title') }}</span>
                             <span class="text-[11px] font-mono text-outline block">{{ __('admin.brand_subtitle') }}</span>
                         </div>
-                    </div>
+                    </a>
                     <button type="button" class="lg:hidden w-8 h-8 flex items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors" onclick="document.querySelector('#admin-sidebar')?.classList.toggle('-translate-x-full')">
                         <span class="material-symbols-outlined text-[20px]">close</span>
                     </button>
@@ -51,30 +75,37 @@
                 <!-- Active Workspace Dropdown Trigger -->
                 <div class="mb-5 relative" x-data="{ open: false }">
                     <label class="text-[10px] font-mono text-outline block mb-1 uppercase tracking-wider font-semibold">{{ __('admin.active_workspace') }}</label>
-                    <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 bg-surface border border-outline-variant rounded hover:border-outline text-left transition-colors">
+                    <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 bg-surface border border-outline-variant rounded hover:border-outline text-left transition-colors cursor-pointer">
                         <div class="flex items-center gap-2 truncate">
-                            <span class="w-2 h-2 rounded-full bg-primary inline-block shrink-0"></span>
-                            <span class="text-xs font-semibold text-on-surface truncate">{{ $roomLabel }}</span>
+                            <span class="w-2 h-2 rounded-full {{ $room ? 'bg-primary' : 'bg-outline' }} inline-block shrink-0"></span>
+                            <span class="text-xs font-semibold text-on-surface truncate">{{ $room ? $roomLabel : __('admin.select_room_title') }}</span>
                         </div>
-                        <span class="text-[10px] text-outline ml-1">▼</span>
+                        <span class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200" :class="{ 'rotate-180': open }">expand_more</span>
                     </button>
 
-                    @if($assignedRoomsList->count() > 1)
-                    <div x-show="open" @click.away="open = false" x-cloak class="absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded shadow-lg z-50 py-1 max-h-48 overflow-y-auto">
-                        @foreach($assignedRoomsList as $assigned)
-                        <a href="{{ route('admin.dashboard.page', $assigned) }}" class="flex items-center justify-between px-3 py-2 text-xs hover:bg-surface-container-low transition-colors {{ $assigned->id === $room->id ? 'font-bold text-primary bg-primary/5' : 'text-on-surface' }}">
-                            <span class="truncate">{{ $assigned->name }}</span>
-                            @if($assigned->id === $room->id)
-                            <span class="material-symbols-outlined text-[14px] text-primary">check</span>
-                            @endif
+                    <div x-show="open" @click.away="open = false" x-cloak class="absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 py-1 max-h-56 overflow-y-auto">
+                        @if($assignedRoomsList->isNotEmpty())
+                            <div class="px-2.5 py-1 text-[10px] font-mono uppercase text-outline tracking-wider font-semibold">{{ __('admin.assigned_rooms') }}</div>
+                            @foreach($assignedRoomsList as $assigned)
+                            <a href="{{ route('admin.dashboard.page', $assigned) }}" class="flex items-center justify-between px-3 py-2 text-xs hover:bg-surface-container-low transition-colors {{ ($room && $assigned->id === $room->id) ? 'font-bold text-primary bg-primary/5' : 'text-on-surface' }}">
+                                <span class="truncate">{{ $assigned->name }}</span>
+                                @if($room && $assigned->id === $room->id)
+                                <span class="material-symbols-outlined text-[14px] text-primary">check</span>
+                                @endif
+                            </a>
+                            @endforeach
+                            <div class="border-t border-outline-variant/60 my-1"></div>
+                        @endif
+                        <a href="{{ route('admin.landing') }}" class="flex items-center gap-2 px-3 py-2 text-xs text-primary font-semibold hover:bg-surface-container-low transition-colors">
+                            <span class="material-symbols-outlined text-[16px]">grid_view</span>
+                            <span class="truncate">{{ __('admin.all_rooms') }}</span>
                         </a>
-                        @endforeach
                     </div>
-                    @endif
                 </div>
 
                 <!-- Main Nav Links -->
                 <nav class="space-y-1 text-xs">
+                    @if($room)
                     <!-- Dashboard -->
                     <a class="flex items-center gap-3 px-3 py-2 rounded font-medium transition-colors {{ $active === 'dashboard' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                         href="{{ route('admin.dashboard.page', $room) }}">
@@ -124,7 +155,7 @@
                     </a>
 
                     <!-- VietQR Accounts -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded font-medium transition-colors {{ $active === 'payments' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                    <a class="flex items-center gap-3 px-3 py-2 rounded font-medium transition-colors {{ $active === 'payment_accounts' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                         href="{{ route('admin.payment-accounts.page', $room) }}">
                         <span class="material-symbols-outlined text-[18px]">qr_code_2</span>
                         <span>{{ __('admin.config_vietqr') }}</span>
@@ -136,17 +167,32 @@
                         <span class="material-symbols-outlined text-[18px]">settings</span>
                         <span>{{ __('admin.payments_settings') }}</span>
                     </a>
+
+                    <!-- System Diagnostics -->
+                    <a class="flex items-center gap-3 px-3 py-2 rounded font-medium transition-colors {{ $active === 'audit' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        href="{{ route('admin.audit.page', $room) }}">
+                        <span class="material-symbols-outlined text-[18px]">health_and_safety</span>
+                        <span>{{ __('admin.system_diagnostics') }}</span>
+                    </a>
+                    @endif
                 </nav>
             </div>
 
-            <!-- Footer Action Links -->
-            <div class="pt-4 border-t border-outline-variant space-y-1 text-xs">
-                <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-medium transition-colors {{ $active === 'audit' ? 'bg-secondary-container text-primary font-bold' : '' }}"
-                    href="{{ route('admin.audit.page', $room) }}">
-                    <span class="material-symbols-outlined text-[18px]">health_and_safety</span>
-                    <span>{{ __('admin.system_diagnostics') }}</span>
-                </a>
-                <button type="button" onclick="openAdminLogoutModal()" class="btn-admin-logout w-full flex items-center gap-3 px-3 py-2 text-error hover:bg-error-container/40 rounded font-medium transition-colors text-left cursor-pointer">
+            <!-- Footer Action Links & Admin Info -->
+            <div class="pt-4 border-t border-outline-variant space-y-2 text-xs">
+                <!-- Admin Profile Info Chip -->
+                <div class="flex items-center gap-2.5 p-2 rounded-lg bg-surface-container border border-outline-variant/60">
+                    <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary font-mono text-xs flex items-center justify-center font-bold ring-1 ring-emerald-600/30 shrink-0">
+                        {{ mb_strtoupper(mb_substr($adminUser?->name ?? 'AD', 0, 2)) }}
+                    </div>
+                    <div class="flex flex-col min-w-0 flex-1">
+                        <span class="text-xs font-semibold text-on-surface truncate leading-tight">{{ $adminUser?->name ?? 'Admin' }}</span>
+                        <span class="text-[10px] text-outline font-mono truncate leading-tight">{{ $adminUser?->email ?? ($adminUser?->isSuperadmin() ? 'Super Admin' : 'Room Dispatcher') }}</span>
+                    </div>
+                </div>
+
+                <!-- Logout Button -->
+                <button type="button" onclick="openAdminLogoutModal()" class="btn-admin-logout w-full flex items-center gap-2.5 px-3 py-2 text-error hover:bg-error-container/40 rounded-lg font-medium transition-colors text-left cursor-pointer">
                     <span class="material-symbols-outlined text-[18px]">logout</span>
                     <span>{{ __('admin.logout') }}</span>
                 </button>
@@ -168,43 +214,68 @@
                     <span>Admin</span>
                     <span>/</span>
                     <a href="{{ route('admin.landing') }}" class="hover:text-on-surface transition-colors">Rooms</a>
+                    @if($room)
                     <span>/</span>
                     <span class="text-on-surface font-semibold truncate max-w-[180px] sm:max-w-none">{{ $roomLabel }}</span>
+                    @endif
                 </nav>
             </div>
 
-            <!-- Right side: Realtime Socket, Actions & User Profile -->
+            <!-- Right side: Notifications Dropdown, Fast Action -->
             <div class="flex items-center gap-3">
-                <!-- Socket Live Status -->
-                <span id="socket-state" class="hidden sm:inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-container-low text-[11px] font-mono text-outline border border-outline-variant/60">
-                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                    <span>Socket wss</span>
-                </span>
+                @if($room)
+                <!-- Notifications Dropdown -->
+                <div class="relative" x-data="{ notifOpen: false }">
+                    <button type="button" @click="notifOpen = !notifOpen" class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors relative cursor-pointer" title="{{ __('admin.notifications') }}">
+                        <span class="material-symbols-outlined text-[20px]">notifications</span>
+                        @if($unreadCount > 0 || $unreadNotifications->isNotEmpty())
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-surface"></span>
+                        @endif
+                    </button>
 
-                <!-- Notifications Bell -->
-                <a href="{{ route('admin.manage.page', [$room, 'tab' => 'notifications']) }}" class="w-8 h-8 flex items-center justify-center rounded text-on-surface-variant hover:bg-surface-container-low transition-colors relative" title="Notifications">
-                    <span class="material-symbols-outlined text-[20px]">notifications</span>
-                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
-                </a>
+                    <div x-show="notifOpen" @click.away="notifOpen = false" x-cloak class="absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 py-2 overflow-hidden">
+                        <div class="px-4 py-2 border-b border-outline-variant/60 flex items-center justify-between">
+                            <span class="font-bold text-xs text-on-surface">{{ __('admin.unread_notifications') }}</span>
+                            @if($unreadCount > 0)
+                            <span class="px-1.5 py-0.5 rounded-full bg-error-container text-error text-[10px] font-mono font-bold">{{ $unreadCount }}</span>
+                            @endif
+                        </div>
 
-                <div class="h-4 w-px bg-outline-variant mx-1 hidden sm:block"></div>
+                        <div class="max-h-64 overflow-y-auto divide-y divide-outline-variant/40">
+                            @forelse($unreadNotifications as $notif)
+                            <div class="px-4 py-2.5 hover:bg-surface-container-low transition-colors">
+                                <div class="flex items-start gap-2.5">
+                                    <span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                                        <span class="material-symbols-outlined text-[14px]">info</span>
+                                    </span>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-medium text-on-surface leading-snug">{{ $notif->event ?? 'Hệ thống cập nhật' }}</p>
+                                        <span class="text-[10px] font-mono text-outline">{{ $notif->created_at ? $notif->created_at->diffForHumans() : 'Vừa xong' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            @empty
+                            <div class="px-4 py-6 text-center text-outline text-xs">
+                                <span class="material-symbols-outlined text-[28px] text-outline/60 block mx-auto mb-1">notifications_off</span>
+                                <span>{{ __('admin.no_unread_notifications') }}</span>
+                            </div>
+                            @endforelse
+                        </div>
 
-                <!-- Admin Profile Avatar & Role -->
-                <div class="flex items-center gap-2 pl-1">
-                    <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary font-mono text-xs flex items-center justify-center font-bold ring-2 ring-emerald-100 border border-outline-variant">
-                        {{ mb_strtoupper(mb_substr($adminUser?->name ?? 'AD', 0, 2)) }}
-                    </div>
-                    <div class="text-left hidden md:block">
-                        <div class="text-xs font-semibold text-on-surface leading-tight">{{ $adminUser?->name ?? 'Admin Room' }}</div>
-                        <div class="text-[10px] text-outline font-mono leading-tight">Super Dispatcher</div>
+                        <div class="px-4 py-2 border-t border-outline-variant/60 bg-surface-container-low/50 text-center">
+                            <a href="{{ route('admin.audit.page', $room) }}" class="text-xs text-primary font-semibold hover:underline no-underline block">
+                                {{ __('admin.view_all_notifications') }} →
+                            </a>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Fast Create Action Button -->
-                <a href="{{ route('admin.campaigns.create', $room) }}" class="ml-2 bg-primary hover:bg-primary-container text-on-primary px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm no-underline">
+                <a href="{{ route('admin.campaigns.create', $room) }}" class="bg-primary hover:bg-primary-container text-on-primary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs no-underline">
                     <span class="material-symbols-outlined text-[16px]">bolt</span>
                     <span class="hidden sm:inline">{{ __('admin.dispatch_action') }}</span>
                 </a>
+                @endif
             </div>
         </header>
 

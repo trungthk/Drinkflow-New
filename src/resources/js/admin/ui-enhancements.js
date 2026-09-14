@@ -217,24 +217,29 @@ export function initSearchableSelects() {
  * 3. Date Range Filter with Presets
  */
 export function initDateRangePickers() {
-    const pickers = document.querySelectorAll('[data-date-range-picker]');
+    const pickers = document.querySelectorAll('[data-date-range-picker], .date-range-picker-container');
 
     pickers.forEach(container => {
         if (container.dataset.dateRangeInitialized) return;
         container.dataset.dateRangeInitialized = 'true';
 
-        const triggerBtn = container.querySelector('[data-date-range-trigger]');
-        const dropdown = container.querySelector('[data-date-range-dropdown]');
-        const labelEl = container.querySelector('[data-date-range-label]');
-        const startInput = container.querySelector('input[name="date_from"], input[data-date-from]');
-        const endInput = container.querySelector('input[name="date_to"], input[data-date-to]');
+        const triggerBtn = container.querySelector('[data-date-range-trigger], .date-range-toggle');
+        const dropdown = container.querySelector('[data-date-range-dropdown], .date-range-dropdown');
+        const labelEl = container.querySelector('[data-date-range-label], .date-range-label');
+        const startInput = container.querySelector('input[name="date_from"], input[data-date-from], .date-from-hidden');
+        const endInput = container.querySelector('input[name="date_to"], input[data-date-to], .date-to-hidden');
+        const dateFromInput = container.querySelector('.date-from-input, input[data-custom-from]');
+        const dateToInput = container.querySelector('.date-to-input, input[data-custom-to]');
         const customBox = container.querySelector('[data-custom-date-box]');
-        const btnApply = container.querySelector('[data-apply-date-range]');
+        const btnApply = container.querySelector('[data-apply-date-range], .apply-btn');
 
         if (!triggerBtn || !dropdown) return;
 
         function formatDate(d) {
-            return d.toISOString().split('T')[0];
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
 
         function formatDisplay(d) {
@@ -246,12 +251,22 @@ export function initDateRangePickers() {
         function setRange(start, end, presetName, labelText) {
             if (startInput) startInput.value = start;
             if (endInput) endInput.value = end;
+            if (dateFromInput) dateFromInput.value = start;
+            if (dateToInput) dateToInput.value = end;
 
             if (labelEl) {
                 if (start && end) {
-                    labelEl.textContent = `${labelText || presetName}: ${formatDisplay(start)} - ${formatDisplay(end)}`;
+                    if (start === end) {
+                        labelEl.textContent = start === formatDate(new Date()) ? (labelText || 'Hôm nay') : `${formatDisplay(start)}`;
+                    } else {
+                        labelEl.textContent = `${labelText || presetName}: ${formatDisplay(start)} ~ ${formatDisplay(end)}`;
+                    }
+                } else if (start) {
+                    labelEl.textContent = `>= ${formatDisplay(start)}`;
+                } else if (end) {
+                    labelEl.textContent = `<= ${formatDisplay(end)}`;
                 } else {
-                    labelEl.textContent = labelText || presetName || 'Tất cả';
+                    labelEl.textContent = labelText || 'Toàn thời gian';
                 }
             }
 
@@ -261,12 +276,13 @@ export function initDateRangePickers() {
                 detail: { start, end, preset: presetName }
             });
             container.dispatchEvent(event);
+            document.dispatchEvent(event);
 
             // Close dropdown
             dropdown.classList.add('hidden');
         }
 
-        dropdown.querySelectorAll('[data-preset]').forEach(btn => {
+        dropdown.querySelectorAll('[data-preset], .preset-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const preset = btn.dataset.preset;
                 const now = new Date();
@@ -281,12 +297,12 @@ export function initDateRangePickers() {
                     y.setDate(now.getDate() - 1);
                     start = formatDate(y);
                     end = formatDate(y);
-                } else if (preset === '7days') {
+                } else if (preset === '7days' || preset === 'last_7_days') {
                     const d7 = new Date(now);
                     d7.setDate(now.getDate() - 6);
                     start = formatDate(d7);
                     end = formatDate(now);
-                } else if (preset === '30days') {
+                } else if (preset === '30days' || preset === 'last_30_days') {
                     const d30 = new Date(now);
                     d30.setDate(now.getDate() - 29);
                     start = formatDate(d30);
@@ -308,14 +324,13 @@ export function initDateRangePickers() {
                     return;
                 }
 
-                if (customBox) customBox.classList.add('hidden');
                 setRange(start, end, preset, btn.textContent.trim());
             });
         });
 
         btnApply?.addEventListener('click', () => {
-            const start = startInput?.value || '';
-            const end = endInput?.value || '';
+            const start = dateFromInput?.value || startInput?.value || '';
+            const end = dateToInput?.value || endInput?.value || '';
             setRange(start, end, 'custom', 'Tùy chỉnh');
         });
 
@@ -328,6 +343,7 @@ export function initDateRangePickers() {
         document.addEventListener('click', () => dropdown.classList.add('hidden'));
     });
 }
+
 
 /**
  * 4. Table Skeleton Loading Helper
@@ -390,6 +406,31 @@ export function initFormSubmitLoading() {
 }
 
 /**
+ * 6. Admin Sidebar Collapse / Expand System
+ */
+export function toggleAdminSidebar() {
+    const html = document.documentElement;
+    const isCollapsed = html.classList.toggle('sidebar-collapsed');
+    try {
+        localStorage.setItem('df_admin_sidebar_collapsed', isCollapsed ? 'true' : 'false');
+    } catch (e) {}
+    syncSidebarToggleIcons(isCollapsed);
+}
+
+export function syncSidebarToggleIcons(isCollapsed) {
+    if (typeof isCollapsed === 'undefined') {
+        isCollapsed = document.documentElement.classList.contains('sidebar-collapsed');
+    }
+    document.querySelectorAll('.sidebar-collapse-toggle-icon').forEach(icon => {
+        icon.textContent = isCollapsed ? 'dock_to_right' : 'dock_to_left';
+    });
+}
+
+export function initAdminSidebar() {
+    syncSidebarToggleIcons();
+}
+
+/**
  * Master Initialize all UI Enhancements
  */
 export function initUiEnhancements() {
@@ -397,4 +438,6 @@ export function initUiEnhancements() {
     initSearchableSelects();
     initDateRangePickers();
     initFormSubmitLoading();
+    initAdminSidebar();
 }
+

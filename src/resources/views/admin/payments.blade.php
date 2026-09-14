@@ -32,6 +32,9 @@
 
                 <div class="divide-y divide-outline-variant/50">
                     @forelse($accounts as $acc)
+                        @php
+                            $accStatusVal = $acc->status instanceof \BackedEnum ? $acc->status->value : (string) ($acc->status ?? 'active');
+                        @endphp
                         <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-container-low/40 transition-colors">
                             <div class="flex items-start gap-3">
                                 <div class="w-10 h-10 rounded bg-primary/10 text-primary flex items-center justify-center font-bold font-mono text-sm shrink-0">
@@ -43,8 +46,8 @@
                                         @if($acc->is_default)
                                             <span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[10px] font-bold border border-emerald-200">{{ __('admin.default_badge') }}</span>
                                         @endif
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border {{ $acc->status === 'active' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500' }}">
-                                            {{ ucfirst($acc->status) }}
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-semibold border {{ $accStatusVal === 'active' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-100 text-gray-500' }}">
+                                            {{ ucfirst($accStatusVal) }}
                                         </span>
                                     </div>
                                     <div class="text-xs font-semibold text-secondary uppercase mt-0.5">{{ $acc->account_name }}</div>

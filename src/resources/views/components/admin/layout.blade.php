@@ -10,9 +10,30 @@
     $roomLabel = $room?->name ?? 'DrinkFlow';
     $pageTitle = $title ?: __('admin.dashboard');
     $adminUser = auth('admin')->user();
-    $assignedRoomsList = $assignedRooms ?? ($room ? collect([$room]) : collect());
-    if ($assignedRoomsList instanceof \Illuminate\Support\Collection && $assignedRoomsList->isEmpty() && $room) {
-        $assignedRoomsList = collect([$room]);
+    
+    if (!isset($assignedRooms) || $assignedRooms === null) {
+        if ($adminUser) {
+            if ($adminUser->isSuperadmin()) {
+                $assignedRoomsList = \App\Models\Room::where('status', \App\Enums\RoomStatus::Active)->orderBy('name')->get();
+            } else {
+                $assignedRoomsList = $adminUser->rooms()->where('status', \App\Enums\RoomStatus::Active)->orderBy('name')->get();
+            }
+        } else {
+            $assignedRoomsList = collect();
+        }
+    } else {
+        $assignedRoomsList = $assignedRooms;
+    }
+
+    if ($room && !$assignedRoomsList->contains('id', $room->id)) {
+        $assignedRoomsList = $assignedRoomsList->prepend($room);
+    }
+
+    $unreadNotifications = collect();
+    $unreadCount = 0;
+    if ($room) {
+        $unreadNotifications = \App\Models\AuditLog::where('room_id', $room->id)->latest('created_at')->take(5)->get();
+        $unreadCount = \App\Models\Debt::where('room_id', $room->id)->whereIn('status', \App\Enums\DebtStatus::outstandingValues())->count();
     }
 @endphp
 <!doctype html>
@@ -32,194 +53,287 @@
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 
+    <!-- Anti-flicker Sidebar State Initialization -->
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem('df_admin_sidebar_collapsed') === 'true' && window.innerWidth >= 1024) {
+                    document.documentElement.classList.add('sidebar-collapsed');
+                }
+            } catch(e) {}
+        })();
+    </script>
+
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
 </head>
 
 <body data-room-slug="{{ $room?->slug }}" class="bg-surface text-on-surface font-sans min-h-screen flex antialiased">
     <!-- ================= LEFT SIDEBAR ================= -->
-    <aside id="admin-sidebar" class="fixed top-0 left-0 h-screen w-64 flex flex-col z-30 bg-surface-container-lowest border-r border-outline-variant transition-transform duration-200 -translate-x-full lg:translate-x-0">
-        <div class="w-64 h-full p-4 flex flex-col justify-between overflow-y-auto">
+    <aside id="admin-sidebar" class="fixed top-0 left-0 h-screen w-64 flex flex-col z-30 bg-surface-container-lowest border-r border-outline-variant -translate-x-full lg:translate-x-0">
+        <div class="w-full h-full p-3.5 flex flex-col justify-between overflow-y-auto overflow-x-hidden">
             <div>
                 <!-- Brand Logo & Header -->
                 <div class="flex items-center gap-2 mb-5 px-1 justify-between">
-                    <div class="flex items-center gap-2.5">
+                    <a href="{{ route('admin.landing') }}" class="flex items-center gap-2.5 no-underline group hover:opacity-90 transition-opacity min-w-0" title="{{ __('admin.brand_title') }}">
                         <span class="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-xs shrink-0"
                               style="background: linear-gradient(135deg, #006948 0%, #047857 100%); background-color: #006948; border: 1px solid #005137; box-shadow: 0 1px 2px rgba(0,0,0,0.08);">
                             <svg class="w-4.5 h-4.5 text-white fill-current" viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px; fill: #ffffff; color: #ffffff;">
                                 <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/>
                             </svg>
                         </span>
-                        <div>
-                            <span class="text-base font-bold text-on-surface tracking-tight block leading-tight">{{ __('admin.brand_title') }}</span>
-                            <span class="text-[11px] font-mono text-outline block">{{ __('admin.brand_subtitle') }}</span>
+                        <div class="sidebar-text min-w-0">
+                            <span class="text-base font-bold text-on-surface tracking-tight block leading-tight truncate">{{ __('admin.brand_title') }}</span>
+                            <span class="text-[11px] font-mono text-outline block truncate">{{ __('admin.brand_subtitle') }}</span>
                         </div>
-                    </div>
+                    </a>
                     <button type="button" class="lg:hidden w-8 h-8 flex items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors" onclick="document.querySelector('#admin-sidebar')?.classList.toggle('-translate-x-full')">
                         <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                    <!-- Desktop Sidebar Toggle Button inside Header -->
+                    <button type="button" onclick="toggleAdminSidebar()" class="hidden lg:flex sidebar-text w-7 h-7 items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer" title="{{ __('admin.toggle_sidebar') }}">
+                        <span class="material-symbols-outlined text-[18px] sidebar-collapse-toggle-icon">dock_to_left</span>
                     </button>
                 </div>
 
                 <!-- Active Workspace Dropdown Trigger -->
                 <div class="mb-5 relative" x-data="{ open: false }">
-                    <label class="text-[10px] font-mono text-outline block mb-1 uppercase tracking-wider font-semibold">{{ __('admin.active_workspace') }}</label>
-                    <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 bg-surface border border-outline-variant rounded hover:border-outline text-left transition-colors">
+                    <label class="text-[10px] font-mono text-outline block mb-1 uppercase tracking-wider font-semibold sidebar-text">{{ __('admin.active_workspace') }}</label>
+                    <button type="button" @click="open = !open" class="sidebar-nav-link relative group w-full flex items-center justify-between px-3 py-2 bg-surface border border-outline-variant rounded hover:border-outline text-left transition-colors cursor-pointer" title="{{ $room ? $roomLabel : __('admin.select_room_title') }}">
                         <div class="flex items-center gap-2 truncate">
-                            <span class="w-2 h-2 rounded-full bg-primary inline-block shrink-0"></span>
-                            <span class="text-xs font-semibold text-on-surface truncate">{{ $roomLabel }}</span>
+                            <span class="w-2.5 h-2.5 rounded-full {{ $room ? 'bg-primary' : 'bg-outline' }} inline-block shrink-0"></span>
+                            <span class="text-xs font-semibold text-on-surface truncate sidebar-text">{{ $room ? $roomLabel : __('admin.select_room_title') }}</span>
                         </div>
-                        <span class="text-[10px] text-outline ml-1">▼</span>
+                        <span class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200 sidebar-text" :class="{ 'rotate-180': open }">expand_more</span>
+                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                            {{ $room ? $roomLabel : __('admin.select_room_title') }}
+                        </div>
                     </button>
 
-                    @if($assignedRoomsList->count() > 1 && $room)
-                    <div x-show="open" @click.away="open = false" x-cloak class="absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded shadow-lg z-50 py-1 max-h-48 overflow-y-auto">
-                        @foreach($assignedRoomsList as $assigned)
-                        <a href="{{ route('admin.dashboard.page', $assigned) }}" class="flex items-center justify-between px-3 py-2 text-xs hover:bg-surface-container-low transition-colors {{ $assigned->id === $room->id ? 'font-bold text-primary bg-primary/5' : 'text-on-surface' }}">
-                            <span class="truncate">{{ $assigned->name }}</span>
-                            @if($assigned->id === $room->id)
-                            <span class="material-symbols-outlined text-[14px] text-primary">check</span>
-                            @endif
+                    <div x-show="open" @click.away="open = false" x-cloak class="absolute left-0 right-0 top-full mt-1 bg-surface-container-lowest border border-outline-variant rounded-lg shadow-lg z-50 py-1 max-h-56 overflow-y-auto min-w-[200px]">
+                        @if($assignedRoomsList->isNotEmpty())
+                            <div class="px-2.5 py-1 text-[10px] font-mono uppercase text-outline tracking-wider font-semibold">{{ __('admin.assigned_rooms') }}</div>
+                            @foreach($assignedRoomsList as $assigned)
+                            <a href="{{ route('admin.dashboard.page', $assigned) }}" class="flex items-center justify-between px-3 py-2 text-xs hover:bg-surface-container-low transition-colors {{ ($room && $assigned->id === $room->id) ? 'font-bold text-primary bg-primary/5' : 'text-on-surface' }}">
+                                <span class="truncate">{{ $assigned->name }}</span>
+                                @if($room && $assigned->id === $room->id)
+                                <span class="material-symbols-outlined text-[14px] text-primary">check</span>
+                                @endif
+                            </a>
+                            @endforeach
+                            <div class="border-t border-outline-variant/60 my-1"></div>
+                        @endif
+                        <a href="{{ route('admin.landing') }}" class="flex items-center gap-2 px-3 py-2 text-xs text-primary font-semibold hover:bg-surface-container-low transition-colors">
+                            <span class="material-symbols-outlined text-[16px]">grid_view</span>
+                            <span class="truncate">{{ __('admin.all_rooms') }}</span>
                         </a>
-                        @endforeach
                     </div>
-                    @endif
                 </div>
 
                 <!-- Main Nav Links -->
                 <nav class="space-y-1 text-xs">
                     @if($room)
                     <!-- Dashboard -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded font-medium transition-colors {{ $active === 'dashboard' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
-                        href="{{ route('admin.dashboard.page', $room) }}">
-                        <span class="material-symbols-outlined text-[18px]">space_dashboard</span>
-                        <span>{{ __('admin.dashboard') }}</span>
+                    <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'dashboard' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        href="{{ route('admin.dashboard.page', $room) }}" title="{{ __('admin.dashboard') }}">
+                        <span class="material-symbols-outlined text-[18px] shrink-0">space_dashboard</span>
+                        <span class="sidebar-text truncate">{{ __('admin.dashboard') }}</span>
+                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                            {{ __('admin.dashboard') }}
+                        </div>
                     </a>
 
                     <!-- Campaigns -->
-                    <a class="flex items-center justify-between px-3 py-2 rounded font-medium transition-colors {{ $active === 'campaigns' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
-                        href="{{ route('admin.campaigns.page', $room) }}">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-[18px]">campaign</span>
-                            <span>{{ __('admin.campaigns') }}</span>
+                    <a class="sidebar-nav-link relative group flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'campaigns' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        href="{{ route('admin.campaigns.page', $room) }}" title="{{ __('admin.campaigns') }}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="material-symbols-outlined text-[18px] shrink-0">campaign</span>
+                            <span class="sidebar-text truncate">{{ __('admin.campaigns') }}</span>
                         </div>
-                        <span id="nav-live-badge" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-error-container text-on-error-container font-bold hidden">Live</span>
+                        <span id="nav-live-badge" class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-error-container text-on-error-container font-bold hidden sidebar-text">Live</span>
+                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                            {{ __('admin.campaigns') }}
+                        </div>
                     </a>
 
                     <!-- Orders -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded font-medium transition-colors {{ $active === 'orders' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
-                        href="{{ route('admin.orders.page', $room) }}">
-                        <span class="material-symbols-outlined text-[18px]">local_shipping</span>
-                        <span>{{ __('admin.orders') }}</span>
+                    <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'orders' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        href="{{ route('admin.orders.page', $room) }}" title="{{ __('admin.orders') }}">
+                        <span class="material-symbols-outlined text-[18px] shrink-0">local_shipping</span>
+                        <span class="sidebar-text truncate">{{ __('admin.orders') }}</span>
+                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                            {{ __('admin.orders') }}
+                        </div>
                     </a>
 
                     <!-- Payments & Debt -->
-                    <a class="flex items-center justify-between px-3 py-2 rounded font-medium transition-colors {{ in_array($active, ['debts', 'payments']) ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
-                        href="{{ route('admin.debts.page', $room) }}">
-                        <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-[18px]">payments</span>
-                            <span>{{ __('admin.debts') }}</span>
+                    <a class="sidebar-nav-link relative group flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors {{ in_array($active, ['debts', 'payments']) ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        href="{{ route('admin.debts.page', $room) }}" title="{{ __('admin.debts') }}">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <span class="material-symbols-outlined text-[18px] shrink-0">payments</span>
+                            <span class="sidebar-text truncate">{{ __('admin.debts') }}</span>
                         </div>
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500" title="{{ __('admin.needs_settlement') }}"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 sidebar-text" title="{{ __('admin.needs_settlement') }}"></span>
+                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                            {{ __('admin.debts') }}
+                        </div>
                     </a>
 
                     <!-- Users -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded font-medium transition-colors {{ $active === 'users' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
-                        href="{{ route('admin.room-users.page', $room) }}">
-                        <span class="material-symbols-outlined text-[18px]">group</span>
-                        <span>{{ __('admin.users') }}</span>
+                    <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'users' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        href="{{ route('admin.room-users.page', $room) }}" title="{{ __('admin.users') }}">
+                        <span class="material-symbols-outlined text-[18px] shrink-0">group</span>
+                        <span class="sidebar-text truncate">{{ __('admin.users') }}</span>
+                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                            {{ __('admin.users') }}
+                        </div>
                     </a>
 
                     <!-- Reports -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded font-medium transition-colors {{ $active === 'reports' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
-                        href="{{ route('admin.reports.page', $room) }}">
-                        <span class="material-symbols-outlined text-[18px]">assessment</span>
-                        <span>{{ __('admin.reports_audit') }}</span>
+                    <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'reports' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        href="{{ route('admin.reports.page', $room) }}" title="{{ __('admin.reports_audit') }}">
+                        <span class="material-symbols-outlined text-[18px] shrink-0">assessment</span>
+                        <span class="sidebar-text truncate">{{ __('admin.reports_audit') }}</span>
+                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                            {{ __('admin.reports_audit') }}
+                        </div>
                     </a>
 
                     <!-- VietQR Accounts -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded font-medium transition-colors {{ $active === 'payment_accounts' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
-                        href="{{ route('admin.payment-accounts.page', $room) }}">
-                        <span class="material-symbols-outlined text-[18px]">qr_code_2</span>
-                        <span>{{ __('admin.config_vietqr') }}</span>
+                    <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'payment_accounts' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        href="{{ route('admin.payment-accounts.page', $room) }}" title="{{ __('admin.config_vietqr') }}">
+                        <span class="material-symbols-outlined text-[18px] shrink-0">qr_code_2</span>
+                        <span class="sidebar-text truncate">{{ __('admin.config_vietqr') }}</span>
+                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                            {{ __('admin.config_vietqr') }}
+                        </div>
                     </a>
 
                     <!-- Room Settings -->
-                    <a class="flex items-center gap-3 px-3 py-2 rounded font-medium transition-colors {{ in_array($active, ['settings', 'notifications']) ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
-                        href="{{ route('admin.settings.page', $room) }}">
-                        <span class="material-symbols-outlined text-[18px]">settings</span>
-                        <span>{{ __('admin.payments_settings') }}</span>
+                    <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ in_array($active, ['settings', 'notifications']) ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        href="{{ route('admin.settings.page', $room) }}" title="{{ __('admin.payments_settings') }}">
+                        <span class="material-symbols-outlined text-[18px] shrink-0">settings</span>
+                        <span class="sidebar-text truncate">{{ __('admin.payments_settings') }}</span>
+                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                            {{ __('admin.payments_settings') }}
+                        </div>
+                    </a>
+
+                    <!-- System Diagnostics -->
+                    <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'audit' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        href="{{ route('admin.audit.page', $room) }}" title="{{ __('admin.system_diagnostics') }}">
+                        <span class="material-symbols-outlined text-[18px] shrink-0">health_and_safety</span>
+                        <span class="sidebar-text truncate">{{ __('admin.system_diagnostics') }}</span>
+                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                            {{ __('admin.system_diagnostics') }}
+                        </div>
                     </a>
                     @endif
                 </nav>
             </div>
 
-            <!-- Footer Action Links -->
-            <div class="pt-4 border-t border-outline-variant space-y-1 text-xs">
-                @if($room)
-                <a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded font-medium transition-colors {{ $active === 'audit' ? 'bg-secondary-container text-primary font-bold' : '' }}"
-                    href="{{ route('admin.audit.page', $room) }}">
-                    <span class="material-symbols-outlined text-[18px]">health_and_safety</span>
-                    <span>{{ __('admin.system_diagnostics') }}</span>
-                </a>
-                @endif
-                <button type="button" onclick="openAdminLogoutModal()" class="btn-admin-logout w-full flex items-center gap-3 px-3 py-2 text-error hover:bg-error-container/40 rounded font-medium transition-colors text-left cursor-pointer">
-                    <span class="material-symbols-outlined text-[18px]">logout</span>
-                    <span>{{ __('admin.logout') }}</span>
+            <!-- Footer Action Links & Admin Info -->
+            <div class="pt-4 border-t border-outline-variant space-y-2 text-xs">
+                <!-- Admin Profile Info Chip -->
+                <div class="flex items-center gap-2.5 p-2 rounded-lg bg-surface-container border border-outline-variant/60 relative group" title="{{ $adminUser?->name }} ({{ $adminUser?->email }})">
+                    <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary font-mono text-xs flex items-center justify-center font-bold ring-1 ring-emerald-600/30 shrink-0 mx-auto lg:mx-0">
+                        {{ mb_strtoupper(mb_substr($adminUser?->name ?? 'AD', 0, 2)) }}
+                    </div>
+                    <div class="flex flex-col min-w-0 flex-1 sidebar-text">
+                        <span class="text-xs font-semibold text-on-surface truncate leading-tight">{{ $adminUser?->name ?? 'Admin' }}</span>
+                        <span class="text-[10px] text-outline font-mono truncate leading-tight">{{ $adminUser?->email ?? ($adminUser?->isSuperadmin() ? 'Super Admin' : 'Room Dispatcher') }}</span>
+                    </div>
+                    <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                        {{ $adminUser?->name }} ({{ $adminUser?->email }})
+                    </div>
+                </div>
+
+                <!-- Logout Button -->
+                <button type="button" onclick="openAdminLogoutModal()" class="sidebar-nav-link btn-admin-logout relative group w-full flex items-center gap-2.5 px-3 py-2 text-error hover:bg-error-container/40 rounded-lg font-medium transition-colors text-left cursor-pointer" title="{{ __('admin.logout') }}">
+                    <span class="material-symbols-outlined text-[18px] shrink-0">logout</span>
+                    <span class="sidebar-text truncate">{{ __('admin.logout') }}</span>
+                    <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                        {{ __('admin.logout') }}
+                    </div>
                 </button>
             </div>
         </div>
     </aside>
 
     <!-- ================= MAIN CONTENT WORKSPACE ================= -->
-    <div class="flex-1 lg:pl-64 flex flex-col min-w-0 min-h-screen">
+    <div id="admin-main-wrapper" class="flex-1 lg:pl-64 flex flex-col min-w-0 min-h-screen">
         <!-- Top Navigation Bar -->
         <header class="flex justify-between items-center w-full px-6 py-2 h-14 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-20">
-            <!-- Left side: Mobile menu toggle & Breadcrumbs -->
+            <!-- Left side: Mobile menu toggle, Desktop sidebar collapse toggle & Breadcrumbs -->
             <div class="flex items-center gap-3">
-                <button type="button" class="lg:hidden w-8 h-8 flex items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors"
+                <button type="button" class="lg:hidden w-8 h-8 flex items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
                     onclick="document.querySelector('#admin-sidebar')?.classList.toggle('-translate-x-full')">
                     <span class="material-symbols-outlined text-[20px]">menu</span>
+                </button>
+                <button type="button" onclick="toggleAdminSidebar()" class="hidden lg:flex w-8 h-8 items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer" title="{{ __('admin.toggle_sidebar') }}">
+                    <span class="material-symbols-outlined text-[20px] sidebar-collapse-toggle-icon">dock_to_left</span>
                 </button>
                 <nav class="flex items-center gap-2 text-xs text-outline font-medium">
                     <span>Admin</span>
                     <span>/</span>
                     <a href="{{ route('admin.landing') }}" class="hover:text-on-surface transition-colors">Rooms</a>
+                    @if($room)
                     <span>/</span>
                     <span class="text-on-surface font-semibold truncate max-w-[180px] sm:max-w-none">{{ $roomLabel }}</span>
+                    @endif
                 </nav>
             </div>
 
-            <!-- Right side: Realtime Socket, Actions & User Profile -->
+            <!-- Right side: Notifications Dropdown, Fast Action -->
             <div class="flex items-center gap-3">
-                <!-- Socket Live Status -->
-                <span id="socket-state" class="hidden sm:inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-surface-container-low text-[11px] font-mono text-outline border border-outline-variant/60">
-                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
-                    <span>Socket wss</span>
-                </span>
-
                 @if($room)
-                <!-- Notifications Bell -->
-                <a href="{{ route('admin.manage.page', [$room, 'tab' => 'notifications']) }}" class="w-8 h-8 flex items-center justify-center rounded text-on-surface-variant hover:bg-surface-container-low transition-colors relative" title="Notifications">
-                    <span class="material-symbols-outlined text-[20px]">notifications</span>
-                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full"></span>
-                </a>
-                @endif
+                <!-- Notifications Dropdown -->
+                <div class="relative" x-data="{ notifOpen: false }">
+                    <button type="button" @click="notifOpen = !notifOpen" class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container-low transition-colors relative cursor-pointer" title="{{ __('admin.notifications') }}">
+                        <span class="material-symbols-outlined text-[20px]">notifications</span>
+                        @if($unreadCount > 0 || $unreadNotifications->isNotEmpty())
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-error rounded-full ring-2 ring-surface"></span>
+                        @endif
+                    </button>
 
-                <div class="h-4 w-px bg-outline-variant mx-1 hidden sm:block"></div>
+                    <div x-show="notifOpen" @click.away="notifOpen = false" x-cloak class="absolute right-0 top-full mt-2 w-80 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-xl z-50 py-2 overflow-hidden">
+                        <div class="px-4 py-2 border-b border-outline-variant/60 flex items-center justify-between">
+                            <span class="font-bold text-xs text-on-surface">{{ __('admin.unread_notifications') }}</span>
+                            @if($unreadCount > 0)
+                            <span class="px-1.5 py-0.5 rounded-full bg-error-container text-error text-[10px] font-mono font-bold">{{ $unreadCount }}</span>
+                            @endif
+                        </div>
 
-                <!-- Admin Profile Avatar & Role -->
-                <div class="flex items-center gap-2 pl-1">
-                    <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary font-mono text-xs flex items-center justify-center font-bold ring-2 ring-emerald-100 border border-outline-variant">
-                        {{ mb_strtoupper(mb_substr($adminUser?->name ?? 'AD', 0, 2)) }}
-                    </div>
-                    <div class="text-left hidden md:block">
-                        <div class="text-xs font-semibold text-on-surface leading-tight">{{ $adminUser?->name ?? 'Admin Room' }}</div>
-                        <div class="text-[10px] text-outline font-mono leading-tight">Super Dispatcher</div>
+                        <div class="max-h-64 overflow-y-auto divide-y divide-outline-variant/40">
+                            @forelse($unreadNotifications as $notif)
+                            <div class="px-4 py-2.5 hover:bg-surface-container-low transition-colors">
+                                <div class="flex items-start gap-2.5">
+                                    <span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                                        <span class="material-symbols-outlined text-[14px]">info</span>
+                                    </span>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-medium text-on-surface leading-snug">{{ $notif->event ?? 'Hệ thống cập nhật' }}</p>
+                                        <span class="text-[10px] font-mono text-outline">{{ $notif->created_at ? $notif->created_at->diffForHumans() : 'Vừa xong' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            @empty
+                            <div class="px-4 py-6 text-center text-outline text-xs">
+                                <span class="material-symbols-outlined text-[28px] text-outline/60 block mx-auto mb-1">notifications_off</span>
+                                <span>{{ __('admin.no_unread_notifications') }}</span>
+                            </div>
+                            @endforelse
+                        </div>
+
+                        <div class="px-4 py-2 border-t border-outline-variant/60 bg-surface-container-low/50 text-center">
+                            <a href="{{ route('admin.audit.page', $room) }}" class="text-xs text-primary font-semibold hover:underline no-underline block">
+                                {{ __('admin.view_all_notifications') }} →
+                            </a>
+                        </div>
                     </div>
                 </div>
 
-                @if($room)
                 <!-- Fast Create Action Button -->
-                <a href="{{ route('admin.campaigns.create', $room) }}" class="ml-2 bg-primary hover:bg-primary-container text-on-primary px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm no-underline">
+                <a href="{{ route('admin.campaigns.create', $room) }}" class="bg-primary hover:bg-primary-container text-on-primary px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs no-underline">
                     <span class="material-symbols-outlined text-[16px]">bolt</span>
                     <span class="hidden sm:inline">{{ __('admin.dispatch_action') }}</span>
                 </a>

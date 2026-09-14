@@ -82,7 +82,7 @@ class CampaignController extends Controller
     public function create(Request $request, Room $room): View|JsonResponse
     {
         $room = $request->attributes->get('room') ?? $room;
-        $paymentAccounts = $room->paymentAccounts()->where('is_active', true)->get();
+        $paymentAccounts = $room->paymentAccounts()->where('status', PaymentAccountStatus::Active)->get();
         $roomUsers = $room->roomUsers()->with('user')->where('status', RoomUserStatus::Active)->get();
         $previousCampaigns = Campaign::query()
             ->where('room_id', $room->id)
@@ -253,7 +253,9 @@ class CampaignController extends Controller
     {
         $this->assertCampaign($campaign);
         $allowDebt = $request->boolean('allow_debt', true);
-        return response()->json(['data' => $action->execute($campaign, $allowDebt)]);
+        $reason = $request->input('reason');
+        $reasonString = is_string($reason) && trim($reason) !== '' ? trim($reason) : null;
+        return response()->json(['data' => $action->execute($campaign, $allowDebt, $reasonString)]);
     }
 
     /**

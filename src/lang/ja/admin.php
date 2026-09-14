@@ -23,6 +23,12 @@ return [
     'logout' => 'ログアウト',
     'dispatch_action' => 'クイック発動',
     'go_to_top' => 'トップへ戻る',
+    'notifications' => '通知',
+    'unread_notifications' => '未読の通知',
+    'no_unread_notifications' => '新しい通知はありません',
+    'view_all_notifications' => 'すべての通知を見る',
+    'assigned_rooms' => '割り当てられたルーム',
+    'all_rooms' => 'すべてのルーム',
 
     // Room selector
     'select_room_title' => 'ルーム選択',
@@ -408,9 +414,25 @@ return [
     'channels_count_unit' => ':count チャンネル',
     'no_webhooks_found' => '有効なWebhook Botチャンネルがありません。',
     'webhook_form_platform' => 'プラットフォーム:',
+    'webhook_form_name' => 'チャンネル表示名:',
     'webhook_form_url' => 'Webhook URL / エンドポイント:',
-    'webhook_form_token' => 'シークレットトークン / Botトークン (任意):',
+    'webhook_form_bot_token' => 'Telegram Bot Token:',
+    'webhook_form_chat_id' => 'Telegram Chat ID / Channel ID:',
+    'webhook_form_api_token' => 'Chatwork API Token:',
+    'webhook_form_room_id' => 'Chatwork Room ID:',
+    'webhook_form_token' => 'シークレットトークン / 認証ヘッダー (任意):',
     'webhook_form_events' => '通知イベント:',
+    'filter_status_all' => 'すべてのステータス',
+    'filter_event' => 'イベント',
+    'filter_target' => '対象オブジェクト',
+    'filter_actor' => '実行者',
+    'filter_actor_placeholder' => '実行者またはIDを入力...',
+    'from_date' => '開始日',
+    'to_date' => '終了日',
+    'all_events' => 'すべてのイベント',
+    'all_targets' => 'すべての対象',
+    'filter_apply' => 'フィルター適用',
+    'filter_reset' => 'リセット',
 
     // Reports & Analytics
     'reports_analytics_title' => 'ロジスティクス分析＆レポート',
@@ -706,4 +728,20 @@ return [
     'submitting' => '保存中...',
     'loading_data' => 'データを読み込み中...',
     'no_options_found' => '一致する選択肢がありません',
+
+    // Notification Channel Updates
+    'btn_delete_channel' => 'チャンネル削除',
+    'configured_status' => '設定済み',
+    'not_configured_status' => '未設定',
+
+    // Sidebar & Campaign Close Enhancements
+    'toggle_sidebar' => 'サイドバーの折りたたみ/展開',
+    'close_reason_label' => '注文締め切りの理由',
+    'close_reason_placeholder' => '理由を入力または選択してください...',
+    'close_reason_opt_time_up' => '注文受付時間が終了しました',
+    'close_reason_opt_quota_reached' => '目標注文数に達しました',
+    'close_reason_opt_store_cutoff' => '店舗の受付終了',
+    'close_reason_opt_driver_arrived' => '配達員が受け取り準備中',
+    'close_reason_opt_other' => 'その他の理由',
+    'auto_create_debt_record' => '未払い注文の未収金レコードを自動作成する',
 ];

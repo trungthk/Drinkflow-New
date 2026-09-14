@@ -19,12 +19,13 @@ class CloseCampaignAction
      *
      * @param Campaign $campaign Campaign instance to close.
      * @param bool $allowDebt Whether to automatically create debt records for pending balances.
+     * @param ?string $reason Optional reason why the campaign was closed.
      * @return Campaign Closed campaign instance.
      * @throws ValidationException If campaign is not in active or closing state.
      */
-    public function execute(Campaign $campaign, bool $allowDebt = true): Campaign
+    public function execute(Campaign $campaign, bool $allowDebt = true, ?string $reason = null): Campaign
     {
-        $closed = DB::transaction(function () use ($campaign, $allowDebt): Campaign {
+        $closed = DB::transaction(function () use ($campaign, $allowDebt, $reason): Campaign {
             $campaign = Campaign::query()->whereKey($campaign->id)->lockForUpdate()->firstOrFail();
 
             if (! in_array($campaign->status, [CampaignStatus::Active, CampaignStatus::Closing], true)) {
@@ -72,7 +73,7 @@ class CloseCampaignAction
                 $campaign->id,
                 $campaign->room_id,
                 ['status' => CampaignStatus::Active->value],
-                ['status' => CampaignStatus::Closed->value, 'allow_debt' => $allowDebt]
+                ['status' => CampaignStatus::Closed->value, 'allow_debt' => $allowDebt, 'reason' => $reason]
             );
 
             return $campaign->fresh();

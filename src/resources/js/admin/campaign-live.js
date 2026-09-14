@@ -24,6 +24,7 @@ export function liveCampaignComponent(config = {}) {
         summaryText: config.summaryText || window.__DF_CAMPAIGN_SUMMARY_TEXT__ || '',
         searchQuery: '',
         allowDebt: true,
+        closeReason: '',
         openCloseModal: false,
 
         init() {
@@ -133,7 +134,10 @@ export function liveCampaignComponent(config = {}) {
                         'X-CSRF-TOKEN': csrfToken,
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ allow_debt: this.allowDebt })
+                    body: JSON.stringify({
+                        allow_debt: this.allowDebt,
+                        reason: this.closeReason
+                    })
                 });
                 if (res.ok) {
                     window.location.href = `/admin/${roomSlug}/campaigns/${campaignId}?view=detail`;
