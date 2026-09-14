@@ -112,7 +112,7 @@ class UserRoomsService
                 'status' => $statusVal,
                 'is_active' => $isActive,
                 'is_blocked' => $isBlocked,
-                'joined_at_formatted' => $ru->joined_at ? $ru->joined_at->format('d/m/Y') : ($ru->created_at ? $ru->created_at->format('d/m/Y') : 'N/A'),
+                'joined_at_formatted' => $ru->joined_at ? \App\Support\Helpers\FormatHelper::formatDate($ru->joined_at) : ($ru->created_at ? \App\Support\Helpers\FormatHelper::formatDate($ru->created_at) : 'N/A'),
                 'orders_count' => $ordersCount,
                 'total_spent' => $totalSpent,
                 'total_spent_formatted' => number_format($totalSpent, 0, ',', '.') . 'đ',

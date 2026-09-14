@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class VersionPageTest extends TestCase
 {
+    use RefreshDatabase;
     public function test_versions_index_loads_latest_version(): void
     {
         $response = $this->get('/versions');

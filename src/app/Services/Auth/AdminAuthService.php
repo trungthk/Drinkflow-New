@@ -6,11 +6,14 @@ namespace App\Services\Auth;
 
 use App\Enums\AdminStatus;
 use App\Http\Requests\AdminLoginRequest;
+use App\Mail\AdminResetPasswordOtpMail;
 use App\Models\AdminAccount;
 use App\Models\SecurityEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
@@ -45,7 +48,7 @@ class AdminAuthService
      */
     public function login(AdminLoginRequest $request): AdminAccount
     {
-        $key = strtolower($request->input('email')) . '|' . $request->ip();
+        $key = strtolower((string) $request->input('email')) . '|' . $request->ip();
 
         if (RateLimiter::tooManyAttempts($key, 5)) {
             throw ValidationException::withMessages([
@@ -53,19 +56,23 @@ class AdminAuthService
             ]);
         }
 
-        $answer = $request->session()->pull('admin_captcha_answer');
-        if ($answer !== null && ! hash_equals((string) $answer, trim((string) $request->input('captcha')))) {
-            RateLimiter::hit($key, 60);
-            SecurityEvent::create([
-                'type' => 'failed_login',
-                'severity' => 'medium',
-                'ip_address' => $request->ip(),
-                'metadata' => ['actor' => 'admin', 'reason' => 'captcha'],
-            ]);
+        // Validate Captcha when not running in local environment or testing
+        $isLocalOrDisabled = app()->isLocal() || (bool) config('captcha.disable');
+        if (! $isLocalOrDisabled) {
+            $captchaInput = (string) $request->input('captcha', '');
+            if ($captchaInput === '' || ! function_exists('captcha_check') || ! captcha_check($captchaInput)) {
+                RateLimiter::hit($key, 60);
+                SecurityEvent::create([
+                    'type' => 'failed_login',
+                    'severity' => 'medium',
+                    'ip_address' => $request->ip(),
+                    'metadata' => ['actor' => 'admin', 'reason' => 'captcha'],
+                ]);
 
-            throw ValidationException::withMessages([
-                'captcha' => __('admin.invalid_captcha'),
-            ]);
+                throw ValidationException::withMessages([
+                    'captcha' => __('admin.invalid_captcha'),
+                ]);
+            }
         }
 
         $credentials = $request->only('email', 'password');
@@ -134,6 +141,15 @@ class AdminAuthService
             'admin_reset_otp_expires_at' => now()->addMinutes(15)->timestamp,
             'admin_reset_verified' => false,
         ]);
+
+        try {
+            Mail::to($normalized)->send(new AdminResetPasswordOtpMail($admin, $otp, 15));
+        } catch (\Throwable $e) {
+            Log::error('Failed to send admin password reset OTP email: ' . $e->getMessage(), [
+                'email' => $normalized,
+                'exception' => $e,
+            ]);
+        }
 
         SecurityEvent::create([
             'type' => 'password_reset_otp_requested',

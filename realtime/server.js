@@ -1,11 +1,45 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs';
 import { createServer } from 'node:http';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Server } from 'socket.io';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+function loadEnvFile(filePath) {
+  if (!fs.existsSync(filePath)) return;
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    for (const line of content.split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const match = trimmed.match(/^([A-Za-z0-9_]+)\s*=\s*(.*)$/);
+      if (match) {
+        const key = match[1];
+        let val = match[2].trim();
+        if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+          val = val.slice(1, -1);
+        }
+        if (!process.env[key]) {
+          process.env[key] = val;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn(`Could not load ${filePath}:`, err.message);
+  }
+}
+
+// Automatically load from realtime/.env or ../src/.env
+loadEnvFile(path.join(__dirname, '.env'));
+loadEnvFile(path.join(__dirname, '../src/.env'));
 
 const port = Number(process.env.PORT || 3001);
 const secret = process.env.SOCKET_TOKEN_SECRET || process.env.APP_KEY || '';
 const internalSecret = process.env.REALTIME_INTERNAL_SECRET || '';
-if (!secret) throw new Error('SOCKET_TOKEN_SECRET or APP_KEY is required');
+if (!secret) throw new Error('SOCKET_TOKEN_SECRET or APP_KEY is required (check .env in realtime/ or src/)');
 
 const decode = value => Buffer.from(value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - value.length % 4) % 4), 'base64').toString('utf8');
 const verify = token => {

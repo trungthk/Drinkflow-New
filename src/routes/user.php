@@ -2,18 +2,24 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/auth/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])->name('auth.google');
-Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+Route::get('/auth/google', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'redirect'])
+    ->middleware('throttle:user-auth-google')
+    ->name('auth.google');
+Route::get('/auth/google/callback', [\App\Http\Controllers\Auth\GoogleAuthController::class, 'callback'])
+    ->middleware('throttle:user-auth-google')
+    ->name('auth.google.callback');
 Route::match(['get', 'post'], '/logout', function (\Illuminate\Http\Request $request) {
     \Illuminate\Support\Facades\Auth::guard('web')->logout();
     $request->session()->invalidate();
     $request->session()->regenerateToken();
     return redirect('/');
-})->name('logout');
+})->middleware('throttle:user-auth-logout')->name('logout');
 
 Route::get('/rooms/{room}', [\App\Http\Controllers\User\RoomController::class, 'show'])->name('user.rooms.show');
 Route::get('/rooms/{room}/join', \App\Http\Controllers\User\JoinPageController::class)->name('user.rooms.join.show');
-Route::post('/rooms/{room}/join', [\App\Http\Controllers\User\RoomController::class, 'join'])->name('user.rooms.join');
+Route::post('/rooms/{room}/join', [\App\Http\Controllers\User\RoomController::class, 'join'])
+    ->middleware('throttle:room-join')
+    ->name('user.rooms.join');
 
 Route::middleware(['global.user', 'room.user'])->group(function () {
     Route::get('/rooms/{room}/dashboard', \App\Http\Controllers\User\DashboardController::class)->name('user.dashboard');
@@ -37,7 +43,9 @@ Route::middleware(['global.user'])->group(function () {
     Route::get('/me', \App\Http\Controllers\User\Global\DashboardController::class)->name('user.me.dashboard');
     Route::get('/me/profile', \App\Http\Controllers\User\Global\ProfileController::class)->name('user.me.profile');
     Route::match(['post', 'patch'], '/me/profile', [\App\Http\Controllers\User\Global\ProfileController::class, 'update'])->name('user.me.profile.update');
-    Route::post('/me/rooms/join', [\App\Http\Controllers\User\Global\RoomsController::class, 'joinByCode'])->name('user.me.rooms.join');
+    Route::post('/me/rooms/join', [\App\Http\Controllers\User\Global\RoomsController::class, 'joinByCode'])
+        ->middleware('throttle:room-join')
+        ->name('user.me.rooms.join');
     Route::get('/me/notifications', [\App\Http\Controllers\User\Global\NotificationController::class, 'index'])->name('user.me.notifications');
     Route::post('/me/notifications/read-all', [\App\Http\Controllers\User\Global\NotificationController::class, 'markAllRead'])->name('user.me.notifications.read-all');
     Route::get('/me/devices', [\App\Http\Controllers\User\Global\ProfileController::class, 'devices'])->name('user.me.devices');
@@ -48,7 +56,9 @@ Route::middleware(['global.user'])->group(function () {
     Route::post('/me/account/delete', [\App\Http\Controllers\User\Global\ProfileController::class, 'deleteAccount'])->name('user.me.account.delete');
 
     Route::get('/me/feedback', [\App\Http\Controllers\User\Global\ProfileController::class, 'feedback'])->name('user.me.feedback');
-    Route::post('/me/feedback', [\App\Http\Controllers\User\Global\ProfileController::class, 'storeFeedback'])->name('user.me.feedback.store');
+    Route::post('/me/feedback', [\App\Http\Controllers\User\Global\ProfileController::class, 'storeFeedback'])
+        ->middleware('throttle:feedback-submission')
+        ->name('user.me.feedback.store');
 
     // Global User JSON API & Action Endpoints
     Route::get('/profile', [\App\Http\Controllers\User\Global\ProfileController::class, 'show'])->name('user.profile.show');

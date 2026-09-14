@@ -37,7 +37,7 @@ class UserFeedbackService
                             'subsystem' => $fb->subsystem,
                             'subsystem_label' => $fb->subsystem_label,
                             'content' => $fb->content,
-                            'created_at_formatted' => $fb->created_at->format('d/m/Y'),
+                            'created_at_formatted' => \App\Support\Helpers\FormatHelper::formatDate($fb->created_at),
                         ];
                     }),
                     'current_page' => $feedbacks->currentPage(),

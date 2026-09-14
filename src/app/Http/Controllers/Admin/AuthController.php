@@ -4,18 +4,27 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\CampaignStatus;
+use App\Enums\DebtStatus;
+use App\Enums\PaymentAccountStatus;
 use App\Enums\RoomStatus;
+use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AdminLoginRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\SendResetOtpRequest;
 use App\Http\Requests\VerifyOtpRequest;
 use App\Models\AdminAccount;
+use App\Models\Debt;
+use App\Models\Order;
+use App\Models\Room;
 use App\Services\Auth\AdminAuthService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 
 class AuthController extends Controller
 {
@@ -32,9 +41,7 @@ class AuthController extends Controller
             return redirect()->route('admin.landing');
         }
 
-        $question = $authService->generateCaptcha($request);
-
-        return view('admin.auth.login', ['captchaQuestion' => $question]);
+        return view('admin.auth.login');
     }
 
     /**
@@ -52,13 +59,91 @@ class AuthController extends Controller
             return redirect()->route('superadmin.dashboard');
         }
 
-        $rooms = $admin->rooms()->where('status', RoomStatus::Active)->orderBy('name')->get();
+        $today = Carbon::today();
+
+        $rooms = $admin->rooms()
+            ->where('status', RoomStatus::Active)
+            ->withCount([
+                'roomUsers as active_members_count' => fn ($q) => $q->where('status', RoomUserStatus::Active),
+            ])
+            ->orderBy('name')
+            ->get();
 
         if ($rooms->count() === 1) {
             return redirect()->route('admin.dashboard.page', $rooms->first());
         }
 
-        return view('admin.rooms', ['rooms' => $rooms, 'admin' => $admin]);
+        $roomsData = $rooms->map(function (Room $room) use ($today) {
+            $activeCampaign = $room->campaigns()
+                ->where('status', CampaignStatus::Active)
+                ->latest('started_at')
+                ->first();
+
+            $scheduledCampaign = $room->campaigns()
+                ->where('status', CampaignStatus::Scheduled)
+                ->where('deadline', '>=', now())
+                ->orderBy('deadline')
+                ->first();
+
+            $todayOrdersCount = Order::query()
+                ->where('room_id', $room->id)
+                ->whereDate('created_at', $today)
+                ->whereNotIn('status', ['cancelled'])
+                ->count();
+
+            $unpaidDebtsSum = (int) Debt::query()
+                ->where('room_id', $room->id)
+                ->whereIn('status', DebtStatus::outstandingValues())
+                ->sum('remaining_amount');
+
+            $unpaidDebtsCount = Debt::query()
+                ->where('room_id', $room->id)
+                ->whereIn('status', DebtStatus::outstandingValues())
+                ->count();
+
+            $paymentAccount = $room->paymentAccounts()
+                ->where('status', PaymentAccountStatus::Active)
+                ->first();
+
+            $roomType = 'idle';
+            if ($activeCampaign) {
+                $roomType = 'live';
+            } elseif ($scheduledCampaign) {
+                $roomType = 'scheduled';
+            } elseif ($unpaidDebtsSum > 0) {
+                $roomType = 'debt';
+            }
+
+            return (object) [
+                'model' => $room,
+                'id' => $room->id,
+                'slug' => $room->slug,
+                'name' => $room->name,
+                'description' => $room->description,
+                'active_members_count' => $room->active_members_count ?? 0,
+                'active_campaign' => $activeCampaign,
+                'scheduled_campaign' => $scheduledCampaign,
+                'today_orders_count' => $todayOrdersCount,
+                'unpaid_debts_sum' => $unpaidDebtsSum,
+                'unpaid_debts_count' => $unpaidDebtsCount,
+                'payment_account' => $paymentAccount,
+                'room_type' => $roomType,
+                'updated_at' => $room->updated_at,
+            ];
+        });
+
+        $liveCount = $roomsData->where('room_type', 'live')->count();
+        $debtCount = $roomsData->where('room_type', 'debt')->count();
+        $idleCount = $roomsData->whereIn('room_type', ['idle', 'scheduled'])->count();
+
+        return view('admin.rooms', [
+            'rooms' => $rooms,
+            'roomsData' => $roomsData,
+            'admin' => $admin,
+            'liveCount' => $liveCount,
+            'debtCount' => $debtCount,
+            'idleCount' => $idleCount,
+        ]);
     }
 
     /**
@@ -146,42 +231,54 @@ class AuthController extends Controller
     }
 
     /**
-     * Verify the submitted OTP code.
+     * Verify the submitted OTP code and redirect to 30-min signed reset password route.
      *
      * @param VerifyOtpRequest $request Validated OTP input request.
      * @param AdminAuthService $authService Authentication service.
-     * @return JsonResponse|RedirectResponse Redirect to reset password or JSON.
+     * @return JsonResponse|RedirectResponse Redirect to signed reset password URL or JSON.
      */
     public function verifyOtp(VerifyOtpRequest $request, AdminAuthService $authService): JsonResponse|RedirectResponse
     {
         $authService->verifyResetOtp((string) $request->input('otp'));
+        $email = (string) $request->session()->get('admin_reset_email');
+
+        $signedUrl = URL::temporarySignedRoute(
+            'admin.reset-password.page',
+            now()->addMinutes(30),
+            ['email' => $email]
+        );
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'OTP verified']);
+            return response()->json([
+                'message' => 'OTP verified',
+                'redirect_url' => $signedUrl,
+            ]);
         }
 
-        return redirect()->route('admin.reset-password.page');
+        return redirect()->to($signedUrl);
     }
 
     /**
-     * Display the new password reset input form.
+     * Display the new password reset input form if temporary signed signature is valid.
      *
      * @param Request $request Incoming HTTP request.
-     * @return View|RedirectResponse Reset view or redirect if not verified.
+     * @return View|RedirectResponse Reset view or redirect if signature invalid or expired.
      */
     public function resetPasswordPage(Request $request): View|RedirectResponse
     {
-        if (! $request->session()->get('admin_reset_verified')) {
-            return redirect()->route('admin.forgot-password.page');
+        if (! $request->hasValidSignature() || ! $request->session()->get('admin_reset_verified')) {
+            return redirect()->route('admin.forgot-password.page')->withErrors([
+                'email' => __('admin.reset_token_invalid_or_expired'),
+            ]);
         }
 
         return view('admin.auth.reset-password', [
-            'email' => $request->session()->get('admin_reset_email'),
+            'email' => (string) ($request->query('email') ?: $request->session()->get('admin_reset_email')),
         ]);
     }
 
     /**
-     * Update the admin account password after successful OTP verification.
+     * Update the admin account password after successful OTP verification and valid signature.
      *
      * @param ResetPasswordRequest $request Validated password reset request.
      * @param AdminAuthService $authService Authentication service.
@@ -189,8 +286,10 @@ class AuthController extends Controller
      */
     public function resetPassword(ResetPasswordRequest $request, AdminAuthService $authService): JsonResponse|RedirectResponse
     {
-        if (! $request->session()->get('admin_reset_verified')) {
-            return redirect()->route('admin.forgot-password.page');
+        if (! $request->hasValidSignature() || ! $request->session()->get('admin_reset_verified')) {
+            return redirect()->route('admin.forgot-password.page')->withErrors([
+                'email' => __('admin.reset_token_invalid_or_expired'),
+            ]);
         }
 
         $authService->resetPassword((string) $request->input('password'), $request->ip() ?? '127.0.0.1');

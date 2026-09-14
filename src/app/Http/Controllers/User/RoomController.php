@@ -32,7 +32,8 @@ class RoomController extends Controller
      */
     public function show(Request $request, Room $room, DeviceTrustService $devices): JsonResponse|RedirectResponse|View|Response
     {
-        abort_unless($room->status === RoomStatus::Active->value, 404);
+        $roomStatus = $room->status instanceof \BackedEnum ? $room->status->value : (string) $room->status;
+        abort_unless($roomStatus === RoomStatus::Active->value, 404);
 
         /** @var GlobalUser|null $user */
         $user = $request->user('web');
@@ -107,7 +108,8 @@ class RoomController extends Controller
      */
     public function join(Request $request, Room $room, JoinRoomAction $action, DeviceTrustService $devices): JsonResponse|RedirectResponse
     {
-        abort_unless($room->status === RoomStatus::Active->value, 404);
+        $roomStatus = $room->status instanceof \BackedEnum ? $room->status->value : (string) $room->status;
+        abort_unless($roomStatus === RoomStatus::Active->value, 404);
 
         /** @var GlobalUser|null $user */
         $user = $request->user('web');
@@ -120,12 +122,12 @@ class RoomController extends Controller
 
         if (! $request->expectsJson()) {
             return redirect()->route('user.dashboard', $room->slug)
-                ->withCookie(cookie('drinkflow_device_uuid', $deviceUuid, 60 * 24 * 365, '/', null, $request->isSecure(), true, 'lax'))
-                ->withCookie(cookie('drinkflow_trusted_token', $token, 60 * 24 * 30, '/', null, $request->isSecure(), true, 'lax'));
+                ->withCookie(cookie('drinkflow_device_uuid', $deviceUuid, 60 * 24 * 365, '/', null, $request->isSecure(), true, false, 'lax'))
+                ->withCookie(cookie('drinkflow_trusted_token', $token, 60 * 24 * 30, '/', null, $request->isSecure(), true, false, 'lax'));
         }
 
         return response()->json(['data' => $roomUser->load('room'), 'redirect' => route('user.campaigns.index', $room->slug)])
-            ->withCookie(cookie('drinkflow_device_uuid', $deviceUuid, 60 * 24 * 365, '/', null, $request->isSecure(), true, 'lax'))
-            ->withCookie(cookie('drinkflow_trusted_token', $token, 60 * 24 * 30, '/', null, $request->isSecure(), true, 'lax'));
+            ->withCookie(cookie('drinkflow_device_uuid', $deviceUuid, 60 * 24 * 365, '/', null, $request->isSecure(), true, false, 'lax'))
+            ->withCookie(cookie('drinkflow_trusted_token', $token, 60 * 24 * 30, '/', null, $request->isSecure(), true, false, 'lax'));
     }
 }

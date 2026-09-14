@@ -23,12 +23,19 @@ class AdminLoginRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'email' => ['required', 'email', 'max:255'],
             'password' => ['required', 'string'],
-            'captcha' => ['nullable', 'string', 'max:20'],
             'remember' => ['sometimes', 'boolean'],
         ];
+
+        if (app()->isLocal() || config('captcha.disable')) {
+            $rules['captcha'] = ['nullable', 'string', 'max:20'];
+        } else {
+            $rules['captcha'] = ['required', 'string', 'captcha'];
+        }
+
+        return $rules;
     }
 
     /**

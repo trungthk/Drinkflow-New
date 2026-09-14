@@ -1,6 +1,6 @@
 @props([
     'activeTab' => 'about',
-    'version' => config('app.version', 'v2.3.0'),
+    'version' => \App\Models\Version::getLatestVersionString(),
     'termsUrl' => url('/terms'),
     'versionsUrl' => url('/versions'),
     'contactUrl' => route('contact'),

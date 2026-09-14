@@ -3,16 +3,32 @@
 use Illuminate\Support\Facades\Route;
 
 // Admin Authentication & Password Recovery Routes
-Route::get('/admin/login', [\App\Http\Controllers\Admin\AuthController::class, 'loginPage'])->name('admin.login.page');
-Route::post('/admin/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])->name('admin.login');
-Route::get('/admin/forgot-password', [\App\Http\Controllers\Admin\AuthController::class, 'forgotPasswordPage'])->name('admin.forgot-password.page');
-Route::post('/admin/forgot-password', [\App\Http\Controllers\Admin\AuthController::class, 'sendResetOtp'])->name('admin.forgot-password.send');
-Route::get('/admin/verify-otp', [\App\Http\Controllers\Admin\AuthController::class, 'verifyOtpPage'])->name('admin.verify-otp.page');
-Route::post('/admin/verify-otp', [\App\Http\Controllers\Admin\AuthController::class, 'verifyOtp'])->name('admin.verify-otp.submit');
-Route::get('/admin/reset-password', [\App\Http\Controllers\Admin\AuthController::class, 'resetPasswordPage'])->name('admin.reset-password.page');
-Route::post('/admin/reset-password', [\App\Http\Controllers\Admin\AuthController::class, 'resetPassword'])->name('admin.reset-password.submit');
+Route::get('/admin/login', [\App\Http\Controllers\Admin\AuthController::class, 'loginPage'])
+    ->middleware('throttle:admin-login')
+    ->name('admin.login.page');
+Route::post('/admin/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])
+    ->middleware('throttle:admin-login')
+    ->name('admin.login');
+Route::get('/admin/forgot-password', [\App\Http\Controllers\Admin\AuthController::class, 'forgotPasswordPage'])
+    ->middleware('throttle:admin-forgot-password')
+    ->name('admin.forgot-password.page');
+Route::post('/admin/forgot-password', [\App\Http\Controllers\Admin\AuthController::class, 'sendResetOtp'])
+    ->middleware('throttle:admin-forgot-password')
+    ->name('admin.forgot-password.send');
+Route::get('/admin/verify-otp', [\App\Http\Controllers\Admin\AuthController::class, 'verifyOtpPage'])
+    ->middleware('throttle:admin-verify-otp')
+    ->name('admin.verify-otp.page');
+Route::post('/admin/verify-otp', [\App\Http\Controllers\Admin\AuthController::class, 'verifyOtp'])
+    ->middleware('throttle:admin-verify-otp')
+    ->name('admin.verify-otp.submit');
+Route::get('/admin/reset-password', [\App\Http\Controllers\Admin\AuthController::class, 'resetPasswordPage'])
+    ->middleware('throttle:admin-reset-password')
+    ->name('admin.reset-password.page');
+Route::post('/admin/reset-password', [\App\Http\Controllers\Admin\AuthController::class, 'resetPassword'])
+    ->middleware('throttle:admin-reset-password')
+    ->name('admin.reset-password.submit');
 Route::get('/admin', [\App\Http\Controllers\Admin\AuthController::class, 'landing'])->middleware('auth:admin')->name('admin.landing');
-Route::post('/admin/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->middleware('auth:admin')->name('admin.logout');
+Route::post('/admin/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->middleware(['auth:admin', 'throttle:admin-login'])->name('admin.logout');
 
 Route::middleware(['auth:admin', 'admin.room'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class])
@@ -64,7 +80,9 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::delete('/campaigns/{campaign}/items/{item}/toppings/{option}', [\App\Http\Controllers\Admin\CampaignController::class, 'deleteTopping'])->name('admin.campaign-item-toppings.delete');
     Route::delete('/campaigns/{campaign}/items/{item}/sizes/{option}', [\App\Http\Controllers\Admin\CampaignController::class, 'deleteSize'])->name('admin.campaign-item-sizes.delete');
     Route::post('/campaigns/{campaign}/close', [\App\Http\Controllers\Admin\CampaignController::class, 'close'])->name('admin.campaigns.close');
-    Route::post('/crawler/preview', [\App\Http\Controllers\Admin\CrawlerController::class, 'preview'])->name('admin.crawler.preview');
+    Route::post('/crawler/preview', [\App\Http\Controllers\Admin\CrawlerController::class, 'preview'])
+        ->middleware('throttle:crawler-preview')
+        ->name('admin.crawler.preview');
     Route::post('/campaigns/{campaign}/crawler/import', [\App\Http\Controllers\Admin\CrawlerController::class, 'import'])->name('admin.crawler.import');
     Route::get('/debts', [\App\Http\Controllers\Admin\DebtController::class, 'index'])->name('admin.debts.index');
     Route::get('/debts/{debt}', [\App\Http\Controllers\Admin\DebtController::class, 'show'])->name('admin.debts.show');

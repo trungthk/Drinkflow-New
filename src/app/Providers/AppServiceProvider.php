@@ -43,9 +43,96 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(CampaignClosed::class, PublishRealtimeEvent::class);
 
         \Illuminate\Support\Facades\RateLimiter::for('contact-submission', function (\Illuminate\Http\Request $request) {
-            return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($request->ip());
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($request->ip() ?: '127.0.0.1');
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('feedback-submission', function (\Illuminate\Http\Request $request) {
+            $userKey = $request->user('web')?->id ? 'user:'.$request->user('web')->id : ($request->ip() ?: '127.0.0.1');
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($userKey);
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('crawler-preview', function (\Illuminate\Http\Request $request) {
+            $adminKey = $request->user('admin')?->id ? 'admin:'.$request->user('admin')->id : ($request->ip() ?: '127.0.0.1');
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(10)->by($adminKey);
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('room-join', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(15)->by($request->ip() ?: '127.0.0.1');
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('admin-login', function (\Illuminate\Http\Request $request) {
+            $email = \Illuminate\Support\Str::lower((string) $request->input('email', ''));
+            $ip = $request->ip() ?: '127.0.0.1';
+            return [
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($email . '|' . $ip),
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(20)->by($ip),
+            ];
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('auth-login', function (\Illuminate\Http\Request $request) {
+            $email = \Illuminate\Support\Str::lower((string) $request->input('email', ''));
+            $ip = $request->ip() ?: '127.0.0.1';
+            return [
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($email . '|' . $ip),
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(20)->by($ip),
+            ];
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('admin-forgot-password', function (\Illuminate\Http\Request $request) {
+            $email = \Illuminate\Support\Str::lower((string) $request->input('email', ''));
+            $ip = $request->ip() ?: '127.0.0.1';
+            return [
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($email . '|' . $ip),
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(15)->by($ip),
+            ];
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('admin-verify-otp', function (\Illuminate\Http\Request $request) {
+            $email = \Illuminate\Support\Str::lower((string) ($request->session()->get('admin_reset_email') ?: $request->input('email', '')));
+            $ip = $request->ip() ?: '127.0.0.1';
+            return [
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($email . '|' . $ip),
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(15)->by($ip),
+            ];
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('admin-reset-password', function (\Illuminate\Http\Request $request) {
+            $email = \Illuminate\Support\Str::lower((string) ($request->input('email') ?: $request->query('email') ?: $request->session()->get('admin_reset_email', '')));
+            $ip = $request->ip() ?: '127.0.0.1';
+            return [
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($email . '|' . $ip),
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(15)->by($ip),
+            ];
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('user-auth-google', function (\Illuminate\Http\Request $request) {
+            $ip = $request->ip() ?: '127.0.0.1';
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(15)->by($ip);
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('user-auth-logout', function (\Illuminate\Http\Request $request) {
+            $ip = $request->ip() ?: '127.0.0.1';
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(20)->by($ip);
         });
 
         \Illuminate\Support\Facades\View::share('locales', \App\Constants\AppLocale::SUPPORTED);
+
+        \Illuminate\Support\Facades\Blade::directive('formatDate', function ($expression) {
+            return "<?php echo \App\Support\Helpers\FormatHelper::formatDate($expression); ?>";
+        });
+
+        \Illuminate\Support\Facades\Blade::directive('formatDateTime', function ($expression) {
+            return "<?php echo \App\Support\Helpers\FormatHelper::formatDateTime($expression); ?>";
+        });
+
+        \Carbon\Carbon::macro('toAppDate', function () {
+            /** @var \Carbon\Carbon $this */
+            return \App\Support\Helpers\FormatHelper::formatDate($this);
+        });
+
+        \Carbon\Carbon::macro('toAppDateTime', function () {
+            /** @var \Carbon\Carbon $this */
+            return \App\Support\Helpers\FormatHelper::formatDateTime($this);
+        });
     }
 }

@@ -69,7 +69,8 @@ class RoomsController extends Controller
             return back()->withInput()->withErrors(['room_url' => __('global.rooms.room_not_found')]);
         }
 
-        if ($room->status !== 'active') {
+        $roomStatus = $room->status instanceof \BackedEnum ? $room->status->value : (string) $room->status;
+        if ($roomStatus !== RoomStatus::Active->value) {
             return back()->withInput()->withErrors(['room_url' => __('global.rooms.room_inactive')]);
         }
 

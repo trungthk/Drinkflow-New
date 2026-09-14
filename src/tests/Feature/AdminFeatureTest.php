@@ -27,6 +27,28 @@ class AdminFeatureTest extends TestCase
         return $room;
     }
 
+    public function test_admin_landing_renders_rooms_selection_page_with_active_campaigns(): void
+    {
+        $admin = $this->admin('multiroom@example.test');
+        $room1 = $this->roomFor($admin, 'room-one');
+        $room2 = $this->roomFor($admin, 'room-two');
+
+        Campaign::create([
+            'room_id' => $room1->id,
+            'name' => 'Live Coffee',
+            'restaurant' => 'Highlands',
+            'status' => 'active',
+            'started_at' => now(),
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->get('/admin');
+        $response->assertOk()
+            ->assertSee('TRÌNH CHUYỂN ĐỔI PHÒNG BAN')
+            ->assertSee('ROOM-ONE')
+            ->assertSee('ROOM-TWO')
+            ->assertSee('Live Coffee');
+    }
+
     public function test_admin_dashboard_is_limited_to_assigned_room(): void
     {
         $admin = $this->admin();
@@ -153,6 +175,7 @@ class AdminFeatureTest extends TestCase
 
     public function test_admin_password_recovery_otp_flow(): void
     {
+        \Illuminate\Support\Facades\Mail::fake();
         $admin = $this->admin('recovery@example.test');
 
         // Step 1: Request OTP
@@ -163,20 +186,39 @@ class AdminFeatureTest extends TestCase
         $this->assertTrue(session()->has('admin_reset_otp'));
         $otp = session('admin_reset_otp');
 
+        // Assert OTP email was dispatched
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\AdminResetPasswordOtpMail::class, function ($mail) use ($otp) {
+            return $mail->hasTo('recovery@example.test') && $mail->otp === $otp;
+        });
+
         // Step 2: Verify Invalid OTP fails
         $this->post('/admin/verify-otp', [
             'otp' => '000000',
         ])->assertSessionHasErrors('otp');
 
-        // Step 3: Verify Valid OTP succeeds
-        $this->post('/admin/verify-otp', [
+        // Step 3: Verify Valid OTP succeeds and redirects with temporary signed URL
+        $response = $this->post('/admin/verify-otp', [
             'otp' => $otp,
-        ])->assertRedirect(route('admin.reset-password.page'));
+        ]);
 
         $this->assertTrue(session('admin_reset_verified'));
+        $targetUrl = $response->headers->get('Location');
+        $this->assertNotNull($targetUrl);
+        $this->assertStringContainsString('signature=', $targetUrl);
 
-        // Step 4: Reset Password
-        $this->post('/admin/reset-password', [
+        // Step 4a: Access reset password page without signature fails
+        $this->get('/admin/reset-password')->assertRedirect(route('admin.forgot-password.page'));
+
+        // Step 4b: Access reset password page with tampered signature fails
+        $this->get('/admin/reset-password?signature=invalid_tampered_sig')->assertRedirect(route('admin.forgot-password.page'));
+
+        // Step 4c: Access reset password page with valid signed URL succeeds
+        $this->get($targetUrl)->assertOk();
+
+        // Step 4d: Reset Password with valid signed URL query
+        $parsed = parse_url($targetUrl);
+        $queryStr = $parsed['query'] ?? '';
+        $this->post('/admin/reset-password?' . $queryStr, [
             'password' => 'NewSecurePassword123!',
             'password_confirmation' => 'NewSecurePassword123!',
         ])->assertRedirect(route('admin.login.page'));

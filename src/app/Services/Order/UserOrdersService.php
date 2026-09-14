@@ -7,11 +7,13 @@ namespace App\Services\Order;
 use App\Enums\OrderStatus;
 use App\Models\GlobalUser;
 use App\Models\Order;
+use App\Support\Traits\HandlesDatabaseDriver;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
 
 class UserOrdersService
 {
+    use HandlesDatabaseDriver;
     /**
      * Thu thập danh sách đơn hàng phân trang và tính toán các chỉ số chi tiêu, tài trợ, nợ chờ thanh toán theo bộ lọc.
      *
@@ -81,11 +83,12 @@ class UserOrdersService
                 if (!empty($stripped)) {
                     $q->orWhere('id', (int) $stripped);
                 }
-                $q->orWhereHas('campaign', function ($cq) use ($search) {
-                    $cq->where('restaurant', 'ilike', "%{$search}%")
-                       ->orWhere('name', 'ilike', "%{$search}%");
-                })->orWhereHas('items', function ($iq) use ($search) {
-                    $iq->where('item_name', 'ilike', "%{$search}%");
+                $like = $this->getCaseInsensitiveLikeOperator();
+                $q->orWhereHas('campaign', function ($cq) use ($search, $like) {
+                    $cq->where('restaurant', $like, "%{$search}%")
+                       ->orWhere('name', $like, "%{$search}%");
+                })->orWhereHas('items', function ($iq) use ($search, $like) {
+                    $iq->where('item_name', $like, "%{$search}%");
                 });
             });
         }

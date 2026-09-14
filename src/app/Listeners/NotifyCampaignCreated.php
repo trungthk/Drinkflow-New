@@ -4,9 +4,15 @@ namespace App\Listeners;
 
 use App\Events\CampaignCreated;
 use App\Services\Notification\UserNotificationService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class NotifyCampaignCreated
+class NotifyCampaignCreated implements ShouldQueue
 {
+    use InteractsWithQueue;
+
+    public int $tries = 3;
+    public int $timeout = 10;
     public function handle(CampaignCreated $event): void
     {
         $campaign = $event->campaign;

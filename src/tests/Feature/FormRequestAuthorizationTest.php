@@ -45,7 +45,7 @@ class FormRequestAuthorizationTest extends TestCase
             'email' => 'inactive-super@drinkflow.test',
             'password' => 'secret123',
             'role' => AdminRole::SuperAdmin,
-            'status' => 'disabled',
+            'status' => \App\Enums\AdminStatus::Inactive,
         ]);
 
         $regularAdmin = AdminAccount::create([

@@ -1,0 +1,10 @@
+{
+  "name": "drinkflow-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DrinkFlow Multi-Service Workspace Runner",
+  "scripts": {
+    "start": "node start.js",
+    "dev": "node start.js"
+  }
+}

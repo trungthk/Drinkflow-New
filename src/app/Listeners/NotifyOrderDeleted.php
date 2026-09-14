@@ -5,9 +5,15 @@ namespace App\Listeners;
 use App\Events\OrderDeleted;
 use App\Models\RoomUser;
 use App\Services\Notification\UserNotificationService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class NotifyOrderDeleted
+class NotifyOrderDeleted implements ShouldQueue
 {
+    use InteractsWithQueue;
+
+    public int $tries = 3;
+    public int $timeout = 10;
     public function handle(OrderDeleted $event): void
     {
         $roomUser = RoomUser::query()->find($event->order['room_user_id']);

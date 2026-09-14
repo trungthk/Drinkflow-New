@@ -42,7 +42,7 @@ class UserRoomNotificationService
                     'body' => $notif->body,
                     'is_read' => !is_null($notif->read_at),
                     'created_at_formatted' => Carbon::parse($notif->created_at)->diffForHumans(),
-                    'created_at_time' => Carbon::parse($notif->created_at)->format('H:i, d/m/Y'),
+                    'created_at_time' => \App\Support\Helpers\FormatHelper::formatDateTime($notif->created_at),
                     'category' => str_contains($notif->type, 'order') ? 'orders' : (str_contains($notif->type, 'campaign') ? 'campaigns' : (str_contains($notif->type, 'debt') ? 'debts' : 'general')),
                 ];
             });

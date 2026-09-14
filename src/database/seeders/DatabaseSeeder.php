@@ -263,5 +263,8 @@ class DatabaseSeeder extends Seeder
         }
 
         User::firstOrCreate(['email' => 'test@example.com'], ['name' => 'Test User', 'password' => Hash::make('password')]);
+
+        // 9. System Versions
+        $this->call(VersionSeeder::class);
     }
 }

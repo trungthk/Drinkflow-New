@@ -8,7 +8,7 @@
     'ogImage' => null,
     'canonicalUrl' => null,
     'activeTab' => 'about',
-    'version' => config('app.version', 'v2.3.0'),
+    'version' => \App\Models\Version::getLatestVersionString(),
     'termsUrl' => url('/terms'),
     'versionsUrl' => url('/versions'),
     'contactUrl' => route('contact'),
@@ -33,6 +33,10 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+
     <!-- Primary SEO / Metadata -->
     <title>{{ $pageTitle }}</title>
     <meta name="description" content="{{ $pageDescription }}"/>

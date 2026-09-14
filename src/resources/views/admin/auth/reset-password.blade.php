@@ -1,10 +1,6 @@
 <x-admin-auth.layout :title="__('admin.reset_password_title')">
     <x-slot name="brandHero">
         <div>
-            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-white/5 border border-white/10 text-emerald-400 text-xs font-mono font-semibold mb-3">
-                <span class="material-symbols-outlined text-[15px]">password</span>
-                <span>{{ __('admin.credential_protocol') }}</span>
-            </div>
             <h2 class="text-2xl lg:text-3xl font-bold tracking-tight text-white leading-tight">
                 {{ __('admin.reset_hero_heading') }}
             </h2>
@@ -36,8 +32,9 @@
         </div>
     @endif
 
-    <form method="post" action="{{ route('admin.reset-password.submit') }}" data-loading-form="true" class="mt-5 space-y-4">
+    <form method="post" action="{{ route('admin.reset-password.submit', request()->query()) }}" data-loading-form="true" class="mt-5 space-y-4">
         @csrf
+
         <div>
             <label for="admin-password" class="block text-xs font-semibold text-on-surface mb-1">
                 {{ __('admin.new_password') }}
@@ -47,6 +44,9 @@
                 <input id="admin-password" name="password" type="password" required autofocus
                     class="w-full border-0 bg-transparent px-3 py-2.5 text-sm text-on-surface placeholder:text-outline/60 focus:ring-0 outline-none font-medium"
                     placeholder="••••••••">
+                <button type="button" id="toggle-admin-password" class="pr-3 text-outline hover:text-on-surface focus:outline-none cursor-pointer" aria-label="{{ __('admin.toggle_password_visibility') }}">
+                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                </button>
             </div>
         </div>
 
@@ -59,6 +59,9 @@
                 <input id="admin-password-confirmation" name="password_confirmation" type="password" required
                     class="w-full border-0 bg-transparent px-3 py-2.5 text-sm text-on-surface placeholder:text-outline/60 focus:ring-0 outline-none font-medium"
                     placeholder="••••••••">
+                <button type="button" id="toggle-admin-password-confirmation" class="pr-3 text-outline hover:text-on-surface focus:outline-none cursor-pointer" aria-label="{{ __('admin.toggle_password_visibility') }}">
+                    <span class="material-symbols-outlined text-[18px]">visibility</span>
+                </button>
             </div>
         </div>
 

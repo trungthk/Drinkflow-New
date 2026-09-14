@@ -14,11 +14,7 @@
             {{ __('admin.verify_hero_desc', ['email' => $email]) }}
         </p>
 
-        <div class="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
-            <div class="flex items-center justify-between text-xs text-slate-300 font-mono">
-                <span>{{ __('admin.session_challenge_id') }}</span>
-                <span class="text-emerald-400 font-bold">DF-OTP-{{ substr(md5($email), 0, 6) }}</span>
-            </div>
+        <div class="p-4 rounded-xl bg-white/5 border border-white/10">
             <div class="flex items-center justify-between text-xs text-slate-300 font-mono">
                 <span>{{ __('admin.validity_duration') }}</span>
                 <span class="text-amber-400 font-bold">{{ __('admin.duration_15_mins') }}</span>
@@ -56,7 +52,9 @@
                 {{ __('admin.enter_6_digit_otp') }}
             </label>
             <div class="flex justify-center">
-                <input id="admin-otp" name="otp" type="text" maxlength="6" inputmode="numeric" required autofocus
+                <input id="admin-otp" name="otp" type="text" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" required autofocus
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                    onkeypress="return event.charCode >= 48 && event.charCode <= 57"
                     class="w-64 text-center tracking-[0.5em] text-2xl font-mono font-bold py-3 px-4 rounded-xl border-2 border-outline-variant bg-surface-container-lowest focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     placeholder="••••••">
             </div>

@@ -29,15 +29,18 @@ class PaymentAccountController extends Controller
      *
      * @param Request $request Incoming request.
      * @param Room $room Room entity.
+     * @param \App\Services\Common\BankService $bankService Service tra cứu danh sách ngân hàng.
      * @return View Blade view.
      */
-    public function page(Request $request, Room $room): View
+    public function page(Request $request, Room $room, \App\Services\Common\BankService $bankService): View
     {
         $accounts = $room->paymentAccounts()->latest()->paginate(20);
+        $banks = $bankService->getAllBanks();
 
         return view('admin.payments', [
             'room' => $room,
             'accounts' => $accounts,
+            'banks' => $banks,
         ]);
     }
 

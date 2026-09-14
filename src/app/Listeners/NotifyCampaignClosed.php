@@ -4,9 +4,15 @@ namespace App\Listeners;
 
 use App\Events\CampaignClosed;
 use App\Services\Notification\UserNotificationService;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 
-class NotifyCampaignClosed
+class NotifyCampaignClosed implements ShouldQueue
 {
+    use InteractsWithQueue;
+
+    public int $tries = 3;
+    public int $timeout = 15;
     public function handle(CampaignClosed $event): void
     {
         $campaign = $event->campaign;

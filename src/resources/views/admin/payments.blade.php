@@ -84,16 +84,9 @@
                     <div>
                         <label class="block font-semibold text-on-surface mb-1">{{ __('admin.bank_code') }}:</label>
                         <select id="acc-bank-code" data-searchable="true" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface font-semibold" required>
-                            <option value="VCB">VCB - Vietcombank</option>
-                            <option value="TCB">TCB - Techcombank</option>
-                            <option value="MB">MB - MBBank</option>
-                            <option value="ACB">ACB - Á Châu</option>
-                            <option value="VPB">VPB - VPBank</option>
-                            <option value="TPB">TPB - TPBank</option>
-                            <option value="BIDV">BIDV - Đầu tư & Phát triển</option>
-                            <option value="CTG">CTG - VietinBank</option>
-                            <option value="VIB">VIB - Quốc tế</option>
-                            <option value="STB">STB - Sacombank</option>
+                            @foreach($banks ?? app(\App\Services\Common\BankService::class)->getAllBanks() as $bank)
+                                <option value="{{ $bank['code'] }}">{{ $bank['code'] }} - {{ $bank['short_name'] }} ({{ $bank['name'] }})</option>
+                            @endforeach
                         </select>
                     </div>
 

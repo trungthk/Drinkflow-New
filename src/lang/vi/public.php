@@ -19,7 +19,7 @@ return [
         'dashboard' => 'Bảng điều khiển',
     ],
     'hero' => [
-        'badge' => '🚀 Phiên bản nội bộ :version đã sẵn sàng',
+        'badge' => 'Phiên bản nội bộ :version đã sẵn sàng',
         'title' => 'DrinkFlow — Order nhanh hơn. Quản lý campaign dễ hơn. Chia bill rõ ràng hơn.',
         'subtitle' => 'DrinkFlow giúp các team tổ chức những phiên đặt đồ uống, đồ ăn hoặc các chương trình tài trợ nội bộ nhanh chóng, minh bạch và thuận tiện.',
         'cta_primary' => 'Bắt đầu sử dụng',

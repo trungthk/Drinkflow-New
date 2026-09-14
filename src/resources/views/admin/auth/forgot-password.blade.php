@@ -1,10 +1,6 @@
 <x-admin-auth.layout :title="__('admin.forgot_password_title')">
     <x-slot name="brandHero">
         <div>
-            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-white/5 border border-white/10 text-emerald-400 text-xs font-mono font-semibold mb-3">
-                <span class="material-symbols-outlined text-[15px]">lock_reset</span>
-                <span>{{ __('admin.recovery_protocol') }}</span>
-            </div>
             <h2 class="text-2xl lg:text-3xl font-bold tracking-tight text-white leading-tight">
                 {{ __('admin.forgot_hero_heading') }}
             </h2>
@@ -65,7 +61,6 @@
         <div>
             <label for="admin-email" class="block text-xs font-semibold text-on-surface mb-1">
                 {{ __('admin.email_address') }}
-                <span class="float-right font-normal text-outline">{{ __('admin.sso_local_identity') }}</span>
             </label>
             <div class="relative flex items-center rounded-lg border border-outline-variant bg-surface-container-lowest focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
                 <span class="material-symbols-outlined text-outline pl-3 text-[18px]">alternate_email</span>

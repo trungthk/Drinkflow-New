@@ -7,10 +7,16 @@ use App\Events\CampaignCreated;
 use App\Events\OrderCreated;
 use App\Events\OrderDeleted;
 use App\Events\OrderUpdated;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Http;
 
-class PublishRealtimeEvent
+class PublishRealtimeEvent implements ShouldQueue
 {
+    use InteractsWithQueue;
+
+    public int $tries = 3;
+    public int $timeout = 5;
     public function handle(object $event): void
     {
         [$name, $roomId, $payload, $userChannel] = match (true) {

@@ -1,5 +1,5 @@
 @props([
-    'version' => 'v2.3.0',
+    'version' => \App\Models\Version::getLatestVersionString(),
     'googleAuthUrl' => route('auth.google'),
 ])
 

@@ -1,3 +1,7 @@
+@php
+    $currentLocale = app()->getLocale();
+    $activeLocaleMeta = $locales[$currentLocale] ?? $locales['vi'];
+@endphp
 <!doctype html>
 <html class="h-full" lang="{{ app()->getLocale() }}">
 
@@ -5,6 +9,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', __('admin.brand_title')) · DrinkFlow Admin</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,9 +30,12 @@
             <!-- Top Brand -->
             <div class="relative z-10">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-[#0a2220] font-bold shadow-lg shadow-emerald-900/30 ring-1 ring-white/20">
-                        <span class="material-symbols-outlined text-[24px]">local_shipping</span>
-                    </div>
+                    <span class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-900/30 ring-1 ring-white/20 shrink-0"
+                          style="background: linear-gradient(135deg, #006948 0%, #047857 100%); background-color: #006948; border: 1px solid #005137;">
+                        <svg class="w-5 h-5 text-white fill-current" viewBox="0 0 24 24" aria-hidden="true" style="width: 22px; height: 22px; fill: #ffffff; color: #ffffff;">
+                            <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/>
+                        </svg>
+                    </span>
                     <div>
                         <div class="flex items-center gap-2">
                             <span class="text-xl font-bold tracking-tight text-white">{{ __('admin.brand_title') }}</span>
@@ -87,46 +96,51 @@
                     </div>
                 @endif
             </div>
-
-            <!-- Footer Meta -->
-            <div class="relative z-10 pt-3 border-t border-white/10 text-[11px] font-mono text-slate-400 flex items-center justify-between">
-                <span>Cluster: prod-hcm-edge-01</span>
-                <span>Security Level 4</span>
-            </div>
         </aside>
 
         <!-- RIGHT COLUMN: Interactive Form (~54% width) -->
         <main class="lg:w-7/12 xl:w-1/2 flex flex-col p-6 lg:py-6 lg:px-12 justify-between bg-surface-container-lowest overflow-y-auto">
             <!-- Top Controls (Language Switcher + Help) -->
             <div class="flex items-center justify-between pb-3">
-                <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center justify-center w-7 h-7 rounded bg-surface-container text-on-surface-variant">
-                        <span class="material-symbols-outlined text-[16px]">language</span>
-                    </span>
-                    <div class="flex items-center gap-1.5 text-xs font-medium">
-                        <a href="{{ route('locale.switch', 'vi') }}" class="px-2 py-1 rounded {{ app()->getLocale() === 'vi' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface' }}">VI</a>
-                        <span class="text-outline">/</span>
-                        <a href="{{ route('locale.switch', 'en') }}" class="px-2 py-1 rounded {{ app()->getLocale() === 'en' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface' }}">EN</a>
-                        <span class="text-outline">/</span>
-                        <a href="{{ route('locale.switch', 'ja') }}" class="px-2 py-1 rounded {{ app()->getLocale() === 'ja' ? 'bg-primary/10 text-primary font-bold' : 'text-outline hover:text-on-surface' }}">JA</a>
+                <!-- Language Selector Dropdown -->
+                <div class="relative" id="public-lang-selector">
+                    <button type="button"
+                            id="public-lang-btn"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#545c72] hover:bg-[#eff4ff] transition-colors duration-150 border border-slate-200/80 hover:border-[#bccac0] cursor-pointer">
+                        <span>{{ $activeLocaleMeta['flag'] }}</span>
+                        <span class="font-semibold text-[#0b1c30]">{{ $activeLocaleMeta['code'] }}</span>
+                        <span class="material-symbols-outlined text-[16px] text-[#545c72]">arrow_drop_down</span>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div id="public-lang-menu"
+                         class="hidden absolute left-0 mt-1.5 w-36 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-50 animate-fadeIn">
+                        @foreach($locales as $code => $meta)
+                            <a href="{{ route('locale.switch', $code) }}"
+                               class="flex items-center justify-between px-3 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-[#006948] transition-colors {{ $currentLocale === $code ? 'font-semibold text-[#006948] bg-emerald-50/50' : '' }}">
+                                <div class="flex items-center gap-2">
+                                    <span>{{ $meta['flag'] }}</span>
+                                    <span>{{ $meta['name'] }}</span>
+                                </div>
+                                @if($currentLocale === $code)
+                                    <span class="material-symbols-outlined text-[16px] text-[#006948]">check</span>
+                                @endif
+                            </a>
+                        @endforeach
                     </div>
                 </div>
 
                 <a class="flex items-center gap-1.5 text-xs font-semibold text-secondary hover:text-primary transition-colors no-underline" href="{{ route('contact') }}">
                     <span class="material-symbols-outlined text-[16px]">contact_support</span>
-                    <span>Liên hệ IT Support</span>
+                    <span>{{ __('admin.contact_support') }}</span>
                 </a>
             </div>
 
             <!-- Center Form Content Slot -->
             <div class="w-full max-w-md mx-auto my-auto py-2">
                 @yield('content')
-            </div>
-
-            <!-- Bottom Copyright -->
-            <div class="pt-2 border-t border-outline-variant/40 flex items-center justify-between text-xs text-outline">
-                <span>© 2026 DrinkFlow Operations Platform.</span>
-                <span class="font-mono text-[10px]">v2.4.0</span>
             </div>
         </main>
     </div>

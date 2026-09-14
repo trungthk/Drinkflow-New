@@ -18,7 +18,7 @@ class UserBlockedService
     public function getBlockedNoticeData(GlobalUser $user): array
     {
         $incidentCode = '#BLK-' . date('Y') . '-' . str_pad((string) $user->id, 5, '0', STR_PAD_LEFT);
-        $recordedAt = now()->format('H:i • d/m/Y') . ' (GMT+7)';
+        $recordedAt = \App\Support\Helpers\FormatHelper::formatDateTime(now()) . ' (GMT+7)';
 
         $roomUserIds = $user->roomUsers()->pluck('id');
         $dbDebts = Debt::with(['room', 'roomUser'])
@@ -33,7 +33,7 @@ class UserBlockedService
         foreach ($dbDebts as $debt) {
             $pendingDebts[] = [
                 'title' => __('global.blocked.debt_item_title', ['id' => $debt->id, 'room' => $debt->room?->name ?? __('global.blocked.internal_room')]),
-                'subtitle' => __('global.blocked.debt_item_subtitle', ['date' => $debt->created_at ? $debt->created_at->format('d/m/Y') : __('global.common.recently')]),
+                'subtitle' => __('global.blocked.debt_item_subtitle', ['date' => $debt->created_at ? \App\Support\Helpers\FormatHelper::formatDate($debt->created_at) : __('global.common.recently')]),
                 'amount' => (int) $debt->remaining_amount,
             ];
         }

@@ -11,12 +11,18 @@ use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PaymentAccount;
+use App\Services\Media\ImageUploadService;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class UserProfileService
 {
+    public function __construct(
+        protected ImageUploadService $imageUploadService
+    ) {}
     /**
      * Thu thập toàn bộ dữ liệu hồ sơ cá nhân toàn hệ thống, cấp bậc thành viên (tier gamification), tùy chọn ăn uống và tài khoản ngân hàng.
      *
@@ -174,6 +180,17 @@ class UserProfileService
     public function updateProfile(GlobalUser $user, array $data, ?Request $request = null): void
     {
         $updates = [];
+        if ($request && $request->hasFile('avatar')) {
+            $avatarFile = $request->file('avatar');
+            if ($avatarFile instanceof UploadedFile) {
+                $updates['avatar_url'] = $this->imageUploadService->uploadAvatar($avatarFile);
+            }
+        } elseif (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
+            $updates['avatar_url'] = $this->imageUploadService->uploadAvatar($data['avatar']);
+        } elseif (array_key_exists('avatar_url', $data) && !empty($data['avatar_url'])) {
+            $updates['avatar_url'] = $data['avatar_url'];
+        }
+
         if (array_key_exists('phone', $data)) {
             $updates['phone'] = $data['phone'] ?? null;
         }

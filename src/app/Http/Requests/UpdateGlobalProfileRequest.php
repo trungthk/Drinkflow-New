@@ -30,6 +30,8 @@ class UpdateGlobalProfileRequest extends FormRequest
     {
         return [
             'phone' => ['nullable', 'string', 'max:30'],
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp,gif', 'max:5120'],
+            'avatar_url' => ['nullable', 'url', 'max:1000'],
             'desk_location' => ['nullable', 'string', 'max:100'],
             'delivery_location' => ['nullable', 'string', 'max:255'],
             'sugar' => ['nullable', 'string', 'max:10'],

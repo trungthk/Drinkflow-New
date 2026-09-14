@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Public;
 
 use App\Models\Version;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Collection;
 
 class VersionService
@@ -41,7 +42,7 @@ class VersionService
             'latestVersion' => $latestVersion,
             'nextVersion' => $nextVersion,
             'prevVersion' => $prevVersion,
-            'appVersion' => config('app.version', 'v2.3.0'),
+            'appVersion' => Version::getLatestVersionString(),
             'googleAuthUrl' => route('auth.google'),
             'landingUrl' => route('landing'),
             'termsUrl' => url('/terms'),
@@ -69,7 +70,7 @@ class VersionService
 
             return (object) [
                 'version' => $item->version,
-                'release_date' => $item->release_date?->format('d/m/Y') ?? ($fallback->release_date ?? '10/09/2026'),
+                'release_date' => $item->release_date ? FormatHelper::formatDate($item->release_date) : ($fallback->release_date ?? '10/09/2026'),
                 'title' => $item->title ?? ($fallback->title ?? 'Bản cập nhật DrinkFlow'),
                 'badge' => $fallback->badge ?? 'Release',
                 'important' => (bool) ($item->important ?? ($fallback->important ?? false)),

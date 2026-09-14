@@ -21,7 +21,8 @@ class JoinPageController extends Controller
      */
     public function __invoke(Request $request, Room $room): View
     {
-        abort_unless($room->status === RoomStatus::Active->value, 404);
+        $roomStatus = $room->status instanceof \BackedEnum ? $room->status->value : (string) $room->status;
+        abort_unless($roomStatus === RoomStatus::Active->value, 404);
 
         if (! $request->user('web')) {
             $request->session()->put('url.intended', url()->current());

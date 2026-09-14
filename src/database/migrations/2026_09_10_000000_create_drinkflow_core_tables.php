@@ -176,7 +176,9 @@ return new class extends Migration
             $table->index(['room_id', 'created_at']);
         });
 
-        DB::statement("CREATE UNIQUE INDEX orders_one_active_per_user_campaign ON orders (campaign_id, room_user_id) WHERE status IN ('submitted','confirmed','ordering','ordered','delivering')");
+        if (in_array(DB::getDriverName(), ['pgsql', 'sqlite'], true)) {
+            DB::statement("CREATE UNIQUE INDEX orders_one_active_per_user_campaign ON orders (campaign_id, room_user_id) WHERE status IN ('submitted','confirmed','ordering','ordered','delivering')");
+        }
 
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();

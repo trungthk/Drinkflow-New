@@ -13,6 +13,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $pageTitle }} · {{ $roomLabel }} · DrinkFlow Admin</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,9 +32,12 @@
                 <!-- Brand Logo & Header -->
                 <div class="flex items-center gap-2 mb-5 px-1 justify-between">
                     <div class="flex items-center gap-2.5">
-                        <div class="w-8 h-8 rounded bg-primary flex items-center justify-center text-on-primary shadow-sm">
-                            <span class="material-symbols-outlined text-[20px]">local_bar</span>
-                        </div>
+                        <span class="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-xs shrink-0"
+                              style="background: linear-gradient(135deg, #006948 0%, #047857 100%); background-color: #006948; border: 1px solid #005137; box-shadow: 0 1px 2px rgba(0,0,0,0.08);">
+                            <svg class="w-4.5 h-4.5 text-white fill-current" viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px; fill: #ffffff; color: #ffffff;">
+                                <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/>
+                            </svg>
+                        </span>
                         <div>
                             <span class="text-base font-bold text-on-surface tracking-tight block leading-tight">{{ __('admin.brand_title') }}</span>
                             <span class="text-[11px] font-mono text-outline block">{{ __('admin.brand_subtitle') }}</span>
@@ -141,13 +146,10 @@
                     <span class="material-symbols-outlined text-[18px]">health_and_safety</span>
                     <span>{{ __('admin.system_diagnostics') }}</span>
                 </a>
-                <form method="post" action="{{ route('admin.logout') }}" class="m-0">
-                    @csrf
-                    <button type="submit" class="w-full flex items-center gap-3 px-3 py-2 text-error hover:bg-error-container/40 rounded font-medium transition-colors text-left">
-                        <span class="material-symbols-outlined text-[18px]">logout</span>
-                        <span>{{ __('admin.logout') }}</span>
-                    </button>
-                </form>
+                <button type="button" onclick="openAdminLogoutModal()" class="btn-admin-logout w-full flex items-center gap-3 px-3 py-2 text-error hover:bg-error-container/40 rounded font-medium transition-colors text-left cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">logout</span>
+                    <span>{{ __('admin.logout') }}</span>
+                </button>
             </div>
         </div>
     </aside>
@@ -211,6 +213,9 @@
             @yield('content')
         </main>
     </div>
+
+    <!-- Admin Logout Confirmation Modal -->
+    <x-admin.logout-modal />
 
     @stack('scripts')
 </body>

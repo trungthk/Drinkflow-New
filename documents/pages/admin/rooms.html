@@ -1,0 +1,559 @@
+<!DOCTYPE html><html class="h-full" lang="vi" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Chọn Phòng Ban Quản Trị — DrinkFlow Admin</title>
+<!-- Google Fonts: JetBrains Mono & Hanken Grotesk -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Verbatim Tailwind Config Injection -->
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-error-container": "#93000a",
+            "on-background": "#0b1c30",
+            "surface-container-high": "#dce9ff",
+            "surface-variant": "#d3e4fe",
+            "error-container": "#ffdad6",
+            "on-secondary-fixed-variant": "#3f465c",
+            "background": "#f8f9ff",
+            "on-tertiary-fixed": "#002113",
+            "on-secondary-container": "#5c647a",
+            "secondary": "#565e74",
+            "error": "#ba1a1a",
+            "on-tertiary-fixed-variant": "#005236",
+            "on-secondary-fixed": "#131b2e",
+            "outline-variant": "#bccac0",
+            "tertiary": "#006947",
+            "surface-container-low": "#eff4ff",
+            "outline": "#6d7a72",
+            "on-surface-variant": "#3d4a42",
+            "primary-fixed-dim": "#68dba9",
+            "secondary-fixed-dim": "#bec6e0",
+            "on-error": "#ffffff",
+            "on-tertiary-container": "#f5fff6",
+            "on-secondary": "#ffffff",
+            "inverse-surface": "#213145",
+            "secondary-container": "#dae2fd",
+            "surface-container": "#e5eeff",
+            "on-primary-fixed-variant": "#005137",
+            "surface": "#f8f9ff",
+            "on-surface": "#0b1c30",
+            "on-primary": "#ffffff",
+            "primary-container": "#00855d",
+            "secondary-fixed": "#dae2fd",
+            "on-primary-fixed": "#002114",
+            "tertiary-container": "#00855b",
+            "inverse-on-surface": "#eaf1ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-bright": "#f8f9ff",
+            "primary-fixed": "#85f8c4",
+            "surface-dim": "#cbdbf5",
+            "tertiary-fixed": "#6ffbbe",
+            "inverse-primary": "#68dba9",
+            "surface-tint": "#006c4a",
+            "surface-container-highest": "#d3e4fe",
+            "on-tertiary": "#ffffff",
+            "primary": "#006948",
+            "on-primary-container": "#f5fff7",
+            "tertiary-fixed-dim": "#4edea3"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "1rem",
+            "margin": "1.5rem",
+            "gutter": "1rem"
+          },
+          "fontFamily": {
+            "label-lg": ["JetBrains Mono"],
+            "label-sm": ["JetBrains Mono"],
+            "headline-sm": ["Hanken Grotesk"],
+            "label-md": ["JetBrains Mono"],
+            "body-md": ["Hanken Grotesk"],
+            "body-lg": ["Hanken Grotesk"],
+            "body-sm": ["Hanken Grotesk"],
+            "display-lg": ["Hanken Grotesk"],
+            "headline-lg": ["Hanken Grotesk"]
+          },
+          "fontSize": {
+            "label-lg": ["13px", { "lineHeight": "18px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-sm": ["10px", { "lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "500" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.01em", "fontWeight": "400" }],
+            "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600" }]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+      font-size: 18px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      vertical-align: middle;
+    }
+    .material-symbols-outlined.fill {
+      font-variation-settings: 'FILL' 1;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .live-pulse {
+      animation: pulse-dot 1.8s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col justify-between antialiased selection:bg-primary-container selection:text-on-primary-container">
+<!-- Ambient Backdrop Micro-Pattern (Ultra-subtle operational grid feel) -->
+<div class="fixed inset-0 pointer-events-none opacity-[0.035] bg-[radial-gradient(#006948_1px,transparent_1px)] [background-size:24px_24px]"></div>
+<!-- Focused Canvas Header Strip -->
+<header class="relative z-10 w-full max-w-7xl mx-auto px-6 pb-2 pt-4">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-outline-variant/40 pb-3">
+<!-- Logo & System Anchor -->
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[22px]" data-icon="local_shipping">local_shipping</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight">DrinkFlow</span>
+<span class="font-label-sm text-label-sm uppercase px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-semibold">Admin Core</span>
+</div>
+<p class="font-label-md text-label-md text-outline">Hệ thống Điều phối &amp; Quản trị Tiện ích F&amp;B Doanh nghiệp</p>
+</div>
+</div>
+<!-- User Session & Enterprise SSO Chip -->
+<div class="flex items-center gap-3 bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-1.5 pr-4 shadow-sm self-start sm:self-auto">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center font-label-md text-label-md font-bold">
+          LA
+        </div>
+<div class="flex flex-col text-left">
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-[13px] leading-tight font-semibold text-on-surface">Lâm Admin</span>
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-outline">Super Dispatcher</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline-variant flex items-center gap-1">
+            SSO Enterprise Session
+          </span>
+</div>
+<div class="h-6 w-[1px] bg-outline-variant/50 mx-1"></div>
+<button class="text-on-surface-variant hover:text-error transition-colors flex items-center gap-1 font-label-sm text-label-sm" title="Đăng xuất / Chuyển tài khoản" type="button">
+<span class="material-symbols-outlined text-[16px]" data-icon="logout">logout</span>
+<span class="hidden md:inline">Đăng xuất</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main View Container -->
+<main class="relative z-10 w-full max-w-7xl mx-auto px-6 flex-1 py-4">
+<!-- Title & Subtitle Banner -->
+<div class="mb-4">
+<div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-secondary-container/70 text-on-secondary-container font-label-sm text-label-sm mb-2">
+<span class="material-symbols-outlined text-[14px]" data-icon="room_preferences">room_preferences</span>
+<span class="">TRÌNH CHUYỂN ĐỔI PHÒNG BAN (SWITCH TO ROOMS)</span>
+</div>
+<h1 class="font-display-lg text-display-lg text-on-surface font-extrabold tracking-tight">
+        Chọn Phòng Ban Quản Trị
+      </h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl mt-1.5">
+        Bạn được phân quyền quản trị trên <strong class="font-semibold text-on-surface">4 phòng ban</strong>. Vui lòng chọn một phòng ban để tiếp tục vào Control Center &amp; Dashboard điều phối.
+      </p>
+</div>
+<!-- Search & Filter Operational Bar -->
+
+<!-- 2x2 High-Density Operational Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="roomsGrid">
+<!-- Room Card 1: IT Team Operations -->
+<article class="room-card group bg-surface-container-lowest border border-outline-variant/70 rounded-xl hover:border-primary transition-all duration-200 hover:shadow-md flex flex-col justify-between relative overflow-hidden p-4" data-room-type="live">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-primary"></div>
+<div>
+<!-- Card Header & Badge -->
+<div class="flex items-start justify-between gap-2 mb-3">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant font-bold">
+                #ROOM-IT-01
+              </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#ECFDF5] text-primary border border-[#A7F3D0]">
+<span class="w-2 h-2 rounded-full bg-primary live-pulse"></span>
+                🔥 1 CHIẾN DỊCH LIVE
+              </span>
+</div>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-outline">
+<span class="material-symbols-outlined text-[15px]" data-icon="shield_person">shield_person</span>
+<span class="">Room Manager &amp; Dispatcher</span>
+</div>
+</div>
+<!-- Room Title & Location -->
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight group-hover:text-primary transition-colors flex items-center gap-2">
+            IT Team Operations
+            <span class="material-symbols-outlined text-[20px] text-primary opacity-0 group-hover:opacity-100 transition-opacity" data-icon="open_in_new">open_in_new</span>
+</h2>
+<div class="flex items-center gap-1.5 text-outline font-body-sm text-body-sm mt-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="apartment">apartment</span>
+<span class="">Tòa Landmark 72 - Tầng 18 (Khu Công nghệ &amp; Hạ tầng)</span>
+</div>
+<!-- Key Metrics Grid -->
+<div class="grid grid-cols-3 gap-3 my-4 py-3 px-3.5 bg-surface rounded-lg border border-outline-variant/40">
+<div>
+<span class="font-label-sm text-label-sm text-outline block">THÀNH VIÊN</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-sm text-[20px] font-bold text-on-surface">30</span>
+<span class="font-label-sm text-label-sm text-outline">active</span>
+</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-outline block">HẠN MỨC QUỸ</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-sm text-[18px] font-bold text-primary">2.500.000₫</span>
+</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-outline block">ĐƠN HÔM NAY</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-sm text-[20px] font-bold text-on-surface">22</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">orders</span>
+</div>
+</div>
+</div>
+<!-- Live Order Banner Micro-affordance -->
+<div class="mb-4 flex items-center justify-between p-2.5 rounded bg-surface-container-low border border-outline-variant/30 text-body-sm text-body-sm">
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-primary text-[18px]" data-icon="coffee">coffee</span>
+<span class="">Chiến dịch trưa: <strong>Highlands Coffee - Landmark 72</strong></span>
+</div>
+<a class="font-label-sm text-label-sm text-primary font-semibold hover:underline flex items-center gap-0.5" href="#campaign-live">
+              Xem chiến dịch live đang mở
+              <span class="material-symbols-outlined text-[14px]" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Card Actions -->
+<div class="pt-3 border-t border-outline-variant/40 flex items-center justify-between gap-3">
+<div class="flex items-center gap-2 text-outline font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span>
+<span class="">Cập nhật 2 phút trước</span>
+</div>
+<button class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-[#059669] text-on-primary font-label-md text-label-md font-semibold transition shadow-xs active:scale-[0.98]" type="button">
+<span class="">Vào quản trị room</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</article>
+<!-- Room Card 2: Product & UX Design Studio -->
+<article class="room-card group bg-surface-container-lowest border border-outline-variant/70 rounded-xl hover:border-primary transition-all duration-200 hover:shadow-md flex flex-col justify-between relative overflow-hidden p-4" data-room-type="live">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-secondary-container"></div>
+<div>
+<!-- Card Header & Badge -->
+<div class="flex items-start justify-between gap-2 mb-3">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant font-bold">
+                #ROOM-PROD-02
+              </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-surface-container-high text-on-secondary-fixed-variant border border-outline-variant">
+<span class="material-symbols-outlined text-[14px] text-tertiary" data-icon="bolt">bolt</span>
+                ⚡ SẮP MỞ CHIẾN DỊCH (11:00 AM)
+              </span>
+</div>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-outline">
+<span class="material-symbols-outlined text-[15px]" data-icon="badge">badge</span>
+<span class="">Dispatcher</span>
+</div>
+</div>
+<!-- Room Title & Location -->
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight group-hover:text-primary transition-colors flex items-center gap-2">
+            Product &amp; UX Design Studio
+            <span class="material-symbols-outlined text-[20px] text-primary opacity-0 group-hover:opacity-100 transition-opacity" data-icon="open_in_new">open_in_new</span>
+</h2>
+<div class="flex items-center gap-1.5 text-outline font-body-sm text-body-sm mt-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="apartment">apartment</span>
+<span class="">Tòa Landmark 72 - Tầng 15 (Creative Wing)</span>
+</div>
+<!-- Key Metrics Grid -->
+<div class="grid grid-cols-3 gap-3 my-4 py-3 px-3.5 bg-surface rounded-lg border border-outline-variant/40">
+<div>
+<span class="font-label-sm text-label-sm text-outline block">THÀNH VIÊN</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-sm text-[20px] font-bold text-on-surface">18</span>
+<span class="font-label-sm text-label-sm text-outline">designers</span>
+</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-outline block">HẠN MỨC QUỸ</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-sm text-[18px] font-bold text-on-surface">1.200.000₫</span>
+</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-outline block">ĐƠN CHỜ</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-sm text-[20px] font-bold text-on-surface">0</span>
+<span class="font-label-sm text-label-sm text-outline">chờ lịch</span>
+</div>
+</div>
+</div>
+<!-- Micro-affordance -->
+<div class="mb-4 flex items-center justify-between p-2.5 rounded bg-surface border border-outline-variant/30 text-body-sm text-body-sm">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-outline text-[18px]" data-icon="alarm">alarm</span>
+<span class="">Lên lịch: <strong>Trà sữa Phúc Long</strong> lúc 11:00 AM hôm nay</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline font-semibold">Tự động kích hoạt</span>
+</div>
+</div>
+<!-- Card Actions -->
+<div class="pt-3 border-t border-outline-variant/40 flex items-center justify-between gap-3">
+<div class="flex items-center gap-2 text-outline font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="schedule">schedule</span>
+<span class="">Phiên làm việc sẵn sàng</span>
+</div>
+<button class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-[#059669] text-on-primary font-label-md text-label-md font-semibold transition shadow-xs active:scale-[0.98]" type="button">
+<span class="">Vào quản trị room</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</article>
+<!-- Room Card 3: Marketing & Growth Hub -->
+<article class="room-card group bg-surface-container-lowest border border-outline-variant/70 rounded-xl hover:border-primary transition-all duration-200 hover:shadow-md flex flex-col justify-between relative overflow-hidden p-4" data-room-type="debt">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-[#D97706]"></div>
+<div>
+<!-- Card Header & Badge -->
+<div class="flex items-start justify-between gap-2 mb-3">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant font-bold">
+                #ROOM-MKT-05
+              </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A]">
+<span class="material-symbols-outlined text-[14px]" data-icon="warning">warning</span>
+                ⚠️ CẦN ĐỐI SOÁT CÔNG NỢ
+              </span>
+</div>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-outline">
+<span class="material-symbols-outlined text-[15px]" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="">Room Manager</span>
+</div>
+</div>
+<!-- Room Title & Location -->
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight group-hover:text-primary transition-colors flex items-center gap-2">
+            Marketing &amp; Growth Hub
+            <span class="material-symbols-outlined text-[20px] text-primary opacity-0 group-hover:opacity-100 transition-opacity" data-icon="open_in_new">open_in_new</span>
+</h2>
+<div class="flex items-center gap-1.5 text-outline font-body-sm text-body-sm mt-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="apartment">apartment</span>
+<span class="">Tòa Bitexco Q1 - Tầng 9 (Văn phòng Miền Nam)</span>
+</div>
+<!-- Key Metrics Grid -->
+<div class="grid grid-cols-3 gap-3 my-4 py-3 px-3.5 bg-surface rounded-lg border border-outline-variant/40">
+<div>
+<span class="font-label-sm text-label-sm text-outline block">THÀNH VIÊN</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-sm text-[20px] font-bold text-on-surface">42</span>
+<span class="font-label-sm text-label-sm text-outline">marketers</span>
+</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-[#D97706] block">NỢ CHƯA THANH TOÁN</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-sm text-[18px] font-bold text-[#D97706]">845.000₫</span>
+</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-outline block">ĐƠN GẦN NHẤT</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-sm text-[17px] font-bold text-on-surface">Hôm qua</span>
+</div>
+</div>
+</div>
+<!-- Warning Notice -->
+<div class="mb-4 flex items-center justify-between p-2.5 rounded bg-[#FEF2F2]/60 border border-[#FCA5A5]/60 text-body-sm text-body-sm">
+<div class="flex items-center gap-2 text-on-surface">
+<span class="material-symbols-outlined text-error text-[18px]" data-icon="receipt_long">receipt_long</span>
+<span class="">Đơn hàng ngày 24/10 chưa thanh toán hoàn tất (14 items)</span>
+</div>
+<a class="font-label-sm text-label-sm text-error font-semibold hover:underline flex items-center gap-0.5" href="#audit">
+              Đối soát ngay
+            </a>
+</div>
+</div>
+<!-- Card Actions -->
+<div class="pt-3 border-t border-outline-variant/40 flex items-center justify-between gap-3">
+<div class="flex items-center gap-2 text-outline font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="payments">payments</span>
+<span class="">Hạn tất toán: Hôm nay 17:00</span>
+</div>
+<button class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-[#059669] text-on-primary font-label-md text-label-md font-semibold transition shadow-xs active:scale-[0.98]" type="button">
+<span class="">Vào quản trị room</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</article>
+<!-- Room Card 4: Business Development & Sales -->
+<article class="room-card group bg-surface-container-lowest border border-outline-variant/70 rounded-xl hover:border-primary transition-all duration-200 hover:shadow-md flex flex-col justify-between relative overflow-hidden p-4" data-room-type="idle">
+<div class="absolute top-0 left-0 w-1.5 h-full bg-outline-variant"></div>
+<div>
+<!-- Card Header & Badge -->
+<div class="flex items-start justify-between gap-2 mb-3">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant font-bold">
+                #ROOM-BD-04
+              </span>
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-surface-container text-outline border border-outline-variant/60">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+                NGHỈ TRƯA / IDLE
+              </span>
+</div>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-outline">
+<span class="material-symbols-outlined text-[15px]" data-icon="visibility">visibility</span>
+<span class="">Viewer &amp; Dispatcher</span>
+</div>
+</div>
+<!-- Room Title & Location -->
+<h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight group-hover:text-primary transition-colors flex items-center gap-2">
+            Business Development &amp; Sales
+            <span class="material-symbols-outlined text-[20px] text-primary opacity-0 group-hover:opacity-100 transition-opacity" data-icon="open_in_new">open_in_new</span>
+</h2>
+<div class="flex items-center gap-1.5 text-outline font-body-sm text-body-sm mt-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="apartment">apartment</span>
+<span class="">Tòa Capital Place HN - Tầng 11 (Văn phòng đại diện)</span>
+</div>
+<!-- Key Metrics Grid -->
+<div class="grid grid-cols-2 gap-3 my-4 py-3 px-3.5 bg-surface rounded-lg border border-outline-variant/40">
+<div>
+<span class="font-label-sm text-label-sm text-outline block">THÀNH VIÊN</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-sm text-[20px] font-bold text-on-surface">25</span>
+<span class="font-label-sm text-label-sm text-outline">nhân sự</span>
+</div>
+</div>
+<div>
+<span class="font-label-sm text-label-sm text-outline block">QUỸ PHÒNG</span>
+<div class="flex items-baseline gap-1 mt-0.5">
+<span class="font-headline-sm text-[18px] font-bold text-on-surface">800.000₫</span>
+</div>
+</div>
+</div>
+<!-- Micro-affordance -->
+<div class="mb-4 flex items-center justify-between p-2.5 rounded bg-surface border border-outline-variant/30 text-body-sm text-body-sm">
+<div class="flex items-center gap-2 text-outline">
+<span class="material-symbols-outlined text-[18px]" data-icon="bedtime">bedtime</span>
+<span class="">Chưa có chiến dịch nào được khởi tạo hôm nay</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline-variant font-medium">Ca chiều: 14:30</span>
+</div>
+</div>
+<!-- Card Actions -->
+<div class="pt-3 border-t border-outline-variant/40 flex items-center justify-between gap-3">
+<div class="flex items-center gap-2 text-outline font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]" data-icon="check_circle">check_circle</span>
+<span class="">Không có công nợ tồn đọng</span>
+</div>
+<button class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-[#059669] text-on-primary font-label-md text-label-md font-semibold transition shadow-xs active:scale-[0.98]" type="button">
+<span class="">Vào quản trị room</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</article>
+</div>
+<!-- Empty State for Filter/Search (Hidden by default) -->
+<div class="hidden text-center py-16 bg-surface-container-lowest rounded-xl border border-outline-variant/50 mt-4" id="noResults">
+<span class="material-symbols-outlined text-outline text-5xl mb-2" data-icon="search_off">search_off</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Không tìm thấy phòng ban phù hợp</h3>
+<p class="font-body-md text-body-md text-outline mt-1">Vui lòng thử từ khóa tìm kiếm hoặc bỏ bớt tiêu chí lọc trạng thái.</p>
+</div>
+</main>
+<!-- Focused Auxiliary Action Bar (Bottom Strip) -->
+
+<!-- Lightweight Inline Micro-interactions Script -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('roomSearchInput');
+      const filterButtons = document.querySelectorAll('.filter-btn');
+      const cards = document.querySelectorAll('.room-card');
+      const noResults = document.getElementById('noResults');
+
+      let currentFilter = 'all';
+      let currentQuery = '';
+
+      function applyFilter() {
+        let visibleCount = 0;
+
+        cards.forEach(card => {
+          const type = card.getAttribute('data-room-type');
+          const content = card.textContent.toLowerCase();
+
+          const matchesType = (currentFilter === 'all') || 
+            (currentFilter === 'live' && type === 'live') ||
+            (currentFilter === 'debt' && type === 'debt') ||
+            (currentFilter === 'idle' && type === 'idle');
+
+          const matchesQuery = !currentQuery || content.includes(currentQuery);
+
+          if (matchesType && matchesQuery) {
+            card.classList.remove('hidden');
+            visibleCount++;
+          } else {
+            card.classList.add('hidden');
+          }
+        });
+
+        if (visibleCount === 0) {
+          noResults.classList.remove('hidden');
+        } else {
+          noResults.classList.add('hidden');
+        }
+      }
+
+      // Filter button event listeners
+      filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterButtons.forEach(b => {
+            b.classList.remove('bg-primary', 'text-on-primary', 'shadow-xs', 'active-filter');
+            b.classList.add('bg-surface-container-low', 'text-on-surface-variant');
+          });
+
+          btn.classList.add('bg-primary', 'text-on-primary', 'shadow-xs', 'active-filter');
+          btn.classList.remove('bg-surface-container-low', 'text-on-surface-variant');
+
+          currentFilter = btn.getAttribute('data-filter');
+          applyFilter();
+        });
+      });
+
+      // Search input event listener
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          currentQuery = e.target.value.trim().toLowerCase();
+          applyFilter();
+        });
+      }
+    });
+  </script>
+
+
+</body></html>

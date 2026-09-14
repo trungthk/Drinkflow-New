@@ -51,19 +51,25 @@ class CreateOrderAction
             foreach ($items as $input) {
                 $item = $campaign->items()->with(['sizes', 'toppings'])->whereKey($input['item_id'] ?? 0)->first();
                 $quantity = (int) ($input['quantity'] ?? 0);
-                if (! $item || $item->status !== 'active' || $quantity < 1) {
+                $itemStatus = $item?->status instanceof \BackedEnum ? $item->status->value : (string) ($item?->status ?? '');
+                if (! $item || $itemStatus !== 'active' || $quantity < 1) {
                     throw ValidationException::withMessages([
                         'items' => __('admin.item_invalid_or_sold_out'),
                     ]);
                 }
                 $size = ! empty($input['size_id']) ? $item->sizes->firstWhere('id', (int) $input['size_id']) : null;
-                if (! empty($input['size_id']) && (! $size || $size->status !== 'active')) {
+                $sizeStatus = $size?->status instanceof \BackedEnum ? $size->status->value : (string) ($size?->status ?? '');
+                if (! empty($input['size_id']) && (! $size || $sizeStatus !== 'active')) {
                     throw ValidationException::withMessages([
                         'items' => __('admin.invalid_size'),
                     ]);
                 }
                 $toppings = collect($input['topping_ids'] ?? [])->map(fn ($id) => $item->toppings->firstWhere('id', (int) $id));
-                if ($toppings->contains(fn ($t) => ! $t || $t->status !== 'active')) {
+                if ($toppings->contains(function ($t) {
+                    if (! $t) return true;
+                    $tStatus = $t->status instanceof \BackedEnum ? $t->status->value : (string) $t->status;
+                    return $tStatus !== 'active';
+                })) {
                     throw ValidationException::withMessages([
                         'items' => __('admin.invalid_topping'),
                     ]);
