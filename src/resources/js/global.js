@@ -7,6 +7,7 @@ import { initGlobalGoToTop } from './global/go-to-top';
 import { initGlobalDashboard } from './global/dashboard';
 import { initGlobalFooterNav } from './global/footer';
 import { initGlobalFeedback } from './global/feedback';
+import { initSessionRevocation } from './global/session-revocation';
 
 document.addEventListener('DOMContentLoaded', () => {
     initGlobalHeader();
@@ -16,4 +17,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initGlobalDashboard();
     initGlobalFooterNav();
     initGlobalFeedback();
+    initSessionRevocation();
 });

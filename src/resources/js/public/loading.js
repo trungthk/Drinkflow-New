@@ -6,6 +6,7 @@ export function initPublicLoading() {
     const card = document.getElementById('public-loading-card');
     const title = document.getElementById('public-loading-title');
     let autoHideTimer = null;
+    let isInternalNavigation = false;
 
     const defaultTitle = title?.dataset.defaultTitle || '';
     const connectingGoogleTitle = title?.dataset.googleTitle || defaultTitle;
@@ -94,6 +95,17 @@ export function initPublicLoading() {
         }
     });
 
+    document.addEventListener('click', function(e) {
+        const link = e.target.closest('a[href]');
+        if (!link || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+        const href = link.getAttribute('href') || '';
+        if (link.target === '_blank' || link.hasAttribute('download') || href === '' || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+
+        const destination = new URL(link.href, window.location.href);
+        isInternalNavigation = destination.origin === window.location.origin && destination.href !== window.location.href;
+    });
+
     // Reset loading on bfcache
     window.addEventListener('pageshow', function() {
             window.hidePublicLoading();
@@ -106,5 +118,7 @@ export function initPublicLoading() {
             });
     });
 
-    window.addEventListener('beforeunload', () => window.showPublicLoading(defaultTitle));
+    window.addEventListener('beforeunload', () => {
+        if (isInternalNavigation) window.showPublicLoading(defaultTitle);
+    });
 }

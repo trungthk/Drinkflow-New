@@ -11,6 +11,7 @@ use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
 use App\Models\GlobalUser;
 use App\Models\Room;
+use App\Services\Audit\AuditService;
 use App\Services\Auth\DeviceTrustService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -28,9 +29,10 @@ class RoomController extends Controller
      * @param Request $request Current HTTP request.
      * @param Room $room Target room model resolved by slug/id.
      * @param DeviceTrustService $devices Device trust verification service.
+     * @param AuditService $audit Activity audit service.
      * @return JsonResponse|RedirectResponse|View|Response Rendered view, redirect, or JSON payload.
      */
-    public function show(Request $request, Room $room, DeviceTrustService $devices): JsonResponse|RedirectResponse|View|Response
+    public function show(Request $request, Room $room, DeviceTrustService $devices, AuditService $audit): JsonResponse|RedirectResponse|View|Response
     {
         $roomStatus = $room->status instanceof \BackedEnum ? $room->status->value : (string) $room->status;
         abort_unless($roomStatus === RoomStatus::Active->value, 404);
@@ -46,6 +48,9 @@ class RoomController extends Controller
             $user = $device?->roomUser?->globalUser;
             if ($user) {
                 Auth::guard('web')->login($user, true);
+                $audit->record('user.logged_in', 'global_user', $user->id, $room->id, [], [], [
+                    'authentication_method' => 'trusted_device',
+                ]);
             }
         }
 

@@ -347,7 +347,7 @@
               <span class="material-symbols-outlined text-slate-400 text-[18px] mt-0.5">phone_in_talk</span>
               <div>
                 <span class="text-[11px] text-slate-400 block">{{ __('global.blocked.hotline_label') }}</span>
-                <span class="font-medium text-slate-800">{{ __('global.blocked.hotline_val') }}</span>
+                <a class="font-medium text-[#006948] hover:underline" href="tel:0377300950">{{ __('global.blocked.hotline_val') }}</a>
               </div>
             </li>
           </ul>
@@ -467,7 +467,7 @@
 
         <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
           <p class="font-semibold text-slate-800">{{ __('global.blocked.modal_contact_acc_title') }}</p>
-          <p class="mt-0.5 text-slate-500">{{ __('global.blocked.modal_contact_acc_hotline', ['phone' => 'Ext 1088 (Tầng 4)']) }}</p>
+          <a class="mt-0.5 inline-block text-slate-500 hover:text-[#006948] hover:underline" href="tel:0377300950">{{ __('global.blocked.modal_contact_acc_hotline', ['phone' => '0377300950']) }}</a>
           <p class="text-[11px] text-slate-400">{{ __('global.blocked.modal_contact_acc_desc') }}</p>
         </div>
       </div>

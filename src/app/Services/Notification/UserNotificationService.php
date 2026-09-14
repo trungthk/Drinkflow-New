@@ -124,11 +124,11 @@ class UserNotificationService
      * Đánh dấu toàn bộ thông báo chưa đọc của người dùng thành đã đọc.
      *
      * @param  \App\Models\GlobalUser  $user  Tài khoản người dùng toàn hệ thống
-     * @return void
+     * @return int Number of notifications marked as read.
      */
-    public function markAllAsRead(GlobalUser $user): void
+    public function markAllAsRead(GlobalUser $user): int
     {
-        $user->notifications()->whereNull('read_at')->update(['read_at' => now()]);
+        return $user->notifications()->whereNull('read_at')->update(['read_at' => now()]);
     }
 
     /**

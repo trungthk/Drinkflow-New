@@ -111,7 +111,7 @@
                     <span>{{ __('global.profile.phone_label') }}</span>
                   </label>
                   <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">call</span>
+                    <span class="material-symbols-outlined absolute left-3 top-1/4 text-slate-400 text-[18px] leading-none">call</span>
                     <input id="contact-phone" name="phone" type="text" value="{{ old('phone', $phone) }}" placeholder="{{ __('global.profile.phone_placeholder') }}" class="w-full h-10 pl-9 pr-3.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] transition-all">
                   </div>
                 </div>
@@ -120,7 +120,7 @@
                 <div class="space-y-1.5">
                   <label for="contact-desk" class="h-5 flex items-center text-xs font-semibold text-slate-700">{{ __('global.profile.desk_label') }}</label>
                   <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">desk</span>
+                    <span class="material-symbols-outlined absolute left-3 top-1/4 text-slate-400 text-[18px] leading-none">desk</span>
                     <input id="contact-desk" name="desk_location" type="text" value="{{ old('desk_location', $deskLocation) }}" placeholder="{{ __('global.profile.desk_placeholder') }}" class="w-full h-10 pl-9 pr-3.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] transition-all">
                   </div>
                 </div>
@@ -130,7 +130,7 @@
               <div class="space-y-1.5">
                 <label for="contact-delivery" class="text-xs font-semibold text-slate-700">{{ __('global.profile.delivery_label') }}</label>
                 <div class="relative">
-                  <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">apartment</span>
+                  <span class="material-symbols-outlined absolute left-3 top-1/4 text-slate-400 text-[18px] leading-none">apartment</span>
                   <input id="contact-delivery" name="delivery_location" type="text" value="{{ old('delivery_location', $deliveryLocation) }}" placeholder="{{ __('global.profile.delivery_placeholder') }}" class="w-full pl-9 pr-3.5 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] transition-all">
                 </div>
               </div>
@@ -188,7 +188,7 @@
       </div>
 
       <!-- ==================== CỘT PHẢI (4 CỘT) ==================== -->
-      <div class="lg:col-span-4 space-y-6">
+      <div class="lg:col-span-4 flex flex-col gap-6">
         <!-- Card 4: Cài đặt thông báo -->
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
           <div class="p-5 border-b border-slate-100 flex items-center gap-2.5 bg-slate-50/60">

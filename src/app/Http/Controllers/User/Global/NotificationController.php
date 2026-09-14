@@ -45,12 +45,16 @@ class NotificationController extends Controller
      * @param  \App\Services\Notification\UserNotificationService  $service  Service xử lý thông báo
      * @return \Illuminate\Http\RedirectResponse  Phản hồi chuyển hướng quay lại kèm thông báo thành công
      */
-    public function markAllRead(Request $request, UserNotificationService $service): RedirectResponse
+    public function markAllRead(Request $request, UserNotificationService $service): JsonResponse|RedirectResponse
     {
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $service->markAllAsRead($user);
+        $markedCount = $service->markAllAsRead($user);
+
+        if ($request->expectsJson()) {
+            return response()->json(['marked_count' => $markedCount]);
+        }
 
         return back()->with('status', __('global.notifications.marked_all_read_status'));
     }
@@ -77,4 +81,3 @@ class NotificationController extends Controller
         return back()->with('status', __('global.notifications.marked_read_status'));
     }
 }
-

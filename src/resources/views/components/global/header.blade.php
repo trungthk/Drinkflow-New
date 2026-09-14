@@ -92,6 +92,8 @@
               </div>
               <button class="text-xs font-medium text-[#006948] hover:text-[#047857] transition-colors cursor-pointer"
                       id="global-mark-all-read-btn"
+                      type="button"
+                      data-read-all-url="{{ route('user.me.notifications.read-all') }}"
                       data-read-text="{{ __('global.header.all_read') }}">
                 {{ __('global.header.mark_all_read') }}
               </button>

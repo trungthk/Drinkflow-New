@@ -8,6 +8,7 @@ use App\Enums\GlobalUserStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\AdminAccount;
+use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
 use Illuminate\Support\Str;
@@ -34,6 +35,23 @@ class SocketTokenService
             'global_user_id' => $roomUser->global_user_id,
             'room_user_id' => $roomUser->id,
             'room_id' => $roomUser->room_id,
+            'exp' => now()->addSeconds($ttlSeconds)->timestamp,
+            'jti' => (string) Str::uuid(),
+        ];
+        $encoded = $this->encode($payload);
+
+        return $encoded.'.'.hash_hmac('sha256', $encoded, (string) config('app.key'));
+    }
+
+    /** Issue a realtime token scoped to one trusted user device. */
+    public function issueForDevice(GlobalUser $user, string $deviceUuid, int $ttlSeconds = 300): string
+    {
+        abort_unless($user->status === GlobalUserStatus::Active && preg_match('/^[A-Za-z0-9-]{1,128}$/', $deviceUuid) === 1, 403);
+
+        $payload = [
+            'actor_type' => 'user',
+            'global_user_id' => $user->id,
+            'device_uuid' => $deviceUuid,
             'exp' => now()->addSeconds($ttlSeconds)->timestamp,
             'jti' => (string) Str::uuid(),
         ];

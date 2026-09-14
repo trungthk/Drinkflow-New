@@ -99,10 +99,9 @@ class GlobalNotificationsTest extends TestCase
 
         $response = $this->withoutMiddleware(ValidateCsrfToken::class)
             ->actingAs($user, 'web')
-            ->post('/me/notifications/read-all');
+            ->postJson('/me/notifications/read-all');
 
-        $response->assertRedirect();
-        $response->assertSessionHas('status');
+        $response->assertOk()->assertJsonPath('marked_count', 2);
 
         $this->assertEquals(0, $user->notifications()->whereNull('read_at')->count());
     }

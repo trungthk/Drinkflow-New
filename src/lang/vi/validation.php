@@ -149,6 +149,12 @@ return [
     'uuid' => 'Trường :attribute phải là một chuỗi UUID hợp lệ.',
     'captcha' => 'Mã xác thực Captcha không chính xác hoặc đã hết hạn. Vui lòng thử lại.',
 
+    'custom' => [
+        'captcha' => [
+            'invalid' => 'Mã xác thực Captcha không chính xác hoặc đã hết hạn. Vui lòng thử lại.',
+        ],
+    ],
+
     'attributes' => [
         'email' => 'Địa chỉ Email',
         'password' => 'Mật khẩu',

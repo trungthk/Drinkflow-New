@@ -4,6 +4,7 @@ export function initAdminLoading() {
     const card = document.getElementById('admin-loading-card');
     if (!overlay || !card || overlay.dataset.initialized) return;
     overlay.dataset.initialized = 'true';
+    let isInternalNavigation = false;
 
     const show = () => {
         overlay.classList.remove('hidden', 'pointer-events-none', 'opacity-0');
@@ -27,8 +28,13 @@ export function initAdminLoading() {
         const href = link.getAttribute('href') || '';
         if (link.target === '_blank' || link.hasAttribute('download') || href === '' || href.startsWith('#') || href.startsWith('javascript:')) return;
         const destination = new URL(link.href, window.location.href);
-        if (destination.origin === window.location.origin && destination.href !== window.location.href) show();
+        if (destination.origin === window.location.origin && destination.href !== window.location.href) {
+            isInternalNavigation = true;
+            show();
+        }
     });
     window.addEventListener('pageshow', hide);
-    window.addEventListener('beforeunload', show);
+    window.addEventListener('beforeunload', () => {
+        if (isInternalNavigation) show();
+    });
 }

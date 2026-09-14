@@ -149,6 +149,12 @@ return [
     'uuid' => ':attribute には有効なUUIDを指定してください。',
     'captcha' => '認証コード（Captcha）が無効であるか、有効期限が切れています。もう一度お試しください。',
 
+    'custom' => [
+        'captcha' => [
+            'invalid' => '認証コード（Captcha）が無効であるか、有効期限が切れています。もう一度お試しください。',
+        ],
+    ],
+
     'attributes' => [
         'email' => 'メールアドレス',
         'password' => 'パスワード',

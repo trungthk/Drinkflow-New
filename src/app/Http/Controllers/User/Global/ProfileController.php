@@ -121,7 +121,7 @@ class ProfileController extends Controller
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $service->logoutDevice($user, $sessionId);
+        $service->logoutDevice($user, $sessionId, (string) $request->cookie('drinkflow_device_uuid', ''));
 
         return back()->with('status', __('global.devices.logout_device_success'));
     }
@@ -138,7 +138,11 @@ class ProfileController extends Controller
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $service->logoutOtherDevices($user, $request->session()->getId());
+        $service->logoutOtherDevices(
+            $user,
+            $request->session()->getId(),
+            (string) $request->cookie('drinkflow_device_uuid', ''),
+        );
 
         return back()->with('status', __('global.devices.logout_other_devices_success'));
     }
@@ -212,4 +216,3 @@ class ProfileController extends Controller
         return back()->with('status', __('global.feedback.submit_success_status'));
     }
 }
-

@@ -81,12 +81,34 @@ export function initGlobalHeader() {
 
     const markAllReadBtn = document.getElementById('global-mark-all-read-btn');
     if (markAllReadBtn) {
-        markAllReadBtn.addEventListener('click', function() {
-            const badge = document.getElementById('global-notif-badge');
-            if (badge) badge.remove();
-            const allReadText = markAllReadBtn.dataset.readText || 'Đã đọc tất cả';
-            this.textContent = allReadText;
-            this.classList.add('opacity-50', 'pointer-events-none');
+        markAllReadBtn.addEventListener('click', async function() {
+            const endpoint = markAllReadBtn.dataset.readAllUrl;
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            if (!endpoint || !csrfToken || markAllReadBtn.disabled) return;
+
+            markAllReadBtn.disabled = true;
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                    credentials: 'same-origin',
+                });
+
+                if (!response.ok) throw new Error('Unable to mark notifications as read.');
+
+                const badge = document.getElementById('global-notif-badge');
+                if (badge) badge.remove();
+                const allReadText = markAllReadBtn.dataset.readText || 'Đã đọc tất cả';
+                this.textContent = allReadText;
+                this.classList.add('opacity-50', 'pointer-events-none');
+            } catch (error) {
+                console.error(error);
+                markAllReadBtn.disabled = false;
+            }
         });
     }
 }

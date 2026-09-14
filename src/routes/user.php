@@ -39,6 +39,7 @@ Route::middleware(['global.user', 'room.user'])->group(function () {
 });
 
 Route::middleware(['global.user'])->group(function () {
+    Route::get('/me/socket-token', \App\Http\Controllers\User\GlobalSocketTokenController::class)->name('user.me.socket-token');
     // Global User Portal Pages (/me/*) - Available to all users
     Route::get('/me', \App\Http\Controllers\User\Global\DashboardController::class)->name('user.me.dashboard');
     Route::get('/me/profile', \App\Http\Controllers\User\Global\ProfileController::class)->name('user.me.profile');

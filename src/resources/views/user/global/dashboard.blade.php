@@ -359,10 +359,9 @@
             <form method="POST" action="{{ route('user.me.rooms.join') }}" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               @csrf
               <div class="relative flex-1">
-                <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">link</span>
                 <input name="room_url"
                        value="{{ old('room_url') }}"
-                       class="w-full pl-10 pr-4 h-11 bg-slate-50/70 border @error('room_url') border-red-500 @else border-slate-200 @enderror rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] font-mono transition-all outline-none"
+                       class="w-full px-4 h-11 bg-slate-50/70 border @error('room_url') border-red-500 @else border-slate-200 @enderror rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] font-mono transition-all outline-none"
                        placeholder="{{ __('global.dashboard.join_placeholder') }}"
                        type="url"
                        required>
@@ -558,7 +557,7 @@
               </span>
               <div class="min-w-0">
                 <span class="text-[11px] text-slate-400 block">{{ __('global.dashboard.hotline_title') }}</span>
-                <span class="text-xs font-semibold text-slate-800">{{ __('global.dashboard.hotline_value') }}</span>
+                <a class="text-xs font-semibold text-[#006948] hover:underline" href="tel:0377300950">{{ __('global.dashboard.hotline_value') }}</a>
               </div>
             </div>
             <div class="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 hover:bg-white hover:border-emerald-400 transition-all flex items-center gap-3">

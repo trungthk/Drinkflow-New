@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdminAccount;
+use App\Services\Audit\AuditService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,9 +34,10 @@ class ProfileController extends Controller
      * Update the authenticated admin's editable profile fields.
      *
      * @param Request $request Incoming request.
+     * @param AuditService $audit Activity audit service.
      * @return RedirectResponse Redirect back with status.
      */
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, AuditService $audit): RedirectResponse
     {
         /** @var AdminAccount $admin */
         $admin = $request->user('admin');
@@ -45,11 +47,13 @@ class ProfileController extends Controller
             'department' => ['nullable', 'string', 'max:255'],
         ]);
 
+        $before = $admin->only(['name', 'phone', 'department']);
         $admin->update([
             'name' => $data['name'],
             'phone' => $data['phone'] ?? null,
             'department' => $data['department'] ?? null,
         ]);
+        $audit->record('admin.profile_updated', 'admin', $admin->id, null, $before, $admin->fresh()->only(array_keys($before)));
 
         return back()->with('status', __('admin.profile_updated'));
     }
@@ -58,9 +62,10 @@ class ProfileController extends Controller
      * Upload an avatar for the authenticated admin.
      *
      * @param Request $request Incoming request.
+     * @param AuditService $audit Activity audit service.
      * @return RedirectResponse Redirect back with status.
      */
-    public function uploadAvatar(Request $request): RedirectResponse
+    public function uploadAvatar(Request $request, AuditService $audit): RedirectResponse
     {
         /** @var AdminAccount $admin */
         $admin = $request->user('admin');
@@ -71,7 +76,9 @@ class ProfileController extends Controller
             Storage::disk('public')->delete($admin->avatar_url);
         }
 
+        $before = ['avatar_configured' => (bool) $admin->avatar_url];
         $admin->update(['avatar_url' => $path]);
+        $audit->record('admin.avatar_updated', 'admin', $admin->id, null, $before, ['avatar_configured' => true]);
 
         return back()->with('status', __('admin.avatar_updated'));
     }
@@ -80,9 +87,10 @@ class ProfileController extends Controller
      * Change the authenticated admin's password after current-password verification.
      *
      * @param Request $request Incoming request.
+     * @param AuditService $audit Activity audit service.
      * @return RedirectResponse Redirect back with status.
      */
-    public function updatePassword(Request $request): RedirectResponse
+    public function updatePassword(Request $request, AuditService $audit): RedirectResponse
     {
         /** @var AdminAccount $admin */
         $admin = $request->user('admin');
@@ -97,6 +105,7 @@ class ProfileController extends Controller
         }
 
         $admin->update(['password' => $data['password']]);
+        $audit->record('admin.password_updated', 'admin', $admin->id);
 
         return back()->with('status', __('admin.password_updated'));
     }
@@ -105,9 +114,10 @@ class ProfileController extends Controller
      * Enable or disable two-factor sign-in after verifying the current password.
      *
      * @param Request $request Incoming request.
+     * @param AuditService $audit Activity audit service.
      * @return RedirectResponse Redirect back with a status or validation error.
      */
-    public function updateTwoFactor(Request $request): RedirectResponse
+    public function updateTwoFactor(Request $request, AuditService $audit): RedirectResponse
     {
         /** @var AdminAccount $admin */
         $admin = $request->user('admin');
@@ -120,7 +130,9 @@ class ProfileController extends Controller
             return back()->withErrors(['two_factor_password' => __('admin.current_password_incorrect')]);
         }
 
+        $before = (bool) $admin->two_factor_enabled;
         $admin->update(['two_factor_enabled' => (bool) $data['two_factor_enabled']]);
+        $audit->record('admin.two_factor_updated', 'admin', $admin->id, null, ['two_factor_enabled' => $before], ['two_factor_enabled' => (bool) $data['two_factor_enabled']]);
 
         return back()->with('status', __('admin.profile_updated'));
     }

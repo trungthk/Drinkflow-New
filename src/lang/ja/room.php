@@ -62,7 +62,7 @@ return [
         'back_to_my_rooms' => 'マイルームに戻る',
         'check_personal_debts' => '個人未払い残高を確認',
         'need_help' => 'システムサポートが必要ですか？',
-        'helpdesk' => 'DrinkFlow ヘルプデスク (内線: 1024)',
+        'helpdesk' => 'DrinkFlow ヘルプデスク: 0377300950',
     ],
     'dashboard' => [
         'page_title' => 'ルーム概要',

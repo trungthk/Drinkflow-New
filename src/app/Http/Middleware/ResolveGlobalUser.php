@@ -22,13 +22,26 @@ class ResolveGlobalUser
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user('web');
+        $deviceUuid = (string) $request->cookie('drinkflow_device_uuid', '');
+        $token = (string) $request->cookie('drinkflow_trusted_token', '');
+
+        // A revoked trusted-device token must also invalidate an otherwise
+        // still-present Laravel session. Without this check, a revoked device
+        // can retain its web session or have it restored on the next refresh.
+        if ($user && ($deviceUuid !== '' || $token !== '')) {
+            $device = app(DeviceTrustService::class)->resolve($deviceUuid, $token);
+            if (! $device || $device->roomUser?->global_user_id !== $user->id) {
+                auth('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+                $user = null;
+            }
+        }
 
         // A trusted device is sufficient to restore the global session. The
         // token is always checked against its hash; device_uuid alone is not
         // treated as an authentication credential.
         if (! $user) {
-            $deviceUuid = (string) $request->cookie('drinkflow_device_uuid', '');
-            $token      = (string) $request->cookie('drinkflow_trusted_token', '');
             $room       = $request->route('room');
             $roomId     = is_object($room) ? $room->id : (is_numeric($room) ? (int) $room : null);
             $device     = app(DeviceTrustService::class)->resolve($deviceUuid, $token, $roomId);

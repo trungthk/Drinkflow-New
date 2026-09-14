@@ -79,6 +79,8 @@ class AdminFeatureTest extends TestCase
             'department' => 'Operations',
             'two_factor_enabled' => true,
         ]);
+        $this->assertDatabaseHas('audit_logs', ['event' => 'admin.profile_updated', 'target_id' => $admin->id]);
+        $this->assertDatabaseHas('audit_logs', ['event' => 'admin.two_factor_updated', 'target_id' => $admin->id]);
     }
 
     public function test_guest_cannot_access_admin_profile(): void
@@ -100,6 +102,13 @@ class AdminFeatureTest extends TestCase
         ])->assertRedirect()->assertSessionHasNoErrors();
 
         $this->assertNotNull($admin->fresh()->last_login_at);
+        $this->assertDatabaseHas('audit_logs', [
+            'actor_type' => 'admin',
+            'actor_id' => $admin->id,
+            'event' => 'admin.logged_in',
+            'target_type' => 'admin',
+            'target_id' => $admin->id,
+        ]);
     }
 
     public function test_admin_dashboard_is_limited_to_assigned_room(): void

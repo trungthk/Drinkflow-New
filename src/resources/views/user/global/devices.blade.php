@@ -256,6 +256,7 @@
     </section>
 
     <!-- Section 4: Thao tác bảo mật khẩn cấp (Global Security Actions) -->
+    @if (false)
     <section class="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs">
         <div class="flex items-center gap-2 mb-4">
             <span class="material-symbols-outlined text-rose-600 text-xl">warning</span>
@@ -319,6 +320,7 @@
     </section>
 
     <!-- Modal 1: Xác nhận đăng xuất thiết bị đơn lẻ -->
+    @endif
     <div 
         x-show="showSingleLogoutModal"
         x-cloak

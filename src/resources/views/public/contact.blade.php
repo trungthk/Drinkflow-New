@@ -240,10 +240,7 @@
                             <span class="material-symbols-outlined text-slate-400 mt-0.5 text-[18px]">call</span>
                             <div>
                                 <p class="font-medium text-slate-700">{{ __('contact.direct.hotline_label') }}</p>
-                                <p class="text-[#006948] font-bold text-base mt-0.5">
-                                    {{ __('contact.direct.hotline_value') }}
-                                    <span class="text-slate-500 font-normal text-xs">{{ __('contact.direct.hotline_ext') }}</span>
-                                </p>
+                                <a class="mt-0.5 inline-block text-base font-bold text-[#006948] hover:underline" href="tel:0377300950">{{ __('contact.direct.hotline_value') }}</a>
                             </div>
                         </div>
 
@@ -252,7 +249,7 @@
                             <span class="material-symbols-outlined text-slate-400 mt-0.5 text-[18px]">mail</span>
                             <div>
                                 <p class="font-medium text-slate-700">{{ __('contact.direct.email_label') }}</p>
-                                <p class="text-slate-800 font-medium mt-0.5">{{ __('contact.direct.email_value') }}</p>
+                                <a class="mt-0.5 inline-block font-medium text-[#006948] hover:underline" href="mailto:drinkflowsupport@gmail.com">{{ __('contact.direct.email_value') }}</a>
                             </div>
                         </div>
 

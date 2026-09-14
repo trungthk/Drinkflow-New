@@ -149,6 +149,12 @@ return [
     'uuid' => 'The :attribute field must be a valid UUID.',
     'captcha' => 'The captcha code is invalid or has expired. Please try again.',
 
+    'custom' => [
+        'captcha' => [
+            'invalid' => 'The captcha code is invalid or has expired. Please try again.',
+        ],
+    ],
+
     'attributes' => [
         'email' => 'Email address',
         'password' => 'Password',

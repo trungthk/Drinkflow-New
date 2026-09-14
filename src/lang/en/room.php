@@ -62,7 +62,7 @@ return [
         'back_to_my_rooms' => 'Back to My Rooms',
         'check_personal_debts' => 'Check Personal Balances',
         'need_help' => 'Need technical support?',
-        'helpdesk' => 'DrinkFlow Helpdesk (ext: 1024)',
+        'helpdesk' => 'DrinkFlow Helpdesk: 0377300950',
     ],
     'dashboard' => [
         'page_title' => 'Room Overview',

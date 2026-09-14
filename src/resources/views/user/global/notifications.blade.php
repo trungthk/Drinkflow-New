@@ -5,12 +5,7 @@
     :breadcrumbs="$breadcrumbs"
     :unreadNotificationsCount="$unreadCount"
 >
-<div 
-    x-data="{
-        showConfigModal: false,
-    }" 
-    class="space-y-6"
->
+<div class="space-y-6">
     <!-- Status Flash Notification -->
     @if(session('status'))
         <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm flex items-center justify-between shadow-2xs">
@@ -38,14 +33,6 @@
                     <span>{{ __('global.notifications.mark_all_read') }}</span>
                 </button>
             </form>
-            <button 
-                type="button" 
-                @click="showConfigModal = true"
-                class="inline-flex items-center p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition-colors shadow-2xs cursor-pointer" 
-                title="{{ __('global.notifications.config_btn') }}"
-            >
-                <span class="material-symbols-outlined text-[18px]">tune</span>
-            </button>
         </div>
     </div>
 
@@ -171,6 +158,7 @@
     </div>
 
     <!-- MODAL: Cấu hình thông báo -->
+    @if (false)
     <div 
         x-show="showConfigModal"
         x-cloak
@@ -219,5 +207,6 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 </x-global.layout>

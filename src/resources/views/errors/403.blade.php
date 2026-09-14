@@ -136,7 +136,7 @@
                             </div>
                             <div class="flex items-center justify-between text-on-surface p-2.5 rounded-lg bg-surface-container-low border border-outline-variant/80">
                                 <span class="flex items-center gap-1.5 text-on-surface-variant">
-                                    <span class="material-symbols-outlined text-[16px]">call</span> {{ __('errors.403.hotline_label') }}
+                                    <span class="material-symbols-outlined text-[16px]">call</span> {{ __('errors.403.hotline_label') }} <a class="font-semibold text-primary hover:underline" href="tel:0377300950">0377300950</a>
                                 </span>
                             </div>
                         </div>

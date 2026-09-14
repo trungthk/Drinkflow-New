@@ -14,7 +14,7 @@
     <!-- MAIN CONTAINER -->
     <main class="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <!-- Breadcrumb & Page Meta -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-slate-200 gap-3">
+        <div class="pb-5 border-b border-slate-200">
             <div class="flex items-center gap-2 text-xs text-[#545c72] flex-wrap">
                 <a class="hover:text-[#006948] transition-colors" href="{{ $landingUrl }}">{{ __('versions.breadcrumb_root') }}</a>
                 <span class="material-symbols-outlined text-[14px]">chevron_right</span>
@@ -22,24 +22,10 @@
                 <span class="material-symbols-outlined text-[14px]">chevron_right</span>
                 <span class="text-[#0F172A] font-semibold">{{ __('versions.breadcrumb_release', ['version' => $currentVersion->version]) }}</span>
             </div>
-            <div class="flex items-center gap-2 text-xs">
-                <span class="text-[#545c72]">{{ __('versions.sync_status') }}:</span>
-                <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-[#006948] font-medium shadow-2xs">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#059669] animate-pulse"></span>
-                    <span>{{ __('versions.system_online', ['version' => $appVersion]) }}</span>
-                </div>
-            </div>
         </div>
 
         <!-- MOBILE HORIZONTAL VERSION SELECTOR (Mobile only) -->
         <div class="lg:hidden mt-4 bg-white p-3 rounded-xl border border-slate-200 shadow-2xs">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold text-[#0F172A] flex items-center gap-1.5">
-                    <span class="material-symbols-outlined text-[16px] text-[#006948]">history</span>
-                    <span>{{ __('versions.sidebar_title') }}</span>
-                </span>
-                <span class="text-[11px] font-semibold text-[#006948] bg-[#eff4ff] px-2 py-0.5 rounded">{{ $versions->count() }} {{ __('versions.versions_count') }}</span>
-            </div>
             <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1" style="scrollbar-width: none; -ms-overflow-style: none;">
                 @foreach ($versions as $v)
                     @php
@@ -57,31 +43,14 @@
         <div class="mt-6 grid grid-cols-12 gap-6 lg:gap-8 items-start">
             <!-- LEFT SIDEBAR PANEL: Version List (Desktop Only) -->
             <aside class="hidden lg:flex col-span-12 lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden flex-col">
-                <div class="p-4 border-b border-slate-100 bg-white">
-                    <div class="flex items-center justify-between mb-3">
-                        <h2 class="text-base font-bold text-[#0F172A] flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[#006948] text-[20px]">history</span>
-                            <span>{{ __('versions.sidebar_title') }}</span>
-                        </h2>
-                        <span class="text-xs bg-[#eff4ff] text-[#006948] font-mono px-2 py-0.5 rounded font-semibold">{{ $versions->count() }} {{ __('versions.versions_count') }}</span>
-                    </div>
-                    <div class="relative">
-                        <span class="material-symbols-outlined absolute left-3 top-2.5 text-[18px] text-[#545c72]">search</span>
-                        <input id="version-search-input"
-                                class="w-full h-9 pl-9 pr-3 rounded-lg border border-slate-200 text-xs text-[#0F172A] placeholder:text-[#545c72] focus:outline-none focus:border-[#006948] bg-[#f8f9ff]"
-                                placeholder="{{ __('versions.sidebar_search_placeholder') }}"
-                                type="text">
-                    </div>
-                </div>
-
                 <!-- Version Items -->
-                <div id="version-list-items" class="divide-y divide-slate-100 max-h-[260px] lg:max-h-[600px] overflow-y-auto">
+                <div class="divide-y divide-slate-100 max-h-[260px] lg:max-h-[600px] overflow-y-auto">
                     @foreach ($versions as $v)
                         @php
                             $isSelected = ($v->version === $currentVersion->version);
                         @endphp
                         <a href="{{ $versionsUrl }}/{{ $v->version }}"
-                           class="version-item block p-4 transition-colors {{ $isSelected ? 'bg-[#eff4ff] border-l-4 border-[#006948]' : 'hover:bg-slate-50' }}">
+                           class="version-item block border-l-4 p-4 transition-colors {{ $isSelected ? 'border-l-[#006948] bg-[#eff4ff]' : 'border-l-transparent hover:bg-slate-50' }}">
                             <div class="flex items-center justify-between mb-1.5">
                                 <span class="text-sm font-bold {{ $isSelected ? 'text-[#006948]' : 'text-[#0F172A]' }} font-mono">{{ $v->version }}</span>
                                 <span class="text-xs text-[#545c72]">{{ $v->release_date }}</span>

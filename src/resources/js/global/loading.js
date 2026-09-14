@@ -6,6 +6,7 @@ export function initGlobalLoading() {
     const loadingCard = document.getElementById('global-loading-card');
     const loadingTitle = document.getElementById('global-loading-title');
     let autoHideTimer = null;
+    let isInternalNavigation = false;
 
     window.showGlobalLoading = function(title) {
         if (!loadingOverlay || !loadingCard) return;
@@ -92,6 +93,7 @@ export function initGlobalLoading() {
 
         const destination = new URL(link.href, window.location.href);
         if (destination.origin === window.location.origin && destination.href !== window.location.href) {
+            isInternalNavigation = true;
             window.showGlobalLoading();
         }
     });
@@ -110,5 +112,7 @@ export function initGlobalLoading() {
         }
     });
 
-    window.addEventListener('beforeunload', () => window.showGlobalLoading());
+    window.addEventListener('beforeunload', () => {
+        if (isInternalNavigation) window.showGlobalLoading();
+    });
 }

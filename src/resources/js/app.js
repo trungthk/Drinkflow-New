@@ -7,7 +7,6 @@ import { initPublicLoading } from './public/loading';
 import { initGoToTop } from './public/go-to-top';
 import { initContactPage } from './public/contact';
 import { initTermsPage } from './public/terms';
-import { initVersionsPage } from './public/versions';
 
 import { initGlobalHeader } from './global/header';
 import { initLogoutModal } from './global/logout-modal';
@@ -23,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initGoToTop();
     initContactPage();
     initTermsPage();
-    initVersionsPage();
 
     // Global User Components & Pages
     initGlobalHeader();

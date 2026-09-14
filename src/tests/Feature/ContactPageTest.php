@@ -33,8 +33,10 @@ class ContactPageTest extends TestCase
         $response->assertSee('id="message"', false);
         $response->assertSee('id="captcha"', false);
         $response->assertSee('id="refresh-captcha-btn"', false);
-        $response->assertSee('1900 6868');
-        $response->assertSee('support@drinkflow.internal');
+        $response->assertSee('0377300950');
+        $response->assertSee('href="tel:0377300950"', false);
+        $response->assertSee('drinkflowsupport@gmail.com');
+        $response->assertSee('href="mailto:drinkflowsupport@gmail.com"', false);
         // Ensure removed items are no longer present
         $response->assertDontSee('it-security@company.com');
         $response->assertDontSee('#drinkflow-support');

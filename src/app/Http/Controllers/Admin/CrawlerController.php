@@ -10,6 +10,7 @@ use App\Http\Requests\CrawlerPreviewRequest;
 use App\Http\Requests\ImportCampaignItemsRequest;
 use App\Models\Campaign;
 use App\Models\CrawlerPreview;
+use App\Services\Audit\AuditService;
 use App\Services\Crawler\FoodCrawlerService;
 use Illuminate\Http\JsonResponse;
 
@@ -19,9 +20,10 @@ class CrawlerController extends Controller
      * Handle the preview operation.
      * @param CrawlerPreviewRequest $request Parameter value.
      * @param FoodCrawlerService $crawler Parameter value.
+     * @param AuditService $audit Activity audit service.
      * @return JsonResponse Result of the operation.
      */
-    public function preview(CrawlerPreviewRequest $request, FoodCrawlerService $crawler): JsonResponse
+    public function preview(CrawlerPreviewRequest $request, FoodCrawlerService $crawler, AuditService $audit): JsonResponse
     {
         $items = $crawler->preview($request->validated('url'));
         $preview = CrawlerPreview::create([
@@ -30,6 +32,10 @@ class CrawlerController extends Controller
             'source_url' => $request->validated('url'),
             'items' => $items,
             'expires_at' => now()->addMinutes(30),
+        ]);
+        $audit->record('campaign_item_import.previewed', 'crawler_preview', $preview->id, $preview->room_id, [], [
+            'item_count' => count($items),
+            'source_url' => $preview->source_url,
         ]);
 
         return response()->json(['data' => ['preview_id' => $preview->id, 'source_url' => $preview->source_url, 'items' => $items, 'expires_at' => $preview->expires_at]], 201);
@@ -40,9 +46,10 @@ class CrawlerController extends Controller
      * @param ImportCampaignItemsRequest $request Parameter value.
      * @param Campaign $campaign Parameter value.
      * @param ImportCampaignItemsAction $action Parameter value.
+     * @param AuditService $audit Activity audit service.
      * @return JsonResponse Result of the operation.
      */
-    public function import(ImportCampaignItemsRequest $request, Campaign $campaign, ImportCampaignItemsAction $action): JsonResponse
+    public function import(ImportCampaignItemsRequest $request, Campaign $campaign, ImportCampaignItemsAction $action, AuditService $audit): JsonResponse
     {
         abort_unless($campaign->room_id === request()->attributes->get('room')->id, 404);
         if ($campaign->status?->value === 'closed') {
@@ -56,6 +63,13 @@ class CrawlerController extends Controller
             $sourceUrl = $request->validated('source_url');
         }
 
-        return response()->json(['data' => $action->execute($campaign, $sourceUrl, $items)], 201);
+        $importedItems = $action->execute($campaign, $sourceUrl, $items);
+        $audit->record('campaign_item_import.completed', 'campaign', $campaign->id, $campaign->room_id, [], [
+            'item_count' => count($importedItems),
+            'source_url' => $sourceUrl,
+            'item_ids' => collect($importedItems)->pluck('id')->all(),
+        ]);
+
+        return response()->json(['data' => $importedItems], 201);
     }
 }

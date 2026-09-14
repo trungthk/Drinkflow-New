@@ -62,7 +62,7 @@ return [
         'back_to_my_rooms' => 'Quay về Room của tôi',
         'check_personal_debts' => 'Kiểm tra công nợ cá nhân',
         'need_help' => 'Cần hỗ trợ kỹ thuật từ hệ thống?',
-        'helpdesk' => 'DrinkFlow Helpdesk (ext: 1024)',
+        'helpdesk' => 'DrinkFlow Helpdesk: 0377300950',
     ],
     'dashboard' => [
         'page_title' => 'Tổng quan Room',

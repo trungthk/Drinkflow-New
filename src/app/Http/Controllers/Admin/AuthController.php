@@ -18,6 +18,7 @@ use App\Models\AdminAccount;
 use App\Models\Debt;
 use App\Models\Order;
 use App\Models\Room;
+use App\Services\Audit\AuditService;
 use App\Services\Auth\AdminAuthService;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
@@ -152,9 +153,10 @@ class AuthController extends Controller
      *
      * @param AdminLoginRequest $request Validated admin login request.
      * @param AdminAuthService $authService Authentication service.
+     * @param AuditService $audit Activity audit service.
      * @return JsonResponse|RedirectResponse Response containing admin payload or redirect.
      */
-    public function login(AdminLoginRequest $request, AdminAuthService $authService): JsonResponse|RedirectResponse
+    public function login(AdminLoginRequest $request, AdminAuthService $authService, AuditService $audit): JsonResponse|RedirectResponse
     {
         $admin = $authService->login($request);
 
@@ -168,6 +170,10 @@ class AuthController extends Controller
 
             return redirect()->route('admin.login.page')->with('status', __('admin.google_workspace_continue'));
         }
+
+        $audit->record('admin.logged_in', 'admin', $admin->id, null, [], [], [
+            'authentication_method' => 'password',
+        ]);
 
         if ($request->expectsJson()) {
             return response()->json(['data' => $admin]);

@@ -8,7 +8,6 @@ import { initPublicLoading } from './public/loading';
 import { initGoToTop } from './public/go-to-top';
 import { initContactPage } from './public/contact';
 import { initTermsPage } from './public/terms';
-import { initVersionsPage } from './public/versions';
 
 document.addEventListener('DOMContentLoaded', () => {
     initPublicHeader();
@@ -19,5 +18,4 @@ document.addEventListener('DOMContentLoaded', () => {
     initGoToTop();
     initContactPage();
     initTermsPage();
-    initVersionsPage();
 });

@@ -84,9 +84,9 @@
                         <div class="p-3.5 bg-surface-container-low rounded-lg border border-outline-variant flex items-center justify-between">
                             <div>
                                 <span class="text-caption font-caption text-outline block">{{ __('errors.500.hotline_label') }}</span>
-                                <span class="text-headline-md font-headline-md text-primary font-bold">{{ __('errors.500.hotline_val') }}</span>
+                                <a class="text-headline-md font-headline-md font-bold text-primary hover:underline" href="tel:0377300950">{{ __('errors.500.hotline_val') }}</a>
                             </div>
-                            <a class="p-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container transition-colors inline-flex items-center justify-center" href="tel:19006868">
+                            <a class="p-2.5 rounded-lg bg-primary text-on-primary hover:bg-primary-container transition-colors inline-flex items-center justify-center" href="tel:0377300950">
                                 <span class="material-symbols-outlined text-[20px]">call</span>
                             </a>
                         </div>

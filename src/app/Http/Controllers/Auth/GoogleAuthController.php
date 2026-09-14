@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\AdminAccount;
+use App\Services\Audit\AuditService;
 use App\Services\Auth\GoogleOAuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -35,7 +36,7 @@ class GoogleAuthController extends Controller
      * @param  \App\Services\Auth\GoogleOAuthService  $service  Service xử lý trao đổi token và xác thực người dùng
      * @return \Illuminate\Http\RedirectResponse  Phản hồi chuyển hướng người dùng về trang đích hoặc báo lỗi
      */
-    public function callback(Request $request, GoogleOAuthService $service): RedirectResponse
+    public function callback(Request $request, GoogleOAuthService $service, AuditService $audit): RedirectResponse
     {
         $loginSource = $request->session()->pull('google_oauth_login_source') ?: url('/');
 
@@ -69,6 +70,9 @@ class GoogleAuthController extends Controller
                 \Illuminate\Support\Facades\Auth::guard('admin')->login($admin, true);
                 $request->session()->regenerate();
                 $admin->update(['last_login_at' => now()]);
+                $audit->record('admin.logged_in', 'admin', $admin->id, null, [], [], [
+                    'authentication_method' => 'google_oauth_2fa',
+                ]);
 
                 return redirect()->route('admin.landing');
             }
@@ -77,6 +81,9 @@ class GoogleAuthController extends Controller
 
             \Illuminate\Support\Facades\Auth::guard('web')->login($user, true);
             $request->session()->regenerate();
+            $audit->record('user.logged_in', 'global_user', $user->id, null, [], [], [
+                'authentication_method' => 'google_oauth',
+            ]);
 
             $intended = $request->session()->pull('url.intended');
             if ($intended && !Str::contains($intended, ['accounts.google.com', 'google.com'])) {
