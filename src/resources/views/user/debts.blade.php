@@ -1,4 +1,4 @@
-<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" current-nav="thanh-toan-and-no" :title="__('room.debts.page_title')">
+<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'debts'" :title="__('room.debts.page_title')">
     <div class="flex flex-col w-full gap-space-lg" x-data="{
         qrModalOpen: false,
         qrData: {

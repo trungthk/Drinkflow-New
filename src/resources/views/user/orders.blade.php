@@ -1,4 +1,4 @@
-<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" current-nav="don-hang-cua-toi" :title="__('room.orders.page_title')">
+<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'orders'" :title="__('room.orders.page_title')">
     <div class="flex flex-col w-full gap-space-md" x-data="{
         selectedOrder: null,
         qrModalOpen: false,
@@ -48,7 +48,7 @@
                 </div>
                 <h3 class="text-xl font-bold text-on-surface mb-2">{{ __('room.orders.no_orders_title') }}</h3>
                 <p class="text-on-surface-variant max-w-md mb-6">{{ __('room.orders.no_orders_desc') }}</p>
-                <a href="{{ route('user.campaigns.index', $room->slug) }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-on-primary font-bold shadow hover:bg-primary-container transition-all">
+                <a href="{{ route('user.campaigns.index', $room->slug) }}" class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold shadow hover:bg-primary-container transition-all">
                     <span class="material-symbols-outlined text-[20px]">local_cafe</span>
                     <span>{{ __('room.dashboard.enter_campaign') }}</span>
                 </a>

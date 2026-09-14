@@ -45,6 +45,7 @@ return [
     ],
     'header' => [
         'overview' => 'Overview',
+        'rooms' => 'Room List',
         'my_rooms' => 'My Rooms',
         'order_history' => 'Order History',
         'payments' => 'Payments',

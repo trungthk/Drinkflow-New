@@ -1,4 +1,4 @@
-<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" current-nav="ho-so-ca-nhan" :title="__('room.profile.page_title')">
+<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'profile'" :title="__('room.profile.page_title')">
     <div class="flex flex-col w-full gap-space-lg">
         <!-- Profile Header Card -->
         <section class="w-full bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/30 overflow-hidden p-space-md lg:p-space-lg relative">

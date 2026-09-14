@@ -45,6 +45,7 @@ return [
     ],
     'header' => [
         'overview' => '概要',
+        'rooms' => 'ルーム一覧',
         'my_rooms' => 'マイルーム',
         'order_history' => '注文履歴',
         'payments' => '支払い',

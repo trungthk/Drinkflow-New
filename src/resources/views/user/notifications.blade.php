@@ -1,4 +1,4 @@
-<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" current-nav="trung-tam-thong-bao" :title="__('room.notifications.page_title')">
+<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'notifications'" :title="__('room.notifications.page_title')">
     <div class="flex flex-col w-full gap-space-lg" x-data="{
         currentTab: 'all',
         unreadCount: {{ $unreadCount }},

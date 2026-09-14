@@ -1,12 +1,10 @@
 @props([
     'room' => null,
     'user' => null,
-    'adminUser' => null,
 ])
 
 @php
     $user = $user ?? request()->attributes->get('global_user') ?? auth('web')->user();
-    $adminUser = $adminUser ?? ($room ? $room->admins()->first() : null);
 @endphp
 
 <x-room.layout
@@ -31,5 +29,5 @@
   </div>
 
   <!-- Centered Join Modal Component -->
-  <x-room.join-modal :room="$room" :user="$user" :admin-user="$adminUser" />
+  <x-room.join-modal :room="$room" :user="$user" />
 </x-room.layout>

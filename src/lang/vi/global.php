@@ -45,6 +45,7 @@ return [
     ],
     'header' => [
         'overview' => 'Tổng quan',
+        'rooms' => 'Danh sách Room',
         'my_rooms' => 'Room của tôi',
         'order_history' => 'Lịch sử Order',
         'payments' => 'Thanh toán',

@@ -2,8 +2,6 @@
     'room' => null,
     'user' => null,
     'suggestedCode' => null,
-    'adminUser' => null,
-    'sponsorAmount' => '20.000đ',
 ])
 
 @php
@@ -59,25 +57,6 @@
       <p>{{ __('room.join.intro_desc', ['name' => $room->name ?? 'Room', 'code' => $suggestedCode]) }}</p>
     </div>
 
-    <!-- Member Benefits List -->
-    <div class="mt-4 p-4 rounded-xl bg-white border border-slate-200/80 space-y-2.5">
-      <span class="text-xs font-bold text-slate-900 uppercase tracking-wider block mb-1">
-        {{ __('room.join.benefits_title') }}
-      </span>
-      <div class="flex items-start gap-2.5 text-xs text-slate-700">
-        <span class="material-symbols-outlined text-[#006948] text-[17px] shrink-0 mt-0.5">check_circle</span>
-        <span>{{ __('room.join.benefit_1', ['amount' => $sponsorAmount, 'name' => $room->name ?? 'Room']) }}</span>
-      </div>
-      <div class="flex items-start gap-2.5 text-xs text-slate-700">
-        <span class="material-symbols-outlined text-[#006948] text-[17px] shrink-0 mt-0.5">check_circle</span>
-        <span>{{ __('room.join.benefit_2') }}</span>
-      </div>
-      <div class="flex items-start gap-2.5 text-xs text-slate-700">
-        <span class="material-symbols-outlined text-[#006948] text-[17px] shrink-0 mt-0.5">check_circle</span>
-        <span>{{ __('room.join.benefit_3') }}</span>
-      </div>
-    </div>
-
     <!-- Actions Form -->
     <form method="POST" action="{{ route('user.rooms.join', $room->slug) }}" class="mt-6 flex flex-col gap-2.5">
       @csrf
@@ -91,15 +70,5 @@
       </a>
     </form>
 
-    <!-- Modal Footer Info -->
-    <div class="mt-5 pt-3.5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 text-center sm:text-left">
-      <span class="text-[11px] truncate">
-        {{ __('room.join.admin_label', ['name' => $adminUser->name ?? 'Admin', 'email' => $adminUser->email ?? 'admin@company.com']) }}
-      </span>
-      <span class="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-medium shrink-0">
-        <span class="material-symbols-outlined text-[13px]">lock</span>
-        <span>{{ __('room.join.auto_approval') }}</span>
-      </span>
-    </div>
   </div>
 </div>

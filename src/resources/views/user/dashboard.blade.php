@@ -59,7 +59,7 @@
       <div class="lg:col-span-7 space-y-5">
         @if($activeCampaign)
           <!-- Active Campaign Hero Card -->
-          <div class="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-6 relative overflow-hidden">
+          <div class="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-6 relative overflow-hidden lg:h-[320px]">
             <!-- Background Ambient Glow -->
             <div class="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-emerald-50 pointer-events-none blur-2xl"></div>
 
@@ -185,7 +185,7 @@
         @endif
 
         <!-- Recent Personal Orders in this Room -->
-        <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs">
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs lg:h-[320px]">
           <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
             <div class="flex items-center gap-2">
               <span class="material-symbols-outlined text-[#006948] text-[20px]">history</span>

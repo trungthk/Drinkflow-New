@@ -1,4 +1,4 @@
-<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" current-nav="thong-ke-room" :title="__('room.analytics.page_title')">
+<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'analytics'" :title="__('room.analytics.page_title')">
     <div class="flex flex-col w-full gap-space-lg">
         <!-- Top Title & Filter Bar -->
         <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md pb-space-sm">
