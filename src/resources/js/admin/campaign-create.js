@@ -1,13 +1,22 @@
 /**
  * Admin Campaign Fast Creator (Alpine Component)
  */
-export function campaignCreateComponent() {
+export function campaignCreateComponent(defaults = {}) {
     const roomSlug = window.__DF_ROOM_SLUG__ || '';
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const budgetErrorTemplate = document.querySelector('#campaign-create-page')?.dataset.budgetError || 'Campaign budget exceeds :limit.';
+    const campaignSettings = {
+        name: defaults.name || '',
+        max_budget: Number(defaults.max_budget) || 0,
+        payment_account_id: String(defaults.payment_account_id || ''),
+        sponsor_name: defaults.sponsor_name || ''
+    };
 
     return {
-        menuTab: 'manual',
-        menuApplyMode: 'replace',
+        campaignSettings,
+        menuTab: 'reuse',
+        showConfirmModal: false,
+        pendingStatus: 'active',
         showAddItemModal: false,
         itemCategories: ['Cà phê', 'Trà', 'Trà sữa', 'Nước ép', 'Đồ ăn', 'Khác'],
         newItem: { name: '', price: 0, category: 'Khác' },
@@ -18,25 +27,21 @@ export function campaignCreateComponent() {
         crawlerMessage: '',
         rawJson: '',
         form: {
-            name: '',
+            name: campaignSettings.name,
             restaurant: '',
             deadline: '',
-            payment_account_id: '',
+            payment_account_id: campaignSettings.payment_account_id,
             description: '',
-            sponsor_name: '',
+            sponsor_name: campaignSettings.sponsor_name,
             sponsor_type: 'none',
             sponsor_description: '',
-            max_budget: '',
+            max_budget: campaignSettings.max_budget,
             delivery_fee: '',
             discount: '',
             flat_price: '',
             status: 'active'
         },
-        menuItems: [
-            { name: 'Cà phê Phin Sữa Đá', price: 29000, category: 'Cà phê' },
-            { name: 'Trà Sen Vàng', price: 45000, category: 'Trà' },
-            { name: 'Freeze Trà Xanh', price: 55000, category: 'Freeze' }
-        ],
+        menuItems: [],
         presets: {
             highlands: {
                 name: 'Highlands Coffee - Giờ Giải Lao',
@@ -96,6 +101,10 @@ export function campaignCreateComponent() {
         },
 
         init() {
+            this.form.name = this.form.name || this.campaignSettings.name;
+            this.form.max_budget = this.form.max_budget || this.campaignSettings.max_budget;
+            this.form.payment_account_id = this.form.payment_account_id || this.campaignSettings.payment_account_id;
+            this.form.sponsor_name = this.form.sponsor_name || this.campaignSettings.sponsor_name;
             this.setDeadlineMinutes(60);
         },
 
@@ -111,12 +120,12 @@ export function campaignCreateComponent() {
             this.form.name = p.name;
             this.form.restaurant = p.restaurant;
             this.applyMenuItems(p.items);
-            this.menuTab = 'manual';
+            this.menuTab = 'reuse';
         },
 
         applyMenuItems(items) {
             const normalized = (items || []).map(item => ({ name: item.name || '', price: parseInt(item.price, 10) || 0, category: item.category || 'Khác', sponsor_amount: parseInt(item.sponsor_amount, 10) || 0 }));
-            this.menuItems = this.menuApplyMode === 'append' ? this.menuItems.concat(normalized) : normalized;
+            this.menuItems = normalized;
         },
 
         addSponsor() {
@@ -150,14 +159,7 @@ export function campaignCreateComponent() {
             this.form.name = campaign.name + ' (Đợt mới)';
             this.form.restaurant = campaign.restaurant;
             this.applyMenuItems(campaign.items || []);
-            this.menuTab = 'manual';
-            return;
-            this.menuItems = (campaign.items || []).map(i => ({
-                name: i.name,
-                price: i.price,
-                category: i.category || 'Món chung'
-            }));
-            this.menuTab = 'manual';
+            this.menuTab = 'reuse';
         },
 
         loadSampleJson() {
@@ -177,7 +179,7 @@ export function campaignCreateComponent() {
                         price: parseInt(item.price, 10) || 0,
                         category: item.category || 'Món chung'
                     }));
-                    this.menuTab = 'manual';
+                    this.menuTab = 'json';
                     alert(`Đã nạp thành công ${this.menuItems.length} món từ JSON!`);
                 } else {
                     alert('JSON phải là một mảng danh sách các món ăn.');
@@ -210,7 +212,7 @@ export function campaignCreateComponent() {
                         category: item.category || 'Món Crawl'
                     }));
                     this.form.restaurant = data.restaurant_name || this.form.restaurant || 'Nhà hàng Online';
-                    this.menuTab = 'manual';
+                    this.menuTab = 'crawler';
                     this.crawlerMessage = `Bóc tách thành công ${data.items.length} món từ quán!`;
                 } else {
                     this.crawlerMessage = 'Không tìm thấy món hoặc link không được hỗ trợ trực tiếp. Hệ thống đã nạp mẫu giả lập.';
@@ -234,6 +236,12 @@ export function campaignCreateComponent() {
 
             this.submitting = true;
             this.form.status = status;
+            const maxBudget = Number(this.form.max_budget) || 0;
+            if (this.campaignSettings.max_budget > 0 && maxBudget > this.campaignSettings.max_budget) {
+                alert(budgetErrorTemplate.replace(':limit', this.formatVND(this.campaignSettings.max_budget)));
+                this.submitting = false;
+                return;
+            }
 
             const payload = {
                 name: this.form.name,
@@ -303,12 +311,22 @@ export function campaignCreateComponent() {
             }
         },
 
+        openPublishConfirmation() {
+            this.pendingStatus = 'active';
+            this.showConfirmModal = true;
+        },
+
+        confirmPublish() {
+            this.showConfirmModal = false;
+            this.submitForm(this.pendingStatus);
+        },
+
         saveDraft() {
             this.submitForm('draft');
         },
 
         publishCampaign() {
-            this.submitForm('active');
+            this.openPublishConfirmation();
         }
     };
 }

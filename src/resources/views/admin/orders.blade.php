@@ -43,12 +43,6 @@
             <x-admin.search-input id="order-search" name="search" :value="$filters['search'] ?? ''" placeholder="{{ __('admin.search_orders_placeholder') }}" containerClass="relative w-full max-w-md" />
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            <select id="campaign-filter-select" name="campaign_id" data-searchable="true" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
-                <option value="">{{ __('admin.filter_campaign_all') }}</option>
-                @foreach($campaigns as $c)
-                    <option value="{{ $c->id }}" {{ (string) ($filters['campaign_id'] ?? '') === (string) $c->id ? 'selected' : '' }}>{{ $c->name }} ({{ $c->restaurant }})</option>
-                @endforeach
-            </select>
             <select id="status-filter-select" name="status" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
                 <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all') }}</option>
                 @foreach($statusFilters as $statusFilter)
@@ -93,7 +87,7 @@
                                 return $i->quantity . 'x ' . $i->item_name . ($i->size ? ' (' . $i->size . ')' : '') . ($topps ? ' [' . $topps . ']' : '');
                             })->implode(' • ');
                         @endphp
-                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-order-row data-status="{{ $statusValue }}" data-campaign-id="{{ $ord->campaign_id }}" data-search="{{ strtolower($member . ' ' . $ord->id . ' ' . ($ord->campaign?->name ?? '') . ' ' . ($ord->campaign?->restaurant ?? '') . ' ' . $itemsSummary . ' ' . ($ord->note ?? '')) }}">
+                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-order-row data-status="{{ $statusValue }}" data-search="{{ strtolower($member . ' ' . $ord->id . ' ' . ($ord->campaign?->name ?? '') . ' ' . ($ord->campaign?->restaurant ?? '') . ' ' . $itemsSummary . ' ' . ($ord->note ?? '')) }}">
                             <td class="py-3.5 px-4">
                                 <div class="font-bold text-on-surface text-sm flex items-center gap-1.5">
                                     <span>#ORD-{{ $ord->id }}</span>

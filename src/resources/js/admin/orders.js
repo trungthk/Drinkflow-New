@@ -11,7 +11,6 @@ export function initAdminOrders() {
 
     const i18n = JSON.parse(page.dataset.i18n || '{}');
     const search = page.querySelector('#order-search');
-    const campaign = page.querySelector('#campaign-filter-select');
     const status = page.querySelector('#status-filter-select');
     const noResults = page.querySelector('#orders-no-filter-results');
     const filterForm = page.querySelector('#orders-filter-form');
@@ -32,7 +31,6 @@ export function initAdminOrders() {
         let visibleRows = 0;
         rows.forEach((row) => {
             const matches = row.dataset.search?.includes(keyword)
-                && (!campaign?.value || row.dataset.campaignId === campaign.value)
                 && (status?.value === 'all' || row.dataset.status === status?.value);
             row.style.display = matches ? '' : 'none';
             if (matches) visibleRows += 1;
@@ -46,7 +44,6 @@ export function initAdminOrders() {
             filterForm?.requestSubmit();
         }
     });
-    campaign?.addEventListener('change', filterRows);
     status?.addEventListener('change', filterRows);
 
     /**

@@ -41,6 +41,7 @@ return [
         'google_token_failed' => 'Googleで認証コードを確認できませんでした。再試行してください。',
         'google_profile_failed' => 'Googleからユーザー情報を取得できませんでした。',
         'google_unsupported_account' => 'このアカウントはログインに対応していません。',
+        'google_account_access_revoked' => 'アカウントがロックされたか、ルームから削除されています。管理者に連絡して対応を依頼してください。',
         'google_login_failed' => 'Googleログインに失敗しました: :error',
     ],
     'header' => [

@@ -66,6 +66,7 @@
     </script>
 
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 </head>
 
 <body data-room-slug="{{ $room?->slug }}" data-processing-text="{{ __('admin.processing') }}" class="bg-surface text-on-surface font-sans min-h-screen flex antialiased">

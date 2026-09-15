@@ -41,6 +41,7 @@ return [
         'google_token_failed' => 'Không thể xác thực mã với Google. Vui lòng thử lại.',
         'google_profile_failed' => 'Không thể lấy thông tin người dùng từ Google.',
         'google_unsupported_account' => 'Tài khoản không được hỗ trợ đăng nhập.',
+        'google_account_access_revoked' => 'Tài khoản của bạn đã bị khóa hoặc bị xóa khỏi phòng. Vui lòng liên hệ quản trị viên để xử lý.',
         'google_login_failed' => 'Đăng nhập Google thất bại: :error',
     ],
     'header' => [

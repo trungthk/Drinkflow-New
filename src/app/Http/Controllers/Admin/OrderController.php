@@ -7,11 +7,11 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Order\DeleteOrderAction;
 use App\Actions\Order\UpdateOrderAction;
 use App\Actions\Order\UpdateOrderStatusAction;
+use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
-use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\Room;
 use Illuminate\Contracts\View\View;
@@ -48,6 +48,7 @@ class OrderController extends Controller
     public function page(Request $request, Room $room): View
     {
         $query = Order::where('room_id', $room->id)
+            ->whereHas('campaign', fn ($campaignQuery) => $campaignQuery->where('status', CampaignStatus::Active->value))
             ->with(['roomUser.globalUser', 'items.toppings', 'campaign'])
             ->latest();
 
@@ -75,22 +76,15 @@ class OrderController extends Controller
             });
         }
 
-        if ($request->filled('campaign_id')) {
-            $query->where('campaign_id', $request->integer('campaign_id'));
-        }
-
         if ($request->filled('status') && $request->string('status')->toString() !== 'all') {
             $query->where('status', $request->string('status')->toString());
         }
 
         $orders = $query->paginate(50)->withQueryString();
 
-        $campaigns = Campaign::where('room_id', $room->id)->latest()->get();
-
         return view('admin.orders', [
             'room' => $room,
             'orders' => $orders,
-            'campaigns' => $campaigns,
             'statusFilters' => collect(OrderStatus::cases())->map(static fn (OrderStatus $status): array => [
                 'value' => $status->value,
                 'label' => __('admin.status_'.match ($status) {
@@ -101,7 +95,6 @@ class OrderController extends Controller
             ])->values()->all(),
             'filters' => [
                 'search' => $search,
-                'campaign_id' => $request->integer('campaign_id') ?: '',
                 'status' => $request->string('status')->toString() ?: 'all',
             ],
         ]);

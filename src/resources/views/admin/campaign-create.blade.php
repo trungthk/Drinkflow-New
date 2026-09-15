@@ -1,5 +1,5 @@
 <x-admin.layout :title="__('admin.fast_create_campaign')" active="campaigns" :room="$room">
-<div class="max-w-6xl mx-auto space-y-6" x-data="campaignCreateComponent()">
+<div id="campaign-create-page" class="max-w-6xl mx-auto space-y-6" data-budget-error="{{ __('admin.campaign_budget_exceeds_limit', ['limit' => ':limit']) }}" x-data="campaignCreateComponent(@js($campaignDefaults))">
     <!-- Top Action Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-outline-variant">
         <div class="flex items-center gap-3">
@@ -80,7 +80,8 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.campaign_name') }} <span class="text-error">*</span></label>
-                        <input type="text" x-model="form.name" placeholder="{{ __('admin.campaign_name_example') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                        <input type="text" x-model="form.name" value="{{ $campaignDefaults['name'] }}" placeholder="{{ __('admin.campaign_name_example') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                        <p class="mt-1 text-[11px] text-outline">{{ __('admin.default_campaign_name_hint') }}</p>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.restaurant_brand') }} <span class="text-error">*</span></label>
@@ -128,9 +129,6 @@
                         <button type="button" @click="menuTab = 'reuse'" :class="menuTab === 'reuse' ? 'bg-surface-container-lowest font-bold text-primary shadow-sm' : 'text-outline hover:text-on-surface'" class="px-2.5 py-1 rounded transition-all">
                             {{ __('admin.source_previous') }}
                         </button>
-                        <button type="button" @click="menuTab = 'manual'" :class="menuTab === 'manual' ? 'bg-surface-container-lowest font-bold text-primary shadow-sm' : 'text-outline hover:text-on-surface'" class="px-2.5 py-1 rounded transition-all">
-                            {{ __('admin.source_saved') }}
-                        </button>
                         <button type="button" @click="menuTab = 'crawler'" :class="menuTab === 'crawler' ? 'bg-surface-container-lowest font-bold text-primary shadow-sm' : 'text-outline hover:text-on-surface'" class="px-2.5 py-1 rounded transition-all">
                             {{ __('admin.source_crawler') }}
                         </button>
@@ -138,17 +136,10 @@
                             {{ __('admin.source_json') }}
                         </button>
                     </div>
-                    <div class="flex items-center gap-2 text-xs">
-                        <label class="text-outline font-semibold">{{ __('admin.menu_apply_mode') }}</label>
-                        <select x-model="menuApplyMode" class="px-2.5 py-1.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
-                            <option value="append">{{ __('admin.menu_apply_append') }}</option>
-                            <option value="replace">{{ __('admin.menu_apply_replace') }}</option>
-                        </select>
-                    </div>
                 </div>
 
                 <!-- Tab 1: Reuse Previous Campaign -->
-                <div x-show="menuTab === 'reuse'" class="space-y-3">
+                <div x-show="menuTab === 'reuse'" x-cloak class="space-y-3">
                     <div class="text-xs text-outline">{{ __('admin.copy_previous_menu_desc') }}</div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
                         @forelse($previousCampaigns as $prev)
@@ -170,8 +161,8 @@
                     </div>
                 </div>
 
-                <!-- Tab 2: Manual Builder -->
-                <div x-show="menuTab === 'manual'" class="space-y-3">
+                <!-- Legacy manual editor is intentionally unavailable; menus are created from one of the three sources above. -->
+                <div x-show="false" x-cloak class="space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-outline">{{ __('admin.menu_items_count', ['count' => '']) }}<span x-text="menuItems.length"></span>:</span>
                         <button type="button" @click="openAddItemModal()" class="px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded text-xs font-semibold transition-colors flex items-center gap-1">
@@ -216,7 +207,7 @@
                 </div>
 
                 <!-- Tab 3: URL Crawler -->
-                <div x-show="menuTab === 'crawler'" class="space-y-3">
+                <div x-show="menuTab === 'crawler'" x-cloak class="space-y-3">
                     <div class="text-xs text-outline">{{ __('admin.crawler_desc') }}</div>
                     <div class="flex gap-2">
                         <input type="url" x-model="crawlerUrl" placeholder="{{ __('admin.crawler_url_placeholder') }}" class="flex-1 px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
@@ -229,10 +220,24 @@
                 </div>
 
                 <!-- Tab 4: JSON Schema -->
-                <div x-show="menuTab === 'json'" class="space-y-3">
+                <div x-show="menuTab === 'json'" x-cloak class="space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-outline">{{ __('admin.json_import_desc') }}</span>
                         <button type="button" @click="loadSampleJson()" class="text-xs text-primary hover:underline font-medium">{{ __('admin.view_sample_json') }}</button>
+                    </div>
+                    <div x-show="menuItems.length > 0" x-cloak class="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-semibold text-on-surface">{{ __('admin.selected_menu_preview') }}</span>
+                            <span class="font-mono text-primary" x-text="menuItems.length + ' {{ __('admin.items_unit') }}'"></span>
+                        </div>
+                        <div class="max-h-28 overflow-y-auto space-y-1">
+                            <template x-for="item in menuItems" :key="item.name + item.price">
+                                <div class="flex justify-between gap-3 text-[11px] text-outline">
+                                    <span class="truncate" x-text="item.name"></span>
+                                    <span class="font-mono shrink-0" x-text="formatVND(item.price)"></span>
+                                </div>
+                            </template>
+                        </div>
                     </div>
                     <textarea x-model="rawJson" rows="6" placeholder="{{ __('admin.json_menu_placeholder') }}" class="w-full font-mono text-xs p-3 bg-surface border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary"></textarea>
                     <button type="button" @click="importJson()" class="px-4 py-1.5 bg-primary/10 text-primary border border-primary/30 rounded text-xs font-semibold hover:bg-primary/20 transition-colors">
@@ -296,84 +301,21 @@
                     </select>
                 </div>
 
-                <div x-show="form.sponsor_type === 'budget'">
-                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_max_budget_label') }}</label>
+                <div>
+                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.max_budget_ceiling') }}</label>
                     <div class="relative">
-                        <input type="number" x-model="form.max_budget" placeholder="{{ __('admin.unlimited_budget_placeholder') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:border-primary pr-8">
+                        <input type="number" min="0" max="{{ $campaignDefaults['max_budget'] }}" x-bind:max="campaignSettings.max_budget" x-model="form.max_budget" value="{{ $campaignDefaults['max_budget'] }}" placeholder="0" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:border-primary pr-8">
                         <span class="absolute right-3 top-2 text-xs text-outline font-mono">đ</span>
                     </div>
+                    <p class="mt-1 text-[11px] text-outline">{{ __('admin.campaign_budget_limit_hint') }} <span class="font-mono font-semibold text-primary" x-text="formatVND(campaignSettings.max_budget)"></span></p>
                 </div>
                 <div x-show="form.sponsor_type !== 'none'">
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_description_label') }}</label>
                     <textarea x-model="form.sponsor_description" rows="2" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface"></textarea>
                 </div>
 
-                <!-- Fee Adjustments -->
-                <div x-show="false" class="border-t border-outline-variant/60 pt-3 space-y-3">
-                    <span class="text-xs font-bold text-on-surface uppercase tracking-wider block">{{ __('admin.delivery_and_discounts') }}</span>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[11px] text-outline mb-1">{{ __('admin.delivery_fee_label') }}</label>
-                            <div class="relative">
-                                <input type="number" x-model="form.delivery_fee" placeholder="0" class="w-full px-2.5 py-1.5 bg-surface border border-outline-variant rounded text-xs font-mono text-on-surface focus:outline-none focus:border-primary pr-6">
-                                <span class="absolute right-2 top-1.5 text-[10px] text-outline font-mono">đ</span>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] text-outline mb-1">{{ __('admin.voucher_discount_label') }}</label>
-                            <div class="relative">
-                                <input type="number" x-model="form.discount" placeholder="0" class="w-full px-2.5 py-1.5 bg-surface border border-outline-variant rounded text-xs font-mono text-on-surface focus:outline-none focus:border-primary pr-6">
-                                <span class="absolute right-2 top-1.5 text-[10px] text-outline font-mono">đ</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[11px] text-outline mb-1">{{ __('admin.flat_price_label') }}</label>
-                        <div class="relative">
-                            <input type="number" x-model="form.flat_price" placeholder="{{ __('admin.flat_price_placeholder') }}" class="w-full px-2.5 py-1.5 bg-surface border border-outline-variant rounded text-xs font-mono text-on-surface focus:outline-none focus:border-primary pr-6">
-                            <span class="absolute right-2 top-1.5 text-[10px] text-outline font-mono">đ</span>
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            <!-- Card 4: Summary & Publish Box -->
-            <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm space-y-4">
-                <h2 class="text-sm font-bold text-on-surface uppercase tracking-wider flex items-center gap-2 border-b border-outline-variant/60 pb-2.5">
-                    <span class="material-symbols-outlined text-[18px] text-primary">analytics</span>
-                    {{ __('admin.creation_summary') }}
-                </h2>
-
-                <div class="space-y-2 text-xs">
-                    <div class="flex justify-between text-outline">
-                        <span>{{ __('admin.menu_item_count_label') }}</span>
-                        <span class="font-bold text-on-surface font-mono" x-text="menuItems.length"></span>
-                    </div>
-                    <div x-show="false" class="flex justify-between text-outline">
-                        <span>{{ __('admin.shared_delivery_fee') }}</span>
-                        <span class="font-mono text-on-surface" x-text="formatVND(form.delivery_fee || 0)"></span>
-                    </div>
-                    <div x-show="false" class="flex justify-between text-outline">
-                        <span>{{ __('admin.voucher_deduction') }}</span>
-                        <span class="font-mono text-error" x-text="'-' + formatVND(form.discount || 0)"></span>
-                    </div>
-                    <div class="flex justify-between text-outline" x-show="form.sponsor_name">
-                        <span>{{ __('admin.sponsor_label') }}</span>
-                        <span class="font-bold text-primary truncate max-w-[120px]" x-text="form.sponsor_name"></span>
-                    </div>
-                </div>
-
-                <div class="border-t border-outline-variant pt-3 space-y-2">
-                    <button type="button" @click="publishCampaign()" :disabled="submitting" class="w-full py-2.5 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                        <span class="material-symbols-outlined text-[18px]">campaign</span>
-                        <span>{{ __('admin.publish_and_open_now') }}</span>
-                    </button>
-                    <button type="button" @click="saveDraft()" :disabled="submitting" class="w-full py-2 rounded-lg border border-outline-variant hover:bg-surface-container-low text-on-surface text-xs font-semibold transition-all">
-                        {{ __('admin.save_as_draft') }}
-                    </button>
-                </div>
-            </div>
         </div>
     </div>
     <div x-show="showAddItemModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -401,6 +343,26 @@
             <div class="mt-5 flex justify-end gap-2">
                 <button type="button" @click="showAddItemModal = false" class="px-4 py-2 rounded-lg bg-surface-container text-on-surface text-xs font-semibold">{{ __('admin.cancel') }}</button>
                 <button type="button" @click="confirmAddItem()" class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold">{{ __('admin.add_new_item_btn') }}</button>
+            </div>
+        </div>
+    </div>
+    <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @keydown.escape.window="showConfirmModal = false">
+        <div class="w-full max-w-lg rounded-xl bg-surface-container-lowest border border-outline-variant p-5 shadow-2xl" @click.outside="showConfirmModal = false">
+            <div class="flex items-center justify-between border-b border-outline-variant pb-3">
+                <h3 class="font-bold text-base text-on-surface">{{ __('admin.confirm_campaign_publish_title') }}</h3>
+                <button type="button" @click="showConfirmModal = false" class="text-outline hover:text-on-surface"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="grid grid-cols-2 gap-3 py-4 text-xs">
+                <div><span class="text-outline">{{ __('admin.campaign_name') }}</span><p class="font-semibold text-on-surface truncate" x-text="form.name"></p></div>
+                <div><span class="text-outline">{{ __('admin.restaurant_brand') }}</span><p class="font-semibold text-on-surface truncate" x-text="form.restaurant"></p></div>
+                <div><span class="text-outline">{{ __('admin.max_budget_ceiling') }}</span><p class="font-mono font-semibold text-primary" x-text="formatVND(form.max_budget)"></p></div>
+                <div><span class="text-outline">{{ __('admin.menu_item_count_label') }}</span><p class="font-semibold text-on-surface" x-text="menuItems.length"></p></div>
+                <div class="col-span-2"><span class="text-outline">{{ __('admin.order_deadline') }}</span><p class="font-semibold text-on-surface" x-text="form.deadline || '—'"></p></div>
+            </div>
+            <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{{ __('admin.confirm_campaign_publish_message') }}</p>
+            <div class="flex justify-end gap-2 pt-4">
+                <button type="button" @click="showConfirmModal = false" class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface text-xs font-semibold">{{ __('admin.cancel') }}</button>
+                <button type="button" @click="confirmPublish()" :disabled="submitting" class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold disabled:opacity-50">{{ __('admin.confirm_publish_campaign') }}</button>
             </div>
         </div>
     </div>

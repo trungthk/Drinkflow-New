@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Enums\GlobalUserStatus;
+use App\Enums\RoomUserStatus;
 use App\Models\AdminAccount;
 use App\Services\Audit\AuditService;
 use App\Services\Auth\GoogleOAuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class GoogleAuthController extends Controller
@@ -38,7 +39,9 @@ class GoogleAuthController extends Controller
      */
     public function callback(Request $request, GoogleOAuthService $service, AuditService $audit): RedirectResponse
     {
-        $loginSource = $request->session()->pull('google_oauth_login_source') ?: url('/');
+        $storedLoginSource = $request->session()->pull('google_oauth_login_source');
+        $storedLoginSource = is_string($storedLoginSource) ? $storedLoginSource : null;
+        $loginSource = $this->isSafeInternalUrl($request, $storedLoginSource) ? $storedLoginSource : url('/');
 
         // 1. Handle error returned by Google (e.g. user canceled)
         if ($request->has('error')) {
@@ -79,6 +82,18 @@ class GoogleAuthController extends Controller
 
             $user = $service->handleCallback($request);
 
+            $globalStatus = $user->status instanceof GlobalUserStatus
+                ? $user->status
+                : GlobalUserStatus::tryFrom((string) $user->status);
+            $hasMemberships = $user->roomUsers()->exists();
+            $hasActiveMembership = $user->roomUsers()->where('status', RoomUserStatus::Active->value)->exists();
+
+            if ($globalStatus !== GlobalUserStatus::Active || ($hasMemberships && ! $hasActiveMembership)) {
+                throw ValidationException::withMessages([
+                    'email' => __('global.auth.google_account_access_revoked'),
+                ]);
+            }
+
             \Illuminate\Support\Facades\Auth::guard('web')->login($user, true);
             $request->session()->regenerate();
             $audit->record('user.logged_in', 'global_user', $user->id, null, [], [], [
@@ -86,7 +101,7 @@ class GoogleAuthController extends Controller
             ]);
 
             $intended = $request->session()->pull('url.intended');
-            if ($intended && !Str::contains($intended, ['accounts.google.com', 'google.com'])) {
+            if ($this->isSafeInternalUrl($request, $intended)) {
                 return redirect()->to($intended);
             }
 
@@ -100,5 +115,34 @@ class GoogleAuthController extends Controller
             return redirect()->to($loginSource)
                 ->with('login_error', __('global.auth.google_login_failed', ['error' => $e->getMessage()]));
         }
+    }
+
+    /**
+     * Determine whether an OAuth return URL belongs to the current application.
+     *
+     * @param Request $request Current HTTP request.
+     * @param string|null $url Candidate return URL.
+     * @return bool True when the URL is relative or matches the current host.
+     */
+    private function isSafeInternalUrl(Request $request, ?string $url): bool
+    {
+        if ($url === null || $url === '' || str_starts_with($url, '//')) {
+            return false;
+        }
+
+        $parts = parse_url($url);
+        if ($parts === false) {
+            return false;
+        }
+
+        if (! isset($parts['host'])) {
+            return str_starts_with($url, '/');
+        }
+
+        $host = strtolower((string) $parts['host']);
+        $requestHost = strtolower($request->getHost());
+        return $host === $requestHost
+            || ($host === 'localhost' && $requestHost === '127.0.0.1')
+            || ($host === '127.0.0.1' && $requestHost === 'localhost');
     }
 }

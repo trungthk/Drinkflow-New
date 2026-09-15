@@ -117,6 +117,26 @@ class CampaignController extends Controller
     {
         $room = $request->attributes->get('room') ?? $room;
         $paymentAccounts = $room->paymentAccounts()->where('status', PaymentAccountStatus::Active)->get();
+        $settings = $room->roomSettings()
+            ->whereIn('key', ['campaign_title_template', 'max_campaign_budget', 'default_payment_account_id', 'default_sponsor'])
+            ->get()
+            ->keyBy('key');
+        $titleTemplate = (string) ($settings->get('campaign_title_template')?->value ?? ('['.$room->name.'] Trà chiều & Cafe {date}'));
+        $creatorName = (string) ($request->user('admin')?->name ?? '');
+        $campaignDefaults = [
+            'name' => strtr($titleTemplate, [
+                '{date}' => now()->format('d/m/Y'),
+                '{time}' => now()->format('H:i'),
+                '{day_of_week}' => now()->translatedFormat('l'),
+                '{creator_name}' => $creatorName,
+            ]),
+            'max_budget' => (int) ($settings->get('max_campaign_budget')?->value ?? 2_000_000),
+            'payment_account_id' => (int) ($settings->get('default_payment_account_id')?->value ?? 0),
+            'sponsor_name' => (string) ($settings->get('default_sponsor')?->value ?? ''),
+        ];
+        if (! $paymentAccounts->contains('id', $campaignDefaults['payment_account_id'])) {
+            $campaignDefaults['payment_account_id'] = (int) ($paymentAccounts->first()?->id ?? 0);
+        }
         $roomUsers = $room->roomUsers()->with('globalUser')->where('status', RoomUserStatus::Active)->get();
         $previousCampaigns = Campaign::query()
             ->where('room_id', $room->id)
@@ -132,6 +152,7 @@ class CampaignController extends Controller
                 'payment_accounts' => $paymentAccounts,
                 'room_users' => $roomUsers,
                 'previous_campaigns' => $previousCampaigns,
+                'campaign_defaults' => $campaignDefaults,
             ]);
         }
 
@@ -140,6 +161,7 @@ class CampaignController extends Controller
             'paymentAccounts' => $paymentAccounts,
             'roomUsers' => $roomUsers,
             'previousCampaigns' => $previousCampaigns,
+            'campaignDefaults' => $campaignDefaults,
         ]);
     }
 

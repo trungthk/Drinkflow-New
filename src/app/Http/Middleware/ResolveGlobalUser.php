@@ -56,7 +56,10 @@ class ResolveGlobalUser
                 abort(401, 'Unauthenticated.');
             }
             $referer = $request->headers->get('referer') ?: url()->previous();
-            if ($referer && $referer !== $request->fullUrl() && $referer !== $request->url() && $referer !== url('/')) {
+            if ($this->isSafeInternalUrl($request, $referer)
+                && $referer !== $request->fullUrl()
+                && $referer !== $request->url()
+                && $referer !== url('/')) {
                 return redirect()->to($referer);
             }
 
@@ -84,5 +87,34 @@ class ResolveGlobalUser
         $request->attributes->set('global_user', $user);
 
         return $next($request);
+    }
+
+    /**
+     * Determine whether a redirect target belongs to the current application.
+     *
+     * @param Request $request Current HTTP request.
+     * @param string|null $url Candidate redirect URL.
+     * @return bool True when the URL is relative or matches the current host.
+     */
+    private function isSafeInternalUrl(Request $request, ?string $url): bool
+    {
+        if ($url === null || $url === '' || str_starts_with($url, '//')) {
+            return false;
+        }
+
+        $parts = parse_url($url);
+        if ($parts === false) {
+            return false;
+        }
+
+        if (! isset($parts['host'])) {
+            return str_starts_with($url, '/');
+        }
+
+        $host = strtolower((string) $parts['host']);
+        $requestHost = strtolower($request->getHost());
+        return $host === $requestHost
+            || ($host === 'localhost' && $requestHost === '127.0.0.1')
+            || ($host === '127.0.0.1' && $requestHost === 'localhost');
     }
 }

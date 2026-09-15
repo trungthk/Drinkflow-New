@@ -41,6 +41,7 @@ return [
         'google_token_failed' => 'Could not authenticate authorization code with Google. Please try again.',
         'google_profile_failed' => 'Could not retrieve user profile from Google.',
         'google_unsupported_account' => 'This account is not supported for login.',
+        'google_account_access_revoked' => 'Your account has been blocked or removed from the room. Please contact an administrator for assistance.',
         'google_login_failed' => 'Google login failed: :error',
     ],
     'header' => [

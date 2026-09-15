@@ -8,7 +8,7 @@ Tài liệu này hướng dẫn chi tiết cách cài đặt và cấu hình t�
 
 1. **Nginx Web Server** (Xử lý HTTPS, Static assets & Reverse Proxy WebSocket).
 2. **PHP 8.3 & PHP-FPM** (Chạy ứng dụng Laravel 12 với đầy đủ extensions).
-3. **PostgreSQL 16** (Hệ quản trị cơ sở dữ liệu quan hệ chính).
+3. **MySQL 8.0/8.4** (Hệ quản trị cơ sở dữ liệu quan hệ tự host).
 4. **Redis Server** (Bộ nhớ đệm Session, Cache và Queue Worker).
 5. **Node.js 22 LTS & npm** (Xây dựng assets Vite & chạy Socket.IO Gateway).
 6. **Supervisor** (Giám sát và duy trì tiến trình chạy ngầm Queue Worker và Socket.IO).
@@ -22,8 +22,8 @@ Tài liệu này hướng dẫn chi tiết cách cài đặt và cấu hình t�
 Đăng nhập vào máy chủ bằng SSH với quyền `root` hoặc tài khoản có quyền `sudo`:
 
 ```bash
-# Cập nhật kho gói APT
-sudo apt update && sudo apt upgrade -y
+# Cập nhật kho gói APT (không tự động nâng cấp toàn bộ VPS đang hoạt động)
+sudo apt update
 sudo apt install -y software-properties-common curl wget git unzip htop ufw ca-certificates gnupg lsb-release
 
 # Thiết lập Timezone sang Việt Nam
@@ -37,16 +37,65 @@ sudo swapon /swapfile
 echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 ```
 
+### 2.1. Nguyên tắc khi VPS đang chạy nhiều website
+
+Không xem VPS là máy chủ mới nếu đã có website đang hoạt động. Trước khi cài đặt,
+ghi lại các service, port và virtual host hiện có; không dừng, xóa hoặc thay thế cấu
+hình của ứng dụng khác:
+
+```bash
+# Kiểm tra các service và port đang sử dụng
+sudo systemctl --type=service --state=running
+sudo ss -ltnp
+
+# Sao lưu cấu hình Nginx nếu Nginx đã tồn tại
+if [ -d /etc/nginx ]; then
+    sudo cp -a /etc/nginx /etc/nginx.backup.$(date +%Y%m%d-%H%M%S)
+fi
+```
+
+Nếu máy đang có lịch bảo trì riêng, không chạy `apt upgrade` trong giờ cao điểm vì
+việc nâng cấp có thể làm restart các service hiện hữu. Có thể tách bước nâng cấp ra
+khỏi lần triển khai DrinkFlow và thực hiện sau khi đã kiểm tra kế hoạch downtime. Khi
+cần nâng cấp, chạy riêng trong maintenance window:
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+```
+
+Không chạy `ufw reset` hoặc mở các port tùy tiện. Chỉ bổ sung rule còn thiếu và giữ
+nguyên các rule của website khác:
+
+```bash
+sudo ufw status numbered
+sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+```
+
+MySQL, Redis và Socket.IO phải chỉ lắng nghe trên `127.0.0.1`; không mở các port
+3306, 6379 hoặc 3001 ra Internet.
+
 ---
 
 ## 3. Cài đặt & Cấu hình Từng Dịch vụ
 
 ### 3.1. Cài đặt Nginx Web Server
 
+Nếu Nginx đã được cài đặt để phục vụ các website khác, chỉ kiểm tra trạng thái và
+không cần cài lại hoặc khởi động lại service:
+
 ```bash
-sudo apt install -y nginx
-sudo systemctl enable nginx
-sudo systemctl start nginx
+if command -v nginx >/dev/null 2>&1; then
+    nginx -v
+    sudo systemctl status nginx --no-pager
+else
+    sudo apt install -y nginx
+    sudo systemctl enable nginx
+    sudo systemctl start nginx
+fi
 ```
 
 ---
@@ -61,7 +110,7 @@ sudo apt update
 
 # Cài đặt PHP 8.3 FPM, CLI và các extension thiết yếu cho Laravel
 sudo apt install -y php8.3-fpm php8.3-cli php8.3-common \
-    php8.3-pgsql php8.3-sqlite3 php8.3-mysql \
+    php8.3-mysql php8.3-sqlite3 \
     php8.3-mbstring php8.3-xml php8.3-curl php8.3-zip \
     php8.3-gd php8.3-bcmath php8.3-intl php8.3-redis \
     php8.3-opcache php8.3-readline
@@ -104,39 +153,76 @@ sudo systemctl enable php8.3-fpm
 
 ---
 
-### 3.3. Cài đặt & Khởi tạo Cơ sở Dữ liệu PostgreSQL 16
+### 3.3. Cài đặt & Khởi tạo MySQL tự host
 
-Thêm kho chính thức của PostgreSQL:
+Phần này cài MySQL trực tiếp trên VPS, không sử dụng dịch vụ cơ sở dữ liệu managed hoặc
+kết nối từ trình duyệt. Gói `mysql-server` của Ubuntu cung cấp MySQL 8.x phù hợp với
+Ubuntu 22.04/24.04:
 
 ```bash
-sudo install -d /etc/apt/keyrings
-curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/keyrings/postgresql.gpg
-echo "deb [signed-by=/etc/apt/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
-
 sudo apt update
-sudo apt install -y postgresql-16 postgresql-contrib-16
+sudo apt install -y mysql-server
 
-sudo systemctl enable postgresql
-sudo systemctl start postgresql
+sudo systemctl enable mysql
+sudo systemctl start mysql
+sudo systemctl status mysql --no-pager
 ```
 
-#### Tạo Database & User cho DrinkFlow:
+Chạy trình cấu hình bảo mật và chọn mật khẩu root theo yêu cầu của hệ thống:
 
 ```bash
-sudo -u postgres psql
+sudo mysql_secure_installation
 ```
 
-Trong dấu nhắc lệnh `psql`, chạy các câu lệnh SQL sau (thay đổi mật khẩu phù hợp):
+Để tránh mở MySQL ra Internet, giữ `bind-address` ở loopback. Kiểm tra file
+`/etc/mysql/mysql.conf.d/mysqld.cnf` và bảo đảm có các thiết lập sau:
+
+```ini
+[mysqld]
+bind-address = 127.0.0.1
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+```
+
+Khởi động lại MySQL sau khi thay đổi cấu hình:
+
+```bash
+sudo systemctl restart mysql
+```
+
+#### Tạo Database & User riêng cho DrinkFlow
+
+Đăng nhập MySQL bằng tài khoản quản trị:
+
+```bash
+sudo mysql
+```
+
+Trong dấu nhắc lệnh `mysql`, thay `MAT_KHAU_DATABASE_THAT_MANH` bằng một mật khẩu
+được tạo riêng và lưu trong trình quản lý secrets:
 
 ```sql
-CREATE DATABASE drinkflow_prod;
-CREATE USER drinkflow_user WITH ENCRYPTED PASSWORD 'MatKhauSieuManh_DrinkFlow2026!';
-GRANT ALL PRIVILEGES ON DATABASE drinkflow_prod TO drinkflow_user;
-ALTER DATABASE drinkflow_prod OWNER TO drinkflow_user;
-\c drinkflow_prod
-GRANT ALL ON SCHEMA public TO drinkflow_user;
-\q
+CREATE DATABASE drinkflow_prod
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+CREATE USER 'drinkflow_user'@'127.0.0.1'
+    IDENTIFIED BY 'MAT_KHAU_DATABASE_THAT_MANH';
+
+GRANT ALL PRIVILEGES ON drinkflow_prod.* TO 'drinkflow_user'@'127.0.0.1';
+FLUSH PRIVILEGES;
+EXIT;
 ```
+
+Tài khoản được giới hạn đúng vào `127.0.0.1`, khớp với `DB_HOST` bên dưới. Không cấp user
+với host `%` và không dùng tài khoản `root` cho ứng dụng. Kiểm tra kết nối bằng:
+
+```bash
+mysql --host=127.0.0.1 --port=3306 \
+    --user=drinkflow_user --password drinkflow_prod
+```
+
+Nếu cần truy cập MySQL từ máy quản trị, dùng SSH tunnel thay vì mở cổng 3306 trên Internet.
 
 ---
 
@@ -240,13 +326,13 @@ APP_URL=https://drinkflow.yourcompany.com
 APP_TIMEZONE=Asia/Ho_Chi_Minh
 APP_LOCALE=vi
 
-# Kết nối PostgreSQL nội bộ
-DB_CONNECTION=pgsql
+# Kết nối MySQL tự host, chỉ lắng nghe trên máy VPS
+DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
-DB_PORT=5432
+DB_PORT=3306
 DB_DATABASE=drinkflow_prod
 DB_USERNAME=drinkflow_user
-DB_PASSWORD=MatKhauSieuManh_DrinkFlow2026!
+DB_PASSWORD=MAT_KHAU_DATABASE_THAT_MANH
 
 # Session & Cache qua Redis (hoặc database)
 SESSION_DRIVER=redis
@@ -376,10 +462,14 @@ Kích hoạt site:
 
 ```bash
 sudo ln -sf /etc/nginx/sites-available/drinkflow /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t
 sudo systemctl reload nginx
 ```
+
+Không xóa `/etc/nginx/sites-enabled/default` hoặc các symlink của website khác. Nếu
+Nginx báo lỗi, không reload và không sửa trực tiếp các site đang hoạt động; khôi phục
+file DrinkFlow vừa thay đổi rồi chạy lại `sudo nginx -t`. `reload` được dùng thay cho
+`restart` để Nginx nạp cấu hình mới mà không ngắt các kết nối hiện tại.
 
 ### 5.2. Cài đặt SSL Let's Encrypt bằng Certbot
 

@@ -26,7 +26,8 @@ class GoogleOAuthService
         $state = Str::random(40);
         $request->session()->put('google_oauth_state', $state);
 
-        $loginSource = $request->header('referer') ?? url('/');
+        $referer = $request->header('referer');
+        $loginSource = $this->isSafeInternalUrl($request, $referer) ? $referer : url('/');
         $request->session()->put('google_oauth_login_source', $loginSource);
 
         $query = http_build_query([
@@ -216,5 +217,34 @@ class GoogleOAuthService
     private function normalize(string $name): string
     {
         return strtoupper(trim(preg_replace('/\s+/', ' ', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name) ?: $name)));
+    }
+
+    /**
+     * Determine whether a login return URL belongs to the current application.
+     *
+     * @param Request $request Current HTTP request.
+     * @param string|null $url Candidate return URL.
+     * @return bool True when the URL is relative or matches the current host.
+     */
+    private function isSafeInternalUrl(Request $request, ?string $url): bool
+    {
+        if ($url === null || $url === '' || str_starts_with($url, '//')) {
+            return false;
+        }
+
+        $parts = parse_url($url);
+        if ($parts === false) {
+            return false;
+        }
+
+        if (! isset($parts['host'])) {
+            return str_starts_with($url, '/');
+        }
+
+        $host = strtolower((string) $parts['host']);
+        $requestHost = strtolower($request->getHost());
+        return $host === $requestHost
+            || ($host === 'localhost' && $requestHost === '127.0.0.1')
+            || ($host === '127.0.0.1' && $requestHost === 'localhost');
     }
 }
