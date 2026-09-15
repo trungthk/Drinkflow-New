@@ -269,6 +269,7 @@ return [
     'subtotal_label_short' => 'Tạm tính',
     'actual_label_short' => 'Thực tế',
     'no_orders_found' => 'Không tìm thấy đơn đặt món nào.',
+    'no_orders_matching_filters' => 'Không có đơn hàng phù hợp với bộ lọc hoặc từ khóa tìm kiếm.',
     'adjust_price_btn' => 'Chỉnh giá',
     'confirm_order_btn' => 'Duyệt đơn',
     'unlock_order_btn' => 'Mở khoá',

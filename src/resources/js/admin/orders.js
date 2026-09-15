@@ -13,6 +13,8 @@ export function initAdminOrders() {
     const search = page.querySelector('#order-search');
     const campaign = page.querySelector('#campaign-filter-select');
     const status = page.querySelector('#status-filter-select');
+    const noResults = page.querySelector('#orders-no-filter-results');
+    const filterForm = page.querySelector('#orders-filter-form');
     const modal = page.querySelector('#price-adjust-modal');
     const body = page.querySelector('#modal-body');
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content || '';
@@ -26,14 +28,24 @@ export function initAdminOrders() {
      */
     const filterRows = () => {
         const keyword = search?.value.trim().toLowerCase() || '';
-        page.querySelectorAll('[data-order-row]').forEach((row) => {
+        const rows = [...page.querySelectorAll('[data-order-row]')];
+        let visibleRows = 0;
+        rows.forEach((row) => {
             const matches = row.dataset.search?.includes(keyword)
                 && (!campaign?.value || row.dataset.campaignId === campaign.value)
                 && (status?.value === 'all' || row.dataset.status === status?.value);
             row.style.display = matches ? '' : 'none';
+            if (matches) visibleRows += 1;
         });
+        noResults?.classList.toggle('hidden', rows.length === 0 || visibleRows > 0);
     };
     search?.addEventListener('admin:search', filterRows);
+    search?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            filterForm?.requestSubmit();
+        }
+    });
     campaign?.addEventListener('change', filterRows);
     status?.addEventListener('change', filterRows);
 

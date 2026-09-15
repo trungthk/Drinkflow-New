@@ -46,10 +46,43 @@ class OrderController extends Controller
      */
     public function page(Request $request, Room $room): View
     {
-        $orders = Order::where('room_id', $room->id)
+        $query = Order::where('room_id', $room->id)
             ->with(['roomUser.globalUser', 'items.toppings', 'campaign'])
-            ->latest()
-            ->paginate(50);
+            ->latest();
+
+        $search = trim($request->string('search')->toString());
+        if ($search !== '') {
+            $normalizedSearch = mb_strtolower($search);
+            $query->where(function ($orderQuery) use ($normalizedSearch, $search): void {
+                if (ctype_digit($search)) {
+                    $orderQuery->orWhere('id', (int) $search);
+                }
+                $orderQuery
+                    ->orWhereRaw('LOWER(note) LIKE ?', ['%' . $normalizedSearch . '%'])
+                    ->orWhereHas('campaign', function ($campaignQuery) use ($normalizedSearch): void {
+                        $campaignQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                            ->orWhereRaw('LOWER(restaurant) LIKE ?', ['%' . $normalizedSearch . '%']);
+                    })
+                    ->orWhereHas('roomUser', function ($roomUserQuery) use ($normalizedSearch): void {
+                        $roomUserQuery->whereRaw('LOWER(display_name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                            ->orWhereRaw('LOWER(user_code) LIKE ?', ['%' . $normalizedSearch . '%'])
+                            ->orWhereHas('globalUser', function ($userQuery) use ($normalizedSearch): void {
+                                $userQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                                    ->orWhereRaw('LOWER(email) LIKE ?', ['%' . $normalizedSearch . '%']);
+                            });
+                    });
+            });
+        }
+
+        if ($request->filled('campaign_id')) {
+            $query->where('campaign_id', $request->integer('campaign_id'));
+        }
+
+        if ($request->filled('status') && $request->string('status')->toString() !== 'all') {
+            $query->where('status', $request->string('status')->toString());
+        }
+
+        $orders = $query->paginate(50)->withQueryString();
 
         $campaigns = Campaign::where('room_id', $room->id)->latest()->get();
 
@@ -57,6 +90,11 @@ class OrderController extends Controller
             'room' => $room,
             'orders' => $orders,
             'campaigns' => $campaigns,
+            'filters' => [
+                'search' => $search,
+                'campaign_id' => $request->integer('campaign_id') ?: '',
+                'status' => $request->string('status')->toString() ?: 'all',
+            ],
         ]);
     }
 

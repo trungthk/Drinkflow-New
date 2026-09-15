@@ -269,6 +269,7 @@ return [
     'subtotal_label_short' => 'Subtotal',
     'actual_label_short' => 'Actual',
     'no_orders_found' => 'No orders found.',
+    'no_orders_matching_filters' => 'No orders match the selected filters or search term.',
     'adjust_price_btn' => 'Adjust Price',
     'confirm_order_btn' => 'Confirm Order',
     'unlock_order_btn' => 'Unlock',

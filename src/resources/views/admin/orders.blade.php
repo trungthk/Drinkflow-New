@@ -32,38 +32,36 @@
             </div>
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.orders_management') }}</h1>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
-                <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-                <span>{{ __('admin.socket_room_stream') }}</span>
-            </span>
-        </div>
     </div>
 
     <!-- Notice Notification Banner -->
     <div id="notice" class="hidden mb-4 rounded-xl px-4 py-3 text-xs font-medium"></div>
 
     <!-- Orders Filter & Search Toolbar -->
-    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+    <form id="orders-filter-form" method="GET" action="{{ route('admin.orders.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs my-2">
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
-            <x-admin.search-input id="order-search" placeholder="{{ __('admin.search_orders_placeholder') }}" containerClass="relative w-full max-w-md" />
+            <x-admin.search-input id="order-search" name="search" :value="$filters['search'] ?? ''" placeholder="{{ __('admin.search_orders_placeholder') }}" containerClass="relative w-full max-w-md" />
         </div>
-        <div class="flex items-center gap-2">
-            <select id="campaign-filter-select" data-searchable="true" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+        <div class="flex items-center gap-2 flex-wrap">
+            <select id="campaign-filter-select" name="campaign_id" data-searchable="true" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
                 <option value="">{{ __('admin.filter_campaign_all') }}</option>
                 @foreach($campaigns as $c)
-                    <option value="{{ $c->id }}">{{ $c->title }} ({{ $c->restaurant }})</option>
+                    <option value="{{ $c->id }}" {{ (string) ($filters['campaign_id'] ?? '') === (string) $c->id ? 'selected' : '' }}>{{ $c->name }} ({{ $c->restaurant }})</option>
                 @endforeach
             </select>
-            <select id="status-filter-select" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
-                <option value="all">{{ __('admin.filter_all') }}</option>
-                <option value="pending">{{ __('admin.status_pending') }}</option>
-                <option value="confirmed">{{ __('admin.status_confirmed') }}</option>
-                <option value="paid">{{ __('admin.status_paid') }}</option>
-                <option value="cancelled">{{ __('admin.status_cancelled') }}</option>
+            <select id="status-filter-select" name="status" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all') }}</option>
+                <option value="pending" {{ ($filters['status'] ?? '') === 'pending' ? 'selected' : '' }}>{{ __('admin.status_pending') }}</option>
+                <option value="confirmed" {{ ($filters['status'] ?? '') === 'confirmed' ? 'selected' : '' }}>{{ __('admin.status_confirmed') }}</option>
+                <option value="paid" {{ ($filters['status'] ?? '') === 'paid' ? 'selected' : '' }}>{{ __('admin.status_paid') }}</option>
+                <option value="cancelled" {{ ($filters['status'] ?? '') === 'cancelled' ? 'selected' : '' }}>{{ __('admin.status_cancelled') }}</option>
             </select>
+            <button type="submit" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary-container transition-colors">
+                <span class="material-symbols-outlined text-[16px]">filter_alt</span>
+                {{ __('admin.filter_apply') }}
+            </button>
         </div>
-    </div>
+    </form>
 
     <!-- Orders Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
@@ -83,7 +81,8 @@
                     @forelse($orders as $ord)
                         @php
                             $member = $ord->roomUser?->globalUser?->name ?? $ord->roomUser?->display_name ?? 'Member #' . $ord->room_user_id;
-                            $stClass = match($ord->status) {
+                            $statusValue = $ord->status instanceof \BackedEnum ? $ord->status->value : (string) $ord->status;
+                            $stClass = match($statusValue) {
                                 'paid' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                                 'confirmed' => 'bg-blue-50 text-blue-700 border-blue-200',
                                 'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
@@ -95,7 +94,7 @@
                                 return $i->quantity . 'x ' . $i->item_name . ($i->size ? ' (' . $i->size . ')' : '') . ($topps ? ' [' . $topps . ']' : '');
                             })->implode(' • ');
                         @endphp
-                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-order-row data-status="{{ $ord->status }}" data-campaign-id="{{ $ord->campaign_id }}" data-search="{{ strtolower($member . ' ' . $ord->id . ' ' . $itemsSummary) }}">
+                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-order-row data-status="{{ $statusValue }}" data-campaign-id="{{ $ord->campaign_id }}" data-search="{{ strtolower($member . ' ' . $ord->id . ' ' . ($ord->campaign?->name ?? '') . ' ' . ($ord->campaign?->restaurant ?? '') . ' ' . $itemsSummary . ' ' . ($ord->note ?? '')) }}">
                             <td class="py-3.5 px-4">
                                 <div class="font-bold text-on-surface text-sm flex items-center gap-1.5">
                                     <span>#ORD-{{ $ord->id }}</span>
@@ -112,7 +111,7 @@
                                 </div>
                             </td>
                             <td class="py-3.5 px-4">
-                                <div class="font-semibold text-on-surface">{{ $ord->campaign?->title ?? __('admin.not_available') }}</div>
+                            <div class="font-semibold text-on-surface">{{ $ord->campaign?->name ?? __('admin.not_available') }}</div>
                                 <div class="text-[11px] text-outline flex items-center gap-1 mt-0.5">
                                     <span class="material-symbols-outlined text-[12px]">storefront</span>
                                     <span>{{ $ord->campaign?->restaurant ?? __('admin.not_available') }}</span>
@@ -137,25 +136,29 @@
                                 @endif
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <div class="flex items-center justify-center gap-1.5">
-                                    <button type="button" onclick="openPriceAdjustmentModal({{ $ord->id }})" class="px-2.5 py-1 bg-primary text-on-primary hover:bg-primary/90 rounded text-[11px] font-semibold flex items-center gap-1 transition-colors" title="{{ __('admin.adjust_price_btn') }}">
-                                        <span class="material-symbols-outlined text-[14px]">tune</span>
-                                        <span>{{ __('admin.adjust_price_btn') }}</span>
-                                    </button>
-                                    @if($ord->is_locked)
-                                        <button type="button" onclick="unlockOrder({{ $ord->id }})" class="p-1 text-secondary hover:text-amber-600 rounded hover:bg-surface-container transition-colors" title="{{ __('admin.unlock_order_btn') }}">
-                                            <span class="material-symbols-outlined text-[16px]">lock_open</span>
+                                <details class="relative inline-block text-left">
+                                    <summary class="list-none cursor-pointer inline-flex items-center justify-center w-8 h-8 rounded-lg text-secondary hover:text-primary hover:bg-surface-container transition-colors" aria-label="{{ __('admin.th_actions') }}">
+                                        <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                    </summary>
+                                    <div class="absolute right-0 mt-1 w-48 z-20 rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl p-1.5 space-y-0.5">
+                                        <button type="button" onclick="openPriceAdjustmentModal({{ $ord->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
+                                            <span class="material-symbols-outlined text-[16px] text-primary">tune</span>{{ __('admin.adjust_price_btn') }}
                                         </button>
-                                    @endif
-                                    @if($ord->status !== 'cancelled')
-                                        <button type="button" onclick="cancelOrder({{ $ord->id }})" class="p-1 text-secondary hover:text-rose-600 rounded hover:bg-surface-container transition-colors" title="{{ __('admin.cancel_order_btn') }}">
-                                            <span class="material-symbols-outlined text-[16px]">cancel</span>
+                                        @if($ord->is_locked)
+                                            <button type="button" onclick="unlockOrder({{ $ord->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
+                                                <span class="material-symbols-outlined text-[16px] text-amber-600">lock_open</span>{{ __('admin.unlock_order_btn') }}
+                                            </button>
+                                        @endif
+                                        @if($statusValue !== 'cancelled')
+                                            <button type="button" onclick="cancelOrder({{ $ord->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
+                                                <span class="material-symbols-outlined text-[16px] text-rose-600">cancel</span>{{ __('admin.cancel_order_btn') }}
+                                            </button>
+                                        @endif
+                                        <button type="button" onclick="deleteOrder({{ $ord->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/40 text-left">
+                                            <span class="material-symbols-outlined text-[16px]">delete</span>{{ __('admin.delete_order_btn') }}
                                         </button>
-                                    @endif
-                                    <button type="button" onclick="deleteOrder({{ $ord->id }})" class="p-1 text-secondary hover:text-error rounded hover:bg-error-container/40 transition-colors" title="{{ __('admin.delete_order_btn') }}">
-                                        <span class="material-symbols-outlined text-[16px]">delete</span>
-                                    </button>
-                                </div>
+                                    </div>
+                                </details>
                             </td>
                         </tr>
                     @empty
@@ -168,6 +171,9 @@
                             </td>
                         </tr>
                     @endforelse
+                    <tr id="orders-no-filter-results" class="hidden">
+                        <td colspan="6" class="py-12 text-center text-outline">{{ __('admin.no_orders_matching_filters') }}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>

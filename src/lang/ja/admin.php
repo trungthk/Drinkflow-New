@@ -269,6 +269,7 @@ return [
     'subtotal_label_short' => '小計',
     'actual_label_short' => '実際',
     'no_orders_found' => '注文が見つかりません。',
+    'no_orders_matching_filters' => '選択したフィルターまたは検索条件に一致する注文はありません。',
     'adjust_price_btn' => '価格調整',
     'confirm_order_btn' => '注文承認',
     'unlock_order_btn' => 'ロック解除',
