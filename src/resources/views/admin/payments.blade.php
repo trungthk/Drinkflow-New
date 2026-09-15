@@ -29,7 +29,6 @@
                         <span class="material-symbols-outlined text-[20px] text-primary">account_balance</span>
                         <h2 class="font-bold text-sm text-on-surface">{{ __('admin.bank_accounts_list') }}</h2>
                     </div>
-                    <span class="text-xs text-outline font-mono">{{ $accounts->count() }}</span>
                 </div>
 
                 <div class="divide-y divide-outline-variant/50">
@@ -225,6 +224,7 @@
             </div>
             <div class="px-5 py-4">
                 <p class="text-xs text-outline leading-relaxed">{{ __('admin.delete_account_confirm') }}</p>
+                <p class="mt-2 text-xs leading-relaxed text-warning">{{ __('admin.delete_account_live_campaign_hint') }}</p>
             </div>
             <div class="flex justify-end gap-2 px-5 py-4 border-t border-outline-variant">
                 <button type="button" data-close-delete class="px-4 py-2 border border-outline-variant rounded-lg text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors">
@@ -315,6 +315,22 @@
             $('qr-snake-rect')?.classList.add('running');
         }
 
+        function loadQrLibrary() {
+            if (window.QRCode?.toCanvas) return Promise.resolve(window.QRCode);
+            if (window.qrcode?.toCanvas) return Promise.resolve(window.qrcode);
+
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';
+                script.onload = () => {
+                    const library = window.QRCode?.toCanvas ? window.QRCode : window.qrcode;
+                    library ? resolve(library) : reject(new Error('qr_library_invalid'));
+                };
+                script.onerror = () => reject(new Error('qr_library_unavailable'));
+                document.head.appendChild(script);
+            });
+        }
+
         async function openQrModal(accountId, qrUrl) {
             openModal('payment-qr-modal');
             setQrState('loading');
@@ -327,13 +343,15 @@
 
                 if (!d || !d.payload) throw new Error('no_payload');
 
+                const qrLibrary = await loadQrLibrary();
+
                 // Render QR onto canvas
                 const canvas = $('qr-canvas');
                 const size   = 220;
                 canvas.width  = size;
                 canvas.height = size;
 
-                await QRCode.toCanvas(canvas, d.payload, {
+                await qrLibrary.toCanvas(canvas, d.payload, {
                     width:            size,
                     margin:           1,
                     errorCorrectionLevel: 'M',
@@ -401,7 +419,11 @@
 
         $('confirm-payment-delete')?.addEventListener('click', async function () {
             if (!pendingDeleteId) return;
-            closeModal('payment-delete-modal');
+            const button = this;
+            const originalLabel = button.textContent;
+            button.disabled = true;
+            button.classList.add('opacity-60', 'cursor-not-allowed');
+            button.innerHTML = '<span class="inline-flex items-center gap-1.5"><span class="material-symbols-outlined animate-spin text-[15px]">progress_activity</span>{{ __('admin.loading') }}</span>';
 
             try {
                 const res = await fetch(
@@ -409,16 +431,22 @@
                     { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' } }
                 );
                 const json = await res.json();
-                if (json.data?.disabled) {
+                if (json.data?.deleted) {
                     showNotice('{{ __('admin.account_deleted_ok') }}');
                     setTimeout(() => location.reload(), 800);
                 } else {
-                    showNotice('{{ __('admin.error_generic') }}', 'error');
+                    showNotice(json.message ?? '{{ __('admin.error_generic') }}', 'error');
+                    button.disabled = false;
+                    button.classList.remove('opacity-60', 'cursor-not-allowed');
+                    button.textContent = originalLabel;
                 }
             } catch {
                 showNotice('{{ __('admin.error_generic') }}', 'error');
+                button.disabled = false;
+                button.classList.remove('opacity-60', 'cursor-not-allowed');
+                button.textContent = originalLabel;
             }
-            pendingDeleteId = null;
+            if (!button.disabled) pendingDeleteId = null;
         });
 
         /* ── Add / Edit form ──────────────────────────────────────────────── */

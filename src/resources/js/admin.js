@@ -12,7 +12,6 @@ import { initAdminDashboard } from './admin/dashboard';
 import { initAdminDebts } from './admin/debts';
 import { initAdminNotifications } from './admin/notifications';
 import { initAdminOrders } from './admin/orders';
-import { initAdminPayments } from './admin/payments';
 import { initAdminReports } from './admin/reports';
 import { initAdminSettings } from './admin/settings';
 import { initAdminUsers } from './admin/users';
@@ -34,7 +33,6 @@ export {
     initAdminDebts,
     initAdminNotifications,
     initAdminOrders,
-    initAdminPayments,
     initAdminReports,
     initAdminSettings,
     initAdminUsers,
@@ -64,7 +62,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminDebts();
     initAdminNotifications();
     initAdminOrders();
-    initAdminPayments();
     initAdminReports();
     initAdminSettings();
     initAdminUsers();

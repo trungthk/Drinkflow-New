@@ -143,6 +143,88 @@ class AdminFeatureTest extends TestCase
         $this->assertDatabaseHas('payment_accounts', ['room_id' => $room->id, 'account_number' => '0123456789']);
     }
 
+    public function test_setting_a_default_payment_account_unsets_other_room_accounts_and_qr_is_local(): void
+    {
+        $admin = $this->admin('payments-default@example.test');
+        $room = $this->roomFor($admin, 'payments-default-room');
+
+        $first = PaymentAccount::create([
+            'room_id' => $room->id,
+            'bank_code' => 'VCB',
+            'bank_name' => 'Vietcombank',
+            'account_number' => '0123456789',
+            'account_name' => 'DRINKFLOW',
+            'is_default' => true,
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->postJson("/admin/{$room->slug}/payment-accounts", [
+            'bank_code' => 'MB',
+            'bank_name' => 'MBBank',
+            'account_number' => '0987654321',
+            'account_name' => 'DRINKFLOW TWO',
+            'is_default' => true,
+            'status' => 'active',
+        ]);
+
+        $response->assertCreated();
+        $secondId = $response->json('data.id');
+
+        $this->assertDatabaseHas('payment_accounts', ['id' => $first->id, 'is_default' => false]);
+        $this->assertDatabaseHas('payment_accounts', ['id' => $secondId, 'is_default' => true]);
+
+        $this->actingAs($admin, 'admin')->getJson("/admin/{$room->slug}/payment-accounts/{$secondId}/qr")
+            ->assertOk()
+            ->assertJsonPath('data.payload', "DRINKFLOW-PAYMENT\nBANK:MBBank\nBANK_CODE:MB\nACCOUNT:0987654321\nACCOUNT_NAME:DRINKFLOW TWO");
+    }
+
+    public function test_admin_cannot_delete_payment_account_used_by_live_campaign(): void
+    {
+        $admin = $this->admin('payments-live-campaign@example.test');
+        $room = $this->roomFor($admin, 'payments-live-campaign-room');
+        $account = PaymentAccount::create([
+            'room_id' => $room->id,
+            'bank_code' => 'VCB',
+            'bank_name' => 'Vietcombank',
+            'account_number' => '0123456789',
+            'account_name' => 'DRINKFLOW',
+            'status' => 'active',
+        ]);
+        Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Live campaign',
+            'restaurant' => 'DrinkFlow',
+            'payment_account_id' => $account->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($admin, 'admin')->deleteJson("/admin/{$room->slug}/payment-accounts/{$account->id}")
+            ->assertUnprocessable()
+            ->assertJsonPath('message', __('admin.payment_account_live_campaign_blocked'));
+
+        $this->assertDatabaseHas('payment_accounts', ['id' => $account->id, 'status' => 'active']);
+    }
+
+    public function test_admin_permanently_deletes_payment_account(): void
+    {
+        $admin = $this->admin('payments-delete@example.test');
+        $room = $this->roomFor($admin, 'payments-delete-room');
+        $account = PaymentAccount::create([
+            'room_id' => $room->id,
+            'bank_code' => 'VCB',
+            'bank_name' => 'Vietcombank',
+            'account_number' => '0123456789',
+            'account_name' => 'DRINKFLOW',
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($admin, 'admin')->deleteJson("/admin/{$room->slug}/payment-accounts/{$account->id}")
+            ->assertOk()
+            ->assertJsonPath('data.deleted', true);
+
+        $this->assertDatabaseMissing('payment_accounts', ['id' => $account->id]);
+    }
+
     public function test_admin_can_activate_a_campaign_after_menu_and_payment_validation(): void
     {
         $admin = $this->admin('activate@example.test');

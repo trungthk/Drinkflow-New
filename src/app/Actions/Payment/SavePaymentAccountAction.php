@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions\Payment;
 
-use App\Enums\PaymentAccountStatus;
 use App\Models\PaymentAccount;
 use App\Models\Room;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +25,8 @@ class SavePaymentAccountAction
             $account->fill($data);
             $account->room_id = $room->id;
 
-            if ($account->is_default && $account->status === PaymentAccountStatus::Active) {
+            if ($account->is_default) {
+                PaymentAccount::where('room_id', $room->id)->lockForUpdate()->get(['id']);
                 PaymentAccount::where('room_id', $room->id)
                     ->where('id', '!=', $account->id ?: 0)
                     ->update(['is_default' => false]);

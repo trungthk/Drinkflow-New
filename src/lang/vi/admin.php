@@ -892,9 +892,11 @@ return [
 
     // Payment account modal
     'delete_account_title'   => 'Xóa tài khoản thanh toán',
-    'delete_account_confirm' => 'Tài khoản thanh toán này sẽ bị vô hiệu hóa. Bạn có chắc chắn không?',
+    'delete_account_confirm' => 'Tài khoản thanh toán này sẽ bị xóa vĩnh viễn. Bạn có chắc chắn không?',
     'delete_confirm_btn'     => 'Xác nhận xóa',
-    'account_deleted_ok'     => 'Đã vô hiệu hóa tài khoản thanh toán.',
+    'account_deleted_ok'     => 'Đã xóa tài khoản thanh toán.',
+    'payment_account_live_campaign_blocked' => 'Không thể xóa tài khoản đang được chiến dịch live sử dụng. Hãy đổi tài khoản nhận tiền của chiến dịch trước.',
+    'delete_account_live_campaign_hint' => 'Tài khoản đang được chiến dịch live sử dụng sẽ không thể xóa. Hãy đổi tài khoản nhận tiền của chiến dịch trước.',
     'account_created_ok'     => 'Đã thêm tài khoản thanh toán thành công.',
     'account_updated_ok'     => 'Đã cập nhật tài khoản thanh toán.',
     'edit_account'           => 'Chỉnh sửa tài khoản',

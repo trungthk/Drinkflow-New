@@ -36,7 +36,7 @@ class StorePaymentAccountRequest extends FormRequest
             'account_number' => [$required, 'string', 'max:40'],
             'account_name' => [$required, 'string', 'max:160'],
             'is_default' => ['sometimes', 'boolean'],
-            'status' => ['sometimes', 'in:active,disabled'],
+            'status' => ['sometimes', 'in:active,inactive'],
         ];
     }
 

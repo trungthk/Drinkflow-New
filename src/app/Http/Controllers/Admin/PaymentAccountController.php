@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\Payment\SavePaymentAccountAction;
+use App\Enums\CampaignStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePaymentAccountRequest;
 use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Services\Audit\AuditService;
 use App\Services\Common\BankService;
-use App\Services\Payment\VietQrService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -30,7 +30,7 @@ class PaymentAccountController extends Controller
     }
 
     /**
-     * Display the VietQR Payment Accounts management page.
+     * Display the payment accounts management page.
      *
      * @param  Request     $request     Incoming request.
      * @param  Room        $room        Room entity.
@@ -90,21 +90,40 @@ class PaymentAccountController extends Controller
      * Handle the destroy operation — soft-disable a payment account.
      *
      * @param  Room            $room     Room entity.
-     * @param  PaymentAccount  $account  Account to disable.
+     * @param  PaymentAccount  $account  Account to delete permanently.
      * @param  AuditService    $audit    Audit logger.
      * @return JsonResponse Confirmation.
      */
     public function destroy(Room $room, PaymentAccount $account, AuditService $audit): JsonResponse
     {
         abort_unless($account->room_id === $room->id, 404);
-        $account->update(['status' => 'disabled', 'is_default' => false]);
-        $audit->record('payment_account.disabled', 'payment_account', $account->id, $room->id, ['status' => 'active'], ['status' => 'disabled']);
 
-        return response()->json(['data' => ['disabled' => true]]);
+        $isUsedByLiveCampaign = $room->campaigns()
+            ->where('payment_account_id', $account->id)
+            ->where('status', CampaignStatus::Active->value)
+            ->exists();
+
+        if ($isUsedByLiveCampaign) {
+            return response()->json([
+                'message' => __('admin.payment_account_live_campaign_blocked'),
+                'errors' => ['payment_account' => [__('admin.payment_account_live_campaign_blocked')]],
+            ], 422);
+        }
+
+        $accountId = $account->id;
+        $before = [
+            'bank_code' => $account->bank_code,
+            'status' => $account->status->value,
+            'is_default' => $account->is_default,
+        ];
+        $account->delete();
+        $audit->record('payment_account.deleted', 'payment_account', $accountId, $room->id, $before, []);
+
+        return response()->json(['data' => ['deleted' => true]]);
     }
 
     /**
-     * Generate a VietQR EMVCo payload for a payment account.
+     * Generate a locally encoded payment-details QR payload for an account.
      *
      * Returns the raw payload string so the frontend renders the QR
      * client-side with qrcode.js — no external CDN image call required.
@@ -112,21 +131,16 @@ class PaymentAccountController extends Controller
      * @param  Room            $room     Room entity (ownership check).
      * @param  PaymentAccount  $account  Account to generate QR for.
      * @param  Request         $request  Optional ?amount=&description= query params.
-     * @param  VietQrService   $vietQr   Payload generator.
      * @return JsonResponse QR payload + metadata.
      */
-    public function qr(Room $room, PaymentAccount $account, Request $request, VietQrService $vietQr): JsonResponse
+    public function qr(Room $room, PaymentAccount $account, Request $request): JsonResponse
     {
         abort_unless($account->room_id === $room->id, 404);
 
         $amount      = (int) $request->query('amount', 0);
         $description = (string) $request->query('description', '');
 
-        try {
-            $payload = $vietQr->generate($account, $amount, $description);
-        } catch (\InvalidArgumentException) {
-            $payload = null;
-        }
+        $payload = $this->buildLocalQrPayload($account, $amount, $description);
 
         return response()->json([
             'data' => [
@@ -139,6 +153,35 @@ class PaymentAccountController extends Controller
                 'description'    => $description,
             ],
         ]);
+    }
+
+    /**
+     * Build a local QR payload that contains the complete payment details.
+     *
+     * @param  PaymentAccount  $account      Receiving payment account.
+     * @param  int             $amount       Optional transfer amount.
+     * @param  string          $description  Optional transfer description.
+     * @return string Local QR text payload.
+     */
+    private function buildLocalQrPayload(PaymentAccount $account, int $amount, string $description): string
+    {
+        $lines = [
+            'DRINKFLOW-PAYMENT',
+            'BANK:' . trim($account->bank_name ?: $account->bank_code),
+            'BANK_CODE:' . trim($account->bank_code),
+            'ACCOUNT:' . trim($account->getRawOriginal('account_number')),
+            'ACCOUNT_NAME:' . trim($account->account_name),
+        ];
+
+        if ($amount > 0) {
+            $lines[] = 'AMOUNT:' . $amount;
+        }
+
+        if (trim($description) !== '') {
+            $lines[] = 'DESCRIPTION:' . trim($description);
+        }
+
+        return implode("\n", $lines);
     }
 
     /**

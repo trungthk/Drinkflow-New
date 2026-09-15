@@ -892,9 +892,11 @@ return [
 
     // Payment account modal
     'delete_account_title'   => '支払いアカウントを削除',
-    'delete_account_confirm' => 'この支払いアカウントを無効にします。よろしいですか？',
+    'delete_account_confirm' => 'この支払いアカウントを完全に削除します。よろしいですか？',
     'delete_confirm_btn'     => '削除を確認',
-    'account_deleted_ok'     => '支払いアカウントを無効にしました。',
+    'account_deleted_ok'     => '支払いアカウントを削除しました。',
+    'payment_account_live_campaign_blocked' => 'このアカウントは進行中のキャンペーンで使用されているため削除できません。先にキャンペーンの受取口座を変更してください。',
+    'delete_account_live_campaign_hint' => '進行中のキャンペーンで使用中のアカウントは削除できません。先にキャンペーンの受取口座を変更してください。',
     'account_created_ok'     => '支払いアカウントを追加しました。',
     'account_updated_ok'     => '支払いアカウントを更新しました。',
     'edit_account'           => 'アカウントを編集',

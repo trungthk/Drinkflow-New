@@ -892,9 +892,11 @@ return [
 
     // Payment account modal
     'delete_account_title'   => 'Delete payment account',
-    'delete_account_confirm' => 'This payment account will be disabled. Are you sure?',
+    'delete_account_confirm' => 'This payment account will be permanently deleted. Are you sure?',
     'delete_confirm_btn'     => 'Confirm delete',
-    'account_deleted_ok'     => 'Payment account has been disabled.',
+    'account_deleted_ok'     => 'Payment account has been deleted.',
+    'payment_account_live_campaign_blocked' => 'This account is used by a live campaign and cannot be deleted. Change that campaign\'s receiving account first.',
+    'delete_account_live_campaign_hint' => 'An account used by a live campaign cannot be deleted. Change the campaign\'s receiving account first.',
     'account_created_ok'     => 'Payment account added successfully.',
     'account_updated_ok'     => 'Payment account updated.',
     'edit_account'           => 'Edit account',
