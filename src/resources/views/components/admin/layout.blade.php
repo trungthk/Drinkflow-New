@@ -333,15 +333,16 @@
 
                         <div class="max-h-64 overflow-y-auto divide-y divide-outline-variant/40">
                             @forelse($unreadNotifications as $notif)
+                            @php($notificationPresentation = app(\App\Services\Notification\NotificationPresentationService::class)->present($notif))
                             <div data-unread-notification class="px-4 py-2.5 hover:bg-surface-container-low transition-colors">
                                 <div class="flex items-start gap-2.5">
                                     <span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
                                         <span class="material-symbols-outlined text-[14px]">info</span>
                                     </span>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-xs font-medium text-on-surface leading-snug">{{ $notif->title }}</p>
-                                        @if($notif->body)
-                                        <p class="mt-0.5 text-[11px] text-outline leading-snug">{{ $notif->body }}</p>
+                                        <p class="text-xs font-medium text-on-surface leading-snug">{{ $notificationPresentation['title'] }}</p>
+                                        @if($notificationPresentation['body'])
+                                        <p class="mt-0.5 text-[11px] text-outline leading-snug">{{ $notificationPresentation['body'] }}</p>
                                         @endif
                                         <span class="text-[10px] font-mono text-outline">{{ $notif->created_at ? $notif->created_at->diffForHumans() : 'Vừa xong' }}</span>
                                     </div>

@@ -55,6 +55,21 @@ class NotificationChannelController extends Controller
     }
 
     /**
+     * Return editable channel details for the room administrator.
+     *
+     * @param Room $room Room entity.
+     * @param NotificationChannel $channel Notification channel.
+     * @param RoomNotificationChannelService $service Channel service.
+     * @return JsonResponse Editable channel data.
+     */
+    public function show(Room $room, NotificationChannel $channel, RoomNotificationChannelService $service): JsonResponse
+    {
+        abort_unless($channel->room_id === $room->id, 404);
+
+        return response()->json(['data' => $service->editable($channel)]);
+    }
+
+    /**
      * Handle the update operation.
      */
     public function update(NotificationChannelRequest $request, Room $room, NotificationChannel $channel, RoomNotificationChannelService $service, AuditService $audit): JsonResponse

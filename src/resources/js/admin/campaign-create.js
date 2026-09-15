@@ -4,7 +4,7 @@
 export function campaignCreateComponent(defaults = {}) {
     const page = document.querySelector('#campaign-create-page');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-    const roomSlug = document.body?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
+    const getRoomSlug = () => document.body?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
     const budgetErrorTemplate = page?.dataset.budgetError || 'Campaign budget exceeds :limit.';
     const sponsorPercentageError = page?.dataset.sponsorPercentageError || 'The total sponsorship percentage must equal 100%.';
     const storeUrl = page?.dataset.storeUrl || '';
@@ -196,6 +196,11 @@ export function campaignCreateComponent(defaults = {}) {
             this.crawlerMessage = 'Đang kết nối crawler tới ' + this.crawlerUrl + '...';
 
             try {
+                const roomSlug = getRoomSlug();
+                if (!roomSlug) {
+                    throw new Error('Không xác định được phòng hiện tại.');
+                }
+
                 const res = await fetch(`/admin/${roomSlug}/crawler/preview`, {
                     method: 'POST',
                     headers: {
@@ -205,11 +210,15 @@ export function campaignCreateComponent(defaults = {}) {
                     },
                     body: JSON.stringify({ url: this.crawlerUrl })
                 });
-                const data = await res.json();
+                const response = await res.json();
+                if (!res.ok) {
+                    throw new Error(response.message || 'Không thể bóc tách menu từ liên kết này.');
+                }
+                const data = response.data || response;
                 if (data.items && data.items.length > 0) {
                     this.menuItems = data.items.map(item => ({
                         name: item.name,
-                        price: item.price || 0,
+                        price: item.base_price || item.price || 0,
                         category: item.category || 'Món Crawl'
                     }));
                     this.form.restaurant = data.restaurant_name || this.form.restaurant || 'Nhà hàng Online';
@@ -308,7 +317,7 @@ export function campaignCreateComponent(defaults = {}) {
                     }
                 }
 
-                window.location.href = `/admin/${roomSlug}/campaigns/${campaignId}`;
+                window.location.href = `/admin/${getRoomSlug()}/campaigns/${campaignId}`;
             } catch (e) {
                 alert('Có lỗi xảy ra: ' + e.message);
             } finally {

@@ -243,7 +243,7 @@ class CampaignController extends Controller
     public function destroy(Room $room, Campaign $campaign): JsonResponse
     {
         $this->assertCampaign($campaign);
-        abort_unless($campaign->status === CampaignStatus::Archived, 422, __('admin.campaign_delete_archived_only'));
+        abort_unless(in_array($campaign->status, [CampaignStatus::Draft, CampaignStatus::Active, CampaignStatus::Closing, CampaignStatus::Archived], true), 422, __('admin.campaign_delete_archived_only'));
         abort_if($campaign->orders()->exists() || $campaign->debts()->exists(), 422, __('admin.campaign_delete_has_history'));
 
         $campaign->delete();

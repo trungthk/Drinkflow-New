@@ -5,6 +5,7 @@ export function initAdminSettings() {
     const form = document.querySelector('#room-settings-form');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
+    const submitButton = document.querySelector('button[type="submit"][form="room-settings-form"]');
 
     if (!form) return;
 
@@ -52,6 +53,16 @@ export function initAdminSettings() {
             auto_lock_on_debt_limit: document.querySelector('#set-autolock-debt')?.checked ?? true
         };
 
+        const originalButtonContent = submitButton?.dataset.originalContent || submitButton?.innerHTML || '';
+        if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-80', 'cursor-not-allowed');
+            submitButton.innerHTML = `
+                <span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                <span>${document.body.dataset.processingText || 'Processing...'}</span>
+            `;
+        }
+
         try {
             const res = await fetch(`/admin/${roomSlug}/settings`, {
                 method: 'PATCH',
@@ -67,6 +78,12 @@ export function initAdminSettings() {
         } catch (e) {
             console.error(e);
             alert('Server error.');
+        } finally {
+            if (submitButton && !document.hidden) {
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-80', 'cursor-not-allowed');
+                submitButton.innerHTML = originalButtonContent;
+            }
         }
     });
 }

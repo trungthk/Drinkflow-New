@@ -3,6 +3,10 @@
 return [
     'order_created' => 'Order submitted successfully',
     'order_status_updated' => 'Order status updated',
+    'order_created_body' => 'Order #:order_id has been recorded.',
+    'order_status_updated_body' => 'Order #:order_id changed to :status.',
+    'order_deleted_title' => 'Order deleted',
+    'order_deleted_body' => 'You can place the order again.',
     'join_room' => 'Join room',
     'payment_reminder' => 'Please pay your order.',
     'campaign_created_title' => 'New campaign',

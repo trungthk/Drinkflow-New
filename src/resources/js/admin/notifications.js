@@ -6,10 +6,15 @@ export function initAdminNotifications() {
     const deleteModal = document.querySelector('#channel-delete-modal');
     const deleteConfirm = document.querySelector('#channel-delete-confirm');
     const deleteCancel = document.querySelector('#channel-delete-cancel');
+    const editCancel = document.querySelector('#channel-edit-cancel');
+    const formTitle = document.querySelector('#channel-form-title');
+    const formIcon = document.querySelector('#channel-form-icon');
+    const formSubmit = document.querySelector('#channel-form-submit');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
     const translations = notice?.dataset || {};
     let pendingDeleteId = null;
+    let editingChannelId = null;
 
     if (!form && !document.querySelector('[data-notification-channel]')) return;
 
@@ -42,6 +47,25 @@ export function initAdminNotifications() {
         document.querySelectorAll('.platform-config-fields').forEach((element) => element.classList.add('hidden'));
         document.querySelector(`#platform-${type}`)?.classList.remove('hidden');
     };
+    const resetCredentialFields = () => {
+        ['#ch-tg-token', '#ch-tg-chat-id', '#ch-slack-url', '#ch-cw-token', '#ch-cw-room-id', '#ch-wh-url', '#ch-wh-secret'].forEach((selector) => {
+            const input = document.querySelector(selector);
+            if (input) {
+                input.value = '';
+                input.placeholder = input.dataset.defaultPlaceholder || input.placeholder;
+            }
+        });
+    };
+    const resetForm = () => {
+        editingChannelId = null;
+        form?.reset();
+        resetCredentialFields();
+        switchPlatform(typeSelect?.value || 'telegram');
+        if (formTitle) formTitle.textContent = translations.notificationConnectNew || 'Connect new bot';
+        if (formIcon) formIcon.textContent = 'add_link';
+        if (formSubmit) formSubmit.querySelector('span:last-child').textContent = translations.notificationSaveWebhook || 'Save webhook';
+        editCancel?.classList.add('hidden');
+    };
 
     typeSelect?.addEventListener('change', (event) => switchPlatform(event.target.value));
     if (typeSelect) switchPlatform(typeSelect.value);
@@ -56,10 +80,19 @@ export function initAdminNotifications() {
                 : type === 'chatwork'
                     ? { api_token: document.querySelector('#ch-cw-token')?.value.trim() || '', room_id: document.querySelector('#ch-cw-room-id')?.value.trim() || '' }
                     : { webhook_url: document.querySelector('#ch-wh-url')?.value.trim() || '', secret_token: document.querySelector('#ch-wh-secret')?.value.trim() || '' };
+        if (editingChannelId !== null) {
+            Object.keys(config).forEach((key) => {
+                if (config[key] === '') delete config[key];
+            });
+        }
         const button = form.querySelector('button[type="submit"]');
         setLoading(button, true);
         try {
-            const response = await fetch(`/admin/${roomSlug}/notification-channels`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' }, body: JSON.stringify({ type, name: document.querySelector('#ch-name')?.value.trim(), status: 'enabled', config }) });
+            const isEditing = editingChannelId !== null;
+            const endpoint = isEditing
+                ? `/admin/${roomSlug}/notification-channels/${editingChannelId}`
+                : `/admin/${roomSlug}/notification-channels`;
+            const response = await fetch(endpoint, { method: isEditing ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' }, body: JSON.stringify({ type, name: document.querySelector('#ch-name')?.value.trim(), status: 'enabled', config }) });
             const data = await responseData(response);
             if (!response.ok) throw new Error(data.message || translations.notificationSaveFailed || 'Could not save webhook.');
             reloadAfterNotice(translations.notificationSaved || 'Saved successfully.');
@@ -68,6 +101,49 @@ export function initAdminNotifications() {
             setLoading(button, false);
         }
     });
+
+    window.editChannel = async (id, channel) => {
+        const button = document.querySelector(`[data-channel-edit="${id}"]`);
+        setLoading(button, true);
+        try {
+            const response = await fetch(`/admin/${roomSlug}/notification-channels/${id}`, {
+                headers: { Accept: 'application/json' }
+            });
+            const data = await responseData(response);
+            if (!response.ok || !data.data) {
+                throw new Error(data.message || translations.notificationServerError || 'Server error.');
+            }
+
+            const details = data.data;
+            editingChannelId = id;
+            const nameInput = document.querySelector('#ch-name');
+            if (nameInput) nameInput.value = details.name || channel.name || '';
+            if (typeSelect) typeSelect.value = details.type || channel.type || 'webhook';
+            resetCredentialFields();
+            const config = details.config || {};
+            const fieldMap = {
+                telegram: { bot_token: '#ch-tg-token', chat_id: '#ch-tg-chat-id' },
+                slack: { webhook_url: '#ch-slack-url' },
+                chatwork: { api_token: '#ch-cw-token', room_id: '#ch-cw-room-id' },
+                webhook: { webhook_url: '#ch-wh-url', secret_token: '#ch-wh-secret' }
+            };
+            Object.entries(fieldMap[details.type] || {}).forEach(([key, selector]) => {
+                const input = document.querySelector(selector);
+                if (input) input.value = config[key] || '';
+            });
+            switchPlatform(typeSelect?.value || 'webhook');
+            if (formTitle) formTitle.textContent = translations.notificationEdit || 'Edit';
+            if (formIcon) formIcon.textContent = 'edit';
+            if (formSubmit) formSubmit.querySelector('span:last-child').textContent = translations.notificationEdit || 'Edit';
+            editCancel?.classList.remove('hidden');
+            document.querySelector('#ch-name')?.focus();
+        } catch (error) {
+            showNotify(error.message || translations.notificationServerError || 'Server error.', 'error');
+        } finally {
+            setLoading(button, false);
+        }
+    };
+    editCancel?.addEventListener('click', resetForm);
 
     window.testChannel = async (id) => {
         const button = document.querySelector(`[data-channel-test="${id}"]`);

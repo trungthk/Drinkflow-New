@@ -14,6 +14,9 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         git \
         curl \
+        chromium \
+        nodejs \
+        npm \
         unzip \
         libonig-dev \
         libpq-dev \
@@ -45,6 +48,8 @@ RUN composer install \
 
 COPY src/ ./
 COPY --from=frontend /build/public/build ./public/build
+RUN npm install --omit=dev --ignore-scripts \
+    && test -x /usr/bin/chromium
 
 RUN composer dump-autoload --optimize --no-scripts \
     && php artisan package:discover --ansi

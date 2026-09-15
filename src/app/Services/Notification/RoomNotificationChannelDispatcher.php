@@ -81,13 +81,66 @@ class RoomNotificationChannelDispatcher
      */
     private function send(string $type, array $config, array $payload): void
     {
-        $message = (string) ($payload['message'] ?? $payload['title'] ?? 'DrinkFlow notification');
+        $message = $this->formatMessage($payload);
+        $deliveryPayload = array_merge($payload, [
+            'icon' => $this->icon((string) ($payload['event'] ?? 'notification')),
+            'message' => $message,
+        ]);
         match ($type) {
             'slack' => Http::timeout(5)->post($this->required($config, 'webhook_url'), ['text' => $message])->throw(),
             'telegram' => Http::timeout(5)->post('https://api.telegram.org/bot'.$this->required($config, 'bot_token').'/sendMessage', ['chat_id' => $this->required($config, 'chat_id'), 'text' => $message])->throw(),
             'chatwork' => Http::timeout(5)->withHeaders(['X-ChatWorkToken' => $this->required($config, 'api_token')])->asForm()->post('https://api.chatwork.com/v2/rooms/'.$this->required($config, 'room_id').'/messages', ['body' => $message])->throw(),
-            'webhook' => Http::timeout(5)->when(isset($config['secret_token']) && $config['secret_token'] !== '', fn ($request) => $request->withHeaders(['X-Webhook-Secret' => $config['secret_token']]))->post($this->required($config, 'webhook_url'), $payload)->throw(),
+            'webhook' => Http::timeout(5)->when(isset($config['secret_token']) && $config['secret_token'] !== '', fn ($request) => $request->withHeaders(['X-Webhook-Secret' => $config['secret_token']]))->post($this->required($config, 'webhook_url'), $deliveryPayload)->throw(),
             default => throw new \InvalidArgumentException('Unsupported notification channel type.'),
+        };
+    }
+
+    /**
+     * Format a notification consistently for chat-style channel drivers.
+     *
+     * @param array<string, mixed> $payload Driver-neutral notification payload.
+     * @return string Readable notification text with an event icon and bullets.
+     */
+    private function formatMessage(array $payload): string
+    {
+        $event = (string) ($payload['event'] ?? 'notification');
+        $title = trim((string) ($payload['title'] ?? 'DrinkFlow notification'));
+        $rawMessage = trim((string) ($payload['message'] ?? ''));
+        $lines = $rawMessage === '' ? [] : (preg_split('/\r\n|\r|\n/', $rawMessage) ?: []);
+
+        // Campaign payloads already include the title as their first line.
+        if ($lines !== [] && trim((string) $lines[0]) === $title) {
+            array_shift($lines);
+        }
+
+        $details = array_values(array_filter(array_map(
+            static fn (mixed $line): string => trim((string) $line),
+            $lines,
+        ), static fn (string $line): bool => $line !== ''));
+        $formatted = $this->icon($event).' '.$title;
+        if ($details !== []) {
+            $formatted .= "\n\n".implode("\n", array_map(static fn (string $line): string => '• '.$line, $details));
+        }
+
+        return $formatted;
+    }
+
+    /**
+     * Resolve a visual icon for a notification event.
+     *
+     * @param string $event Notification event name.
+     * @return string Unicode icon.
+     */
+    private function icon(string $event): string
+    {
+        return match (true) {
+            str_starts_with($event, 'campaign.') => $event === 'campaign.created' ? '🚀' : '📣',
+            str_starts_with($event, 'order.') => '🧾',
+            str_starts_with($event, 'debt.'), str_starts_with($event, 'payment.') => '💳',
+            str_starts_with($event, 'user.') => '👤',
+            str_starts_with($event, 'security.') => '🔐',
+            $event === 'notification.test' => '✅',
+            default => '🔔',
         };
     }
 

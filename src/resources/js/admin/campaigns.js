@@ -75,7 +75,7 @@ export function initAdminCampaigns() {
     window.closeCampaign = id => transitionCampaign(id, 'close', 'Close orders for this campaign?');
     window.archiveCampaign = id => transitionCampaign(id, 'archive', 'Archive this campaign?');
     window.deleteCampaign = async function (id) {
-        if (!window.confirm('Delete this archived campaign permanently?')) return;
+        if (!window.confirm('Delete this campaign permanently?')) return;
         const slug = roomSlug || window.__DF_ROOM_SLUG__;
         try {
             const res = await fetch(`/admin/${slug}/campaigns/${id}`, {

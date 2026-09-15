@@ -243,13 +243,20 @@
 
                         <div class="max-h-64 overflow-y-auto divide-y divide-outline-variant/40">
                             @forelse($unreadNotifications as $notif)
+                            @php
+                                $eventKey = 'admin.audit_event_' . str_replace('.', '_', (string) ($notif->event ?? ''));
+                                $eventLabel = __($eventKey);
+                                if ($eventLabel === $eventKey) {
+                                    $eventLabel = __('admin.system_updated');
+                                }
+                            @endphp
                             <div class="px-4 py-2.5 hover:bg-surface-container-low transition-colors">
                                 <div class="flex items-start gap-2.5">
                                     <span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
                                         <span class="material-symbols-outlined text-[14px]">info</span>
                                     </span>
                                     <div class="flex-1 min-w-0">
-                                        <p class="text-xs font-medium text-on-surface leading-snug">{{ $notif->event ?? __('admin.system_updated') }}</p>
+                                        <p class="text-xs font-medium text-on-surface leading-snug">{{ $eventLabel }}</p>
                                         <span class="text-[10px] font-mono text-outline">{{ $notif->created_at ? $notif->created_at->diffForHumans() : __('admin.just_now') }}</span>
                                     </div>
                                 </div>

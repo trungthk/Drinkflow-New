@@ -30,6 +30,9 @@
          data-notification-server-error="{{ __('admin.notification_channel_server_error') }}"
          data-notification-delete-confirm="{{ __('admin.notification_channel_delete_confirm') }}"
          data-notification-delete-failed="{{ __('admin.notification_channel_delete_failed') }}"
+         data-notification-edit="{{ __('admin.edit') }}"
+         data-notification-connect-new="{{ __('admin.connect_new_bot') }}"
+         data-notification-save-webhook="{{ __('admin.save_webhook') }}"
          data-processing="{{ __('admin.processing') }}"></div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -81,6 +84,9 @@
                             </div>
 
                             <div class="flex items-center gap-2 shrink-0">
+                                <button type="button" data-channel-edit="{{ $chId }}" onclick="editChannel({{ $chId }}, @js(['id' => $chId, 'name' => $chName, 'type' => $chTypeVal]))" class="p-1.5 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors cursor-pointer" title="{{ __('admin.edit') }}">
+                                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                                </button>
                                 <button type="button" data-channel-test="{{ $chId }}" onclick="testChannel({{ $chId }})" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer">
                                     <span class="material-symbols-outlined text-[14px]">bolt</span>
                                     <span>{{ __('admin.test_ping') }}</span>
@@ -103,9 +109,12 @@
         <!-- Right: Add Webhook Channel Form -->
         <div class="space-y-4">
             <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-xs">
-                <div class="flex items-center gap-2 pb-3 border-b border-outline-variant mb-4">
-                    <span class="material-symbols-outlined text-[20px] text-primary">add_link</span>
-                    <h2 class="font-bold text-sm text-on-surface">{{ __('admin.connect_new_bot') }}</h2>
+                <div class="flex items-center justify-between gap-2 pb-3 border-b border-outline-variant mb-4">
+                    <div class="flex items-center gap-2">
+                        <span id="channel-form-icon" class="material-symbols-outlined text-[20px] text-primary">add_link</span>
+                        <h2 id="channel-form-title" class="font-bold text-sm text-on-surface">{{ __('admin.connect_new_bot') }}</h2>
+                    </div>
+                    <button id="channel-edit-cancel" type="button" class="hidden text-xs font-semibold text-outline hover:text-on-surface">{{ __('admin.notification_channel_cancel') }}</button>
                 </div>
 
                 <form id="add-channel-form" data-no-loading class="space-y-3 text-xs">
@@ -169,8 +178,8 @@
                     </div>
 
                     <div class="pt-3">
-                        <button type="submit" class="w-full h-9 bg-primary hover:bg-primary/90 text-on-primary rounded font-bold transition-colors cursor-pointer">
-                            {{ __('admin.save_webhook') }}
+                        <button id="channel-form-submit" type="submit" class="w-full h-9 bg-primary hover:bg-primary/90 text-on-primary rounded font-bold transition-colors cursor-pointer">
+                            <span>{{ __('admin.save_webhook') }}</span>
                         </button>
                     </div>
                 </form>

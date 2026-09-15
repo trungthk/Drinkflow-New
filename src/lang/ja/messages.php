@@ -3,6 +3,10 @@
 return [
     'order_created' => '注文を受け付けました',
     'order_status_updated' => '注文ステータスが更新されました',
+    'order_created_body' => '注文 #:order_id を受け付けました。',
+    'order_status_updated_body' => '注文 #:order_id のステータスが :status に変更されました。',
+    'order_deleted_title' => '注文が削除されました',
+    'order_deleted_body' => 'もう一度注文できます。',
     'join_room' => 'ルームに参加',
     'payment_reminder' => '注文のお支払いをお願いします。',
     'campaign_created_title' => '新しいキャンペーン',

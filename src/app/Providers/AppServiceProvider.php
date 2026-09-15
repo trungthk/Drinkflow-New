@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\FoodCrawler\Contracts\FoodCrawlerProviderInterface;
+use App\Services\FoodCrawler\Contracts\BrowserTransportInterface;
+use App\Services\FoodCrawler\Browser\PuppeteerBrowserTransport;
+use App\Services\FoodCrawler\ProviderResolver;
 use App\Events\CampaignClosed;
 use App\Events\CampaignCancelled;
 use App\Events\CampaignCreated;
@@ -28,7 +32,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(BrowserTransportInterface::class, PuppeteerBrowserTransport::class);
+        $this->app->singleton(ProviderResolver::class, function (): ProviderResolver {
+            $providers = array_map(
+                fn (string $provider): FoodCrawlerProviderInterface => $this->app->make($provider),
+                config('food-crawler.providers', []),
+            );
+
+            return new ProviderResolver($providers);
+        });
     }
 
     /**

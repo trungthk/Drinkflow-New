@@ -71,12 +71,14 @@
                                 default => 'bg-surface text-outline border-outline-variant'
                             };
                             $stLabel = match($statusValue) {
+                                'draft' => __('admin.status_draft'),
                                 'active' => __('admin.filter_active'),
                                 'closing' => __('admin.status_closing'),
                                 'scheduled' => __('admin.filter_scheduled'),
                                 'closed' => __('admin.filter_closed'),
                                 'archived' => __('admin.filter_archived'),
-                                default => $statusValue
+                                'cancelled' => __('admin.status_cancelled'),
+                                default => __('admin.status_'.$statusValue)
                             };
                         @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors" data-campaign-row data-status="{{ $statusValue }}" data-search="{{ strtolower($camp->name . ' ' . $camp->restaurant . ' ' . ($camp->description ?? '')) }}">
@@ -120,7 +122,7 @@
                                             <span class="material-symbols-outlined text-[14px]">edit</span>
                                             <span>{{ __('admin.edit') }}</span>
                                         </a>
-                                        <button type="button" onclick="cancelCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left">
+                                        <button type="button" onclick="deleteCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left">
                                             <span class="material-symbols-outlined text-[16px]">delete</span>{{ __('admin.delete') }}
                                         </button>
                                     @elseif(in_array($statusValue, ['active', 'closing'], true))
@@ -128,6 +130,9 @@
                                             <span class="material-symbols-outlined text-[14px]">edit</span>
                                             <span>{{ __('admin.edit') }}</span>
                                         </a>
+                                        <button type="button" onclick="deleteCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left">
+                                            <span class="material-symbols-outlined text-[16px]">delete</span>{{ __('admin.delete') }}
+                                        </button>
                                         <button type="button" onclick="closeCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
                                             <span class="material-symbols-outlined text-[16px]">lock</span>{{ __('admin.close_campaign_early') }}
                                         </button>
@@ -152,8 +157,12 @@
                             <td colspan="6" class="py-12 text-center text-outline">
                                 <div class="flex flex-col items-center gap-2">
                                     <span class="material-symbols-outlined text-4xl text-outline-variant">campaign</span>
-                                    <p class="font-medium text-sm">{{ __('admin.no_campaigns_found') }}</p>
-                                    <a href="{{ route('admin.campaigns.create', $room) }}" class="mt-2 px-4 py-2 bg-primary text-on-primary rounded text-xs font-semibold">{{ __('admin.create_first_campaign') }}</a>
+                                    @if(($filters['search'] ?? '') !== '' || ($filters['status'] ?? 'all') !== 'all')
+                                        <p class="font-medium text-sm">{{ __('admin.no_campaigns_matching_filters') }}</p>
+                                    @else
+                                        <p class="font-medium text-sm">{{ __('admin.no_campaigns_found') }}</p>
+                                        <a href="{{ route('admin.campaigns.create', $room) }}" class="mt-2 px-4 py-2 bg-primary text-on-primary rounded text-xs font-semibold">{{ __('admin.create_first_campaign') }}</a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

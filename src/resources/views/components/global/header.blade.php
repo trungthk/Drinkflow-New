@@ -100,15 +100,16 @@
             </div>
             <div class="divide-y divide-slate-100 max-h-[380px] overflow-y-auto">
               @forelse($notifications as $notif)
+                @php($notificationPresentation = app(\App\Services\Notification\NotificationPresentationService::class)->present($notif))
                 <div class="p-3.5 flex items-start gap-3 hover:bg-slate-50/80 transition-colors {{ is_null($notif->read_at) ? 'bg-emerald-50/20' : '' }}">
                   <span class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100">
                     <span class="material-symbols-outlined text-[17px]">
-                      {{ $notif->type === 'campaign.created' ? 'local_fire_department' : ($notif->type === 'order.status' ? 'check_circle' : 'notifications') }}
+                      {{ $notificationPresentation['icon'] }}
                     </span>
                   </span>
                   <div class="flex-1 min-w-0">
-                    <p class="text-xs font-semibold text-slate-800">{{ $notif->title ?? 'Thông báo từ DrinkFlow' }}</p>
-                    <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ $notif->body ?? '' }}</p>
+                    <p class="text-xs font-semibold text-slate-800">{{ $notificationPresentation['title'] }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ $notificationPresentation['body'] }}</p>
                     <span class="text-[11px] text-slate-400 block mt-1 flex items-center gap-1">
                       <span class="material-symbols-outlined text-[12px]">schedule</span> {{ $notif->created_at->diffForHumans() }}
                     </span>

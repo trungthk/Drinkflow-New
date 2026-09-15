@@ -34,8 +34,11 @@ class CampaignNotificationPayloadService
             'campaign' => [
                 'id' => $campaign->id,
                 'name' => $campaign->name,
+                'restaurant' => $campaign->restaurant,
                 'deadline' => $campaign->deadline?->toIso8601String(),
+                'sponsor_name' => $campaign->sponsor_name,
                 'sponsor_type' => $campaign->sponsor_type,
+                'sponsorship_amount' => $campaign->max_budget,
                 'max_product_budget' => $campaign->max_budget,
                 'order_url' => $orderUrl,
             ],
@@ -64,6 +67,14 @@ class CampaignNotificationPayloadService
                 ? FormatHelper::formatCurrency((int) $campaign->max_budget)
                 : __('messages.campaign_product_budget_unlimited'),
         ]);
+        if ($campaign->sponsor_name || $campaign->max_budget) {
+            $lines[] = __('messages.campaign_sponsorship', [
+                'sponsor' => $campaign->sponsor_name ?: __('messages.campaign_sponsor_not_set'),
+                'amount' => $campaign->max_budget
+                    ? FormatHelper::formatCurrency((int) $campaign->max_budget)
+                    : __('messages.campaign_product_budget_unlimited'),
+            ]);
+        }
         if ($orderUrl !== null) {
             $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
         }

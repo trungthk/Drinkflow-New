@@ -11,7 +11,8 @@ use App\Http\Requests\ImportCampaignItemsRequest;
 use App\Models\Campaign;
 use App\Models\CrawlerPreview;
 use App\Services\Audit\AuditService;
-use App\Services\Crawler\FoodCrawlerService;
+use App\Services\FoodCrawler\Exceptions\FoodCrawlerException;
+use App\Services\FoodCrawler\FoodCrawlerGateway;
 use Illuminate\Http\JsonResponse;
 
 class CrawlerController extends Controller
@@ -19,13 +20,18 @@ class CrawlerController extends Controller
     /**
      * Handle the preview operation.
      * @param CrawlerPreviewRequest $request Parameter value.
-     * @param FoodCrawlerService $crawler Parameter value.
+     * @param FoodCrawlerGateway $crawler Food crawler gateway.
      * @param AuditService $audit Activity audit service.
      * @return JsonResponse Result of the operation.
      */
-    public function preview(CrawlerPreviewRequest $request, FoodCrawlerService $crawler, AuditService $audit): JsonResponse
+    public function preview(CrawlerPreviewRequest $request, FoodCrawlerGateway $crawler, AuditService $audit): JsonResponse
     {
-        $items = $crawler->preview($request->validated('url'));
+        try {
+            $menu = $crawler->crawl($request->validated('url'));
+        } catch (FoodCrawlerException $exception) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
+        $items = $menu->items();
         $preview = CrawlerPreview::create([
             'room_id' => request()->attributes->get('room')->id,
             'admin_id' => request()->user('admin')->id,
@@ -38,7 +44,17 @@ class CrawlerController extends Controller
             'source_url' => $preview->source_url,
         ]);
 
-        return response()->json(['data' => ['preview_id' => $preview->id, 'source_url' => $preview->source_url, 'items' => $items, 'expires_at' => $preview->expires_at]], 201);
+        return response()->json([
+            'data' => [
+                'preview_id' => $preview->id,
+                'source_url' => $preview->source_url,
+                'provider' => $menu->provider,
+                'restaurant' => ['external_id' => $menu->externalRestaurantId],
+                'categories' => $menu->toArray()['categories'],
+                'items' => $items,
+                'expires_at' => $preview->expires_at,
+            ],
+        ], 201);
     }
 
     /**

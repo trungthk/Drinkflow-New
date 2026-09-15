@@ -6,6 +6,7 @@ namespace App\Services\Notification;
 
 use App\Models\NotificationChannel;
 use App\Services\Audit\AuditService;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
 class RoomNotificationChannelService
@@ -22,12 +23,23 @@ class RoomNotificationChannelService
     {
         return DB::transaction(function () use ($roomId, $data, $channel): NotificationChannel {
             $channel ??= new NotificationChannel();
+            $previousType = $channel->exists ? (string) $channel->type : null;
             $channel->room_id = $roomId;
             $channel->type = $data['type'];
             $channel->name = $data['name'];
             $channel->status = $data['status'] ?? $channel->status ?? 'disabled';
             if (array_key_exists('config', $data)) {
-                $channel->config_encrypted = json_encode($data['config'], JSON_THROW_ON_ERROR);
+                $config = $data['config'];
+                if ($channel->exists && $previousType === $channel->type) {
+                    $encrypted = $channel->getRawOriginal('config_encrypted');
+                    if (is_string($encrypted) && $encrypted !== '') {
+                        $existing = json_decode((string) Crypt::decrypt($encrypted), true, 512, JSON_THROW_ON_ERROR);
+                        if (is_array($existing)) {
+                            $config = array_replace($existing, $config);
+                        }
+                    }
+                }
+                $channel->config_encrypted = json_encode($config, JSON_THROW_ON_ERROR);
             }
             $channel->save();
             return $channel->fresh();
@@ -75,5 +87,29 @@ class RoomNotificationChannelService
             'credential' => $channel->getRawOriginal('config_encrypted') ? '••••••••••' : null,
         ];
     }
-}
 
+    /**
+     * Return channel details for an authorized room administrator editing a channel.
+     *
+     * @param NotificationChannel $channel Notification channel.
+     * @return array<string, mixed> Channel details with decrypted configuration.
+     */
+    public function editable(NotificationChannel $channel): array
+    {
+        $encrypted = $channel->getRawOriginal('config_encrypted');
+        $config = [];
+
+        if (is_string($encrypted) && $encrypted !== '') {
+            $decoded = json_decode((string) Crypt::decrypt($encrypted), true, 512, JSON_THROW_ON_ERROR);
+            $config = is_array($decoded) ? $decoded : [];
+        }
+
+        return [
+            'id' => $channel->id,
+            'type' => $channel->type,
+            'name' => $channel->name,
+            'status' => $channel->status,
+            'config' => $config,
+        ];
+    }
+}

@@ -3,6 +3,10 @@
 return [
     'order_created' => 'Đặt món thành công',
     'order_status_updated' => 'Trạng thái đơn hàng đã thay đổi',
+    'order_created_body' => 'Đơn hàng #:order_id đã được ghi nhận.',
+    'order_status_updated_body' => 'Đơn hàng #:order_id đã chuyển sang :status.',
+    'order_deleted_title' => 'Đơn hàng đã được xóa',
+    'order_deleted_body' => 'Bạn có thể đặt lại đơn hàng.',
     'join_room' => 'Tham gia Room',
     'payment_reminder' => 'Vui lòng thanh toán đơn hàng của bạn.',
     'campaign_created_title' => 'Chiến dịch mới',
