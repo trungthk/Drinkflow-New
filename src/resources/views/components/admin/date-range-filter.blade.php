@@ -3,15 +3,16 @@
     'dateFrom' => request('date_from', ''),
     'dateTo' => request('date_to', ''),
     'formId' => null,
+    'fullWidth' => false,
 ])
 
-<div id="{{ $id }}" class="relative inline-block text-left" data-date-range-picker="true" @if($formId) data-form-id="{{ $formId }}" @endif>
+<div id="{{ $id }}" class="relative {{ $fullWidth ? 'block w-full' : 'inline-block' }} text-left" data-date-range-picker="true" @if($formId) data-form-id="{{ $formId }}" @endif>
     <input type="hidden" name="date_from" value="{{ $dateFrom }}" class="date-from-hidden" data-date-from />
     <input type="hidden" name="date_to" value="{{ $dateTo }}" class="date-to-hidden" data-date-to />
 
     <button
         type="button"
-        class="date-range-toggle inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold bg-surface-container-lowest border border-outline-variant/70 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors shadow-2xs cursor-pointer"
+        class="date-range-toggle inline-flex {{ $fullWidth ? 'w-full justify-between' : '' }} items-center gap-2 px-3 py-2 text-xs font-semibold bg-surface-container-lowest border border-outline-variant/70 rounded-xl text-on-surface hover:bg-surface-container-low transition-colors shadow-2xs cursor-pointer"
         data-date-range-trigger
         aria-haspopup="true"
         aria-expanded="false"
@@ -86,4 +87,3 @@
         </div>
     </div>
 </div>
-

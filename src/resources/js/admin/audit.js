@@ -6,7 +6,17 @@ export function initAdminAudit() {
     const modalBackdrop = document.querySelector('#payload-backdrop');
     if (!modal) return;
 
-    modalBackdrop?.addEventListener('click', closePayloadModal);
+    const resetLink = document.querySelector('[data-audit-filter-reset]');
+    resetLink?.addEventListener('click', (event) => {
+        event.preventDefault();
+        if (resetLink.dataset.loading === 'true') return;
+
+        resetLink.dataset.loading = 'true';
+        resetLink.setAttribute('aria-busy', 'true');
+        resetLink.classList.add('pointer-events-none', 'opacity-70');
+        resetLink.querySelector('[data-reset-icon]')?.classList.add('animate-spin');
+        window.location.assign(resetLink.href);
+    });
 
     window.viewAuditPayload = function(log, eventLabel = '') {
         const titleEl = document.querySelector('#payload-title');
@@ -21,6 +31,16 @@ export function initAdminAudit() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     };
+
+    modalBackdrop?.addEventListener('click', window.closePayloadModal);
+    document.querySelector('[data-close-audit-payload]')?.addEventListener('click', window.closePayloadModal);
+
+    document.querySelectorAll('[data-audit-payload]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const payload = JSON.parse(button.dataset.auditPayload || '{}');
+            window.viewAuditPayload(payload, button.dataset.auditEventLabel || '');
+        });
+    });
 
     document.addEventListener('keydown', (event) => {
         if (event.key === 'Escape' && !modal.classList.contains('hidden')) {

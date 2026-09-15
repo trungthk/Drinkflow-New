@@ -84,7 +84,7 @@ class CampaignController extends Controller
     {
         $room = $request->attributes->get('room') ?? $room;
         $paymentAccounts = $room->paymentAccounts()->where('status', PaymentAccountStatus::Active)->get();
-        $roomUsers = $room->roomUsers()->with('user')->where('status', RoomUserStatus::Active)->get();
+        $roomUsers = $room->roomUsers()->with('globalUser')->where('status', RoomUserStatus::Active)->get();
         $previousCampaigns = Campaign::query()
             ->where('room_id', $room->id)
             ->whereHas('items')

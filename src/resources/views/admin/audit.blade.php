@@ -13,12 +13,6 @@
             </div>
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.audit_trail_title') }}</h1>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container text-secondary text-xs font-semibold border border-outline-variant">
-                <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
-                <span>{{ __('admin.immutable_audit') }}</span>
-            </span>
-        </div>
     </div>
 
     <!-- Filter Toolbar -->
@@ -45,7 +39,11 @@
                 <select name="target_type" class="w-full h-9 px-2.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
                     <option value="">{{ __('admin.all_targets') }}</option>
                     @foreach($targetTypes as $tt)
-                        <option value="{{ $tt }}" {{ ($filters['target_type'] ?? '') === $tt ? 'selected' : '' }}>{{ $tt }}</option>
+                        @php
+                            $targetKey = 'admin.audit_target_' . $tt;
+                            $targetLabel = __($targetKey);
+                        @endphp
+                        <option value="{{ $tt }}" {{ ($filters['target_type'] ?? '') === $tt ? 'selected' : '' }}>{{ $targetLabel === $targetKey ? $tt : $targetLabel }}</option>
                     @endforeach
                 </select>
             </div>
@@ -58,14 +56,14 @@
 
             <div>
                 <label class="block text-[11px] font-mono uppercase text-outline font-semibold mb-1">{{ __('admin.date_range') }}</label>
-                <x-admin.date-range-filter id="audit-date-range" :date-from="$filters['date_from'] ?? ''" :date-to="$filters['date_to'] ?? ''" form-id="audit-filter-form" />
+                <x-admin.date-range-filter id="audit-date-range" :date-from="$filters['date_from'] ?? ''" :date-to="$filters['date_to'] ?? ''" form-id="audit-filter-form" :full-width="true" />
             </div>
         </div>
 
         <div class="mt-3 flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/40">
-            <a href="{{ route('admin.audit.page', $room) }}" class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant rounded text-xs font-semibold no-underline transition-colors flex items-center gap-1">
-                <span class="material-symbols-outlined text-[14px]">refresh</span>
-                <span>{{ __('admin.filter_reset') }}</span>
+            <a href="{{ route('admin.audit.page', $room) }}" data-audit-filter-reset class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant rounded text-xs font-semibold no-underline transition-colors flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]" data-reset-icon>refresh</span>
+                <span data-reset-label>{{ __('admin.filter_reset') }}</span>
             </a>
             <button type="submit" class="px-4 py-1.5 bg-primary hover:bg-primary/90 text-on-primary rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1 cursor-pointer">
                 <span class="material-symbols-outlined text-[14px]">filter_alt</span>
@@ -94,6 +92,9 @@
                             $auditEventKey = 'admin.audit_event_' . str_replace('.', '_', $log->event);
                             $auditEventLabel = __($auditEventKey);
                             if ($auditEventLabel === $auditEventKey) $auditEventLabel = $log->event;
+                            $auditTargetKey = 'admin.audit_target_' . $log->target_type;
+                            $auditTargetLabel = __($auditTargetKey);
+                            if ($auditTargetLabel === $auditTargetKey) $auditTargetLabel = $log->target_type;
                         @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors font-mono">
                             <td class="py-3.5 px-4 text-secondary">
@@ -105,7 +106,7 @@
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-on-surface">
-                                <span class="font-semibold">{{ $log->target_type }}</span>
+                                <span class="font-semibold">{{ $auditTargetLabel }}</span>
                                 <span class="text-outline">#{{ $log->target_id }}</span>
                             </td>
                             <td class="py-3.5 px-4 font-sans font-semibold text-on-surface">
@@ -115,7 +116,7 @@
                                 {{ $log->ip_address ?: '127.0.0.1' }}
                             </td>
                             <td class="py-3.5 px-4 text-center font-sans">
-                                <button type="button" onclick="viewAuditPayload(@json($log), @json($auditEventLabel))" class="px-2 py-1 bg-surface-container hover:bg-surface-container-high rounded text-[11px] font-semibold text-on-surface border border-outline-variant transition-colors">
+                                <button type="button" data-audit-payload="{{ json_encode($log, JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}" data-audit-event-label="{{ $auditEventLabel }}" class="px-2 py-1 bg-surface-container hover:bg-surface-container-high rounded text-[11px] font-semibold text-on-surface border border-outline-variant transition-colors">
                                     {{ __('admin.view_json') }}
                                 </button>
                             </td>
@@ -147,7 +148,7 @@
                     <span class="material-symbols-outlined text-primary text-[20px]">data_object</span>
                     <h3 class="font-bold text-base text-on-surface" id="payload-title">{{ __('admin.audit_trail_title') }}</h3>
                 </div>
-                <button type="button" onclick="closePayloadModal()" class="text-outline hover:text-on-surface">
+                <button type="button" data-close-audit-payload class="text-outline hover:text-on-surface">
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
             </div>
