@@ -77,6 +77,13 @@ class CreateOrderAction
                     ]);
                 }
                 $unit = (int) $item->base_price + (int) ($size?->price_delta ?? 0) + (int) $toppings->sum('price');
+                if ((int) $campaign->max_budget > 0 && $unit > (int) $campaign->max_budget) {
+                    throw ValidationException::withMessages([
+                        'items' => __('admin.item_budget_limit_exceeded', [
+                            'limit' => FormatHelper::formatCurrency((int) $campaign->max_budget),
+                        ]),
+                    ]);
+                }
                 $line = $unit * $quantity;
                 $subtotal += $line;
                 $snapshots[] = compact('item', 'size', 'toppings', 'quantity', 'unit', 'line', 'input');
@@ -176,8 +183,6 @@ class CreateOrderAction
 
         return match ($campaign->sponsor_type) {
             'full' => $charge,
-            'per_item' => min($charge, (int) collect($snapshots)->sum(fn (array $snapshot): int => min((int) $snapshot['item']->sponsor_amount, (int) $snapshot['unit']) * (int) $snapshot['quantity'])),
-            'budget' => min($charge, max(0, (int) $campaign->max_budget - (int) $campaign->orders()->whereNotIn('status', ['cancelled'])->sum('sponsor_amount'))),
             default => 0,
         };
     }

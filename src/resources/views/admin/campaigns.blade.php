@@ -111,21 +111,37 @@
                                         <span class="material-symbols-outlined text-[20px]">more_vert</span>
                                     </summary>
                                     <div class="absolute right-0 mt-1 w-48 z-20 rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl p-1.5 space-y-0.5">
-                                    @if(in_array($statusValue, ['active', 'closing', 'scheduled'], true))
-                                        <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
-                                            <span class="material-symbols-outlined text-[14px]">sensors</span>
-                                            <span>{{ __('admin.live_control_btn') }}</span>
-                                        </a>
-                                    @else
                                         <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}?view=detail" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
-                                            <span class="material-symbols-outlined text-[14px]">receipt_long</span>
-                                            <span>{{ __('admin.reconcile_btn') }}</span>
+                                            <span class="material-symbols-outlined text-[14px]">visibility</span>
+                                            <span>{{ __('admin.view_campaign_details') }}</span>
                                         </a>
-                                    @endif
-                                    @if($statusValue === 'closed')
-                                    <button type="button" onclick="duplicateCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
-                                        <span class="material-symbols-outlined text-[16px]">content_copy</span>{{ __('admin.duplicate_campaign') }}
-                                    </button>
+                                    @if(in_array($statusValue, ['draft'], true))
+                                        <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}?view=edit" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
+                                            <span class="material-symbols-outlined text-[14px]">edit</span>
+                                            <span>{{ __('admin.edit') }}</span>
+                                        </a>
+                                        <button type="button" onclick="cancelCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left">
+                                            <span class="material-symbols-outlined text-[16px]">delete</span>{{ __('admin.delete') }}
+                                        </button>
+                                    @elseif(in_array($statusValue, ['active', 'closing'], true))
+                                        <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}?view=edit" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
+                                            <span class="material-symbols-outlined text-[14px]">edit</span>
+                                            <span>{{ __('admin.edit') }}</span>
+                                        </a>
+                                        <button type="button" onclick="closeCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
+                                            <span class="material-symbols-outlined text-[16px]">lock</span>{{ __('admin.close_campaign_early') }}
+                                        </button>
+                                        <button type="button" onclick="cancelCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left">
+                                            <span class="material-symbols-outlined text-[16px]">cancel</span>{{ __('admin.cancel_campaign_btn') }}
+                                        </button>
+                                    @elseif($statusValue === 'closed')
+                                        <button type="button" onclick="archiveCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
+                                            <span class="material-symbols-outlined text-[16px]">archive</span>{{ __('admin.archive_campaign') }}
+                                        </button>
+                                    @elseif($statusValue === 'archived')
+                                        <button type="button" onclick="deleteCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left">
+                                            <span class="material-symbols-outlined text-[16px]">delete</span>{{ __('admin.delete') }}
+                                        </button>
                                     @endif
                                     </div>
                                 </details>

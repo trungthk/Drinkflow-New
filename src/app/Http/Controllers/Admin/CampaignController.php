@@ -234,6 +234,25 @@ class CampaignController extends Controller
     }
 
     /**
+     * Permanently delete an archived campaign that has no financial history.
+     *
+     * @param Room $room Current room.
+     * @param Campaign $campaign Campaign to delete.
+     * @return JsonResponse Deletion result.
+     */
+    public function destroy(Room $room, Campaign $campaign): JsonResponse
+    {
+        $this->assertCampaign($campaign);
+        abort_unless($campaign->status === CampaignStatus::Archived, 422, __('admin.campaign_delete_archived_only'));
+        abort_if($campaign->orders()->exists() || $campaign->debts()->exists(), 422, __('admin.campaign_delete_has_history'));
+
+        $campaign->delete();
+        $this->publishCampaignEvent('campaign.deleted', $campaign);
+
+        return response()->json(['data' => ['deleted' => true]]);
+    }
+
+    /**
      * Handle the store operation.
      * @param StoreCampaignRequest $request Parameter value.
      * @param CreateCampaignAction $action Parameter value.

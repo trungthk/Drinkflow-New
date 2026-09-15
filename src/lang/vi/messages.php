@@ -12,6 +12,8 @@ return [
     'campaign_deadline' => 'Thời hạn: :date',
     'campaign_deadline_not_set' => 'Chưa thiết lập',
     'campaign_sponsorship' => 'Tài trợ: :sponsor:amount',
+    'campaign_product_budget' => 'Trần giá mỗi sản phẩm: :amount',
+    'campaign_product_budget_unlimited' => 'Không giới hạn',
     'campaign_sponsor_not_set' => 'Không có',
     'campaign_order' => 'Đặt món: :url',
 ];

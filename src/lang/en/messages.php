@@ -12,6 +12,8 @@ return [
     'campaign_deadline' => 'Deadline: :date',
     'campaign_deadline_not_set' => 'Not set',
     'campaign_sponsorship' => 'Sponsorship: :sponsor:amount',
+    'campaign_product_budget' => 'Maximum price per product: :amount',
+    'campaign_product_budget_unlimited' => 'No limit',
     'campaign_sponsor_not_set' => 'None',
     'campaign_order' => 'Order: :url',
 ];

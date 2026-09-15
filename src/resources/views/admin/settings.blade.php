@@ -73,16 +73,16 @@
                                 <span class="material-symbols-outlined text-[18px]">payments</span>
                             </div>
                             <div>
-                                <h3 class="font-bold text-sm text-on-surface">{{ __('admin.max_budget_ceiling') }}</h3>
+                                <h3 class="font-bold text-sm text-on-surface">{{ __('admin.max_product_budget_ceiling') }}</h3>
                                 <p class="text-[11px] text-outline">{{ __('admin.spending_debt_policy_desc') }}</p>
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block font-semibold text-xs text-on-surface mb-1">{{ __('admin.max_budget_ceiling') }} (₫):</label>
+                        <label class="block font-semibold text-xs text-on-surface mb-1">{{ __('admin.max_product_budget_ceiling') }} (₫):</label>
                         <div class="relative">
-                            <input type="text" inputmode="numeric" id="set-max-budget" data-format-currency="true" value="{{ number_format((int)($settings['max_campaign_budget'] ?? 2000000), 0, ',', '.') }}" class="w-full h-10 pl-3 pr-16 bg-surface border border-outline-variant rounded font-mono font-bold text-sm text-primary">
+                            <input type="text" inputmode="numeric" id="set-max-budget" data-format-currency="true" value="{{ number_format((int)($settings['max_campaign_budget'] ?? 70000), 0, ',', '.') }}" class="w-full h-10 pl-3 pr-16 bg-surface border border-outline-variant rounded font-mono font-bold text-sm text-primary">
                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-outline">{{ __('admin.vnd_unit') }}</span>
                         </div>
                     </div>

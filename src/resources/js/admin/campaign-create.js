@@ -2,14 +2,17 @@
  * Admin Campaign Fast Creator (Alpine Component)
  */
 export function campaignCreateComponent(defaults = {}) {
-    const roomSlug = window.__DF_ROOM_SLUG__ || '';
+    const page = document.querySelector('#campaign-create-page');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
-    const budgetErrorTemplate = document.querySelector('#campaign-create-page')?.dataset.budgetError || 'Campaign budget exceeds :limit.';
+    const roomSlug = document.body?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
+    const budgetErrorTemplate = page?.dataset.budgetError || 'Campaign budget exceeds :limit.';
+    const sponsorPercentageError = page?.dataset.sponsorPercentageError || 'The total sponsorship percentage must equal 100%.';
+    const storeUrl = page?.dataset.storeUrl || '';
+    const itemUrlTemplate = page?.dataset.itemUrlTemplate || '';
     const campaignSettings = {
         name: defaults.name || '',
         max_budget: Number(defaults.max_budget) || 0,
-        payment_account_id: String(defaults.payment_account_id || ''),
-        sponsor_name: defaults.sponsor_name || ''
+        payment_account_id: String(defaults.payment_account_id || '')
     };
 
     return {
@@ -32,7 +35,6 @@ export function campaignCreateComponent(defaults = {}) {
             deadline: '',
             payment_account_id: campaignSettings.payment_account_id,
             description: '',
-            sponsor_name: campaignSettings.sponsor_name,
             sponsor_type: 'none',
             sponsor_description: '',
             max_budget: campaignSettings.max_budget,
@@ -104,7 +106,6 @@ export function campaignCreateComponent(defaults = {}) {
             this.form.name = this.form.name || this.campaignSettings.name;
             this.form.max_budget = this.form.max_budget || this.campaignSettings.max_budget;
             this.form.payment_account_id = this.form.payment_account_id || this.campaignSettings.payment_account_id;
-            this.form.sponsor_name = this.form.sponsor_name || this.campaignSettings.sponsor_name;
             this.setDeadlineMinutes(60);
         },
 
@@ -124,12 +125,12 @@ export function campaignCreateComponent(defaults = {}) {
         },
 
         applyMenuItems(items) {
-            const normalized = (items || []).map(item => ({ name: item.name || '', price: parseInt(item.price, 10) || 0, category: item.category || 'Khác', sponsor_amount: parseInt(item.sponsor_amount, 10) || 0 }));
+            const normalized = (items || []).map(item => ({ name: item.name || '', price: parseInt(item.price, 10) || 0, category: item.category || 'Khác' }));
             this.menuItems = normalized;
         },
 
         addSponsor() {
-            this.sponsors.push({ user_id: '', type: 'per_item', amount: 0, description: '' });
+            this.sponsors.push({ user_id: '', percentage: 0 });
         },
 
         removeSponsor(index) {
@@ -242,6 +243,14 @@ export function campaignCreateComponent(defaults = {}) {
                 this.submitting = false;
                 return;
             }
+            if (this.form.sponsor_type === 'full') {
+                const percentageTotal = this.sponsors.reduce((total, sponsor) => total + (Number(sponsor.percentage) || 0), 0);
+                if (this.sponsors.length === 0 || Math.abs(percentageTotal - 100) > 0.01) {
+                    alert(sponsorPercentageError);
+                    this.submitting = false;
+                    return;
+                }
+            }
 
             const payload = {
                 name: this.form.name,
@@ -249,22 +258,19 @@ export function campaignCreateComponent(defaults = {}) {
                 deadline: this.form.deadline || null,
                 payment_account_id: this.form.payment_account_id || null,
                 description: this.form.description || null,
-            sponsor_name: this.form.sponsor_name || null,
                 sponsor_type: this.form.sponsor_type,
                 sponsor_description: this.form.sponsor_description || null,
                 max_budget: this.form.max_budget ? parseInt(this.form.max_budget, 10) : null,
                 flat_price: this.form.flat_price ? parseInt(this.form.flat_price, 10) : null,
-                sponsor_allocations: this.sponsors.filter(sponsor => sponsor.user_id).map(sponsor => ({
-                    room_user_id: Number(sponsor.user_id),
-                    type: sponsor.type,
-                    amount: Number(sponsor.amount) || 0,
-                    description: sponsor.description || null
-                })),
+                sponsor_allocations: this.form.sponsor_type === 'full' ? this.sponsors.filter(sponsor => sponsor.user_id).map(sponsor => ({
+                        room_user_id: Number(sponsor.user_id),
+                        percentage: Number(sponsor.percentage) || 0
+                    })) : [],
                 status: status
             };
 
             try {
-                const res = await fetch(`/admin/${roomSlug}/campaigns`, {
+                const res = await fetch(storeUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -285,7 +291,7 @@ export function campaignCreateComponent(defaults = {}) {
                 if (campaignId && this.menuItems.length > 0) {
                     for (const item of this.menuItems) {
                         if (item.name && item.name.trim()) {
-                            await fetch(`/admin/${roomSlug}/campaigns/${campaignId}/items`, {
+                            await fetch(itemUrlTemplate.replace('__CAMPAIGN__', campaignId), {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -295,7 +301,6 @@ export function campaignCreateComponent(defaults = {}) {
                                 body: JSON.stringify({
                                     name: item.name,
                                     base_price: parseInt(item.price, 10) || 0,
-                                    sponsor_amount: parseInt(item.sponsor_amount, 10) || 0,
                                     category: item.category || null
                                 })
                             });

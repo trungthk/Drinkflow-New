@@ -1,5 +1,11 @@
 <x-admin.layout :title="__('admin.fast_create_campaign')" active="campaigns" :room="$room">
-<div id="campaign-create-page" class="max-w-6xl mx-auto space-y-6" data-budget-error="{{ __('admin.campaign_budget_exceeds_limit', ['limit' => ':limit']) }}" x-data="campaignCreateComponent(@js($campaignDefaults))">
+<div id="campaign-create-page"
+     class="max-w-6xl mx-auto space-y-6"
+     data-budget-error="{{ __('admin.campaign_budget_exceeds_limit', ['limit' => ':limit']) }}"
+     data-sponsor-percentage-error="{{ __('admin.sponsor_percentage_total_invalid') }}"
+     data-store-url="{{ route('admin.campaigns.store', $room) }}"
+     data-item-url-template="{{ route('admin.campaign-items.store', [$room, '__CAMPAIGN__']) }}"
+     x-data="campaignCreateComponent(@js($campaignDefaults))">
     <!-- Top Action Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-outline-variant">
         <div class="flex items-center gap-3">
@@ -193,10 +199,6 @@
                                         </button>
                                     </div>
                                 </div>
-                                <div x-show="form.sponsor_type === 'per_item'" class="flex items-center gap-2 text-[11px] text-outline">
-                                    <span>{{ __('admin.sponsor_per_item_amount') }}</span>
-                                    <input type="number" min="0" x-model="item.sponsor_amount" class="w-28 px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded font-mono text-on-surface">
-                                </div>
                             </div>
                         </template>
 
@@ -256,7 +258,15 @@
                     {{ __('admin.sponsor_policy_title') }}
                 </h2>
 
-                <div class="space-y-2">
+                <div>
+                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_type_label') }}</label>
+                    <select x-model="form.sponsor_type" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface">
+                        <option value="none">{{ __('admin.sponsor_type_none') }}</option>
+                        <option value="full">{{ __('admin.sponsor_type_full') }}</option>
+                    </select>
+                </div>
+
+                <div x-show="form.sponsor_type === 'full'" x-cloak class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-semibold text-on-surface">{{ __('admin.sponsor_users_label') }}</span>
                         <button type="button" @click="addSponsor()" class="text-xs text-primary font-semibold hover:underline">+ {{ __('admin.add_sponsor') }}</button>
@@ -272,42 +282,19 @@
                                 </select>
                                 <button type="button" @click="removeSponsor(index)" class="p-1 text-error hover:bg-error-container/40 rounded"><span class="material-symbols-outlined text-[16px]">delete</span></button>
                             </div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <select x-model="sponsor.type" class="px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs text-on-surface">
-                                    <option value="per_item">{{ __('admin.sponsor_type_per_item') }}</option>
-                                    <option value="budget">{{ __('admin.sponsor_type_budget') }}</option>
-                                    <option value="full">{{ __('admin.sponsor_type_full') }}</option>
-                                </select>
-                                <input type="number" min="0" x-model="sponsor.amount" placeholder="{{ __('admin.sponsor_amount_placeholder') }}" class="px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs font-mono text-on-surface">
-                            </div>
-                            <input type="text" x-model="sponsor.description" placeholder="{{ __('admin.sponsor_description_label') }}" class="w-full px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs text-on-surface">
+                            <input type="number" min="0" max="100" x-model="sponsor.percentage" placeholder="{{ __('admin.sponsor_percentage_placeholder') }}" class="w-full px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs font-mono text-on-surface">
                         </div>
                     </template>
                     <p x-show="sponsors.length === 0" class="text-[11px] text-outline italic">{{ __('admin.no_sponsors_added') }}</p>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_name_label') }}</label>
-                    <input type="text" x-model="form.sponsor_name" placeholder="{{ __('admin.sponsor_example') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_type_label') }}</label>
-                    <select x-model="form.sponsor_type" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface">
-                        <option value="none">{{ __('admin.sponsor_type_none') }}</option>
-                        <option value="per_item">{{ __('admin.sponsor_type_per_item') }}</option>
-                        <option value="budget">{{ __('admin.sponsor_type_budget') }}</option>
-                        <option value="full">{{ __('admin.sponsor_type_full') }}</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.max_budget_ceiling') }}</label>
+                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.max_product_budget_ceiling') }}</label>
                     <div class="relative">
                         <input type="number" min="0" max="{{ $campaignDefaults['max_budget'] }}" x-bind:max="campaignSettings.max_budget" x-model="form.max_budget" value="{{ $campaignDefaults['max_budget'] }}" placeholder="0" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:border-primary pr-8">
                         <span class="absolute right-3 top-2 text-xs text-outline font-mono">đ</span>
                     </div>
-                    <p class="mt-1 text-[11px] text-outline">{{ __('admin.campaign_budget_limit_hint') }} <span class="font-mono font-semibold text-primary" x-text="formatVND(campaignSettings.max_budget)"></span></p>
+                    <p class="mt-1 text-[11px] text-outline">{{ __('admin.product_budget_limit_hint') }} <span class="font-mono font-semibold text-primary" x-text="formatVND(campaignSettings.max_budget)"></span></p>
                 </div>
                 <div x-show="form.sponsor_type !== 'none'">
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_description_label') }}</label>
@@ -355,7 +342,7 @@
             <div class="grid grid-cols-2 gap-3 py-4 text-xs">
                 <div><span class="text-outline">{{ __('admin.campaign_name') }}</span><p class="font-semibold text-on-surface truncate" x-text="form.name"></p></div>
                 <div><span class="text-outline">{{ __('admin.restaurant_brand') }}</span><p class="font-semibold text-on-surface truncate" x-text="form.restaurant"></p></div>
-                <div><span class="text-outline">{{ __('admin.max_budget_ceiling') }}</span><p class="font-mono font-semibold text-primary" x-text="formatVND(form.max_budget)"></p></div>
+                <div><span class="text-outline">{{ __('admin.max_product_budget_ceiling') }}</span><p class="font-mono font-semibold text-primary" x-text="formatVND(form.max_budget)"></p></div>
                 <div><span class="text-outline">{{ __('admin.menu_item_count_label') }}</span><p class="font-semibold text-on-surface" x-text="menuItems.length"></p></div>
                 <div class="col-span-2"><span class="text-outline">{{ __('admin.order_deadline') }}</span><p class="font-semibold text-on-surface" x-text="form.deadline || '—'"></p></div>
             </div>

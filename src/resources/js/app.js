@@ -1,4 +1,7 @@
 import './bootstrap';
+import { initToastNotifications } from './shared/toast';
+
+initToastNotifications();
 
 import { initPublicHeader } from './public/header';
 import { initAuthModal } from './public/auth-modal';

@@ -6,9 +6,9 @@ namespace App\Actions\Order;
 
 use App\Models\Order;
 use App\Models\Campaign;
-use App\Models\CampaignItem;
 use App\Events\OrderUpdated;
 use App\Services\Audit\AuditService;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -46,6 +46,15 @@ class UpdateOrderAction
 
                         // Calculate toppings sum
                         $toppingsSum = (int) $orderItem->toppings()->sum('subtotal');
+                        $campaign = Campaign::query()->lockForUpdate()->findOrFail($order->campaign_id);
+                        $unitWithToppings = $newPrice + intdiv($toppingsSum, max(1, (int) $orderItem->quantity));
+                        if ((int) $campaign->max_budget > 0 && $unitWithToppings > (int) $campaign->max_budget) {
+                            throw ValidationException::withMessages([
+                                'items' => __('admin.item_budget_limit_exceeded', [
+                                    'limit' => FormatHelper::formatCurrency((int) $campaign->max_budget),
+                                ]),
+                            ]);
+                        }
                         $orderItem->unit_price = $newPrice;
                         $orderItem->line_subtotal = ($newPrice * $orderItem->quantity) + $toppingsSum;
                         $orderItem->save();
@@ -61,7 +70,7 @@ class UpdateOrderAction
 
                 // Recalculate Subtotal and Final Amount
                 $newSubtotal = (int) $order->items()->sum('line_subtotal');
-                $campaign = Campaign::query()->lockForUpdate()->findOrFail($order->campaign_id);
+                $campaign ??= Campaign::query()->lockForUpdate()->findOrFail($order->campaign_id);
                 $orderUpdate['subtotal'] = $newSubtotal;
                 $orderUpdate['sponsor_amount'] = $this->recalculateSponsor($campaign, $order, $newSubtotal);
                 $orderUpdate['final_amount'] = max(0, $newSubtotal + $order->delivery_amount - $order->discount_amount - $orderUpdate['sponsor_amount']);
@@ -101,11 +110,6 @@ class UpdateOrderAction
 
         return match ($campaign->sponsor_type) {
             'full' => $charge,
-            'per_item' => min($charge, (int) $order->items()->get()->sum(function ($item): int {
-                $sponsor = (int) CampaignItem::query()->whereKey($item->campaign_item_id)->value('sponsor_amount');
-                return min($sponsor, (int) $item->unit_price) * (int) $item->quantity;
-            })),
-            'budget' => min($charge, max(0, (int) $campaign->max_budget - (int) $campaign->orders()->whereKeyNot($order->id)->whereNotIn('status', ['cancelled'])->sum('sponsor_amount'))),
             default => 0,
         };
     }

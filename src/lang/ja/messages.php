@@ -12,6 +12,8 @@ return [
     'campaign_deadline' => '締切: :date',
     'campaign_deadline_not_set' => '未設定',
     'campaign_sponsorship' => 'スポンサー: :sponsor:amount',
+    'campaign_product_budget' => '商品ごとの上限価格: :amount',
+    'campaign_product_budget_unlimited' => '制限なし',
     'campaign_sponsor_not_set' => 'なし',
     'campaign_order' => '注文: :url',
 ];

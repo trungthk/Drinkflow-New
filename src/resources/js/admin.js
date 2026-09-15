@@ -1,4 +1,5 @@
 import './bootstrap';
+import { initToastNotifications } from './shared/toast';
 
 import { initAdminGoToTop } from './admin/go-to-top';
 import { initUiEnhancements, renderTableSkeleton, debounce, toggleAdminSidebar } from './admin/ui-enhancements';
@@ -50,6 +51,7 @@ if (typeof window !== 'undefined') {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initToastNotifications();
     window.__DF_ROOM_SLUG__ = window.__DF_ROOM_SLUG__ || document.querySelector('meta[name="room-slug"]')?.content || document.body?.dataset?.roomSlug || '';
 
     initUiEnhancements();

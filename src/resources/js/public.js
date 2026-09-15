@@ -1,4 +1,5 @@
 import './bootstrap';
+import { initToastNotifications } from './shared/toast';
 
 import { initPublicHeader } from './public/header';
 import { initFooterNav } from './public/footer';
@@ -10,6 +11,7 @@ import { initContactPage } from './public/contact';
 import { initTermsPage } from './public/terms';
 
 document.addEventListener('DOMContentLoaded', () => {
+    initToastNotifications();
     initPublicHeader();
     initFooterNav();
     initAuthModal();

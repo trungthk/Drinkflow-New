@@ -35,8 +35,8 @@ class CampaignNotificationPayloadService
                 'id' => $campaign->id,
                 'name' => $campaign->name,
                 'deadline' => $campaign->deadline?->toIso8601String(),
-                'sponsor_name' => $campaign->sponsor_name,
-                'sponsorship_amount' => $campaign->max_budget,
+                'sponsor_type' => $campaign->sponsor_type,
+                'max_product_budget' => $campaign->max_budget,
                 'order_url' => $orderUrl,
             ],
             'message' => $this->message($title, $campaign, $orderUrl),
@@ -59,9 +59,10 @@ class CampaignNotificationPayloadService
                 ? FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i')
                 : __('messages.campaign_deadline_not_set'),
         ]);
-        $lines[] = __('messages.campaign_sponsorship', [
-            'sponsor' => $campaign->sponsor_name ?? __('messages.campaign_sponsor_not_set'),
-            'amount' => $campaign->max_budget ? ' · '.FormatHelper::formatCurrency((int) $campaign->max_budget) : '',
+        $lines[] = __('messages.campaign_product_budget', [
+            'amount' => $campaign->max_budget
+                ? FormatHelper::formatCurrency((int) $campaign->max_budget)
+                : __('messages.campaign_product_budget_unlimited'),
         ]);
         if ($orderUrl !== null) {
             $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);

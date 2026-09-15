@@ -1,4 +1,5 @@
 import './bootstrap';
+import { initToastNotifications } from './shared/toast';
 
 import { initGlobalHeader } from './global/header';
 import { initLogoutModal } from './global/logout-modal';
@@ -10,6 +11,7 @@ import { initGlobalFeedback } from './global/feedback';
 import { initSessionRevocation } from './global/session-revocation';
 
 document.addEventListener('DOMContentLoaded', () => {
+    initToastNotifications();
     initGlobalHeader();
     initLogoutModal();
     initGlobalLoading();

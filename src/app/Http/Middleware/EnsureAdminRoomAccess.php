@@ -22,8 +22,11 @@ class EnsureAdminRoomAccess
     public function handle(Request $request, Closure $next): Response
     {
         $admin = $request->user('admin');
-        $room  = $request->route('room');
-        $room  = $room instanceof Room ? $room : Room::whereKey($room)->firstOrFail();
+        $room = $request->route('room');
+        if (! $room instanceof Room) {
+            $room = (new Room())->resolveRouteBinding($room);
+        }
+        abort_unless($room instanceof Room, 404);
 
         abort_unless(
             $admin && $admin->isActive() && ($admin->isSuperadmin() || $admin->rooms()->whereKey($room->id)->exists()),
@@ -31,6 +34,7 @@ class EnsureAdminRoomAccess
         );
 
         abort_unless($room->status === RoomStatus::Active, 404);
+        $request->route()->setParameter('room', $room);
         $request->attributes->set('room', $room);
 
         return $next($request);

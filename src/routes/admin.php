@@ -73,6 +73,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::delete('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'destroy'])->name('admin.orders.destroy');
     Route::post('/campaigns', [\App\Http\Controllers\Admin\CampaignController::class, 'store'])->name('admin.campaigns.store');
     Route::patch('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'update'])->name('admin.campaigns.update');
+    Route::delete('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'destroy'])->name('admin.campaigns.destroy');
     Route::post('/campaigns/{campaign}/activate', [\App\Http\Controllers\Admin\CampaignController::class, 'activate'])->name('admin.campaigns.activate');
     Route::post('/campaigns/{campaign}/cancel', [\App\Http\Controllers\Admin\CampaignController::class, 'cancel'])->name('admin.campaigns.cancel');
     Route::post('/campaigns/{campaign}/archive', [\App\Http\Controllers\Admin\CampaignController::class, 'archive'])->name('admin.campaigns.archive');

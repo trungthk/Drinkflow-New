@@ -86,7 +86,7 @@ class UpdateRoomSettingsAction
             'default_sponsor' => $settings->get('default_sponsor')?->value,
             'default_payment_account_id' => ($settings->get('default_payment_account_id')?->value !== null ? (int) $settings->get('default_payment_account_id')->value : null),
             'campaign_title_template' => $settings->get('campaign_title_template')?->value ?? ('['.$room->name.'] Trà chiều & Cafe {date}'),
-            'max_campaign_budget' => $settings->get('max_campaign_budget')?->value !== null ? (int) $settings->get('max_campaign_budget')->value : 2000000,
+            'max_campaign_budget' => $settings->get('max_campaign_budget')?->value !== null ? (int) $settings->get('max_campaign_budget')->value : 70000,
             'personal_debt_ceiling' => $settings->get('personal_debt_ceiling')?->value !== null ? (int) $settings->get('personal_debt_ceiling')->value : 150000,
             'auto_lock_on_debt_limit' => $settings->get('auto_lock_on_debt_limit')?->value !== null ? filter_var($settings->get('auto_lock_on_debt_limit')->value, FILTER_VALIDATE_BOOLEAN) : true,
         ]);

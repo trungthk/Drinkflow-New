@@ -9,6 +9,7 @@ use App\Models\AdminAccount;
 use App\Models\Campaign;
 use App\Models\PaymentAccount;
 use App\Models\Room;
+use App\Models\RoomUser;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -44,6 +45,32 @@ class CreateCampaignAction
                     'limit' => number_format($maxCampaignBudget, 0, ',', '.'),
                 ]),
             ]);
+        }
+        if (($data['sponsor_type'] ?? 'none') === 'none') {
+            $data['sponsor_allocations'] = [];
+        } else {
+            $allocations = collect($data['sponsor_allocations'] ?? []);
+            $percentageTotal = (float) $allocations->sum(static fn (array $allocation): float => (float) ($allocation['percentage'] ?? 0));
+            $roomUserIds = $allocations->pluck('room_user_id')->map(static fn (mixed $id): int => (int) $id);
+            if ($allocations->isEmpty() || abs($percentageTotal - 100.0) > 0.01) {
+                throw ValidationException::withMessages([
+                    'sponsor_allocations' => __('admin.sponsor_percentage_total_invalid'),
+                ]);
+            }
+            if ($roomUserIds->count() !== $roomUserIds->unique()->count()) {
+                throw ValidationException::withMessages([
+                    'sponsor_allocations' => __('admin.sponsor_duplicate_user'),
+                ]);
+            }
+            $roomUsersCount = RoomUser::query()
+                ->where('room_id', $room->id)
+                ->whereIn('id', $roomUserIds->all())
+                ->count();
+            if ($roomUsersCount !== $roomUserIds->count()) {
+                throw ValidationException::withMessages([
+                    'sponsor_allocations' => __('admin.sponsor_user_not_in_room'),
+                ]);
+            }
         }
         if (! empty($data['payment_account_id']) && ! PaymentAccount::whereKey($data['payment_account_id'])->where('room_id', $room->id)->exists()) {
             throw ValidationException::withMessages([

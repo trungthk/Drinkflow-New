@@ -53,6 +53,45 @@ export function initAdminCampaigns() {
         duplicateModal?.classList.add('flex');
     };
 
+    async function transitionCampaign(id, action, message) {
+        if (!window.confirm(message)) return;
+        const slug = roomSlug || window.__DF_ROOM_SLUG__;
+        try {
+            const res = await fetch(`/admin/${slug}/campaigns/${id}/${action}`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+            });
+            if (!res.ok) {
+                const payload = await res.json().catch(() => ({}));
+                throw new Error(payload.message || 'Campaign action failed.');
+            }
+            window.location.reload();
+        } catch (error) {
+            window.notify?.(error.message, 'error');
+        }
+    }
+
+    window.cancelCampaign = id => transitionCampaign(id, 'cancel', 'Cancel/delete this campaign?');
+    window.closeCampaign = id => transitionCampaign(id, 'close', 'Close orders for this campaign?');
+    window.archiveCampaign = id => transitionCampaign(id, 'archive', 'Archive this campaign?');
+    window.deleteCampaign = async function (id) {
+        if (!window.confirm('Delete this archived campaign permanently?')) return;
+        const slug = roomSlug || window.__DF_ROOM_SLUG__;
+        try {
+            const res = await fetch(`/admin/${slug}/campaigns/${id}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+            });
+            if (!res.ok) {
+                const payload = await res.json().catch(() => ({}));
+                throw new Error(payload.message || 'Campaign deletion failed.');
+            }
+            window.location.reload();
+        } catch (error) {
+            window.notify?.(error.message, 'error');
+        }
+    };
+
     document.querySelector('[data-duplicate-cancel]')?.addEventListener('click', closeDuplicateModal);
     document.querySelector('[data-duplicate-confirm]')?.addEventListener('click', async () => {
         if (!campaignToDuplicate) return;

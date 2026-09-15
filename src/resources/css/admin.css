@@ -271,3 +271,16 @@ html {
     }
 }
 button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: pointer; }
+
+/* Keep admin data tables visually stable when a page has few or no records. */
+#admin-main-wrapper table tbody {
+    display: block;
+    min-height: 200px;
+}
+
+#admin-main-wrapper table thead,
+#admin-main-wrapper table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
