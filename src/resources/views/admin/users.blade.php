@@ -13,11 +13,6 @@
             </div>
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.users_directory') }}</h1>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="px-3 py-1.5 bg-surface-container border border-outline-variant rounded text-xs font-semibold text-on-surface">
-                {{ __('admin.sync_google_workspace') }}
-            </span>
-        </div>
     </div>
 
     <!-- Notice Notification Banner -->
@@ -63,16 +58,22 @@
     </div>
 
     <!-- Search & Filter Toolbar -->
-    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+    <form id="users-filter-form" method="GET" action="{{ route('admin.room-users.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
-            <x-admin.search-input id="user-search" placeholder="{{ __('admin.search_users_placeholder') }}" containerClass="relative w-full max-w-md" />
+            <x-admin.search-input id="user-search" name="q" :value="$filters['q'] ?? ''" placeholder="{{ __('admin.search_users_placeholder') }}" containerClass="relative w-full max-w-md" />
         </div>
-        <div class="flex items-center gap-1.5">
-            <button type="button" data-status="all" class="user-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-primary text-on-primary transition-colors">{{ __('admin.filter_all') }}</button>
-            <button type="button" data-status="active" class="user-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.status_active') }}</button>
-            <button type="button" data-status="blocked" class="user-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.status_blocked') }}</button>
+        <div class="flex items-center gap-2 flex-wrap">
+            <select id="user-status-filter" name="status" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all') }}</option>
+                <option value="active" {{ ($filters['status'] ?? '') === 'active' ? 'selected' : '' }}>{{ __('admin.status_active') }}</option>
+                <option value="blocked" {{ ($filters['status'] ?? '') === 'blocked' ? 'selected' : '' }}>{{ __('admin.status_blocked') }}</option>
+            </select>
+            <button type="submit" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary-container transition-colors">
+                <span class="material-symbols-outlined text-[16px]">filter_alt</span>
+                {{ __('admin.filter_apply') }}
+            </button>
         </div>
-    </div>
+    </form>
 
     <!-- Users Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
@@ -119,7 +120,7 @@
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-center font-mono">
-                                <button type="button" onclick="openDeviceTrustModal({{ $ru->id }}, '{{ addslashes($name) }}')" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-[11px] border border-outline-variant transition-colors" title="{{ __('admin.manage_devices') }}">
+                                <button type="button" data-open-devices data-room-user-id="{{ $ru->id }}" data-member-name="{{ $name }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-[11px] border border-outline-variant transition-colors" title="{{ __('admin.manage_devices') }}">
                                     <span class="material-symbols-outlined text-[14px] text-primary">devices</span>
                                     <span>{{ __('admin.devices_unit', ['count' => $ru->devices_count ?? 0]) }}</span>
                                 </button>
@@ -134,16 +135,13 @@
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
-                                    <button type="button" onclick="openDeviceTrustModal({{ $ru->id }}, '{{ addslashes($name) }}')" class="p-1 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors" title="{{ __('admin.manage_devices') }}">
-                                        <span class="material-symbols-outlined text-[16px]">security</span>
-                                    </button>
                                     @if($statusVal !== 'removed')
-                                        <button type="button" onclick="toggleUserStatus({{ $ru->id }}, '{{ $statusVal === 'active' ? 'blocked' : 'active' }}')" class="p-1 rounded hover:bg-surface-container transition-colors {{ $statusVal === 'active' ? 'text-secondary hover:text-rose-600' : 'text-emerald-600' }}" title="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.btn_unblock_user') }}">
+                                            <button type="button" data-toggle-user-status data-room-user-id="{{ $ru->id }}" data-new-status="{{ $statusVal === 'active' ? 'blocked' : 'active' }}" class="p-1 rounded hover:bg-surface-container transition-colors {{ $statusVal === 'active' ? 'text-secondary hover:text-rose-600' : 'text-emerald-600' }}" title="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.btn_unblock_user') }}">
                                             <span class="material-symbols-outlined text-[16px]">{{ $statusVal === 'active' ? 'lock' : 'lock_open' }}</span>
                                         </button>
                                     @endif
                                     @if($statusVal !== 'removed')
-                                        <button type="button" onclick="removeRoomUser({{ $ru->id }})" class="p-1 rounded text-secondary hover:text-rose-600 hover:bg-surface-container transition-colors" title="{{ __('admin.remove_user_from_room') }}">
+                                            <button type="button" data-remove-room-user data-room-user-id="{{ $ru->id }}" class="p-1 rounded text-secondary hover:text-rose-600 hover:bg-surface-container transition-colors" title="{{ __('admin.remove_user_from_room') }}">
                                             <span class="material-symbols-outlined text-[16px]">person_remove</span>
                                         </button>
                                     @endif
@@ -160,6 +158,9 @@
                             </td>
                         </tr>
                     @endforelse
+                    <tr id="users-no-filter-results" class="hidden">
+                        <td colspan="6" class="py-12 text-center text-outline">{{ __('admin.no_users_matching_filters') }}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -184,12 +185,30 @@
                         <p class="text-xs text-outline">{{ __('admin.device_fingerprint') }}</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeDeviceModal()" class="text-outline hover:text-on-surface">
+                <button type="button" data-close-device-modal class="text-outline hover:text-on-surface">
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
             </div>
             <div id="device-modal-body" class="space-y-3">
                 <!-- Dynamically loaded -->
+            </div>
+        </div>
+    </div>
+
+    <!-- User action confirmation modal -->
+    <div id="user-action-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog" aria-modal="true"
+         data-status-title="{{ __('admin.toggle_user_status') }}"
+         data-remove-title="{{ __('admin.remove_user_from_room') }}"
+         data-block-message="{{ __('admin.confirm_block_user') }}"
+         data-unblock-message="{{ __('admin.confirm_unblock_user') }}"
+         data-remove-message="{{ __('admin.confirm_remove_user') }}"
+         data-confirm-label="{{ __('admin.confirm_action') }}">
+        <div class="relative z-10 w-full max-w-sm bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-2xl">
+            <h3 id="user-action-title" class="font-bold text-base text-on-surface">{{ __('admin.toggle_user_status') }}</h3>
+            <p id="user-action-message" class="mt-2 text-xs text-outline leading-relaxed"></p>
+            <div class="mt-5 flex justify-end gap-2">
+                <button type="button" id="user-action-cancel" class="px-4 py-2 rounded-lg bg-surface-container text-on-surface text-xs font-semibold">{{ __('admin.cancel') }}</button>
+                <button type="button" id="user-action-confirm" class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold">{{ __('admin.confirm_action') }}</button>
             </div>
         </div>
     </div>

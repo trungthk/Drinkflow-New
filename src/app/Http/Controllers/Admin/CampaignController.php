@@ -16,6 +16,7 @@ use App\Enums\PaymentAccountStatus;
 use App\Enums\RoomUserStatus;
 use App\Events\RoomRealtimeEvent;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CloseCampaignRequest;
 use App\Http\Requests\SplitBillRequest;
 use App\Http\Requests\StoreCampaignItemRequest;
 use App\Http\Requests\StoreCampaignRequest;
@@ -277,11 +278,12 @@ class CampaignController extends Controller
      * @param CloseCampaignAction $action Close campaign action.
      * @return JsonResponse Response containing updated campaign payload.
      */
-    public function close(Request $request, Room $room, Campaign $campaign, CloseCampaignAction $action): JsonResponse
+    public function close(CloseCampaignRequest $request, Room $room, Campaign $campaign, CloseCampaignAction $action): JsonResponse
     {
         $this->assertCampaign($campaign);
-        $allowDebt = $request->boolean('allow_debt', true);
-        $reason = $request->input('reason');
+        $data = $request->validated();
+        $allowDebt = (bool) ($data['allow_debt'] ?? true);
+        $reason = $data['reason'] ?? null;
         $reasonString = is_string($reason) && trim($reason) !== '' ? trim($reason) : null;
         return response()->json(['data' => $action->execute($campaign, $allowDebt, $reasonString)]);
     }

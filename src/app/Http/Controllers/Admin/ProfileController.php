@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdateAdminPasswordRequest;
+use App\Http\Requests\UpdateAdminProfileRequest;
+use App\Http\Requests\UpdateAdminTwoFactorRequest;
+use App\Http\Requests\UploadAdminAvatarRequest;
 use App\Models\AdminAccount;
 use App\Services\Audit\AuditService;
 use Illuminate\Contracts\View\View;
@@ -12,7 +16,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
@@ -37,15 +40,11 @@ class ProfileController extends Controller
      * @param AuditService $audit Activity audit service.
      * @return RedirectResponse Redirect back with status.
      */
-    public function update(Request $request, AuditService $audit): RedirectResponse
+    public function update(UpdateAdminProfileRequest $request, AuditService $audit): RedirectResponse
     {
         /** @var AdminAccount $admin */
         $admin = $request->user('admin');
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:30'],
-            'department' => ['nullable', 'string', 'max:255'],
-        ]);
+        $data = $request->validated();
 
         $before = $admin->only(['name', 'phone', 'department']);
         $admin->update([
@@ -65,11 +64,11 @@ class ProfileController extends Controller
      * @param AuditService $audit Activity audit service.
      * @return RedirectResponse Redirect back with status.
      */
-    public function uploadAvatar(Request $request, AuditService $audit): RedirectResponse
+    public function uploadAvatar(UploadAdminAvatarRequest $request, AuditService $audit): RedirectResponse
     {
         /** @var AdminAccount $admin */
         $admin = $request->user('admin');
-        $data = $request->validate(['avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']]);
+        $data = $request->validated();
         $path = $data['avatar']->store('admin-avatars', 'public');
 
         if ($admin->avatar_url && str_starts_with($admin->avatar_url, 'admin-avatars/')) {
@@ -90,15 +89,11 @@ class ProfileController extends Controller
      * @param AuditService $audit Activity audit service.
      * @return RedirectResponse Redirect back with status.
      */
-    public function updatePassword(Request $request, AuditService $audit): RedirectResponse
+    public function updatePassword(UpdateAdminPasswordRequest $request, AuditService $audit): RedirectResponse
     {
         /** @var AdminAccount $admin */
         $admin = $request->user('admin');
-        $data = $request->validate([
-            'current_password' => ['required', 'string'],
-            'password' => ['required', 'confirmed', Password::min(12)],
-            'captcha' => app()->isLocal() || config('captcha.disable') ? ['nullable', 'string', 'max:20'] : ['required', 'string', 'captcha'],
-        ]);
+        $data = $request->validated();
 
         if (!Hash::check($data['current_password'], $admin->password)) {
             return back()->withErrors(['current_password' => __('admin.current_password_incorrect')]);
@@ -117,14 +112,11 @@ class ProfileController extends Controller
      * @param AuditService $audit Activity audit service.
      * @return RedirectResponse Redirect back with a status or validation error.
      */
-    public function updateTwoFactor(Request $request, AuditService $audit): RedirectResponse
+    public function updateTwoFactor(UpdateAdminTwoFactorRequest $request, AuditService $audit): RedirectResponse
     {
         /** @var AdminAccount $admin */
         $admin = $request->user('admin');
-        $data = $request->validate([
-            'current_password' => ['required', 'string'],
-            'two_factor_enabled' => ['required', 'boolean'],
-        ]);
+        $data = $request->validated();
 
         if (! Hash::check($data['current_password'], $admin->password)) {
             return back()->withErrors(['two_factor_password' => __('admin.current_password_incorrect')]);

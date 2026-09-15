@@ -6,11 +6,11 @@ use App\Actions\Superadmin\ResetSystemAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SystemResetRequest;
 use App\Http\Requests\SystemSettingsRequest;
+use App\Http\Requests\UpdateMaintenanceRequest;
 use App\Models\SystemSetting;
 use App\Services\Audit\AuditService;
 use App\Services\System\SystemSettingsService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class SystemController extends Controller
 {
@@ -54,10 +54,10 @@ class SystemController extends Controller
      * @param AuditService $audit Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function maintenance(Request $request, SystemSettingsService $service, AuditService $audit): JsonResponse
+    public function maintenance(UpdateMaintenanceRequest $request, SystemSettingsService $service, AuditService $audit): JsonResponse
     {
         if ($request->isMethod('get')) return response()->json(['data' => $this->maintenanceState($service)]);
-        $data = $request->validate(['enabled' => ['required', 'boolean'], 'starts_at' => ['nullable', 'date'], 'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at']]);
+        $data = $request->validated();
         $service->set('maintenance.enabled', $data['enabled'], 'boolean', false, $request->user('admin')->id);
         $service->set('maintenance.starts_at', $data['starts_at'] ?? null, 'string', false, $request->user('admin')->id);
         $service->set('maintenance.ends_at', $data['ends_at'] ?? null, 'string', false, $request->user('admin')->id);

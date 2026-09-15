@@ -352,6 +352,7 @@ return [
     'devices_unit' => ':count devices',
     'no_device_registered' => 'No device',
     'no_users_found' => 'No members found.',
+    'no_users_matching_filters' => 'No members match the selected filters or search term.',
     'btn_manage_device' => 'Devices',
     'btn_block_user' => 'Block',
     'btn_unblock_user' => 'Unblock',
@@ -364,6 +365,10 @@ return [
     'revoke_device' => 'Revoke Access',
     'revoked' => 'Revoked',
     'toggle_user_status' => 'Toggle User Status',
+    'confirm_action' => 'Confirm',
+    'confirm_block_user' => 'Are you sure you want to block this member?',
+    'confirm_unblock_user' => 'Are you sure you want to unblock this member?',
+    'confirm_remove_user' => 'Are you sure you want to remove this member from the room?',
 
     // VietQR Payments
     'vietqr_accounts_title' => 'VietQR Payment Accounts Configuration',

@@ -352,6 +352,7 @@ return [
     'devices_unit' => ':count 台',
     'no_device_registered' => '未登録',
     'no_users_found' => 'メンバーが見つかりません。',
+    'no_users_matching_filters' => '選択したフィルターまたは検索条件に一致するメンバーはいません。',
     'btn_manage_device' => 'デバイス',
     'btn_block_user' => 'ブロック',
     'btn_unblock_user' => '解除',
@@ -364,6 +365,10 @@ return [
     'revoke_device' => '権限取消',
     'revoked' => '取消済み',
     'toggle_user_status' => 'メンバー状態を変更',
+    'confirm_action' => '確認',
+    'confirm_block_user' => 'このメンバーをブロックしますか？',
+    'confirm_unblock_user' => 'このメンバーのブロックを解除しますか？',
+    'confirm_remove_user' => 'このメンバーをルームから削除しますか？',
 
     // VietQR Payments
     'vietqr_accounts_title' => 'VietQR受取口座設定',

@@ -44,17 +44,37 @@ class RoomUserController extends Controller
      */
     public function page(Request $request, Room $room, \App\Services\Admin\AdminRoomUserService $userService): View
     {
-        $roomUsers = $room->roomUsers()
+        $query = $room->roomUsers()
             ->with(['globalUser', 'devices'])
             ->withCount(['devices', 'orders', 'debts'])
-            ->latest()
-            ->paginate(50);
+            ->latest();
+
+        $search = trim($request->string('q')->toString());
+        if ($search !== '') {
+            $normalizedSearch = mb_strtolower($search);
+            $query->where(function ($userQuery) use ($normalizedSearch): void {
+                $userQuery->whereRaw('LOWER(user_code) LIKE ?', ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw('LOWER(display_name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                    ->orWhereHas('globalUser', function ($globalQuery) use ($normalizedSearch): void {
+                        $globalQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                            ->orWhereRaw('LOWER(email) LIKE ?', ['%' . $normalizedSearch . '%']);
+                    });
+            });
+        }
+
+        $status = $request->string('status')->toString();
+        if ($status !== '' && $status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        $roomUsers = $query->paginate(50)->withQueryString();
 
         $metrics = $userService->getDirectoryMetrics($room);
 
         return view('admin.users', array_merge([
             'room' => $room,
             'roomUsers' => $roomUsers,
+            'filters' => ['q' => $search, 'status' => $status !== '' ? $status : 'all'],
         ], $metrics));
     }
 

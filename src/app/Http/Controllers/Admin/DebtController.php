@@ -10,7 +10,9 @@ use App\Actions\Debt\SetDebtStatusAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DebtAdjustmentRequest;
 use App\Http\Requests\DebtPaymentRequest;
+use App\Http\Requests\RemindDebtsRequest;
 use App\Http\Requests\SetDebtStatusRequest;
+use App\Http\Requests\SettleDebtsRequest;
 use App\Models\Debt;
 use App\Models\Room;
 use App\Services\Debt\DebtReminderService;
@@ -105,20 +107,9 @@ class DebtController extends Controller
      * @param DebtSettlementService $service Settlement service.
      * @return JsonResponse Settled debts.
      */
-    public function settle(Request $request, Room $room, DebtSettlementService $service): JsonResponse
+    public function settle(SettleDebtsRequest $request, Room $room, DebtSettlementService $service): JsonResponse
     {
-        $data = $request->validate([
-            'debt_ids' => ['nullable', 'array', 'min:1'],
-            'debt_ids.*' => ['integer'],
-            'campaign_id' => ['nullable', 'integer'],
-            'room_user_id' => ['nullable', 'integer'],
-            'date' => ['nullable', 'date_format:Y-m-d'],
-            'all' => ['nullable', 'boolean'],
-            'payment_method' => ['required', 'string', 'max:30'],
-            'reference' => ['nullable', 'string', 'max:120'],
-        ]);
-
-        return response()->json(['data' => $service->settle($room, $data)]);
+        return response()->json(['data' => $service->settle($room, $request->validated())]);
     }
 
     /**
@@ -130,16 +121,9 @@ class DebtController extends Controller
      * @param DebtReminderService $reminders Debt reminder service.
      * @return JsonResponse Reminder result.
      */
-    public function remind(Request $request, Room $room, DebtSettlementService $settlements, DebtReminderService $reminders): JsonResponse
+    public function remind(RemindDebtsRequest $request, Room $room, DebtSettlementService $settlements, DebtReminderService $reminders): JsonResponse
     {
-        $data = $request->validate([
-            'debt_ids' => ['nullable', 'array', 'min:1'],
-            'debt_ids.*' => ['integer'],
-            'campaign_id' => ['nullable', 'integer'],
-            'room_user_id' => ['nullable', 'integer'],
-            'date' => ['nullable', 'date_format:Y-m-d'],
-            'all' => ['nullable', 'boolean'],
-        ]);
+        $data = $request->validated();
         $debts = $settlements->selectedOutstandingDebts($room, $data);
         abort_if($debts->isEmpty(), 422, __('admin.no_outstanding_debts_selected'));
 

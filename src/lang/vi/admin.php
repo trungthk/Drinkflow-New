@@ -352,6 +352,7 @@ return [
     'devices_unit' => ':count thiết bị',
     'no_device_registered' => 'Chưa có thiết bị',
     'no_users_found' => 'Không tìm thấy thành viên nào.',
+    'no_users_matching_filters' => 'Không có thành viên phù hợp với bộ lọc hoặc từ khóa tìm kiếm.',
     'btn_manage_device' => 'Thiết bị',
     'btn_block_user' => 'Khoá',
     'btn_unblock_user' => 'Mở khoá',
@@ -364,6 +365,10 @@ return [
     'revoke_device' => 'Thu hồi quyền',
     'revoked' => 'Đã thu hồi',
     'toggle_user_status' => 'Chuyển trạng thái thành viên',
+    'confirm_action' => 'Xác nhận',
+    'confirm_block_user' => 'Bạn có chắc chắn muốn khóa thành viên này không?',
+    'confirm_unblock_user' => 'Bạn có chắc chắn muốn mở khóa thành viên này không?',
+    'confirm_remove_user' => 'Bạn có chắc chắn muốn xóa thành viên này khỏi phòng không?',
 
     // VietQR Payments
     'vietqr_accounts_title' => 'Cấu Hình Tài Khoản Nhận Tiền VietQR',

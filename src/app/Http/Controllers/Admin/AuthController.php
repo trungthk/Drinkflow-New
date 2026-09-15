@@ -33,10 +33,9 @@ class AuthController extends Controller
      * Display the Admin login page with captcha challenge.
      *
      * @param Request $request Incoming HTTP request.
-     * @param AdminAuthService $authService Admin authentication service.
      * @return View|RedirectResponse Login view or redirect if already authenticated.
      */
-    public function loginPage(Request $request, AdminAuthService $authService): View|RedirectResponse
+    public function loginPage(Request $request): View|RedirectResponse
     {
         if ($request->user('admin')) {
             return redirect()->route('admin.landing');
