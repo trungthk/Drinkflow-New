@@ -187,10 +187,17 @@ export function initAdminDebts() {
     };
 
     window.triggerBotReminder = function() {
-        alert('Bot reminder dispatched.');
+        fetch(`/admin/${roomSlug}/debts/remind`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+            body: JSON.stringify({ all: true })
+        }).then((response) => {
+            if (!response.ok) throw new Error('Reminder failed');
+            window.location.reload();
+        }).catch((error) => console.error(error));
     };
 
     window.exportDebtCSV = function() {
-        alert('Exporting CSV statement.');
+        window.location.assign(`/admin/${roomSlug}/debts/export`);
     };
 }

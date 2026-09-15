@@ -41,20 +41,23 @@ class CloseCampaignAction
                     ->whereIn('status', ['submitted', 'confirmed', 'ordering', 'ordered', 'delivering', 'completed'])
                     ->get();
 
-                foreach ($orders as $order) {
-                    if ($order->final_amount > 0) {
+                foreach ($orders->groupBy('room_user_id') as $roomUserId => $userOrders) {
+                    $finalAmount = (int) $userOrders->sum('final_amount');
+                    if ($finalAmount > 0) {
                         Debt::updateOrCreate(
                             [
                                 'campaign_id' => $campaign->id,
-                                'room_user_id' => $order->room_user_id,
+                                'room_user_id' => $roomUserId,
                             ],
                             [
                                 'room_id' => $campaign->room_id,
-                                'original_amount' => $order->final_amount,
-                                'sponsor_amount' => $order->sponsor_amount,
+                                'original_amount' => $finalAmount,
+                                'sponsor_amount' => (int) $userOrders->sum('sponsor_amount'),
+                                'sponsor_type' => $campaign->sponsor_type,
+                                'sponsor_description' => $campaign->sponsor_description,
                                 'adjustment_amount' => 0,
                                 'paid_amount' => 0,
-                                'remaining_amount' => $order->final_amount,
+                                'remaining_amount' => $finalAmount,
                                 'status' => 'unpaid',
                             ]
                         );
@@ -84,4 +87,3 @@ class CloseCampaignAction
         return $closed;
     }
 }
-

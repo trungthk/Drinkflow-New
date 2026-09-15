@@ -24,6 +24,7 @@ class CampaignItem extends Model
         'description',
         'image_url',
         'base_price',
+        'sponsor_amount',
         'status',
         'sort_order',
         'source_url',
@@ -35,6 +36,7 @@ class CampaignItem extends Model
         return [
             'status'     => CampaignItemStatus::class,
             'base_price' => 'decimal:0',
+            'sponsor_amount' => 'integer',
             'sort_order' => 'integer',
         ];
     }

@@ -103,7 +103,7 @@
                                 default => 'bg-surface-container text-secondary border-outline-variant'
                             };
                         @endphp
-                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-debt-row data-status="{{ $debtStatusValue }}" data-search="{{ strtolower($member . ' ' . $debt->id . ' ' . ($debt->campaign?->title ?? '')) }}">
+                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-debt-row data-status="{{ $debtStatusValue }}" data-search="{{ strtolower($member . ' ' . $debt->id . ' ' . ($debt->campaign?->name ?? '')) }}">
                             <td class="py-3.5 px-4">
                                 <div class="font-bold text-on-surface text-sm flex items-center gap-1.5">
                                     <span>{{ $member }}</span>
@@ -112,7 +112,7 @@
                                 <div class="text-secondary text-[11px] mt-0.5">{{ $debt->roomUser?->globalUser?->email ?? '' }}</div>
                             </td>
                             <td class="py-3.5 px-4">
-                                <div class="font-semibold text-on-surface">{{ $debt->campaign?->title ?? 'N/A' }}</div>
+                                <div class="font-semibold text-on-surface">{{ $debt->campaign?->name ?? 'N/A' }}</div>
                                 <div class="text-[11px] text-outline">{{ $debt->created_at ? $debt->created_at->format('H:i d/m/Y') : '' }}</div>
                             </td>
                             <td class="py-3.5 px-4 text-center">

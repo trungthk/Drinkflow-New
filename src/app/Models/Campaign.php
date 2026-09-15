@@ -15,7 +15,7 @@ class Campaign extends Model
 {
     use HasStatus, BelongsToRoom;
 
-    protected $fillable = ['room_id', 'name', 'restaurant', 'creator_admin_id', 'sponsor_name', 'deadline', 'max_budget', 'flat_price', 'delivery_fee', 'discount', 'payment_account_id', 'description', 'status', 'started_at', 'closed_at'];
+    protected $fillable = ['room_id', 'name', 'restaurant', 'creator_admin_id', 'sponsor_name', 'sponsor_type', 'sponsor_description', 'deadline', 'max_budget', 'flat_price', 'delivery_fee', 'discount', 'payment_account_id', 'description', 'status', 'started_at', 'closed_at'];
 
     protected function casts(): array
     {

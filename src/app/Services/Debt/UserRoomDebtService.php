@@ -34,7 +34,7 @@ class UserRoomDebtService
 
         $unpaidDebts = Debt::where('room_user_id', $roomUser->id)
             ->where('room_id', $room->id)
-            ->where('status', DebtStatus::Unpaid->value)
+            ->whereIn('status', DebtStatus::outstandingValues())
             ->get();
         $totalUnpaidAmount = (int) $unpaidDebts->sum('remaining_amount');
 
@@ -76,6 +76,7 @@ class UserRoomDebtService
             'totalUnpaidAmount' => $totalUnpaidAmount,
             'totalPaidMonthAmount' => $totalPaidMonthAmount,
             'totalPaidMonthCount' => $totalPaidMonthCount,
+            'totalSponsorAmount' => (int) $debts->sum('sponsor_amount'),
             'vietqrData' => $vietqrData,
             'activeCampaign' => $activeCampaign ? [
                 'name' => $activeCampaign->name,

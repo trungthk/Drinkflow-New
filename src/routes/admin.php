@@ -93,6 +93,9 @@ Route::middleware(['auth:admin', 'admin.room'])
         ->name('admin.crawler.preview');
     Route::post('/campaigns/{campaign}/crawler/import', [\App\Http\Controllers\Admin\CrawlerController::class, 'import'])->name('admin.crawler.import');
     Route::get('/debts', [\App\Http\Controllers\Admin\DebtController::class, 'index'])->name('admin.debts.index');
+    Route::get('/debts/export', [\App\Http\Controllers\Admin\DebtController::class, 'export'])->name('admin.debts.export');
+    Route::post('/debts/settle', [\App\Http\Controllers\Admin\DebtController::class, 'settle'])->name('admin.debts.settle');
+    Route::post('/debts/remind', [\App\Http\Controllers\Admin\DebtController::class, 'remind'])->name('admin.debts.remind');
     Route::get('/debts/{debt}', [\App\Http\Controllers\Admin\DebtController::class, 'show'])->name('admin.debts.show');
     Route::post('/debts/{debt}/payments', [\App\Http\Controllers\Admin\DebtController::class, 'pay'])->name('admin.debts.pay');
     Route::post('/debts/{debt}/adjust', [\App\Http\Controllers\Admin\DebtController::class, 'adjust'])->name('admin.debts.adjust');

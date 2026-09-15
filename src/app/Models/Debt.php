@@ -15,7 +15,7 @@ class Debt extends Model
 {
     use HasStatus, BelongsToRoom;
 
-    protected $fillable = ['room_id', 'campaign_id', 'room_user_id', 'original_amount', 'sponsor_amount', 'adjustment_amount', 'paid_amount', 'remaining_amount', 'status', 'note'];
+    protected $fillable = ['room_id', 'campaign_id', 'room_user_id', 'original_amount', 'sponsor_amount', 'sponsor_type', 'sponsor_description', 'adjustment_amount', 'paid_amount', 'remaining_amount', 'status', 'note'];
 
     protected function casts(): array
     {

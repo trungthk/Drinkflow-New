@@ -193,6 +193,10 @@
                                         </button>
                                     </div>
                                 </div>
+                                <div x-show="form.sponsor_type === 'per_item'" class="flex items-center gap-2 text-[11px] text-outline">
+                                    <span>{{ __('admin.sponsor_per_item_amount') }}</span>
+                                    <input type="number" min="0" x-model="item.sponsor_amount" class="w-28 px-2 py-1 bg-surface-container-lowest border border-outline-variant rounded font-mono text-on-surface">
+                                </div>
                             </div>
                         </template>
 
@@ -244,11 +248,25 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_type_label') }}</label>
+                    <select x-model="form.sponsor_type" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface">
+                        <option value="none">{{ __('admin.sponsor_type_none') }}</option>
+                        <option value="per_item">{{ __('admin.sponsor_type_per_item') }}</option>
+                        <option value="budget">{{ __('admin.sponsor_type_budget') }}</option>
+                        <option value="full">{{ __('admin.sponsor_type_full') }}</option>
+                    </select>
+                </div>
+
+                <div x-show="form.sponsor_type === 'budget'">
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_max_budget_label') }}</label>
                     <div class="relative">
                         <input type="number" x-model="form.max_budget" placeholder="{{ __('admin.unlimited_budget_placeholder') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:border-primary pr-8">
                         <span class="absolute right-3 top-2 text-xs text-outline font-mono">đ</span>
                     </div>
+                </div>
+                <div x-show="form.sponsor_type !== 'none'">
+                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_description_label') }}</label>
+                    <textarea x-model="form.sponsor_description" rows="2" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface"></textarea>
                 </div>
 
                 <!-- Fee Adjustments -->

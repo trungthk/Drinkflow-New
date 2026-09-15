@@ -124,7 +124,7 @@
                 <div class="mt-space-md">
                     <div class="flex items-baseline gap-2">
                         <span class="font-display-lg text-display-lg text-secondary tracking-tight font-bold font-tabular-nums">
-                            {{ number_format($roomUser->total_spent > 0 ? (int)($roomUser->total_spent * 0.25) : 150000, 0, ',', '.') }}đ
+                            {{ number_format($totalSponsorAmount ?? 0, 0, ',', '.') }}đ
                         </span>
                         <span class="font-label-sm text-label-sm text-secondary bg-secondary-container px-2 py-0.5 rounded">{{ __('room.profile.from_fund', ['name' => $room->name]) }}</span>
                     </div>
@@ -175,10 +175,10 @@
                                     <td class="py-4 px-space-sm font-medium">
                                         <div class="flex flex-col">
                                             <span class="text-on-surface font-semibold">{{ $debt->campaign?->name ?? 'Order' }}</span>
-                                            <span class="text-[11px] text-on-surface-variant">{{ $debt->order_id ? '#DF-' . $debt->order_id : '' }}</span>
+                                            <span class="text-[11px] text-on-surface-variant">{{ $debt->sponsor_description ?? '' }}</span>
                                         </div>
                                     </td>
-                                    <td class="py-4 px-space-sm text-right font-tabular-nums">{{ number_format($debt->total_amount, 0, ',', '.') }}đ</td>
+                                    <td class="py-4 px-space-sm text-right font-tabular-nums">{{ number_format($debt->original_amount, 0, ',', '.') }}đ</td>
                                     <td class="py-4 px-space-sm text-right font-tabular-nums text-primary">{{ number_format($debt->paid_amount, 0, ',', '.') }}đ</td>
                                     <td class="py-4 px-space-sm text-right font-tabular-nums font-bold {{ $debt->remaining_amount > 0 ? 'text-error' : 'text-on-surface' }}">
                                         {{ number_format($debt->remaining_amount, 0, ',', '.') }}đ
@@ -192,7 +192,7 @@
                                     <td class="py-4 px-space-md text-center">
                                         @if($debt->status !== 'paid' && $debt->remaining_amount > 0)
                                             <button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm hover:bg-primary-container transition-all inline-flex items-center gap-1 shadow-sm cursor-pointer"
-                                                    @click="openQr({{ (int)$debt->remaining_amount }}, '{{ number_format($debt->remaining_amount, 0, ',', '.') }}đ', 'DFDB{{ $debt->id }} {{ $roomUser->room_user_code }}')">
+                                                    @click="openQr({{ (int)$debt->remaining_amount }}, '{{ number_format($debt->remaining_amount, 0, ',', '.') }}đ', 'DFDB{{ $debt->id }} {{ $roomUser->user_code }}')">
                                                 <span class="material-symbols-outlined text-[16px]">qr_code</span>
                                                 <span>{{ __('room.debts.btn_view_qr') }}</span>
                                             </button>

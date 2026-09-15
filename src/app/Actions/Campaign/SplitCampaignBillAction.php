@@ -64,7 +64,7 @@ class SplitCampaignBillAction
                 $status = $remaining === 0 ? 'paid' : ($paid > 0 ? 'partial' : 'unpaid');
                 $debt = Debt::updateOrCreate(
                     ['campaign_id' => $campaign->id, 'room_user_id' => $roomUserId],
-                    ['room_id' => $campaign->room_id, 'original_amount' => (int) $gross[$roomUserId], 'sponsor_amount' => $sponsor, 'adjustment_amount' => 0, 'paid_amount' => $paid, 'remaining_amount' => $remaining, 'status' => $status],
+                    ['room_id' => $campaign->room_id, 'original_amount' => (int) $gross[$roomUserId], 'sponsor_amount' => $sponsor, 'sponsor_type' => $campaign->sponsor_type, 'sponsor_description' => $campaign->sponsor_description, 'adjustment_amount' => 0, 'paid_amount' => $paid, 'remaining_amount' => $remaining, 'status' => $status],
                 );
                 app(AuditService::class)->record('campaign.bill_split', 'debt', $debt->id, $campaign->room_id, [], ['remaining_amount' => $remaining, 'sponsor_amount' => $sponsor], ['method' => $method, 'campaign_id' => $campaign->id]);
                 $result[] = ['room_user_id' => (int) $roomUserId, 'gross_amount' => (int) $gross[$roomUserId], 'sponsor_amount' => $sponsor, 'amount' => $amount, 'paid_amount' => $paid, 'remaining_amount' => $remaining, 'status' => $status];

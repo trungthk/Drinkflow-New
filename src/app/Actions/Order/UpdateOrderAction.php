@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Actions\Order;
 
 use App\Models\Order;
+use App\Models\Campaign;
+use App\Models\CampaignItem;
 use App\Events\OrderUpdated;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\DB;
@@ -59,8 +61,10 @@ class UpdateOrderAction
 
                 // Recalculate Subtotal and Final Amount
                 $newSubtotal = (int) $order->items()->sum('line_subtotal');
+                $campaign = Campaign::query()->lockForUpdate()->findOrFail($order->campaign_id);
                 $orderUpdate['subtotal'] = $newSubtotal;
-                $orderUpdate['final_amount'] = max(0, $newSubtotal + $order->delivery_amount - $order->discount_amount - $order->sponsor_amount);
+                $orderUpdate['sponsor_amount'] = $this->recalculateSponsor($campaign, $order, $newSubtotal);
+                $orderUpdate['final_amount'] = max(0, $newSubtotal + $order->delivery_amount - $order->discount_amount - $orderUpdate['sponsor_amount']);
 
                 if (! empty($priceChanges)) {
                     app(AuditService::class)->record('order.price_adjusted', 'order', $order->id, $order->room_id, [
@@ -81,5 +85,28 @@ class UpdateOrderAction
 
             return $updated;
         });
+    }
+
+    /**
+     * Recalculate sponsorship after an administrator changes an order's prices.
+     *
+     * @param Campaign $campaign Locked campaign policy.
+     * @param Order $order Locked order.
+     * @param int $subtotal Recalculated item subtotal.
+     * @return int Updated sponsorship amount.
+     */
+    private function recalculateSponsor(Campaign $campaign, Order $order, int $subtotal): int
+    {
+        $charge = max(0, $subtotal + (int) $order->delivery_amount - (int) $order->discount_amount);
+
+        return match ($campaign->sponsor_type) {
+            'full' => $charge,
+            'per_item' => min($charge, (int) $order->items()->get()->sum(function ($item): int {
+                $sponsor = (int) CampaignItem::query()->whereKey($item->campaign_item_id)->value('sponsor_amount');
+                return min($sponsor, (int) $item->unit_price) * (int) $item->quantity;
+            })),
+            'budget' => min($charge, max(0, (int) $campaign->max_budget - (int) $campaign->orders()->whereKeyNot($order->id)->whereNotIn('status', ['cancelled'])->sum('sponsor_amount'))),
+            default => 0,
+        };
     }
 }

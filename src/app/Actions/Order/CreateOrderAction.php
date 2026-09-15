@@ -40,6 +40,7 @@ class CreateOrderAction
         }
 
         $order = DB::transaction(function () use ($campaign, $roomUser, $data): Order {
+            $campaign = Campaign::query()->lockForUpdate()->findOrFail($campaign->id);
             $items = $data['items'] ?? [];
             if ($items === []) {
                 throw ValidationException::withMessages([
@@ -81,8 +82,8 @@ class CreateOrderAction
             }
 
             $discount = (int) $campaign->discount;
-            $sponsor = 0;
             $delivery = (int) $campaign->delivery_fee;
+            $sponsor = $this->sponsorAmount($campaign, $snapshots, $subtotal, $delivery, $discount);
             $final = max(0, $subtotal + $delivery - $discount - $sponsor);
             $order = Order::create([
                 'room_id' => $campaign->room_id,
@@ -126,5 +127,27 @@ class CreateOrderAction
         OrderCreated::dispatch($order);
 
         return $order;
+    }
+
+    /**
+     * Calculate sponsorship while the campaign row is locked to protect its shared budget.
+     *
+     * @param Campaign $campaign Locked campaign.
+     * @param array<int, array<string, mixed>> $snapshots Ordered item snapshots.
+     * @param int $subtotal Item subtotal.
+     * @param int $delivery Delivery charge.
+     * @param int $discount Campaign discount.
+     * @return int Sponsor amount for the order.
+     */
+    private function sponsorAmount(Campaign $campaign, array $snapshots, int $subtotal, int $delivery, int $discount): int
+    {
+        $charge = max(0, $subtotal + $delivery - $discount);
+
+        return match ($campaign->sponsor_type) {
+            'full' => $charge,
+            'per_item' => min($charge, (int) collect($snapshots)->sum(fn (array $snapshot): int => min((int) $snapshot['item']->sponsor_amount, (int) $snapshot['unit']) * (int) $snapshot['quantity'])),
+            'budget' => min($charge, max(0, (int) $campaign->max_budget - (int) $campaign->orders()->whereNotIn('status', ['cancelled'])->sum('sponsor_amount'))),
+            default => 0,
+        };
     }
 }

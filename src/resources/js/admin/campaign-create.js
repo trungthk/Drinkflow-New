@@ -19,6 +19,8 @@ export function campaignCreateComponent() {
             payment_account_id: '',
             description: '',
             sponsor_name: '',
+            sponsor_type: 'none',
+            sponsor_description: '',
             max_budget: '',
             delivery_fee: '',
             discount: '',
@@ -207,7 +209,9 @@ export function campaignCreateComponent() {
                 deadline: this.form.deadline || null,
                 payment_account_id: this.form.payment_account_id || null,
                 description: this.form.description || null,
-                sponsor_name: this.form.sponsor_name || null,
+            sponsor_name: this.form.sponsor_name || null,
+                sponsor_type: this.form.sponsor_type,
+                sponsor_description: this.form.sponsor_description || null,
                 max_budget: this.form.max_budget ? parseInt(this.form.max_budget, 10) : null,
                 delivery_fee: this.form.delivery_fee ? parseInt(this.form.delivery_fee, 10) : null,
                 discount: this.form.discount ? parseInt(this.form.discount, 10) : null,
@@ -246,7 +250,8 @@ export function campaignCreateComponent() {
                                 },
                                 body: JSON.stringify({
                                     name: item.name,
-                                    price: parseInt(item.price, 10) || 0,
+                                    base_price: parseInt(item.price, 10) || 0,
+                                    sponsor_amount: parseInt(item.sponsor_amount, 10) || 0,
                                     category: item.category || null
                                 })
                             });

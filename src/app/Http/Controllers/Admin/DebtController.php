@@ -13,6 +13,8 @@ use App\Http\Requests\DebtPaymentRequest;
 use App\Http\Requests\SetDebtStatusRequest;
 use App\Models\Debt;
 use App\Models\Room;
+use App\Services\Debt\DebtReminderService;
+use App\Services\Debt\DebtSettlementService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,7 +29,11 @@ class DebtController extends Controller
         $query = Debt::query()->where('room_id', $room->id)->with(['roomUser.globalUser', 'campaign'])->latest();
         if ($request->filled('status')) $query->where('status', $request->string('status')->toString());
         if ($request->filled('campaign_id')) $query->where('campaign_id', $request->integer('campaign_id'));
-        return response()->json(['data' => $query->paginate(50)]);
+        $ledger = Debt::query()->where('room_id', $room->id);
+        return response()->json(['data' => $query->paginate(50), 'summary' => [
+            'by_user' => (clone $ledger)->selectRaw('room_user_id, SUM(remaining_amount) as remaining_amount, COUNT(*) as debt_count')->groupBy('room_user_id')->with('roomUser.globalUser:id,name,email')->get(),
+            'by_day' => (clone $ledger)->selectRaw('DATE(created_at) as date, SUM(original_amount) as original_amount, SUM(remaining_amount) as remaining_amount, COUNT(*) as debt_count')->groupByRaw('DATE(created_at)')->orderBy('date')->get(),
+        ]]);
     }
 
     /**
@@ -89,6 +95,76 @@ class DebtController extends Controller
     {
         $this->assertRoom($room, $debt);
         return response()->json(['data' => $action->execute($debt, $request->validated('status'))]);
+    }
+
+    /**
+     * Settle every outstanding debt selected by a campaign, date, member, or explicit debt IDs.
+     *
+     * @param Request $request Incoming request.
+     * @param Room $room Current room.
+     * @param DebtSettlementService $service Settlement service.
+     * @return JsonResponse Settled debts.
+     */
+    public function settle(Request $request, Room $room, DebtSettlementService $service): JsonResponse
+    {
+        $data = $request->validate([
+            'debt_ids' => ['nullable', 'array', 'min:1'],
+            'debt_ids.*' => ['integer'],
+            'campaign_id' => ['nullable', 'integer'],
+            'room_user_id' => ['nullable', 'integer'],
+            'date' => ['nullable', 'date_format:Y-m-d'],
+            'all' => ['nullable', 'boolean'],
+            'payment_method' => ['required', 'string', 'max:30'],
+            'reference' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        return response()->json(['data' => $service->settle($room, $data)]);
+    }
+
+    /**
+     * Send browser and configured-channel reminders for selected outstanding debts.
+     *
+     * @param Request $request Incoming request.
+     * @param Room $room Current room.
+     * @param DebtSettlementService $settlements Debt selection service.
+     * @param DebtReminderService $reminders Debt reminder service.
+     * @return JsonResponse Reminder result.
+     */
+    public function remind(Request $request, Room $room, DebtSettlementService $settlements, DebtReminderService $reminders): JsonResponse
+    {
+        $data = $request->validate([
+            'debt_ids' => ['nullable', 'array', 'min:1'],
+            'debt_ids.*' => ['integer'],
+            'campaign_id' => ['nullable', 'integer'],
+            'room_user_id' => ['nullable', 'integer'],
+            'date' => ['nullable', 'date_format:Y-m-d'],
+            'all' => ['nullable', 'boolean'],
+        ]);
+        $debts = $settlements->selectedOutstandingDebts($room, $data);
+        abort_if($debts->isEmpty(), 422, __('admin.no_outstanding_debts_selected'));
+
+        return response()->json(['data' => ['notified' => $reminders->remind($room, $debts)]]);
+    }
+
+    /**
+     * Export the room-scoped debt ledger as a CSV statement.
+     *
+     * @param Request $request Incoming request.
+     * @param Room $room Current room.
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse CSV download.
+     */
+    public function export(Request $request, Room $room): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $debts = Debt::query()->where('room_id', $room->id)->with(['campaign', 'roomUser.globalUser'])->latest()->get();
+
+        return response()->streamDownload(function () use ($debts): void {
+            $output = fopen('php://output', 'w');
+            fputcsv($output, ['campaign', 'user_code', 'user', 'date', 'original_amount', 'sponsor_type', 'sponsor_amount', 'paid_amount', 'remaining_amount', 'status']);
+            foreach ($debts as $debt) {
+                fputcsv($output, [$debt->campaign?->name, $debt->roomUser?->user_code, $debt->roomUser?->globalUser?->email, $debt->created_at?->format('Y-m-d'), $debt->original_amount, $debt->sponsor_type, $debt->sponsor_amount, $debt->paid_amount, $debt->remaining_amount, $debt->status?->value]);
+            }
+            fclose($output);
+        }, 'drinkflow-'.$room->slug.'-debts.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     /**

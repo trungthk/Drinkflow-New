@@ -34,6 +34,7 @@ class StoreCampaignItemRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:2000'],
             'image_url' => ['nullable', 'url', 'max:1000'],
             'base_price' => ['required', 'integer', 'min:0'],
+            'sponsor_amount' => ['nullable', 'integer', 'min:0'],
             'status' => ['nullable', 'in:active,hidden,sold_out,temporarily_unavailable'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
