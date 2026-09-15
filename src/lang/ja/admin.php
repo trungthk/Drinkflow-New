@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'remove_user_from_room' => 'ルームからユーザーを削除',
     'invalid_payment_account' => '支払い口座がこのルームに属していないか、無効化されています。',
     'channel_not_configured' => '通知チャンネルの認証情報が設定されていません。',
     'campaign_closed' => 'キャンペーンは既に終了しています。',

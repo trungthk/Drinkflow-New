@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Superadmin;
 
 use App\Actions\User\SetGlobalUserStatusAction;
+use App\Events\RoomMembershipUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SetStatusRequest;
 use App\Models\GlobalUser;
@@ -72,6 +73,8 @@ class GlobalUserController extends Controller
             $roomUser->devices()->whereNull('revoked_at')->update(['revoked_at' => now()]);
         });
         $audit->record('room_user.membership_removed', 'room_user', $roomUser->id, $roomUser->room_id, $before, ['status' => 'removed']);
+        RoomMembershipUpdated::dispatch($roomUser->fresh());
+
         return response()->json(['data' => ['removed' => true]]);
     }
 

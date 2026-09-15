@@ -21,6 +21,15 @@ export function initRoomRealtime() {
                 'campaign.menu.updated', 'campaign.menu.deleted'
             ].forEach((event) => socket.on(event, refresh));
             socket.on('notification.created', showDesktopNotification);
+            socket.on('room.membership.updated', (payload) => {
+                if (payload?.status === 'removed') {
+                    socket.disconnect();
+                    window.location.assign('/me');
+                    return;
+                }
+
+                refresh();
+            });
         })
         .catch(() => undefined);
 }

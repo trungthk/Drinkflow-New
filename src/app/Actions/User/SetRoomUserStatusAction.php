@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\User;
 
 use App\Enums\RoomUserStatus;
+use App\Events\RoomMembershipUpdated;
 use App\Models\RoomUser;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\DB;
@@ -28,13 +29,21 @@ class SetRoomUserStatusAction
             ]);
         }
 
-        return DB::transaction(function () use ($roomUser, $status): RoomUser {
+        $updatedRoomUser = DB::transaction(function () use ($roomUser, $status): RoomUser {
             $before = $roomUser->status->value;
             $roomUser->update(['status' => $status]);
+
+            if ($status === RoomUserStatus::Removed->value) {
+                $roomUser->devices()->whereNull('revoked_at')->update(['revoked_at' => now()]);
+            }
+
             app(AuditService::class)->record('room_user.status_updated', 'room_user', $roomUser->id, $roomUser->room_id, ['status' => $before], ['status' => $status]);
 
             return $roomUser->fresh();
         });
+
+        RoomMembershipUpdated::dispatch($updatedRoomUser);
+
+        return $updatedRoomUser;
     }
 }
-

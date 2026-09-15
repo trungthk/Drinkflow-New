@@ -17,6 +17,15 @@ export async function initSessionRevocation() {
             window.location.assign('/');
         });
         socket.on('notification.created', showDesktopNotification);
+        socket.on('room.membership.updated', (payload) => {
+            if (payload?.status === 'removed') {
+                socket.disconnect();
+                window.location.assign('/me');
+                return;
+            }
+
+            window.location.reload();
+        });
     } catch (error) {
         console.error('Realtime session revocation connection failed.', error);
     }

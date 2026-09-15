@@ -137,9 +137,16 @@
                                     <button type="button" onclick="openDeviceTrustModal({{ $ru->id }}, '{{ addslashes($name) }}')" class="p-1 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors" title="{{ __('admin.manage_devices') }}">
                                         <span class="material-symbols-outlined text-[16px]">security</span>
                                     </button>
-                                    <button type="button" onclick="toggleUserStatus({{ $ru->id }}, '{{ $statusVal === 'active' ? 'blocked' : 'active' }}')" class="p-1 rounded hover:bg-surface-container transition-colors {{ $statusVal === 'active' ? 'text-secondary hover:text-rose-600' : 'text-emerald-600' }}" title="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.btn_unblock_user') }}">
-                                        <span class="material-symbols-outlined text-[16px]">{{ $statusVal === 'active' ? 'lock' : 'lock_open' }}</span>
-                                    </button>
+                                    @if($statusVal !== 'removed')
+                                        <button type="button" onclick="toggleUserStatus({{ $ru->id }}, '{{ $statusVal === 'active' ? 'blocked' : 'active' }}')" class="p-1 rounded hover:bg-surface-container transition-colors {{ $statusVal === 'active' ? 'text-secondary hover:text-rose-600' : 'text-emerald-600' }}" title="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.btn_unblock_user') }}">
+                                            <span class="material-symbols-outlined text-[16px]">{{ $statusVal === 'active' ? 'lock' : 'lock_open' }}</span>
+                                        </button>
+                                    @endif
+                                    @if($statusVal !== 'removed')
+                                        <button type="button" onclick="removeRoomUser({{ $ru->id }})" class="p-1 rounded text-secondary hover:text-rose-600 hover:bg-surface-container transition-colors" title="{{ __('admin.remove_user_from_room') }}">
+                                            <span class="material-symbols-outlined text-[16px]">person_remove</span>
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

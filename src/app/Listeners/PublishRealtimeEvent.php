@@ -8,6 +8,7 @@ use App\Events\OrderCreated;
 use App\Events\OrderDeleted;
 use App\Events\OrderUpdated;
 use App\Events\RoomRealtimeEvent;
+use App\Events\RoomMembershipUpdated;
 use App\Events\UserNotificationCreated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
@@ -69,6 +70,16 @@ class PublishRealtimeEvent implements ShouldQueue
                     'data' => $event->notification->data ?? [],
                 ],
                 'global_user:'.$event->notification->global_user_id,
+            ],
+            $event instanceof RoomMembershipUpdated => [
+                'room.membership.updated',
+                $event->roomUser->room_id,
+                [
+                    'room_id' => $event->roomUser->room_id,
+                    'room_user_id' => $event->roomUser->id,
+                    'status' => $event->roomUser->status->value,
+                ],
+                'global_user:'.$event->roomUser->global_user_id,
             ],
             default => [null, null, [], null],
         };

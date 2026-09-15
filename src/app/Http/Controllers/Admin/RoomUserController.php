@@ -77,6 +77,21 @@ class RoomUserController extends Controller
     }
 
     /**
+     * Soft-remove a user from the room while preserving membership history.
+     *
+     * @param Room $room Current room.
+     * @param RoomUser $roomUser Membership to remove.
+     * @param SetRoomUserStatusAction $action Membership status action.
+     * @return JsonResponse Removal result.
+     */
+    public function destroy(Room $room, RoomUser $roomUser, SetRoomUserStatusAction $action): JsonResponse
+    {
+        $this->assertRoom($room, $roomUser);
+
+        return response()->json(['data' => $action->execute($roomUser, \App\Enums\RoomUserStatus::Removed->value)]);
+    }
+
+    /**
      * Handle the revoke device operation.
      */
     public function revokeDevice(Room $room, RoomUser $roomUser, RoomUserDevice $device, DeviceTrustService $trust, AuditService $audit): JsonResponse

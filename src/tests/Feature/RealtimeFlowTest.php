@@ -5,14 +5,17 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Actions\Campaign\DeclineCampaignAction;
+use App\Actions\User\SetRoomUserStatusAction;
 use App\Enums\CampaignStatus;
 use App\Events\RoomRealtimeEvent;
+use App\Events\RoomMembershipUpdated;
 use App\Events\UserNotificationCreated;
 use App\Listeners\PublishRealtimeEvent;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Models\RoomUserDevice;
 use App\Models\UserNotification;
 use App\Services\Notification\UserNotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -82,5 +85,40 @@ class RealtimeFlowTest extends TestCase
             && $request['room_id'] === 0
             && $request['user_channel'] === 'global_user:'.$user->id
             && $request['payload']['id'] === $notification->id);
+    }
+
+    /** Verify a membership status update is sent only to the affected global user. */
+    public function test_room_membership_status_update_dispatches_private_realtime_event(): void
+    {
+        Event::fake([RoomMembershipUpdated::class]);
+        $user = GlobalUser::create(['name' => 'Membership Recipient', 'normalized_name' => 'MEMBERSHIP RECIPIENT', 'email' => 'membership@example.com']);
+        $room = Room::create(['name' => 'Operations', 'slug' => 'operations']);
+        $roomUser = RoomUser::create(['room_id' => $room->id, 'global_user_id' => $user->id, 'user_code' => 'OPS-001', 'display_name' => 'Membership Recipient', 'normalized_name' => 'MEMBERSHIP RECIPIENT', 'status' => 'active']);
+        $device = RoomUserDevice::create(['room_user_id' => $roomUser->id, 'device_uuid' => 'device-001', 'token_hash' => 'token-hash']);
+
+        app(SetRoomUserStatusAction::class)->execute($roomUser, 'removed');
+
+        $this->assertDatabaseHas('room_users', ['id' => $roomUser->id, 'status' => 'removed']);
+        $this->assertDatabaseHas('room_user_devices', ['id' => $device->id]);
+        $this->assertNotNull($device->fresh()->revoked_at);
+        Event::assertDispatched(RoomMembershipUpdated::class, fn (RoomMembershipUpdated $event): bool => $event->roomUser->id === $roomUser->id && $event->roomUser->status->value === 'removed');
+    }
+
+    /** Verify membership socket payloads are restricted to the affected global user. */
+    public function test_room_membership_event_is_forwarded_to_private_socket_channel(): void
+    {
+        config()->set('services.realtime.url', 'http://realtime.test');
+        config()->set('services.realtime.internal_secret', 'test-secret');
+        Http::fake(['http://realtime.test/internal/emit' => Http::response(['delivered' => true], 202)]);
+        $user = GlobalUser::create(['name' => 'Member Socket', 'normalized_name' => 'MEMBER SOCKET', 'email' => 'member-socket@example.com']);
+        $room = Room::create(['name' => 'Support', 'slug' => 'support']);
+        $roomUser = RoomUser::create(['room_id' => $room->id, 'global_user_id' => $user->id, 'user_code' => 'SUP-001', 'display_name' => 'Member Socket', 'normalized_name' => 'MEMBER SOCKET', 'status' => 'blocked']);
+
+        app(PublishRealtimeEvent::class)->handle(new RoomMembershipUpdated($roomUser));
+
+        Http::assertSent(fn ($request): bool => $request['event'] === 'room.membership.updated'
+            && $request['room_id'] === $room->id
+            && $request['user_channel'] === 'global_user:'.$user->id
+            && $request['payload']['status'] === 'blocked');
     }
 }

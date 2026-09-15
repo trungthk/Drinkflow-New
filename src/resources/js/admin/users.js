@@ -125,6 +125,21 @@ export function initAdminUsers() {
         }
     };
 
+    window.removeRoomUser = async function(roomUserId) {
+        if (!confirm('Remove this user from the room?')) return;
+
+        try {
+            const res = await fetch(`/admin/${roomSlug}/room-users/${roomUserId}`, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+            });
+            if (res.ok) window.location.reload();
+            else alert('Could not remove user from this room.');
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     window.closeDeviceModal = function() {
         if (!modal) return;
         modal.classList.add('hidden');

@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'remove_user_from_room' => 'Xóa người dùng khỏi Room',
     'invalid_payment_account' => 'Tài khoản thanh toán không thuộc Room hoặc đã bị vô hiệu hóa.',
     'channel_not_configured' => 'Kênh thông báo chưa được cấu hình thông tin xác thực.',
     'campaign_closed' => 'Chiến dịch đã đóng.',

@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'remove_user_from_room' => 'Remove user from room',
     'invalid_payment_account' => 'Payment account does not belong to this Room or is disabled.',
     'channel_not_configured' => 'Notification channel credentials are not configured.',
     'campaign_closed' => 'Campaign is closed.',

@@ -102,6 +102,30 @@ class RoomUserExperienceTest extends TestCase
         $this->actingAs($user, 'web')->get('/rooms/'.$room->slug.'/profile')->assertStatus(403);
     }
 
+    public function test_removed_member_is_redirected_to_global_dashboard_and_cannot_access_room(): void
+    {
+        $user = GlobalUser::create([
+            'name' => 'Removed Member',
+            'normalized_name' => 'REMOVED MEMBER',
+            'email' => 'removed@example.com',
+            'status' => 'active',
+        ]);
+        $room = Room::create(['name' => 'Former Team', 'slug' => 'former-team', 'code' => 'FORMER', 'status' => 'active']);
+        RoomUser::create([
+            'global_user_id' => $user->id,
+            'room_id' => $room->id,
+            'user_code' => 'FORMER-001',
+            'display_name' => 'Removed Member',
+            'normalized_name' => 'REMOVED MEMBER',
+            'status' => 'removed',
+        ]);
+
+        $this->actingAs($user, 'web')->get('/rooms/'.$room->slug.'/dashboard')
+            ->assertRedirect(route('user.me.dashboard'));
+        $this->actingAs($user, 'web')->get('/rooms/'.$room->slug.'/campaigns')
+            ->assertRedirect(route('user.me.dashboard'));
+    }
+
     public function test_active_member_can_access_all_room_pages_and_switch_locale(): void
     {
         $user = GlobalUser::create([

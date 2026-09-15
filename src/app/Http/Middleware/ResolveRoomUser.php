@@ -70,6 +70,14 @@ class ResolveRoomUser
             ], 403);
         }
 
+        if ($roomUserStatus === RoomUserStatus::Removed) {
+            if ($request->expectsJson()) {
+                abort(403, 'Room membership has been removed.');
+            }
+
+            return redirect()->route('user.me.dashboard');
+        }
+
         abort_unless($roomUserStatus === RoomUserStatus::Active, 403);
 
         $deviceUuid = (string) $request->cookie('drinkflow_device_uuid', '');

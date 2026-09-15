@@ -9,6 +9,7 @@ use App\Events\OrderCreated;
 use App\Events\OrderUpdated;
 use App\Events\OrderDeleted;
 use App\Events\RoomRealtimeEvent;
+use App\Events\RoomMembershipUpdated;
 use App\Events\UserNotificationCreated;
 use App\Listeners\CreateOrderNotification;
 use App\Listeners\CreateOrderStatusNotification;
@@ -47,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(CampaignClosed::class, PublishRealtimeEvent::class);
         Event::listen(CampaignCancelled::class, NotifyCampaignCancelled::class);
         Event::listen(RoomRealtimeEvent::class, PublishRealtimeEvent::class);
+        Event::listen(RoomMembershipUpdated::class, PublishRealtimeEvent::class);
         Event::listen(UserNotificationCreated::class, PublishRealtimeEvent::class);
 
         \Illuminate\Support\Facades\RateLimiter::for('contact-submission', function (\Illuminate\Http\Request $request) {
