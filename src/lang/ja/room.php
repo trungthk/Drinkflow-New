@@ -91,6 +91,8 @@ return [
         'enter_campaign' => 'メニューを見て注文する',
     ],
     'campaign' => [
+        'decline' => '参加しない',
+        'declined' => '今回は参加しないことを記録しました。',
         'page_title' => 'キャンペーン＆メニュー',
         'active_run_badge' => 'Active Run',
         'reviews_count' => '(:count+ 件の評価)',
@@ -297,6 +299,8 @@ return [
         'room_code_label' => 'ルームコード:',
         'role_label' => '内部ロール:',
         'member_status_label' => 'メンバー状態:',
+        'last_activity_label' => '最終アクティビティ:',
+        'no_activity' => 'アクティビティはまだありません',
     ],
     'analytics' => [
         'page_title' => 'ルーム統計',

@@ -91,6 +91,8 @@ return [
         'enter_campaign' => 'Vào xem Menu & Đặt món',
     ],
     'campaign' => [
+        'decline' => 'Không tham gia',
+        'declined' => 'Đã ghi nhận bạn không tham gia campaign này.',
         'page_title' => 'Chiến dịch & Menu',
         'active_run_badge' => 'Active Run',
         'reviews_count' => '(:count+ đánh giá)',
@@ -297,6 +299,8 @@ return [
         'room_code_label' => 'Mã Room:',
         'role_label' => 'Vai trò nội bộ:',
         'member_status_label' => 'Trạng thái thành viên:',
+        'last_activity_label' => 'Hoạt động gần nhất:',
+        'no_activity' => 'Chưa có hoạt động',
     ],
     'analytics' => [
         'page_title' => 'Thống kê hoạt động Room',

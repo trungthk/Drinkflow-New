@@ -14,6 +14,7 @@ use App\Actions\Campaign\TransitionCampaignAction;
 use App\Actions\Campaign\UpdateCampaignItemAction;
 use App\Enums\PaymentAccountStatus;
 use App\Enums\RoomUserStatus;
+use App\Events\RoomRealtimeEvent;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SplitBillRequest;
 use App\Http\Requests\StoreCampaignItemRequest;
@@ -173,6 +174,7 @@ class CampaignController extends Controller
         $before = $campaign->toArray();
         $campaign->update(collect($data)->except(['status'])->all());
         $audit->record('campaign.updated', 'campaign', $campaign->id, $campaign->room_id, $before, $campaign->fresh()->toArray());
+        $this->publishCampaignEvent('campaign.updated', $campaign);
         return response()->json(['data' => $campaign->fresh(['items', 'paymentAccount'])]);
     }
 
@@ -211,7 +213,10 @@ class CampaignController extends Controller
     public function cancel(Room $room, Campaign $campaign, TransitionCampaignAction $action): JsonResponse
     {
         $this->assertCampaign($campaign);
-        return response()->json(['data' => $action->cancel($campaign)]);
+        $updated = $action->cancel($campaign);
+        $this->publishCampaignEvent('campaign.deleted', $updated);
+
+        return response()->json(['data' => $updated]);
     }
 
     /**
@@ -224,7 +229,10 @@ class CampaignController extends Controller
     public function archive(Room $room, Campaign $campaign, TransitionCampaignAction $action): JsonResponse
     {
         $this->assertCampaign($campaign);
-        return response()->json(['data' => $action->archive($campaign)]);
+        $updated = $action->archive($campaign);
+        $this->publishCampaignEvent('campaign.deleted', $updated);
+
+        return response()->json(['data' => $updated]);
     }
 
     /**
@@ -282,7 +290,10 @@ class CampaignController extends Controller
     public function storeItem(StoreCampaignItemRequest $request, Campaign $campaign, CreateCampaignItemAction $action): JsonResponse
     {
         $this->assertCampaign($campaign);
-        return response()->json(['data' => $action->execute($campaign, $request->validated())], 201);
+        $item = $action->execute($campaign, $request->validated());
+        $this->publishMenuEvent('campaign.menu.updated', $campaign, $item);
+
+        return response()->json(['data' => $item], 201);
     }
 
     /**
@@ -297,7 +308,10 @@ class CampaignController extends Controller
     public function updateItem(StoreCampaignItemRequest $request, Room $room, Campaign $campaign, CampaignItem $item, UpdateCampaignItemAction $action): JsonResponse
     {
         $this->assertItem($campaign, $item);
-        return response()->json(['data' => $action->execute($item, $request->validated())]);
+        $updated = $action->execute($item, $request->validated());
+        $this->publishMenuEvent('campaign.menu.updated', $campaign, $updated);
+
+        return response()->json(['data' => $updated]);
     }
 
     /**
@@ -314,6 +328,7 @@ class CampaignController extends Controller
         $before = $item->status;
         $item->update(['status' => 'hidden']);
         $audit->record('campaign_item.archived', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before], ['status' => 'hidden']);
+        $this->publishMenuEvent('campaign.menu.deleted', $campaign, $item);
         return response()->json(['data' => $item->fresh()]);
     }
 
@@ -457,5 +472,37 @@ class CampaignController extends Controller
     {
         $this->assertCampaign($campaign);
         abort_unless($item->campaign_id === $campaign->id, 404);
+    }
+
+    /**
+     * Publish a campaign lifecycle change to the room's authorized socket clients.
+     *
+     * @param string $event Realtime event name.
+     * @param Campaign $campaign Changed campaign.
+     * @return void
+     */
+    private function publishCampaignEvent(string $event, Campaign $campaign): void
+    {
+        RoomRealtimeEvent::dispatch($event, $campaign->room_id, [
+            'campaign_id' => $campaign->id,
+            'status' => $campaign->status?->value,
+        ]);
+    }
+
+    /**
+     * Publish a menu change to the room's authorized socket clients.
+     *
+     * @param string $event Realtime event name.
+     * @param Campaign $campaign Parent campaign.
+     * @param CampaignItem $item Changed menu item.
+     * @return void
+     */
+    private function publishMenuEvent(string $event, Campaign $campaign, CampaignItem $item): void
+    {
+        RoomRealtimeEvent::dispatch($event, $campaign->room_id, [
+            'campaign_id' => $campaign->id,
+            'item_id' => $item->id,
+            'status' => $item->status instanceof \BackedEnum ? $item->status->value : (string) $item->status,
+        ]);
     }
 }

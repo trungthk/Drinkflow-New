@@ -91,6 +91,8 @@ return [
         'enter_campaign' => 'View Menu & Order',
     ],
     'campaign' => [
+        'decline' => 'Not participating',
+        'declined' => 'Your decision not to participate has been recorded.',
         'page_title' => 'Campaign & Menu',
         'active_run_badge' => 'Active Run',
         'reviews_count' => '(:count+ reviews)',
@@ -297,6 +299,8 @@ return [
         'room_code_label' => 'Room Code:',
         'role_label' => 'Internal Role:',
         'member_status_label' => 'Member Status:',
+        'last_activity_label' => 'Last activity:',
+        'no_activity' => 'No activity yet',
     ],
     'analytics' => [
         'page_title' => 'Room Analytics & Activity',

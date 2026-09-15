@@ -7,6 +7,7 @@ use App\Events\CampaignCreated;
 use App\Events\OrderCreated;
 use App\Events\OrderDeleted;
 use App\Events\OrderUpdated;
+use App\Events\RoomRealtimeEvent;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Http;
@@ -48,6 +49,12 @@ class PublishRealtimeEvent implements ShouldQueue
                 'campaign.closed',
                 $event->campaign->room_id,
                 ['campaign_id' => $event->campaign->id, 'status' => $event->campaign->status?->value],
+                null,
+            ],
+            $event instanceof RoomRealtimeEvent => [
+                $event->name,
+                $event->roomId,
+                $event->payload,
                 null,
             ],
             default => [null, null, [], null],

@@ -426,7 +426,11 @@ export function initAdminDashboard() {
                     }
                 });
 
-                ['order.created', 'order.updated', 'order.deleted', 'campaign.created', 'campaign.closed'].forEach(ev => {
+                [
+                    'order.created', 'order.updated', 'order.deleted',
+                    'campaign.created', 'campaign.updated', 'campaign.deleted', 'campaign.closed',
+                    'campaign.menu.updated', 'campaign.menu.deleted', 'campaign.participant.declined'
+                ].forEach(ev => {
                     socket.on(ev, () => {
                         const stream = document.querySelector('#activity-stream');
                         if (stream) {

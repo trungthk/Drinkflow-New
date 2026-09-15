@@ -52,13 +52,16 @@
       },
     }
   </script>
+  <script src="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}/socket.io/socket.io.js"></script>
   @if (file_exists(public_path('build/manifest.json')) || app()->isLocal())
     @vite(['resources/css/room.css', 'resources/js/room.js'])
   @endif
   <!-- Alpine.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 </head>
-<body class="bg-[#F8FAFC] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900">
+<body class="bg-[#F8FAFC] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900"
+      data-room-socket-token-url="{{ $room ? route('user.socket-token', $room) : '' }}"
+      data-realtime-url="{{ config('services.realtime.public_url', 'http://localhost:3001') }}">
 
   <!-- Shared Room Header -->
   <x-room.header

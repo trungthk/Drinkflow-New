@@ -67,7 +67,11 @@ const httpServer = createServer((req, res) => {
     req.on('end', () => {
       try {
         const input = JSON.parse(body || '{}');
-        const allowedEvents = new Set(['order.created', 'order.updated', 'order.deleted', 'campaign.created', 'campaign.closed']);
+        const allowedEvents = new Set([
+          'order.created', 'order.updated', 'order.deleted',
+          'campaign.created', 'campaign.updated', 'campaign.deleted', 'campaign.closed',
+          'campaign.menu.updated', 'campaign.menu.deleted', 'campaign.participant.declined'
+        ]);
         const roomId = Number(input.room_id);
         if (!allowedEvents.has(input.event) || !Number.isInteger(roomId) || roomId < 1) {
           res.writeHead(422, { 'Content-Type': 'application/json' });

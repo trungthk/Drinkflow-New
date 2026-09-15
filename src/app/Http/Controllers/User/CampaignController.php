@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\User;
 
+use App\Actions\Campaign\DeclineCampaignAction;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Services\Campaign\UserRoomCampaignService;
@@ -55,5 +56,22 @@ class CampaignController extends Controller
 
         return redirect()->route('user.campaigns.index', $room->slug);
     }
-}
 
+    /**
+     * Record that the authenticated room member will not participate in a campaign.
+     *
+     * @param Request $request Current HTTP request.
+     * @param Room $room Current room.
+     * @param Campaign $campaign Campaign being declined.
+     * @param DeclineCampaignAction $action Participation action.
+     * @return JsonResponse Declined participation payload.
+     */
+    public function decline(Request $request, \App\Models\Room $room, Campaign $campaign, DeclineCampaignAction $action): JsonResponse
+    {
+        /** @var \App\Models\RoomUser $roomUser */
+        $roomUser = $request->attributes->get('room_user');
+        abort_unless($campaign->room_id === $room->id, 404);
+
+        return response()->json(['data' => $action->execute($campaign, $roomUser)]);
+    }
+}

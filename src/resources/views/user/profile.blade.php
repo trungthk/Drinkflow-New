@@ -12,7 +12,7 @@
                              alt="{{ $user->name }}"
                              loading="lazy"/>
                         <span class="absolute -bottom-1 -right-1 px-2.5 py-0.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm shadow-sm flex items-center gap-0.5">
-                            <span class="material-symbols-outlined text-[13px]">verified</span> {{ $roomUser->room_user_code }}
+                            <span class="material-symbols-outlined text-[13px]">verified</span> {{ $roomUser->user_code }}
                         </span>
                     </div>
                     <div class="flex flex-col gap-space-xs">
@@ -34,7 +34,7 @@
                                 <span class="material-symbols-outlined text-[15px]">mail</span> {{ $user->email }}
                             </span>
                             <span class="flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[15px]">badge</span> {{ __('room.profile.member_code_prefix') }}: {{ $roomUser->room_user_code }}
+                                <span class="material-symbols-outlined text-[15px]">badge</span> {{ __('room.profile.member_code_prefix') }}: {{ $roomUser->user_code }}
                             </span>
                             <span class="flex items-center gap-1">
                                 <span class="material-symbols-outlined text-[15px]">calendar_today</span> {{ __('room.profile.joined_date_prefix') }}: {{ $roomUser->created_at?->format('d/m/Y') }}
@@ -48,10 +48,6 @@
                     <a href="{{ route('user.me.profile') }}" class="h-9 px-space-md rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md flex items-center gap-1 transition-all">
                         <span class="material-symbols-outlined text-[18px]">edit</span>
                         <span>{{ __('room.profile.edit_profile') }}</span>
-                    </a>
-                    <a href="{{ route('user.campaigns.index', $room->slug) }}" class="h-9 px-space-md rounded-xl bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md flex items-center gap-1 transition-all shadow-sm font-bold">
-                        <span class="material-symbols-outlined text-[18px]">local_cafe</span>
-                        <span>{{ __('room.profile.order_now') }}</span>
                     </a>
                 </div>
             </div>
@@ -154,8 +150,8 @@
                             <span class="font-bold text-primary">{{ $room->code ?? $room->slug }}</span>
                         </div>
                         <div class="flex justify-between items-center py-2 border-b border-outline-variant/20 text-body-sm">
-                            <span class="text-on-surface-variant">{{ __('room.profile.role_label') }}</span>
-                            <span class="font-bold text-on-surface capitalize">{{ $roomUser->role }}</span>
+                            <span class="text-on-surface-variant">{{ __('room.profile.last_activity_label') }}</span>
+                            <span class="font-bold text-on-surface">{{ $roomUser->last_active_at?->format('d/m/Y H:i') ?? __('room.profile.no_activity') }}</span>
                         </div>
                         <div class="flex justify-between items-center py-2 border-b border-outline-variant/20 text-body-sm">
                             <span class="text-on-surface-variant">{{ __('room.profile.member_status_label') }}</span>

@@ -145,6 +145,14 @@
             <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
           </a>
         </div>
+      @else
+        <form data-decline-campaign action="{{ route('user.campaigns.decline', [$room, $activeCampaign]) }}" method="POST" class="flex justify-end">
+          @csrf
+          <button type="submit" class="text-xs font-semibold text-slate-500 hover:text-rose-700 underline underline-offset-2 transition-colors">
+            {{ __('room.campaign.decline') }}
+          </button>
+          <span data-decline-message class="hidden text-xs font-medium text-slate-500">{{ __('room.campaign.declined') }}</span>
+        </form>
       @endif
 
       <!-- 2. Controls: Category Pills & Search Bar -->
