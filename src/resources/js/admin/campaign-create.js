@@ -7,6 +7,11 @@ export function campaignCreateComponent() {
 
     return {
         menuTab: 'manual',
+        menuApplyMode: 'replace',
+        showAddItemModal: false,
+        itemCategories: ['Cà phê', 'Trà', 'Trà sữa', 'Nước ép', 'Đồ ăn', 'Khác'],
+        newItem: { name: '', price: 0, category: 'Khác' },
+        sponsors: [],
         submitting: false,
         crawlerUrl: '',
         crawlerLoading: false,
@@ -105,12 +110,36 @@ export function campaignCreateComponent() {
             if (!p) return;
             this.form.name = p.name;
             this.form.restaurant = p.restaurant;
-            this.menuItems = JSON.parse(JSON.stringify(p.items));
+            this.applyMenuItems(p.items);
             this.menuTab = 'manual';
+        },
+
+        applyMenuItems(items) {
+            const normalized = (items || []).map(item => ({ name: item.name || '', price: parseInt(item.price, 10) || 0, category: item.category || 'Khác', sponsor_amount: parseInt(item.sponsor_amount, 10) || 0 }));
+            this.menuItems = this.menuApplyMode === 'append' ? this.menuItems.concat(normalized) : normalized;
+        },
+
+        addSponsor() {
+            this.sponsors.push({ user_id: '', type: 'per_item', amount: 0, description: '' });
+        },
+
+        removeSponsor(index) {
+            this.sponsors.splice(index, 1);
         },
 
         addMenuItem() {
             this.menuItems.push({ name: '', price: 0, category: 'Món chung' });
+        },
+
+        openAddItemModal() {
+            this.newItem = { name: '', price: 0, category: this.itemCategories[0] };
+            this.showAddItemModal = true;
+        },
+
+        confirmAddItem() {
+            if (!this.newItem.name.trim() || Number(this.newItem.price) < 0) return;
+            this.applyMenuItems([this.newItem]);
+            this.showAddItemModal = false;
         },
 
         removeMenuItem(index) {
@@ -120,6 +149,9 @@ export function campaignCreateComponent() {
         loadPreviousCampaign(campaign) {
             this.form.name = campaign.name + ' (Đợt mới)';
             this.form.restaurant = campaign.restaurant;
+            this.applyMenuItems(campaign.items || []);
+            this.menuTab = 'manual';
+            return;
             this.menuItems = (campaign.items || []).map(i => ({
                 name: i.name,
                 price: i.price,
@@ -213,9 +245,13 @@ export function campaignCreateComponent() {
                 sponsor_type: this.form.sponsor_type,
                 sponsor_description: this.form.sponsor_description || null,
                 max_budget: this.form.max_budget ? parseInt(this.form.max_budget, 10) : null,
-                delivery_fee: this.form.delivery_fee ? parseInt(this.form.delivery_fee, 10) : null,
-                discount: this.form.discount ? parseInt(this.form.discount, 10) : null,
                 flat_price: this.form.flat_price ? parseInt(this.form.flat_price, 10) : null,
+                sponsor_allocations: this.sponsors.filter(sponsor => sponsor.user_id).map(sponsor => ({
+                    room_user_id: Number(sponsor.user_id),
+                    type: sponsor.type,
+                    amount: Number(sponsor.amount) || 0,
+                    description: sponsor.description || null
+                })),
                 status: status
             };
 

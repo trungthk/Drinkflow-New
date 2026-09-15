@@ -10,6 +10,25 @@ use DateTimeInterface;
 class FormatHelper
 {
     /**
+     * Định dạng số tiền theo loại tiền tệ của ứng dụng.
+     *
+     * @param int|float $amount Số tiền cần định dạng.
+     * @param string|null $currency Mã tiền tệ, mặc định lấy từ cấu hình ứng dụng.
+     * @param string $suffixSeparator Khoảng cách giữa số tiền và hậu tố tiền tệ.
+     * @return string Chuỗi tiền tệ đã định dạng theo locale hiện tại.
+     */
+    public static function formatCurrency(int|float $amount, ?string $currency = null, string $suffixSeparator = ''): string
+    {
+        $currencyCode = strtoupper($currency ?? (string) config('app.currency', 'VND'));
+
+        return match ($currencyCode) {
+            'USD' => '$' . number_format((float) $amount, 2, '.', ','),
+            'JPY' => '¥' . number_format((float) $amount, 0, '.', ','),
+            default => number_format((float) $amount, 0, ',', '.') . $suffixSeparator . __('global.common.money_suffix'),
+        };
+    }
+
+    /**
      * Định dạng ngày theo cấu hình hệ thống (mặc định config('app.date_format', 'd/m/Y')).
      *
      * @param  \DateTimeInterface|string|null  $date  Đối tượng ngày giờ hoặc chuỗi thời gian

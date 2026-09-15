@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Dashboard;
 
+use App\Support\Helpers\FormatHelper;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Enums\RoomUserStatus;
@@ -96,14 +97,14 @@ class UserGlobalDashboardService
 
                 $discountText = __('global.dashboard.free_ship');
                 if ($activeCampaign->discount > 0) {
-                    $discountText = '-' . number_format($activeCampaign->discount, 0, ',', '.') . __('global.common.money_suffix');
+                    $discountText = '-' . FormatHelper::formatCurrency((int) $activeCampaign->discount);
                 }
 
                 $campaignData = [
                     'id' => $activeCampaign->id,
                     'name' => $activeCampaign->name,
                     'restaurant' => $activeCampaign->restaurant ?: __('global.dashboard.default_beverage_shop'),
-                    'deadline_formatted' => $activeCampaign->deadline ? $activeCampaign->deadline->format('H:i') : '10:30',
+                    'deadline_formatted' => $activeCampaign->deadline ? FormatHelper::formatDateTime($activeCampaign->deadline, 'H:i') : '10:30',
                     'time_remaining' => $timeRemaining,
                     'cups_collected' => $cupsCollected,
                     'target_cups' => $targetCups,
@@ -152,11 +153,11 @@ class UserGlobalDashboardService
                     $itemsText = __('global.dashboard.default_item_text');
                 }
 
-                $timeText = $order->created_at->format('d/m, H:i');
+                $timeText = FormatHelper::formatDateTime($order->created_at, 'd/m, H:i');
                 if ($order->created_at->isToday()) {
-                    $timeText = __('global.dashboard.today_at', ['time' => $order->created_at->format('H:i')]);
+                    $timeText = __('global.dashboard.today_at', ['time' => FormatHelper::formatDateTime($order->created_at, 'H:i')]);
                 } elseif ($order->created_at->isYesterday()) {
-                    $timeText = __('global.dashboard.yesterday_at', ['time' => $order->created_at->format('H:i')]);
+                    $timeText = __('global.dashboard.yesterday_at', ['time' => FormatHelper::formatDateTime($order->created_at, 'H:i')]);
                 }
 
                 return [
@@ -167,7 +168,7 @@ class UserGlobalDashboardService
                     'restaurant' => $order->campaign?->restaurant ?: 'Cửa hàng',
                     'items_summary' => $itemsText,
                     'final_amount' => $order->final_amount,
-                    'final_amount_formatted' => number_format($order->final_amount, 0, ',', '.') . __('global.common.money_suffix'),
+                    'final_amount_formatted' => FormatHelper::formatCurrency((int) $order->final_amount),
                     'is_paid' => $isPaid,
                     'is_pending' => $isPending,
                     'status_label' => $isPaid ? __('global.dashboard.paid') : ($isPending ? __('global.dashboard.unpaid') : __('global.common.cancelled')),

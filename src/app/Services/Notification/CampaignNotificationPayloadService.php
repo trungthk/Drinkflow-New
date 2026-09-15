@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Notification;
 
 use App\Models\Campaign;
+use App\Support\Helpers\FormatHelper;
 
 class CampaignNotificationPayloadService
 {
@@ -19,9 +20,9 @@ class CampaignNotificationPayloadService
     {
         $room = $campaign->room;
         $title = match ($event) {
-            'campaign.created' => 'Campaign mới',
-            'campaign.cancelled' => 'Campaign đã hủy',
-            default => 'Campaign đã đóng',
+            'campaign.created' => __('messages.campaign_created_title'),
+            'campaign.cancelled' => __('messages.campaign_cancelled_title'),
+            default => __('messages.campaign_closed_title'),
         };
         $orderUrl = $event === 'campaign.created'
             ? route('user.campaigns.order-page', [$room, $campaign])
@@ -52,11 +53,18 @@ class CampaignNotificationPayloadService
      */
     private function message(string $title, Campaign $campaign, ?string $orderUrl): string
     {
-        $lines = [$title, 'Tên: '.$campaign->name];
-        $lines[] = 'Thời hạn: '.($campaign->deadline?->format('d/m/Y H:i') ?? 'Chưa thiết lập');
-        $lines[] = 'Tài trợ: '.($campaign->sponsor_name ?? 'Không có').($campaign->max_budget ? ' · '.number_format((int) $campaign->max_budget, 0, ',', '.').'₫' : '');
+        $lines = [$title, __('messages.campaign_name', ['name' => $campaign->name])];
+        $lines[] = __('messages.campaign_deadline', [
+            'date' => $campaign->deadline
+                ? FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i')
+                : __('messages.campaign_deadline_not_set'),
+        ]);
+        $lines[] = __('messages.campaign_sponsorship', [
+            'sponsor' => $campaign->sponsor_name ?? __('messages.campaign_sponsor_not_set'),
+            'amount' => $campaign->max_budget ? ' · '.FormatHelper::formatCurrency((int) $campaign->max_budget) : '',
+        ]);
         if ($orderUrl !== null) {
-            $lines[] = 'Đặt món: '.$orderUrl;
+            $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
         }
 
         return implode("\n", $lines);

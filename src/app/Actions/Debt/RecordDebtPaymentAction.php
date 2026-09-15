@@ -8,6 +8,7 @@ use App\Models\Debt;
 use App\Models\DebtPayment;
 use App\Services\Audit\AuditService;
 use App\Services\Notification\UserNotificationService;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -65,11 +66,10 @@ class RecordDebtPaymentAction
             $updated->roomUser,
             'debt.updated',
             __('admin.payment_recorded_title'),
-            __('admin.remaining_balance_prefix', ['amount' => number_format($updated->remaining_amount) . 'đ']),
+            __('admin.remaining_balance_prefix', ['amount' => FormatHelper::formatCurrency((int) $updated->remaining_amount)]),
             ['debt_id' => $updated->id, 'remaining_amount' => $updated->remaining_amount]
         );
 
         return $updated;
     }
 }
-

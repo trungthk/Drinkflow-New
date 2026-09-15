@@ -15,11 +15,11 @@ class Campaign extends Model
 {
     use HasStatus, BelongsToRoom;
 
-    protected $fillable = ['room_id', 'name', 'restaurant', 'creator_admin_id', 'sponsor_name', 'sponsor_type', 'sponsor_description', 'deadline', 'max_budget', 'flat_price', 'delivery_fee', 'discount', 'payment_account_id', 'description', 'status', 'started_at', 'closed_at'];
+    protected $fillable = ['room_id', 'name', 'restaurant', 'creator_admin_id', 'sponsor_name', 'sponsor_type', 'sponsor_description', 'sponsor_allocations', 'deadline', 'max_budget', 'flat_price', 'delivery_fee', 'discount', 'payment_account_id', 'description', 'status', 'started_at', 'closed_at'];
 
     protected function casts(): array
     {
-        return ['deadline' => 'datetime', 'started_at' => 'datetime', 'closed_at' => 'datetime', 'status' => CampaignStatus::class];
+        return ['deadline' => 'datetime', 'started_at' => 'datetime', 'closed_at' => 'datetime', 'status' => CampaignStatus::class, 'sponsor_allocations' => 'array'];
     }
 
     public function items(): HasMany

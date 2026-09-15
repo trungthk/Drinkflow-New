@@ -14,6 +14,7 @@ use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Facades\DB;
 
 class UserRoomDashboardService
@@ -55,7 +56,7 @@ class UserRoomDashboardService
                 'description' => $activeCampaign->description ?? '',
                 'deadline' => $activeCampaign->deadline,
                 'time_remaining' => $activeCampaign->deadline ? ($activeCampaign->deadline->isFuture() ? $activeCampaign->deadline->diffForHumans(['parts' => 2, 'short' => true]) : '00:00') : '14:22',
-                'deadline_formatted' => $activeCampaign->deadline ? $activeCampaign->deadline->format('H:i') : '10:30',
+                'deadline_formatted' => $activeCampaign->deadline ? FormatHelper::formatDateTime($activeCampaign->deadline, 'H:i') : '10:30',
                 'sponsor_budget' => $sponsorBudget,
                 'sponsor_remaining' => $sponsorRemaining,
                 'sponsor_used' => $sponsorUsed,

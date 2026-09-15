@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\Traits;
 
+use App\Support\Helpers\FormatHelper;
+
 /**
  * Trait cung cấp các hàm helper định dạng tiền tệ và tính toán chiết khấu/chia bill.
  */
@@ -13,11 +15,11 @@ trait FormatsCurrency
      * Định dạng số tiền sang định dạng tiền Việt Nam Đồng (VND).
      *
      * @param  int|float  $amount  Số tiền.
-     * @return string Chuỗi tiền tệ đã định dạng (ví dụ: "50,000 đ").
+     * @return string Chuỗi tiền tệ đã định dạng (ví dụ: "50.000 đ").
      */
     public function formatVnd(int|float $amount): string
     {
-        return number_format((float) $amount, 0, ',', '.') . ' đ';
+        return FormatHelper::formatCurrency($amount, 'VND', ' ');
     }
 
     /**
@@ -29,11 +31,7 @@ trait FormatsCurrency
      */
     public function formatCurrency(int|float $amount, string $currency = 'VND'): string
     {
-        return match (strtoupper($currency)) {
-            'USD' => '$' . number_format((float) $amount, 2, '.', ','),
-            'JPY' => '¥' . number_format((float) $amount, 0, '.', ','),
-            default => $this->formatVnd($amount),
-        };
+        return FormatHelper::formatCurrency($amount, $currency);
     }
 
     /**

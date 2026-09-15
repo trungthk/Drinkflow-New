@@ -27,6 +27,7 @@
         </div>
     </div>
 
+    @if(false)
     <!-- Quick Presets Row -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm">
         <div class="flex items-center justify-between mb-3">
@@ -63,6 +64,7 @@
             </button>
         </div>
     </div>
+    @endif
 
     <!-- Main Bento Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -136,6 +138,13 @@
                             {{ __('admin.source_json') }}
                         </button>
                     </div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <label class="text-outline font-semibold">{{ __('admin.menu_apply_mode') }}</label>
+                        <select x-model="menuApplyMode" class="px-2.5 py-1.5 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                            <option value="append">{{ __('admin.menu_apply_append') }}</option>
+                            <option value="replace">{{ __('admin.menu_apply_replace') }}</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Tab 1: Reuse Previous Campaign -->
@@ -165,7 +174,7 @@
                 <div x-show="menuTab === 'manual'" class="space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-outline">{{ __('admin.menu_items_count', ['count' => '']) }}<span x-text="menuItems.length"></span>:</span>
-                        <button type="button" @click="addMenuItem()" class="px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded text-xs font-semibold transition-colors flex items-center gap-1">
+                        <button type="button" @click="openAddItemModal()" class="px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded text-xs font-semibold transition-colors flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">add</span>
                             {{ __('admin.add_new_item_btn') }}
                         </button>
@@ -242,6 +251,36 @@
                     {{ __('admin.sponsor_policy_title') }}
                 </h2>
 
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-on-surface">{{ __('admin.sponsor_users_label') }}</span>
+                        <button type="button" @click="addSponsor()" class="text-xs text-primary font-semibold hover:underline">+ {{ __('admin.add_sponsor') }}</button>
+                    </div>
+                    <template x-for="(sponsor, index) in sponsors" :key="index">
+                        <div class="p-2.5 rounded-lg border border-outline-variant bg-surface space-y-2">
+                            <div class="grid grid-cols-[1fr_auto] gap-2">
+                                <select x-model="sponsor.user_id" class="w-full px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs text-on-surface">
+                                    <option value="">{{ __('admin.select_sponsor_user') }}</option>
+                                    @foreach($roomUsers as $roomUser)
+                                        <option value="{{ $roomUser->id }}">{{ $roomUser->globalUser?->name ?? $roomUser->display_name }} ({{ $roomUser->user_code }})</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" @click="removeSponsor(index)" class="p-1 text-error hover:bg-error-container/40 rounded"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <select x-model="sponsor.type" class="px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs text-on-surface">
+                                    <option value="per_item">{{ __('admin.sponsor_type_per_item') }}</option>
+                                    <option value="budget">{{ __('admin.sponsor_type_budget') }}</option>
+                                    <option value="full">{{ __('admin.sponsor_type_full') }}</option>
+                                </select>
+                                <input type="number" min="0" x-model="sponsor.amount" placeholder="{{ __('admin.sponsor_amount_placeholder') }}" class="px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs font-mono text-on-surface">
+                            </div>
+                            <input type="text" x-model="sponsor.description" placeholder="{{ __('admin.sponsor_description_label') }}" class="w-full px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs text-on-surface">
+                        </div>
+                    </template>
+                    <p x-show="sponsors.length === 0" class="text-[11px] text-outline italic">{{ __('admin.no_sponsors_added') }}</p>
+                </div>
+
                 <div>
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_name_label') }}</label>
                     <input type="text" x-model="form.sponsor_name" placeholder="{{ __('admin.sponsor_example') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
@@ -270,7 +309,7 @@
                 </div>
 
                 <!-- Fee Adjustments -->
-                <div class="border-t border-outline-variant/60 pt-3 space-y-3">
+                <div x-show="false" class="border-t border-outline-variant/60 pt-3 space-y-3">
                     <span class="text-xs font-bold text-on-surface uppercase tracking-wider block">{{ __('admin.delivery_and_discounts') }}</span>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -311,11 +350,11 @@
                         <span>{{ __('admin.menu_item_count_label') }}</span>
                         <span class="font-bold text-on-surface font-mono" x-text="menuItems.length"></span>
                     </div>
-                    <div class="flex justify-between text-outline">
+                    <div x-show="false" class="flex justify-between text-outline">
                         <span>{{ __('admin.shared_delivery_fee') }}</span>
                         <span class="font-mono text-on-surface" x-text="formatVND(form.delivery_fee || 0)"></span>
                     </div>
-                    <div class="flex justify-between text-outline">
+                    <div x-show="false" class="flex justify-between text-outline">
                         <span>{{ __('admin.voucher_deduction') }}</span>
                         <span class="font-mono text-error" x-text="'-' + formatVND(form.discount || 0)"></span>
                     </div>
@@ -334,6 +373,34 @@
                         {{ __('admin.save_as_draft') }}
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div x-show="showAddItemModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div class="w-full max-w-md rounded-xl bg-surface-container-lowest border border-outline-variant p-5 shadow-2xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-base text-on-surface">{{ __('admin.add_manual_item_title') }}</h3>
+                <button type="button" @click="showAddItemModal = false" class="text-outline hover:text-on-surface"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.item_category_label') }}</label>
+                    <select x-model="newItem.category" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface">
+                        <template x-for="category in itemCategories" :key="category"><option :value="category" x-text="category"></option></template>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.item_name_placeholder') }}</label>
+                    <input type="text" x-model="newItem.name" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.price_vnd') }}</label>
+                    <input type="number" min="0" x-model="newItem.price" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono text-on-surface">
+                </div>
+            </div>
+            <div class="mt-5 flex justify-end gap-2">
+                <button type="button" @click="showAddItemModal = false" class="px-4 py-2 rounded-lg bg-surface-container text-on-surface text-xs font-semibold">{{ __('admin.cancel') }}</button>
+                <button type="button" @click="confirmAddItem()" class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold">{{ __('admin.add_new_item_btn') }}</button>
             </div>
         </div>
     </div>

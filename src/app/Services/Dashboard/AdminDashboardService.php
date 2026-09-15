@@ -12,6 +12,7 @@ use App\Models\Debt;
 use App\Models\Order;
 use App\Models\PaymentAccount;
 use App\Models\Room;
+use App\Support\Helpers\FormatHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
@@ -142,7 +143,7 @@ class AdminDashboardService
             }
 
             $weeklyTrend[] = [
-                'date' => $currentDate->format('d/m'),
+                'date' => FormatHelper::formatDate($currentDate, 'd/m'),
                 'day_name' => $dayLabel,
                 'campaigns_count' => $cCount,
                 'spending_amount' => $sAmount,

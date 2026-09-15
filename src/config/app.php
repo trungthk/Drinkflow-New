@@ -88,6 +88,8 @@ return [
 
     'datetime_format' => env('APP_DATETIME_FORMAT', 'd/m/Y H:i:s'),
 
+    'currency' => env('APP_CURRENCY', 'VND'),
+
     /*
     |--------------------------------------------------------------------------
     | Encryption Key

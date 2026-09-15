@@ -6,7 +6,6 @@ namespace App\Services\Notification;
 
 use App\Models\AdminAccount;
 use App\Models\AdminNotification;
-use App\Models\AuditLog;
 use App\Models\Room;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;

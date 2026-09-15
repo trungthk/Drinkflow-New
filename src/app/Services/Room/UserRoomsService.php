@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Room;
 
+use App\Support\Helpers\FormatHelper;
 use App\Enums\RoomUserStatus;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -115,7 +116,7 @@ class UserRoomsService
                 'joined_at_formatted' => $ru->joined_at ? \App\Support\Helpers\FormatHelper::formatDate($ru->joined_at) : ($ru->created_at ? \App\Support\Helpers\FormatHelper::formatDate($ru->created_at) : 'N/A'),
                 'orders_count' => $ordersCount,
                 'total_spent' => $totalSpent,
-                'total_spent_formatted' => number_format($totalSpent, 0, ',', '.') . 'đ',
+                'total_spent_formatted' => FormatHelper::formatCurrency($totalSpent),
                 'last_order_time' => $lastOrderTime,
                 'dashboard_url' => $ru->room ? route('user.dashboard', $ru->room->slug ?? $ru->room->id) : '#',
             ];

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\View\Components;
 
+use App\Support\Helpers\FormatHelper;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
@@ -79,11 +80,11 @@ class VietQrPayment extends Component
     /**
      * Return the amount formatted as Vietnamese currency string.
      *
-     * @return string e.g. "150.000 ₫"
+     * @return string e.g. "150.000 đ"
      */
     public function formattedAmount(): string
     {
-        return number_format((float) $this->amount, 0, ',', '.') . ' ₫';
+        return FormatHelper::formatCurrency((float) $this->amount);
     }
 
     /**

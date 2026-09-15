@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Analytics;
 
 use App\Models\GlobalUser;
+use App\Support\Helpers\FormatHelper;
 
 class UserGlobalAnalyticsService
 {
@@ -65,8 +66,8 @@ class UserGlobalAnalyticsService
         $peakWeek = collect($weeklyStats)->sortByDesc('spent')->first();
         $peakWeekText = ($peakWeek && $peakWeek['spent'] > 0)
             ? __('global.statistics.peak_week_text', [
-                'amount' => number_format($peakWeek['spent'], 0, ',', '.'),
-                'suffix' => __('global.common.money_suffix'),
+                'amount' => FormatHelper::formatCurrency((int) $peakWeek['spent']),
+                'suffix' => '',
                 'week' => explode(' ', $peakWeek['label'])[0],
             ])
             : __('global.statistics.no_expense_in_period');
