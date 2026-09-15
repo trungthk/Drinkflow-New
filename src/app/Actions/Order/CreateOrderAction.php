@@ -9,6 +9,7 @@ use App\Events\OrderCreated;
 use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\RoomUser;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -85,6 +86,7 @@ class CreateOrderAction
             $delivery = (int) $campaign->delivery_fee;
             $sponsor = $this->sponsorAmount($campaign, $snapshots, $subtotal, $delivery, $discount);
             $final = max(0, $subtotal + $delivery - $discount - $sponsor);
+            $this->enforceDebtPolicy($roomUser, $final);
             $order = Order::create([
                 'room_id' => $campaign->room_id,
                 'campaign_id' => $campaign->id,
@@ -120,6 +122,7 @@ class CreateOrderAction
                         'subtotal' => $topping->price * $snapshot['quantity'],
                     ]);
                 }
+
             }
             return $order->load('items.toppings');
         });
@@ -127,6 +130,34 @@ class CreateOrderAction
         OrderCreated::dispatch($order);
 
         return $order;
+    }
+
+    /**
+     * Enforce the room's personal debt ceiling when automatic locking is enabled.
+     *
+     * @param RoomUser $roomUser Ordering room member.
+     * @param int $orderAmount Net amount of the new order.
+     * @return void
+     * @throws ValidationException When the order would exceed the configured ceiling.
+     */
+    private function enforceDebtPolicy(RoomUser $roomUser, int $orderAmount): void
+    {
+        $room = $roomUser->room()->firstOrFail();
+        $settings = $room->roomSettings()
+            ->whereIn('key', ['personal_debt_ceiling', 'auto_lock_on_debt_limit'])
+            ->get()
+            ->keyBy('key');
+        $autoLock = filter_var($settings->get('auto_lock_on_debt_limit')?->value ?? true, FILTER_VALIDATE_BOOLEAN);
+        if (! $autoLock) {
+            return;
+        }
+        $ceiling = (int) ($settings->get('personal_debt_ceiling')?->value ?? 150000);
+        $outstanding = (int) $roomUser->debts()->whereIn('status', ['unpaid', 'partial'])->sum('remaining_amount');
+        if ($outstanding + $orderAmount > $ceiling) {
+            throw ValidationException::withMessages([
+                'order' => __('admin.debt_limit_reached', ['limit' => FormatHelper::formatCurrency($ceiling)]),
+            ]);
+        }
     }
 
     /**

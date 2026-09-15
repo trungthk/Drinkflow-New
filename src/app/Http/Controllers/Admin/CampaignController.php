@@ -13,6 +13,7 @@ use App\Actions\Campaign\SplitCampaignBillAction;
 use App\Actions\Campaign\TransitionCampaignAction;
 use App\Actions\Campaign\UpdateCampaignItemAction;
 use App\Enums\PaymentAccountStatus;
+use App\Enums\CampaignStatus;
 use App\Enums\RoomUserStatus;
 use App\Events\RoomRealtimeEvent;
 use App\Http\Controllers\Controller;
@@ -87,6 +88,17 @@ class CampaignController extends Controller
         return view('admin.campaigns', [
             'room' => $room,
             'campaigns' => $campaigns,
+            'statusFilters' => collect(CampaignStatus::cases())
+                ->filter(static fn (CampaignStatus $status): bool => in_array($status, [
+                    CampaignStatus::Active,
+                    CampaignStatus::Scheduled,
+                    CampaignStatus::Closed,
+                    CampaignStatus::Archived,
+                ], true))
+                ->map(static fn (CampaignStatus $status): array => [
+                    'value' => $status->value,
+                    'label' => __('admin.filter_'.$status->value),
+                ])->values()->all(),
             'filters' => [
                 'search' => $search,
                 'status' => $status !== '' ? $status : 'all',

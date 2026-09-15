@@ -61,40 +61,6 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Thời Gian Order Mặc Định -->
-                <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-xs space-y-4">
-                    <div class="flex items-center justify-between pb-3 border-b border-outline-variant">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-[18px]">schedule</span>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-sm text-on-surface">{{ __('admin.default_order_window_title') }}</h3>
-                                <p class="text-[11px] text-outline">{{ __('admin.default_order_window_desc') }}</p>
-                            </div>
-                        </div>
-                        <span class="px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold rounded">{{ __('admin.auto_lock_countdown') }}</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        <div>
-                            <label class="block font-semibold text-on-surface mb-1">{{ __('admin.default_start_time') }}:</label>
-                            <input type="time" id="set-start-time" value="{{ $settings['default_start_time'] ?? '10:00' }}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface font-semibold">
-                        </div>
-                        <div>
-                            <label class="block font-semibold text-on-surface mb-1">{{ __('admin.default_lock_time') }}:</label>
-                            <input type="time" id="set-end-time" value="{{ $settings['default_end_time'] ?? '10:45' }}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface font-semibold">
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block font-semibold text-xs text-on-surface mb-1">{{ __('admin.pre_lock_warning') }}:</label>
-                        <div class="relative max-w-xs">
-                            <input type="number" id="set-warning-minutes" value="{{ $settings['auto_close_warning_minutes'] ?? 15 }}" min="1" max="60" class="w-full h-9 pl-3 pr-16 bg-surface border border-outline-variant rounded text-xs font-bold text-on-surface">
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-outline font-semibold">{{ __('admin.minutes_unit') }}</span>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Right Column: Budget & Debt Policy -->
@@ -134,13 +100,6 @@
                                 <p class="text-[11px] text-outline">{{ __('admin.spending_debt_policy_desc') }}</p>
                             </div>
                         </div>
-                    </div>
-
-                    <div class="p-3 bg-surface-container-low border border-outline-variant rounded-lg flex items-center justify-between">
-                        <div>
-                            <div class="font-semibold text-xs text-on-surface">{{ __('admin.allow_internal_debt') }}</div>
-                        </div>
-                        <input type="checkbox" id="set-allow-debt" {{ ($settings['allow_internal_debt'] ?? true) ? 'checked' : '' }} class="rounded border-outline-variant text-primary focus:ring-primary h-5 w-5">
                     </div>
 
                     <div>

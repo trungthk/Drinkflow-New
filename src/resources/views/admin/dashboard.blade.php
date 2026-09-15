@@ -286,6 +286,7 @@
                 </div>
             </section>
 
+            @if(false)
             <!-- Right: Realtime Stream Feed & VietQR Reconciliation -->
             <div id="side-stream-container" class="{{ count($liveOrders ?? []) > 0 ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 gap-4 space-y-0' }}">
                 <!-- VietQR Card -->
@@ -330,6 +331,7 @@
                     </div>
                 </section>
             </div>
+            @endif
         </div>
 
         <!-- Close Campaign Early Modal -->

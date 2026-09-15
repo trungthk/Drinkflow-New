@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\User\SetRoomUserStatusAction;
+use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SetStatusRequest;
 use App\Models\Room;
@@ -74,6 +75,10 @@ class RoomUserController extends Controller
         return view('admin.users', array_merge([
             'room' => $room,
             'roomUsers' => $roomUsers,
+            'statusFilters' => collect(RoomUserStatus::cases())->map(static fn (RoomUserStatus $status): array => [
+                'value' => $status->value,
+                'label' => __('admin.status_'.$status->value),
+            ])->values()->all(),
             'filters' => ['q' => $search, 'status' => $status !== '' ? $status : 'all'],
         ], $metrics));
     }

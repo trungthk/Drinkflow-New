@@ -47,11 +47,7 @@ export function initAdminSettings() {
 
         const payload = {
             campaign_title_template: document.querySelector('#set-template')?.value || '',
-            default_start_time: document.querySelector('#set-start-time')?.value || '10:00',
-            default_end_time: document.querySelector('#set-end-time')?.value || '10:45',
-            auto_close_warning_minutes: Number(document.querySelector('#set-warning-minutes')?.value || 15),
             max_campaign_budget: cleanNumber(budgetInput?.value),
-            allow_internal_debt: document.querySelector('#set-allow-debt')?.checked ?? true,
             personal_debt_ceiling: cleanNumber(debtInput?.value),
             auto_lock_on_debt_limit: document.querySelector('#set-autolock-debt')?.checked ?? true
         };
@@ -74,4 +70,3 @@ export function initAdminSettings() {
         }
     });
 }
-

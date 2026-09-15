@@ -432,6 +432,8 @@
                 );
                 const json = await res.json();
                 if (json.data?.deleted) {
+                    closeModal('payment-delete-modal');
+                    pendingDeleteId = null;
                     showNotice('{{ __('admin.account_deleted_ok') }}');
                     setTimeout(() => location.reload(), 800);
                 } else {

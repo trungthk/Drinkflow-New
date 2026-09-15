@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Order\DeleteOrderAction;
 use App\Actions\Order\UpdateOrderAction;
 use App\Actions\Order\UpdateOrderStatusAction;
+use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
@@ -90,6 +91,14 @@ class OrderController extends Controller
             'room' => $room,
             'orders' => $orders,
             'campaigns' => $campaigns,
+            'statusFilters' => collect(OrderStatus::cases())->map(static fn (OrderStatus $status): array => [
+                'value' => $status->value,
+                'label' => __('admin.status_'.match ($status) {
+                    OrderStatus::Submitted => 'pending',
+                    OrderStatus::Completed => 'paid',
+                    default => $status->value,
+                }),
+            ])->values()->all(),
             'filters' => [
                 'search' => $search,
                 'campaign_id' => $request->integer('campaign_id') ?: '',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Campaign;
 
 use App\Events\CampaignCreated;
+use App\Models\AdminAccount;
 use App\Models\Campaign;
 use App\Models\PaymentAccount;
 use App\Models\Room;
@@ -24,6 +25,19 @@ class CreateCampaignAction
      */
     public function execute(Room $room, array $data, ?int $adminId = null): Campaign
     {
+        $settings = $room->roomSettings()->whereIn('key', ['campaign_title_template', 'max_campaign_budget'])->get()->keyBy('key');
+        $titleTemplate = (string) ($settings->get('campaign_title_template')?->value ?? ('['.$room->name.'] Trà chiều & Cafe {date}'));
+        $creatorName = $adminId !== null ? (string) (AdminAccount::query()->whereKey($adminId)->value('name') ?? '') : '';
+        $defaultName = strtr($titleTemplate, [
+            '{date}' => now()->format('d/m/Y'),
+            '{time}' => now()->format('H:i'),
+            '{day_of_week}' => now()->translatedFormat('l'),
+            '{creator_name}' => $creatorName,
+        ]);
+        $data['name'] = trim((string) ($data['name'] ?? '')) !== '' ? $data['name'] : $defaultName;
+        if (! array_key_exists('max_budget', $data) || $data['max_budget'] === null) {
+            $data['max_budget'] = (int) ($settings->get('max_campaign_budget')?->value ?? 200000);
+        }
         if (! empty($data['payment_account_id']) && ! PaymentAccount::whereKey($data['payment_account_id'])->where('room_id', $room->id)->exists()) {
             throw ValidationException::withMessages([
                 'payment_account_id' => __('admin.payment_account_not_in_room'),
@@ -39,4 +53,3 @@ class CreateCampaignAction
         return $campaign;
     }
 }
-

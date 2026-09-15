@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Room;
 
 use App\Models\PaymentAccount;
@@ -31,11 +33,7 @@ class UpdateRoomSettingsAction
             'default_sponsor' => 'string',
             'default_payment_account_id' => 'integer',
             'campaign_title_template' => 'string',
-            'default_start_time' => 'string',
-            'default_end_time' => 'string',
-            'auto_close_warning_minutes' => 'integer',
             'max_campaign_budget' => 'integer',
-            'allow_internal_debt' => 'boolean',
             'personal_debt_ceiling' => 'integer',
             'auto_lock_on_debt_limit' => 'boolean',
         ];
@@ -88,11 +86,7 @@ class UpdateRoomSettingsAction
             'default_sponsor' => $settings->get('default_sponsor')?->value,
             'default_payment_account_id' => ($settings->get('default_payment_account_id')?->value !== null ? (int) $settings->get('default_payment_account_id')->value : null),
             'campaign_title_template' => $settings->get('campaign_title_template')?->value ?? ('['.$room->name.'] Trà chiều & Cafe {date}'),
-            'default_start_time' => $settings->get('default_start_time')?->value ?? '10:00',
-            'default_end_time' => $settings->get('default_end_time')?->value ?? '10:45',
-            'auto_close_warning_minutes' => $settings->get('auto_close_warning_minutes')?->value !== null ? (int) $settings->get('auto_close_warning_minutes')->value : 15,
             'max_campaign_budget' => $settings->get('max_campaign_budget')?->value !== null ? (int) $settings->get('max_campaign_budget')->value : 2000000,
-            'allow_internal_debt' => $settings->get('allow_internal_debt')?->value !== null ? filter_var($settings->get('allow_internal_debt')->value, FILTER_VALIDATE_BOOLEAN) : true,
             'personal_debt_ceiling' => $settings->get('personal_debt_ceiling')?->value !== null ? (int) $settings->get('personal_debt_ceiling')->value : 150000,
             'auto_lock_on_debt_limit' => $settings->get('auto_lock_on_debt_limit')?->value !== null ? filter_var($settings->get('auto_lock_on_debt_limit')->value, FILTER_VALIDATE_BOOLEAN) : true,
         ]);

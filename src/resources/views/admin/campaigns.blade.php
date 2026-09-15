@@ -33,10 +33,9 @@
             <input type="hidden" id="campaign-status-filter" name="status" value="{{ $filters['status'] ?? 'all' }}">
             <select id="campaign-status-select" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
                 <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all') }}</option>
-                <option value="active" {{ ($filters['status'] ?? '') === 'active' ? 'selected' : '' }}>{{ __('admin.filter_active') }}</option>
-                <option value="scheduled" {{ ($filters['status'] ?? '') === 'scheduled' ? 'selected' : '' }}>{{ __('admin.filter_scheduled') }}</option>
-                <option value="closed" {{ ($filters['status'] ?? '') === 'closed' ? 'selected' : '' }}>{{ __('admin.filter_closed') }}</option>
-                <option value="archived" {{ ($filters['status'] ?? '') === 'archived' ? 'selected' : '' }}>{{ __('admin.filter_archived') }}</option>
+                @foreach($statusFilters as $statusFilter)
+                    <option value="{{ $statusFilter['value'] }}" {{ ($filters['status'] ?? '') === $statusFilter['value'] ? 'selected' : '' }}>{{ $statusFilter['label'] }}</option>
+                @endforeach
             </select>
             <button type="submit" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary-container transition-colors">
                 <span class="material-symbols-outlined text-[16px]">filter_alt</span>

@@ -51,10 +51,9 @@
             </select>
             <select id="status-filter-select" name="status" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
                 <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all') }}</option>
-                <option value="pending" {{ ($filters['status'] ?? '') === 'pending' ? 'selected' : '' }}>{{ __('admin.status_pending') }}</option>
-                <option value="confirmed" {{ ($filters['status'] ?? '') === 'confirmed' ? 'selected' : '' }}>{{ __('admin.status_confirmed') }}</option>
-                <option value="paid" {{ ($filters['status'] ?? '') === 'paid' ? 'selected' : '' }}>{{ __('admin.status_paid') }}</option>
-                <option value="cancelled" {{ ($filters['status'] ?? '') === 'cancelled' ? 'selected' : '' }}>{{ __('admin.status_cancelled') }}</option>
+                @foreach($statusFilters as $statusFilter)
+                    <option value="{{ $statusFilter['value'] }}" {{ ($filters['status'] ?? '') === $statusFilter['value'] ? 'selected' : '' }}>{{ $statusFilter['label'] }}</option>
+                @endforeach
             </select>
             <button type="submit" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary-container transition-colors">
                 <span class="material-symbols-outlined text-[16px]">filter_alt</span>

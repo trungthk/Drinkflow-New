@@ -29,7 +29,7 @@ class StoreCampaignRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:160'],
+            'name' => ['nullable', 'string', 'max:160'],
             'restaurant' => ['required', 'string', 'max:160'],
             'sponsor_name' => ['nullable', 'string', 'max:160'],
             'sponsor_type' => ['nullable', 'in:none,per_item,budget,full'],
@@ -82,7 +82,6 @@ class StoreCampaignRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => __('validation.required', ['attribute' => __('validation.attributes.title')]),
             'restaurant.required' => __('validation.required', ['attribute' => __('validation.attributes.restaurant')]),
             'deadline.after' => __('validation.after', ['attribute' => __('validation.attributes.deadline'), 'date' => 'now']),
             'max_budget.min' => __('validation.min.numeric', ['attribute' => __('validation.attributes.max_budget'), 'min' => 0]),
