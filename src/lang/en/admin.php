@@ -444,6 +444,8 @@ return [
     'notification_channel_server_error' => 'A server error occurred.',
     'notification_channel_delete_confirm' => 'Are you sure you want to delete this channel?',
     'notification_channel_delete_failed' => 'Could not delete the notification channel.',
+    'notification_channel_delete_title' => 'Delete notification channel?',
+    'notification_channel_cancel' => 'Cancel',
     'audit_event_order_deleted' => 'Order deleted',
     'audit_event_order_updated' => 'Order updated',
     'audit_event_order_price_adjusted' => 'Order price adjusted',

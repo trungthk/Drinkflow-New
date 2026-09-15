@@ -1,4 +1,6 @@
 /** Connect room pages to data-changing realtime events and refresh stale server-rendered views. */
+import { showDesktopNotification } from '../global/desktop-notification';
+
 export function initRoomRealtime() {
     if (!window.io) return;
 
@@ -18,6 +20,7 @@ export function initRoomRealtime() {
                 'campaign.created', 'campaign.updated', 'campaign.deleted', 'campaign.closed',
                 'campaign.menu.updated', 'campaign.menu.deleted'
             ].forEach((event) => socket.on(event, refresh));
+            socket.on('notification.created', showDesktopNotification);
         })
         .catch(() => undefined);
 }

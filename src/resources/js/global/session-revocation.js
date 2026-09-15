@@ -1,4 +1,6 @@
 /** Connect the authenticated browser device to realtime forced-logout events. */
+import { showDesktopNotification } from './desktop-notification';
+
 export async function initSessionRevocation() {
     if (!window.io) return;
     const tokenUrl = document.body.dataset.socketTokenUrl;
@@ -14,6 +16,7 @@ export async function initSessionRevocation() {
             socket.disconnect();
             window.location.assign('/');
         });
+        socket.on('notification.created', showDesktopNotification);
     } catch (error) {
         console.error('Realtime session revocation connection failed.', error);
     }

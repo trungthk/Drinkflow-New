@@ -444,6 +444,8 @@ return [
     'notification_channel_server_error' => 'サーバーエラーが発生しました。',
     'notification_channel_delete_confirm' => 'このチャンネルを削除してもよろしいですか？',
     'notification_channel_delete_failed' => '通知チャンネルを削除できませんでした。',
+    'notification_channel_delete_title' => '通知チャンネルを削除しますか？',
+    'notification_channel_cancel' => 'キャンセル',
     'audit_event_order_deleted' => '注文を削除しました',
     'audit_event_order_updated' => '注文を更新しました',
     'audit_event_order_price_adjusted' => '注文金額を調整しました',

@@ -9,6 +9,7 @@ use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentAccountStatus;
 use App\Events\CampaignCreated;
+use App\Events\CampaignCancelled;
 use App\Models\Campaign;
 use App\Models\PaymentAccount;
 use Illuminate\Support\Facades\DB;
@@ -67,7 +68,7 @@ class TransitionCampaignAction
      */
     public function cancel(Campaign $campaign): Campaign
     {
-        return DB::transaction(function () use ($campaign): Campaign {
+        $cancelled = DB::transaction(function () use ($campaign): Campaign {
             $campaign = Campaign::query()->lockForUpdate()->findOrFail($campaign->id);
             if (! in_array($campaign->status, [CampaignStatus::Draft, CampaignStatus::Scheduled, CampaignStatus::Active], true)) {
                 throw ValidationException::withMessages([
@@ -89,6 +90,10 @@ class TransitionCampaignAction
 
             return $campaign->fresh();
         });
+
+        CampaignCancelled::dispatch($cancelled->load('room'));
+
+        return $cancelled;
     }
 
     /**
@@ -113,4 +118,3 @@ class TransitionCampaignAction
         });
     }
 }
-

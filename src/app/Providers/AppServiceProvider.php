@@ -3,14 +3,17 @@
 namespace App\Providers;
 
 use App\Events\CampaignClosed;
+use App\Events\CampaignCancelled;
 use App\Events\CampaignCreated;
 use App\Events\OrderCreated;
 use App\Events\OrderUpdated;
 use App\Events\OrderDeleted;
 use App\Events\RoomRealtimeEvent;
+use App\Events\UserNotificationCreated;
 use App\Listeners\CreateOrderNotification;
 use App\Listeners\CreateOrderStatusNotification;
 use App\Listeners\NotifyCampaignClosed;
+use App\Listeners\NotifyCampaignCancelled;
 use App\Listeners\NotifyCampaignCreated;
 use App\Listeners\NotifyOrderDeleted;
 use App\Listeners\PublishRealtimeEvent;
@@ -42,7 +45,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(CampaignCreated::class, PublishRealtimeEvent::class);
         Event::listen(CampaignClosed::class, NotifyCampaignClosed::class);
         Event::listen(CampaignClosed::class, PublishRealtimeEvent::class);
+        Event::listen(CampaignCancelled::class, NotifyCampaignCancelled::class);
         Event::listen(RoomRealtimeEvent::class, PublishRealtimeEvent::class);
+        Event::listen(UserNotificationCreated::class, PublishRealtimeEvent::class);
 
         \Illuminate\Support\Facades\RateLimiter::for('contact-submission', function (\Illuminate\Http\Request $request) {
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($request->ip() ?: '127.0.0.1');

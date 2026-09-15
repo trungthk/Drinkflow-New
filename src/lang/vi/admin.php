@@ -444,6 +444,8 @@ return [
     'notification_channel_server_error' => 'Đã xảy ra lỗi máy chủ.',
     'notification_channel_delete_confirm' => 'Bạn có chắc chắn muốn xóa kênh này không?',
     'notification_channel_delete_failed' => 'Không thể xóa kênh thông báo.',
+    'notification_channel_delete_title' => 'Xóa kênh thông báo?',
+    'notification_channel_cancel' => 'Hủy',
     'audit_event_order_deleted' => 'Đã xóa đơn hàng',
     'audit_event_order_updated' => 'Đã cập nhật đơn hàng',
     'audit_event_order_price_adjusted' => 'Đã điều chỉnh giá đơn hàng',

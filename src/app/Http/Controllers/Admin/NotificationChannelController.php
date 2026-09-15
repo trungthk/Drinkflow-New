@@ -10,6 +10,7 @@ use App\Models\NotificationChannel;
 use App\Models\Room;
 use App\Services\Audit\AuditService;
 use App\Services\Notification\RoomNotificationChannelService;
+use App\Services\Notification\RoomNotificationChannelDispatcher;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -68,11 +69,12 @@ class NotificationChannelController extends Controller
     /**
      * Handle the test operation.
      */
-    public function test(Room $room, NotificationChannel $channel, RoomNotificationChannelService $service): JsonResponse
+    public function test(Room $room, NotificationChannel $channel, RoomNotificationChannelService $service, RoomNotificationChannelDispatcher $dispatcher): JsonResponse
     {
         abort_unless($channel->room_id === $room->id, 404);
         abort_unless($service->configured($channel), 422, __('admin.channel_not_configured'));
-        return response()->json(['message' => 'test_accepted', 'data' => ['channel_id' => $channel->id, 'type' => $channel->type]]);
+        $dispatcher->test($channel);
+        return response()->json(['message' => 'test_sent', 'data' => ['channel_id' => $channel->id, 'type' => $channel->type]]);
     }
 
     /**
@@ -85,4 +87,3 @@ class NotificationChannelController extends Controller
         return response()->json(['data' => ['disabled' => true]]);
     }
 }
-

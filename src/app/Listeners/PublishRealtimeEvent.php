@@ -8,6 +8,7 @@ use App\Events\OrderCreated;
 use App\Events\OrderDeleted;
 use App\Events\OrderUpdated;
 use App\Events\RoomRealtimeEvent;
+use App\Events\UserNotificationCreated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Http;
@@ -57,10 +58,22 @@ class PublishRealtimeEvent implements ShouldQueue
                 $event->payload,
                 null,
             ],
+            $event instanceof UserNotificationCreated => [
+                'notification.created',
+                $event->notification->roomUser?->room_id ?? 0,
+                [
+                    'id' => $event->notification->id,
+                    'type' => $event->notification->type,
+                    'title' => $event->notification->title,
+                    'body' => $event->notification->body,
+                    'data' => $event->notification->data ?? [],
+                ],
+                'global_user:'.$event->notification->global_user_id,
+            ],
             default => [null, null, [], null],
         };
 
-        if (! $name || ! $roomId || ! config('services.realtime.url')) {
+        if (! $name || ! config('services.realtime.url')) {
             return;
         }
 

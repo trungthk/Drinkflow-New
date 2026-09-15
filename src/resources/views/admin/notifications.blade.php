@@ -29,7 +29,8 @@
          data-notification-test-failed="{{ __('admin.notification_channel_test_failed') }}"
          data-notification-server-error="{{ __('admin.notification_channel_server_error') }}"
          data-notification-delete-confirm="{{ __('admin.notification_channel_delete_confirm') }}"
-         data-notification-delete-failed="{{ __('admin.notification_channel_delete_failed') }}"></div>
+         data-notification-delete-failed="{{ __('admin.notification_channel_delete_failed') }}"
+         data-processing="{{ __('admin.processing') }}"></div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left: Configured Channels List -->
@@ -80,11 +81,11 @@
                             </div>
 
                             <div class="flex items-center gap-2 shrink-0">
-                                <button type="button" onclick="testChannel({{ $chId }})" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer">
+                                <button type="button" data-channel-test="{{ $chId }}" onclick="testChannel({{ $chId }})" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer">
                                     <span class="material-symbols-outlined text-[14px]">bolt</span>
                                     <span>{{ __('admin.test_ping') }}</span>
                                 </button>
-                                <button type="button" onclick="deleteChannel({{ $chId }})" class="p-1.5 text-secondary hover:text-rose-600 rounded hover:bg-surface-container transition-colors cursor-pointer" title="{{ __('admin.btn_delete_channel') }}">
+                                <button type="button" data-channel-delete="{{ $chId }}" onclick="deleteChannel({{ $chId }})" class="p-1.5 text-secondary hover:text-rose-600 rounded hover:bg-surface-container transition-colors cursor-pointer" title="{{ __('admin.btn_delete_channel') }}">
                                     <span class="material-symbols-outlined text-[16px]">delete</span>
                                 </button>
                             </div>
@@ -107,7 +108,7 @@
                     <h2 class="font-bold text-sm text-on-surface">{{ __('admin.connect_new_bot') }}</h2>
                 </div>
 
-                <form id="add-channel-form" data-loading-form="true" class="space-y-3 text-xs">
+                <form id="add-channel-form" data-no-loading class="space-y-3 text-xs">
                     <div>
                         <label class="block font-semibold text-on-surface mb-1">{{ __('admin.channel_name_label') }}</label>
                         <input type="text" id="ch-name" placeholder="{{ __('admin.channel_name_placeholder') }}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-medium text-xs text-on-surface" required>
@@ -173,6 +174,25 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="channel-delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="channel-delete-modal-title">
+        <div class="w-full max-w-md rounded-2xl bg-surface-container-lowest border border-outline-variant shadow-xl overflow-hidden">
+            <div class="p-6">
+                <div class="w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined">delete_forever</span>
+                </div>
+                <h2 id="channel-delete-modal-title" class="text-base font-bold text-on-surface">{{ __('admin.notification_channel_delete_title') }}</h2>
+                <p class="mt-2 text-sm text-on-surface-variant">{{ __('admin.notification_channel_delete_confirm') }}</p>
+            </div>
+            <div class="px-6 py-4 bg-surface-container-low flex justify-end gap-3 border-t border-outline-variant">
+                <button id="channel-delete-cancel" type="button" class="px-4 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container-high rounded-lg">{{ __('admin.notification_channel_cancel') }}</button>
+                <button id="channel-delete-confirm" type="button" class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg inline-flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                    <span>{{ __('admin.delete_confirm_btn') }}</span>
+                </button>
             </div>
         </div>
     </div>

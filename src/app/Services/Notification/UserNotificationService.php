@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Notification;
 
 use App\Enums\RoomUserStatus;
+use App\Events\UserNotificationCreated;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
@@ -43,7 +44,7 @@ class UserNotificationService
      */
     public function toRoomUser(RoomUser $roomUser, string $type, string $title, ?string $body = null, array $data = []): UserNotification
     {
-        return UserNotification::create([
+        $notification = UserNotification::create([
             'global_user_id' => $roomUser->global_user_id,
             'room_user_id' => $roomUser->id,
             'type' => $type,
@@ -51,6 +52,9 @@ class UserNotificationService
             'body' => $body,
             'data' => $data,
         ]);
+        UserNotificationCreated::dispatch($notification);
+
+        return $notification;
     }
     /**
      * Lấy danh sách thông báo phân trang theo từng tab và tính số lượng thông báo theo danh mục.

@@ -70,16 +70,17 @@ const httpServer = createServer((req, res) => {
         const allowedEvents = new Set([
           'order.created', 'order.updated', 'order.deleted',
           'campaign.created', 'campaign.updated', 'campaign.deleted', 'campaign.closed',
-          'campaign.menu.updated', 'campaign.menu.deleted', 'campaign.participant.declined'
+          'campaign.menu.updated', 'campaign.menu.deleted', 'campaign.participant.declined', 'notification.created'
         ]);
         const roomId = Number(input.room_id);
-        if (!allowedEvents.has(input.event) || !Number.isInteger(roomId) || roomId < 1) {
+        const requiresRoom = input.event !== 'notification.created';
+        if (!allowedEvents.has(input.event) || !Number.isInteger(roomId) || (requiresRoom && roomId < 1) || (!requiresRoom && roomId < 0)) {
           res.writeHead(422, { 'Content-Type': 'application/json' });
           return res.end(JSON.stringify({ error: 'invalid_event' }));
         }
         const payload = input.payload && typeof input.payload === 'object' ? input.payload : {};
         io.to(`room:${roomId}`).emit(input.event, payload);
-        if (typeof input.user_channel === 'string' && /^user:\d+$/.test(input.user_channel)) {
+        if (typeof input.user_channel === 'string' && /^(?:user|global_user):\d+$/.test(input.user_channel)) {
           io.to(input.user_channel).emit(input.event, payload);
         }
         res.writeHead(202, { 'Content-Type': 'application/json' });
@@ -121,7 +122,8 @@ io.use((socket, next) => {
 io.on('connection', socket => {
   const claims = socket.data.claims;
   const allowed = new Set();
-  if (claims.actor_type === 'user') allowed.add(`user:${claims.room_user_id}`);
+  if (claims.actor_type === 'user' && Number.isInteger(Number(claims.room_user_id))) allowed.add(`user:${claims.room_user_id}`);
+  if (claims.actor_type === 'user' && Number.isInteger(Number(claims.global_user_id))) allowed.add(`global_user:${claims.global_user_id}`);
   if (claims.actor_type === 'admin') allowed.add(`admin:${claims.admin_id}`);
   if (claims.actor_type === 'superadmin') { allowed.add('superadmin'); allowed.add('system'); }
   for (const roomId of claims.room_ids || (claims.room_id ? [claims.room_id] : [])) allowed.add(`room:${roomId}`);
