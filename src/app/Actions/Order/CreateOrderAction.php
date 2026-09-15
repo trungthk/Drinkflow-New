@@ -180,9 +180,14 @@ class CreateOrderAction
     private function sponsorAmount(Campaign $campaign, array $snapshots, int $subtotal, int $delivery, int $discount): int
     {
         $charge = max(0, $subtotal + $delivery - $discount);
+        $configuredPerItem = (int) collect($snapshots)->sum(
+            static fn (array $snapshot): int => (int) $snapshot['item']->sponsor_amount * (int) $snapshot['quantity'],
+        );
 
         return match ($campaign->sponsor_type) {
             'full' => $charge,
+            'per_item' => min($charge, $configuredPerItem),
+            'budget' => min($charge, max(0, (int) $campaign->max_budget - (int) $campaign->orders()->sum('sponsor_amount'))),
             default => 0,
         };
     }

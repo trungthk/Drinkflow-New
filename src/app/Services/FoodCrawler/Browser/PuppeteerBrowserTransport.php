@@ -48,7 +48,26 @@ final class PuppeteerBrowserTransport implements BrowserTransportInterface
     public function load(string $url): string
     {
         try {
-            return $this->browser($url)->bodyHtml();
+            $script = __DIR__.'/render-page.cjs';
+            $nodeModulePath = (string) config('food-crawler.browser.node_module_path');
+            putenv('NODE_PATH='.$nodeModulePath);
+            $command = sprintf(
+                '%s %s %s %s %s %s %s 2>&1',
+                escapeshellarg((string) config('food-crawler.browser.node_binary')),
+                escapeshellarg($script),
+                escapeshellarg($url),
+                escapeshellarg((string) config('food-crawler.browser.chrome_path')),
+                escapeshellarg(config('food-crawler.browser.headless') ? 'true' : 'false'),
+                escapeshellarg((string) config('food-crawler.browser.user_data_dir')),
+                escapeshellarg((string) config('food-crawler.browser.profile_directory')),
+            );
+            $output = shell_exec($command);
+            $result = json_decode((string) $output, true);
+            $html = is_array($result) ? base64_decode((string) ($result['html'] ?? ''), true) : false;
+            if (! is_string($html) || $html === '') {
+                throw new FoodCrawlerException('Browser did not return rendered HTML.');
+            }
+            return $html;
         } catch (Throwable $exception) {
             throw $this->wrapException($url, $exception);
         }
@@ -60,11 +79,23 @@ final class PuppeteerBrowserTransport implements BrowserTransportInterface
             $script = __DIR__.'/capture-network.cjs';
             $nodeModulePath = (string) config('food-crawler.browser.node_module_path');
             putenv('NODE_PATH='.$nodeModulePath);
+            $diagnosticsPath = (string) config('food-crawler.browser.diagnostics_path');
+            if ($diagnosticsPath !== '') {
+                $diagnosticsDirectory = dirname($diagnosticsPath);
+                if (! is_dir($diagnosticsDirectory)) {
+                    mkdir($diagnosticsDirectory, 0775, true);
+                }
+                putenv('FOOD_CRAWLER_DIAGNOSTICS_PATH='.$diagnosticsPath);
+            }
             $command = sprintf(
-                '"%s" "%s" "%s" 2>&1',
-                config('food-crawler.browser.node_binary'),
-                $script,
-                $url
+                '%s %s %s %s %s %s %s 2>&1',
+                escapeshellarg((string) config('food-crawler.browser.node_binary')),
+                escapeshellarg($script),
+                escapeshellarg($url),
+                escapeshellarg((string) config('food-crawler.browser.chrome_path')),
+                escapeshellarg(config('food-crawler.browser.headless') ? 'true' : 'false'),
+                escapeshellarg((string) config('food-crawler.browser.user_data_dir')),
+                escapeshellarg((string) config('food-crawler.browser.profile_directory')),
             );
             $output = shell_exec($command);
             $decoded = json_decode((string) $output, true);

@@ -11,11 +11,14 @@ use App\Services\FoodCrawler\DTO\MenuProductData;
 use App\Services\FoodCrawler\DTO\ProductOptionGroupData;
 use App\Services\FoodCrawler\DTO\ProductOptionItemData;
 use App\Services\FoodCrawler\DTO\RestaurantMenuData;
-use App\Services\FoodCrawler\Exceptions\FoodCrawlerException;
+use App\Services\FoodCrawler\Parsers\ShopeeFoodHtmlParser;
 
 final class ShopeeFoodProvider implements FoodCrawlerProviderInterface
 {
-    public function __construct(private readonly ShopeeFoodClient $client)
+    public function __construct(
+        private readonly ShopeeFoodClient $client,
+        private readonly ShopeeFoodHtmlParser $parser,
+    )
     {
     }
 
@@ -27,15 +30,7 @@ final class ShopeeFoodProvider implements FoodCrawlerProviderInterface
 
     public function crawl(string $url): RestaurantMenuData
     {
-        $network = $this->client->pageMenuData($url);
-        $restaurantReply = is_array($network['restaurant']['reply'] ?? null) ? $network['restaurant']['reply'] : [];
-        $payload = is_array($network['dishes']['reply'] ?? null) ? $network['dishes']['reply'] : [];
-        $categories = $this->categories($payload['menu_infos'] ?? []);
-        if ($categories === []) {
-            throw new FoodCrawlerException('ShopeeFood public page did not expose a readable menu response.');
-        }
-
-        return new RestaurantMenuData('shopeefood', $url, (string) ($restaurantReply['restaurant_id'] ?? ''), (string) ($restaurantReply['delivery_id'] ?? ''), $categories);
+        return $this->parser->parse($url, $this->client->page($url));
     }
 
     /** @param mixed $menuInfos @return array<int, MenuCategoryData> */

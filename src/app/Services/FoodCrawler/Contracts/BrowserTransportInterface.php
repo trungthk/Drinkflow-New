@@ -15,11 +15,10 @@ interface BrowserTransportInterface
     public function load(string $url): string;
 
     /**
-     * Evaluate a script in the rendered page context.
+     * Capture public API responses for browser diagnostics.
      *
      * @param string $url Public page URL.
-     * @param string $script JavaScript function source.
-     * @return string Serialized evaluation result.
+     * @return array<string, mixed> Captured browser diagnostics.
      */
     public function networkData(string $url): array;
 }

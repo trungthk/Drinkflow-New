@@ -23,14 +23,4 @@ final class ShopeeFoodClient
         return $this->browser->load($url);
     }
 
-    /**
-     * Read menu API responses requested by the rendered public page.
-     *
-     * @param string $url Public restaurant URL.
-     * @return array<string, mixed> Public network payloads.
-     */
-    public function pageMenuData(string $url): array
-    {
-        return $this->browser->networkData($url);
-    }
 }

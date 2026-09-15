@@ -3,7 +3,7 @@
 return [
     'meta_title' => 'DrinkFlow :version - Lịch sử phiên bản',
     'breadcrumb_root' => 'Hệ thống DrinkFlow',
-    'breadcrumb_history' => 'Nhật ký cập nhật',
+    'breadcrumb_history' => 'Lịch sử cập nhật',
     'breadcrumb_release' => 'Bản phát hành :version',
     'viewing_detail' => 'Đang xem chi tiết',
     'view_latest' => 'Xem bản mới nhất (:version)',

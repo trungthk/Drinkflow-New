@@ -91,6 +91,7 @@
                   <span class="material-symbols-outlined text-[16px] text-[#006948]">mail</span>
                   <span class="font-medium text-slate-800">{{ $user->email }}</span>
                   <span class="text-xs text-slate-400 italic">{{ __('global.profile.sso_lock_notice') }}</span>
+                  <span class="text-xs text-slate-400">{{ __('global.profile.managed_by_it') }}</span>
                 </p>
 
                 <div class="flex flex-wrap gap-3 text-xs text-slate-500 pt-1">
