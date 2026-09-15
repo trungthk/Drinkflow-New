@@ -211,6 +211,7 @@ return [
     'reconcile_btn' => '照合・精算',
     'duplicate_campaign' => 'キャンペーンを複製',
     'no_campaigns_found' => 'このルームにはまだキャンペーンがありません。',
+    'no_campaigns_matching_filters' => '選択したフィルターまたは検索条件に一致するキャンペーンはありません。',
     'create_first_campaign' => '最初のキャンペーンを作成',
     'status_closing' => 'まもなく締切',
 

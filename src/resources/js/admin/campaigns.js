@@ -3,8 +3,11 @@
  */
 export function initAdminCampaigns() {
     const searchInput = document.querySelector('#campaign-search');
-    const filterBtns = document.querySelectorAll('.campaign-filter');
+    const filterForm = document.querySelector('#campaigns-filter-form');
+    const statusSelect = document.querySelector('#campaign-status-select');
+    const statusFilter = document.querySelector('#campaign-status-filter');
     const rows = document.querySelectorAll('[data-campaign-row]');
+    const noResults = document.querySelector('#campaigns-no-filter-results');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
     const duplicateModal = document.querySelector('#duplicate-campaign-modal');
@@ -14,26 +17,28 @@ export function initAdminCampaigns() {
 
     function applyFilters() {
         const term = searchInput?.value.trim().toLowerCase() || '';
-        const activeFilter = document.querySelector('.campaign-filter.bg-primary')?.dataset.filter || 'all';
+        const activeFilter = statusSelect?.value || statusFilter?.value || 'all';
+        let visibleRows = 0;
 
         rows.forEach(row => {
             const matchesSearch = row.dataset.search?.includes(term);
             const matchesFilter = activeFilter === 'all' || row.dataset.status === activeFilter;
             row.style.display = (matchesSearch && matchesFilter) ? '' : 'none';
+            if (matchesSearch && matchesFilter) visibleRows += 1;
         });
+        noResults?.classList.toggle('hidden', rows.length === 0 || visibleRows > 0);
     }
 
     searchInput?.addEventListener('admin:search', applyFilters);
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterBtns.forEach(b => {
-                b.classList.remove('bg-primary', 'text-on-primary');
-                b.classList.add('bg-surface-container', 'text-on-surface');
-            });
-            btn.classList.add('bg-primary', 'text-on-primary');
-            btn.classList.remove('bg-surface-container', 'text-on-surface');
-            applyFilters();
-        });
+    statusSelect?.addEventListener('change', () => {
+        if (statusFilter) statusFilter.value = statusSelect.value;
+        applyFilters();
+    });
+    searchInput?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            filterForm?.requestSubmit();
+        }
     });
 
     const closeDuplicateModal = () => {

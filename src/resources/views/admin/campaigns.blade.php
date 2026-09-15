@@ -25,18 +25,25 @@
     <div id="notice" class="hidden mb-4 rounded-xl px-4 py-3 text-xs font-medium"></div>
 
     <!-- Campaigns Search & Filter Toolbar -->
-    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+    <form id="campaigns-filter-form" method="GET" action="{{ route('admin.campaigns.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
-            <x-admin.search-input id="campaign-search" placeholder="{{ __('admin.search_campaigns_placeholder') }}" containerClass="relative w-full max-w-md" />
+            <x-admin.search-input id="campaign-search" name="search" :value="$filters['search'] ?? ''" placeholder="{{ __('admin.search_campaigns_placeholder') }}" containerClass="relative w-full max-w-md" />
         </div>
-        <div class="flex items-center gap-1.5 overflow-x-auto">
-            <button type="button" data-filter="all" class="campaign-filter px-3 py-1.5 rounded text-xs font-semibold bg-primary text-on-primary transition-colors">{{ __('admin.filter_all') }}</button>
-            <button type="button" data-filter="active" class="campaign-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.filter_active') }}</button>
-            <button type="button" data-filter="scheduled" class="campaign-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.filter_scheduled') }}</button>
-            <button type="button" data-filter="closed" class="campaign-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.filter_closed') }}</button>
-            <button type="button" data-filter="archived" class="campaign-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.filter_archived') }}</button>
+        <div class="flex items-center gap-2 flex-wrap">
+            <input type="hidden" id="campaign-status-filter" name="status" value="{{ $filters['status'] ?? 'all' }}">
+            <select id="campaign-status-select" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all') }}</option>
+                <option value="active" {{ ($filters['status'] ?? '') === 'active' ? 'selected' : '' }}>{{ __('admin.filter_active') }}</option>
+                <option value="scheduled" {{ ($filters['status'] ?? '') === 'scheduled' ? 'selected' : '' }}>{{ __('admin.filter_scheduled') }}</option>
+                <option value="closed" {{ ($filters['status'] ?? '') === 'closed' ? 'selected' : '' }}>{{ __('admin.filter_closed') }}</option>
+                <option value="archived" {{ ($filters['status'] ?? '') === 'archived' ? 'selected' : '' }}>{{ __('admin.filter_archived') }}</option>
+            </select>
+            <button type="submit" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary-container transition-colors">
+                <span class="material-symbols-outlined text-[16px]">filter_alt</span>
+                {{ __('admin.filter_apply') }}
+            </button>
         </div>
-    </div>
+    </form>
 
     <!-- Campaigns Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
@@ -73,9 +80,9 @@
                                 default => $statusValue
                             };
                         @endphp
-                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-campaign-row data-status="{{ $statusValue }}" data-search="{{ strtolower($camp->title . ' ' . $camp->restaurant) }}">
+                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-campaign-row data-status="{{ $statusValue }}" data-search="{{ strtolower($camp->name . ' ' . $camp->restaurant . ' ' . ($camp->description ?? '')) }}">
                             <td class="py-3.5 px-4">
-                                <div class="font-bold text-on-surface text-sm">{{ $camp->title }}</div>
+                                <div class="font-bold text-on-surface text-sm">{{ $camp->name }}</div>
                                 <div class="text-secondary flex items-center gap-1.5 mt-0.5">
                                     <span class="material-symbols-outlined text-[14px]">storefront</span>
                                     <span>{{ $camp->restaurant }}</span>
@@ -100,24 +107,29 @@
                                 {{ number_format($camp->subtotal_amount ?? 0) }} ₫
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <div class="flex items-center justify-center gap-1.5">
+                                <details class="relative inline-block text-left">
+                                    <summary class="list-none cursor-pointer inline-flex items-center justify-center w-8 h-8 rounded-lg text-secondary hover:text-primary hover:bg-surface-container transition-colors" aria-label="{{ __('admin.th_actions') }}">
+                                        <span class="material-symbols-outlined text-[20px]">more_vert</span>
+                                    </summary>
+                                    <div class="absolute right-0 mt-1 w-48 z-20 rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl p-1.5 space-y-0.5">
                                     @if(in_array($statusValue, ['active', 'closing', 'scheduled'], true))
-                                        <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}" class="px-2.5 py-1 bg-primary text-on-primary hover:bg-primary/90 rounded text-[11px] font-semibold flex items-center gap-1 no-underline">
+                                        <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
                                             <span class="material-symbols-outlined text-[14px]">sensors</span>
                                             <span>{{ __('admin.live_control_btn') }}</span>
                                         </a>
                                     @else
-                                        <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}?view=detail" class="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-on-surface rounded text-[11px] font-semibold flex items-center gap-1 no-underline">
+                                        <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}?view=detail" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
                                             <span class="material-symbols-outlined text-[14px]">receipt_long</span>
                                             <span>{{ __('admin.reconcile_btn') }}</span>
                                         </a>
                                     @endif
                                     @if($statusValue === 'closed')
-                                    <button type="button" onclick="duplicateCampaign({{ $camp->id }})" class="p-1 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors" title="{{ __('admin.duplicate_campaign') }}">
-                                        <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                                    <button type="button" onclick="duplicateCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
+                                        <span class="material-symbols-outlined text-[16px]">content_copy</span>{{ __('admin.duplicate_campaign') }}
                                     </button>
                                     @endif
-                                </div>
+                                    </div>
+                                </details>
                             </td>
                         </tr>
                     @empty
@@ -131,6 +143,9 @@
                             </td>
                         </tr>
                     @endforelse
+                    <tr id="campaigns-no-filter-results" class="hidden">
+                        <td colspan="6" class="py-12 text-center text-outline">{{ __('admin.no_campaigns_matching_filters') }}</td>
+                    </tr>
                 </tbody>
             </table>
         </div>

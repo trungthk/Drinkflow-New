@@ -211,6 +211,7 @@ return [
     'reconcile_btn' => 'Reconcile',
     'duplicate_campaign' => 'Duplicate Campaign',
     'no_campaigns_found' => 'No campaigns found in this room.',
+    'no_campaigns_matching_filters' => 'No campaigns match the selected filters or search term.',
     'create_first_campaign' => 'Create First Campaign',
     'status_closing' => 'Closing soon',
 

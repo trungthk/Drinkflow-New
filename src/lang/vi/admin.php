@@ -211,6 +211,7 @@ return [
     'reconcile_btn' => 'Đối soát',
     'duplicate_campaign' => 'Nhân bản chiến dịch',
     'no_campaigns_found' => 'Chưa có chiến dịch nào được tạo trong phòng này.',
+    'no_campaigns_matching_filters' => 'Không có chiến dịch phù hợp với bộ lọc hoặc từ khóa tìm kiếm.',
     'create_first_campaign' => 'Tạo chiến dịch đầu tiên',
     'status_closing' => 'Sắp chốt',
 

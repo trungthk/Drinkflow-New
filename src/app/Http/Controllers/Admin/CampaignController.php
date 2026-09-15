@@ -61,15 +61,35 @@ class CampaignController extends Controller
      */
     public function page(Request $request, Room $room): View
     {
-        $campaigns = Campaign::query()
+        $query = Campaign::query()
             ->where('room_id', $room->id)
             ->withCount('orders')
-            ->latest()
-            ->paginate(20);
+            ->latest();
+
+        $search = trim($request->string('search')->toString());
+        if ($search !== '') {
+            $normalizedSearch = mb_strtolower($search);
+            $query->where(function ($campaignQuery) use ($normalizedSearch): void {
+                $campaignQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw('LOWER(restaurant) LIKE ?', ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw('LOWER(description) LIKE ?', ['%' . $normalizedSearch . '%']);
+            });
+        }
+
+        $status = $request->string('status')->toString();
+        if ($status !== '' && $status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        $campaigns = $query->paginate(20)->withQueryString();
 
         return view('admin.campaigns', [
             'room' => $room,
             'campaigns' => $campaigns,
+            'filters' => [
+                'search' => $search,
+                'status' => $status !== '' ? $status : 'all',
+            ],
         ]);
     }
 
