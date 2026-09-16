@@ -24,8 +24,8 @@ class CampaignNotificationPayloadService
             'campaign.cancelled' => __('messages.campaign_cancelled_title'),
             default => __('messages.campaign_closed_title'),
         };
-        $orderUrl = $event === 'campaign.created'
-            ? route('user.campaigns.order-page', [$room, $campaign])
+        $orderUrl = $event === 'campaign.created' && $room !== null
+            ? route('user.campaigns.index', $room)
             : null;
 
         return [
@@ -42,9 +42,10 @@ class CampaignNotificationPayloadService
                 'max_product_budget' => $campaign->max_budget,
                 'order_url' => $orderUrl,
             ],
-            'message' => $this->message($title, $campaign, $orderUrl),
+            'message' => $this->message($title, $campaign, $orderUrl, $event),
         ];
     }
+
 
     /**
      * Format a compact human-readable message for chat notification drivers.
@@ -54,31 +55,42 @@ class CampaignNotificationPayloadService
      * @param ?string $orderUrl User order link when ordering is available.
      * @return string Formatted notification text.
      */
-    private function message(string $title, Campaign $campaign, ?string $orderUrl): string
+    private function message(string $title, Campaign $campaign, ?string $orderUrl, string $event = 'campaign.created'): string
     {
         $lines = [$title, __('messages.campaign_name', ['name' => $campaign->name])];
-        $lines[] = __('messages.campaign_deadline', [
-            'date' => $campaign->deadline
-                ? FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i')
-                : __('messages.campaign_deadline_not_set'),
-        ]);
-        $lines[] = __('messages.campaign_product_budget', [
-            'amount' => $campaign->max_budget
-                ? FormatHelper::formatCurrency((int) $campaign->max_budget)
-                : __('messages.campaign_product_budget_unlimited'),
-        ]);
-        if ($campaign->sponsor_name || $campaign->max_budget) {
-            $lines[] = __('messages.campaign_sponsorship', [
-                'sponsor' => $campaign->sponsor_name ?: __('messages.campaign_sponsor_not_set'),
+        if (! empty($campaign->restaurant)) {
+            $lines[] = __('messages.campaign_restaurant', ['restaurant' => $campaign->restaurant]);
+        }
+
+        if ($event === 'campaign.created') {
+            $lines[] = __('messages.campaign_deadline', [
+                'date' => $campaign->deadline
+                    ? FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i')
+                    : __('messages.campaign_deadline_not_set'),
+            ]);
+            $lines[] = __('messages.campaign_product_budget', [
                 'amount' => $campaign->max_budget
                     ? FormatHelper::formatCurrency((int) $campaign->max_budget)
                     : __('messages.campaign_product_budget_unlimited'),
             ]);
-        }
-        if ($orderUrl !== null) {
-            $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
+            if ($campaign->sponsor_name || $campaign->max_budget) {
+                $lines[] = __('messages.campaign_sponsorship', [
+                    'sponsor' => $campaign->sponsor_name ?: __('messages.campaign_sponsor_not_set'),
+                    'amount' => $campaign->max_budget
+                        ? FormatHelper::formatCurrency((int) $campaign->max_budget)
+                        : __('messages.campaign_product_budget_unlimited'),
+                ]);
+            }
+            if ($orderUrl !== null) {
+                $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
+            }
+        } elseif ($event === 'campaign.closed') {
+            $lines[] = __('messages.campaign_closed_body');
+        } elseif ($event === 'campaign.cancelled') {
+            $lines[] = __('messages.campaign_cancelled_body');
         }
 
         return implode("\n", $lines);
     }
 }
+

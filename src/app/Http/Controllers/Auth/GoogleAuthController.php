@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Enums\AdminStatus;
 use App\Enums\GlobalUserStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\AdminAccount;
@@ -55,13 +56,13 @@ class GoogleAuthController extends Controller
         }
 
         try {
-            $pendingAdminId = $request->session()->pull('admin_google_2fa_admin_id');
+            $pendingAdminId = $request->session()->get('admin_google_2fa_admin_id');
             if ($pendingAdminId) {
                 $profile = $service->fetchProfile($request);
                 $admin = AdminAccount::query()
                     ->whereKey((int) $pendingAdminId)
                     ->where('email', strtolower((string) $profile['email']))
-                    ->where('status', 'active')
+                    ->where('status', AdminStatus::Active->value)
                     ->first();
 
                 if (! $admin) {
@@ -70,8 +71,13 @@ class GoogleAuthController extends Controller
                     ]);
                 }
 
-                \Illuminate\Support\Facades\Auth::guard('admin')->login($admin, true);
+                $remember = (bool) $request->session()->get('admin_google_2fa_remember', false);
+                \Illuminate\Support\Facades\Auth::guard('admin')->login($admin, $remember);
                 $request->session()->regenerate();
+                $request->session()->forget([
+                    'admin_google_2fa_admin_id',
+                    'admin_google_2fa_remember',
+                ]);
                 $admin->update(['last_login_at' => now()]);
                 $audit->record('admin.logged_in', 'admin', $admin->id, null, [], [], [
                     'authentication_method' => 'google_oauth_2fa',

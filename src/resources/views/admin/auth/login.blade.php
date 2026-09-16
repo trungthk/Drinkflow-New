@@ -1,4 +1,8 @@
 <x-admin-auth.layout :title="__('admin.login_page_title')">
+    @php
+        $googleTwoFactorPending = session()->has('admin_google_2fa_admin_id');
+    @endphp
+
     <div class="mb-5">
         <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-secondary-container text-on-secondary-container text-xs font-mono font-semibold mb-2">
             <span class="material-symbols-outlined text-[15px]">admin_panel_settings</span>
@@ -7,10 +11,10 @@
         <h2 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.login_heading') }}</h2>
     </div>
 
-    @if ($errors->any())
+    @if ($errors->any() || session('login_error'))
         <div class="mb-4 rounded-xl bg-error-container p-3 text-xs font-medium text-on-error-container border border-error/20 flex items-center gap-2">
             <span class="material-symbols-outlined text-[18px] text-error shrink-0">error</span>
-            <span>{{ $errors->first() }}</span>
+            <span>{{ session('login_error') ?: $errors->first() }}</span>
         </div>
     @endif
 
@@ -21,7 +25,7 @@
         </div>
     @endif
 
-    @if(session()->has('admin_google_2fa_admin_id'))
+    @if($googleTwoFactorPending)
         <div class="mb-4 rounded-xl border border-primary/25 bg-primary/10 p-4 space-y-3">
             <div class="flex items-start gap-2 text-xs text-on-primary-fixed-variant">
                 <span class="material-symbols-outlined text-primary">verified_user</span>
@@ -31,9 +35,18 @@
                 <span class="material-symbols-outlined text-[18px]">account_circle</span>
                 {{ __('admin.sign_in_google_workspace') }}
             </a>
+            <form method="post" action="{{ route('admin.login.two-factor.cancel') }}" data-loading-form="true">
+                @csrf
+                <button type="submit"
+                    class="w-full h-10 rounded-lg border border-outline-variant bg-surface text-on-surface text-sm font-semibold hover:bg-surface-container transition-colors inline-flex items-center justify-center gap-2 cursor-pointer">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                    {{ __('admin.cancel') }}
+                </button>
+            </form>
         </div>
     @endif
 
+    @unless($googleTwoFactorPending)
     <form method="post" action="{{ route('admin.login') }}" data-loading-form="true" class="space-y-4">
         @csrf
         <div>
@@ -123,22 +136,7 @@
             <span>{{ __('admin.sign_in') }}</span>
         </button>
     </form>
-
-    <!-- Security Assurance Pill -->
-    <div class="p-3 rounded-xl bg-surface border border-outline-variant/60 flex items-start gap-2.5 mt-5">
-        <div class="p-1 rounded bg-primary-fixed-dim/20 text-primary shrink-0">
-            <span class="material-symbols-outlined text-[16px]">vpn_key</span>
-        </div>
-        <div>
-            <div class="text-xs font-semibold text-on-surface flex items-center gap-1.5">
-                {{ __('admin.e2e_encryption') }}
-                <span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[9px] font-bold">{{ __('admin.mfa_ready') }}</span>
-            </div>
-            <p class="text-[11px] text-outline leading-snug mt-0.5">
-                {{ __('admin.security_assurance_desc') }}
-            </p>
-        </div>
-    </div>
+    @endunless
 
     <p class="text-center text-[10px] text-outline leading-tight mt-3">
         {{ __('admin.security_warning_footer') }}

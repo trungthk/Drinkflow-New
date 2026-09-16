@@ -19,7 +19,15 @@ return [
     'campaign_product_budget' => 'Maximum price per product: :amount',
     'campaign_product_budget_unlimited' => 'No limit',
     'campaign_sponsor_not_set' => 'None',
+    'campaign_restaurant' => 'Store / Brand: :restaurant',
     'campaign_order' => 'Order: :url',
+    'campaign_order_now' => 'Click here to place your order now',
+    'campaign_closed_body' => 'Campaign has closed for ordering. Admin is aggregating orders to proceed.',
+    'campaign_cancelled_body' => 'Campaign has been cancelled. See you in the next drink campaign!',
+    'test_ping_title' => 'Notification Channel Connection Test',
+    'test_ping_body' => 'The notification channel is successfully connected and ready to receive automated updates from DrinkFlow.',
+    'debt_channel_reminder_title' => 'Debt Payment Reminder',
     'order_price_adjusted_title' => 'Order Price Adjusted',
     'order_price_adjusted_body' => 'Order #:order_id price has been adjusted to :amount. Reason: :reason',
 ];
+

@@ -31,16 +31,16 @@
     </div>
 
     <!-- Order Main Card -->
-    <section class="rounded-2xl bg-white border border-slate-200/80 p-5 sm:p-7 shadow-xs">
+    <section class="rounded-xl bg-white border border-slate-200/80 p-4 sm:p-5 shadow-2xs">
       <!-- Order Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3.5 border-b border-slate-100">
         <div>
-          <span class="text-xs font-bold text-[#006948] uppercase tracking-wider">{{ $order->campaign->name ?? __('global.common.campaign') }}</span>
-          <h1 class="text-xl sm:text-2xl font-bold text-slate-900 mt-0.5">{{ __('room.orders.order_details') }} #{{ $order->id }}</h1>
+          <span class="text-[11px] font-bold text-[#006948] uppercase tracking-wider">{{ $order->campaign->name ?? __('global.common.campaign') }}</span>
+          <h1 class="text-sm sm:text-base font-bold text-slate-900 mt-0.5">{{ __('room.orders.order_details') }} #{{ $order->id }}</h1>
         </div>
         <div>
           <span id="status-badge"
-                class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3.5 py-1 text-xs font-bold text-[#006948] border border-emerald-200/70 capitalize">
+                class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-[#006948] border border-emerald-200/70 capitalize">
             {{ $order->status->value }}
           </span>
         </div>

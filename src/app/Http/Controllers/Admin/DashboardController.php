@@ -46,7 +46,7 @@ class DashboardController extends Controller
             'orders' => redirect()->route('admin.orders.page', $room),
             'debts' => redirect()->route('admin.debts.page', $room),
             'users' => redirect()->route('admin.room-users.page', $room),
-            'payments' => redirect()->route('admin.payment-accounts.page', $room),
+            'payments' => redirect()->route('admin.settings.page', $room),
             'settings' => redirect()->route('admin.settings.page', $room),
             'notifications' => redirect()->route('admin.notification-channels.page', $room),
             'reports' => redirect()->route('admin.reports.page', $room),

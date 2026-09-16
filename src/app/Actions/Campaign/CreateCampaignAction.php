@@ -10,11 +10,22 @@ use App\Models\Campaign;
 use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Enums\CampaignItemStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CreateCampaignAction
 {
+    /**
+     * Create the campaign action.
+     *
+     * @param CreateCampaignItemAction $createItemAction Reusable campaign-item creator.
+     * @return void
+     */
+    public function __construct(private readonly CreateCampaignItemAction $createItemAction)
+    {
+    }
+
     /**
      * Create a new campaign for a given room.
      *
@@ -77,11 +88,47 @@ class CreateCampaignAction
                 'payment_account_id' => __('admin.payment_account_not_in_room'),
             ]);
         }
-        $campaign = DB::transaction(fn (): Campaign => Campaign::create(array_merge($data, [
-            'room_id' => $room->id,
-            'creator_admin_id' => $adminId,
-            'status' => $data['status'] ?? 'draft',
-        ])));
+        /** @var array<int, array<string, mixed>> $items */
+        $items = $data['items'] ?? [];
+        unset($data['items']);
+
+        $campaign = DB::transaction(function () use ($room, $data, $adminId, $items): Campaign {
+            $campaign = Campaign::create(array_merge($data, [
+                'room_id' => $room->id,
+                'creator_admin_id' => $adminId,
+                'status' => $data['status'] ?? 'draft',
+            ]));
+
+            foreach ($items as $sortOrder => $itemData) {
+                $item = $this->createItemAction->execute($campaign, [
+                    'name' => $itemData['name'],
+                    'category' => $itemData['category'] ?? null,
+                    'description' => $itemData['description'] ?? null,
+                    'image_url' => $itemData['image_url'] ?? null,
+                    'base_price' => $itemData['price'],
+                    'status' => CampaignItemStatus::Active->value,
+                    'sort_order' => $sortOrder,
+                ]);
+
+                foreach ($itemData['toppings'] ?? [] as $toppingOrder => $topping) {
+                    $item->toppings()->create([
+                        'name' => $topping['name'],
+                        'price' => $topping['price'],
+                        'sort_order' => $toppingOrder,
+                    ]);
+                }
+
+                foreach ($itemData['options'] ?? [] as $optionOrder => $option) {
+                    $item->sizes()->create([
+                        'name' => $option['name'],
+                        'price_delta' => $option['price_delta'],
+                        'sort_order' => $optionOrder,
+                    ]);
+                }
+            }
+
+            return $campaign->load(['items.toppings', 'items.sizes']);
+        });
         CampaignCreated::dispatch($campaign->load('room'));
 
         return $campaign;

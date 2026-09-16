@@ -81,7 +81,14 @@ class RoomJoinAccessTest extends TestCase
     {
         $room = $this->room();
         $this->actingAs($this->user(), 'web')->get(route('user.rooms.join.show', $room->slug))
-            ->assertOk()->assertViewIs('user.join-room');
+            ->assertOk()
+            ->assertViewIs('user.join-room')
+            ->assertSee('data-room-join-confirmation', false)
+            ->assertSee('data-room-name', false)
+            ->assertSee(__('room.join.button'))
+            ->assertSee('arrow_back')
+            ->assertDontSee('Asia/Ho_Chi_Minh')
+            ->assertSee(route('user.rooms.join', $room->slug));
         $this->assertDatabaseCount('room_users', 0);
     }
 

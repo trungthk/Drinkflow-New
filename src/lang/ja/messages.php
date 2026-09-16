@@ -19,7 +19,15 @@ return [
     'campaign_product_budget' => '商品ごとの上限価格: :amount',
     'campaign_product_budget_unlimited' => '制限なし',
     'campaign_sponsor_not_set' => 'なし',
+    'campaign_restaurant' => '店舗 / ブランド: :restaurant',
     'campaign_order' => '注文: :url',
+    'campaign_order_now' => 'ここをクリックして今すぐ注文',
+    'campaign_closed_body' => 'キャンペーンの注文受付は終了しました。管理者が注文を集約しています。',
+    'campaign_cancelled_body' => 'キャンペーンは中止されました。次回のドリンク注文をお楽しみに！',
+    'test_ping_title' => '通知チャンネルの接続テスト',
+    'test_ping_body' => '通知チャンネルが正常に接続され、DrinkFlow からの自動通知を受け取る準備が整いました。',
+    'debt_channel_reminder_title' => '未払い清算リマインダー',
     'order_price_adjusted_title' => '注文価格の調整',
     'order_price_adjusted_body' => '注文番号 #:order_id の価格が :amount に調整されました。理由: :reason',
 ];
+

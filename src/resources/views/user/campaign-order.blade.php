@@ -30,12 +30,12 @@
     </div>
 
     <!-- Header Section -->
-    <header class="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-xs">
-      <div class="flex items-start justify-between gap-4">
+    <header class="bg-white border border-slate-200/80 rounded-xl p-3.5 sm:p-4 shadow-2xs">
+      <div class="flex items-start justify-between gap-3">
         <div>
-          <span class="text-xs font-bold text-[#006948] uppercase tracking-wider">{{ $campaign->restaurant ?? 'Restaurant' }}</span>
-          <h1 class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">{{ $campaign->name }}</h1>
-          <p class="mt-1 text-xs sm:text-sm text-slate-500">{{ __('room.campaign.order_instruction', ['default' => 'Chọn món và gửi đơn. Giá sẽ được kiểm tra lại trên máy chủ.']) }}</p>
+          <span class="text-[11px] font-bold text-[#006948] uppercase tracking-wider">{{ $campaign->restaurant ?? 'Restaurant' }}</span>
+          <h1 class="text-sm sm:text-base font-bold text-slate-900 mt-0.5">{{ $campaign->name }}</h1>
+          <p class="mt-0.5 text-xs text-slate-500">{{ __('room.campaign.order_instruction', ['default' => 'Chọn món và gửi đơn. Giá sẽ được kiểm tra lại trên máy chủ.']) }}</p>
         </div>
       </div>
     </header>

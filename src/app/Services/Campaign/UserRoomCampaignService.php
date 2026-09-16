@@ -69,7 +69,7 @@ class UserRoomCampaignService
     {
         $activeCampaign = $room->campaigns()
             ->where('status', CampaignStatus::Active)
-            ->with(['items' => function ($q) {
+            ->with(['creator', 'items' => function ($q) {
                 $q->where('status', CampaignItemStatus::Active)->with(['sizes', 'toppings']);
             }])
             ->first();
@@ -78,6 +78,7 @@ class UserRoomCampaignService
         $activeUserOrder = null;
         $hasDeclined = false;
         $campaignStats  = null;
+        $campaignSponsors = collect();
 
         /** @var array<int, \App\Enums\OrderStatus> $activeOrderStatuses */
         $activeOrderStatuses = [
@@ -89,6 +90,28 @@ class UserRoomCampaignService
         ];
 
         if ($activeCampaign) {
+            $sponsorAllocations = collect($activeCampaign->sponsor_allocations ?? []);
+            $sponsorRoomUsers = RoomUser::query()
+                ->where('room_id', $room->id)
+                ->whereIn('id', $sponsorAllocations->pluck('room_user_id')->map(static fn (mixed $id): int => (int) $id))
+                ->with('globalUser')
+                ->get()
+                ->keyBy('id');
+            $campaignSponsors = $sponsorAllocations
+                ->map(static function (array $allocation) use ($sponsorRoomUsers): ?array {
+                    $roomUser = $sponsorRoomUsers->get((int) ($allocation['room_user_id'] ?? 0));
+                    if (! $roomUser instanceof RoomUser) {
+                        return null;
+                    }
+
+                    return [
+                        'name' => $roomUser->globalUser?->name ?? $roomUser->display_name,
+                        'user_code' => $roomUser->user_code,
+                        'percentage' => (float) ($allocation['percentage'] ?? 0),
+                    ];
+                })
+                ->filter()
+                ->values();
             $categories      = $activeCampaign->items->pluck('category')->filter()->unique()->values();
             $activeUserOrder = $roomUser
                 ? $roomUser->orders()
@@ -122,10 +145,11 @@ class UserRoomCampaignService
                 'progress_percent'  => min(100, round(($orderedMembersCount / max(1, $totalMembers)) * 100)),
                 'total_pool_value'  => $totalPoolValue,
                 'participants'      => $participants,
+                'has_expired'       => $activeCampaign->deadline?->isPast() ?? false,
                 'time_remaining'    => $activeCampaign->deadline
                     ? ($activeCampaign->deadline->isFuture()
                         ? $activeCampaign->deadline->diffForHumans(['parts' => 2, 'short' => true])
-                        : '00:00')
+                        : __('room.header.countdown_closed'))
                     : '14:22',
             ];
         }
@@ -142,6 +166,7 @@ class UserRoomCampaignService
             'activeCampaign'             => $activeCampaign,
             'canOrderCampaign'           => $canOrderCampaign,
             'campaignStats'              => $campaignStats,
+            'campaignSponsors'           => $campaignSponsors,
             'categories'                 => $categories,
             'activeUserOrder'            => $activeUserOrder,
             'hasDeclined'                => $hasDeclined,

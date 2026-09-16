@@ -87,8 +87,8 @@
                                 <button type="button" data-channel-edit="{{ $chId }}" onclick="editChannel({{ $chId }}, @js(['id' => $chId, 'name' => $chName, 'type' => $chTypeVal]))" class="p-1.5 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors cursor-pointer" title="{{ __('admin.edit') }}">
                                     <span class="material-symbols-outlined text-[16px]">edit</span>
                                 </button>
-                                <button type="button" data-channel-test="{{ $chId }}" onclick="testChannel({{ $chId }})" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer">
-                                    <span class="material-symbols-outlined text-[14px]">bolt</span>
+                                <button type="button" data-channel-test="{{ $chId }}" onclick="openTestModal({{ $chId }}, @js(['id' => $chId, 'name' => $chName, 'type' => $chTypeVal]))" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer" title="{{ __('admin.test_notification_modal_title') }}">
+                                    <span class="material-symbols-outlined text-[15px]">science</span>
                                     <span>{{ __('admin.test_ping') }}</span>
                                 </button>
                                 <button type="button" data-channel-delete="{{ $chId }}" onclick="deleteChannel({{ $chId }})" class="p-1.5 text-secondary hover:text-rose-600 rounded hover:bg-surface-container transition-colors cursor-pointer" title="{{ __('admin.btn_delete_channel') }}">
@@ -205,6 +205,79 @@
         </div>
     </div>
 
+    <!-- Test Template Modal -->
+    <div id="channel-test-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="channel-test-modal-title">
+        <div class="w-full max-w-lg rounded-2xl bg-surface-container-lowest border border-outline-variant shadow-xl overflow-hidden">
+            <div class="p-6 border-b border-outline-variant/50">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[22px]">science</span>
+                        </div>
+                        <div>
+                            <h2 id="channel-test-modal-title" class="text-base font-bold text-on-surface">{{ __('admin.test_notification_modal_title') }}</h2>
+                            <p class="text-xs text-on-surface-variant">{{ __('admin.test_notification_modal_desc') }}</p>
+                        </div>
+                    </div>
+                    <button id="channel-test-close" type="button" class="p-1 text-secondary hover:text-on-surface rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-4 text-xs">
+                <!-- Channel Info Tag -->
+                <div class="flex items-center justify-between p-3 rounded-lg bg-surface-container-low border border-outline-variant/60">
+                    <div class="flex items-center gap-2">
+                        <span class="font-semibold text-on-surface">{{ __('admin.channel_name_label') }}:</span>
+                        <span id="test-target-channel-name" class="font-bold text-primary">...</span>
+                    </div>
+                    <span id="test-target-channel-type" class="px-2 py-0.5 rounded text-[10px] font-semibold uppercase bg-surface-container-high text-on-surface border border-outline-variant">
+                        ...
+                    </span>
+                </div>
+
+                <!-- Template Selector -->
+                <div>
+                    <label class="block font-semibold text-on-surface mb-1.5">{{ __('admin.test_notification_select_template') }}</label>
+                    <select id="test-template-select" class="w-full h-10 px-3 bg-surface border border-outline-variant rounded-lg text-on-surface font-semibold text-xs focus:border-primary focus:ring-1 focus:ring-primary outline-hidden">
+                        <option value="test_ping">{{ __('admin.template_test_ping') }}</option>
+                        <option value="campaign.created">{{ __('admin.template_campaign_created') }}</option>
+                        <option value="campaign.closed">{{ __('admin.template_campaign_closed') }}</option>
+                        <option value="campaign.cancelled">{{ __('admin.template_campaign_cancelled') }}</option>
+                        <option value="debt.reminder">{{ __('admin.template_debt_reminder') }}</option>
+                    </select>
+                </div>
+
+                <!-- Live Preview Box -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="font-semibold text-on-surface">{{ __('admin.test_notification_preview') }}</label>
+                        <span class="text-[10px] font-mono text-outline uppercase" id="test-preview-format-label">HTML / MRKDWN</span>
+                    </div>
+                    <div id="test-preview-box" class="p-4 rounded-xl bg-slate-900 text-slate-100 font-mono text-[11px] leading-relaxed border border-slate-700 whitespace-pre-wrap max-h-56 overflow-y-auto select-text shadow-inner">
+                        ...
+                    </div>
+                </div>
+
+                <!-- Rate limit note -->
+                <div class="flex items-center gap-1.5 text-[11px] text-outline">
+                    <span class="material-symbols-outlined text-[14px]">info</span>
+                    <span>Tối đa 5 lần gửi thử nghiệm / phút cho mỗi kênh (Rate Limit).</span>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 bg-surface-container-low flex justify-end gap-3 border-t border-outline-variant">
+                <button id="channel-test-cancel" type="button" class="px-4 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container-high rounded-lg cursor-pointer">{{ __('admin.notification_channel_cancel') }}</button>
+                <button id="channel-test-submit" type="button" class="px-4 py-2 text-xs font-semibold text-white bg-primary hover:bg-primary/90 rounded-lg inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">send</span>
+                    <span>{{ __('admin.test_notification_send_btn') }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Channel Delete Modal -->
     <div id="channel-delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="channel-delete-modal-title">
         <div class="w-full max-w-md rounded-2xl bg-surface-container-lowest border border-outline-variant shadow-xl overflow-hidden">
             <div class="p-6">
@@ -215,8 +288,8 @@
                 <p class="mt-2 text-sm text-on-surface-variant">{{ __('admin.notification_channel_delete_confirm') }}</p>
             </div>
             <div class="px-6 py-4 bg-surface-container-low flex justify-end gap-3 border-t border-outline-variant">
-                <button id="channel-delete-cancel" type="button" class="px-4 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container-high rounded-lg">{{ __('admin.notification_channel_cancel') }}</button>
-                <button id="channel-delete-confirm" type="button" class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg inline-flex items-center gap-1.5">
+                <button id="channel-delete-cancel" type="button" class="px-4 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container-high rounded-lg cursor-pointer">{{ __('admin.notification_channel_cancel') }}</button>
+                <button id="channel-delete-confirm" type="button" class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg inline-flex items-center gap-1.5 cursor-pointer">
                     <span class="material-symbols-outlined text-[16px]">delete</span>
                     <span>{{ __('admin.delete_confirm_btn') }}</span>
                 </button>

@@ -8,7 +8,7 @@ export function campaignCreateComponent(defaults = {}) {
     const budgetErrorTemplate = page?.dataset.budgetError || 'Campaign budget exceeds :limit.';
     const sponsorPercentageError = page?.dataset.sponsorPercentageError || 'The total sponsorship percentage must equal 100%.';
     const storeUrl = page?.dataset.storeUrl || '';
-    const itemUrlTemplate = page?.dataset.itemUrlTemplate || '';
+    const imageUploadUrl = page?.dataset.imageUploadUrl || '';
     const campaignSettings = {
         name: defaults.name || '',
         max_budget: Number(defaults.max_budget) || 0,
@@ -22,7 +22,8 @@ export function campaignCreateComponent(defaults = {}) {
         pendingStatus: 'active',
         showAddItemModal: false,
         itemCategories: ['Cà phê', 'Trà', 'Trà sữa', 'Nước ép', 'Đồ ăn', 'Khác'],
-        newItem: { name: '', price: 0, category: 'Khác' },
+        newItem: { name: '', price: 0, category: 'Khác', description: '', image_url: '', toppings: [], options: [] },
+        imageUploading: false,
         sponsors: [],
         submitting: false,
         crawlerUrl: '',
@@ -125,8 +126,25 @@ export function campaignCreateComponent(defaults = {}) {
         },
 
         applyMenuItems(items) {
-            const normalized = (items || []).map(item => ({ name: item.name || '', price: parseInt(item.price, 10) || 0, category: item.category || 'Khác' }));
-            this.menuItems = normalized;
+            this.menuItems = (items || []).map(item => this.normalizeMenuItem(item));
+        },
+
+        normalizeMenuItem(item) {
+            return {
+                name: item.name || '',
+                price: parseInt(item.price ?? item.base_price, 10) || 0,
+                category: item.category || 'Khác',
+                description: item.description || '',
+                image_url: item.image_url || '',
+                toppings: (item.toppings || []).map(topping => ({
+                    name: topping.name || '',
+                    price: parseInt(topping.price, 10) || 0
+                })),
+                options: (item.options || item.sizes || []).map(option => ({
+                    name: option.name || '',
+                    price_delta: parseInt(option.price_delta, 10) || 0
+                }))
+            };
         },
 
         addSponsor() {
@@ -138,18 +156,53 @@ export function campaignCreateComponent(defaults = {}) {
         },
 
         addMenuItem() {
-            this.menuItems.push({ name: '', price: 0, category: 'Món chung' });
+            this.menuItems.push(this.normalizeMenuItem({ category: 'Món chung' }));
         },
 
         openAddItemModal() {
-            this.newItem = { name: '', price: 0, category: this.itemCategories[0] };
+            this.newItem = this.normalizeMenuItem({ category: this.itemCategories[0] });
             this.showAddItemModal = true;
         },
 
         confirmAddItem() {
             if (!this.newItem.name.trim() || Number(this.newItem.price) < 0) return;
-            this.applyMenuItems([this.newItem]);
+            this.menuItems.push(this.normalizeMenuItem(this.newItem));
             this.showAddItemModal = false;
+        },
+
+        addTopping(item) {
+            item.toppings.push({ name: '', price: 0 });
+        },
+
+        addOption(item) {
+            item.options.push({ name: '', price_delta: 0 });
+        },
+
+        async uploadManualImage(event) {
+            const file = event.target.files?.[0];
+            if (!file || !imageUploadUrl) return;
+
+            this.imageUploading = true;
+            const body = new FormData();
+            body.append('image', file);
+
+            try {
+                const response = await fetch(imageUploadUrl, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                    body
+                });
+                const payload = await response.json();
+                if (!response.ok) {
+                    throw new Error(payload.message || Object.values(payload.errors || {})[0] || 'Không thể tải ảnh lên.');
+                }
+                this.newItem.image_url = payload.data?.url || '';
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                this.imageUploading = false;
+                event.target.value = '';
+            }
         },
 
         removeMenuItem(index) {
@@ -159,15 +212,39 @@ export function campaignCreateComponent(defaults = {}) {
         loadPreviousCampaign(campaign) {
             this.form.name = campaign.name + ' (Đợt mới)';
             this.form.restaurant = campaign.restaurant;
+            this.form.description = campaign.description || '';
+            this.form.max_budget = campaign.max_budget ?? this.form.max_budget;
+            this.form.flat_price = campaign.flat_price || '';
+            this.form.payment_account_id = campaign.payment_account_id ? String(campaign.payment_account_id) : this.form.payment_account_id;
             this.applyMenuItems(campaign.items || []);
             this.menuTab = 'reuse';
         },
 
         loadSampleJson() {
             this.rawJson = JSON.stringify([
-                { name: 'Trà Sữa Trân Châu Đường Đen', price: 45000, category: 'Trà Sữa' },
-                { name: 'Trà Oolong Vải', price: 40000, category: 'Trà Trái Cây' },
-                { name: 'Cà phê Muối Đặc Biệt', price: 30000, category: 'Cà Phê' }
+                {
+                    category: 'Trà sữa',
+                    name: 'Trà sữa trân châu đường đen',
+                    price: 45000,
+                    image_url: 'https://example.com/images/tra-sua-tran-chau.jpg',
+                    description: 'Trà sữa kèm trân châu đường đen.',
+                    toppings: [
+                        { name: 'Trân châu trắng', price: 7000 },
+                        { name: 'Pudding trứng', price: 10000 }
+                    ],
+                    options: [
+                        { name: 'Size M', price_delta: 0 },
+                        { name: 'Size L', price_delta: 10000 }
+                    ]
+                },
+                {
+                    category: 'Cà phê',
+                    name: 'Cà phê muối',
+                    price: 30000,
+                    image_url: 'https://example.com/images/ca-phe-muoi.jpg',
+                    toppings: [],
+                    options: []
+                }
             ], null, 2);
         },
 
@@ -175,11 +252,7 @@ export function campaignCreateComponent(defaults = {}) {
             try {
                 const parsed = JSON.parse(this.rawJson);
                 if (Array.isArray(parsed) && parsed.length > 0) {
-                    this.menuItems = parsed.map(item => ({
-                        name: item.name || 'Món mới',
-                        price: parseInt(item.price, 10) || 0,
-                        category: item.category || 'Món chung'
-                    }));
+                    this.menuItems = parsed.map(item => this.normalizeMenuItem(item));
                     this.menuTab = 'json';
                     alert(`Đã nạp thành công ${this.menuItems.length} món từ JSON!`);
                 } else {
@@ -217,8 +290,7 @@ export function campaignCreateComponent(defaults = {}) {
                 const data = response.data || response;
                 if (data.items && data.items.length > 0) {
                     this.menuItems = data.items.map(item => ({
-                        name: item.name,
-                        price: item.base_price || item.price || 0,
+                        ...this.normalizeMenuItem(item),
                         category: item.category || 'Món Crawl'
                     }));
                     this.form.restaurant = data.restaurant_name || this.form.restaurant || 'Nhà hàng Online';
@@ -275,7 +347,22 @@ export function campaignCreateComponent(defaults = {}) {
                         room_user_id: Number(sponsor.user_id),
                         percentage: Number(sponsor.percentage) || 0
                     })) : [],
-                status: status
+                status: status,
+                items: this.menuItems.filter(item => item.name && item.name.trim()).map(item => ({
+                    name: item.name.trim(),
+                    category: item.category || null,
+                    description: item.description || null,
+                    image_url: item.image_url || null,
+                    price: parseInt(item.price, 10) || 0,
+                    toppings: (item.toppings || []).filter(topping => topping.name && topping.name.trim()).map(topping => ({
+                        name: topping.name.trim(),
+                        price: parseInt(topping.price, 10) || 0
+                    })),
+                    options: (item.options || []).filter(option => option.name && option.name.trim()).map(option => ({
+                        name: option.name.trim(),
+                        price_delta: parseInt(option.price_delta, 10) || 0
+                    }))
+                }))
             };
 
             try {
@@ -296,26 +383,6 @@ export function campaignCreateComponent(defaults = {}) {
 
                 const json = await res.json();
                 const campaignId = json.data?.id || json.id;
-
-                if (campaignId && this.menuItems.length > 0) {
-                    for (const item of this.menuItems) {
-                        if (item.name && item.name.trim()) {
-                            await fetch(itemUrlTemplate.replace('__CAMPAIGN__', campaignId), {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': csrfToken,
-                                    'Accept': 'application/json'
-                                },
-                                body: JSON.stringify({
-                                    name: item.name,
-                                    base_price: parseInt(item.price, 10) || 0,
-                                    category: item.category || null
-                                })
-                            });
-                        }
-                    }
-                }
 
                 window.location.href = `/admin/${getRoomSlug()}/campaigns/${campaignId}`;
             } catch (e) {

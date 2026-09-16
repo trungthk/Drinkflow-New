@@ -28,15 +28,20 @@ class RoomSettingsController extends Controller
      * @param Request $request Incoming request.
      * @param Room $room Room entity.
      * @param UpdateRoomSettingsAction $action Settings action.
+     * @param \App\Services\Common\BankService $bankService Bank catalogue service.
      * @return View Blade view.
      */
-    public function page(Request $request, Room $room, UpdateRoomSettingsAction $action): View
+    public function page(Request $request, Room $room, UpdateRoomSettingsAction $action, \App\Services\Common\BankService $bankService): View
     {
         $settings = $action->payload($room);
+        $accounts = $room->paymentAccounts()->latest()->get();
+        $banks = $bankService->getAllBanks();
 
         return view('admin.settings', [
             'room' => $room,
             'settings' => $settings,
+            'accounts' => $accounts,
+            'banks' => $banks,
         ]);
     }
 

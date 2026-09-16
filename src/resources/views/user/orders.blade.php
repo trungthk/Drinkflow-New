@@ -101,14 +101,14 @@
         @endphp
 
         @if(!$activeOrder && $orders->isEmpty())
-            <div class="bg-white border border-slate-200/80 rounded-2xl p-8 sm:p-10 text-center shadow-2xs flex flex-col items-center justify-center">
-                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center mb-3.5">
-                    <span class="material-symbols-outlined text-[24px]">receipt_long</span>
+            <div class="bg-white border border-slate-200/80 rounded-xl p-6 sm:p-7 text-center shadow-2xs flex flex-col items-center justify-center">
+                <div class="w-9 h-9 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center mb-2">
+                    <span class="material-symbols-outlined text-[18px]">receipt_long</span>
                 </div>
-                <h3 class="text-sm sm:text-base font-bold text-slate-800 tracking-tight mb-1.5">{{ __('room.orders.no_orders_title') }}</h3>
-                <p class="text-xs sm:text-sm text-slate-500 max-w-sm mb-4 leading-relaxed">{{ __('room.orders.no_orders_desc') }}</p>
-                <a href="{{ route('user.campaigns.index', $room->slug) }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#006948] hover:bg-[#005137] text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors cursor-pointer">
-                    <span class="material-symbols-outlined text-[18px]">local_cafe</span>
+                <h3 class="text-xs sm:text-sm font-bold text-slate-800 tracking-tight mb-1">{{ __('room.orders.no_orders_title') }}</h3>
+                <p class="text-[11px] sm:text-xs text-slate-500 max-w-sm mb-3.5 leading-relaxed">{{ __('room.orders.no_orders_desc') }}</p>
+                <a href="{{ route('user.campaigns.index', $room->slug) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#006948] hover:bg-[#005137] text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">local_cafe</span>
                     <span>{{ __('room.dashboard.enter_campaign') }}</span>
                 </a>
             </div>

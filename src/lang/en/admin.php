@@ -29,7 +29,7 @@ return [
     'orders' => 'Realtime Orders',
     'debts' => 'Dual-Debt & Payments',
     'users' => 'Room Members',
-    'payments_settings' => 'Accounts & Settings',
+    'payments_settings' => 'System Configuration',
     'reports_audit' => 'Reports',
     'system_diagnostics' => 'Activity Log',
     'logout' => 'Log out',
@@ -131,11 +131,13 @@ return [
     // Hero Live Campaign
     'live_now' => 'LIVE NOW',
     'time_remaining_lock' => 'Time Remaining to Lock Orders',
+    'time_expired' => 'Time expired',
     'orders_placed' => 'Orders Placed',
     'net_payable' => 'Net User Payable',
     'gross_subtotal' => 'Gross subtotal',
     'multi_sponsor_title' => 'Multi-Sponsor Contributions:',
     'view_orders_adjust' => 'View Orders & Adjust Price',
+    'adjust_campaign' => 'Adjust Campaign',
     'close_campaign_early' => 'Close Campaign Early',
     'running_secondary' => 'RUNNING SECONDARY',
     'target_arrival' => 'Target Arrival: :time',
@@ -416,6 +418,7 @@ return [
     'config_vietqr' => 'Configure VietQR',
     'bank_accounts_list' => 'Bank Accounts List',
     'add_new_account' => 'Add New VietQR Account',
+    'search_bank_placeholder' => 'Search by code or bank name...',
     'bank_code' => 'Bank Code',
     'account_number' => 'Account Number',
     'account_holder_name' => 'Account Holder Name',
@@ -433,7 +436,11 @@ return [
     'sample_qr_note' => 'This QR code will be displayed for members to scan when paying for group drink orders.',
 
     // Settings & Room Policies
-    'room_settings_title' => 'Room Settings & Operating Policies',
+    'room_settings_title' => 'System Configuration Settings',
+    'campaign_info_title' => 'Campaign Information',
+    'campaign_info_desc' => 'Configure default title syntax, budget limits, and debt policies',
+    'payment_accounts_title' => 'Payment Accounts',
+    'payment_accounts_desc' => 'Manage receiving bank accounts and VietQR generation',
     'default_campaign_title' => 'Default Campaign Title',
     'campaign_syntax_template' => 'Automated campaign title syntax template',
     'supported_variables' => 'Supported variables:',
@@ -455,6 +462,7 @@ return [
     'minutes_unit' => 'minutes',
     'vnd_unit' => '₫',
     'settings_saved_success' => 'Room settings updated successfully!',
+    'settings_saved_ok' => 'System configuration saved successfully.',
     'debt_limit_reached' => 'The order exceeds the personal debt limit (:limit).',
 
     // Notification Channels & Webhook
@@ -515,6 +523,18 @@ return [
     'notification_channel_delete_failed' => 'Could not delete the notification channel.',
     'notification_channel_delete_title' => 'Delete notification channel?',
     'notification_channel_cancel' => 'Cancel',
+    'notification_channel_test_rate_limited' => 'You are sending test notifications too quickly. Please retry in :seconds seconds.',
+    'test_notification_modal_title' => 'Test Notification Template',
+    'test_notification_modal_desc' => 'Select a notification template to send a test message to your chat channel and verify the layout formatting.',
+    'test_notification_select_template' => 'Select Notification Template',
+    'test_notification_preview' => 'Message Preview',
+    'test_notification_send_btn' => 'Send Test Notification',
+    'test_notification_success' => 'Test notification template sent successfully.',
+    'template_test_ping' => '🧪 Basic Connectivity Test (Ping)',
+    'template_campaign_created' => '🚀 New Campaign (Order Open)',
+    'template_campaign_closed' => '🔒 Campaign Closed',
+    'template_campaign_cancelled' => '🚫 Campaign Cancelled',
+    'template_debt_reminder' => '💳 Debt Payment Reminder',
     'audit_event_order_deleted' => 'Order deleted',
     'audit_event_order_updated' => 'Order updated',
     'audit_event_order_price_adjusted' => 'Order price adjusted',
@@ -1094,6 +1114,8 @@ return [
     'account_updated_ok'     => 'Payment account updated.',
     'edit_account'           => 'Edit account',
     'qr_error'               => 'Unable to generate QR code. Please check the bank configuration.',
+    'qr_scan_note'           => 'Scan the code with any mobile banking app to transfer automatically.',
+    'transfer_content'       => 'Transfer description',
     'loading'                => 'Loading...',
 
     // Live Campaign Banner Details
@@ -1110,4 +1132,3 @@ return [
     'campaign_account_holder_label' => 'Account Holder',
     'campaign_account_number_label' => 'Account No.',
 ];
-

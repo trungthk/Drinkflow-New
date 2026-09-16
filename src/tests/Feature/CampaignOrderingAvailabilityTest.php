@@ -6,9 +6,11 @@ namespace Tests\Feature;
 
 use App\Actions\User\JoinRoomAction;
 use App\Enums\CampaignStatus;
+use App\Enums\PaymentAccountStatus;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
 use App\Models\GlobalUser;
+use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Models\RoomUser;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
@@ -49,6 +51,54 @@ class CampaignOrderingAvailabilityTest extends TestCase
     }
 
     /**
+     * Verify that the campaign banner renders persisted policy and payment details.
+     *
+     * @return void
+     */
+    public function test_campaign_banner_uses_campaign_policy_and_payment_data(): void
+    {
+        [$user, $room, $roomUser] = $this->createRoomMember('policy-banner');
+        [$campaign] = $this->createCampaignWithItem($room, CampaignStatus::Active, now()->addHour());
+        $paymentAccount = PaymentAccount::create([
+            'room_id' => $room->id,
+            'bank_code' => 'VCB',
+            'bank_name' => 'Vietcombank',
+            'account_number' => '0123456789',
+            'account_name' => 'DRINKFLOW TEAM',
+            'is_default' => true,
+            'status' => PaymentAccountStatus::Active,
+        ]);
+        $campaign->update([
+            'code' => 'CPN-TECH-001',
+            'sponsor_name' => 'Technology Fund',
+            'sponsor_type' => 'full',
+            'sponsor_description' => 'Quarterly team benefit',
+            'sponsor_allocations' => [[
+                'room_user_id' => $roomUser->id,
+                'percentage' => 100,
+            ]],
+            'max_budget' => 75_000,
+            'payment_account_id' => $paymentAccount->id,
+        ]);
+
+        $this->actingAs($user, 'web')
+            ->get(route('user.campaigns.index', $room))
+            ->assertOk()
+            ->assertSee('CPN-TECH-001')
+            ->assertDontSee(__('room.campaign.active_run_badge'))
+            ->assertDontSee('4.9')
+            ->assertSee(__('room.campaign.sponsor_type_full'))
+            ->assertSee($user->name)
+            ->assertSee('100%')
+            ->assertSee('75.000đ')
+            ->assertSee(__('room.campaign.policy_payment_val'))
+            ->assertDontSee('Technology Fund')
+            ->assertDontSee('Vietcombank')
+            ->assertDontSee('0123456789')
+            ->assertDontSee('DRINKFLOW TEAM');
+    }
+
+    /**
      * Verify that an expired live campaign hides ordering controls and rejects cart changes.
      *
      * @return void
@@ -64,6 +114,8 @@ class CampaignOrderingAvailabilityTest extends TestCase
             ->assertDontSee('data-add-to-cart-button', false)
             ->assertDontSee('data-campaign-cart-button', false)
             ->assertDontSee('data-participation-form', false)
+            ->assertSee(__('room.header.countdown_closed'))
+            ->assertDontSee(__('room.header.countdown_prefix').' 00:00')
             ->assertSee(__('room.campaign.ordering_closed'));
 
         $this->withoutMiddleware(ValidateCsrfToken::class)

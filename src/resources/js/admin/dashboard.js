@@ -9,6 +9,8 @@ export function initAdminDashboard() {
     const socketTokenUrl = dashboardEl.dataset.tokenUrl || '';
     const realtimeUrl = dashboardEl.dataset.realtimeUrl || 'http://localhost:3001';
     const closeUrlTemplate = dashboardEl.dataset.closeUrlTemplate || '';
+    const timeExpiredText = dashboardEl.dataset.timeExpiredText || 'Time expired';
+    const noDeadlineText = dashboardEl.dataset.noDeadlineText || 'No deadline';
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
     const money = v => new Intl.NumberFormat('vi-VN').format(Number(v || 0)) + ' ₫';
@@ -23,23 +25,31 @@ export function initAdminDashboard() {
 
         if (!deadline) {
             if (timerEl) timerEl.textContent = '--:--:--';
-            if (closingTextEl) closingTextEl.textContent = 'No deadline';
+            if (closingTextEl) closingTextEl.textContent = noDeadlineText;
             return;
         }
 
         const tick = () => {
-            const diff = Math.max(0, Math.floor((new Date(deadline) - Date.now()) / 1000));
+            const diff = Math.floor((new Date(deadline) - Date.now()) / 1000);
+            if (diff <= 0) {
+                if (timerEl) timerEl.textContent = timeExpiredText;
+                if (closingTextEl) closingTextEl.textContent = timeExpiredText;
+                if (timerInterval) clearInterval(timerInterval);
+                return false;
+            }
+
             const hours = String(Math.floor(diff / 3600)).padStart(2, '0');
             const mins = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
             const secs = String(diff % 60).padStart(2, '0');
             const timeStr = `${hours}:${mins}:${secs}`;
             if (timerEl) timerEl.textContent = timeStr;
             if (closingTextEl) closingTextEl.textContent = `${mins}m ${secs}s`;
-            if (diff <= 0 && timerInterval) clearInterval(timerInterval);
+            return true;
         };
 
-        tick();
-        timerInterval = setInterval(tick, 1000);
+        if (tick()) {
+            timerInterval = setInterval(tick, 1000);
+        }
     }
 
     function renderTrendChart(weeklyTrend, totalCampaigns, totalSpending) {

@@ -29,7 +29,7 @@ return [
     'orders' => 'Đơn gom Realtime',
     'debts' => 'Quản lý Công nợ kép',
     'users' => 'Thành viên Room',
-    'payments_settings' => 'Tài khoản & Cấu hình',
+    'payments_settings' => 'Cấu hình hệ thống',
     'reports_audit' => 'Báo cáo',
     'system_diagnostics' => 'Nhật ký hoạt động',
     'logout' => 'Đăng xuất',
@@ -131,11 +131,13 @@ return [
     // Hero Live Campaign
     'live_now' => 'LIVE NOW',
     'time_remaining_lock' => 'Thời gian đóng đơn còn',
+    'time_expired' => 'Hết giờ',
     'orders_placed' => 'Đã đặt món',
     'net_payable' => 'Thực thu thành viên',
     'gross_subtotal' => 'Tạm tính giỏ hàng',
     'multi_sponsor_title' => 'Phân bổ tài trợ (Multi-Sponsor):',
     'view_orders_adjust' => 'Xem Orders & Chỉnh Giá',
+    'adjust_campaign' => 'Điều chỉnh chiến dịch',
     'close_campaign_early' => 'Đóng Campaign Sớm',
     'running_secondary' => 'CHIẾN DỊCH PHỤ ĐANG CHẠY',
     'target_arrival' => 'Dự kiến giao: :time',
@@ -416,6 +418,7 @@ return [
     'config_vietqr' => 'Cấu hình VietQR',
     'bank_accounts_list' => 'Danh sách tài khoản ngân hàng',
     'add_new_account' => 'Thêm Tài Khoản VietQR Mới',
+    'search_bank_placeholder' => 'Tìm theo mã hoặc tên ngân hàng...',
     'bank_code' => 'Mã ngân hàng (Bank Code)',
     'account_number' => 'Số tài khoản',
     'account_holder_name' => 'Tên chủ tài khoản',
@@ -433,7 +436,11 @@ return [
     'sample_qr_note' => 'Mã QR này sẽ hiển thị cho thành viên quét khi thanh toán đơn gom đồ uống.',
 
     // Settings & Room Policies
-    'room_settings_title' => 'Cài Đặt Phòng Ban & Quy Chế Hoạt Động',
+    'room_settings_title' => 'Cài Đặt cấu hình hệ thống',
+    'campaign_info_title' => 'Thông tin chiến dịch',
+    'campaign_info_desc' => 'Cấu hình tiêu đề mặc định, hạn mức ngân sách và quy chế công nợ',
+    'payment_accounts_title' => 'Tài khoản thanh toán',
+    'payment_accounts_desc' => 'Quản lý tài khoản ngân hàng và mã VietQR nhận chuyển khoản',
     'default_campaign_title' => 'Tên Chiến Dịch Mặc Định',
     'campaign_syntax_template' => 'Cú pháp tạo tiêu đề chiến dịch tự động',
     'supported_variables' => 'Biến số hỗ trợ:',
@@ -455,6 +462,7 @@ return [
     'minutes_unit' => 'phút',
     'vnd_unit' => '₫',
     'settings_saved_success' => 'Cấu hình phòng đã được cập nhật thành công!',
+    'settings_saved_ok' => 'Cập nhật cấu hình hệ thống thành công.',
     'debt_limit_reached' => 'Đơn hàng vượt quá hạn mức nợ cá nhân (:limit).',
 
     // Notification Channels & Webhook
@@ -515,6 +523,18 @@ return [
     'notification_channel_delete_failed' => 'Không thể xóa kênh thông báo.',
     'notification_channel_delete_title' => 'Xóa kênh thông báo?',
     'notification_channel_cancel' => 'Hủy',
+    'notification_channel_test_rate_limited' => 'Bạn đang gửi tin thử nghiệm quá nhanh. Vui lòng chờ :seconds giây nữa.',
+    'test_notification_modal_title' => 'Thử nghiệm gửi mẫu thông báo',
+    'test_notification_modal_desc' => 'Chọn mẫu thông báo để gửi thử nghiệm đến kênh chat và kiểm tra định dạng hiển thị.',
+    'test_notification_select_template' => 'Chọn mẫu thông báo (Template)',
+    'test_notification_preview' => 'Xem trước nội dung (Preview)',
+    'test_notification_send_btn' => 'Gửi tin thử nghiệm',
+    'test_notification_success' => 'Đã gửi thành công mẫu thông báo thử nghiệm.',
+    'template_test_ping' => '🧪 Kiểm tra kết nối cơ bản (Ping)',
+    'template_campaign_created' => '🚀 Kèo nước mới (Mở đặt món)',
+    'template_campaign_closed' => '🔒 Chốt đơn chiến dịch (Đóng kèo)',
+    'template_campaign_cancelled' => '🚫 Hủy kèo nước',
+    'template_debt_reminder' => '💳 Nhắc thanh toán công nợ',
     'audit_event_order_deleted' => 'Đã xóa đơn hàng',
     'audit_event_order_updated' => 'Đã cập nhật đơn hàng',
     'audit_event_order_price_adjusted' => 'Đã điều chỉnh giá đơn hàng',
@@ -1094,6 +1114,8 @@ return [
     'account_updated_ok'     => 'Đã cập nhật tài khoản thanh toán.',
     'edit_account'           => 'Chỉnh sửa tài khoản',
     'qr_error'               => 'Không thể tạo mã QR. Vui lòng kiểm tra lại cấu hình ngân hàng.',
+    'qr_scan_note'           => 'Quét mã bằng ứng dụng ngân hàng bất kỳ để chuyển khoản tự động.',
+    'transfer_content'       => 'Nội dung chuyển khoản',
     'loading'                => 'Đang tải...',
 
     // Live Campaign Banner Details
@@ -1110,4 +1132,3 @@ return [
     'campaign_account_holder_label' => 'Chủ TK',
     'campaign_account_number_label' => 'STK',
 ];
-

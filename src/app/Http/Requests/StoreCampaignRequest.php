@@ -44,6 +44,18 @@ class StoreCampaignRequest extends FormRequest
             'payment_account_id' => ['nullable', 'integer'],
             'description' => ['nullable', 'string', 'max:5000'],
             'status' => ['nullable', 'in:draft,scheduled,active'],
+            'items' => ['nullable', 'array', 'max:300'],
+            'items.*.name' => ['required', 'string', 'max:200'],
+            'items.*.category' => ['nullable', 'string', 'max:100'],
+            'items.*.description' => ['nullable', 'string', 'max:2000'],
+            'items.*.image_url' => ['nullable', 'url:http,https', 'max:1000'],
+            'items.*.price' => ['required', 'integer', 'min:0'],
+            'items.*.toppings' => ['nullable', 'array', 'max:100'],
+            'items.*.toppings.*.name' => ['required', 'string', 'max:200'],
+            'items.*.toppings.*.price' => ['required', 'integer', 'min:0'],
+            'items.*.options' => ['nullable', 'array', 'max:100'],
+            'items.*.options.*.name' => ['required', 'string', 'max:200'],
+            'items.*.options.*.price_delta' => ['required', 'integer', 'min:0'],
         ];
     }
 

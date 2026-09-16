@@ -14,11 +14,16 @@ use App\Services\Notification\RoomNotificationChannelDispatcher;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 
 class NotificationChannelController extends Controller
 {
     /**
      * Handle the index operation.
+     *
+     * @param Room $room Room entity.
+     * @param RoomNotificationChannelService $service Channel service.
+     * @return JsonResponse List of masked notification channels.
      */
     public function index(Room $room, RoomNotificationChannelService $service): JsonResponse
     {
@@ -46,6 +51,12 @@ class NotificationChannelController extends Controller
 
     /**
      * Handle the store operation.
+     *
+     * @param NotificationChannelRequest $request Validated request.
+     * @param Room $room Room entity.
+     * @param RoomNotificationChannelService $service Channel service.
+     * @param AuditService $audit Audit service.
+     * @return JsonResponse Created channel data.
      */
     public function store(NotificationChannelRequest $request, Room $room, RoomNotificationChannelService $service, AuditService $audit): JsonResponse
     {
@@ -71,6 +82,13 @@ class NotificationChannelController extends Controller
 
     /**
      * Handle the update operation.
+     *
+     * @param NotificationChannelRequest $request Validated request.
+     * @param Room $room Room entity.
+     * @param NotificationChannel $channel Notification channel.
+     * @param RoomNotificationChannelService $service Channel service.
+     * @param AuditService $audit Audit service.
+     * @return JsonResponse Updated channel data.
      */
     public function update(NotificationChannelRequest $request, Room $room, NotificationChannel $channel, RoomNotificationChannelService $service, AuditService $audit): JsonResponse
     {
@@ -82,18 +100,61 @@ class NotificationChannelController extends Controller
     }
 
     /**
-     * Handle the test operation.
+     * Handle the test notification sending operation with template support and rate limiting.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @param Room $room Room entity.
+     * @param NotificationChannel $channel Notification channel.
+     * @param RoomNotificationChannelService $service Channel service.
+     * @param RoomNotificationChannelDispatcher $dispatcher Channel dispatcher.
+     * @return JsonResponse Status response.
      */
-    public function test(Room $room, NotificationChannel $channel, RoomNotificationChannelService $service, RoomNotificationChannelDispatcher $dispatcher): JsonResponse
+    public function test(Request $request, Room $room, NotificationChannel $channel, RoomNotificationChannelService $service, RoomNotificationChannelDispatcher $dispatcher): JsonResponse
     {
         abort_unless($channel->room_id === $room->id, 404);
         abort_unless($service->configured($channel), 422, __('admin.channel_not_configured'));
-        $dispatcher->test($channel);
-        return response()->json(['message' => 'test_sent', 'data' => ['channel_id' => $channel->id, 'type' => $channel->type]]);
+
+        $admin = $request->user('admin');
+        $rateLimitKey = 'channel-test:'.$channel->id.':'.($admin?->id ?? $request->ip());
+        $maxAttempts = 5;
+        $decaySeconds = 60;
+
+        if (RateLimiter::tooManyAttempts($rateLimitKey, $maxAttempts)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
+            return response()->json([
+                'message' => __('admin.notification_channel_test_rate_limited', ['seconds' => $seconds]),
+                'retry_after' => $seconds,
+            ], 429);
+        }
+
+        RateLimiter::hit($rateLimitKey, $decaySeconds);
+
+        $template = (string) $request->input('template', 'test_ping');
+        $allowedTemplates = ['test_ping', 'notification.test', 'campaign.created', 'campaign.closed', 'campaign.cancelled', 'debt.reminder'];
+        if (! in_array($template, $allowedTemplates, true)) {
+            $template = 'test_ping';
+        }
+
+        $dispatcher->test($channel, $template);
+
+        return response()->json([
+            'message' => 'test_sent',
+            'data' => [
+                'channel_id' => $channel->id,
+                'type' => $channel->type,
+                'template' => $template,
+            ],
+        ]);
     }
 
     /**
      * Handle the destroy operation.
+     *
+     * @param Room $room Room entity.
+     * @param NotificationChannel $channel Notification channel.
+     * @param RoomNotificationChannelService $service Channel service.
+     * @param AuditService $audit Audit service.
+     * @return JsonResponse Status response.
      */
     public function destroy(Room $room, NotificationChannel $channel, RoomNotificationChannelService $service, AuditService $audit): JsonResponse
     {

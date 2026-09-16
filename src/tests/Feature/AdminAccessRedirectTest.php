@@ -37,7 +37,9 @@ class AdminAccessRedirectTest extends TestCase
      */
     public function test_public_admin_pages_do_not_require_authentication(): void
     {
-        $this->get('/admin/login')->assertOk();
+        $this->get('/admin/login')
+            ->assertOk()
+            ->assertDontSee(__('admin.e2e_encryption'));
         $this->get('/admin/forgot-password')->assertOk();
         $this->get('/admin/verify-otp')->assertRedirect(route('admin.forgot-password.page'));
         $this->get('/admin/reset-password')->assertRedirect(route('admin.forgot-password.page'));

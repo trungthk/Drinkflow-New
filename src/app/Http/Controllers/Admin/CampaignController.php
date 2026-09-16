@@ -20,6 +20,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\CloseCampaignRequest;
 use App\Http\Requests\SplitBillRequest;
 use App\Http\Requests\StoreCampaignItemRequest;
+use App\Http\Requests\StoreCampaignImageRequest;
 use App\Http\Requests\StoreCampaignRequest;
 use App\Http\Requests\StoreItemOptionRequest;
 use App\Http\Requests\UpdateCampaignRequest;
@@ -30,6 +31,7 @@ use App\Models\CampaignItemSize;
 use App\Models\CampaignItemTopping;
 use App\Models\Room;
 use App\Services\Audit\AuditService;
+use App\Services\Media\ImageUploadService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -271,6 +273,20 @@ class CampaignController extends Controller
     {
         $room = request()->attributes->get('room');
         return response()->json(['data' => $action->execute($room, $request->validated(), request()->user('admin')->id)], 201);
+    }
+
+    /**
+     * Upload and optimize a temporary menu image for the campaign creator.
+     *
+     * @param StoreCampaignImageRequest $request Validated image upload request.
+     * @param ImageUploadService $imageUploadService Shared image optimization service.
+     * @return JsonResponse Public URL of the optimized image.
+     */
+    public function uploadImage(StoreCampaignImageRequest $request, ImageUploadService $imageUploadService): JsonResponse
+    {
+        $imageUrl = $imageUploadService->uploadCampaignImage($request->file('image'));
+
+        return response()->json(['data' => ['url' => url($imageUrl)]], 201);
     }
 
     /**

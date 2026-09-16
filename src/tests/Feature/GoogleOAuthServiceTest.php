@@ -1,9 +1,13 @@
 <?php
 namespace Tests\Feature;
 use App\Models\GlobalUser;
+use App\Models\AdminAccount;
+use App\Enums\AdminRole;
+use App\Enums\AdminStatus;
 use App\Services\Auth\GoogleOAuthService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 class GoogleOAuthServiceTest extends TestCase {
@@ -75,5 +79,108 @@ class GoogleOAuthServiceTest extends TestCase {
         $response->assertSessionHas('login_error');
         $this->assertFalse(auth('web')->check());
     }
-}
 
+    /**
+     * Ensure a failed Workspace identity check keeps the Admin two-factor challenge active.
+     *
+     * @return void
+     */
+    public function test_failed_admin_workspace_login_keeps_two_factor_challenge_visible(): void
+    {
+        config([
+            'services.google.client_id' => 'client-id',
+            'services.google.client_secret' => 'client-secret',
+            'services.google.redirect' => 'http://localhost/auth/google/callback',
+            'services.google.allowed_domains' => ['company.com'],
+        ]);
+
+        $admin = AdminAccount::create([
+            'name' => 'Two Factor Admin',
+            'email' => 'admin@company.com',
+            'password' => Hash::make('CorrectPassword123!'),
+            'role' => AdminRole::Admin,
+            'status' => AdminStatus::Active,
+            'two_factor_enabled' => true,
+        ]);
+
+        Http::fake([
+            'https://oauth2.googleapis.com/token' => Http::response(['access_token' => 'access-token']),
+            'https://openidconnect.googleapis.com/v1/userinfo' => Http::response([
+                'sub' => 'different-admin-sub',
+                'email' => 'different@company.com',
+                'name' => 'Different Admin',
+                'email_verified' => true,
+            ]),
+        ]);
+
+        $response = $this->withSession([
+            'google_oauth_state' => 'state-value',
+            'google_oauth_login_source' => url('/admin/login'),
+            'admin_google_2fa_admin_id' => $admin->id,
+            'admin_google_2fa_remember' => false,
+        ])->get('/auth/google/callback?code=auth-code&state=state-value');
+
+        $response->assertRedirect(url('/admin/login'))
+            ->assertSessionHasErrors('email')
+            ->assertSessionHas('admin_google_2fa_admin_id', $admin->id);
+
+        $this->get('/admin/login')
+            ->assertOk()
+            ->assertSee(__('admin.sign_in_google_workspace'))
+            ->assertDontSee('id="admin-email"', false)
+            ->assertDontSee('id="admin-password"', false)
+            ->assertDontSee('name="remember"', false);
+    }
+
+    /**
+     * Ensure a matching Workspace identity completes Admin two-factor authentication.
+     *
+     * @return void
+     */
+    public function test_matching_admin_workspace_login_completes_two_factor_authentication(): void
+    {
+        config([
+            'services.google.client_id' => 'client-id',
+            'services.google.client_secret' => 'client-secret',
+            'services.google.redirect' => 'http://localhost/auth/google/callback',
+            'services.google.allowed_domains' => ['company.com'],
+        ]);
+
+        $admin = AdminAccount::create([
+            'name' => 'Two Factor Admin',
+            'email' => 'admin@company.com',
+            'password' => Hash::make('CorrectPassword123!'),
+            'role' => AdminRole::Admin,
+            'status' => AdminStatus::Active,
+            'two_factor_enabled' => true,
+        ]);
+
+        Http::fake([
+            'https://oauth2.googleapis.com/token' => Http::response(['access_token' => 'access-token']),
+            'https://openidconnect.googleapis.com/v1/userinfo' => Http::response([
+                'sub' => 'matching-admin-sub',
+                'email' => $admin->email,
+                'name' => $admin->name,
+                'email_verified' => true,
+            ]),
+        ]);
+
+        $response = $this->withSession([
+            'google_oauth_state' => 'state-value',
+            'google_oauth_login_source' => url('/admin/login'),
+            'admin_google_2fa_admin_id' => $admin->id,
+            'admin_google_2fa_remember' => true,
+        ])->get('/auth/google/callback?code=auth-code&state=state-value');
+
+        $response->assertRedirect(route('admin.landing'))
+            ->assertSessionMissing('admin_google_2fa_admin_id')
+            ->assertSessionMissing('admin_google_2fa_remember');
+
+        $this->assertAuthenticatedAs($admin, 'admin');
+        $this->assertDatabaseHas('audit_logs', [
+            'actor_type' => 'admin',
+            'actor_id' => $admin->id,
+            'event' => 'admin.logged_in',
+        ]);
+    }
+}

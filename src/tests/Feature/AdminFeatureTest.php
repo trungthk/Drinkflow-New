@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\AdminRole;
+use App\Enums\CampaignStatus;
 use App\Models\AdminAccount;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
@@ -38,7 +39,7 @@ class AdminFeatureTest extends TestCase
             'room_id' => $room1->id,
             'name' => 'Live Coffee',
             'restaurant' => 'Highlands',
-            'status' => 'active',
+            'status' => CampaignStatus::Active,
             'started_at' => now(),
         ]);
 
@@ -63,7 +64,10 @@ class AdminFeatureTest extends TestCase
             ->assertOk()
             ->assertViewIs('admin.profile')
             ->assertSee($admin->email)
-            ->assertSee('/admin/profile');
+            ->assertSee('/admin/profile')
+            ->assertDontSee(__('admin.room_manager_role'))
+            ->assertDontSee(__('admin.active_sessions'))
+            ->assertSee('type="submit"', false);
 
         $this->actingAs($admin, 'admin')->patch('/admin/profile', [
             'name' => 'Updated Admin',
@@ -144,6 +148,69 @@ class AdminFeatureTest extends TestCase
             'target_type' => 'admin',
             'target_id' => $admin->id,
         ]);
+    }
+
+    /**
+     * Ensure a successful first factor shows only the Google Workspace challenge.
+     *
+     * @return void
+     */
+    public function test_two_factor_admin_login_hides_first_factor_fields(): void
+    {
+        config()->set('captcha.disable', true);
+        $admin = $this->admin('two-factor-login@example.test');
+        $admin->update([
+            'password' => Hash::make('CorrectPassword123!'),
+            'two_factor_enabled' => true,
+        ]);
+
+        $this->post('/admin/login', [
+            'email' => $admin->email,
+            'password' => 'CorrectPassword123!',
+            'remember' => true,
+        ])->assertRedirect(route('admin.login.page'))
+            ->assertSessionHas('admin_google_2fa_admin_id', $admin->id)
+            ->assertSessionHas('admin_google_2fa_remember', true);
+
+        $this->assertGuest('admin');
+
+        $this->get('/admin/login')
+            ->assertOk()
+            ->assertSee(__('admin.sign_in_google_workspace'))
+            ->assertSee(route('admin.login.two-factor.cancel'))
+            ->assertDontSee('id="admin-email"', false)
+            ->assertDontSee('id="admin-password"', false)
+            ->assertDontSee('name="remember"', false);
+    }
+
+    /**
+     * Ensure cancelling the Workspace challenge clears its session and restores manual login.
+     *
+     * @return void
+     */
+    public function test_admin_can_cancel_two_factor_workspace_login(): void
+    {
+        $admin = $this->admin('cancel-two-factor@example.test');
+
+        $response = $this->withSession([
+            'admin_google_2fa_admin_id' => $admin->id,
+            'admin_google_2fa_remember' => true,
+            'google_oauth_state' => 'pending-state',
+            'google_oauth_login_source' => url('/admin/login'),
+        ])->post('/admin/login/two-factor/cancel');
+
+        $response->assertRedirect(route('admin.login.page'))
+            ->assertSessionMissing('admin_google_2fa_admin_id')
+            ->assertSessionMissing('admin_google_2fa_remember')
+            ->assertSessionMissing('google_oauth_state')
+            ->assertSessionMissing('google_oauth_login_source');
+
+        $this->get('/admin/login')
+            ->assertOk()
+            ->assertSee('id="admin-email"', false)
+            ->assertSee('id="admin-password"', false)
+            ->assertSee('name="remember"', false)
+            ->assertDontSee(__('admin.sign_in_google_workspace'));
     }
 
     public function test_admin_dashboard_is_limited_to_assigned_room(): void
@@ -322,6 +389,41 @@ class AdminFeatureTest extends TestCase
             ]);
 
         $this->assertCount(7, $response->json('data.weekly_trend'));
+    }
+
+    /**
+     * Ensure the dashboard renders expired campaign timing and the chart legend layout.
+     *
+     * @return void
+     */
+    public function test_admin_dashboard_shows_expired_time_and_bottom_chart_legend(): void
+    {
+        $admin = $this->admin('dashboard-expired@example.test');
+        $room = $this->roomFor($admin, 'dashboard-expired-room');
+        Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Expired Live Campaign',
+            'restaurant' => 'Cafe',
+            'status' => CampaignStatus::Active,
+            'started_at' => now()->subHours(2),
+            'deadline' => now()->subMinute(),
+        ]);
+
+        $this->actingAs($admin, 'admin')
+            ->get(route('admin.dashboard.page', $room))
+            ->assertOk()
+            ->assertSee('data-time-expired-text="'.__('admin.time_expired').'"', false)
+            ->assertSee(__('admin.time_expired'))
+            ->assertSee('data-adjust-campaign-link', false)
+            ->assertSee(__('admin.adjust_campaign'))
+            ->assertSee(route('admin.campaigns.show', [$room, $room->campaigns()->first()]))
+            ->assertDontSee('id="chart-date-range"', false)
+            ->assertSeeInOrder([
+                'id="chart-day-labels"',
+                'id="chart-legend"',
+                __('admin.campaign_count_bar'),
+                __('admin.spending_vnd_line'),
+            ], false);
     }
 
     public function test_admin_can_adjust_order_item_price_and_recalculate(): void

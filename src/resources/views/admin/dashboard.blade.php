@@ -5,6 +5,8 @@
         data-token-url="{{ route('admin.socket-token', $room) }}"
         data-realtime-url="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}"
         data-close-url-template="{{ url('admin/' . $room->id . '/campaigns/:id/close') }}"
+        data-time-expired-text="{{ __('admin.time_expired') }}"
+        data-no-deadline-text="{{ __('admin.no_deadline_set') }}"
         class="space-y-6"
     >
         <!-- Page Header & Actions -->
@@ -90,22 +92,10 @@
                     <div class="flex items-center gap-2">
                         <span class="material-symbols-outlined text-[20px] text-primary">monitoring</span>
                         <h2 class="text-base font-bold text-on-surface tracking-tight">{{ __('admin.weekly_trend_title') }}</h2>
-                        <span id="chart-date-range" class="px-2 py-0.5 rounded-full text-[11px] font-mono bg-surface-container text-on-surface-variant font-medium border border-outline-variant/60">{{ __('admin.days_7_recent') }}</span>
                     </div>
                     <p class="text-xs text-outline mt-0.5">{{ __('admin.weekly_trend_desc') }}</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-4">
-                    <div class="flex items-center gap-3 text-xs font-mono">
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-3 h-3 rounded bg-primary inline-block"></span>
-                            <span class="text-on-surface-variant">{{ __('admin.campaign_count_bar') }}</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="w-3 h-1 bg-[#2563eb] rounded-full inline-block"></span>
-                            <span class="w-2 h-2 rounded-full border-2 border-[#2563eb] bg-white inline-block -ml-2"></span>
-                            <span class="text-on-surface-variant">{{ __('admin.spending_vnd_line') }}</span>
-                        </div>
-                    </div>
                     <div class="px-2.5 py-1 bg-surface-container-low rounded border border-outline-variant/60 text-xs font-mono font-semibold text-primary flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
                         <span id="chart-summary-badge">{{ __('admin.weekly_total_summary', ['campaigns' => $totalWeekCampaigns ?? 0, 'amount' => number_format($totalWeekSpending ?? 0, 0, ',', '.') . ' ₫']) }}</span>
@@ -127,6 +117,17 @@
                     <div id="chart-day-labels" class="grid grid-cols-7 text-center pt-2 border-t border-outline-variant/60 ml-[45px] mr-[45px]"></div>
                 </div>
             </div>
+            <div id="chart-legend" class="flex flex-wrap items-center justify-center gap-4 text-xs font-mono">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-3 rounded bg-primary inline-block"></span>
+                    <span class="text-on-surface-variant">{{ __('admin.campaign_count_bar') }}</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <span class="w-3 h-1 bg-[#2563eb] rounded-full inline-block"></span>
+                    <span class="w-2 h-2 rounded-full border-2 border-[#2563eb] bg-white inline-block -ml-2"></span>
+                    <span class="text-on-surface-variant">{{ __('admin.spending_vnd_line') }}</span>
+                </div>
+            </div>
         </section>
 
         <!-- Campaign Control Panels (Shown only when active campaign exists) -->
@@ -146,8 +147,6 @@
                             <span id="hero-campaign-code" class="text-xs font-mono text-outline">{{ $activeCampaign?->code ?? 'N/A' }}</span>
                         </div>
                         <div class="flex items-center gap-2 text-xs font-mono text-outline">
-                                <span>{{ __('global.common.room') }}: <strong class="text-on-surface">{{ $room->name }}</strong></span>
-                            <span>•</span>
                             <span id="hero-campaign-time">{{ __('admin.ready') }}</span>
                         </div>
                     </div>
@@ -157,7 +156,7 @@
                         <!-- Digital Countdown -->
                         <div class="flex flex-col justify-center border-r-0 md:border-r border-outline-variant pr-2">
                             <span class="text-[10px] font-mono text-outline uppercase font-semibold">{{ __('admin.time_remaining_lock') }}</span>
-                            <div id="hero-timer" class="text-2xl font-mono font-bold text-error tracking-widest mt-0.5">--:--:--</div>
+                            <div id="hero-timer" class="text-2xl font-mono font-bold text-error tracking-widest mt-0.5">{{ $activeCampaign?->deadline?->isPast() ? __('admin.time_expired') : '--:--:--' }}</div>
                         </div>
                         <!-- Participation Progress -->
                         <div class="flex flex-col justify-center border-r-0 md:border-r border-outline-variant pr-2">
@@ -192,10 +191,18 @@
 
                 <!-- Bottom Action Buttons -->
                 <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-outline-variant">
-                    <a href="{{ route('admin.orders.page', $room) }}" class="bg-primary hover:bg-primary-container text-on-primary px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs no-underline">
-                        <span class="material-symbols-outlined text-[16px]">checklist</span>
-                        <span>{{ __('admin.view_orders_adjust') }}</span>
-                    </a>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a href="{{ route('admin.orders.page', $room) }}" class="bg-primary hover:bg-primary-container text-on-primary px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs no-underline">
+                            <span class="material-symbols-outlined text-[16px]">checklist</span>
+                            <span>{{ __('admin.view_orders_adjust') }}</span>
+                        </a>
+                        <a data-adjust-campaign-link
+                            href="{{ ($activeCampaign ?? null) ? route('admin.campaigns.show', [$room, $activeCampaign]) : route('admin.campaigns.page', $room) }}"
+                            class="bg-surface-container-low hover:bg-surface-container border border-outline-variant text-on-surface px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs no-underline">
+                            <span class="material-symbols-outlined text-[16px]">tune</span>
+                            <span>{{ __('admin.adjust_campaign') }}</span>
+                        </a>
+                    </div>
                     <button type="button" id="btn-open-close-modal" class="text-error hover:bg-error-container/60 border border-error/30 rounded-lg px-3 py-2 text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer">
                         <span class="material-symbols-outlined text-[16px]">lock_clock</span>
                         <span>{{ __('admin.close_campaign_early') }}</span>
@@ -309,8 +316,8 @@
                             </div>
                         </div>
                     </div>
-                    <a href="{{ route('admin.payment-accounts.page', $room) }}" class="mt-3 block w-full text-center py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg text-xs font-semibold transition-colors no-underline">
-                        {{ __('admin.config_vietqr') }}
+                    <a href="{{ route('admin.settings.page', $room) }}" class="mt-3 block w-full text-center py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg text-xs font-semibold transition-colors no-underline">
+                        {{ __('admin.payments_settings') }}
                     </a>
                 </section>
 

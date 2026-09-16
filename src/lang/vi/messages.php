@@ -19,7 +19,15 @@ return [
     'campaign_product_budget' => 'Trần giá mỗi sản phẩm: :amount',
     'campaign_product_budget_unlimited' => 'Không giới hạn',
     'campaign_sponsor_not_set' => 'Không có',
+    'campaign_restaurant' => 'Quán / Thương hiệu: :restaurant',
     'campaign_order' => 'Đặt món: :url',
+    'campaign_order_now' => 'Bấm vào đây để đặt món ngay',
+    'campaign_closed_body' => 'Chiến dịch đã đóng đặt món. Admin đang tổng hợp đơn để tiến hành order.',
+    'campaign_cancelled_body' => 'Chiến dịch đã bị hủy. Hẹn gặp lại bạn ở các kèo nước tiếp theo!',
+    'test_ping_title' => 'Kiểm tra kết nối kênh thông báo',
+    'test_ping_body' => 'Kênh thông báo đã được kết nối thành công và sẵn sàng nhận thông báo tự động từ DrinkFlow.',
+    'debt_channel_reminder_title' => 'Nhắc thanh toán công nợ',
     'order_price_adjusted_title' => 'Điều chỉnh giá đơn hàng',
     'order_price_adjusted_body' => 'Đơn hàng #:order_id đã được điều chỉnh giá thành :amount. Lý do: :reason',
 ];
+

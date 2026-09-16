@@ -4,7 +4,7 @@
   :room-user="$roomUser"
   :user="$user"
   :active-tab="'campaigns'"
-  :active-campaign="$activeCampaign ? ['name' => $activeCampaign->name, 'time_remaining' => $campaignStats['time_remaining'] ?? '14:22'] : null"
+  :active-campaign="$activeCampaign ? ['name' => $activeCampaign->name, 'time_remaining' => $campaignStats['time_remaining'] ?? '14:22', 'has_expired' => $campaignStats['has_expired'] ?? false] : null"
   :unread-notifications-count="$unreadNotificationsCount ?? 0"
   :user-rooms="$userRooms ?? collect()"
 >
@@ -156,29 +156,25 @@
 
     @if($activeCampaign)
       <!-- 1. Active Campaign Top Banner -->
-      <section class="bg-white border border-slate-200/80 rounded-2xl shadow-xs p-6 relative overflow-hidden">
+      <section class="bg-white border border-slate-200/80 rounded-xl shadow-2xs p-3.5 sm:p-4.5 relative overflow-hidden">
         <div class="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-emerald-50 pointer-events-none blur-2xl"></div>
 
-        <div class="relative z-10 space-y-5">
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div class="relative z-10 space-y-3.5">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <!-- Restaurant Meta -->
-            <div class="flex items-start sm:items-center gap-4">
-              <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0 shadow-xs">
-                <span class="material-symbols-outlined text-[32px]">local_cafe</span>
+            <div class="flex items-start sm:items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
+                <span class="material-symbols-outlined text-[20px]">local_cafe</span>
               </div>
               <div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold uppercase tracking-wider border border-emerald-200">
-                    {{ __('room.campaign.active_run_badge') }}
-                  </span>
-                  <span class="text-xs text-slate-500 font-medium flex items-center gap-1">
-                    <span class="material-symbols-outlined text-[15px] text-amber-500">star</span>
-                    <span class="font-bold text-slate-800">4.9</span> {{ __('room.campaign.reviews_count', ['count' => 120]) }}
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider border border-emerald-200">
+                    {{ $activeCampaign->code ?: '—' }}
                   </span>
                 </div>
-                <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-1">{{ $activeCampaign->name }}</h1>
-                <p class="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
-                  <span class="material-symbols-outlined text-[15px] text-[#006948]">storefront</span>
+                <h1 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight mt-0.5">{{ $activeCampaign->name }}</h1>
+                <p class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                  <span class="material-symbols-outlined text-[13px] text-[#006948]">storefront</span>
                   <span class="font-semibold text-slate-800">{{ $activeCampaign->restaurant }}</span>
                   <span class="text-slate-300">•</span>
                   <span>{{ __('room.dashboard.created_by', ['name' => $activeCampaign->creator?->name ?? __('global.common.admin')]) }}</span>
@@ -187,41 +183,58 @@
             </div>
 
             <!-- Countdown Timer Pill -->
-            <div class="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-1.5 bg-slate-50 border border-slate-200/80 p-3.5 rounded-xl">
-              <div class="flex items-center gap-2 font-mono text-rose-700 text-xs font-bold">
-                <span class="material-symbols-outlined text-[18px] animate-pulse">schedule</span>
+            <div class="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-1 bg-slate-50 border border-slate-200/80 p-2.5 rounded-lg">
+              <div class="flex items-center gap-1.5 font-mono text-rose-700 text-xs font-bold">
+                <span class="material-symbols-outlined text-[15px] animate-pulse">schedule</span>
                 <span>{{ $campaignStats['time_remaining'] ?? '14:22' }}</span>
               </div>
-              <span class="text-[11px] text-slate-400 font-medium">{{ __('room.campaign.auto_lock_notice') }}</span>
+              <span class="text-[10px] text-slate-400 font-medium">{{ __('room.campaign.auto_lock_notice') }}</span>
             </div>
           </div>
 
           <!-- Policy Badges Strip -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-100">
-            <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100 flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-[18px]">savings</span>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2.5 border-t border-slate-100">
+            <div class="p-2.5 rounded-lg bg-slate-50/70 border border-slate-100 flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-md bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[16px]">savings</span>
               </div>
               <div>
-                <span class="text-[11px] text-slate-400 block font-medium">{{ __('room.campaign.policy_sponsor_title') }}</span>
-                <span class="text-xs font-bold text-slate-900">{{ __('room.campaign.policy_sponsor_val', ['amount' => '20.000đ']) }}</span>
+                <span class="text-[10px] text-slate-400 block font-medium">{{ __('room.campaign.policy_sponsor_title') }}</span>
+                <span class="text-xs font-bold text-slate-900">{{ __('room.campaign.sponsor_type_'.($activeCampaign->sponsor_type ?: 'none')) }}</span>
+                @if ($campaignSponsors->isNotEmpty())
+                  <div class="mt-1 flex flex-wrap gap-1">
+                    @foreach ($campaignSponsors as $sponsor)
+                      <span class="inline-flex items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800"
+                        title="{{ $sponsor['user_code'] }}">
+                        {{ $sponsor['name'] }} · {{ __('room.campaign.sponsor_percentage', ['percentage' => number_format($sponsor['percentage'], 0, ',', '.')]) }}
+                      </span>
+                    @endforeach
+                  </div>
+                @endif
+                @if ($activeCampaign->sponsor_description)
+                  <span class="mt-0.5 block text-[10px] leading-relaxed text-slate-400">{{ $activeCampaign->sponsor_description }}</span>
+                @endif
               </div>
             </div>
-            <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100 flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-[18px]">local_shipping</span>
+            <div class="p-2.5 rounded-lg bg-slate-50/70 border border-slate-100 flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-md bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[16px]">price_check</span>
               </div>
               <div>
-                <span class="text-[11px] text-slate-400 block font-medium">{{ __('room.campaign.policy_shipping_title') }}</span>
-                <span class="text-xs font-bold text-slate-900">{{ __('room.campaign.policy_shipping_val', ['amount' => '200k']) }}</span>
+                <span class="text-[10px] text-slate-400 block font-medium">{{ __('room.campaign.max_product_budget_title') }}</span>
+                <span class="text-xs font-bold text-slate-900">
+                  {{ $activeCampaign->max_budget
+                    ? __('room.campaign.max_product_budget_value', ['amount' => number_format((int) $activeCampaign->max_budget, 0, ',', '.') . 'đ'])
+                    : __('room.campaign.unlimited_budget') }}
+                </span>
               </div>
             </div>
-            <div class="p-3 rounded-xl bg-slate-50/70 border border-slate-100 flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+            <div class="p-2.5 rounded-lg bg-slate-50/70 border border-slate-100 flex items-start gap-2.5">
+              <div class="w-7 h-7 rounded-md bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[16px]">account_balance</span>
               </div>
-              <div>
-                <span class="text-[11px] text-slate-400 block font-medium">{{ __('room.campaign.policy_payment_title') }}</span>
+              <div class="min-w-0">
+                <span class="text-[10px] text-slate-400 block font-medium">{{ __('room.campaign.policy_payment_title') }}</span>
                 <span class="text-xs font-bold text-slate-900">{{ __('room.campaign.policy_payment_val') }}</span>
               </div>
             </div>
@@ -292,39 +305,39 @@
           </div>
         </div>
         <!-- Menu Items Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           @forelse($activeCampaign->items as $item)
             <div x-show="filterMatch({{ json_encode($item) }})"
-                 class="bg-white border border-slate-200/80 hover:border-emerald-300 rounded-2xl p-4 flex flex-col justify-between transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5">
+                 class="bg-white border border-slate-200/80 hover:border-emerald-300 rounded-xl p-3 sm:p-3.5 flex flex-col justify-between transition-all duration-200 shadow-2xs hover:shadow-md hover:-translate-y-0.5">
               <div>
-                <div class="w-full h-36 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-[#006948] overflow-hidden mb-3 relative">
-                  <span class="material-symbols-outlined text-[44px]">local_cafe</span>
+                <div class="w-full h-28 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-[#006948] overflow-hidden mb-2.5 relative">
+                  <span class="material-symbols-outlined text-[32px]">local_cafe</span>
                   @if($item->category)
-                    <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-semibold text-slate-600 border border-slate-200/60 shadow-2xs">
+                    <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-semibold text-slate-600 border border-slate-200/60 shadow-2xs">
                       {{ $item->category }}
                     </span>
                   @endif
                 </div>
-                <h3 class="text-sm font-bold text-slate-900 leading-snug truncate">{{ $item->name }}</h3>
-                <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{{ $item->description ?? __('room.campaign.default_drink_desc') }}</p>
+                <h3 class="text-xs font-bold text-slate-900 leading-snug truncate">{{ $item->name }}</h3>
+                <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">{{ $item->description ?? __('room.campaign.default_drink_desc') }}</p>
               </div>
 
-              <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <span class="text-sm font-bold font-mono text-slate-900">{{ number_format($item->base_price, 0, ',', '.') }}đ</span>
+              <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                <span class="text-xs sm:text-sm font-bold font-mono text-slate-900">{{ number_format($item->base_price, 0, ',', '.') }}đ</span>
                 @if($canOrderCampaign && !$activeUserOrder)
                   <button type="button"
                           @click="openCustomize({{ json_encode($item) }})"
                           data-add-to-cart-button
-                          class="px-3.5 h-8 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors shadow-2xs cursor-pointer">
-                    <span class="material-symbols-outlined text-[15px]">add</span>
+                          class="px-2.5 h-7 bg-[#006948] hover:bg-[#005137] text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors shadow-2xs cursor-pointer">
+                    <span class="material-symbols-outlined text-[14px]">add</span>
                     <span>{{ __('room.dashboard.select_drink') }}</span>
                   </button>
                 @endif
               </div>
             </div>
           @empty
-            <div x-show="menuItems.length === 0" class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
-              <span class="material-symbols-outlined text-[36px] text-slate-300 mb-2">restaurant_menu</span>
+            <div x-show="menuItems.length === 0" class="col-span-full py-8 text-center text-slate-400 bg-white rounded-xl border border-dashed border-slate-200">
+              <span class="material-symbols-outlined text-[28px] text-slate-300 mb-1.5">restaurant_menu</span>
               <p class="text-xs font-semibold text-slate-700">{{ __('room.campaign.menu_empty') }}</p>
             </div>
           @endforelse

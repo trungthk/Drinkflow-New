@@ -9,6 +9,9 @@ Route::get('/admin/login', [\App\Http\Controllers\Admin\AuthController::class, '
 Route::post('/admin/login', [\App\Http\Controllers\Admin\AuthController::class, 'login'])
     ->middleware('throttle:admin-login')
     ->name('admin.login');
+Route::post('/admin/login/two-factor/cancel', [\App\Http\Controllers\Admin\AuthController::class, 'cancelTwoFactorLogin'])
+    ->middleware('throttle:admin-login')
+    ->name('admin.login.two-factor.cancel');
 Route::get('/admin/forgot-password', [\App\Http\Controllers\Admin\AuthController::class, 'forgotPasswordPage'])
     ->middleware('throttle:admin-forgot-password')
     ->name('admin.forgot-password.page');
@@ -51,7 +54,6 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/orders/manage', [\App\Http\Controllers\Admin\OrderController::class, 'page'])->name('admin.orders.page');
     Route::get('/debts/ledger', [\App\Http\Controllers\Admin\DebtController::class, 'page'])->name('admin.debts.page');
     Route::get('/room-users/directory', [\App\Http\Controllers\Admin\RoomUserController::class, 'page'])->name('admin.room-users.page');
-    Route::get('/payment-accounts/settings', [\App\Http\Controllers\Admin\PaymentAccountController::class, 'page'])->name('admin.payment-accounts.page');
     Route::get('/settings/general', [\App\Http\Controllers\Admin\RoomSettingsController::class, 'page'])->name('admin.settings.page');
     Route::get('/notification-channels/integrations', [\App\Http\Controllers\Admin\NotificationChannelController::class, 'page'])->name('admin.notification-channels.page');
     Route::get('/reports/analytics', [\App\Http\Controllers\Admin\ReportController::class, 'page'])->name('admin.reports.page');
@@ -74,6 +76,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::post('/orders/{order}/unlock', [\App\Http\Controllers\Admin\OrderController::class, 'unlock'])->name('admin.orders.unlock');
     Route::delete('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'destroy'])->name('admin.orders.destroy');
     Route::post('/campaigns', [\App\Http\Controllers\Admin\CampaignController::class, 'store'])->name('admin.campaigns.store');
+    Route::post('/campaigns/menu-images', [\App\Http\Controllers\Admin\CampaignController::class, 'uploadImage'])->name('admin.campaigns.menu-images.store');
     Route::patch('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'update'])->name('admin.campaigns.update');
     Route::delete('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'destroy'])->name('admin.campaigns.destroy');
     Route::post('/campaigns/{campaign}/activate', [\App\Http\Controllers\Admin\CampaignController::class, 'activate'])->name('admin.campaigns.activate');

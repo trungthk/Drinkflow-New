@@ -228,7 +228,13 @@
         @if($activeCampaign)
           <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/70 font-mono text-[11px] font-semibold">
             <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>
-            <span>{{ __('room.header.countdown_prefix') }} {{ $activeCampaign['time_remaining'] ?? '14:22' }}</span>
+            <span>
+              @if ($activeCampaign['has_expired'] ?? false)
+                {{ __('room.header.countdown_closed') }}
+              @else
+                {{ __('room.header.countdown_prefix') }} {{ $activeCampaign['time_remaining'] ?? '14:22' }}
+              @endif
+            </span>
           </div>
         @else
           <div class="flex items-center gap-1 text-[11px] text-slate-400">

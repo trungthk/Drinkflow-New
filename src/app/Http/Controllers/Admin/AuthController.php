@@ -161,7 +161,10 @@ class AuthController extends Controller
 
         if ($admin->two_factor_enabled) {
             auth('admin')->logout();
-            $request->session()->put('admin_google_2fa_admin_id', $admin->id);
+            $request->session()->put([
+                'admin_google_2fa_admin_id' => $admin->id,
+                'admin_google_2fa_remember' => $request->boolean('remember'),
+            ]);
 
             if ($request->expectsJson()) {
                 return response()->json(['two_factor_required' => true]);
@@ -179,6 +182,24 @@ class AuthController extends Controller
         }
 
         return redirect()->intended(route('admin.landing'));
+    }
+
+    /**
+     * Cancel the pending Google Workspace second-factor challenge.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @return RedirectResponse Redirect to the manual Admin login form.
+     */
+    public function cancelTwoFactorLogin(Request $request): RedirectResponse
+    {
+        $request->session()->forget([
+            'admin_google_2fa_admin_id',
+            'admin_google_2fa_remember',
+            'google_oauth_state',
+            'google_oauth_login_source',
+        ]);
+
+        return redirect()->route('admin.login.page');
     }
 
     /**

@@ -29,25 +29,6 @@ class PaymentAccountController extends Controller
         return response()->json(['data' => $room->paymentAccounts()->paginate(20)->through(fn (PaymentAccount $account) => $this->payload($account))]);
     }
 
-    /**
-     * Display the payment accounts management page.
-     *
-     * @param  Request     $request     Incoming request.
-     * @param  Room        $room        Room entity.
-     * @param  BankService $bankService Bank catalogue service.
-     * @return View Blade view.
-     */
-    public function page(Request $request, Room $room, BankService $bankService): View
-    {
-        $accounts = $room->paymentAccounts()->latest()->paginate(20);
-        $banks    = $bankService->getAllBanks();
-
-        return view('admin.payments', [
-            'room'     => $room,
-            'accounts' => $accounts,
-            'banks'    => $banks,
-        ]);
-    }
 
     /**
      * Handle the store operation.
@@ -142,18 +123,32 @@ class PaymentAccountController extends Controller
 
         $payload = $this->buildLocalQrPayload($account, $amount, $description);
 
+        $bankCode = (string) $account->bank_code;
+        $accNumber = (string) $account->getRawOriginal('account_number');
+        $accName = (string) $account->account_name;
+        $qrUrl = sprintf(
+            'https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s',
+            urlencode($bankCode),
+            urlencode($accNumber),
+            $amount,
+            urlencode($description),
+            urlencode($accName)
+        );
+
         return response()->json([
             'data' => [
                 'payload'        => $payload,
+                'qr_url'         => $qrUrl,
                 'bank_code'      => $account->bank_code,
-                'bank_name'      => $account->bank_name,
-                'account_number' => $account->getRawOriginal('account_number'),
-                'account_name'   => $account->account_name,
+                'bank_name'      => $account->bank_name ?: $account->bank_code,
+                'account_number' => $accNumber,
+                'account_name'   => $accName,
                 'amount'         => $amount,
                 'description'    => $description,
             ],
         ]);
     }
+
 
     /**
      * Build a local QR payload that contains the complete payment details.

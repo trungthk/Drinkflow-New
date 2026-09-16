@@ -170,16 +170,6 @@
                         </div>
                     </a>
 
-                    <!-- VietQR Accounts -->
-                    <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'payment_accounts' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
-                        href="{{ route('admin.payment-accounts.page', $room) }}" title="{{ __('admin.config_vietqr') }}">
-                        <span class="material-symbols-outlined text-[18px] shrink-0">qr_code_2</span>
-                        <span class="sidebar-text truncate">{{ __('admin.config_vietqr') }}</span>
-                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
-                            {{ __('admin.config_vietqr') }}
-                        </div>
-                    </a>
-
                     <!-- Room Settings -->
                     <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ in_array($active, ['settings', 'notifications']) ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                         href="{{ route('admin.settings.page', $room) }}" title="{{ __('admin.payments_settings') }}">
