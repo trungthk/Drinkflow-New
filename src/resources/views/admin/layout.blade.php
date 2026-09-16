@@ -48,7 +48,7 @@
     @vite(['resources/css/admin.css', 'resources/js/app.js'])
 </head>
 
-<body class="bg-surface text-on-surface font-sans min-h-screen flex antialiased">
+<body data-submit-loading-text="{{ __('global.common.loading') }}" class="bg-surface text-on-surface font-sans min-h-screen flex antialiased">
     <!-- ================= LEFT SIDEBAR ================= -->
     <aside id="admin-sidebar" class="fixed top-0 left-0 h-screen w-64 flex flex-col z-30 bg-surface-container-lowest border-r border-outline-variant transition-transform duration-200 -translate-x-full lg:translate-x-0">
         <div class="w-64 h-full p-4 flex flex-col justify-between overflow-y-auto">

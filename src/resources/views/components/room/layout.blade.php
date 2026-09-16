@@ -59,7 +59,7 @@
   <!-- Alpine.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 </head>
-<body class="bg-[#F8FAFC] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900"
+<body data-submit-loading-text="{{ __('global.common.loading') }}" class="bg-[#F8FAFC] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900"
       data-room-socket-token-url="{{ $room ? route('user.socket-token', $room) : '' }}"
       data-realtime-url="{{ config('services.realtime.public_url', 'http://localhost:3001') }}">
 

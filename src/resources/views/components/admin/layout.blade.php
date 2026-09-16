@@ -69,7 +69,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 </head>
 
-<body data-room-slug="{{ $room?->slug }}" data-processing-text="{{ __('admin.processing') }}" class="bg-surface text-on-surface font-sans min-h-screen flex antialiased">
+<body data-submit-loading-text="{{ __('global.common.loading') }}" data-room-slug="{{ $room?->slug }}" data-processing-text="{{ __('admin.processing') }}" class="bg-surface text-on-surface font-sans min-h-screen flex antialiased">
     <!-- ================= LEFT SIDEBAR ================= -->
     <aside id="admin-sidebar" class="fixed top-0 left-0 h-screen w-64 flex flex-col z-30 bg-surface-container-lowest border-r border-outline-variant -translate-x-full lg:translate-x-0">
         <div class="w-full h-full p-3.5 flex flex-col justify-between overflow-y-auto overflow-x-hidden">

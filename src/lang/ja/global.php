@@ -369,6 +369,7 @@ return [
         'range_6months' => '過去6ヶ月',
         'range_year' => ':year年通年',
         'export_pdf_excel' => 'PDF / Excel レポート出力',
+        'export_excel' => 'Excelレポートを出力',
         'total_orders' => '総注文数',
         'orders_unit' => '件',
         'vs_last_month' => '前月比',

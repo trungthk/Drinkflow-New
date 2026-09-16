@@ -104,8 +104,12 @@
                 <option value="name_asc" {{ $sort === 'name_asc' ? 'selected' : '' }}>{{ __('global.rooms.sort_name_asc') }}</option>
                 <option value="spent_desc" {{ $sort === 'spent_desc' ? 'selected' : '' }}>{{ __('global.rooms.sort_spent_desc') }}</option>
               </select>
-              <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none">swap_vert</span>
-              <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 text-[16px] pointer-events-none">expand_more</span>
+              <span class="absolute inset-y-0 left-2.5 flex items-center text-slate-400 pointer-events-none" aria-hidden="true">
+                <span class="material-symbols-outlined text-[16px]">swap_vert</span>
+              </span>
+              <span class="absolute inset-y-0 right-2 flex items-center text-slate-400 pointer-events-none" aria-hidden="true">
+                <span class="material-symbols-outlined text-[16px]">expand_more</span>
+              </span>
             </div>
           </form>
         </div>
@@ -117,56 +121,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @forelse($roomUsers as $item)
           @if($item->is_active)
-            <!-- CARD: Active Room -->
-            <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-xs hover:border-[#006948]/60 hover:shadow-md transition-all flex flex-col justify-between group">
-              <div>
-                <!-- Card Header -->
-                <div class="flex items-start justify-between gap-3 mb-4">
-                  <div class="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[#006948]">
-                    <span class="material-symbols-outlined text-[24px]">groups</span>
-                  </div>
-                  <!-- Badge: Đang hoạt động -->
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#ECFDF5] text-[#006948] border border-[#006948]/20">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#006948] animate-pulse"></span>
-                    <span>{{ __('global.rooms.badge_active') }}</span>
-                  </span>
-                </div>
-
-                <!-- Title & ID -->
-                <h2 class="text-base font-bold text-slate-900 group-hover:text-[#006948] transition-colors line-clamp-1" title="{{ $item->room_name }}">
-                  {{ $item->room_name }}
-                </h2>
-                <p class="text-xs text-slate-400 mt-0.5 font-mono uppercase">{{ $item->room_id_display }}</p>
-
-                <!-- Metrics Matrix -->
-                <div class="mt-5 pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
-                  <div>
-                    <span class="text-xs text-slate-400 block">{{ __('global.rooms.joined_date') }}</span>
-                    <span class="text-xs font-medium text-slate-800 mt-0.5 block">{{ $item->joined_at_formatted }}</span>
-                  </div>
-                  <div>
-                    <span class="text-xs text-slate-400 block">{{ __('global.rooms.orders_placed') }}</span>
-                    <span class="text-xs font-semibold text-slate-800 mt-0.5 block">{{ __('global.rooms.orders_count', ['count' => $item->orders_count]) }}</span>
-                  </div>
-                  <div class="col-span-2 bg-slate-50/70 p-2.5 rounded-lg border border-slate-100 flex items-center justify-between">
-                    <span class="text-xs text-slate-600 font-medium">{{ __('global.rooms.total_spent') }}</span>
-                    <span class="text-sm font-bold text-[#006948] tabular-nums">{{ $item->total_spent_formatted }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Card Action CTA -->
-              <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
-                <span class="text-xs text-slate-400 flex items-center gap-1">
-                  <span class="material-symbols-outlined text-[16px]">schedule</span>
-                  <span>{{ $item->last_order_time ? __('global.rooms.last_ordered', ['time' => $item->last_order_time]) : __('global.rooms.no_orders_yet') }}</span>
-                </span>
-                <a href="{{ $item->dashboard_url }}" class="h-[36px] px-4 bg-[#006948] hover:bg-[#005137] text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-2xs">
-                  <span>{{ __('global.rooms.enter_room') }}</span>
-                  <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
-                </a>
-              </div>
-            </div>
+            <x-global.room-card :item="$item" />
           @else
             <!-- CARD: Restricted / Blocked Room -->
             <div class="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs flex flex-col justify-between opacity-95 relative overflow-hidden">
@@ -296,7 +251,7 @@
 
     <!-- Join Room / Room URL Action Canvas -->
     <section class="mt-8 bg-white rounded-xl border border-slate-200 p-6 sm:p-8 shadow-xs">
-      <div class="max-w-3xl">
+      <div class="w-full">
         <div class="flex items-start gap-4">
           <div class="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-[#006948] shrink-0">
             <span class="material-symbols-outlined text-[28px]">link</span>
@@ -304,7 +259,6 @@
           <div class="flex-1">
             <div class="flex items-center gap-2">
               <h3 class="text-base font-bold text-slate-900">{{ __('global.rooms.join_title') }}</h3>
-              <span class="material-symbols-outlined text-slate-400 text-[18px]">link</span>
             </div>
             <p class="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
               {{ __('global.rooms.join_desc') }}
@@ -315,7 +269,9 @@
               @csrf
               <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div class="relative flex-1">
-                  <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">link</span>
+                  <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 pointer-events-none" aria-hidden="true">
+                    <span class="material-symbols-outlined text-[18px]">link</span>
+                  </span>
                   <input name="room_url"
                          value="{{ old('room_url') }}"
                          class="w-full pl-9 pr-4 h-[38px] bg-white border @error('room_url') border-red-500 @else border-slate-200 @enderror rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:border-[#006948] focus:ring-1 focus:ring-[#006948] font-mono transition-all outline-none"
@@ -336,16 +292,6 @@
               @enderror
             </form>
 
-            <!-- Hint tags -->
-            <div class="mt-3 flex flex-wrap items-center gap-2 text-xs text-slate-400">
-              <span>{{ __('global.rooms.join_url_format') }}</span>
-              <code class="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded border border-slate-200 font-mono text-[11px]">{{ __('global.rooms.join_url_sample') }}</code>
-              <span>•</span>
-              <a class="text-[#006948] hover:underline inline-flex items-center gap-0.5" href="{{ route('user.me.feedback') }}">
-                <span>{{ __('global.rooms.host_guide_link') }}</span>
-                <span class="material-symbols-outlined text-[12px]">open_in_new</span>
-              </a>
-            </div>
           </div>
         </div>
       </div>

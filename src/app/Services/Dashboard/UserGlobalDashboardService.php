@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Services\Dashboard;
 
 use App\Support\Helpers\FormatHelper;
-use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\GlobalUser;
 use App\Models\Order;
-use App\Models\OrderItem;
+use App\Models\RoomUser;
+use App\Services\Room\UserRoomsService;
 use Illuminate\Support\Str;
 
 class UserGlobalDashboardService
@@ -29,16 +29,7 @@ class UserGlobalDashboardService
 
         // Query active room users of current user
         $roomUsers = $user->roomUsers()
-            ->with([
-                'room' => function ($q) {
-                    $q->withCount(['roomUsers' => function ($ru) {
-                        $ru->where('status', RoomUserStatus::Active->value);
-                    }]);
-                    $q->with(['campaigns' => function ($c) {
-                        $c->where('status', CampaignStatus::Active->value)->latest();
-                    }]);
-                },
-            ])
+            ->with(['room', 'orders'])
             ->where('status', RoomUserStatus::Active->value)
             ->orderByDesc('last_active_at')
             ->orderByDesc('updated_at')
@@ -68,63 +59,10 @@ class UserGlobalDashboardService
             : 0;
 
         // Recent rooms (up to 4)
-        $recentRooms = $roomUsers->take(4)->map(function ($ru) {
-            $room = $ru->room;
-            $activeCampaign = $room?->campaigns->first();
-
-            $campaignData = null;
-            if ($activeCampaign) {
-                $cupsCollected = (int) OrderItem::query()
-                    ->whereIn('order_id', function ($q) use ($activeCampaign) {
-                        $q->select('id')->from('orders')
-                            ->where('campaign_id', $activeCampaign->id)
-                            ->whereIn('status', ['submitted', 'confirmed', 'paid', 'completed']);
-                    })
-                    ->sum('quantity');
-
-                $targetCups = 20;
-                $progressPercent = min(100, (int) round(($cupsCollected / $targetCups) * 100));
-
-                $timeRemaining = __('global.dashboard.campaign_open');
-                if ($activeCampaign->deadline) {
-                    if ($activeCampaign->deadline->isFuture()) {
-                        $diff = now()->diff($activeCampaign->deadline);
-                        $timeRemaining = sprintf('%02d:%02d:%02d', $diff->h + ($diff->days * 24), $diff->i, $diff->s);
-                    } else {
-                        $timeRemaining = __('global.dashboard.campaign_expired');
-                    }
-                }
-
-                $discountText = __('global.dashboard.free_ship');
-                if ($activeCampaign->discount > 0) {
-                    $discountText = '-' . FormatHelper::formatCurrency((int) $activeCampaign->discount);
-                }
-
-                $campaignData = [
-                    'id' => $activeCampaign->id,
-                    'name' => $activeCampaign->name,
-                    'restaurant' => $activeCampaign->restaurant ?: __('global.dashboard.default_beverage_shop'),
-                    'deadline_formatted' => $activeCampaign->deadline ? FormatHelper::formatDateTime($activeCampaign->deadline, 'H:i') : '10:30',
-                    'time_remaining' => $timeRemaining,
-                    'cups_collected' => $cupsCollected,
-                    'target_cups' => $targetCups,
-                    'progress_percent' => $progressPercent,
-                    'discount_text' => $discountText,
-                    'sponsor_note' => $activeCampaign->sponsor_name ? __('global.dashboard.fund_label', ['name' => $activeCampaign->sponsor_name]) : __('global.dashboard.default_tech_fund'),
-                    'order_url' => route('user.campaigns.order-page', ['room' => $room->id, 'campaign' => $activeCampaign->id]),
-                ];
-            }
-
-            return [
-                'id' => $room?->id,
-                'name' => $room?->name ?? 'Room',
-                'description' => $room?->description ?: __('global.dashboard.default_room_desc'),
-                'member_count' => $room?->room_users_count ?? 1,
-                'user_code' => $ru->user_code,
-                'campaign' => $campaignData,
-                'room_url' => $room ? route('user.dashboard', $room) : '#',
-            ];
-        });
+        $roomService = new UserRoomsService();
+        $recentRooms = $roomUsers->take(4)->map(
+            fn (RoomUser $membership): object => $roomService->formatRoomCard($membership)
+        );
 
         // Recent orders (up to 5)
         $recentOrders = (clone $ordersQuery)

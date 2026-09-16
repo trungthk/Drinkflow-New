@@ -9,6 +9,7 @@ use App\Enums\RoomUserStatus;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\Room;
+use App\Models\RoomUser;
 use Illuminate\Http\Request;
 
 class UserRoomsService
@@ -84,43 +85,7 @@ class UserRoomsService
         $paginator = $query->paginate(9)->withQueryString();
 
         // Map room users to display objects with formatted statistics
-        $roomUsers = $paginator->through(function ($ru) {
-            $orders = $ru->orders;
-            $ordersCount = $orders->count();
-            $totalSpent = (int) $orders->sum('final_amount');
-
-            $latestOrder = $orders->sortByDesc('created_at')->first();
-            $lastOrderTime = null;
-            if ($latestOrder && $latestOrder->created_at) {
-                $lastOrderTime = $latestOrder->created_at->diffForHumans();
-            } elseif ($ru->last_active_at) {
-                $lastOrderTime = $ru->last_active_at->diffForHumans();
-            }
-
-            $statusVal = $ru->status instanceof RoomUserStatus ? $ru->status->value : (string) $ru->status;
-            $isActive = $statusVal === 'active';
-            $isBlocked = $statusVal === 'blocked';
-
-            $roomSlug = $ru->room?->slug ?: ('room-' . $ru->room_id);
-            $roomIdDisplay = 'ROOM-ID: ' . strtoupper($roomSlug);
-
-            return (object) [
-                'id' => $ru->id,
-                'room' => $ru->room,
-                'room_id' => $ru->room_id,
-                'room_name' => $ru->room?->name ?? 'Room #' . $ru->room_id,
-                'room_id_display' => $roomIdDisplay,
-                'status' => $statusVal,
-                'is_active' => $isActive,
-                'is_blocked' => $isBlocked,
-                'joined_at_formatted' => $ru->joined_at ? \App\Support\Helpers\FormatHelper::formatDate($ru->joined_at) : ($ru->created_at ? \App\Support\Helpers\FormatHelper::formatDate($ru->created_at) : 'N/A'),
-                'orders_count' => $ordersCount,
-                'total_spent' => $totalSpent,
-                'total_spent_formatted' => FormatHelper::formatCurrency($totalSpent),
-                'last_order_time' => $lastOrderTime,
-                'dashboard_url' => $ru->room ? route('user.dashboard', $ru->room->slug ?? $ru->room->id) : '#',
-            ];
-        });
+        $roomUsers = $paginator->through(fn (RoomUser $membership): object => $this->formatRoomCard($membership));
 
         // Notifications for layout
         $unreadNotificationsCount = $user->notifications()->whereNull('read_at')->count();
@@ -145,6 +110,52 @@ class UserRoomsService
             'unreadNotificationsCount' => $unreadNotificationsCount,
             'notifications' => $notifications,
         ];
+    }
+
+    /**
+     * Format membership details and order statistics for the shared room card.
+     *
+     * @param RoomUser $membership Membership with its room and orders loaded.
+     * @return object Display data for the room card.
+     */
+    public function formatRoomCard(RoomUser $membership): object
+    {
+        $orders = $membership->orders;
+        $ordersCount = $orders->count();
+        $totalSpent = (int) $orders->sum('final_amount');
+
+        $latestOrder = $orders->sortByDesc('created_at')->first();
+        $lastOrderTime = null;
+        if ($latestOrder && $latestOrder->created_at) {
+            $lastOrderTime = $latestOrder->created_at->diffForHumans();
+        } elseif ($membership->last_active_at) {
+            $lastOrderTime = $membership->last_active_at->diffForHumans();
+        }
+
+        $statusVal = $membership->status instanceof RoomUserStatus ? $membership->status->value : (string) $membership->status;
+        $isActive = $statusVal === RoomUserStatus::Active->value;
+        $isBlocked = $statusVal === RoomUserStatus::Blocked->value;
+
+        $roomSlug = $membership->room?->slug ?: ('room-' . $membership->room_id);
+        $roomIdDisplay = 'ROOM-ID: ' . strtoupper($roomSlug);
+
+        return (object) [
+            'id' => $membership->id,
+            'room' => $membership->room,
+            'room_id' => $membership->room_id,
+            'room_name' => $membership->room?->name ?? 'Room #' . $membership->room_id,
+            'room_id_display' => $roomIdDisplay,
+            'status' => $statusVal,
+            'is_active' => $isActive,
+            'is_blocked' => $isBlocked,
+            'joined_at_formatted' => $membership->joined_at ? \App\Support\Helpers\FormatHelper::formatDate($membership->joined_at) : ($membership->created_at ? \App\Support\Helpers\FormatHelper::formatDate($membership->created_at) : 'N/A'),
+            'orders_count' => $ordersCount,
+            'total_spent' => $totalSpent,
+            'total_spent_formatted' => FormatHelper::formatCurrency($totalSpent),
+            'last_order_time' => $lastOrderTime,
+            'dashboard_url' => $membership->room ? route('user.dashboard', $membership->room->slug ?? $membership->room->id) : '#',
+        ];
+
     }
 
     /**

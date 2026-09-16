@@ -91,149 +91,48 @@
 
       <!-- Quick Actions Header -->
       <div class="flex items-center gap-3">
+        @if($displayedOrders->isEmpty())
         <button
           type="button"
-          @click="triggerToast('{{ __('global.statistics.downloading_alert') }}')"
-          class="inline-flex items-center gap-2 px-3.5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
+          disabled
+          class="inline-flex items-center gap-2 px-3.5 py-2.5 bg-slate-50 border border-slate-200 text-slate-400 rounded-xl text-xs font-semibold cursor-not-allowed"
         >
           <span class="material-symbols-outlined text-[17px]">download</span>
           <span>{{ __('global.payments.export_excel') }}</span>
         </button>
-
-        <button
-          type="button"
-          @click="openQr({
-            order_code: 'ALL',
-            amount: {{ $totalUnpaidAmount ?: 50000 }},
-            transfer_content: 'DF{{ $user->id }} ALL',
-            room_name: 'Total'
-          })"
-          class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-semibold transition-colors shadow-xs cursor-pointer"
+        @else
+        <a
+          href="{{ route('user.me.payments.export', request()->only(['filter', 'sort'])) }}"
+          class="inline-flex items-center gap-2 px-3.5 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
         >
-          <span class="material-symbols-outlined text-[17px]">qr_code_scanner</span>
-          <span>{{ __('global.payments.quick_vietqr') }}</span>
-        </button>
+          <span class="material-symbols-outlined text-[17px]">download</span>
+          <span>{{ __('global.payments.export_excel') }}</span>
+        </a>
+        @endif
       </div>
     </div>
 
-    <!-- Top Overview Cards (Thống kê tài chính cá nhân) -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- Card 1: Cảnh báo nợ đọng -->
-      <div class="bg-white border {{ $totalUnpaidAmount > 0 ? 'border-rose-200' : 'border-slate-200/80' }} rounded-2xl p-6 shadow-xs relative overflow-hidden flex flex-col justify-between">
-        @if($totalUnpaidAmount > 0)
-          <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-rose-500"></div>
-        @else
-          <div class="absolute top-0 left-0 bottom-0 w-1.5 bg-emerald-500"></div>
-        @endif
-
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{{ __('global.payments.total_unpaid') }}</span>
-            @if($totalUnpaidAmount > 0)
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                {{ __('global.payments.pay_in_24h') }}
-              </span>
-            @else
-              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                <span class="material-symbols-outlined text-[13px]">check_circle</span>
-                {{ __('global.payments.all_paid') }}
-              </span>
-            @endif
-          </div>
-
-          <div class="flex items-baseline gap-2 mb-2">
-            <span class="text-3xl font-bold {{ $totalUnpaidAmount > 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight">
-              {{ number_format($totalUnpaidAmount, 0, ',', '.') }}<span class="text-xl">{{ __('global.common.money_suffix') }}</span>
-            </span>
-            <span class="text-xs text-slate-400">{{ __('global.payments.unpaid_orders_count', ['count' => $unpaidCount]) }}</span>
-          </div>
-          <p class="text-xs text-slate-500 leading-relaxed">
-            @if($totalUnpaidAmount > 0)
-              {{ __('global.payments.unpaid_desc') }}
-            @else
-              {{ __('global.payments.all_clear_desc') }}
-            @endif
-          </p>
-        </div>
-
-        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-          @if($totalUnpaidAmount > 0)
-            <button
-              type="button"
-              @click="openQr({
-                order_code: 'ALL',
-                amount: {{ $totalUnpaidAmount }},
-                transfer_content: 'DF{{ $user->id }} ALL',
-                room_name: 'Total'
-              })"
-              class="w-full inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white py-2 px-4 rounded-xl font-semibold text-xs transition-colors shadow-xs cursor-pointer"
-            >
-              <span class="material-symbols-outlined text-[17px]">qr_code</span>
-              {{ __('global.payments.pay_all_btn') }}
-            </button>
-          @else
-            <div class="w-full text-center text-xs text-emerald-700 font-semibold py-1">
-              {{ __('global.payments.no_debt_badge') }}
-            </div>
-          @endif
-        </div>
+    <!-- Financial summary -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-white border {{ $totalUnpaidAmount > 0 ? 'border-rose-200' : 'border-slate-200/80' }} rounded-xl p-5 shadow-xs">
+        <p class="text-xs font-medium text-slate-500">{{ __('global.payments.total_unpaid') }}</p>
+        <p class="mt-2 text-2xl font-bold {{ $totalUnpaidAmount > 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight">
+          {{ number_format($totalUnpaidAmount, 0, ',', '.') }}<span class="ml-1 text-sm font-medium">{{ __('global.common.money_suffix') }}</span>
+        </p>
+        <p class="mt-1 text-xs text-slate-400">{{ __('global.payments.unpaid_orders_count', ['count' => $unpaidCount]) }}</p>
       </div>
-
-      <!-- Card 2: Đã hoàn tất tháng này -->
-      <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{{ __('global.payments.paid_this_month') }}</span>
-            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span class="material-symbols-outlined text-[13px]">verified</span>
-              {{ __('global.payments.napas_verified') }}
-            </span>
-          </div>
-          <div class="flex items-baseline gap-2 mb-2">
-            <span class="text-3xl font-bold text-[#006948] tracking-tight">
-              {{ number_format($paidThisMonthAmount, 0, ',', '.') }}<span class="text-xl">{{ __('global.common.money_suffix') }}</span>
-            </span>
-            <span class="text-xs text-slate-400">{{ __('global.payments.transactions_count', ['count' => $paidThisMonthCount]) }}</span>
-          </div>
-          <p class="text-xs text-slate-500 leading-relaxed">
-            {{ __('global.payments.paid_desc') }}
-          </p>
-        </div>
-
-        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
-          <span class="flex items-center gap-1 text-slate-600">
-            <span class="material-symbols-outlined text-[15px] text-[#006948]">shield</span>
-            {{ __('global.payments.napas_standard') }}
-          </span>
-          <span class="font-bold text-[#006948]">{{ __('global.payments.reconcile_match') }}</span>
-        </div>
+      <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs">
+        <p class="text-xs font-medium text-slate-500">{{ __('global.payments.paid_this_month') }}</p>
+        <p class="mt-2 text-2xl font-bold text-[#006948] tracking-tight">
+          {{ number_format($paidThisMonthAmount, 0, ',', '.') }}<span class="ml-1 text-sm font-medium">{{ __('global.common.money_suffix') }}</span>
+        </p>
+        <p class="mt-1 text-xs text-slate-400">{{ __('global.payments.transactions_count', ['count' => $paidThisMonthCount]) }}</p>
       </div>
-
-      <!-- Card 3: Tài trợ phúc lợi -->
-      <div class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
-        <div>
-          <div class="flex items-center justify-between mb-3">
-            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{{ __('global.payments.total_sponsor_received') }}</span>
-            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-              {{ __('global.payments.sponsor_fund') }}
-            </span>
-          </div>
-          <div class="flex items-baseline gap-2 mb-2">
-            <span class="text-3xl font-bold text-slate-900 tracking-tight">
-              {{ number_format($totalSponsorReceived, 0, ',', '.') }}<span class="text-xl">{{ __('global.common.money_suffix') }}</span>
-            </span>
-            <span class="text-xs text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">{{ __('global.payments.subsidy_badge') }}</span>
-          </div>
-          <p class="text-xs text-slate-500 leading-relaxed">
-            {{ __('global.payments.sponsor_desc', ['quarter' => ceil(now()->month / 3), 'year' => now()->year]) }}
-          </p>
-        </div>
-
-        <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span>{{ __('global.payments.remaining_quota') }}</span>
-          <span class="font-bold text-[#006948]">150.000{{ __('global.common.money_suffix') }}</span>
-        </div>
+      <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs">
+        <p class="text-xs font-medium text-slate-500">{{ __('global.payments.total_sponsor_received') }}</p>
+        <p class="mt-2 text-2xl font-bold text-slate-900 tracking-tight">
+          {{ number_format($totalSponsorReceived, 0, ',', '.') }}<span class="ml-1 text-sm font-medium">{{ __('global.common.money_suffix') }}</span>
+        </p>
       </div>
     </div>
 
@@ -485,25 +384,7 @@
       @endif
     </div>
 
-    <!-- Operational Bank Sync Note -->
-    <div class="p-4 bg-emerald-50/60 border border-emerald-200/80 rounded-2xl flex items-center justify-between flex-wrap gap-4">
-      <div class="flex items-center gap-3">
-        <span class="w-10 h-10 rounded-xl bg-emerald-100 text-[#006948] flex items-center justify-center shrink-0">
-          <span class="material-symbols-outlined text-[22px]">sync</span>
-        </span>
-        <div>
-          <div class="text-xs font-bold text-slate-900">{{ __('global.payments.auto_sync_mechanism') }}</div>
-          <div class="text-xs text-slate-500 mt-0.5">{{ __('global.payments.auto_sync_desc') }}</div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 text-xs font-mono font-semibold">
-        <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-slate-600">{{ __('global.payments.webhooks_active') }}</span>
-        <span class="px-2.5 py-1 rounded-lg bg-white border border-emerald-200 text-emerald-700 flex items-center gap-1">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-          Latency: 280ms
-        </span>
-      </div>
-    </div>
+
 
     <!-- VIETQR MODAL POPUP -->
     <div

@@ -9,11 +9,7 @@
 <div 
     x-data="{
         showHelpModal: false,
-        showExportModal: false,
-        timeRange: 'month',
-        exportReport() {
-            this.showExportModal = true;
-        }
+        timeRange: 'month'
     }" 
     class="space-y-6"
 >
@@ -38,14 +34,17 @@
                 <span class="material-symbols-outlined absolute right-2.5 top-2.5 pointer-events-none text-slate-400 text-[18px]">expand_more</span>
             </div>
 
-            <button 
-                type="button" 
-                @click="exportReport()"
-                class="h-[38px] px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-2 transition-colors shadow-2xs cursor-pointer"
-            >
-                <span class="material-symbols-outlined text-[#006948] text-[18px]">file_download</span>
-                <span>{{ __('global.statistics.export_pdf_excel') }}</span>
-            </button>
+            @if($totalOrders === 0)
+                <button type="button" disabled class="h-[38px] px-4 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 text-xs font-semibold flex items-center gap-2 cursor-not-allowed">
+                    <span class="material-symbols-outlined text-[18px]">file_download</span>
+                    <span>{{ __('global.statistics.export_excel') }}</span>
+                </button>
+            @else
+                <a href="{{ route('user.me.statistics.export') }}" class="h-[38px] px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-2 transition-colors shadow-2xs">
+                    <span class="material-symbols-outlined text-[#006948] text-[18px]">file_download</span>
+                    <span>{{ __('global.statistics.export_excel') }}</span>
+                </a>
+            @endif
         </div>
     </div>
 
@@ -137,7 +136,7 @@
     </div>
 
     <!-- Data Visualization Row 1 (2/3 + 1/3) -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         <!-- Left Card (2/3): Biểu đồ xu hướng chi tiêu theo tuần -->
         <div class="lg:col-span-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs flex flex-col justify-between space-y-6">
             <div>
@@ -346,44 +345,5 @@
         </div>
     </div>
 
-    <!-- MODAL: Xuất báo cáo PDF / Excel -->
-    <div 
-        x-show="showExportModal"
-        x-cloak
-        style="display: none;"
-        :class="{ 'flex': showExportModal, 'hidden': !showExportModal }"
-        class="fixed inset-0 z-50 items-center justify-center bg-black/40 backdrop-blur-sm p-4"
-        @click.self="showExportModal = false"
-        @keydown.escape.window="showExportModal = false"
-    >
-        <div class="bg-white border border-slate-200 rounded-2xl max-w-md w-full p-6 shadow-xl relative">
-            <button @click="showExportModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors" aria-label="{{ __('global.common.close') }}">
-                <span class="material-symbols-outlined text-xl">close</span>
-            </button>
-
-            <div class="flex items-center gap-3 mb-4">
-                <div class="w-10 h-10 rounded-full bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
-                    <span class="material-symbols-outlined text-xl">file_download</span>
-                </div>
-                <div>
-                    <h3 class="text-base font-bold text-slate-900">{{ __('global.statistics.modal_export_title') }}</h3>
-                    <p class="text-xs text-slate-500">{{ __('global.statistics.modal_period', ['date' => date('m/Y')]) }}</p>
-                </div>
-            </div>
-
-            <p class="text-xs text-slate-600 mb-6 leading-relaxed">
-                {{ __('global.statistics.modal_export_desc') }}
-            </p>
-
-            <div class="flex justify-end gap-3">
-                <button type="button" @click="showExportModal = false" class="px-4 py-2 rounded-xl border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-xs font-medium transition-colors">
-                    {{ __('global.common.close') }}
-                </button>
-                <button type="button" @click="alert('{{ __('global.statistics.downloading_alert') }}'); showExportModal = false;" class="px-4 py-2 rounded-xl bg-[#006948] text-white hover:bg-[#005137] text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs">
-                    <span class="material-symbols-outlined text-[16px]">download</span> {{ __('global.statistics.download_excel') }}
-                </button>
-            </div>
-        </div>
-    </div>
 </div>
 </x-global.layout>

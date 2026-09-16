@@ -72,7 +72,13 @@ Route::middleware(['global.user'])->group(function () {
         Route::get('/me/rooms', \App\Http\Controllers\User\Global\RoomsController::class)->name('user.me.rooms');
         Route::get('/me/orders', \App\Http\Controllers\User\Global\OrdersController::class)->name('user.me.orders');
         Route::get('/me/statistics', \App\Http\Controllers\User\Global\AnalyticsController::class)->name('user.me.statistics');
+        Route::get('/me/statistics/export', [\App\Http\Controllers\User\Global\AnalyticsController::class, 'export'])
+            ->middleware('throttle:10,1')
+            ->name('user.me.statistics.export');
         Route::get('/me/payments', [\App\Http\Controllers\User\Global\PaymentsController::class, 'index'])->name('user.me.payments');
+        Route::get('/me/payments/export', [\App\Http\Controllers\User\Global\PaymentsController::class, 'export'])
+            ->middleware('throttle:10,1')
+            ->name('user.me.payments.export');
 
         Route::get('/rooms', [\App\Http\Controllers\User\Global\RoomsController::class, 'index'])->name('user.rooms.index');
         Route::get('/history', [\App\Http\Controllers\User\Global\OrdersController::class, 'api'])->name('user.history.index');

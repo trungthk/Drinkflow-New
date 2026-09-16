@@ -18,7 +18,7 @@
     @endif
 </head>
 
-<body class="superadmin-shell">
+<body data-submit-loading-text="{{ __('global.common.loading') }}" class="superadmin-shell">
     <aside class="superadmin-sidebar" id="superadmin-sidebar">
         <div class="superadmin-brand">
             <div class="superadmin-logo">D</div>

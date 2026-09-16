@@ -127,89 +127,9 @@
         </div>
 
         <!-- Cards Grid (1 to 4 cols) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           @forelse($recentRooms as $roomItem)
-            @if($roomItem['campaign'])
-              <!-- Room Card with Active Campaign -->
-              <div class="border border-emerald-200/90 hover:border-emerald-400 bg-white hover:bg-emerald-50/10 rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 shadow-xs hover:shadow-md hover:-translate-y-0.5">
-                <div>
-                  <div class="flex items-start justify-between gap-2 mb-2">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                      {{ __('global.dashboard.campaign_active') }}
-                    </span>
-                    <span class="text-xs text-rose-600 font-semibold flex items-center gap-0.5">
-                      <span class="material-symbols-outlined text-[13px]">timer</span>
-                      {{ $roomItem['campaign']['time_remaining'] }}
-                    </span>
-                  </div>
-                  <h3 class="text-sm font-bold text-slate-900 mt-1 truncate">{{ $roomItem['name'] }}</h3>
-                  <p class="text-xs text-slate-500 mt-0.5 truncate">{{ $roomItem['description'] }}</p>
-
-                  <!-- Integrated Campaign Banner -->
-                  <div class="mt-3 p-3 rounded-xl bg-slate-50/80 border border-slate-100">
-                    <div class="flex items-center justify-between text-xs font-semibold text-slate-800">
-                      <span class="truncate">{{ $roomItem['campaign']['restaurant'] }}</span>
-                      <span class="text-[#006948] font-bold text-[11px] shrink-0 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">{{ $roomItem['campaign']['discount_text'] }}</span>
-                    </div>
-                    <div class="mt-2 flex items-center justify-between text-xs text-slate-500">
-                      <span>{{ __('global.dashboard.cups_collected', ['cups' => $roomItem['campaign']['cups_collected']]) }}</span>
-                      <span class="text-slate-400">{{ __('global.dashboard.deadline', ['time' => $roomItem['campaign']['deadline_formatted']]) }}</span>
-                    </div>
-                    <div class="w-full bg-slate-200/70 rounded-full h-1.5 mt-2 overflow-hidden">
-                      <div class="bg-[#006948] h-1.5 rounded-full transition-all" style="width: {{ $roomItem['campaign']['progress_percent'] }}%"></div>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-1.5 mt-3 text-xs text-slate-500">
-                    <span class="material-symbols-outlined text-[15px] text-slate-400">group</span>
-                    <span>{{ __('global.dashboard.members_count', ['count' => $roomItem['member_count']]) }} • <strong class="text-[#006948] font-semibold">{{ $roomItem['campaign']['sponsor_note'] }}</strong></span>
-                  </div>
-                </div>
-
-                <div class="pt-3.5 mt-3 border-t border-slate-100 flex items-center gap-2">
-                  <a class="flex-1 h-9 bg-[#059669] hover:bg-[#047857] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer" href="{{ $roomItem['campaign']['order_url'] }}">
-                    <span class="material-symbols-outlined text-[15px]">shopping_bag</span>
-                    <span>{{ __('global.dashboard.order_now') }}</span>
-                  </a>
-                  <a class="w-9 h-9 border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 rounded-xl flex items-center justify-center transition-colors shadow-2xs" href="{{ $roomItem['room_url'] }}" title="{{ __('global.dashboard.enter_room') }}">
-                    <span class="material-symbols-outlined text-[17px]">meeting_room</span>
-                  </a>
-                </div>
-              </div>
-            @else
-              <!-- Room Card Idle -->
-              <div class="border border-slate-200/80 hover:border-slate-300 bg-white rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 shadow-xs hover:shadow-sm">
-                <div>
-                  <div class="flex items-start justify-between gap-2 mb-2">
-                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200/60 text-xs font-medium">
-                      <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                      {{ __('global.dashboard.no_active_campaign') }}
-                    </span>
-                  </div>
-                  <h3 class="text-sm font-bold text-slate-900 mt-1 truncate">{{ $roomItem['name'] }}</h3>
-                  <p class="text-xs text-slate-500 mt-0.5 truncate">{{ $roomItem['description'] }}</p>
-
-                  <!-- Idle Banner -->
-                  <div class="mt-3 p-3 rounded-xl bg-slate-50/70 border border-dashed border-slate-200 flex items-center gap-2.5 text-xs text-slate-500">
-                    <span class="material-symbols-outlined text-slate-400 text-[18px]">bedtime</span>
-                    <span>{{ __('global.dashboard.waiting_host') }}</span>
-                  </div>
-                  <div class="flex items-center gap-1.5 mt-3 text-xs text-slate-500">
-                    <span class="material-symbols-outlined text-[15px] text-slate-400">group</span>
-                    <span>{{ __('global.dashboard.members_count', ['count' => $roomItem['member_count']]) }}</span>
-                  </div>
-                </div>
-
-                <div class="pt-3.5 mt-3 border-t border-slate-100 flex items-center justify-between">
-                  <span class="text-xs text-slate-400">{{ __('global.dashboard.ready_for_deals') }}</span>
-                  <a class="inline-flex items-center gap-1 h-9 px-3.5 border border-slate-200 hover:border-emerald-500 hover:text-[#006948] text-slate-700 text-xs font-medium rounded-xl transition-colors shadow-2xs" href="{{ $roomItem['room_url'] }}">
-                    <span>{{ __('global.dashboard.enter_room') }}</span>
-                    <span class="material-symbols-outlined text-[15px]">arrow_forward</span>
-                  </a>
-                </div>
-              </div>
-            @endif
+            <x-global.room-card :item="$roomItem" />
           @empty
             <div class="col-span-full p-8 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50 text-center">
               <span class="material-symbols-outlined text-[32px] text-slate-300 mb-2">meeting_room</span>
@@ -220,6 +140,7 @@
         </div>
       </section>
 
+      @if($recentOrders->isNotEmpty())
       <!-- Section: Đơn Hàng Gần Đây -->
       <section class="bg-white border border-slate-200/80 rounded-2xl shadow-xs overflow-hidden">
         <div class="p-6 pb-4 flex items-center justify-between border-b border-slate-100">
@@ -327,6 +248,7 @@
           </div>
         </div>
       </section>
+      @endif
     @else
       <!-- Onboarding Hero Canvas when user hasn't joined any room -->
       <section class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
@@ -515,11 +437,6 @@
         </a>
       </div>
 
-      <!-- Enterprise Workspace Policy Notice -->
-      <div class="mt-4 p-3.5 rounded-xl border border-emerald-200/70 bg-emerald-50/50 flex items-center gap-3 text-xs text-slate-600 leading-relaxed">
-        <span class="material-symbols-outlined text-[#006948] text-[18px] shrink-0">info</span>
-        <span>{{ __('global.dashboard.workspace_policy') }}</span>
-      </div>
     </section>
   </div>
 

@@ -115,7 +115,7 @@
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
 </head>
 
-<body class="bg-surface text-on-surface min-h-screen flex flex-col justify-between antialiased selection:bg-primary-container selection:text-on-primary-container">
+<body data-submit-loading-text="{{ __('global.common.loading') }}" class="bg-surface text-on-surface min-h-screen flex flex-col justify-between antialiased selection:bg-primary-container selection:text-on-primary-container">
     <!-- Ambient Backdrop Micro-Pattern -->
     <div class="fixed inset-0 pointer-events-none opacity-[0.035] bg-[radial-gradient(#006948_1px,transparent_1px)] [background-size:24px_24px]"></div>
 

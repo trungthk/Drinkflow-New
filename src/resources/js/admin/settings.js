@@ -1,3 +1,5 @@
+import { renderSubmitLoading } from '../shared/submit-loading';
+
 /**
  * Admin Room Settings Controller
  */
@@ -57,10 +59,7 @@ export function initAdminSettings() {
         if (submitButton) {
             submitButton.disabled = true;
             submitButton.classList.add('opacity-80', 'cursor-not-allowed');
-            submitButton.innerHTML = `
-                <span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
-                <span>${document.body.dataset.processingText || 'Processing...'}</span>
-            `;
+            renderSubmitLoading(submitButton);
         }
 
         try {

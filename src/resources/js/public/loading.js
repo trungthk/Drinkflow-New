@@ -1,3 +1,5 @@
+import { renderSubmitLoading } from '../shared/submit-loading';
+
 /**
  * Public Loading & Submit Overlay Interactive Module
  */
@@ -83,7 +85,7 @@ export function initPublicLoading() {
             submitBtn.dataset.originalHtml = submitBtn.innerHTML;
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-75', 'cursor-wait');
-            submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>';
+            renderSubmitLoading(submitBtn);
         }
     });
 

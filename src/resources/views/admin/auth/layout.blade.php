@@ -20,7 +20,7 @@
     @vite(['resources/css/admin.css', 'resources/js/app.js'])
 </head>
 
-<body class="h-full bg-surface text-on-surface font-sans antialiased overflow-hidden selection:bg-primary/20">
+<body data-submit-loading-text="{{ __('global.common.loading') }}" class="h-full bg-surface text-on-surface font-sans antialiased overflow-hidden selection:bg-primary/20">
     <div class="h-screen overflow-hidden flex flex-col lg:flex-row">
         <!-- LEFT COLUMN: Brand & Operations Engine (~46% width) -->
         <aside class="lg:w-5/12 xl:w-1/2 bg-[#0a2220] text-surface-bright hidden md:flex flex-col p-6 lg:py-8 lg:px-10 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-emerald-950/40 justify-between select-none shrink-0">

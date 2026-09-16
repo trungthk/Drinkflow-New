@@ -1,3 +1,5 @@
+import { renderSubmitLoading } from '../shared/submit-loading';
+
 /**
  * DrinkFlow Admin UI Enhancements
  * - Debounce Search with Clear ('x') Button
@@ -384,12 +386,7 @@ export function initFormSubmitLoading() {
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-80', 'cursor-not-allowed');
 
-            submitBtn.innerHTML = `
-                <span class="inline-flex items-center gap-1.5">
-                    <span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                    <span>${loadingText}</span>
-                </span>
-            `;
+            renderSubmitLoading(submitBtn);
 
             // Reset after 8s fallback in case of validation error without navigation
             setTimeout(() => {

@@ -1,3 +1,5 @@
+import { renderSubmitLoading } from '../shared/submit-loading';
+
 /** Initialize room notification-channel create, test, and disable interactions. */
 export function initAdminNotifications() {
     const form = document.querySelector('#add-channel-form');
@@ -31,7 +33,7 @@ export function initAdminNotifications() {
             button.dataset.originalHtml = button.innerHTML;
             button.disabled = true;
             button.classList.add('opacity-70', 'cursor-not-allowed');
-            button.innerHTML = `<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span><span>${translations.processing || 'Processing...'}</span>`;
+            renderSubmitLoading(button);
             return;
         }
         button.disabled = false;

@@ -40,7 +40,9 @@
     }"
     class="relative flex-1"
 >
-    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] pointer-events-none">search</span>
+    <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400" aria-hidden="true">
+        <span class="material-symbols-outlined text-[18px]">search</span>
+    </span>
     <input
         x-ref="searchInput"
         x-model="query"
@@ -58,7 +60,7 @@
         x-show="query && query.length > 0"
         x-cloak
         @click="clearSearch()"
-        class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+        class="absolute inset-y-0 right-2 my-auto w-6 h-6 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
         title="{{ __('global.search.clear') }}"
         aria-label="{{ __('global.search.clear') }}"
     >

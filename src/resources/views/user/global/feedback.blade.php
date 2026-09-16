@@ -62,12 +62,6 @@
                 {{ __('global.feedback.subtitle') }}
             </p>
         </div>
-        <div class="flex items-center gap-2 self-start sm:self-center">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                <span class="w-2 h-2 rounded-full bg-emerald-600 animate-pulse"></span>
-                {{ __('global.feedback.production_badge') }}
-            </span>
-        </div>
     </div>
 
     <!-- Two-Section Layout: Form (Col 5) & Analytics/Feed (Col 7) -->

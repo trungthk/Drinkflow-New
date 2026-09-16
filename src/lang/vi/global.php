@@ -369,6 +369,7 @@ return [
         'range_6months' => '6 tháng gần nhất',
         'range_year' => 'Cả năm :year',
         'export_pdf_excel' => 'Xuất báo cáo PDF / Excel',
+        'export_excel' => 'Xuất báo cáo Excel',
         'total_orders' => 'Tổng đơn đã đặt',
         'orders_unit' => 'đơn',
         'vs_last_month' => 'so với tháng trước',

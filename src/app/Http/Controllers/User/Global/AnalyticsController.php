@@ -6,13 +6,34 @@ namespace App\Http\Controllers\User\Global;
 
 use App\Http\Controllers\Controller;
 use App\Models\GlobalUser;
+use App\Exports\AnalyticsReportExport;
 use App\Services\Analytics\UserGlobalAnalyticsService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AnalyticsController extends Controller
 {
+    /**
+     * Download personal analytics using the same data as the statistics page.
+     *
+     * @param Request $request Authenticated request.
+     * @param UserGlobalAnalyticsService $service Personal analytics service.
+     * @return BinaryFileResponse Excel report attachment.
+     */
+    public function export(Request $request, UserGlobalAnalyticsService $service): BinaryFileResponse
+    {
+        /** @var GlobalUser $user */
+        $user = $request->attributes->get('global_user') ?? $request->user('web');
+
+        return Excel::download(
+            new AnalyticsReportExport($service->getAnalyticsViewData($user)),
+            'drinkflow-statistics-' . now()->format('Y-m-d-His') . '.xlsx'
+        );
+    }
+
     /**
      * Điều hướng hiển thị giao diện phân tích số liệu hoặc trả về JSON API tùy theo Accept header hoặc Route.
      *
@@ -63,4 +84,3 @@ class AnalyticsController extends Controller
         return response()->json(['data' => $data]);
     }
 }
-

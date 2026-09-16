@@ -369,6 +369,7 @@ return [
         'range_6months' => 'Last 6 Months',
         'range_year' => 'Full Year :year',
         'export_pdf_excel' => 'Export PDF / Excel Report',
+        'export_excel' => 'Export Excel report',
         'total_orders' => 'Total Orders Placed',
         'orders_unit' => 'orders',
         'vs_last_month' => 'vs last month',

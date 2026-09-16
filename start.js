@@ -5,7 +5,7 @@
  * Starts Backend (Laravel), Frontend (Vite), and Realtime Gateway (Socket.IO) concurrently.
  */
 
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 const path = require('path');
 
 const rootDir = __dirname;
@@ -53,6 +53,22 @@ const services = [
 console.log(`${colors.bold}${colors.yellow}=====================================================================${colors.reset}`);
 console.log(`${colors.bold}${colors.yellow}               DRINKFLOW APPLICATION ORCHESTRATOR                    ${colors.reset}`);
 console.log(`${colors.bold}${colors.yellow}=====================================================================${colors.reset}`);
+const preparationCommands = ['config:clear', 'view:clear', 'route:clear', 'queue:restart'];
+
+for (const command of preparationCommands) {
+    console.log(`${colors.yellow}[Prepare] Running: php artisan ${command}${colors.reset}`);
+    const result = spawnSync(phpCmd, ['artisan', command], {
+        cwd: srcDir,
+        env: { ...process.env, FORCE_COLOR: '1' },
+        stdio: 'inherit'
+    });
+
+    if (result.error || result.status !== 0) {
+        console.error(`${colors.red}[Prepare] ${command} failed: ${result.error ? result.error.message : `exit code ${result.status}`}${colors.reset}`);
+        process.exit(1);
+    }
+}
+
 console.log(`Starting all 3 DrinkFlow services concurrently...\n`);
 
 const children = [];

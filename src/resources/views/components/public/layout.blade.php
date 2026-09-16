@@ -132,7 +132,7 @@
     @endif
 </head>
 
-<body class="bg-[#f8f9ff] text-[#0b1c30] min-h-full flex flex-col font-sans antialiased selection:bg-[#006948] selection:text-white">
+<body data-submit-loading-text="{{ __('global.common.loading') }}" class="bg-[#f8f9ff] text-[#0b1c30] min-h-full flex flex-col font-sans antialiased selection:bg-[#006948] selection:text-white">
 
     <!-- SHARED TOP NAVBAR -->
     <x-public.header
