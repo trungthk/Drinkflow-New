@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="utf-8">
@@ -22,65 +22,64 @@
     <aside class="superadmin-sidebar" id="superadmin-sidebar">
         <div class="superadmin-brand">
             <div class="superadmin-logo">D</div>
-            <div><strong>DrinkFlow</strong><span>Enterprise Superadmin</span></div>
+            <div><strong>DrinkFlow</strong><span>{{ __('superadmin.layout.enterprise_superadmin') }}</span></div>
         </div>
         <nav class="superadmin-nav">
-            <span class="superadmin-nav-label">Core System</span>
+            <span class="superadmin-nav-label">{{ __('superadmin.common.core_system') }}</span>
             <a class="{{ ($active ?? '') === 'dashboard' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.dashboard') }}"><span
-                    class="material-symbols-outlined">monitoring</span>Dashboard &amp; Health</a>
+                    class="material-symbols-outlined">monitoring</span>{{ __('superadmin.layout.dashboard_health') }}</a>
             <a class="{{ ($active ?? '') === 'rooms' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.rooms.page') }}"><span
-                    class="material-symbols-outlined">meeting_room</span>Room Management</a>
+                    class="material-symbols-outlined">meeting_room</span>{{ __('superadmin.layout.room_management') }}</a>
             <a class="{{ ($active ?? '') === 'admins' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.admins.page') }}"><span
-                    class="material-symbols-outlined">admin_panel_settings</span>Admin &amp; Assignments</a>
+                    class="material-symbols-outlined">admin_panel_settings</span>{{ __('superadmin.layout.admin_assignments') }}</a>
             <a class="{{ ($active ?? '') === 'users' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.global-users.page') }}"><span
-                    class="material-symbols-outlined">badge</span>Global Users &amp; Identities</a>
-            <span class="superadmin-nav-label">Platform Data</span>
+                    class="material-symbols-outlined">badge</span>{{ __('superadmin.layout.global_users') }}</a>
+            <span class="superadmin-nav-label">{{ __('superadmin.common.platform_data') }}</span>
             <a class="{{ ($active ?? '') === 'campaigns' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.campaigns.page') }}"><span
-                    class="material-symbols-outlined">campaign</span>Global Campaigns</a>
+                    class="material-symbols-outlined">campaign</span>{{ __('superadmin.layout.global_campaigns') }}</a>
             <a class="{{ ($active ?? '') === 'debts' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.debts.page') }}"><span
-                    class="material-symbols-outlined">account_balance</span>Global Debt Overview</a>
+                    class="material-symbols-outlined">account_balance</span>{{ __('superadmin.layout.global_debts') }}</a>
             <a class="{{ ($active ?? '') === 'audit' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.audit.page') }}"><span
-                    class="material-symbols-outlined">history_toggle_off</span>Audit Logs</a>
-            <span class="superadmin-nav-label">Infra &amp; Security</span>
+                    class="material-symbols-outlined">history_toggle_off</span>{{ __('superadmin.layout.audit_logs') }}</a>
+            <span class="superadmin-nav-label">{{ __('superadmin.common.infra_security') }}</span>
             <a class="{{ ($active ?? '') === 'security' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.security.page') }}"><span
-                    class="material-symbols-outlined">shield_locked</span>Security Center</a>
+                    class="material-symbols-outlined">shield_locked</span>{{ __('superadmin.layout.security_center') }}</a>
             <a class="{{ ($active ?? '') === 'socket' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.socket.page') }}"><span
-                    class="material-symbols-outlined">hub</span>Socket.IO &amp; Queue</a>
+                    class="material-symbols-outlined">hub</span>{{ __('superadmin.layout.socket_queue') }}</a>
             <a class="{{ ($active ?? '') === 'system' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.system.page') }}"><span
-                    class="material-symbols-outlined">build_circle</span>System Settings</a>
+                    class="material-symbols-outlined">build_circle</span>{{ __('superadmin.layout.system_settings') }}</a>
             <a class="{{ ($active ?? '') === 'notifications' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.notifications.page') }}"><span
-                    class="material-symbols-outlined">notifications</span>Global Notifications</a>
+                    class="material-symbols-outlined">notifications</span>{{ __('superadmin.layout.global_notifications') }}</a>
             <a class="{{ ($active ?? '') === 'versions' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.versions.page') }}"><span
-                    class="material-symbols-outlined">new_releases</span>Versions</a>
+                    class="material-symbols-outlined">new_releases</span>{{ __('superadmin.layout.versions') }}</a>
         </nav>
         <div class="superadmin-trust"><span class="material-symbols-outlined">verified_user</span>
-            <div><strong>Zero Trust Enforced</strong><small>Root authority · all rooms</small></div>
+            <div><strong>{{ __('superadmin.layout.zero_trust') }}</strong><small>{{ __('superadmin.layout.root_authority') }}</small></div>
         </div>
     </aside>
     <div class="superadmin-main">
         <header class="superadmin-topbar"><button class="superadmin-menu"
                 onclick="document.getElementById('superadmin-sidebar').classList.toggle('is-open')"><span
                     class="material-symbols-outlined">menu</span></button>
-            <div class="superadmin-clearance"><span class="material-symbols-outlined">verified</span>Superadmin
-                Clearance</div>
+            <div class="superadmin-clearance"><span class="material-symbols-outlined">verified</span>{{ __('superadmin.layout.clearance') }}</div>
             <div class="superadmin-top-status"><span class="status-dot"></span><span id="top-socket-status">System
-                    monitoring active</span></div>
+                    {{ __('superadmin.layout.monitoring_active') }}</span></div>
             <div class="superadmin-profile">
-                <div><strong>{{ request()->user('admin')->name }}</strong><small>Enterprise Root Admin</small></div>
+                <div><strong>{{ request()->user('admin')->name }}</strong><small>{{ __('superadmin.layout.root_admin') }}</small></div>
                 <div class="superadmin-avatar">{{ strtoupper(substr(request()->user('admin')->name, 0, 1)) }}</div>
-                <form method="post" action="{{ route('admin.logout') }}">@csrf<button title="Đăng xuất"
+                <form method="post" action="{{ route('admin.logout') }}">@csrf<button title="{{ __('superadmin.layout.logout') }}"
                         class="icon-button"><span class="material-symbols-outlined">logout</span></button></form>
             </div>
         </header>
@@ -105,16 +104,25 @@
                 `HTTP ${response.status}`);
             return response.json();
         };
-        const money = value => new Intl.NumberFormat('vi-VN').format(value || 0) + ' ₫';
-        const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({
+        const money = value => new Intl.NumberFormat(@js(str_replace('_', '-', app()->getLocale()))).format(value || 0) + ' ₫';
+        const escapeMap = {
             '&': '&amp;',
             '<': '&lt;',
             '>': '&gt;',
             "'": '&#039;',
             '"': '&quot;'
-        } [character]));
+        };
+        const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => escapeMap[character] || character);
+        const superadminStatusLabels = {!! json_encode([
+            'active' => __('superadmin.common.active'), 'disabled' => __('superadmin.common.disabled'),
+            'archived' => __('superadmin.common.archived'), 'blocked' => __('superadmin.common.blocked'),
+            'pending' => __('superadmin.common.pending'), 'scheduled' => __('superadmin.common.scheduled'),
+            'closed' => __('superadmin.common.closed'), 'cancelled' => __('superadmin.common.cancelled'),
+            'high' => __('superadmin.common.high'), 'medium' => __('superadmin.common.medium'),
+            'low' => __('superadmin.common.low'),
+        ]) !!};
         const statusPill = value =>
-            `<span class="status-pill status-${escapeHtml(value)}"><span class="status-dot"></span>${escapeHtml(value)}</span>`;
+            `<span class="status-pill status-${escapeHtml(value)}"><span class="status-dot"></span>${escapeHtml(superadminStatusLabels[value] || value)}</span>`;
     </script>
     @stack('scripts')
 </body>

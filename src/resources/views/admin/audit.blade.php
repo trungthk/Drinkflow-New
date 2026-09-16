@@ -78,11 +78,11 @@
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
                     <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
-                        <th class="py-3 px-4">{{ __('admin.timestamp') }}</th>
+                        <th class="py-3 px-4 whitespace-nowrap">{{ __('admin.timestamp') }}</th>
                         <th class="py-3 px-4">{{ __('admin.event_name') }}</th>
                         <th class="py-3 px-4">{{ __('admin.actor') }}</th>
-                        <th class="py-3 px-4">{{ __('admin.ip_address') }}</th>
-                        <th class="py-3 px-4 text-center">{{ __('admin.details') }}</th>
+                        <th class="py-3 px-4 whitespace-nowrap">{{ __('admin.ip_address') }}</th>
+                        <th class="py-3 px-4 text-center whitespace-nowrap">{{ __('admin.details') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-outline-variant/50">
@@ -95,38 +95,46 @@
                             $auditTargetLabel = __($auditTargetKey);
                             if ($auditTargetLabel === $auditTargetKey) $auditTargetLabel = $log->target_type;
                         @endphp
-                        <tr class="hover:bg-surface-container-low/50 transition-colors font-mono">
-                            <td class="py-3.5 px-4 text-secondary">
-                                {{ $log->created_at ? $log->created_at->format('H:i:s d/m/Y') : 'N/A' }}
+                        <tr class="hover:bg-surface-container-low/50 transition-colors">
+                            <td class="py-3.5 px-4 text-secondary whitespace-nowrap font-mono">
+                                @if($log->created_at)
+                                    <span class="block font-semibold text-on-surface">{{ $log->created_at->format('H:i') }}</span>
+                                    <span class="block text-[10px] text-outline">{{ $log->created_at->format('d/m/Y') }}</span>
+                                @else
+                                    N/A
+                                @endif
                             </td>
                             <td class="py-3.5 px-4">
-                                <span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-bold text-[11px] border border-outline-variant">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-surface-container text-on-surface font-bold text-xs border border-outline-variant font-mono">
                                     {{ $auditEventLabel }}
                                 </span>
                             </td>
-                            <td class="py-3.5 px-4 font-sans font-semibold text-on-surface">
+                            <td class="py-3.5 px-4 font-semibold text-on-surface">
                                 {{ $log->actor_type }} #{{ $log->actor_id }}
                             </td>
-                            <td class="py-3.5 px-4 text-outline text-[11px]">
+                            <td class="py-3.5 px-4 font-mono text-outline text-[11px] whitespace-nowrap" title="{{ $log->ip_address ?: '127.0.0.1' }}">
                                 {{ $log->ip_address ?: '127.0.0.1' }}
                             </td>
-                            <td class="py-3.5 px-4 text-center font-sans">
+                            <td class="py-3.5 px-4 text-center">
                                 <button type="button" 
                                     data-audit-payload="{{ json_encode($log, JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}" 
                                     data-audit-event-label="{{ $auditEventLabel }}" 
                                     data-audit-target-label="{{ $auditTargetLabel }}"
                                     data-audit-time="{{ $log->created_at ? $log->created_at->format('H:i:s d/m/Y') : 'N/A' }}"
-                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-container hover:bg-surface-container-high rounded text-[11px] font-semibold text-on-surface border border-outline-variant transition-colors cursor-pointer shadow-2xs">
-                                    <span class="material-symbols-outlined text-[15px] text-primary">visibility</span>
-                                    <span>{{ __('admin.details') }}</span>
+                                    class="inline-flex h-8 w-8 items-center justify-center bg-surface-container hover:bg-surface-container-high rounded-lg text-on-surface border border-outline-variant transition-colors cursor-pointer shadow-xs"
+                                    title="{{ __('admin.details') }}" aria-label="{{ __('admin.details') }}">
+                                    <span class="material-symbols-outlined text-[16px] text-primary">visibility</span>
+                                    <span class="sr-only">{{ __('admin.details') }}</span>
                                 </button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="py-12 text-center text-outline font-sans">
-                                <span class="material-symbols-outlined text-4xl text-outline-variant mb-1">history_toggle_off</span>
-                                <p class="text-xs">{{ __('admin.no_audit_records') }}</p>
+                            <td colspan="5" class="py-12 text-center text-outline">
+                                <div class="flex flex-col items-center gap-2">
+                                    <span class="material-symbols-outlined text-4xl text-outline-variant">history_toggle_off</span>
+                                    <p class="font-medium text-sm">{{ __('admin.no_audit_records') }}</p>
+                                </div>
                             </td>
                         </tr>
                     @endforelse

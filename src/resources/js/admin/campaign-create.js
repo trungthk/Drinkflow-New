@@ -1,14 +1,32 @@
 /**
- * Admin Campaign Fast Creator (Alpine Component)
+ * Admin Campaign Creator & Editor (Alpine Component)
  */
-export function campaignCreateComponent(defaults = {}) {
-    const page = document.querySelector('#campaign-create-page');
+export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], initialCampaign = null) {
+    const page = document.querySelector('#campaign-create-page, #campaign-edit-page');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const getRoomSlug = () => document.body?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
     const budgetErrorTemplate = page?.dataset.budgetError || 'Campaign budget exceeds :limit.';
     const sponsorPercentageError = page?.dataset.sponsorPercentageError || 'The total sponsorship percentage must equal 100%.';
-    const storeUrl = page?.dataset.storeUrl || '';
+    const storeUrl = page?.dataset.storeUrl || page?.dataset.submitUrl || '';
+    const submitMethod = page?.dataset.submitMethod || (initialCampaign ? 'PATCH' : 'POST');
+    const isEditMode = Boolean(initialCampaign || page?.dataset.isEdit === 'true');
     const imageUploadUrl = page?.dataset.imageUploadUrl || '';
+    const defaultMenuCategory = page?.dataset.defaultMenuCategory || 'General items';
+    const crawlerMenuCategory = page?.dataset.crawlerMenuCategory || 'Crawled items';
+    const onlineRestaurantName = page?.dataset.onlineRestaurantName || 'Online restaurant';
+    const normalizeSearch = value => String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .toLowerCase()
+        .trim();
+    const roomUsers = availableRoomUsers.map(user => ({
+        ...user,
+        id: String(user.id),
+        label: `${user.name || ''} (${user.user_code || ''})`,
+        search: normalizeSearch(`${user.name || ''} ${user.user_code || ''}`)
+    }));
     const campaignSettings = {
         name: defaults.name || '',
         max_budget: Number(defaults.max_budget) || 0,
@@ -17,32 +35,43 @@ export function campaignCreateComponent(defaults = {}) {
 
     return {
         campaignSettings,
-        menuTab: 'reuse',
+        isEditMode,
+        menuTab: initialCampaign ? 'reuse' : 'reuse',
         showConfirmModal: false,
         pendingStatus: 'active',
         showAddItemModal: false,
+        editingItemIndex: null,
+        itemModalTab: 'basic',
+        itemSubmitting: false,
+        menuView: 'all',
+        selectedCategory: '',
+        menuSearchInput: '',
+        menuSearch: '',
+        menuSearchTimer: null,
         itemCategories: ['Cà phê', 'Trà', 'Trà sữa', 'Nước ép', 'Đồ ăn', 'Khác'],
-        newItem: { name: '', price: 0, category: 'Khác', description: '', image_url: '', toppings: [], options: [] },
+        newItem: { id: null, name: '', price: 0, category: 'Khác', description: '', image_url: '', toppings: [], options: [] },
         imageUploading: false,
+        selectedImageFileName: '',
         sponsors: [],
+        roomUsers,
         submitting: false,
         crawlerUrl: '',
         crawlerLoading: false,
         crawlerMessage: '',
         rawJson: '',
         form: {
-            name: campaignSettings.name,
-            restaurant: '',
-            deadline: '',
-            payment_account_id: campaignSettings.payment_account_id,
-            description: '',
-            sponsor_type: 'none',
-            sponsor_description: '',
-            max_budget: campaignSettings.max_budget,
-            delivery_fee: '',
-            discount: '',
-            flat_price: '',
-            status: 'active'
+            name: initialCampaign?.name || campaignSettings.name,
+            restaurant: initialCampaign?.restaurant || '',
+            deadline: initialCampaign?.deadline || '',
+            payment_account_id: initialCampaign?.payment_account_id ? String(initialCampaign.payment_account_id) : campaignSettings.payment_account_id,
+            description: initialCampaign?.description || '',
+            sponsor_type: initialCampaign?.sponsor_type || 'none',
+            sponsor_description: initialCampaign?.sponsor_description || '',
+            max_budget: initialCampaign?.max_budget ?? campaignSettings.max_budget,
+            delivery_fee: initialCampaign?.delivery_fee ?? '',
+            discount: initialCampaign?.discount ?? '',
+            flat_price: initialCampaign?.flat_price ?? '',
+            status: initialCampaign?.status || 'active'
         },
         menuItems: [],
         presets: {
@@ -104,10 +133,30 @@ export function campaignCreateComponent(defaults = {}) {
         },
 
         init() {
-            this.form.name = this.form.name || this.campaignSettings.name;
-            this.form.max_budget = this.form.max_budget || this.campaignSettings.max_budget;
-            this.form.payment_account_id = this.form.payment_account_id || this.campaignSettings.payment_account_id;
-            this.setDeadlineMinutes(60);
+            if (initialCampaign) {
+                this.form.name = initialCampaign.name || '';
+                this.form.restaurant = initialCampaign.restaurant || '';
+                this.form.deadline = initialCampaign.deadline || '';
+                this.form.payment_account_id = initialCampaign.payment_account_id ? String(initialCampaign.payment_account_id) : '';
+                this.form.description = initialCampaign.description || '';
+                this.form.sponsor_type = ['none', 'full'].includes(initialCampaign.sponsor_type) ? initialCampaign.sponsor_type : 'none';
+                this.form.sponsor_description = initialCampaign.sponsor_description || '';
+                this.form.max_budget = initialCampaign.max_budget ?? this.campaignSettings.max_budget;
+                this.form.flat_price = initialCampaign.flat_price ?? '';
+                this.form.status = initialCampaign.status || 'active';
+                this.sponsors = (initialCampaign.sponsor_allocations || []).map(alloc => ({
+                    user_id: String(alloc.room_user_id || ''),
+                    percentage: Number(alloc.percentage) || 0,
+                    search: this.roomUsers.find(u => u.id === String(alloc.room_user_id || ''))?.label || '',
+                    open: false
+                }));
+                this.applyMenuItems(initialCampaign.items || []);
+            } else {
+                this.form.name = this.form.name || this.campaignSettings.name;
+                this.form.max_budget = this.form.max_budget || this.campaignSettings.max_budget;
+                this.form.payment_account_id = this.form.payment_account_id || this.campaignSettings.payment_account_id;
+                this.setDeadlineMinutes(60);
+            }
         },
 
         setDeadlineMinutes(mins) {
@@ -127,20 +176,24 @@ export function campaignCreateComponent(defaults = {}) {
 
         applyMenuItems(items) {
             this.menuItems = (items || []).map(item => this.normalizeMenuItem(item));
+            this.syncSelectedCategory();
         },
 
         normalizeMenuItem(item) {
             return {
+                id: item.id || null,
                 name: item.name || '',
                 price: parseInt(item.price ?? item.base_price, 10) || 0,
                 category: item.category || 'Khác',
                 description: item.description || '',
                 image_url: item.image_url || '',
                 toppings: (item.toppings || []).map(topping => ({
+                    id: topping.id || null,
                     name: topping.name || '',
                     price: parseInt(topping.price, 10) || 0
                 })),
                 options: (item.options || item.sizes || []).map(option => ({
+                    id: option.id || null,
                     name: option.name || '',
                     price_delta: parseInt(option.price_delta, 10) || 0
                 }))
@@ -148,26 +201,109 @@ export function campaignCreateComponent(defaults = {}) {
         },
 
         addSponsor() {
-            this.sponsors.push({ user_id: '', percentage: 0 });
+            this.sponsors.push({ user_id: '', percentage: 0, search: '', open: false });
         },
 
         removeSponsor(index) {
             this.sponsors.splice(index, 1);
         },
 
+        clampSponsorPercentage(sponsor) {
+            if (String(sponsor.percentage) === '') return;
+            const percentage = Number(sponsor.percentage);
+            sponsor.percentage = Number.isFinite(percentage)
+                ? Math.min(100, Math.max(0, percentage))
+                : 0;
+        },
+
+        filteredSponsorUsers(query) {
+            const needle = normalizeSearch(query);
+            return this.roomUsers
+                .filter(user => !needle || user.search.includes(needle))
+                .slice(0, 12);
+        },
+
+        selectSponsor(sponsor, user) {
+            sponsor.user_id = user.id;
+            sponsor.search = user.label;
+            sponsor.open = false;
+        },
+
         addMenuItem() {
-            this.menuItems.push(this.normalizeMenuItem({ category: 'Món chung' }));
+            this.menuItems.push(this.normalizeMenuItem({ category: defaultMenuCategory }));
         },
 
         openAddItemModal() {
+            this.editingItemIndex = null;
+            this.itemModalTab = 'basic';
+            this.selectedImageFileName = '';
             this.newItem = this.normalizeMenuItem({ category: this.itemCategories[0] });
             this.showAddItemModal = true;
         },
 
-        confirmAddItem() {
+        openEditItemModal(index) {
+            if (!this.menuItems[index]) return;
+            this.editingItemIndex = index;
+            this.itemModalTab = 'basic';
+            this.selectedImageFileName = '';
+            this.newItem = this.normalizeMenuItem(this.menuItems[index]);
+            this.showAddItemModal = true;
+        },
+
+        async confirmAddItem() {
             if (!this.newItem.name.trim() || Number(this.newItem.price) < 0) return;
-            this.menuItems.push(this.normalizeMenuItem(this.newItem));
-            this.showAddItemModal = false;
+            this.itemSubmitting = true;
+            try {
+                await new Promise(resolve => window.setTimeout(resolve, 150));
+                const normalizedItem = this.normalizeMenuItem(this.newItem);
+                if (this.editingItemIndex === null) {
+                    this.menuItems.push(normalizedItem);
+                } else {
+                    this.menuItems.splice(this.editingItemIndex, 1, normalizedItem);
+                }
+                this.syncSelectedCategory();
+                this.showAddItemModal = false;
+                this.editingItemIndex = null;
+            } finally {
+                this.itemSubmitting = false;
+            }
+        },
+
+        setMenuView(view) {
+            this.menuView = view;
+            if (view === 'category' && !this.menuCategories.includes(this.selectedCategory)) {
+                this.selectedCategory = this.menuCategories[0] || '';
+            }
+        },
+
+        updateMenuSearch(value) {
+            this.menuSearchInput = value;
+            window.clearTimeout(this.menuSearchTimer);
+            this.menuSearchTimer = window.setTimeout(() => {
+                this.menuSearch = normalizeSearch(value);
+            }, 300);
+        },
+
+        get menuCategories() {
+            return [...new Set(this.menuItems.map(item => item.category || 'Khác'))]
+                .sort((left, right) => left.localeCompare(right, 'vi'));
+        },
+
+        syncSelectedCategory() {
+            if (this.menuView === 'category' && !this.menuCategories.includes(this.selectedCategory)) {
+                this.selectedCategory = this.menuCategories[0] || '';
+            }
+        },
+
+        categoryItemCount(category) {
+            return this.menuItems.filter(item => (item.category || 'Khác') === category).length;
+        },
+
+        get visibleMenuItems() {
+            return this.menuItems
+                .map((item, index) => ({ item, index }))
+                .filter(({ item }) => !this.menuSearch || normalizeSearch(item.name).includes(this.menuSearch))
+                .filter(({ item }) => this.menuView !== 'category' || (item.category || 'Khác') === this.selectedCategory);
         },
 
         addTopping(item) {
@@ -181,6 +317,8 @@ export function campaignCreateComponent(defaults = {}) {
         async uploadManualImage(event) {
             const file = event.target.files?.[0];
             if (!file || !imageUploadUrl) return;
+
+            this.selectedImageFileName = file.name;
 
             this.imageUploading = true;
             const body = new FormData();
@@ -207,15 +345,27 @@ export function campaignCreateComponent(defaults = {}) {
 
         removeMenuItem(index) {
             this.menuItems.splice(index, 1);
+            this.syncSelectedCategory();
         },
 
         loadPreviousCampaign(campaign) {
             this.form.name = campaign.name + ' (Đợt mới)';
             this.form.restaurant = campaign.restaurant;
             this.form.description = campaign.description || '';
-            this.form.max_budget = campaign.max_budget ?? this.form.max_budget;
+            const previousMaxBudget = Number(campaign.max_budget) || 0;
+            this.form.max_budget = this.campaignSettings.max_budget > 0
+                ? Math.min(previousMaxBudget, this.campaignSettings.max_budget)
+                : previousMaxBudget;
             this.form.flat_price = campaign.flat_price || '';
             this.form.payment_account_id = campaign.payment_account_id ? String(campaign.payment_account_id) : this.form.payment_account_id;
+            this.form.sponsor_type = ['none', 'full'].includes(campaign.sponsor_type) ? campaign.sponsor_type : 'none';
+            this.form.sponsor_description = campaign.sponsor_description || '';
+            this.sponsors = (campaign.sponsor_allocations || []).map(allocation => ({
+                user_id: String(allocation.room_user_id || ''),
+                percentage: Number(allocation.percentage) || 0,
+                search: this.roomUsers.find(user => user.id === String(allocation.room_user_id || ''))?.label || '',
+                open: false
+            }));
             this.applyMenuItems(campaign.items || []);
             this.menuTab = 'reuse';
         },
@@ -291,9 +441,9 @@ export function campaignCreateComponent(defaults = {}) {
                 if (data.items && data.items.length > 0) {
                     this.menuItems = data.items.map(item => ({
                         ...this.normalizeMenuItem(item),
-                        category: item.category || 'Món Crawl'
+                        category: item.category || crawlerMenuCategory
                     }));
-                    this.form.restaurant = data.restaurant_name || this.form.restaurant || 'Nhà hàng Online';
+                    this.form.restaurant = data.restaurant_name || this.form.restaurant || onlineRestaurantName;
                     this.menuTab = 'crawler';
                     this.crawlerMessage = `Bóc tách thành công ${data.items.length} món từ quán!`;
                 } else {
@@ -317,7 +467,9 @@ export function campaignCreateComponent(defaults = {}) {
             }
 
             this.submitting = true;
-            this.form.status = status;
+            if (status) {
+                this.form.status = status;
+            }
             const maxBudget = Number(this.form.max_budget) || 0;
             if (this.campaignSettings.max_budget > 0 && maxBudget > this.campaignSettings.max_budget) {
                 alert(budgetErrorTemplate.replace(':limit', this.formatVND(this.campaignSettings.max_budget)));
@@ -347,18 +499,21 @@ export function campaignCreateComponent(defaults = {}) {
                         room_user_id: Number(sponsor.user_id),
                         percentage: Number(sponsor.percentage) || 0
                     })) : [],
-                status: status,
+                status: this.form.status,
                 items: this.menuItems.filter(item => item.name && item.name.trim()).map(item => ({
+                    id: item.id || null,
                     name: item.name.trim(),
                     category: item.category || null,
                     description: item.description || null,
                     image_url: item.image_url || null,
                     price: parseInt(item.price, 10) || 0,
                     toppings: (item.toppings || []).filter(topping => topping.name && topping.name.trim()).map(topping => ({
+                        id: topping.id || null,
                         name: topping.name.trim(),
                         price: parseInt(topping.price, 10) || 0
                     })),
                     options: (item.options || []).filter(option => option.name && option.name.trim()).map(option => ({
+                        id: option.id || null,
                         name: option.name.trim(),
                         price_delta: parseInt(option.price_delta, 10) || 0
                     }))
@@ -367,7 +522,7 @@ export function campaignCreateComponent(defaults = {}) {
 
             try {
                 const res = await fetch(storeUrl, {
-                    method: 'POST',
+                    method: submitMethod,
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': csrfToken,
@@ -378,18 +533,26 @@ export function campaignCreateComponent(defaults = {}) {
 
                 if (!res.ok) {
                     const err = await res.json();
-                    throw new Error(err.message || Object.values(err.errors || {})[0] || 'Lỗi tạo chiến dịch');
+                    throw new Error(err.message || Object.values(err.errors || {})[0] || (this.isEditMode ? 'Lỗi cập nhật chiến dịch' : 'Lỗi tạo chiến dịch'));
                 }
 
                 const json = await res.json();
                 const campaignId = json.data?.id || json.id;
 
-                window.location.href = `/admin/${getRoomSlug()}/campaigns/${campaignId}`;
+                if (this.isEditMode) {
+                    window.location.href = `/admin/${getRoomSlug()}/campaigns/${campaignId}?view=detail`;
+                } else {
+                    window.location.href = `/admin/${getRoomSlug()}/campaigns/${campaignId}`;
+                }
             } catch (e) {
                 alert('Có lỗi xảy ra: ' + e.message);
             } finally {
                 this.submitting = false;
             }
+        },
+
+        saveChanges() {
+            this.submitForm(this.form.status);
         },
 
         openPublishConfirmation() {

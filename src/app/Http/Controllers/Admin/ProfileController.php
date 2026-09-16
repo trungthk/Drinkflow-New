@@ -11,11 +11,14 @@ use App\Http\Requests\UpdateAdminTwoFactorRequest;
 use App\Http\Requests\UploadAdminAvatarRequest;
 use App\Models\AdminAccount;
 use App\Services\Audit\AuditService;
+use App\Services\Media\ImageUploadService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ProfileController extends Controller
 {
@@ -60,26 +63,59 @@ class ProfileController extends Controller
     /**
      * Upload an avatar for the authenticated admin.
      *
-     * @param Request $request Incoming request.
+     * @param UploadAdminAvatarRequest $request Validated avatar upload request.
      * @param AuditService $audit Activity audit service.
+     * @param ImageUploadService $imageUploadService Shared image optimization service.
      * @return RedirectResponse Redirect back with status.
      */
-    public function uploadAvatar(UploadAdminAvatarRequest $request, AuditService $audit): RedirectResponse
+    public function uploadAvatar(
+        UploadAdminAvatarRequest $request,
+        AuditService $audit,
+        ImageUploadService $imageUploadService
+    ): RedirectResponse
     {
         /** @var AdminAccount $admin */
         $admin = $request->user('admin');
         $data = $request->validated();
-        $path = $data['avatar']->store('admin-avatars', 'public');
+        $uploaded = $imageUploadService->optimizeAndStore(
+            file: $data['avatar'],
+            directory: 'uploads/admin-avatars',
+            maxWidth: 400,
+            maxHeight: 400,
+            quality: 85
+        );
 
-        if ($admin->avatar_url && str_starts_with($admin->avatar_url, 'admin-avatars/')) {
-            Storage::disk('public')->delete($admin->avatar_url);
+        if ($admin->avatar_url) {
+            $imageUploadService->deleteFile($admin->avatar_url);
         }
 
         $before = ['avatar_configured' => (bool) $admin->avatar_url];
-        $admin->update(['avatar_url' => $path]);
+        $admin->update(['avatar_url' => $uploaded['path']]);
         $audit->record('admin.avatar_updated', 'admin', $admin->id, null, $before, ['avatar_configured' => true]);
 
         return back()->with('status', __('admin.avatar_updated'));
+    }
+
+    /**
+     * Stream the authenticated administrator's avatar without requiring a public storage symlink.
+     *
+     * @param Request $request Incoming authenticated request.
+     * @return StreamedResponse Optimized avatar image response.
+     */
+    public function avatar(Request $request): StreamedResponse
+    {
+        /** @var AdminAccount $admin */
+        $admin = $request->user('admin');
+        $storedValue = (string) ($admin->avatar_url ?? '');
+        $path = str_contains($storedValue, '/storage/')
+            ? Str::after($storedValue, '/storage/')
+            : ltrim($storedValue, '/');
+
+        abort_if($path === '' || ! Storage::disk('public')->exists($path), 404);
+
+        return Storage::disk('public')->response($path, null, [
+            'Cache-Control' => 'private, max-age=3600',
+        ]);
     }
 
     /**

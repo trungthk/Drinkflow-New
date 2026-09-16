@@ -11,17 +11,24 @@ class UploadAdminAvatarRequest extends FormRequest
 {
     use AuthorizesUserAndAdmin;
 
+    /**
+     * Determine whether the active administrator may upload an avatar.
+     *
+     * @return bool True when an active administrator is authenticated.
+     */
     public function authorize(): bool
     {
         return $this->authorizeActiveAdmin();
     }
 
     /**
+     * Get validation rules for the avatar upload.
+     *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
-        return ['avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048']];
+        return ['avatar' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120']];
     }
 
     /**
@@ -44,7 +51,7 @@ class UploadAdminAvatarRequest extends FormRequest
             ]),
             'avatar.max' => __('validation.max.file', [
                 'attribute' => __('validation.attributes.avatar'),
-                'max' => 2048,
+                'max' => 5120,
             ]),
         ];
     }

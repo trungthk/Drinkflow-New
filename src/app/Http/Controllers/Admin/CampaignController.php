@@ -11,6 +11,7 @@ use App\Actions\Campaign\CreateItemOptionAction;
 use App\Actions\Campaign\DuplicateCampaignAction;
 use App\Actions\Campaign\SplitCampaignBillAction;
 use App\Actions\Campaign\TransitionCampaignAction;
+use App\Actions\Campaign\UpdateCampaignAction;
 use App\Actions\Campaign\UpdateCampaignItemAction;
 use App\Enums\PaymentAccountStatus;
 use App\Enums\CampaignStatus;
@@ -223,25 +224,76 @@ class CampaignController extends Controller
     }
 
     /**
-     * Handle the update operation.
-     * @param UpdateCampaignRequest $request Parameter value.
-     * @param Room $room Parameter value.
-     * @param Campaign $campaign Parameter value.
-     * @param AuditService $audit Parameter value.
+     * Show the campaign editing interface.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @param Room $room Room entity.
+     * @param Campaign $campaign Campaign entity.
+     * @return View|JsonResponse Blade view or JSON response.
+     */
+    public function edit(Request $request, Room $room, Campaign $campaign): View|JsonResponse
+    {
+        $this->assertCampaign($campaign);
+        $room = $request->attributes->get('room') ?? $room;
+        $campaign->load(['items.sizes', 'items.toppings', 'paymentAccount']);
+        $paymentAccounts = $room->paymentAccounts()->where('status', PaymentAccountStatus::Active)->get();
+        $settings = $room->roomSettings()
+            ->whereIn('key', ['max_campaign_budget', 'default_payment_account_id'])
+            ->get()
+            ->keyBy('key');
+        $maxBudget = (int) ($settings->get('max_campaign_budget')?->value ?? 2_000_000);
+        $roomUsers = $room->roomUsers()->with('globalUser')->where('status', RoomUserStatus::Active)->get();
+        $previousCampaigns = Campaign::query()
+            ->where('room_id', $room->id)
+            ->where('id', '!=', $campaign->id)
+            ->whereHas('items')
+            ->with(['items.sizes', 'items.toppings'])
+            ->latest()
+            ->take(10)
+            ->get();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'room' => $room,
+                'campaign' => $campaign,
+                'payment_accounts' => $paymentAccounts,
+                'room_users' => $roomUsers,
+                'previous_campaigns' => $previousCampaigns,
+                'max_budget' => $maxBudget,
+            ]);
+        }
+
+        return view('admin.campaign-edit', [
+            'room' => $room,
+            'campaign' => $campaign,
+            'paymentAccounts' => $paymentAccounts,
+            'roomUsers' => $roomUsers,
+            'previousCampaigns' => $previousCampaigns,
+            'maxBudget' => $maxBudget,
+        ]);
+    }
+
+    /**
+     * Handle the update operation for a campaign.
+     *
+     * @param UpdateCampaignRequest $request Incoming validated update request.
+     * @param Room $room Room entity.
+     * @param Campaign $campaign Campaign entity.
+     * @param UpdateCampaignAction $updateAction Campaign update action.
      * @return JsonResponse Result of the operation.
      */
-    public function update(UpdateCampaignRequest $request, Room $room, Campaign $campaign, AuditService $audit): JsonResponse
+    public function update(UpdateCampaignRequest $request, Room $room, Campaign $campaign, UpdateCampaignAction $updateAction): JsonResponse
     {
         $this->assertCampaign($campaign);
         $data = $request->validated();
-        if (isset($data['payment_account_id']) && $data['payment_account_id'] !== null && ! $campaign->room->paymentAccounts()->whereKey($data['payment_account_id'])->where('status', PaymentAccountStatus::Active)->exists()) {
-            abort(422, __('admin.invalid_payment_account'));
-        }
-        $before = $campaign->toArray();
-        $campaign->update(collect($data)->except(['status'])->all());
-        $audit->record('campaign.updated', 'campaign', $campaign->id, $campaign->room_id, $before, $campaign->fresh()->toArray());
-        $this->publishCampaignEvent('campaign.updated', $campaign);
-        return response()->json(['data' => $campaign->fresh(['items', 'paymentAccount'])]);
+        $adminId = $request->user('admin')?->id;
+        $updatedCampaign = $updateAction->execute($campaign, $data, $adminId);
+        $this->publishCampaignEvent('campaign.updated', $updatedCampaign);
+
+        return response()->json([
+            'message' => __('admin.campaign_updated_successfully'),
+            'data' => $updatedCampaign,
+        ]);
     }
 
     /**

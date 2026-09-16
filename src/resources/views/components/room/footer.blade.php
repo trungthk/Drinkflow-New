@@ -6,8 +6,6 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
     <div class="flex items-center gap-2">
       <span>{{ __('room.footer.copyright', ['year' => date('Y')]) }}</span>
-      <span class="text-slate-300">•</span>
-      <span>{{ __('room.footer.department', ['name' => $room->name ?? __('global.common.room')]) }}</span>
     </div>
     <div class="flex items-center gap-4">
       <a class="hover:text-slate-900 transition-colors" href="{{ route('terms') }}">{{ __('room.footer.order_policy') }}</a>

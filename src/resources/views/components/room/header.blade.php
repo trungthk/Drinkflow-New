@@ -141,7 +141,9 @@
             </div>
             <div class="divide-y divide-slate-100 max-h-[380px] overflow-y-auto">
               @forelse($notifications as $notif)
-                @php($notificationPresentation = $notificationPresentations[$notif->getKey()] ?? ['title' => '', 'body' => '', 'icon' => 'notifications'])
+                @php
+                  $notificationPresentation = $notificationPresentations[$notif->getKey()] ?? ['title' => '', 'body' => '', 'icon' => 'notifications'];
+                @endphp
                 <div class="p-3.5 flex items-start gap-3 hover:bg-slate-50/80 transition-colors {{ is_null($notif->read_at) ? 'bg-emerald-50/20' : '' }}">
                   <span class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100">
                     <span class="material-symbols-outlined text-[17px]">
@@ -226,15 +228,13 @@
       <!-- Live Countdown Badge -->
       <div class="shrink-0">
         @if($activeCampaign)
-          <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200/70 font-mono text-[11px] font-semibold">
-            <span class="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse"></span>
-            <span>
-              @if ($activeCampaign['has_expired'] ?? false)
-                {{ __('room.header.countdown_closed') }}
-              @else
-                {{ __('room.header.countdown_prefix') }} {{ $activeCampaign['time_remaining'] ?? '14:22' }}
-              @endif
-            </span>
+          @php
+            $timeRemaining = is_array($activeCampaign) ? ($activeCampaign['time_remaining'] ?? '') : ($activeCampaign->time_remaining ?? '');
+            $hasExpired = (is_array($activeCampaign) ? ($activeCampaign['has_expired'] ?? false) : ($activeCampaign->has_expired ?? false)) || $timeRemaining === '00:00' || $timeRemaining === '00:00:00' || empty($timeRemaining);
+          @endphp
+          <div class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full {{ $hasExpired ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-rose-50 text-rose-700 border border-rose-200/70' }} font-mono text-[11px] font-semibold">
+            <span class="w-1.5 h-1.5 rounded-full {{ $hasExpired ? 'bg-slate-400' : 'bg-rose-600 animate-pulse' }}"></span>
+            <span>{{ $hasExpired ? __('room.header.countdown_closed') : (__('room.header.countdown_prefix') . ' ' . $timeRemaining) }}</span>
           </div>
         @else
           <div class="flex items-center gap-1 text-[11px] text-slate-400">

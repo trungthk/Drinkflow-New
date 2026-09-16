@@ -255,6 +255,12 @@ html {
         padding-right: 0.5rem !important;
     }
 
+    html.sidebar-collapsed #admin-sidebar .admin-profile-chip {
+        justify-content: center !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
     html.sidebar-collapsed #admin-sidebar .sidebar-tooltip {
         display: block !important;
     }

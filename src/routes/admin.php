@@ -34,6 +34,7 @@ Route::get('/admin', [\App\Http\Controllers\Admin\AuthController::class, 'landin
 Route::post('/admin/logout', [\App\Http\Controllers\Admin\AuthController::class, 'logout'])->middleware(['auth:admin', 'throttle:admin-login'])->name('admin.logout');
 Route::middleware('auth:admin')->prefix('admin/profile')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\ProfileController::class, 'show'])->name('admin.profile');
+    Route::get('/avatar', [\App\Http\Controllers\Admin\ProfileController::class, 'avatar'])->name('admin.profile.avatar.show');
     Route::patch('/', [\App\Http\Controllers\Admin\ProfileController::class, 'update'])->name('admin.profile.update');
     Route::post('/avatar', [\App\Http\Controllers\Admin\ProfileController::class, 'uploadAvatar'])->name('admin.profile.avatar');
     Route::patch('/password', [\App\Http\Controllers\Admin\ProfileController::class, 'updatePassword'])->name('admin.profile.password');
@@ -63,6 +64,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/campaigns', [\App\Http\Controllers\Admin\CampaignController::class, 'index'])->name('admin.campaigns.index');
     Route::get('/campaigns/create', [\App\Http\Controllers\Admin\CampaignController::class, 'create'])->name('admin.campaigns.create');
     Route::get('/campaigns/previous-menus', [\App\Http\Controllers\Admin\CampaignController::class, 'previousMenus'])->name('admin.campaigns.previous-menus');
+    Route::get('/campaigns/{campaign}/edit', [\App\Http\Controllers\Admin\CampaignController::class, 'edit'])->name('admin.campaigns.edit');
     Route::get('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'show'])->name('admin.campaigns.show');
     Route::get('/orders', [\App\Http\Controllers\Admin\OrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/orders/aggregate', [\App\Http\Controllers\Admin\CampaignController::class, 'aggregate'])->name('admin.orders.aggregate');
@@ -108,6 +110,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::post('/debts/{debt}/adjust', [\App\Http\Controllers\Admin\DebtController::class, 'adjust'])->name('admin.debts.adjust');
     Route::patch('/debts/{debt}/status', [\App\Http\Controllers\Admin\DebtController::class, 'status'])->name('admin.debts.status');
     Route::get('/room-users', [\App\Http\Controllers\Admin\RoomUserController::class, 'index'])->name('admin.room-users.index');
+    Route::post('/room-users', [\App\Http\Controllers\Admin\RoomUserController::class, 'store'])->name('admin.room-users.store');
     Route::get('/room-users/{roomUser}', [\App\Http\Controllers\Admin\RoomUserController::class, 'show'])->name('admin.room-users.show');
     Route::patch('/room-users/{roomUser}/status', [\App\Http\Controllers\Admin\RoomUserController::class, 'status'])->name('admin.room-users.status');
     Route::delete('/room-users/{roomUser}', [\App\Http\Controllers\Admin\RoomUserController::class, 'destroy'])->name('admin.room-users.destroy');

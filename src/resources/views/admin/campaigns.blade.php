@@ -65,22 +65,25 @@
                     @forelse($campaigns as $camp)
                         @php
                             $statusValue = $camp->status instanceof \BackedEnum ? $camp->status->value : (string) $camp->status;
-                            $stClass = match($statusValue) {
-                                'active' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                'closing' => 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse',
-                                'scheduled' => 'bg-blue-50 text-blue-700 border-blue-200',
-                                'closed' => 'bg-surface-container text-secondary border-outline-variant',
-                                'archived' => 'bg-gray-100 text-gray-500 border-gray-200',
+                            $isExpired = ($statusValue === 'active') && $camp->deadline && $camp->deadline->isPast();
+                            $stClass = match(true) {
+                                $isExpired => 'bg-rose-50 text-rose-700 border-rose-200',
+                                $statusValue === 'active' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                $statusValue === 'closing' => 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse',
+                                $statusValue === 'scheduled' => 'bg-blue-50 text-blue-700 border-blue-200',
+                                $statusValue === 'closed' => 'bg-surface-container text-secondary border-outline-variant',
+                                $statusValue === 'archived' => 'bg-gray-100 text-gray-500 border-gray-200',
                                 default => 'bg-surface text-outline border-outline-variant'
                             };
-                            $stLabel = match($statusValue) {
-                                'draft' => __('admin.status_draft'),
-                                'active' => __('admin.filter_active'),
-                                'closing' => __('admin.status_closing'),
-                                'scheduled' => __('admin.filter_scheduled'),
-                                'closed' => __('admin.filter_closed'),
-                                'archived' => __('admin.filter_archived'),
-                                'cancelled' => __('admin.status_cancelled'),
+                            $stLabel = match(true) {
+                                $isExpired => __('admin.status_expired'),
+                                $statusValue === 'draft' => __('admin.status_draft'),
+                                $statusValue === 'active' => __('admin.filter_active'),
+                                $statusValue === 'closing' => __('admin.status_closing'),
+                                $statusValue === 'scheduled' => __('admin.filter_scheduled'),
+                                $statusValue === 'closed' => __('admin.filter_closed'),
+                                $statusValue === 'archived' => __('admin.filter_archived'),
+                                $statusValue === 'cancelled' => __('admin.status_cancelled'),
                                 default => __('admin.status_'.$statusValue)
                             };
                             $windowStart = $camp->started_at;
@@ -123,34 +126,26 @@
                                             <span>{{ __('admin.view_campaign_details') }}</span>
                                         </a>
                                     @if(in_array($statusValue, ['draft'], true))
-                                        <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}?view=edit" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
+                                        <a href="{{ route('admin.campaigns.edit', [$room, $camp]) }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
                                             <span class="material-symbols-outlined text-[14px]">edit</span>
                                             <span>{{ __('admin.edit') }}</span>
                                         </a>
-                                        <button type="button" onclick="deleteCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left">
-                                            <span class="material-symbols-outlined text-[16px]">delete</span>{{ __('admin.delete') }}
-                                        </button>
-                                    @elseif(in_array($statusValue, ['active', 'closing'], true))
-                                        <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}?view=edit" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
+                                    @elseif(in_array($statusValue, ['active', 'closing', 'scheduled'], true))
+                                        <a href="{{ route('admin.campaigns.edit', [$room, $camp]) }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
                                             <span class="material-symbols-outlined text-[14px]">edit</span>
                                             <span>{{ __('admin.edit') }}</span>
                                         </a>
-                                        <button type="button" onclick="deleteCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left">
-                                            <span class="material-symbols-outlined text-[16px]">delete</span>{{ __('admin.delete') }}
-                                        </button>
-                                        <button type="button" onclick="closeCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
-                                            <span class="material-symbols-outlined text-[16px]">lock</span>{{ __('admin.close_campaign_early') }}
-                                        </button>
-                                        <button type="button" onclick="cancelCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left">
+                                        @if(in_array($statusValue, ['active', 'closing'], true))
+                                            <button type="button" onclick="window.openCloseCampaignModal({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
+                                                <span class="material-symbols-outlined text-[16px]">lock</span>{{ __('admin.close_campaign_early') }}
+                                            </button>
+                                        @endif
+                                        <button type="button" onclick="window.openCancelCampaignModal({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left">
                                             <span class="material-symbols-outlined text-[16px]">cancel</span>{{ __('admin.cancel_campaign_btn') }}
                                         </button>
                                     @elseif($statusValue === 'closed')
-                                        <button type="button" onclick="archiveCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
+                                        <button type="button" onclick="window.archiveCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
                                             <span class="material-symbols-outlined text-[16px]">archive</span>{{ __('admin.archive_campaign') }}
-                                        </button>
-                                    @elseif($statusValue === 'archived')
-                                        <button type="button" onclick="deleteCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left">
-                                            <span class="material-symbols-outlined text-[16px]">delete</span>{{ __('admin.delete') }}
                                         </button>
                                     @endif
                                     </div>
@@ -182,6 +177,7 @@
         @endif
     </div>
 
+    <!-- Duplicate Campaign Modal -->
     <div id="duplicate-campaign-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
         <div class="w-full max-w-sm rounded-xl bg-surface-container-lowest p-5 shadow-xl">
             <h2 class="text-base font-bold text-on-surface">{{ __('admin.duplicate_campaign') }}</h2>
@@ -189,6 +185,42 @@
             <div class="mt-5 flex justify-end gap-2">
                 <button type="button" data-duplicate-cancel class="px-3 py-2 rounded text-xs font-semibold bg-surface-container">{{ __('admin.cancel') }}</button>
                 <button type="button" data-duplicate-confirm class="px-3 py-2 rounded text-xs font-semibold bg-primary text-on-primary">{{ __('admin.confirm_duplicate') }}</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Close Campaign Confirmation Modal -->
+    <div id="close-campaign-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+        <div class="w-full max-w-sm rounded-xl bg-surface-container-lowest border border-outline-variant p-5 shadow-xl">
+            <div class="flex items-center gap-2 text-amber-600 mb-2">
+                <span class="material-symbols-outlined text-[22px]">lock</span>
+                <h2 class="text-base font-bold text-on-surface">{{ __('admin.confirm_close_campaign_title') }}</h2>
+            </div>
+            <p class="mt-2 text-xs text-outline leading-relaxed">{{ __('admin.confirm_close_campaign_desc') }}</p>
+            <div class="mt-5 flex justify-end gap-2">
+                <button type="button" data-close-cancel class="px-3 py-2 rounded-lg text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.cancel') }}</button>
+                <button type="button" data-close-confirm class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-container text-on-primary transition-colors flex items-center gap-1.5 disabled:opacity-60">
+                    <span class="material-symbols-outlined text-[16px] hidden animate-spin" data-spinner>progress_activity</span>
+                    <span data-label>{{ __('admin.confirm_close_btn') }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Campaign Confirmation Modal -->
+    <div id="cancel-campaign-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+        <div class="w-full max-w-sm rounded-xl bg-surface-container-lowest border border-outline-variant p-5 shadow-xl">
+            <div class="flex items-center gap-2 text-error mb-2">
+                <span class="material-symbols-outlined text-[22px]">cancel</span>
+                <h2 class="text-base font-bold text-on-surface">{{ __('admin.confirm_cancel_campaign_title') }}</h2>
+            </div>
+            <p class="mt-2 text-xs text-outline leading-relaxed">{{ __('admin.confirm_cancel_campaign_desc') }}</p>
+            <div class="mt-5 flex justify-end gap-2">
+                <button type="button" data-cancel-modal-cancel class="px-3 py-2 rounded-lg text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.cancel') }}</button>
+                <button type="button" data-cancel-modal-confirm class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-error hover:bg-error/90 text-white transition-colors flex items-center gap-1.5 disabled:opacity-60">
+                    <span class="material-symbols-outlined text-[16px] hidden animate-spin" data-spinner>progress_activity</span>
+                    <span data-label>{{ __('admin.confirm_cancel_btn') }}</span>
+                </button>
             </div>
         </div>
     </div>

@@ -13,6 +13,12 @@
             </div>
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.users_directory') }}</h1>
         </div>
+        <div class="flex items-center gap-2.5">
+            <button type="button" id="btn-open-create-user-modal" class="px-3.5 py-2 bg-primary hover:bg-primary-container text-on-primary rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-[16px]">person_add</span>
+                <span>{{ __('admin.btn_add_user') }}</span>
+            </button>
+        </div>
     </div>
 
     <!-- Notice Notification Banner -->
@@ -141,13 +147,15 @@
                             <td class="py-3.5 px-4 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
                                     @if($statusVal !== 'removed')
-                                            <button type="button" data-toggle-user-status data-room-user-id="{{ $ru->id }}" data-new-status="{{ $statusVal === 'active' ? 'blocked' : 'active' }}" class="p-1 rounded hover:bg-surface-container transition-colors {{ $statusVal === 'active' ? 'text-secondary hover:text-rose-600' : 'text-emerald-600' }}" title="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.btn_unblock_user') }}">
+                                            <button type="button" data-toggle-user-status data-room-user-id="{{ $ru->id }}" data-new-status="{{ $statusVal === 'active' ? 'blocked' : 'active' }}" class="group relative p-1 rounded hover:bg-surface-container transition-colors {{ $statusVal === 'active' ? 'text-secondary hover:text-rose-600' : 'text-emerald-600' }}" title="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.btn_unblock_user') }}" aria-label="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.btn_unblock_user') }}">
                                             <span class="material-symbols-outlined text-[16px]">{{ $statusVal === 'active' ? 'lock' : 'lock_open' }}</span>
+                                            <span role="tooltip" class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.btn_unblock_user') }}</span>
                                         </button>
                                     @endif
                                     @if($statusVal !== 'removed')
-                                            <button type="button" data-remove-room-user data-room-user-id="{{ $ru->id }}" class="p-1 rounded text-secondary hover:text-rose-600 hover:bg-surface-container transition-colors" title="{{ __('admin.remove_user_from_room') }}">
+                                            <button type="button" data-remove-room-user data-room-user-id="{{ $ru->id }}" class="group relative p-1 rounded text-secondary hover:text-rose-600 hover:bg-surface-container transition-colors" title="{{ __('admin.remove_user_from_room') }}" aria-label="{{ __('admin.remove_user_from_room') }}">
                                             <span class="material-symbols-outlined text-[16px]">person_remove</span>
+                                            <span role="tooltip" class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ __('admin.remove_user_from_room') }}</span>
                                         </button>
                                     @endif
                                 </div>
@@ -163,9 +171,6 @@
                             </td>
                         </tr>
                     @endforelse
-                    <tr id="users-no-filter-results" class="hidden">
-                        <td colspan="6" class="py-12 text-center text-outline">{{ __('admin.no_users_matching_filters') }}</td>
-                    </tr>
                 </tbody>
             </table>
         </div>
@@ -177,7 +182,12 @@
     </div>
 
     <!-- Device Trust Management Modal -->
-    <div id="device-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    <div id="device-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+         data-revoke-label="{{ __('admin.revoke_device') }}"
+         data-revoked-label="{{ __('admin.revoked') }}"
+         data-no-device-label="{{ __('admin.no_device_registered') }}"
+         data-device-fallback-label="{{ __('admin.device_uuid') }}"
+         data-load-error-label="{{ __('admin.error_generic') }}">
         <div id="device-backdrop" class="absolute inset-0"></div>
         <div class="relative z-10 w-full max-w-xl bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-3 border-b border-outline-variant mb-4">
@@ -215,6 +225,72 @@
                 <button type="button" id="user-action-cancel" class="px-4 py-2 rounded-lg bg-surface-container text-on-surface text-xs font-semibold">{{ __('admin.cancel') }}</button>
                 <button type="button" id="user-action-confirm" class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold">{{ __('admin.confirm_action') }}</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Add / Create Member Modal -->
+    <div id="create-user-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="create-user-modal-title">
+        <div id="create-user-backdrop" class="absolute inset-0"></div>
+        <div class="relative z-10 w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start justify-between pb-3 border-b border-outline-variant mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[22px]">person_add</span>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-on-surface" id="create-user-modal-title">{{ __('admin.add_user_modal_title') }}</h3>
+                        <p class="text-xs text-outline mt-0.5">{{ __('admin.add_user_modal_desc') }}</p>
+                    </div>
+                </div>
+                <button type="button" id="create-user-close" class="p-1 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="create-user-error" class="hidden mb-4 rounded-xl p-3 bg-error-container/60 border border-error/30 text-error text-xs leading-relaxed"></div>
+
+            <form id="create-user-form" class="space-y-4">
+                <div>
+                    <label for="create-user-email" class="block text-xs font-semibold text-on-surface mb-1">
+                        {{ __('admin.user_email_label') }} <span class="text-error">*</span>
+                    </label>
+                    <input type="email" id="create-user-email" name="email" required placeholder="example@thk-hd.vn" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                    <p class="mt-1 text-[11px] text-outline leading-relaxed">{{ __('admin.user_email_hint') }}</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="create-user-name" class="block text-xs font-semibold text-on-surface mb-1">
+                            {{ __('admin.user_name_label') }} <span class="text-error">*</span>
+                        </label>
+                        <input type="text" id="create-user-name" name="name" required placeholder="Nguyen Van A" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                    </div>
+                    <div>
+                        <label for="create-user-phone" class="block text-xs font-semibold text-on-surface mb-1">
+                            {{ __('admin.user_phone_label') }}
+                        </label>
+                        <input type="tel" id="create-user-phone" name="phone" placeholder="0912345678" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="create-user-desk" class="block text-xs font-semibold text-on-surface mb-1">
+                        {{ __('admin.user_desk_label') }}
+                    </label>
+                    <input type="text" id="create-user-desk" name="desk_location" placeholder="Tầng 4 - Ban Kỹ Thuật" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                </div>
+
+                <div class="pt-2 flex items-center justify-end gap-2.5 border-t border-outline-variant">
+                    <button type="button" id="create-user-cancel" class="px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors">
+                        {{ __('admin.cancel') }}
+                    </button>
+                    <button type="submit" id="create-user-submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">person_add</span>
+                        <span>{{ __('admin.btn_submit_add_user') }}</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </x-admin.layout>

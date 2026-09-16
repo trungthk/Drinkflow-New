@@ -63,6 +63,7 @@ class AdminAuditPageTest extends TestCase
         $response->assertSee(__('admin.metadata'));
         $response->assertSee(__('admin.raw_json_payload'));
         $response->assertSee(__('admin.copy_json'));
+        $response->assertSee('class="sr-only">' . __('admin.details'), false);
 
         // Target column header should not be present in table
         $response->assertDontSee('<th class="py-3 px-4">' . __('admin.target_object') . '</th>', false);
@@ -120,4 +121,3 @@ class AdminAuditPageTest extends TestCase
         $response->assertSee(__('admin.audit_target_admin'));
     }
 }
-

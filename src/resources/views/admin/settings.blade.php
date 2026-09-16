@@ -183,19 +183,23 @@
                                 <button
                                     type="button"
                                     onclick="openEditAccountModal({{ $acc->id }}, '{{ $acc->bank_code }}', @js($acc->bank_name), '{{ $rawAccNumber }}', @js($acc->account_name), {{ $acc->is_default ? 'true' : 'false' }})"
-                                    class="p-1.5 text-secondary hover:text-primary rounded-md hover:bg-surface-container transition-colors"
+                                    class="group/edit relative p-1.5 text-secondary hover:text-primary rounded-md hover:bg-surface-container transition-colors"
                                     title="{{ __('admin.edit') }}"
+                                    aria-label="{{ __('admin.edit') }}"
                                 >
                                     <span class="material-symbols-outlined text-[17px]">edit</span>
+                                    <span role="tooltip" class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover/edit:opacity-100 group-focus-visible/edit:opacity-100">{{ __('admin.edit') }}</span>
                                 </button>
                                 {{-- Delete Button --}}
                                 <button
                                     type="button"
                                     onclick="openDeleteAccountModal({{ $acc->id }})"
-                                    class="p-1.5 text-secondary hover:text-rose-600 rounded-md hover:bg-surface-container transition-colors"
+                                    class="group/del relative p-1.5 text-secondary hover:text-rose-600 rounded-md hover:bg-surface-container transition-colors"
                                     title="{{ __('admin.delete') }}"
+                                    aria-label="{{ __('admin.delete') }}"
                                 >
                                     <span class="material-symbols-outlined text-[17px]">delete</span>
+                                    <span role="tooltip" class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover/del:opacity-100 group-focus-visible/del:opacity-100">{{ __('admin.delete') }}</span>
                                 </button>
                             </div>
                         </div>

@@ -183,10 +183,14 @@
             </div>
 
             <!-- Countdown Timer Pill -->
-            <div class="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-1 bg-slate-50 border border-slate-200/80 p-2.5 rounded-lg">
-              <div class="flex items-center gap-1.5 font-mono text-rose-700 text-xs font-bold">
-                <span class="material-symbols-outlined text-[15px] animate-pulse">schedule</span>
-                <span>{{ $campaignStats['time_remaining'] ?? '14:22' }}</span>
+            @php
+              $campTimeRemaining = $campaignStats['time_remaining'] ?? '';
+              $campHasExpired = ($campaignStats['has_expired'] ?? false) || $campTimeRemaining === '00:00' || $campTimeRemaining === '00:00:00' || empty($campTimeRemaining);
+            @endphp
+            <div class="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-1 {{ $campHasExpired ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-rose-50/50 border-rose-200/80 text-rose-700' }} border p-2.5 rounded-lg">
+              <div class="flex items-center gap-1.5 font-mono text-xs font-bold {{ $campHasExpired ? 'text-slate-600' : 'text-rose-700' }}">
+                <span class="material-symbols-outlined text-[15px] {{ $campHasExpired ? '' : 'animate-pulse' }}">schedule</span>
+                <span>{{ $campHasExpired ? __('room.header.countdown_closed') : $campTimeRemaining }}</span>
               </div>
               <span class="text-[10px] text-slate-400 font-medium">{{ __('room.campaign.auto_lock_notice') }}</span>
             </div>

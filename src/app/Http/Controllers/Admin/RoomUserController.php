@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\User\AdminAddRoomUserAction;
 use App\Actions\User\SetRoomUserStatusAction;
 use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SetStatusRequest;
+use App\Http\Requests\StoreRoomUserRequest;
 use App\Models\Room;
 use App\Models\RoomUser;
 use App\Models\RoomUserDevice;
@@ -33,6 +35,25 @@ class RoomUserController extends Controller
         }
         if ($request->filled('status')) $query->where('status', $request->string('status')->toString());
         return response()->json(['data' => $query->paginate(50)]);
+    }
+
+    /**
+     * Store and add a new or existing user to the room.
+     *
+     * @param StoreRoomUserRequest $request Validated user input.
+     * @param Room $room Target room.
+     * @param AdminAddRoomUserAction $action Action adding user.
+     * @return JsonResponse Created room user response.
+     */
+    public function store(StoreRoomUserRequest $request, Room $room, AdminAddRoomUserAction $action): JsonResponse
+    {
+        $roomUser = $action->execute($room, $request->validated());
+
+        return response()->json([
+            'success' => true,
+            'message' => __('admin.user_created_success'),
+            'data' => $roomUser,
+        ], 201);
     }
 
     /**

@@ -127,19 +127,19 @@ class AdminDashboardService
         $totalWeekSpending = 0;
 
         $dayLabels = [
-            1 => 'Thứ 2',
-            2 => 'Thứ 3',
-            3 => 'Thứ 4',
-            4 => 'Thứ 5',
-            5 => 'Thứ 6',
-            6 => 'Thứ 7',
-            0 => 'Chủ Nhật',
+            1 => __('admin.day_monday'),
+            2 => __('admin.day_tuesday'),
+            3 => __('admin.day_wednesday'),
+            4 => __('admin.day_thursday'),
+            5 => __('admin.day_friday'),
+            6 => __('admin.day_saturday'),
+            0 => __('admin.day_sunday'),
         ];
 
         for ($i = 6; $i >= 0; $i--) {
             $currentDate = $today->copy()->subDays($i);
             $dayOfWeek = (int) $currentDate->format('w');
-            $dayLabel = $i === 0 ? 'Hôm nay' : ($dayLabels[$dayOfWeek] ?? $currentDate->format('D'));
+            $dayLabel = $i === 0 ? __('admin.day_today') : ($dayLabels[$dayOfWeek] ?? $currentDate->format('D'));
 
             $cCount = $room->campaigns()->whereDate('created_at', $currentDate)->count();
             $sAmount = (int) Order::query()

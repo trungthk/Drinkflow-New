@@ -8,6 +8,9 @@
 @php
     $roomLabel = $room?->name ?? 'DrinkFlow';
     $pageTitle = $title ?: __('admin.dashboard');
+    $adminUser = $adminUser ?? auth('admin')->user();
+    $adminInitials = mb_strtoupper(mb_substr($adminUser?->name ?? 'AD', 0, 2));
+    $adminAvatarUrl = $adminUser?->avatar_url ? route('admin.profile.avatar.show') : null;
 @endphp
 <!doctype html>
 <html lang="{{ app()->getLocale() }}">
@@ -196,9 +199,12 @@
             <!-- Footer Action Links & Admin Info -->
             <div class="pt-4 border-t border-outline-variant space-y-2 text-xs">
                 <!-- Admin Profile Info Chip -->
-                <a href="{{ route('admin.profile') }}" class="flex items-center gap-2.5 p-2 rounded-lg bg-surface-container border border-outline-variant/60 relative group no-underline" title="{{ __('admin.profile_security') }}">
-                    <div class="w-8 h-8 rounded-full bg-secondary text-on-secondary font-mono text-xs flex items-center justify-center font-bold ring-1 ring-emerald-600/30 shrink-0 mx-auto lg:mx-0">
-                        {{ mb_strtoupper(mb_substr($adminUser?->name ?? 'AD', 0, 2)) }}
+                <a href="{{ route('admin.profile') }}" class="admin-profile-chip flex items-center gap-2.5 p-2 rounded-lg bg-surface-container border border-outline-variant/60 relative group no-underline" title="{{ __('admin.profile_security') }}">
+                    <div data-admin-avatar="sidebar" class="relative w-8 h-8 overflow-hidden rounded-full bg-secondary text-on-secondary font-mono text-xs flex items-center justify-center font-bold ring-1 ring-emerald-600/30 shrink-0 mx-auto lg:mx-0">
+                        <span aria-hidden="true">{{ $adminInitials }}</span>
+                        @if($adminAvatarUrl)
+                            <img src="{{ $adminAvatarUrl }}" alt="{{ $adminUser?->name }}" loading="lazy" onerror="this.remove()" class="absolute inset-0 h-full w-full object-cover">
+                        @endif
                     </div>
                     <div class="flex flex-col min-w-0 flex-1 sidebar-text">
                         <span class="text-xs font-semibold text-on-surface truncate leading-tight">{{ $adminUser?->name ?? __('global.common.admin') }}</span>
@@ -338,7 +344,7 @@
         </header>
 
         <!-- Main Scrollable Canvas -->
-        <main class="flex-1 p-4 sm:p-6 space-y-6">
+        <main class="flex-1 min-w-0 w-full p-4 sm:p-6 space-y-6">
             {{ $slot }}
         </main>
     </div>

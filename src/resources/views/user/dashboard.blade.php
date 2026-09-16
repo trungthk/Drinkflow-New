@@ -58,31 +58,33 @@
       <!-- Live Campaign and Top Items -->
       <div class="lg:col-span-12">
         @if($activeCampaign)
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
           <!-- Top 5 Live Items -->
-          <section class="lg:col-span-5 bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs lg:min-h-72">
-            <div class="flex items-center gap-2 pb-2.5 border-b border-slate-100 mb-2.5">
-              <span class="material-symbols-outlined text-[#006948] text-[18px]" aria-hidden="true">leaderboard</span>
-              <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-700">{{ __('room.dashboard.top_live_items') }}</h3>
-            </div>
-            @forelse($activeCampaign['popular_items'] as $index => $item)
-              <div class="flex items-center justify-between gap-3 py-2 {{ $loop->last ? '' : 'border-b border-slate-100' }}">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <span class="w-6 h-6 shrink-0 rounded-md {{ $index === 0 ? 'bg-amber-50 text-amber-700' : 'bg-slate-50 text-slate-500' }} flex items-center justify-center text-[11px] font-bold">{{ $index + 1 }}</span>
-                  <span class="text-xs font-semibold text-slate-800 truncate">{{ $item->name }}</span>
+          <section class="lg:col-span-5 bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs flex flex-col justify-between h-full">
+            <div>
+              <div class="flex items-center gap-2 pb-2.5 border-b border-slate-100 mb-2.5">
+                <span class="material-symbols-outlined text-[#006948] text-[18px]" aria-hidden="true">leaderboard</span>
+                <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-700">{{ __('room.dashboard.top_live_items') }}</h3>
+              </div>
+              @forelse($activeCampaign['popular_items'] as $index => $item)
+                <div class="flex items-center justify-between gap-3 py-2 {{ $loop->last ? '' : 'border-b border-slate-100' }}">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <span class="w-6 h-6 shrink-0 rounded-md {{ $index === 0 ? 'bg-amber-50 text-amber-700' : 'bg-slate-50 text-slate-500' }} flex items-center justify-center text-[11px] font-bold">{{ $index + 1 }}</span>
+                    <span class="text-xs font-semibold text-slate-800 truncate">{{ $item->name }}</span>
+                  </div>
+                  <span class="text-xs font-semibold text-[#006948] whitespace-nowrap">{{ __('room.dashboard.item_selected_quantity', ['count' => $item->quantity]) }}</span>
                 </div>
-                <span class="text-xs font-semibold text-[#006948] whitespace-nowrap">{{ __('room.dashboard.item_selected_quantity', ['count' => $item->quantity]) }}</span>
-              </div>
-            @empty
-              <div class="py-6 flex flex-col items-center justify-center text-center gap-2 text-slate-400">
-                <span class="material-symbols-outlined text-[26px] text-slate-300" aria-hidden="true">no_meals</span>
-                <p class="text-xs">{{ __('room.dashboard.no_live_item_data') }}</p>
-              </div>
-            @endforelse
+              @empty
+                <div class="py-10 flex flex-col items-center justify-center text-center gap-2 text-slate-400 my-auto">
+                  <span class="material-symbols-outlined text-[26px] text-slate-300" aria-hidden="true">no_meals</span>
+                  <p class="text-xs">{{ __('room.dashboard.no_live_item_data') }}</p>
+                </div>
+              @endforelse
+            </div>
           </section>
 
           <!-- Active Campaign Hero Card -->
-          <div class="lg:col-span-7 bg-white border border-slate-200/80 rounded-xl shadow-2xs p-4 sm:p-5 relative overflow-hidden">
+          <div class="lg:col-span-7 bg-white border border-slate-200/80 rounded-xl shadow-2xs p-4 sm:p-5 relative overflow-hidden flex flex-col justify-between h-full">
             <!-- Background Ambient Glow -->
             <div class="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-emerald-50 pointer-events-none blur-2xl"></div>
 
@@ -111,9 +113,13 @@
                 </div>
 
                 <!-- Countdown Timer Pill -->
-                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 border border-rose-200/80 font-mono text-xs font-bold shrink-0">
-                  <span class="material-symbols-outlined text-[14px] animate-pulse">schedule</span>
-                  <span>{{ $activeCampaign['time_remaining'] }}</span>
+                @php
+                  $dashTimeRemaining = $activeCampaign['time_remaining'] ?? '';
+                  $dashHasExpired = ($activeCampaign['has_expired'] ?? false) || $dashTimeRemaining === '00:00' || $dashTimeRemaining === '00:00:00' || empty($dashTimeRemaining);
+                @endphp
+                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg {{ $dashHasExpired ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-rose-50 text-rose-700 border border-rose-200/80' }} font-mono text-xs font-bold shrink-0">
+                  <span class="material-symbols-outlined text-[14px] {{ $dashHasExpired ? '' : 'animate-pulse' }}">schedule</span>
+                  <span>{{ $dashHasExpired ? __('room.header.countdown_closed') : $dashTimeRemaining }}</span>
                 </div>
               </div>
 

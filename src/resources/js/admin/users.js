@@ -6,10 +6,14 @@ export function initAdminUsers() {
     const filterForm = document.querySelector('#users-filter-form');
     const statusSelect = document.querySelector('#user-status-filter');
     const rows = document.querySelectorAll('[data-user-row]');
-    const noResults = document.querySelector('#users-no-filter-results');
     const modal = document.querySelector('#device-modal');
     const modalBackdrop = document.querySelector('#device-backdrop');
     const modalBody = document.querySelector('#device-modal-body');
+    const deviceRevokeLabel = modal?.dataset.revokeLabel || 'Revoke access';
+    const deviceRevokedLabel = modal?.dataset.revokedLabel || 'Revoked';
+    const noDeviceLabel = modal?.dataset.noDeviceLabel || 'No device registered';
+    const deviceFallbackLabel = modal?.dataset.deviceFallbackLabel || 'Device';
+    const deviceLoadErrorLabel = modal?.dataset.loadErrorLabel || 'An error occurred. Please try again.';
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
     const actionModal = document.querySelector('#user-action-modal');
@@ -19,7 +23,17 @@ export function initAdminUsers() {
     const actionCancel = document.querySelector('#user-action-cancel');
     let pendingAction = null;
 
-    if (!searchInput && !rows.length && !modal) return;
+    // Create / Add User Modal Elements
+    const createUserModal = document.querySelector('#create-user-modal');
+    const createUserBackdrop = document.querySelector('#create-user-backdrop');
+    const createUserClose = document.querySelector('#create-user-close');
+    const createUserCancel = document.querySelector('#create-user-cancel');
+    const btnOpenCreateUserModal = document.querySelector('#btn-open-create-user-modal');
+    const createUserForm = document.querySelector('#create-user-form');
+    const createUserError = document.querySelector('#create-user-error');
+    const createUserSubmit = document.querySelector('#create-user-submit');
+
+    if (!searchInput && !rows.length && !modal && !createUserModal) return;
 
     const closeDeviceModal = () => {
         if (!modal) return;
@@ -32,15 +46,12 @@ export function initAdminUsers() {
     function applyUserFilters() {
         const term = searchInput?.value.trim().toLowerCase() || '';
         const activeStatus = statusSelect?.value || 'all';
-        let visibleRows = 0;
 
         rows.forEach(row => {
             const matchesSearch = row.dataset.search?.includes(term);
             const matchesStatus = activeStatus === 'all' || row.dataset.status === activeStatus;
             row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
-            if (matchesSearch && matchesStatus) visibleRows += 1;
         });
-        noResults?.classList.toggle('hidden', rows.length === 0 || visibleRows > 0);
     }
 
     searchInput?.addEventListener('admin:search', applyUserFilters);
@@ -105,7 +116,7 @@ export function initAdminUsers() {
                 modalBody.innerHTML = `
                     <div class="py-8 text-center text-outline">
                         <span class="material-symbols-outlined text-3xl mb-1 text-outline-variant">smartphone</span>
-                        <p class="text-xs">Không có thiết bị đăng ký</p>
+                        <p class="text-xs">${noDeviceLabel}</p>
                     </div>
                 `;
                 return;
@@ -116,16 +127,16 @@ export function initAdminUsers() {
                     <div class="flex items-center gap-2.5">
                         <span class="material-symbols-outlined text-[20px] text-primary">laptop_mac</span>
                         <div>
-                            <div class="font-mono font-bold text-on-surface">${dev.device_uuid || dev.device_name || 'Device'}</div>
+                        <div class="font-mono font-bold text-on-surface">${dev.device_uuid || dev.device_name || deviceFallbackLabel}</div>
                             <div class="text-[11px] text-outline">${dev.last_seen_at || '—'}</div>
                         </div>
                     </div>
                     <div>
                         ${dev.status === 'revoked' ? `
-                            <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">Đã hủy</span>
+                            <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">${deviceRevokedLabel}</span>
                         ` : `
                             <button type="button" data-revoke-device data-room-user-id="${roomUserId}" data-device-id="${dev.id}" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold border border-rose-200 transition-colors">
-                                Hủy quyền
+                                ${deviceRevokeLabel}
                             </button>
                         `}
                     </div>
@@ -133,7 +144,7 @@ export function initAdminUsers() {
             `).join('');
         } catch(e) {
             console.error(e);
-            modalBody.innerHTML = '<div class="py-8 text-center text-error text-xs">Error loading devices.</div>';
+            modalBody.innerHTML = `<div class="py-8 text-center text-error text-xs">${deviceLoadErrorLabel}</div>`;
         }
     };
 
@@ -238,4 +249,96 @@ export function initAdminUsers() {
         );
     };
 
+    // Create User Modal Handlers
+    const openCreateUserModal = () => {
+        if (!createUserModal) return;
+        createUserForm?.reset();
+        if (createUserError) {
+            createUserError.textContent = '';
+            createUserError.classList.add('hidden');
+        }
+        createUserModal.classList.remove('hidden');
+        createUserModal.classList.add('flex');
+        document.querySelector('#create-user-email')?.focus();
+    };
+
+    const closeCreateUserModal = () => {
+        if (!createUserModal) return;
+        createUserModal.classList.add('hidden');
+        createUserModal.classList.remove('flex');
+        createUserForm?.reset();
+    };
+
+    btnOpenCreateUserModal?.addEventListener('click', openCreateUserModal);
+    createUserClose?.addEventListener('click', closeCreateUserModal);
+    createUserCancel?.addEventListener('click', closeCreateUserModal);
+    createUserBackdrop?.addEventListener('click', closeCreateUserModal);
+
+    createUserForm?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!createUserSubmit) return;
+
+        const email = document.querySelector('#create-user-email')?.value.trim() || '';
+        const name = document.querySelector('#create-user-name')?.value.trim() || '';
+        const phone = document.querySelector('#create-user-phone')?.value.trim() || '';
+        const deskLocation = document.querySelector('#create-user-desk')?.value.trim() || '';
+
+        if (!email || !name) return;
+
+        if (createUserError) {
+            createUserError.textContent = '';
+            createUserError.classList.add('hidden');
+        }
+
+        createUserSubmit.disabled = true;
+        createUserSubmit.classList.add('opacity-60', 'cursor-not-allowed');
+
+        try {
+            const res = await fetch(`/admin/${roomSlug}/room-users`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    name,
+                    phone: phone || null,
+                    desk_location: deskLocation || null,
+                }),
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data.success) {
+                closeCreateUserModal();
+                window.location.reload();
+            } else {
+                let errorMsg = 'An error occurred while adding user.';
+                if (data.errors) {
+                    errorMsg = Object.values(data.errors).flat().join('<br>');
+                } else if (data.message) {
+                    errorMsg = data.message;
+                }
+                if (createUserError) {
+                    createUserError.innerHTML = errorMsg;
+                    createUserError.classList.remove('hidden');
+                } else {
+                    alert(errorMsg);
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            if (createUserError) {
+                createUserError.textContent = 'Network error. Please try again.';
+                createUserError.classList.remove('hidden');
+            }
+        } finally {
+            createUserSubmit.disabled = false;
+            createUserSubmit.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
+    });
+
 }
+

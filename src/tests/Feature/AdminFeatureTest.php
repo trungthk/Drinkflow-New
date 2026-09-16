@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Enums\AdminRole;
@@ -10,12 +12,20 @@ use App\Models\CampaignItem;
 use App\Models\PaymentAccount;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AdminFeatureTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['services.google.allowed_domains' => []]);
+    }
 
     private function admin(string $email = 'admin@example.test'): AdminAccount
     {
@@ -89,6 +99,56 @@ class AdminFeatureTest extends TestCase
         ]);
         $this->assertDatabaseHas('audit_logs', ['event' => 'admin.profile_updated', 'target_id' => $admin->id]);
         $this->assertDatabaseHas('audit_logs', ['event' => 'admin.two_factor_updated', 'target_id' => $admin->id]);
+    }
+
+    public function test_admin_can_upload_and_display_avatar_without_public_storage_link(): void
+    {
+        Storage::fake('public');
+        $admin = $this->admin('avatar-admin@example.test');
+
+        $response = $this->actingAs($admin, 'admin')
+            ->from('/admin/profile')
+            ->post('/admin/profile/avatar', [
+                'avatar' => UploadedFile::fake()->image('avatar.png', 800, 600),
+            ]);
+
+        $response->assertRedirect('/admin/profile')->assertSessionHasNoErrors();
+        $storedPath = (string) $admin->fresh()->avatar_url;
+        $this->assertStringStartsWith('uploads/admin-avatars/', $storedPath);
+        Storage::disk('public')->assertExists($storedPath);
+
+        $this->actingAs($admin->fresh(), 'admin')
+            ->get(route('admin.profile.avatar.show'))
+            ->assertOk()
+            ->assertHeader('content-type', 'image/webp');
+
+        $this->actingAs($admin->fresh(), 'admin')
+            ->get('/admin/profile')
+            ->assertOk()
+            ->assertSee('data-admin-avatar="sidebar"', false)
+            ->assertSee('admin-profile-chip', false)
+            ->assertDontSee('data-admin-avatar="header"', false)
+            ->assertSee(route('admin.profile.avatar.show'), false);
+    }
+
+    public function test_order_management_translates_campaign_sponsor_type(): void
+    {
+        $admin = $this->admin('sponsor-translation@example.test');
+        $room = $this->roomFor($admin, 'sponsor-translation-room');
+        Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Sponsored Lunch',
+            'restaurant' => 'Cafe',
+            'status' => CampaignStatus::Active,
+            'sponsor_type' => 'full',
+            'sponsor_description' => 'Company benefit',
+        ]);
+
+        $this->actingAs($admin, 'admin')
+            ->withSession(['locale' => 'en'])
+            ->get(route('admin.orders.page', $room->slug))
+            ->assertOk()
+            ->assertSee(__('admin.sponsor_type_full'));
     }
 
     /**
@@ -562,6 +622,88 @@ class AdminFeatureTest extends TestCase
             ->assertJsonPath('data.0.items.0.name', 'Trà Sữa Phúc Long');
     }
 
+    public function test_admin_can_create_campaign_with_complete_menu_structure(): void
+    {
+        $admin = $this->admin('nested-menu@example.test');
+        $room = $this->roomFor($admin, 'nested-menu-room');
+
+        $response = $this->actingAs($admin, 'admin')->postJson("/admin/{$room->id}/campaigns", [
+            'name' => 'Menu đầy đủ',
+            'restaurant' => 'DrinkFlow Cafe',
+            'sponsor_type' => 'none',
+            'max_budget' => 500000,
+            'status' => 'draft',
+            'items' => [[
+                'category' => 'Trà sữa',
+                'name' => 'Trà sữa trân châu',
+                'price' => 45000,
+                'description' => 'Ít ngọt',
+                'image_url' => 'https://example.com/images/milk-tea.jpg',
+                'toppings' => [
+                    ['name' => 'Pudding', 'price' => 10000],
+                ],
+                'options' => [
+                    ['name' => 'Size L', 'price_delta' => 12000],
+                ],
+            ]],
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.items.0.name', 'Trà sữa trân châu')
+            ->assertJsonPath('data.items.0.toppings.0.name', 'Pudding')
+            ->assertJsonPath('data.items.0.sizes.0.name', 'Size L');
+
+        $campaignId = $response->json('data.id');
+        $this->assertDatabaseHas('campaign_items', [
+            'campaign_id' => $campaignId,
+            'name' => 'Trà sữa trân châu',
+            'base_price' => 45000,
+            'image_url' => 'https://example.com/images/milk-tea.jpg',
+        ]);
+        $this->assertDatabaseHas('campaign_item_toppings', ['name' => 'Pudding', 'price' => 10000]);
+        $this->assertDatabaseHas('campaign_item_sizes', ['name' => 'Size L', 'price_delta' => 12000]);
+    }
+
+    public function test_campaign_creator_uses_full_width_menu_workflow(): void
+    {
+        $admin = $this->admin('campaign-create-ui@example.test');
+        $room = $this->roomFor($admin, 'campaign-create-ui-room');
+        $this->app->setLocale('vi');
+
+        $response = $this->actingAs($admin, 'admin')->get("/admin/{$room->id}/campaigns/create");
+
+        $response->assertOk()
+            ->assertSee('class="w-full space-y-6"', false)
+            ->assertSeeInOrder([__('admin.source_previous'), __('admin.source_json'), __('admin.source_crawler'), __('admin.selected_menu_preview')])
+            ->assertSee(__('admin.add_manual_item_button'))
+            ->assertSee('data-deadline-payment-grid', false)
+            ->assertSee('data-search-debounce="300"', false)
+            ->assertSee(__('admin.search_sponsor_placeholder'))
+            ->assertSeeInOrder([__('admin.menu_view_all'), __('admin.menu_view_category')])
+            ->assertSee('openEditItemModal(entry.index)', false)
+            ->assertSeeInOrder([__('admin.item_tab_basic'), __('admin.item_tab_additional')])
+            ->assertSee('clampSponsorPercentage(sponsor)', false)
+            ->assertSee('itemSubmitting', false)
+            ->assertSee('no_food', false)
+            ->assertDontSee('+30m')
+            ->assertDontSee('+60m');
+    }
+
+    public function test_admin_can_upload_campaign_menu_image(): void
+    {
+        Storage::fake('public');
+        $admin = $this->admin('menu-image@example.test');
+        $room = $this->roomFor($admin, 'menu-image-room');
+
+        $response = $this->actingAs($admin, 'admin')->post("/admin/{$room->id}/campaigns/menu-images", [
+            'image' => UploadedFile::fake()->image('drink.png', 600, 400),
+        ], ['Accept' => 'application/json']);
+
+        $response->assertCreated();
+        $this->assertStringContainsString('/storage/uploads/campaigns/', (string) $response->json('data.url'));
+        $this->assertCount(1, Storage::disk('public')->allFiles('uploads/campaigns'));
+    }
+
     public function test_admin_can_close_campaign_with_automatic_debt_creation(): void
     {
         $admin = $this->admin('closedebt@example.test');
@@ -614,4 +756,328 @@ class AdminFeatureTest extends TestCase
             'status' => 'unpaid',
         ]);
     }
+
+    public function test_admin_campaigns_list_shows_expired_badge_for_active_campaign_with_past_deadline(): void
+    {
+        $admin = $this->admin('expiredcamp@example.test');
+        $room = $this->roomFor($admin, 'expiredcamp-room');
+
+        $expiredCampaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Expired Active Campaign',
+            'restaurant' => 'Phúc Long',
+            'status' => CampaignStatus::Active,
+            'deadline' => now()->subHour(),
+        ]);
+
+        $activeFutureCampaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Active Future Campaign',
+            'restaurant' => 'Highlands',
+            'status' => CampaignStatus::Active,
+            'deadline' => now()->addHour(),
+        ]);
+
+        $closedCampaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Closed Campaign',
+            'restaurant' => 'Gong Cha',
+            'status' => CampaignStatus::Closed,
+            'deadline' => now()->subHours(2),
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->get("/admin/{$room->slug}/campaigns/list");
+        $response->assertOk()
+            ->assertSee('Expired Active Campaign')
+            ->assertSee('Active Future Campaign')
+            ->assertSee(__('admin.status_expired'))
+            ->assertSee(__('admin.filter_active'))
+            ->assertSee(__('admin.filter_closed'))
+            ->assertSee("/admin/{$room->slug}/campaigns/{$expiredCampaign->id}/edit")
+            ->assertDontSee('onclick="deleteCampaign(');
+    }
+
+    public function test_admin_can_view_edit_campaign_page(): void
+    {
+        $admin = $this->admin('editcamp@example.test');
+        $room = $this->roomFor($admin, 'editcamp-room');
+
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Coffee To Edit',
+            'restaurant' => 'Highlands',
+            'status' => CampaignStatus::Draft,
+            'max_budget' => 1500000,
+        ]);
+
+        $item = $campaign->items()->create([
+            'name' => 'Trà Đào',
+            'normalized_name' => 'TRA DAO',
+            'category' => 'Trà',
+            'base_price' => 45000,
+            'status' => 'active',
+        ]);
+        $item->toppings()->create(['name' => 'Thạch Đào', 'price' => 10000]);
+        $item->sizes()->create(['name' => 'Size L', 'price_delta' => 8000]);
+
+        $response = $this->actingAs($admin, 'admin')->get("/admin/{$room->slug}/campaigns/{$campaign->id}/edit");
+        $response->assertOk()
+            ->assertViewIs('admin.campaign-edit')
+            ->assertSee('Coffee To Edit')
+            ->assertSee('Highlands')
+            ->assertSee('Trà Đào');
+    }
+
+    public function test_admin_can_update_campaign_metadata_and_sync_items(): void
+    {
+        $admin = $this->admin('updatecamp@example.test');
+        $room = $this->roomFor($admin, 'updatecamp-room');
+
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Original Campaign Name',
+            'restaurant' => 'Original Restaurant',
+            'status' => CampaignStatus::Draft,
+            'max_budget' => 1000000,
+        ]);
+
+        $existingItem = $campaign->items()->create([
+            'name' => 'Món Cũ',
+            'normalized_name' => 'MON CU',
+            'category' => 'Cà phê',
+            'base_price' => 30000,
+            'status' => 'active',
+        ]);
+
+        $payload = [
+            'name' => 'Updated Campaign Name',
+            'restaurant' => 'Updated Restaurant',
+            'description' => 'Updated Description',
+            'max_budget' => 1200000,
+            'sponsor_type' => 'none',
+            'items' => [
+                [
+                    'id' => $existingItem->id,
+                    'name' => 'Món Cũ Đã Sửa',
+                    'category' => 'Cà phê',
+                    'price' => 35000,
+                    'toppings' => [
+                        ['name' => 'Sữa đặc', 'price' => 5000],
+                    ],
+                    'options' => [
+                        ['name' => 'Size L', 'price_delta' => 7000],
+                    ],
+                ],
+                [
+                    'name' => 'Món Mới Thêm',
+                    'category' => 'Trà',
+                    'price' => 50000,
+                    'toppings' => [],
+                    'options' => [],
+                ],
+            ],
+        ];
+
+        $response = $this->actingAs($admin, 'admin')->patchJson("/admin/{$room->id}/campaigns/{$campaign->id}", $payload);
+
+        $response->assertOk()
+            ->assertJsonPath('data.name', 'Updated Campaign Name')
+            ->assertJsonPath('data.restaurant', 'Updated Restaurant');
+
+        $this->assertDatabaseHas('campaigns', [
+            'id' => $campaign->id,
+            'name' => 'Updated Campaign Name',
+            'restaurant' => 'Updated Restaurant',
+            'description' => 'Updated Description',
+            'max_budget' => 1200000,
+        ]);
+
+        $this->assertDatabaseHas('campaign_items', [
+            'id' => $existingItem->id,
+            'campaign_id' => $campaign->id,
+            'name' => 'Món Cũ Đã Sửa',
+            'base_price' => 35000,
+        ]);
+
+        $this->assertDatabaseHas('campaign_items', [
+            'campaign_id' => $campaign->id,
+            'name' => 'Món Mới Thêm',
+            'base_price' => 50000,
+        ]);
+
+        $this->assertDatabaseHas('campaign_item_toppings', [
+            'campaign_item_id' => $existingItem->id,
+            'name' => 'Sữa đặc',
+            'price' => 5000,
+        ]);
+
+        $this->assertDatabaseHas('campaign_item_sizes', [
+            'campaign_item_id' => $existingItem->id,
+            'name' => 'Size L',
+            'price_delta' => 7000,
+        ]);
+    }
+
+    public function test_admin_can_add_brand_new_user_to_room(): void
+    {
+        $admin = $this->admin('adminaddnew@example.test');
+        $room = $this->roomFor($admin, 'room-add-new-user');
+
+        $response = $this->actingAs($admin, 'admin')->postJson("/admin/{$room->slug}/room-users", [
+            'email' => 'brandnewmember@example.test',
+            'name' => 'New Guy',
+            'phone' => '0987654321',
+            'desk_location' => 'Floor 3',
+        ]);
+
+        $response->assertCreated();
+        $response->assertJsonPath('success', true);
+        $response->assertJsonPath('data.display_name', 'New Guy');
+
+        $this->assertDatabaseHas('global_users', [
+            'email' => 'brandnewmember@example.test',
+            'name' => 'New Guy',
+            'phone' => '0987654321',
+            'desk_location' => 'Floor 3',
+            'status' => 'active',
+        ]);
+
+        $this->assertDatabaseHas('room_users', [
+            'room_id' => $room->id,
+            'display_name' => 'New Guy',
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_admin_can_add_existing_global_user_to_room(): void
+    {
+        $admin = $this->admin('adminaddexist@example.test');
+        $room = $this->roomFor($admin, 'room-add-exist-user');
+
+        $existingGlobalUser = \App\Models\GlobalUser::create([
+            'email' => 'existingglobal@example.test',
+            'name' => 'Existing Global Person',
+            'normalized_name' => 'EXISTING GLOBAL PERSON',
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->postJson("/admin/{$room->slug}/room-users", [
+            'email' => 'existingglobal@example.test',
+            'name' => 'Existing Global Person',
+        ]);
+
+        $response->assertCreated();
+        $this->assertDatabaseHas('room_users', [
+            'room_id' => $room->id,
+            'global_user_id' => $existingGlobalUser->id,
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_admin_cannot_add_duplicate_active_user_to_room(): void
+    {
+        $admin = $this->admin('adminadddup@example.test');
+        $room = $this->roomFor($admin, 'room-add-dup-user');
+
+        $globalUser = \App\Models\GlobalUser::create([
+            'email' => 'alreadyinroom@example.test',
+            'name' => 'Already In Room',
+            'normalized_name' => 'ALREADY IN ROOM',
+            'status' => 'active',
+        ]);
+
+        \App\Models\RoomUser::create([
+            'room_id' => $room->id,
+            'global_user_id' => $globalUser->id,
+            'user_code' => 'ALREADY',
+            'display_name' => 'Already In Room',
+            'normalized_name' => 'ALREADY IN ROOM',
+            'status' => 'active',
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->postJson("/admin/{$room->slug}/room-users", [
+            'email' => 'alreadyinroom@example.test',
+            'name' => 'Already In Room',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_admin_reactivates_removed_user_when_adding_again(): void
+    {
+        $admin = $this->admin('adminreactivate@example.test');
+        $room = $this->roomFor($admin, 'room-reactivate-user');
+
+        $globalUser = \App\Models\GlobalUser::create([
+            'email' => 'removeduser@example.test',
+            'name' => 'Removed Person',
+            'normalized_name' => 'REMOVED PERSON',
+            'status' => 'active',
+        ]);
+
+        $roomUser = \App\Models\RoomUser::create([
+            'room_id' => $room->id,
+            'global_user_id' => $globalUser->id,
+            'user_code' => 'REMOVED',
+            'display_name' => 'Removed Person',
+            'normalized_name' => 'REMOVED PERSON',
+            'status' => 'removed',
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->postJson("/admin/{$room->slug}/room-users", [
+            'email' => 'removeduser@example.test',
+            'name' => 'Removed Person (Rejoined)',
+        ]);
+
+        $response->assertCreated();
+        $this->assertEquals('active', $roomUser->fresh()->status->value);
+        $this->assertEquals('Removed Person (Rejoined)', $roomUser->fresh()->display_name);
+    }
+
+    public function test_unauthorized_admin_cannot_add_room_user(): void
+    {
+        $admin1 = $this->admin('otheradmin@example.test');
+        $admin2 = $this->admin('roomadmin@example.test');
+        $room = $this->roomFor($admin2, 'room-restricted');
+
+        $response = $this->actingAs($admin1, 'admin')->postJson("/admin/{$room->slug}/room-users", [
+            'email' => 'unauthuser@example.test',
+            'name' => 'Unauth User',
+        ]);
+
+        $response->assertForbidden();
+    }
+
+    public function test_admin_cannot_add_user_with_unauthorized_email_domain(): void
+    {
+        config(['services.google.allowed_domains' => ['company.com']]);
+
+        $admin = $this->admin('admin@company.com');
+        $room = $this->roomFor($admin, 'room-domain-check');
+
+        $response = $this->actingAs($admin, 'admin')->postJson("/admin/{$room->slug}/room-users", [
+            'email' => 'outsider@gmail.com',
+            'name' => 'Outsider User',
+        ]);
+
+        $response->assertUnprocessable();
+        $response->assertJsonValidationErrors(['email']);
+    }
+
+    public function test_admin_can_add_user_with_authorized_email_domain(): void
+    {
+        config(['services.google.allowed_domains' => ['company.com']]);
+
+        $admin = $this->admin('admin@company.com');
+        $room = $this->roomFor($admin, 'room-domain-ok');
+
+        $response = $this->actingAs($admin, 'admin')->postJson("/admin/{$room->slug}/room-users", [
+            'email' => 'insider@company.com',
+            'name' => 'Insider User',
+        ]);
+
+        $response->assertCreated();
+    }
 }
+

@@ -197,7 +197,13 @@
                             <div class="font-bold text-on-surface truncate">{{ $activeCampaign->sponsor_name ?: __('admin.room_subsidy') }}</div>
                             <div class="text-[11px] text-secondary mt-0.5 flex items-center gap-1 flex-wrap">
                                 @if($activeCampaign->sponsor_type)
-                                    <span class="px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-[10px] font-semibold">{{ $activeCampaign->sponsor_type }}</span>
+                                    @php
+                                        $sponsorTypeKey = 'admin.sponsor_type_' . $activeCampaign->sponsor_type;
+                                        $sponsorTypeLabel = __($sponsorTypeKey);
+                                    @endphp
+                                    <span class="px-1.5 py-0.5 rounded bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 text-[10px] font-semibold">
+                                        {{ $sponsorTypeLabel === $sponsorTypeKey ? $activeCampaign->sponsor_type : $sponsorTypeLabel }}
+                                    </span>
                                 @endif
                                 @if($activeCampaign->sponsor_description)
                                     <span class="text-outline truncate">{{ $activeCampaign->sponsor_description }}</span>

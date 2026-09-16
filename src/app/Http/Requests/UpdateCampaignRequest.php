@@ -14,7 +14,14 @@ class UpdateCampaignRequest extends StoreCampaignRequest
     public function rules(): array
     {
         return array_merge(parent::rules(), [
+            'deadline' => ['nullable', 'date'],
             'status' => ['sometimes', 'in:draft,scheduled,active,closed,cancelled,archived'],
+            'items.*.id' => ['nullable', 'integer'],
+            'items.*.price' => ['nullable', 'integer', 'min:0'],
+            'items.*.base_price' => ['nullable', 'integer', 'min:0'],
+            'items.*.sizes' => ['nullable', 'array', 'max:100'],
+            'items.*.sizes.*.name' => ['required_with:items.*.sizes', 'string', 'max:200'],
+            'items.*.sizes.*.price_delta' => ['required_with:items.*.sizes', 'integer', 'min:0'],
         ]);
     }
 

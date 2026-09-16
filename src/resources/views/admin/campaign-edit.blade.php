@@ -1,83 +1,84 @@
-<x-admin.layout :title="__('admin.fast_create_campaign')" active="campaigns" :room="$room">
-<div id="campaign-create-page"
+@php
+    $campaignStatusValue = $campaign->status instanceof \BackedEnum ? $campaign->status->value : (string) $campaign->status;
+    $initialCampaignData = [
+        'id' => $campaign->id,
+        'name' => $campaign->name,
+        'restaurant' => $campaign->restaurant,
+        'deadline' => $campaign->deadline?->format('Y-m-d\TH:i') ?? '',
+        'payment_account_id' => $campaign->payment_account_id ? (string) $campaign->payment_account_id : '',
+        'description' => $campaign->description ?? '',
+        'sponsor_type' => $campaign->sponsor_type ?? 'none',
+        'sponsor_description' => $campaign->sponsor_description ?? '',
+        'max_budget' => $campaign->max_budget ?? $maxBudget,
+        'flat_price' => $campaign->flat_price ?? '',
+        'status' => $campaignStatusValue,
+        'sponsor_allocations' => $campaign->sponsor_allocations ?? [],
+        'items' => $campaign->items->map(fn ($item) => [
+            'id' => $item->id,
+            'name' => $item->name,
+            'price' => (int) $item->base_price,
+            'category' => $item->category ?? 'Khác',
+            'description' => $item->description ?? '',
+            'image_url' => $item->image_url ?? '',
+            'toppings' => $item->toppings->map(fn ($top) => [
+                'id' => $top->id,
+                'name' => $top->name,
+                'price' => (int) $top->price,
+            ])->values()->all(),
+            'options' => $item->sizes->map(fn ($size) => [
+                'id' => $size->id,
+                'name' => $size->name,
+                'price_delta' => (int) $size->price_delta,
+            ])->values()->all(),
+        ])->values()->all(),
+    ];
+@endphp
+
+<x-admin.layout :title="__('admin.edit_campaign')" active="campaigns" :room="$room">
+<div id="campaign-edit-page"
      class="w-full space-y-6"
+     data-is-edit="true"
+     data-submit-method="PATCH"
      data-budget-error="{{ __('admin.campaign_budget_exceeds_limit', ['limit' => ':limit']) }}"
      data-sponsor-percentage-error="{{ __('admin.sponsor_percentage_total_invalid') }}"
-     data-default-menu-category="{{ __('admin.default_menu_category') }}"
-     data-crawler-menu-category="{{ __('admin.crawler_menu_category') }}"
-     data-online-restaurant-name="{{ __('admin.online_restaurant_name') }}"
-     data-store-url="{{ route('admin.campaigns.store', $room) }}"
+     data-submit-url="{{ route('admin.campaigns.update', [$room, $campaign]) }}"
      data-image-upload-url="{{ route('admin.campaigns.menu-images.store', $room) }}"
-     x-data="campaignCreateComponent(@js($campaignDefaults), @js($roomUsers->map(fn ($roomUser) => [
-         'id' => $roomUser->id,
-         'name' => $roomUser->globalUser?->name ?? $roomUser->display_name,
-         'user_code' => $roomUser->user_code,
-     ])->values()))">
+     x-data="campaignCreateComponent(
+        { max_budget: {{ (int) $maxBudget }} },
+        @js($roomUsers->map(fn ($roomUser) => [
+            'id' => $roomUser->id,
+            'name' => $roomUser->globalUser?->name ?? $roomUser->display_name,
+            'user_code' => $roomUser->user_code,
+        ])->values()),
+        @js($initialCampaignData)
+     )">
+
     <!-- Top Action Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-outline-variant">
         <div class="flex items-center gap-3">
-            <a href="{{ route('admin.manage.page', [$room, 'tab' => 'campaigns']) }}" class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors">
+            <a href="{{ route('admin.campaigns.page', $room) }}" class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
             </a>
             <div>
                 <h1 class="text-xl font-bold text-on-surface tracking-tight flex items-center gap-2">
-                    {{ __('admin.fast_create_campaign') }}
-                    <span class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-primary/10 text-primary uppercase border border-primary/20">{{ __('admin.fast_dispatcher_badge') }}</span>
+                    {{ __('admin.edit_campaign') }}: <span class="text-primary">{{ $campaign->name }}</span>
                 </h1>
-                <p class="text-xs text-outline">{{ __('admin.campaign_create_subtitle', ['room' => $room->name]) }}</p>
+                <p class="text-xs text-outline">{{ __('admin.edit_campaign_subtitle', ['room' => $room->name]) }}</p>
             </div>
         </div>
 
         <div class="flex items-center gap-2.5 self-end sm:self-auto">
-            <button type="button" @click="saveDraft()" :disabled="submitting" class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-1.5 disabled:opacity-50">
-                <span class="material-symbols-outlined text-[16px]">save</span>
-                <span>{{ __('admin.save_draft') }}</span>
-            </button>
-            <button type="button" @click="publishCampaign()" :disabled="submitting" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50">
-                <span class="material-symbols-outlined text-[16px]">rocket_launch</span>
-                <span>{{ __('admin.publish_campaign') }}</span>
-            </button>
-        </div>
-    </div>
-
-    @if(false)
-    <!-- Quick Presets Row -->
-    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-sm">
-        <div class="flex items-center justify-between mb-3">
-            <span class="text-xs font-bold text-on-surface uppercase tracking-wider flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[16px] text-primary">storefront</span>
-                {{ __('admin.quick_brand_presets') }}
-            </span>
-            <span class="text-[11px] text-outline">{{ __('admin.click_to_autofill_menu') }}</span>
-        </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-            <button type="button" @click="applyPreset('highlands')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Highlands Coffee</div>
-                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_highlands_description') }}</div>
-            </button>
-            <button type="button" @click="applyPreset('phuclong')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Phúc Long Tea</div>
-                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_phuclong_description') }}</div>
-            </button>
-            <button type="button" @click="applyPreset('gongcha')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Gong Cha</div>
-                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_gongcha_description') }}</div>
-            </button>
-            <button type="button" @click="applyPreset('tocotoco')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">TocoToco Tea</div>
-                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_tocotoco_description') }}</div>
-            </button>
-            <button type="button" @click="applyPreset('starbucks')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Starbucks</div>
-                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_starbucks_description') }}</div>
-            </button>
-            <button type="button" @click="applyPreset('comtam')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Cơm Tấm Phúc Lộc</div>
-                <div class="text-[10px] text-outline truncate">{{ __('admin.preset_comtam_description') }}</div>
+            <a href="{{ route('admin.campaigns.show', [$room, $campaign]) }}?view=detail" class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-1.5 no-underline">
+                <span class="material-symbols-outlined text-[16px]">visibility</span>
+                <span>{{ __('admin.view_campaign_details') }}</span>
+            </a>
+            <button type="button" @click="saveChanges()" :disabled="submitting" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50">
+                <span x-show="submitting" class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                <span x-show="!submitting" class="material-symbols-outlined text-[16px]">save</span>
+                <span x-text="submitting ? '{{ __('admin.processing') }}' : '{{ __('admin.save_changes') }}'"></span>
             </button>
         </div>
     </div>
-    @endif
 
     <!-- Main Bento Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -93,8 +94,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.campaign_name') }} <span class="text-error">*</span></label>
-                        <input type="text" x-model="form.name" value="{{ $campaignDefaults['name'] }}" placeholder="{{ __('admin.campaign_name_example') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
-                        <p class="mt-1 text-[11px] text-outline">{{ __('admin.default_campaign_name_hint') }}</p>
+                        <input type="text" x-model="form.name" placeholder="{{ __('admin.campaign_name_example') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.restaurant_brand') }} <span class="text-error">*</span></label>
@@ -145,8 +145,8 @@
                     </div>
                 </div>
 
-                <!-- Tab 1: Reuse Previous Campaign -->
-                <div x-show="menuTab === 'reuse'" x-cloak class="space-y-3">
+                <!-- Tab 1: Previous Campaign -->
+                <div x-show="menuTab === 'previous'" x-cloak class="space-y-3">
                     <div class="text-xs text-outline">{{ __('admin.copy_previous_menu_desc') }}</div>
                     @if($previousCampaigns->isNotEmpty())
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
@@ -173,7 +173,7 @@
                     @endif
                 </div>
 
-                <!-- Tab 3: URL Crawler -->
+                <!-- Tab 2: URL Crawler -->
                 <div x-show="menuTab === 'crawler'" x-cloak class="space-y-3">
                     <div class="text-xs text-outline">{{ __('admin.crawler_desc') }}</div>
                     <div class="flex gap-2">
@@ -186,7 +186,7 @@
                     <div x-show="crawlerMessage" class="text-xs p-2.5 rounded bg-surface-container-low border border-outline-variant text-on-surface" x-text="crawlerMessage"></div>
                 </div>
 
-                <!-- Tab 4: JSON Schema -->
+                <!-- Tab 3: JSON Schema -->
                 <div x-show="menuTab === 'json'" x-cloak class="space-y-3">
                     <div class="flex items-center justify-between">
                         <span class="text-xs text-outline">{{ __('admin.json_import_desc') }}</span>
@@ -250,7 +250,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.max_product_budget_ceiling') }}</label>
                     <div class="relative">
-                        <input type="number" min="0" max="{{ $campaignDefaults['max_budget'] }}" x-bind:max="campaignSettings.max_budget" x-model="form.max_budget" value="{{ $campaignDefaults['max_budget'] }}" placeholder="0" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:border-primary pr-8">
+                        <input type="number" min="0" max="{{ $maxBudget }}" x-bind:max="campaignSettings.max_budget" x-model="form.max_budget" placeholder="0" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:border-primary pr-8">
                         <span class="absolute right-3 top-2 text-xs text-outline font-mono">đ</span>
                     </div>
                     <p class="mt-1 text-[11px] text-outline">{{ __('admin.product_budget_limit_hint') }} <span class="font-mono font-semibold text-primary" x-text="formatVND(campaignSettings.max_budget)"></span></p>
@@ -259,13 +259,11 @@
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_description_label') }}</label>
                     <textarea x-model="form.sponsor_description" rows="2" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface"></textarea>
                 </div>
-
             </div>
-
         </div>
     </div>
 
-    <!-- Selected menu stays last so imported data can be reviewed before submission. -->
+    <!-- Selected menu section -->
     <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-sm space-y-4">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-outline-variant/60 pb-3">
             <div>
@@ -337,6 +335,7 @@
         </div>
     </section>
 
+    <!-- Modal for Manual Add / Edit Item -->
     <div x-show="showAddItemModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
         <div class="w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl bg-surface-container-lowest border border-outline-variant p-5 shadow-2xl">
             <div class="flex items-center justify-between mb-4">
@@ -368,18 +367,11 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.item_image_url_label') }}</label>
-                    <input type="url" x-model="newItem.image_url" placeholder="{{ __('admin.item_image_url_placeholder') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface">
+                    <input type="url" x-model="newItem.image_url" placeholder="https://example.com/image.jpg" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.item_image_upload_label') }}</label>
-                    <div class="flex items-center gap-2">
-                        <input id="campaign-item-image-file" type="file" accept="image/jpeg,image/png,image/webp" @change="uploadManualImage($event)" :disabled="imageUploading" class="sr-only">
-                        <label for="campaign-item-image-file" class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-on-primary hover:bg-primary-container" :class="imageUploading ? 'pointer-events-none opacity-60' : ''">
-                            <span class="material-symbols-outlined text-[16px]">upload_file</span>
-                            {{ __('admin.choose_file') }}
-                        </label>
-                        <span class="min-w-0 truncate text-xs text-outline" x-text="selectedImageFileName || '{{ __('admin.no_file_chosen') }}'"></span>
-                    </div>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" @change="uploadManualImage($event)" :disabled="imageUploading" class="w-full text-xs text-outline file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-2 file:text-xs file:font-semibold file:text-on-primary">
                     <p x-show="imageUploading" class="mt-1 text-[11px] text-primary">{{ __('admin.image_uploading') }}</p>
                 </div>
                 <div class="sm:col-span-2">
@@ -406,26 +398,6 @@
                     <span x-show="!itemSubmitting && editingItemIndex !== null">{{ __('admin.save_item_changes') }}</span>
                     <span x-show="itemSubmitting">{{ __('admin.processing') }}</span>
                 </button>
-            </div>
-        </div>
-    </div>
-    <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" @keydown.escape.window="showConfirmModal = false">
-        <div class="w-full max-w-lg rounded-xl bg-surface-container-lowest border border-outline-variant p-5 shadow-2xl" @click.outside="showConfirmModal = false">
-            <div class="flex items-center justify-between border-b border-outline-variant pb-3">
-                <h3 class="font-bold text-base text-on-surface">{{ __('admin.confirm_campaign_publish_title') }}</h3>
-                <button type="button" @click="showConfirmModal = false" class="text-outline hover:text-on-surface"><span class="material-symbols-outlined">close</span></button>
-            </div>
-            <div class="grid grid-cols-2 gap-3 py-4 text-xs">
-                <div><span class="text-outline">{{ __('admin.campaign_name') }}</span><p class="font-semibold text-on-surface truncate" x-text="form.name"></p></div>
-                <div><span class="text-outline">{{ __('admin.restaurant_brand') }}</span><p class="font-semibold text-on-surface truncate" x-text="form.restaurant"></p></div>
-                <div><span class="text-outline">{{ __('admin.max_product_budget_ceiling') }}</span><p class="font-mono font-semibold text-primary" x-text="formatVND(form.max_budget)"></p></div>
-                <div><span class="text-outline">{{ __('admin.menu_item_count_label') }}</span><p class="font-semibold text-on-surface" x-text="menuItems.length"></p></div>
-                <div class="col-span-2"><span class="text-outline">{{ __('admin.order_deadline') }}</span><p class="font-semibold text-on-surface" x-text="form.deadline || '—'"></p></div>
-            </div>
-            <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{{ __('admin.confirm_campaign_publish_message') }}</p>
-            <div class="flex justify-end gap-2 pt-4">
-                <button type="button" @click="showConfirmModal = false" class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface text-xs font-semibold">{{ __('admin.cancel') }}</button>
-                <button type="button" @click="confirmPublish()" :disabled="submitting" class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold disabled:opacity-50">{{ __('admin.confirm_publish_campaign') }}</button>
             </div>
         </div>
     </div>

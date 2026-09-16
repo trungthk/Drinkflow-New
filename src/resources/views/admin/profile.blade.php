@@ -2,7 +2,7 @@
         @php
             $initials = mb_strtoupper(mb_substr($admin->name, 0, 2));
             $role = $admin->role?->value ?? 'admin';
-            $avatarUrl = $admin->avatar_url ? Storage::disk('public')->url($admin->avatar_url) : null;
+            $avatarUrl = $admin->avatar_url ? route('admin.profile.avatar.show') : null;
         @endphp
 
         <div class="max-w-7xl mx-auto space-y-6">
@@ -26,22 +26,26 @@
                     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
                         <div class="relative shrink-0">
                             <div
-                                class="w-20 h-20 rounded-xl overflow-hidden border-2 border-primary/30 bg-primary/10 text-primary flex items-center justify-center text-2xl font-bold shadow-sm">
+                                class="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-primary/30 bg-primary/10 text-primary flex items-center justify-center text-2xl font-bold shadow-sm">
+                                <span aria-hidden="true">{{ $initials }}</span>
                                 @if ($avatarUrl)
                                     <img src="{{ $avatarUrl }}" alt="{{ $admin->name }}" loading="lazy"
                                         onerror="this.remove()"
-                                        class="w-full h-full object-cover">@else{{ $initials }}
+                                        class="absolute inset-0 w-full h-full object-cover">
                                 @endif
                             </div>
                             <form method="POST" action="{{ route('admin.profile.avatar') }}"
-                                enctype="multipart/form-data">@csrf
+                                enctype="multipart/form-data" data-loading-form="true">@csrf
                                 <label
                                     class="absolute -bottom-2 -right-2 w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center shadow-md hover:bg-primary-container transition-colors cursor-pointer"
                                     title="{{ __('admin.change_avatar') }}"><span
                                         class="material-symbols-outlined text-[16px]">photo_camera</span><input
                                         name="avatar" type="file" accept="image/png,image/jpeg,image/webp"
-                                        class="sr-only" onchange="this.form.submit()"></label>
+                                        class="sr-only" onchange="this.form.requestSubmit()"></label>
                             </form>
+                            @error('avatar')
+                                <p class="absolute left-0 top-full z-10 mt-3 w-64 rounded-lg border border-error/30 bg-error-container px-3 py-2 text-xs text-on-error-container shadow-lg">{{ $message }}</p>
+                            @enderror
                         </div>
                         <div class="min-w-0">
                             <div class="flex flex-wrap items-center gap-2">
