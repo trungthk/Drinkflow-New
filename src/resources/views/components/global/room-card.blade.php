@@ -1,4 +1,4 @@
-@props(['item'])
+@props(['item', 'showLiveStatus' => false])
 <!-- CARD: Active Room -->
 <div class="bg-white rounded-xl border border-slate-200 p-6 shadow-xs hover:border-[#006948]/60 hover:shadow-md transition-all flex flex-col justify-between group">
   <div>
@@ -8,10 +8,18 @@
         <span class="material-symbols-outlined text-[24px]">groups</span>
       </div>
       <!-- Badge: Đang hoạt động -->
+      <div class="flex flex-col items-end gap-1.5 text-right">
       <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-[#ECFDF5] text-[#006948] border border-[#006948]/20">
         <span class="w-1.5 h-1.5 rounded-full bg-[#006948] animate-pulse"></span>
-        <span>{{ __('global.rooms.badge_active') }}</span>
+        <span>{{ $showLiveStatus && ($item->is_live ?? false) ? __('global.dashboard.room_live') : __('global.rooms.badge_active') }}</span>
       </span>
+      @if($showLiveStatus && ($item->is_live ?? false) && $item->live_deadline)
+        <span class="inline-flex items-center gap-1 text-xs text-slate-500">
+          <span class="material-symbols-outlined text-[14px]" aria-hidden="true">schedule</span>
+          {{ __('global.dashboard.room_order_deadline', ['time' => $item->live_deadline]) }}
+        </span>
+      @endif
+      </div>
     </div>
 
     <!-- Title & ID -->

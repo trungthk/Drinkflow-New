@@ -2,6 +2,10 @@
     <div class="flex flex-col w-full gap-space-md" x-data="{
         selectedOrder: null,
         qrModalOpen: false,
+        paymentConfirmModalOpen: false,
+        pendingPaymentOrderId: null,
+        paymentStatus: '{{ $orders->first() ? ($orders->first()->payment_status instanceof \BackedEnum ? $orders->first()->payment_status->value : (string)($orders->first()->payment_status ?? 'unpaid')) : 'unpaid' }}',
+        isSubmittingPayment: false,
         qrData: {
             bankName: 'MB Bank',
             accountNumber: '0388999888',
@@ -21,8 +25,52 @@
         copyText(text) {
             navigator.clipboard?.writeText(text);
             alert('{{ __('room.orders.copied_alert', ['text' => '']) }}' + text);
+        },
+        openPaymentConfirm(orderId) {
+            this.pendingPaymentOrderId = orderId;
+            this.qrModalOpen = false;
+            this.paymentConfirmModalOpen = true;
+        },
+        closePaymentConfirm() {
+            if (this.isSubmittingPayment) return;
+            this.paymentConfirmModalOpen = false;
+            this.pendingPaymentOrderId = null;
+        },
+        async submitPaymentConfirmation() {
+            const orderId = this.pendingPaymentOrderId;
+            if (!orderId || this.isSubmittingPayment) return;
+
+            this.isSubmittingPayment = true;
+            this.paymentConfirmModalOpen = false;
+            window.showGlobalLoading?.({{ Js::from(__('room.orders.confirm_modal_submitting')) }});
+            try {
+                const response = await fetch('/rooms/{{ $room->slug }}/orders/' + orderId + '/confirm-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    credentials: 'same-origin'
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    this.paymentStatus = 'pending';
+                    window.notify?.(result.message || {{ Js::from(__('room.orders.payment_submitted_success')) }}, 'success');
+                } else {
+                    window.notify?.(result.message || {{ Js::from(__('room.orders.payment_submit_error')) }}, 'error');
+                }
+            } catch (err) {
+                window.notify?.({{ Js::from(__('room.orders.connection_error')) }}, 'error');
+            } finally {
+                this.isSubmittingPayment = false;
+                this.pendingPaymentOrderId = null;
+                window.hideGlobalLoading?.();
+            }
         }
-    }">
+    }"
+    @realtime-event.window="if ($event.detail?.name === 'debt.payment_approved' || $event.detail?.name === 'order.payment_approved') { paymentStatus = 'paid'; }"
+    >
         @if(session('status'))
             <div class="p-4 rounded-xl bg-primary-fixed text-on-primary-fixed font-semibold flex items-center gap-2 shadow-sm">
                 <span class="material-symbols-outlined text-[20px]">check_circle</span>
@@ -58,7 +106,7 @@
             @if($activeOrder)
                 @php
                     $status = $activeOrder->status instanceof \BackedEnum ? $activeOrder->status->value : (string) $activeOrder->status;
-                    $statusSteps = ['submitted' => 1, 'confirmed' => 2, 'ordering' => 3, 'ordered' => 4, 'delivering' => 5, 'completed' => 6];
+                    $statusSteps = ['submitted' => 1, 'confirmed' => 2, 'ordering' => 2, 'ordered' => 2, 'delivering' => 2, 'completed' => 3];
                     $currentStep = $statusSteps[$status] ?? 1;
                 @endphp
 
@@ -129,7 +177,7 @@
                     </div>
                 </div>
 
-                <!-- 6-Stage Realtime Tracking Stepper -->
+                <!-- 3-Stage Realtime Tracking Stepper -->
                 <div class="w-full bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-outline-variant/30">
                     <div class="flex items-center justify-between pb-space-md mb-space-md border-b border-outline-variant/20">
                         <div class="flex items-center gap-space-sm">
@@ -142,77 +190,35 @@
                         </div>
                     </div>
 
-                    <div class="w-full overflow-x-auto py-space-xs">
-                        <div class="min-w-[760px] grid grid-cols-6 gap-space-sm relative">
+                    <div class="w-full py-space-xs">
+                        <div class="grid grid-cols-3 gap-2 sm:gap-space-sm relative">
                             <!-- Step 1: Đã gửi -->
-                            <div class="flex flex-col items-start relative group">
-                                <div class="flex items-center w-full mb-space-sm">
-                                    <div class="w-8 h-8 rounded-full {{ $currentStep >= 1 ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant' }} flex items-center justify-center flex-shrink-0 shadow-sm z-10">
-                                        <span class="material-symbols-outlined text-[18px]">{{ $currentStep > 1 ? 'check' : 'send' }}</span>
-                                    </div>
-                                    <div class="h-1 flex-1 {{ $currentStep > 1 ? 'bg-primary' : 'bg-surface-container-high' }} rounded-full -ml-1"></div>
+                            <div class="flex flex-col items-center text-center relative group">
+                                <div class="absolute top-4 left-1/2 w-full h-1 {{ $currentStep > 1 ? 'bg-primary' : 'bg-surface-container-high' }} -z-0"></div>
+                                <div class="w-8 h-8 rounded-full {{ $currentStep >= 1 ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant' }} flex items-center justify-center flex-shrink-0 shadow-sm z-10 mb-space-sm">
+                                    <span class="material-symbols-outlined text-[18px]">{{ $currentStep > 1 ? 'check' : 'send' }}</span>
                                 </div>
                                 <span class="font-label-md text-label-md {{ $currentStep >= 1 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_1_title') }}</span>
                                 <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_1_desc') }}</span>
                             </div>
 
-                            <!-- Step 2: Đã xác nhận -->
-                            <div class="flex flex-col items-start relative group">
-                                <div class="flex items-center w-full mb-space-sm">
-                                    <div class="w-8 h-8 rounded-full {{ $currentStep >= 2 ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant' }} flex items-center justify-center flex-shrink-0 shadow-sm z-10">
-                                        <span class="material-symbols-outlined text-[18px]">{{ $currentStep > 2 ? 'check' : 'check_circle' }}</span>
-                                    </div>
-                                    <div class="h-1 flex-1 {{ $currentStep > 2 ? 'bg-primary' : 'bg-surface-container-high' }} rounded-full -ml-1"></div>
+                            <!-- Step 2: Món đã được giao đến -->
+                            <div class="flex flex-col items-center text-center relative group">
+                                <div class="absolute top-4 left-1/2 w-full h-1 {{ $currentStep > 2 ? 'bg-primary' : 'bg-surface-container-high' }} -z-0"></div>
+                                <div class="w-8 h-8 rounded-full {{ $currentStep >= 2 ? ($currentStep == 2 ? 'bg-primary-container text-on-primary ring-4 ring-primary-fixed' : 'bg-primary text-on-primary') : 'bg-surface-container-high text-on-surface-variant' }} flex items-center justify-center flex-shrink-0 shadow-sm z-10 mb-space-sm">
+                                    <span class="material-symbols-outlined text-[18px]">{{ $currentStep > 2 ? 'check' : 'two_wheeler' }}</span>
                                 </div>
-                                <span class="font-label-md text-label-md {{ $currentStep >= 2 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_2_title') }}</span>
-                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_2_desc') }}</span>
+                                <span class="font-label-md text-[11px] sm:text-label-md leading-tight {{ $currentStep >= 2 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_delivered_title') }}</span>
+                                <span class="font-body-sm text-[10px] sm:text-[11px] text-on-surface-variant">{{ __('room.orders.step_delivered_desc') }}</span>
                             </div>
 
-                            <!-- Step 3: Đặt với quán -->
-                            <div class="flex flex-col items-start relative group">
-                                <div class="flex items-center w-full mb-space-sm">
-                                    <div class="w-8 h-8 rounded-full {{ $currentStep >= 3 ? ($currentStep == 3 ? 'bg-primary-container text-on-primary ring-4 ring-primary-fixed' : 'bg-primary text-on-primary') : 'bg-surface-container-high text-on-surface-variant' }} flex items-center justify-center flex-shrink-0 shadow-sm z-10">
-                                        <span class="material-symbols-outlined text-[18px] {{ $currentStep == 3 ? 'animate-spin' : '' }}">{{ $currentStep > 3 ? 'check' : 'storefront' }}</span>
-                                    </div>
-                                    <div class="h-1 flex-1 {{ $currentStep > 3 ? 'bg-primary' : 'bg-surface-container-high' }} rounded-full -ml-1"></div>
+                            <!-- Step 3: Hoàn thành -->
+                            <div class="flex flex-col items-center text-center relative group">
+                                <div class="w-8 h-8 rounded-full {{ $currentStep >= 3 ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant' }} flex items-center justify-center flex-shrink-0 shadow-sm z-10 mb-space-sm">
+                                    <span class="material-symbols-outlined text-[18px]">verified</span>
                                 </div>
-                                <span class="font-label-md text-label-md {{ $currentStep >= 3 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_3_title') }}</span>
-                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_3_desc') }}</span>
-                            </div>
-
-                            <!-- Step 4: Quán pha chế -->
-                            <div class="flex flex-col items-start relative group">
-                                <div class="flex items-center w-full mb-space-sm">
-                                    <div class="w-8 h-8 rounded-full {{ $currentStep >= 4 ? ($currentStep == 4 ? 'bg-primary-container text-on-primary ring-4 ring-primary-fixed' : 'bg-primary text-on-primary') : 'bg-surface-container-high text-on-surface-variant' }} flex items-center justify-center flex-shrink-0 shadow-sm z-10">
-                                        <span class="material-symbols-outlined text-[18px]">{{ $currentStep > 4 ? 'check' : 'soup_kitchen' }}</span>
-                                    </div>
-                                    <div class="h-1 flex-1 {{ $currentStep > 4 ? 'bg-primary' : 'bg-surface-container-high' }} rounded-full -ml-1"></div>
-                                </div>
-                                <span class="font-label-md text-label-md {{ $currentStep >= 4 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_4_title') }}</span>
-                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_4_desc') }}</span>
-                            </div>
-
-                            <!-- Step 5: Đang giao -->
-                            <div class="flex flex-col items-start relative group">
-                                <div class="flex items-center w-full mb-space-sm">
-                                    <div class="w-8 h-8 rounded-full {{ $currentStep >= 5 ? ($currentStep == 5 ? 'bg-primary-container text-on-primary ring-4 ring-primary-fixed' : 'bg-primary text-on-primary') : 'bg-surface-container-high text-on-surface-variant' }} flex items-center justify-center flex-shrink-0 shadow-sm z-10">
-                                        <span class="material-symbols-outlined text-[18px]">{{ $currentStep > 5 ? 'check' : 'two_wheeler' }}</span>
-                                    </div>
-                                    <div class="h-1 flex-1 {{ $currentStep > 5 ? 'bg-primary' : 'bg-surface-container-high' }} rounded-full -ml-1"></div>
-                                </div>
-                                <span class="font-label-md text-label-md {{ $currentStep >= 5 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_5_title') }}</span>
-                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_5_desc') }}</span>
-                            </div>
-
-                            <!-- Step 6: Hoàn tất -->
-                            <div class="flex flex-col items-start relative group">
-                                <div class="flex items-center w-full mb-space-sm">
-                                    <div class="w-8 h-8 rounded-full {{ $currentStep >= 6 ? 'bg-primary text-on-primary' : 'bg-surface-container-high text-on-surface-variant' }} flex items-center justify-center flex-shrink-0 shadow-sm z-10">
-                                        <span class="material-symbols-outlined text-[18px]">verified</span>
-                                    </div>
-                                </div>
-                                <span class="font-label-md text-label-md {{ $currentStep >= 6 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_6_title') }}</span>
-                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_6_desc') }}</span>
+                                <span class="font-label-md text-label-md {{ $currentStep >= 3 ? 'text-primary font-bold' : 'text-on-surface-variant font-medium' }}">{{ __('room.orders.step_completed_title') }}</span>
+                                <span class="font-body-sm text-[11px] text-on-surface-variant">{{ __('room.orders.step_completed_desc') }}</span>
                             </div>
                         </div>
                     </div>
@@ -222,7 +228,7 @@
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md items-start">
                     <!-- Left: Items Breakdown (7 cols) -->
                     <div class="lg:col-span-7 flex flex-col gap-space-md">
-                        <div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm border border-outline-variant/30 flex flex-col gap-space-md">
+                        <div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm border border-outline-variant/30 flex flex-col gap-space-sm">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-space-sm">
                                     <span class="material-symbols-outlined text-primary text-[20px]">local_cafe</span>
@@ -236,53 +242,53 @@
                             <!-- Items List -->
                             <div class="flex flex-col gap-3">
                                 @forelse($activeOrder->items as $item)
-                                    <div class="bg-surface-container-low rounded-xl p-space-md flex flex-col sm:flex-row gap-space-md items-start">
-                                        <div class="w-20 h-20 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shrink-0">
-                                            <span class="material-symbols-outlined text-3xl">emoji_food_beverage</span>
+                                    <div class="bg-surface-container-low rounded-lg p-2.5 flex items-start gap-2.5">
+                                        <div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shrink-0">
+                                            <span class="material-symbols-outlined text-[18px]">emoji_food_beverage</span>
                                         </div>
-                                        <div class="flex-1 flex flex-col gap-space-xs min-w-0">
-                                            <div class="flex items-start justify-between gap-space-sm">
-                                                <div>
-                                                    <h5 class="font-headline-sm text-headline-sm text-on-surface font-bold">{{ $item->item_name }}</h5>
-                                                    <p class="font-label-sm text-label-sm text-on-surface-variant">{{ __('room.orders.qty_prefix') }}: {{ $item->quantity }} x {{ number_format($item->unit_price, 0, ',', '.') }}đ</p>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex items-start justify-between gap-2">
+                                                <div class="min-w-0">
+                                                    <h5 class="text-sm leading-5 text-on-surface font-bold truncate">{{ $item->item_name }}</h5>
+                                                    <p class="text-[11px] leading-4 text-on-surface-variant">{{ __('room.orders.qty_prefix') }}: {{ $item->quantity }} × {{ number_format($item->unit_price, 0, ',', '.') }}đ</p>
                                                 </div>
-                                                <span class="font-tabular-nums text-tabular-nums text-headline-sm font-bold text-on-surface">
-                                                    {{ number_format($item->total_price, 0, ',', '.') }}đ
+                                                <span class="font-tabular-nums text-tabular-nums text-sm leading-5 font-bold text-on-surface shrink-0">
+                                                    {{ number_format($item->line_subtotal, 0, ',', '.') }}đ
                                                 </span>
                                             </div>
 
                                             <!-- Customizations tags -->
-                                            <div class="flex flex-wrap gap-1.5 pt-space-xs">
-                                                @if($item->size)
-                                                    <span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-[14px]">format_size</span>
-                                                        Size {{ $item->size }}
+                                            <div class="flex flex-wrap gap-1 mt-1.5">
+                                                @if($item->size_name)
+                                                    <span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface text-[10px] leading-4 flex items-center gap-0.5">
+                                                        <span class="material-symbols-outlined text-[12px]">format_size</span>
+                                                        Size {{ $item->size_name }}
                                                     </span>
                                                 @endif
-                                                @if($item->sugar_level)
-                                                    <span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-[14px]">water_drop</span>
-                                                        {{ $item->sugar_level }} {{ __('room.orders.sugar') }}
+                                                @if($item->sugar_percent !== null)
+                                                    <span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface text-[10px] leading-4 flex items-center gap-0.5">
+                                                        <span class="material-symbols-outlined text-[12px]">water_drop</span>
+                                                        {{ $item->sugar_percent }}% {{ __('room.orders.sugar') }}
                                                     </span>
                                                 @endif
-                                                @if($item->ice_level)
-                                                    <span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface font-label-sm text-label-sm flex items-center gap-1">
-                                                        <span class="material-symbols-outlined text-[14px]">ac_unit</span>
-                                                        {{ $item->ice_level }} {{ __('room.orders.ice') }}
+                                                @if($item->ice_percent !== null)
+                                                    <span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface text-[10px] leading-4 flex items-center gap-0.5">
+                                                        <span class="material-symbols-outlined text-[12px]">ac_unit</span>
+                                                        {{ $item->ice_percent }}% {{ __('room.orders.ice') }}
                                                     </span>
                                                 @endif
                                                 @foreach($item->toppings as $top)
-                                                    <span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm flex items-center gap-1 font-medium">
-                                                        <span class="material-symbols-outlined text-[14px]">add_circle</span>
+                                                    <span class="px-1.5 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant text-[10px] leading-4 flex items-center gap-0.5 font-medium">
+                                                        <span class="material-symbols-outlined text-[12px]">add_circle</span>
                                                         {{ $top->topping_name }} (+{{ number_format($top->price, 0, ',', '.') }}đ)
                                                     </span>
                                                 @endforeach
                                             </div>
 
                                             @if($item->note)
-                                                <div class="mt-space-xs bg-surface-container-lowest rounded-lg p-space-sm flex items-start gap-space-sm border border-outline-variant/30">
-                                                    <span class="material-symbols-outlined text-secondary text-[16px] mt-0.5 flex-shrink-0">edit_note</span>
-                                                    <p class="font-body-sm text-body-sm text-on-surface italic">
+                                                <div class="mt-1.5 flex items-start gap-1.5 text-on-surface-variant">
+                                                    <span class="material-symbols-outlined text-secondary text-[14px] flex-shrink-0">edit_note</span>
+                                                    <p class="text-[11px] leading-4 italic">
                                                         “{{ $item->note }}”
                                                     </p>
                                                 </div>
@@ -306,10 +312,18 @@
                                     <span class="material-symbols-outlined text-primary text-[20px]">account_balance_wallet</span>
                                     <h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">{{ __('room.debts.page_title') }}</h4>
                                 </div>
-                                <span class="px-2.5 py-1 rounded {{ $activeOrder->payment_status === 'paid' ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-tertiary-fixed text-on-tertiary-fixed-variant' }} font-label-sm text-label-sm font-semibold flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full {{ $activeOrder->payment_status === 'paid' ? 'bg-primary' : 'bg-tertiary' }}"></span>
-                                    {{ $activeOrder->payment_status === 'paid' ? __('room.orders.status_paid') : __('room.orders.status_unpaid') }}
-                                </span>
+                                <template x-if="paymentStatus === 'paid'">
+                                    <span class="px-2.5 py-1 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm font-semibold flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                                        <span>{{ __('room.orders.payment_status_paid') }}</span>
+                                    </span>
+                                </template>
+                                <template x-if="paymentStatus !== 'paid' && paymentStatus !== 'pending'">
+                                    <span class="px-2.5 py-1 rounded bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-sm text-label-sm font-semibold flex items-center gap-1">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                                        <span>{{ __('room.orders.payment_status_unpaid') }}</span>
+                                    </span>
+                                </template>
                             </div>
 
                             <!-- Ledger Calculation List -->
@@ -351,87 +365,70 @@
                                 </div>
                             </div>
 
-                            <!-- VietQR Payment Quick Action Box -->
-                            @if($activeOrder->payment_status !== 'paid')
-                                <div class="mt-space-xs bg-surface-container-low p-space-md rounded-xl flex flex-col gap-space-sm">
+                            <!-- VietQR Payment Quick Action Box (When not fully paid) -->
+                            <div x-show="paymentStatus !== 'paid'" class="mt-space-xs bg-surface-container-low p-space-md rounded-xl flex flex-col gap-space-sm border border-outline-variant/40">
+                                <div class="flex items-center justify-between">
                                     <div class="flex items-center gap-space-sm">
                                         <span class="material-symbols-outlined text-primary text-[20px]">qr_code_scanner</span>
                                         <span class="font-label-md text-label-md text-on-surface font-semibold">{{ __('room.orders.vietqr_pay_title') }}</span>
                                     </div>
-                                    <p class="font-body-sm text-body-sm text-on-surface-variant">
-                                        {!! __('room.orders.vietqr_pay_desc', ['code' => '<span class="font-semibold text-on-surface">DF' . $activeOrder->id . ' ' . $roomUser->room_user_code . '</span>']) !!}
-                                    </p>
-                                    <button class="w-full py-2.5 px-space-md rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md font-bold shadow transition-all flex items-center justify-center gap-space-sm active:scale-[0.99] cursor-pointer"
+                                </div>
+
+                                <p class="font-body-sm text-body-sm text-on-surface-variant">
+                                    {{ __('room.orders.vietqr_pay_desc') }}
+                                </p>
+
+                                <!-- Notice when pending admin approval -->
+                                <template x-if="paymentStatus === 'pending'">
+                                    <div class="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start gap-2">
+                                        <span class="material-symbols-outlined text-amber-700 text-[18px] shrink-0 mt-0.5">hourglass_top</span>
+                                        <div class="flex-1">
+                                            <span class="font-bold block">{{ __('room.orders.payment_pending_badge') }}</span>
+                                            <span class="text-[11px]">{{ __('room.orders.payment_pending_notice') }}</span>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <!-- Action Buttons -->
+                                <div class="flex flex-col sm:flex-row items-center gap-2 pt-1">
+                                    <!-- Button Quét mã VietQR với text-white -->
+                                    <button class="w-full flex-1 py-2.5 px-space-md rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-label-md text-label-md font-bold shadow-sm transition-all flex items-center justify-center gap-space-sm active:scale-[0.99] cursor-pointer"
                                             @click="openQr({{ $activeOrder->id }}, {{ (int)$activeOrder->final_amount }}, '{{ number_format($activeOrder->final_amount, 0, ',', '.') }}đ', '{{ $roomUser->room_user_code }}')"
                                             type="button">
-                                        <span class="material-symbols-outlined text-[20px]">qr_code_2</span>
-                                        <span>{{ __('room.orders.pay_now_vietqr') }} ({{ number_format($activeOrder->final_amount, 0, ',', '.') }}đ)</span>
+                                        <span class="material-symbols-outlined text-[20px] text-white">qr_code_2</span>
+                                        <span class="text-white font-bold">{{ __('room.orders.pay_now_vietqr') }}</span>
                                     </button>
+
+                                    <!-- Button Đã thanh toán -->
+                                    <template x-if="paymentStatus !== 'pending'">
+                                        <button class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-label-md text-label-md font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-[0.99] cursor-pointer shrink-0 disabled:opacity-50"
+                                                :disabled="isSubmittingPayment"
+                                                @click="openPaymentConfirm({{ $activeOrder->id }})"
+                                                type="button">
+                                            <span class="material-symbols-outlined text-[18px] text-white" x-show="!isSubmittingPayment">check_circle</span>
+                                            <span class="material-symbols-outlined text-[18px] text-white animate-spin" x-show="isSubmittingPayment" x-cloak>progress_activity</span>
+                                            <span class="text-white font-bold">{{ __('room.orders.mark_as_paid') }}</span>
+                                        </button>
+                                    </template>
                                 </div>
-                            @endif
+                            </div>
+
+                            <!-- Settled Notice Box (When fully paid) -->
+                            <div x-show="paymentStatus === 'paid'" x-cloak class="mt-space-xs bg-emerald-50 border border-emerald-200 p-space-md rounded-xl flex items-center gap-space-sm text-emerald-900 shadow-2xs">
+                                <span class="material-symbols-outlined text-emerald-600 text-[26px]">verified</span>
+                                <div class="flex flex-col">
+                                    <span class="font-bold text-sm text-emerald-800">{{ __('room.orders.payment_status_paid') }}</span>
+                                    <span class="text-xs text-emerald-700">{{ __('room.orders.payment_settled_notice') }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             @endif
 
-            <!-- All Orders Table List -->
-            <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/30 overflow-hidden mt-space-md">
-                <div class="p-space-md border-b border-outline-variant/20 flex items-center justify-between">
-                    <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">{{ __('room.orders.room_history') }}</h3>
-                    <span class="font-label-sm text-label-sm text-on-surface-variant">{{ __('room.orders.total_orders_count', ['count' => $orders->total()]) }}</span>
-                </div>
-                <div class="w-full overflow-x-auto">
-                    <table class="w-full text-left font-body-sm text-body-sm">
-                        <thead>
-                            <tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider border-b border-outline-variant/20">
-                                <th class="py-3 px-space-md">{{ __('room.orders.order_code') }}</th>
-                                <th class="py-3 px-space-sm">{{ __('room.orders.order_time') }}</th>
-                                <th class="py-3 px-space-sm">{{ __('room.orders.items_list') }}</th>
-                                <th class="py-3 px-space-sm text-right">{{ __('room.orders.final_amount') }}</th>
-                                <th class="py-3 px-space-sm text-center">{{ __('room.orders.table_status') }}</th>
-                                <th class="py-3 px-space-md text-center">{{ __('room.orders.table_action') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-on-surface divide-y divide-outline-variant/20">
-                            @foreach($orders as $ord)
-                                <tr class="hover:bg-surface-container-low/50 transition-colors">
-                                    <td class="py-4 px-space-md font-tabular-nums font-bold text-primary">#DF-{{ $ord->id }}</td>
-                                    <td class="py-4 px-space-sm text-on-surface-variant whitespace-nowrap">{{ $ord->created_at?->format('H:i, d/m/Y') }}</td>
-                                    <td class="py-4 px-space-sm font-medium">
-                                        {{ $ord->items->pluck('item_name')->join(', ') }}
-                                    </td>
-                                    <td class="py-4 px-space-sm text-right font-tabular-nums font-bold text-on-surface">
-                                        {{ number_format($ord->final_amount, 0, ',', '.') }}đ
-                                    </td>
-                                    <td class="py-4 px-space-sm text-center">
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-label-sm text-label-sm {{ $ord->payment_status === 'paid' ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-error-container text-on-error-container' }}">
-                                            {{ $ord->payment_status === 'paid' ? __('room.orders.status_paid') : __('room.orders.status_unpaid') }}
-                                        </span>
-                                    </td>
-                                    <td class="py-4 px-space-md text-center">
-                                        @if($ord->payment_status !== 'paid')
-                                            <button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm hover:bg-primary-container transition-all inline-flex items-center gap-1 shadow-sm cursor-pointer"
-                                                    @click="openQr({{ $ord->id }}, {{ (int)$ord->final_amount }}, '{{ number_format($ord->final_amount, 0, ',', '.') }}đ', '{{ $roomUser->room_user_code }}')">
-                                                <span class="material-symbols-outlined text-[16px]">qr_code</span>
-                                                <span>{{ __('room.orders.view_qr') }}</span>
-                                            </button>
-                                        @else
-                                            <span class="text-on-surface-variant text-[13px]">{{ __('room.orders.status_completed') }}</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                @if($orders->hasPages())
-                    <div class="p-space-md border-t border-outline-variant/20">
-                        {{ $orders->links() }}
-                    </div>
-                @endif
-            </div>
         @endif
 
+        @if($activeOrder)
         <!-- VietQR Modal -->
         <div x-show="qrModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/50 backdrop-blur-xs transition-opacity duration-200" role="dialog">
             <div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl border border-outline-variant overflow-hidden flex flex-col" @click.outside="qrModalOpen = false">
@@ -489,8 +486,81 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- Footer Actions in QR Modal -->
+                    <div class="pt-2 border-t border-outline-variant/60 flex items-center justify-between gap-2">
+                        <button type="button" @click="qrModalOpen = false" class="px-4 py-2 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface font-semibold text-xs hover:bg-surface-container-high transition-colors cursor-pointer">
+                            {{ __('Đóng') }}
+                        </button>
+                        <template x-if="paymentStatus !== 'paid' && paymentStatus !== 'pending'">
+                            <button type="button"
+                                    :disabled="isSubmittingPayment"
+                                    @click="openPaymentConfirm({{ $activeOrder->id }})"
+                                    class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50">
+                                <span class="material-symbols-outlined text-[16px] text-white" x-show="!isSubmittingPayment">check_circle</span>
+                                <span class="material-symbols-outlined text-[16px] text-white animate-spin" x-show="isSubmittingPayment" x-cloak>progress_activity</span>
+                                <span class="text-white">{{ __('room.orders.mark_as_paid') }}</span>
+                            </button>
+                        </template>
+                        <template x-if="paymentStatus === 'pending'">
+                            <span class="text-xs font-bold text-amber-700 flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
+                                <span class="material-symbols-outlined text-[16px]">hourglass_top</span>
+                                <span>{{ __('room.orders.payment_pending_badge') }}</span>
+                            </span>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Payment Confirmation Modal -->
+        <div x-show="paymentConfirmModalOpen"
+             x-cloak
+             @keydown.escape.window="closePaymentConfirm()"
+             class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="payment-confirm-title">
+            <div x-show="paymentConfirmModalOpen"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 @click.outside="closePaymentConfirm()"
+                 class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+                <div class="p-5 sm:p-6">
+                    <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-[#006948]">
+                        <span class="material-symbols-outlined text-[24px]">payments</span>
+                    </div>
+                    <h3 id="payment-confirm-title" class="text-lg font-bold text-slate-900">
+                        {{ __('room.orders.confirm_modal_title') }}
+                    </h3>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">
+                        {{ __('room.orders.confirm_modal_desc') }}
+                    </p>
+                    <div class="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                        <span class="material-symbols-outlined mt-0.5 shrink-0 text-[17px] text-amber-700">info</span>
+                        <span>{{ __('room.orders.confirm_modal_note') }}</span>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-4 sm:px-6">
+                    <button type="button"
+                            @click="closePaymentConfirm()"
+                            class="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-200/70 cursor-pointer">
+                        {{ __('room.orders.confirm_modal_cancel') }}
+                    </button>
+                    <button type="button"
+                            @click="submitPaymentConfirmation()"
+                            :disabled="isSubmittingPayment"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#006948] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                        <span>{{ __('room.orders.confirm_modal_submit') }}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        @endif
     </div>
 </x-room.layout>

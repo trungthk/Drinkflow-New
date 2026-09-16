@@ -10,6 +10,7 @@ use App\Enums\OrderStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\Campaign;
+use App\Models\CampaignParticipant;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\Room;
@@ -75,6 +76,7 @@ class UserRoomCampaignService
 
         $categories     = collect();
         $activeUserOrder = null;
+        $hasDeclined = false;
         $campaignStats  = null;
 
         /** @var array<int, \App\Enums\OrderStatus> $activeOrderStatuses */
@@ -96,6 +98,11 @@ class UserRoomCampaignService
                     ->latest()
                     ->first()
                 : null;
+            $hasDeclined = $roomUser !== null && CampaignParticipant::query()
+                ->where('campaign_id', $activeCampaign->id)
+                ->where('room_user_id', $roomUser->id)
+                ->where('status', CampaignParticipant::STATUS_DECLINED)
+                ->exists();
 
             $totalMembers       = $room->roomUsers()->where('status', RoomUserStatus::Active)->count();
             $orderedMembersCount = Order::where('campaign_id', $activeCampaign->id)->distinct('room_user_id')->count('room_user_id');
@@ -125,6 +132,7 @@ class UserRoomCampaignService
 
         $userRooms  = $user ? $user->rooms()->where('rooms.status', RoomStatus::Active)->get() : collect();
         $unreadCount = $user ? DB::table('user_notifications')->where('global_user_id', $user->id)->whereNull('read_at')->count() : 0;
+        $cart = $activeCampaign ? session()->get("room_campaign_cart_{$room->id}_{$activeCampaign->id}", []) : [];
 
         return [
             'room'                       => $room,
@@ -134,8 +142,10 @@ class UserRoomCampaignService
             'campaignStats'              => $campaignStats,
             'categories'                 => $categories,
             'activeUserOrder'            => $activeUserOrder,
+            'hasDeclined'                => $hasDeclined,
             'userRooms'                  => $userRooms,
             'unreadNotificationsCount'   => $unreadCount,
+            'cart'                       => $cart,
         ];
     }
 }

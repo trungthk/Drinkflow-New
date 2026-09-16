@@ -21,13 +21,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'user.has_rooms' => \App\Http\Middleware\EnsureUserHasRooms::class,
         ]);
         $middleware->redirectGuestsTo(function (Request $request): string {
-            return $request->is('admin/*', 'superadmin/*')
+            return $request->is('admin', 'admin/*', 'superadmin/*')
                 ? route('admin.login.page')
                 : route('auth.google');
         });
         $middleware->validateCsrfTokens(except: ['admin/*', 'superadmin/*', 'logout']);
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
+            \App\Http\Middleware\EnsureActiveAdmin::class,
         ]);
         $middleware->append(\App\Http\Middleware\SanitizeInputStrings::class);
         $middleware->append(\App\Http\Middleware\CheckMaintenanceMode::class);

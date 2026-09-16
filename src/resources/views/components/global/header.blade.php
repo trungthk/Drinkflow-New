@@ -76,7 +76,7 @@
             <span class="material-symbols-outlined text-[17px] sm:text-[19px]">notifications</span>
           </button>
           @if($unreadNotificationsCount > 0)
-            <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-bold pointer-events-none ring-2 ring-white" id="global-notif-badge">
+            <span data-user-notification-badge class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-bold pointer-events-none ring-2 ring-white" id="global-notif-badge">
               {{ $unreadNotificationsCount }}
             </span>
           @endif

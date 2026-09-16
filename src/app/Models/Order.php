@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use App\Models\Concerns\BelongsToRoom;
 use App\Models\Concerns\HasStatus;
 use Illuminate\Database\Eloquent\Model;
@@ -15,11 +16,35 @@ class Order extends Model
 {
     use HasStatus, BelongsToRoom;
 
-    protected $fillable = ['room_id', 'campaign_id', 'room_user_id', 'payment_method', 'subtotal', 'delivery_amount', 'discount_amount', 'sponsor_amount', 'final_amount', 'status', 'note', 'submitted_at', 'completed_at', 'cancelled_at'];
+    protected $fillable = [
+        'room_id',
+        'campaign_id',
+        'room_user_id',
+        'payment_method',
+        'subtotal',
+        'delivery_amount',
+        'discount_amount',
+        'sponsor_amount',
+        'final_amount',
+        'status',
+        'payment_status',
+        'note',
+        'submitted_at',
+        'completed_at',
+        'cancelled_at',
+        'paid_at',
+    ];
 
     protected function casts(): array
     {
-        return ['submitted_at' => 'datetime', 'completed_at' => 'datetime', 'cancelled_at' => 'datetime', 'status' => OrderStatus::class];
+        return [
+            'submitted_at' => 'datetime',
+            'completed_at' => 'datetime',
+            'cancelled_at' => 'datetime',
+            'paid_at' => 'datetime',
+            'status' => OrderStatus::class,
+            'payment_status' => PaymentStatus::class,
+        ];
     }
 
     public function campaign(): BelongsTo

@@ -129,7 +129,7 @@
         <!-- Cards Grid (1 to 4 cols) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           @forelse($recentRooms as $roomItem)
-            <x-global.room-card :item="$roomItem" />
+            <x-global.room-card :item="$roomItem" :show-live-status="true" />
           @empty
             <div class="col-span-full p-8 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50 text-center">
               <span class="material-symbols-outlined text-[32px] text-slate-300 mb-2">meeting_room</span>
@@ -256,24 +256,8 @@
         <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-emerald-50 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
 
         <div class="w-full relative z-10">
-          <div class="flex flex-col md:flex-row items-start md:items-center gap-6 pb-8 border-b border-slate-100">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-[#006948] text-white flex items-center justify-center shadow-md shadow-emerald-500/20 shrink-0">
-              <span class="material-symbols-outlined text-[36px]">storefront</span>
-            </div>
-            <div class="flex-1">
-              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-[#006948] text-xs font-semibold mb-2 border border-emerald-200/70">
-                <span class="w-2 h-2 rounded-full bg-[#006948] animate-pulse"></span>
-                {{ __('global.dashboard.ready_to_join') }}
-              </div>
-              <h2 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{{ __('global.dashboard.onboarding_title') }}</h2>
-              <p class="text-sm text-slate-500 mt-1.5 leading-relaxed">
-                {{ __('global.dashboard.onboarding_desc') }}
-              </p>
-            </div>
-          </div>
-
           <!-- Fast Join Room Form -->
-          <div class="mt-6 pt-2">
+          <div>
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
               <span class="material-symbols-outlined text-[#006948] text-[18px]">link</span>
               {{ __('global.dashboard.join_by_url') }}

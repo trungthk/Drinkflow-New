@@ -1,164 +1,107 @@
 <x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'analytics'" :title="__('room.analytics.page_title')">
-    <div class="flex flex-col w-full gap-space-lg">
-        <!-- Top Title & Filter Bar -->
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md pb-space-sm">
-            <div class="flex flex-col gap-space-xs">
-                <div class="flex items-center gap-space-xs">
-                    <span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold">{{ __('room.analytics.internal_report') }}</span>
-                    <span class="font-body-sm text-body-sm text-on-surface-variant">{{ __('room.analytics.updated_at', ['time' => now()->format('H:i')]) }}</span>
+    @php
+        $metrics = [
+            ['label' => __('room.analytics.orders_placed'), 'icon' => 'receipt_long', 'value' => $totalOrders, 'detail' => __('room.analytics.orders_unit', ['cups' => $totalCups]) . ' · ' . __('room.analytics.participation_rate', ['percent' => $participationRate])],
+            ['label' => __('room.analytics.total_spent'), 'icon' => 'payments', 'value' => \App\Support\Helpers\FormatHelper::formatCurrency($totalAmount), 'detail' => __('room.analytics.weekly_avg', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($weeklyAverage)])],
+            ['label' => __('room.analytics.sponsor_received'), 'icon' => 'redeem', 'value' => \App\Support\Helpers\FormatHelper::formatCurrency($sponsorReceived), 'detail' => __('room.analytics.savings_percent', ['percent' => $savingsPercent])],
+        ];
+    @endphp
+    <div class="space-y-6">
+        <section class="rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-xs">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                <div class="flex items-start gap-3">
+                    <span class="w-11 h-11 shrink-0 rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[24px]" aria-hidden="true">monitoring</span>
+                    </span>
+                    <div>
+                        <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">{{ __('room.analytics.page_title') }}</h1>
+                        <p class="text-sm text-slate-500 mt-1">{{ $room->name }} · {{ __('room.analytics.for_user') }} {{ $user->name }}</p>
+                        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[15px]" aria-hidden="true">date_range</span>
+                            {{ $periodStart->format('d/m/Y') }} – {{ $periodEnd->format('d/m/Y') }}
+                        </p>
+                    </div>
                 </div>
-                <h1 class="font-display-lg text-display-lg text-on-surface tracking-tight">{{ __('room.analytics.page_title') }} {{ $room->name }}</h1>
-                <p class="font-body-md text-body-md text-on-surface-variant">{{ __('room.analytics.subtitle') }} {{ __('room.analytics.for_user') }} <span class="font-semibold text-on-surface">{{ $user->name }}</span>.</p>
+                <nav class="flex self-start lg:self-auto items-center gap-1 rounded-xl bg-slate-100 border border-slate-200/70 p-1" aria-label="{{ __('room.analytics.period_filter') }}">
+                    @foreach(\App\Enums\AnalyticsPeriod::cases() as $option)
+                        <a href="{{ route('user.analytics.room', ['room' => $room->slug, 'period' => $option->value]) }}"
+                           @if($period === $option) aria-current="page" @endif
+                           class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors {{ $period === $option ? 'bg-[#006948] text-white shadow-xs' : 'text-slate-500 hover:text-slate-900 hover:bg-white/60' }}">
+                            {{ __('room.analytics.filter_' . $option->value) }}
+                        </a>
+                    @endforeach
+                </nav>
             </div>
-            <div class="flex items-center gap-space-sm self-start lg:self-auto">
-                <div class="flex items-center bg-surface-container rounded-xl p-1 border border-outline-variant/30">
-                    <button class="px-3 py-1 rounded-lg font-label-sm text-label-sm bg-surface-container-lowest text-on-surface shadow-sm font-bold" type="button">{{ __('room.analytics.filter_month') }}</button>
-                    <button class="px-3 py-1 rounded-lg font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-all" type="button">{{ __('room.analytics.filter_quarter') }}</button>
-                    <button class="px-3 py-1 rounded-lg font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-all" type="button">{{ __('room.analytics.filter_year') }}</button>
+        </section>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            @foreach($metrics as $metric)
+                <section class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs">
+                    <div class="flex items-center justify-between gap-3">
+                        <h2 class="text-xs font-semibold text-slate-500">{{ $metric['label'] }}</h2>
+                        <span class="material-symbols-outlined text-[#006948] text-[22px]" aria-hidden="true">{{ $metric['icon'] }}</span>
+                    </div>
+                    <p class="mt-4 text-2xl sm:text-3xl font-bold text-slate-900 tabular-nums break-words">{{ $metric['value'] }}</p>
+                    <p class="text-xs text-slate-500 mt-3">{{ $metric['detail'] }}</p>
+                </section>
+            @endforeach
+            <section class="rounded-2xl border border-emerald-200/70 bg-emerald-50/50 p-5 shadow-xs">
+                <div class="flex items-center justify-between gap-3">
+                    <h2 class="text-xs font-semibold text-slate-500">{{ __('room.analytics.favorite_drink') }}</h2>
+                    <span class="material-symbols-outlined text-[#006948] text-[22px]" aria-hidden="true">stars</span>
                 </div>
-            </div>
+                <p class="mt-4 text-lg font-bold text-[#006948] break-words">{{ $topItems->first()['name'] ?? __('room.analytics.no_favorite_item') }}</p>
+                <p class="text-xs text-slate-500 mt-3">{{ __('room.analytics.ordered_times', ['count' => $topItems->first()['quantity'] ?? 0]) }}</p>
+            </section>
         </div>
-
-        <!-- 4 Metric Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
-            <!-- Card 1: Tổng đơn -->
-            <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
-                <div class="flex items-start justify-between">
-                    <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ __('room.analytics.orders_placed') }}</span>
-                    <div class="w-9 h-9 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
-                        <span class="material-symbols-outlined text-[20px]">local_cafe</span>
-                    </div>
+        <section class="rounded-2xl border border-slate-200/80 bg-white shadow-xs overflow-hidden">
+            <div class="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#006948] text-[22px]" aria-hidden="true">leaderboard</span>
+                    <h2 class="text-base font-bold text-slate-900">{{ __('room.analytics.popular_in_room') }}</h2>
                 </div>
-                <div class="mt-space-md">
-                    <div class="flex items-baseline gap-space-xs">
-                        <span class="font-display-lg text-display-lg text-on-surface font-bold tracking-tight">{{ $totalOrders }}</span>
-                        <span class="font-headline-sm text-headline-sm text-on-surface-variant">{{ __('room.analytics.orders_unit', ['cups' => $totalCups]) }}</span>
-                    </div>
-                    <div class="mt-space-xs flex items-center gap-1.5 text-primary font-label-sm text-label-sm font-semibold">
-                        <span class="material-symbols-outlined text-[14px]">check_circle</span>
-                        <span>{{ __('room.analytics.participation_rate', ['percent' => $participationRate]) }}</span>
-                    </div>
-                </div>
-                <div class="w-full bg-surface-container h-1.5 rounded-full mt-space-md overflow-hidden">
-                    <div class="bg-primary h-full rounded-full transition-all duration-500" style="width: {{ min(100, $participationRate) }}%;"></div>
-                </div>
+                <span class="text-xs font-medium text-slate-400">{{ __('room.analytics.filter_' . $period->value) }}</span>
             </div>
-
-            <!-- Card 2: Tổng chi tiêu -->
-            <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
-                <div class="flex items-start justify-between">
-                    <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ __('room.analytics.total_spent') }}</span>
-                    <div class="w-9 h-9 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
-                        <span class="material-symbols-outlined text-[20px]">payments</span>
-                    </div>
-                </div>
-                <div class="mt-space-md">
-                    <div class="flex items-baseline gap-space-xs">
-                        <span class="font-display-lg text-display-lg text-on-surface font-bold tracking-tight">{{ number_format($totalAmount, 0, ',', '.') }}</span>
-                        <span class="font-headline-sm text-headline-sm text-on-surface-variant">đ</span>
-                    </div>
-                    <div class="mt-space-xs flex items-center gap-1.5 text-on-surface-variant font-label-sm text-label-sm">
-                        <span class="material-symbols-outlined text-[14px]">trending_up</span>
-                        <span>{{ __('room.analytics.weekly_avg', ['amount' => number_format($weeklyAverage, 0, ',', '.') . 'đ']) }}</span>
-                    </div>
-                </div>
-                <div class="w-full bg-surface-container h-1.5 rounded-full mt-space-md overflow-hidden">
-                    <div class="bg-secondary h-full rounded-full transition-all duration-500" style="width: 65%;"></div>
-                </div>
-            </div>
-
-            <!-- Card 3: Sponsor nhận được -->
-            <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
-                <div class="flex items-start justify-between">
-                    <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ __('room.analytics.sponsor_received') }}</span>
-                    <div class="w-9 h-9 rounded-xl bg-primary-fixed text-on-primary-fixed flex items-center justify-center">
-                        <span class="material-symbols-outlined text-[20px]">redeem</span>
-                    </div>
-                </div>
-                <div class="mt-space-md">
-                    <div class="flex items-baseline gap-space-xs">
-                        <span class="font-display-lg text-display-lg text-primary font-bold tracking-tight">{{ number_format($sponsorReceived > 0 ? $sponsorReceived : (int)($totalAmount * 0.25), 0, ',', '.') }}</span>
-                        <span class="font-headline-sm text-headline-sm text-primary">đ</span>
-                    </div>
-                    <div class="mt-space-xs flex items-center gap-1.5 text-primary font-label-sm text-label-sm font-semibold">
-                        <span class="material-symbols-outlined text-[14px]">savings</span>
-                        <span>{{ __('room.analytics.saved_cost_hint') }}</span>
-                    </div>
-                </div>
-                <div class="w-full bg-surface-container h-1.5 rounded-full mt-space-md overflow-hidden">
-                    <div class="bg-primary-container h-full rounded-full transition-all duration-500" style="width: 25%;"></div>
-                </div>
-            </div>
-
-            <!-- Card 4: Món ruột -->
-            <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm border border-outline-variant/30 flex flex-col justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
-                <div class="flex items-start justify-between">
-                    <span class="font-label-md text-label-md text-on-surface-variant font-medium">{{ __('room.analytics.favorite_drink') }}</span>
-                    <div class="w-9 h-9 rounded-xl bg-surface-container-low flex items-center justify-center text-tertiary">
-                        <span class="material-symbols-outlined text-[20px]">stars</span>
-                    </div>
-                </div>
-                <div class="mt-space-md">
-                    <div class="flex items-baseline gap-space-xs truncate">
-                        <span class="font-headline-lg text-headline-lg text-on-surface font-bold truncate">
-                            {{ $topItems->first()['name'] ?? 'Cà phê sữa đá' }}
-                        </span>
-                    </div>
-                    <div class="mt-space-xs flex items-center gap-1.5 text-on-surface-variant font-label-sm text-label-sm">
-                        <span class="material-symbols-outlined text-[14px]">repeat</span>
-                        <span>{{ __('room.analytics.ordered_times', ['count' => $topItems->first()['quantity'] ?? 1]) }}</span>
-                    </div>
-                </div>
-                <div class="w-full bg-surface-container h-1.5 rounded-full mt-space-md overflow-hidden">
-                    <div class="bg-tertiary h-full rounded-full transition-all duration-500" style="width: 80%;"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Top Popular Items Table -->
-        <div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/30 overflow-hidden">
-            <div class="p-space-md border-b border-outline-variant/20 flex items-center justify-between">
-                <div class="flex items-center gap-space-sm">
-                    <span class="material-symbols-outlined text-primary text-[20px]">leaderboard</span>
-                    <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">{{ __('room.analytics.popular_in_room') }}</h3>
-                </div>
-            </div>
-
-            <div class="w-full overflow-x-auto">
-                <table class="w-full text-left font-body-sm text-body-sm">
-                    <thead>
-                        <tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider border-b border-outline-variant/20">
-                            <th class="py-3 px-space-md">{{ __('room.analytics.table_rank') }}</th>
-                            <th class="py-3 px-space-sm">{{ __('room.analytics.table_item_name') }}</th>
-                            <th class="py-3 px-space-sm text-right">{{ __('room.analytics.table_quantity') }}</th>
-                            <th class="py-3 px-space-sm text-right">{{ __('room.analytics.table_total_amount') }}</th>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-xs font-semibold text-slate-500">
+                        <tr>
+                            <th scope="col" class="py-3 px-5 sm:px-6">{{ __('room.analytics.table_rank') }}</th>
+                            <th scope="col" class="py-3 px-4">{{ __('room.analytics.table_item_name') }}</th>
+                            <th scope="col" class="py-3 px-4 text-right whitespace-nowrap">{{ __('room.analytics.table_quantity') }}</th>
+                            <th scope="col" class="py-3 px-5 sm:px-6 text-right whitespace-nowrap">{{ __('room.analytics.table_total_amount') }}</th>
                         </tr>
                     </thead>
-                    <tbody class="text-on-surface divide-y divide-outline-variant/20">
+                    <tbody class="divide-y divide-slate-100">
                         @forelse($topItems as $index => $item)
-                            <tr class="hover:bg-surface-container-low/50 transition-colors">
-                                <td class="py-4 px-space-md font-bold {{ $index === 0 ? 'text-tertiary' : ($index === 1 ? 'text-secondary' : 'text-on-surface-variant') }}">
-                                    #{{ $index + 1 }}
+                            <tr class="hover:bg-slate-50/70 transition-colors">
+                                <td class="py-4 px-5 sm:px-6 font-semibold text-slate-400">#{{ $index + 1 }}</td>
+                                <td class="py-4 px-4">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="w-8 h-8 shrink-0 rounded-lg bg-emerald-50 text-[#006948] flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">local_cafe</span>
+                                        </span>
+                                        <span class="font-semibold text-slate-800">{{ $item['name'] }}</span>
+                                    </div>
                                 </td>
-                                <td class="py-4 px-space-sm font-semibold text-on-surface flex items-center gap-2">
-                                    <span class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
-                                        <span class="material-symbols-outlined text-[18px]">local_cafe</span>
-                                    </span>
-                                    <span>{{ $item['name'] }}</span>
-                                </td>
-                                <td class="py-4 px-space-sm text-right font-tabular-nums font-bold text-on-surface">{{ __('room.analytics.cups_count', ['count' => $item['quantity']]) }}</td>
-                                <td class="py-4 px-space-sm text-right font-tabular-nums font-bold text-primary">{{ number_format($item['total_amount'], 0, ',', '.') }}đ</td>
+                                <td class="py-4 px-4 text-right tabular-nums whitespace-nowrap">{{ __('room.analytics.cups_count', ['count' => $item['quantity']]) }}</td>
+                                <td class="py-4 px-5 sm:px-6 text-right font-semibold text-[#006948] tabular-nums whitespace-nowrap">{{ \App\Support\Helpers\FormatHelper::formatCurrency($item['total_amount']) }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="py-8 text-center text-on-surface-variant font-body-sm">
-                                    {{ __('room.analytics.no_data') }}
+                                <td colspan="4" class="px-5 py-14 sm:py-20">
+                                    <div class="flex flex-col items-center justify-center gap-3 text-center">
+                                        <span class="w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 text-slate-300 flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-[34px]" aria-hidden="true">bar_chart</span>
+                                        </span>
+                                        <p class="text-sm font-semibold text-slate-600">{{ __('room.analytics.no_data') }}</p>
+                                        <p class="text-xs text-slate-400">{{ __('room.analytics.no_data_period') }}</p>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-        </div>
+        </section>
     </div>
 </x-room.layout>

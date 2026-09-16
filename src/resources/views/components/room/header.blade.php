@@ -13,6 +13,7 @@
     $user = $user ?? request()->attributes->get('global_user') ?? auth('web')->user();
     $roomUser = $roomUser ?? request()->attributes->get('room_user');
     $currentLocale = app()->getLocale();
+    $activeLocaleMeta = $locales[$currentLocale] ?? $locales['vi'];
 @endphp
 
 <header class="sticky top-0 w-full z-40 bg-white border-b border-slate-200/80 shadow-2xs" x-data="{ showRoomDropdown: false, showLangDropdown: false }">
@@ -74,16 +75,17 @@
       </div>
 
       <!-- Right Controls: Language, Notifications, User Code & Profile -->
-      <div class="flex items-center gap-2.5 sm:gap-3.5">
+      <div class="flex items-center gap-1 sm:gap-2 shrink-0">
         <!-- Language Switcher -->
-        <div class="relative">
+        <div class="relative shrink-0">
           <button @click="showLangDropdown = !showLangDropdown" 
                   @click.outside="showLangDropdown = false"
                   type="button" 
-                  class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200/80 hover:border-slate-300 hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-all cursor-pointer">
-            <span>{{ $locales[$currentLocale]['flag'] ?? '🌐' }}</span>
-            <span class="hidden md:inline">{{ $locales[$currentLocale]['name'] ?? 'Language' }}</span>
-            <span class="material-symbols-outlined text-[15px] text-slate-400">expand_more</span>
+          class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors duration-150 border border-slate-200 shadow-2xs cursor-pointer shrink-0"
+          title="Ngôn ngữ / Language">
+        <span class="text-xs sm:text-sm leading-none">{{ $activeLocaleMeta['flag'] }}</span>
+        <span class="font-semibold text-slate-800 text-[11px] sm:text-xs leading-none">{{ $activeLocaleMeta['code'] }}</span>
+        <span class="material-symbols-outlined text-[14px] sm:text-[16px] text-slate-400">arrow_drop_down</span>
           </button>
           <div x-show="showLangDropdown" 
                x-cloak
@@ -103,20 +105,13 @@
           </div>
         </div>
 
-        <!-- Room User Code Badge -->
-        @if($roomUser && $roomUser->user_code)
-          <span class="px-2 py-0.5 rounded-md bg-emerald-50 text-[#006948] font-mono text-xs font-bold border border-emerald-200/70" title="{{ __('room.header.user_code') }}">
-            {{ $roomUser->user_code }}
-          </span>
-        @endif
-
         <!-- Notifications Icon -->
         <a href="{{ $room ? route('user.rooms.notifications', $room->slug) : '#' }}" 
-           class="relative w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-slate-600 hover:text-[#006948] flex items-center justify-center transition-colors shadow-2xs" 
-           title="{{ __('room.header.notifications') }}">
-          <span class="material-symbols-outlined text-[18px]">notifications</span>
+           class="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer shrink-0"
+          title="{{ __('room.header.notifications') }}" aria-label="{{ __('room.header.notifications') }}">
+          <span class="material-symbols-outlined text-[17px] sm:text-[19px]">notifications</span>
           @if($unreadNotificationsCount > 0)
-            <span class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white animate-pulse">
+            <span data-user-notification-badge class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white animate-pulse">
               {{ $unreadNotificationsCount > 9 ? '9+' : $unreadNotificationsCount }}
             </span>
           @endif
@@ -124,13 +119,21 @@
 
         <!-- User Profile Pill -->
         <a href="{{ $room ? route('user.rooms.profile', $room->slug) : '#' }}" 
-           class="flex items-center gap-2 pl-1.5 pr-2 py-1 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200/70 transition-all group">
-          <img class="w-7 h-7 rounded-full object-cover border-2 border-white ring-2 ring-[#006948]/30 shadow-2xs" 
+            class="relative flex items-center gap-1 sm:gap-2 pl-1 sm:pl-2 shrink-0 rounded-xl hover:bg-slate-100/60 transition-colors"
+           title="{{ __('global.header.profile_menu') }}" aria-label="{{ __('global.header.profile_menu') }}">
+          <img class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-white ring-2 ring-[#006948]/30 shadow-xs"
                src="{{ $user->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($user->name ?? 'User').'&background=006948&color=ffffff&bold=true' }}" 
                alt="{{ $user->name ?? 'User' }}"
                loading="lazy">
-          <span class="text-xs font-semibold text-slate-800 group-hover:text-[#006948] hidden lg:inline-block truncate max-w-[120px]">
-            {{ $user->name ?? 'User' }}
+          <span class="hidden lg:flex flex-col text-left">
+            <span class="text-xs font-semibold text-slate-800 truncate max-w-[130px]">
+              {{ $user->name ?? 'User' }}
+            </span>
+            @if($roomUser && $roomUser->user_code)
+              <span class="text-[10px] font-mono font-bold text-[#006948] truncate max-w-[130px]" title="{{ __('room.header.user_code') }}">
+                {{ $roomUser->user_code }}
+              </span>
+            @endif
           </span>
         </a>
       </div>

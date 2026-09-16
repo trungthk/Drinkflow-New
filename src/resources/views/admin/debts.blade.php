@@ -71,6 +71,7 @@
         </div>
         <div class="flex items-center gap-1.5">
             <button type="button" data-status="all" class="debt-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-primary text-on-primary transition-colors">{{ __('admin.filter_all') }}</button>
+            <button type="button" data-status="pending" class="debt-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.filter_debt_pending') }}</button>
             <button type="button" data-status="unpaid" class="debt-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.filter_debt_unpaid') }}</button>
             <button type="button" data-status="partial" class="debt-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.filter_debt_partial') }}</button>
             <button type="button" data-status="paid" class="debt-status-filter px-3 py-1.5 rounded text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.filter_debt_paid') }}</button>
@@ -98,6 +99,7 @@
                             $debtStatusValue = $debt->status instanceof \BackedEnum ? $debt->status->value : (string) $debt->status;
                             $stClass = match($debtStatusValue) {
                                 'paid' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                                'pending' => 'bg-amber-100 text-amber-900 border-amber-300 font-bold',
                                 'partial' => 'bg-blue-50 text-blue-700 border-blue-200',
                                 'unpaid' => 'bg-amber-50 text-amber-700 border-amber-200 font-bold',
                                 default => 'bg-surface-container text-secondary border-outline-variant'
@@ -128,7 +130,13 @@
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
-                                    @if($debt->remaining_amount > 0)
+                                    @if($debtStatusValue === 'pending')
+                                        <button type="button" onclick="approvePendingDebt({{ $debt->id }}, '{{ addslashes($member) }}', {{ $debt->remaining_amount }})" class="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-[11px] font-bold flex items-center gap-1 shadow-2xs transition-colors cursor-pointer">
+                                            <span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                            <span>{{ __('admin.approve_payment_btn') }}</span>
+                                        </button>
+                                    @endif
+                                    @if($debt->remaining_amount > 0 && $debtStatusValue !== 'pending')
                                         <button type="button" onclick="openRecordPaymentModal({{ $debt->id }}, {{ $debt->remaining_amount }}, '{{ addslashes($member) }}')" class="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-[11px] font-semibold flex items-center gap-1 shadow-2xs transition-colors">
                                             <span class="material-symbols-outlined text-[14px]">payments</span>
                                             <span>{{ __('admin.record_payment_btn') }}</span>
@@ -136,7 +144,7 @@
                                         <button type="button" onclick="openAdjustDebtModal({{ $debt->id }}, {{ $debt->remaining_amount }}, '{{ addslashes($member) }}')" class="p-1 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors" title="{{ __('admin.adjust_debt_btn') }}">
                                             <span class="material-symbols-outlined text-[16px]">tune</span>
                                         </button>
-                                    @else
+                                    @elseif($debt->remaining_amount <= 0)
                                         <span class="text-[11px] text-emerald-700 font-semibold flex items-center gap-0.5">
                                             <span class="material-symbols-outlined text-[14px]">verified</span>
                                             <span>{{ __('admin.settled_badge') }}</span>

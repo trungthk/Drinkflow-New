@@ -42,7 +42,8 @@ class GlobalDashboardTest extends TestCase
         $response->assertSee('Xin chào, Trung Lê');
         $response->assertSee('trung.lt@company.com');
         $response->assertSee('Xác thực Google Workspace @company.com');
-        $response->assertSee(__('global.dashboard.onboarding_title'));
+        $response->assertDontSee(__('global.dashboard.onboarding_title'));
+        $response->assertDontSee(__('global.dashboard.onboarding_desc'));
         $response->assertSee(__('global.dashboard.join_by_url'));
 
         // Verify stats, recent rooms, and recent orders are hidden
@@ -203,6 +204,10 @@ class GlobalDashboardTest extends TestCase
         $response->assertSee('KOI Thé');
         $response->assertSee('Chiến dịch đang mở');
         $response->assertSee('Order ngay');
+        $response->assertSee(__('global.dashboard.room_live'));
+        $response->assertSee(__('global.dashboard.room_order_deadline', [
+            'time' => $campaign->deadline->format('d/m/Y H:i'),
+        ]));
     }
 
     public function test_authenticated_user_can_logout(): void

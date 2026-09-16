@@ -44,7 +44,11 @@ class AdminFeatureTest extends TestCase
 
         $response = $this->actingAs($admin, 'admin')->get('/admin');
         $response->assertOk()
-            ->assertSee('TRÌNH CHUYỂN ĐỔI PHÒNG BAN')
+            ->assertSee(__('admin.select_room_heading'))
+            ->assertDontSee(__('admin.switch_to_rooms'))
+            ->assertDontSee(__('admin.badge_idle_ready'))
+            ->assertDontSee(__('admin.room_manager_role'))
+            ->assertDontSee(__('admin.metric_fund_limit'))
             ->assertSee('ROOM-ONE')
             ->assertSee('ROOM-TWO')
             ->assertSee('Live Coffee');
@@ -81,6 +85,37 @@ class AdminFeatureTest extends TestCase
         ]);
         $this->assertDatabaseHas('audit_logs', ['event' => 'admin.profile_updated', 'target_id' => $admin->id]);
         $this->assertDatabaseHas('audit_logs', ['event' => 'admin.two_factor_updated', 'target_id' => $admin->id]);
+    }
+
+    /**
+     * Campaign listing searches on the backend and renders the persisted order window.
+     *
+     * @return void
+     */
+    public function test_campaign_list_uses_backend_search_and_campaign_timestamps(): void
+    {
+        $admin = $this->admin('campaign-filter@example.test');
+        $room = $this->roomFor($admin, 'campaign-filter-room');
+        $startedAt = now()->setDate(2026, 9, 16)->setTime(9, 15, 0);
+        $deadline = now()->setDate(2026, 9, 16)->setTime(10, 30, 0);
+        Campaign::create([
+            'room_id' => $room->id, 'name' => 'Highlands Morning', 'restaurant' => 'Highlands',
+            'status' => 'active', 'started_at' => $startedAt, 'deadline' => $deadline,
+        ]);
+        Campaign::create([
+            'room_id' => $room->id, 'name' => 'Other Campaign', 'restaurant' => 'Other Store',
+            'status' => 'closed', 'started_at' => $startedAt->copy()->subDay(),
+            'deadline' => $deadline->copy()->subDay(),
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->withSession(['locale' => 'en'])
+            ->get(route('admin.campaigns.page', ['room' => $room->slug, 'search' => 'highlands']));
+
+        $response->assertOk()
+            ->assertSee('Highlands Morning')
+            ->assertDontSee('Other Campaign')
+            ->assertSee('From: '.$startedAt->format('H:i d/m/Y'))
+            ->assertSee('Until: '.$deadline->format('H:i d/m/Y'));
     }
 
     public function test_guest_cannot_access_admin_profile(): void

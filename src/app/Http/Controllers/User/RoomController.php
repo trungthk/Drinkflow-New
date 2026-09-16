@@ -110,16 +110,19 @@ class RoomController extends Controller
      * @param JoinRoomAction $action Join room domain action.
      * @param DeviceTrustService $devices Device trust issuance service.
      * @return JsonResponse|RedirectResponse Redirect to dashboard or JSON response.
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException When the room or global user is inactive.
      */
     public function join(Request $request, Room $room, JoinRoomAction $action, DeviceTrustService $devices): JsonResponse|RedirectResponse
     {
+        $user = $request->user('web');
+        if (! $user instanceof GlobalUser) {
+            return redirect()->route('landing');
+        }
+
         $roomStatus = $room->status instanceof \BackedEnum ? $room->status->value : (string) $room->status;
         abort_unless($roomStatus === RoomStatus::Active->value, 404);
 
-        /** @var GlobalUser|null $user */
-        $user = $request->user('web');
-        $userStatus = $user ? ($user->status instanceof \BackedEnum ? $user->status->value : (string) ($user->status ?? GlobalUserStatus::Active->value)) : null;
-        abort_unless($user && $userStatus === GlobalUserStatus::Active->value, 401);
+        abort_unless($user->status === GlobalUserStatus::Active, 403);
 
         $deviceUuid = (string) ($request->cookie('drinkflow_device_uuid') ?: Str::uuid());
         $roomUser = $action->execute($user, $room, $deviceUuid, hash('sha256', Str::random(64)));

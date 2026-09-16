@@ -7,8 +7,8 @@ namespace App\Services\Admin;
 use App\Enums\OrderStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\Campaign;
+use App\Models\CampaignParticipant;
 use App\Models\Room;
-use Illuminate\Support\Collection;
 
 class AdminCampaignDetailService
 {
@@ -33,7 +33,11 @@ class AdminCampaignDetailService
         $orders = $campaign->orders->whereNotIn('status', [OrderStatus::Cancelled->value]);
         $totalUsersCount = $room->roomUsers()->where('status', RoomUserStatus::Active)->count() ?: 1;
         $orderedUsersCount = $orders->pluck('room_user_id')->unique()->count();
-        $declinedUsersCount = max(0, (int) round($totalUsersCount * 0.1));
+        $declinedUsersCount = CampaignParticipant::query()
+            ->where('campaign_id', $campaign->id)
+            ->where('status', CampaignParticipant::STATUS_DECLINED)
+            ->whereHas('roomUser', fn ($query) => $query->where('room_id', $room->id)->where('status', RoomUserStatus::Active->value))
+            ->count();
         $pendingUsersCount = max(0, $totalUsersCount - $orderedUsersCount - $declinedUsersCount);
 
         $aggregatedItems = collect();

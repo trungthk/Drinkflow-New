@@ -33,6 +33,7 @@ use App\Services\Audit\AuditService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CampaignController extends Controller
 {
@@ -60,15 +61,23 @@ class CampaignController extends Controller
      * @param Request $request Incoming HTTP request.
      * @param Room $room Room entity.
      * @return View Blade view.
+     * @throws \Illuminate\Validation\ValidationException When filter input is invalid.
      */
     public function page(Request $request, Room $room): View
     {
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'status' => ['nullable', Rule::in(array_merge(
+                ['all'],
+                array_map(static fn (CampaignStatus $status): string => $status->value, CampaignStatus::cases())
+            ))],
+        ]);
         $query = Campaign::query()
             ->where('room_id', $room->id)
             ->withCount('orders')
             ->latest();
 
-        $search = trim($request->string('search')->toString());
+        $search = trim((string) ($validated['search'] ?? ''));
         if ($search !== '') {
             $normalizedSearch = mb_strtolower($search);
             $query->where(function ($campaignQuery) use ($normalizedSearch): void {
@@ -78,7 +87,7 @@ class CampaignController extends Controller
             });
         }
 
-        $status = $request->string('status')->toString();
+        $status = (string) ($validated['status'] ?? 'all');
         if ($status !== '' && $status !== 'all') {
             $query->where('status', $status);
         }

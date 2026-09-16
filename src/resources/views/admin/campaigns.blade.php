@@ -30,8 +30,7 @@
             <x-admin.search-input id="campaign-search" name="search" :value="$filters['search'] ?? ''" placeholder="{{ __('admin.search_campaigns_placeholder') }}" containerClass="relative w-full max-w-md" />
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            <input type="hidden" id="campaign-status-filter" name="status" value="{{ $filters['status'] ?? 'all' }}">
-            <select id="campaign-status-select" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+            <select id="campaign-status-select" name="status" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
                 <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all') }}</option>
                 @foreach($statusFilters as $statusFilter)
                     <option value="{{ $statusFilter['value'] }}" {{ ($filters['status'] ?? '') === $statusFilter['value'] ? 'selected' : '' }}>{{ $statusFilter['label'] }}</option>
@@ -80,8 +79,10 @@
                                 'cancelled' => __('admin.status_cancelled'),
                                 default => __('admin.status_'.$statusValue)
                             };
+                            $windowStart = $camp->started_at;
+                            $windowEnd = $camp->deadline ?? $camp->closed_at;
                         @endphp
-                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-campaign-row data-status="{{ $statusValue }}" data-search="{{ strtolower($camp->name . ' ' . $camp->restaurant . ' ' . ($camp->description ?? '')) }}">
+                        <tr class="hover:bg-surface-container-low/50 transition-colors">
                             <td class="py-3.5 px-4">
                                 <div class="font-bold text-on-surface text-sm">{{ $camp->name }}</div>
                                 <div class="text-secondary flex items-center gap-1.5 mt-0.5">
@@ -93,8 +94,8 @@
                                 </div>
                             </td>
                             <td class="py-3.5 px-4 font-mono text-secondary">
-                                <div>{{ $camp->start_time ? \Carbon\Carbon::parse($camp->start_time)->format('H:i d/m') : 'N/A' }}</div>
-                                <div class="text-[11px] text-outline">{{ __('admin.time_until', ['time' => $camp->end_time ? \Carbon\Carbon::parse($camp->end_time)->format('H:i d/m') : 'N/A']) }}</div>
+                                <div>{{ $windowStart ? __('admin.time_from', ['time' => $windowStart->format('H:i d/m/Y')]) : __('admin.order_window_not_started') }}</div>
+                                <div class="text-[11px] text-outline">{{ __('admin.time_until', ['time' => $windowEnd?->format('H:i d/m/Y') ?? '—']) }}</div>
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border {{ $stClass }}">
@@ -167,9 +168,6 @@
                             </td>
                         </tr>
                     @endforelse
-                    <tr id="campaigns-no-filter-results" class="hidden">
-                        <td colspan="6" class="py-12 text-center text-outline">{{ __('admin.no_campaigns_matching_filters') }}</td>
-                    </tr>
                 </tbody>
             </table>
         </div>

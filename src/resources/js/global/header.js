@@ -101,7 +101,7 @@ export function initGlobalHeader() {
                 if (!response.ok) throw new Error('Unable to mark notifications as read.');
 
                 const badge = document.getElementById('global-notif-badge');
-                if (badge) badge.remove();
+                if (badge) badge.textContent = '0';
                 const allReadText = markAllReadBtn.dataset.readText || 'Đã đọc tất cả';
                 this.textContent = allReadText;
                 this.classList.add('opacity-50', 'pointer-events-none');

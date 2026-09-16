@@ -70,7 +70,7 @@ const httpServer = createServer((req, res) => {
         const allowedEvents = new Set([
           'order.created', 'order.updated', 'order.deleted',
           'campaign.created', 'campaign.updated', 'campaign.deleted', 'campaign.closed',
-          'campaign.menu.updated', 'campaign.menu.deleted', 'campaign.participant.declined', 'notification.created',
+          'campaign.menu.updated', 'campaign.menu.deleted', 'campaign.participant.declined', 'campaign.participant.rejoined', 'notification.created',
           'room.membership.updated'
         ]);
         const roomId = Number(input.room_id);

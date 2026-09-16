@@ -119,4 +119,62 @@ class GlobalNotificationsTest extends TestCase
         $response->assertOk();
         $response->assertJsonStructure(['data']);
     }
+
+    /**
+     * Mark one owned notification as read and return the authoritative unread count.
+     *
+     * @return void
+     */
+    public function test_user_can_mark_one_notification_as_read(): void
+    {
+        $user = GlobalUser::create([
+            'name' => 'Notification User', 'normalized_name' => 'NOTIFICATION USER',
+            'email' => 'notification-single@company.com', 'status' => 'active',
+        ]);
+        $first = UserNotification::create([
+            'global_user_id' => $user->id, 'type' => 'campaign.created',
+            'title' => 'First', 'body' => 'First body',
+        ]);
+        UserNotification::create([
+            'global_user_id' => $user->id, 'type' => 'order.status',
+            'title' => 'Second', 'body' => 'Second body',
+        ]);
+
+        $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($user, 'web')
+            ->patchJson(route('user.notifications.read', $first))
+            ->assertOk()
+            ->assertJsonPath('data.id', $first->id)
+            ->assertJsonPath('unread_count', 1);
+
+        $this->assertNotNull($first->fresh()->read_at);
+    }
+
+    /**
+     * Prevent one user from reading another user's notification.
+     *
+     * @return void
+     */
+    public function test_user_cannot_mark_another_users_notification_as_read(): void
+    {
+        $owner = GlobalUser::create([
+            'name' => 'Owner', 'normalized_name' => 'OWNER',
+            'email' => 'notification-owner@company.com', 'status' => 'active',
+        ]);
+        $attacker = GlobalUser::create([
+            'name' => 'Attacker', 'normalized_name' => 'ATTACKER',
+            'email' => 'notification-attacker@company.com', 'status' => 'active',
+        ]);
+        $notification = UserNotification::create([
+            'global_user_id' => $owner->id, 'type' => 'campaign.created',
+            'title' => 'Private', 'body' => 'Private body',
+        ]);
+
+        $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($attacker, 'web')
+            ->patchJson(route('user.notifications.read', $notification))
+            ->assertNotFound();
+
+        $this->assertNull($notification->fresh()->read_at);
+    }
 }

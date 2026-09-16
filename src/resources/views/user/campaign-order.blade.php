@@ -74,7 +74,7 @@
         <button class="w-full flex items-center justify-center gap-2 rounded-xl bg-[#006948] hover:bg-[#005137] px-5 py-3.5 font-bold text-xs sm:text-sm text-white transition-colors shadow-sm cursor-pointer"
                 type="submit">
           <span class="material-symbols-outlined text-[18px]">send</span>
-          <span>{{ __('room.campaign.add_to_order', ['amount' => __('global.common.confirm')]) }}</span>
+          <span>{{ __('room.campaign.add_to_order') }}</span>
         </button>
 
         <p id="error" class="hidden text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl p-3"></p>

@@ -126,7 +126,7 @@
                         <span class="font-display-lg text-display-lg text-secondary tracking-tight font-bold font-tabular-nums">
                             {{ number_format($totalSponsorAmount ?? 0, 0, ',', '.') }}đ
                         </span>
-                        <span class="font-label-sm text-label-sm text-secondary bg-secondary-container px-2 py-0.5 rounded">{{ __('room.profile.from_fund', ['name' => $room->name]) }}</span>
+                        <span class="font-label-sm text-label-sm text-secondary bg-secondary-container px-2 py-0.5 rounded">{{ __('room.debts.sponsored_label') }}</span>
                     </div>
                     <p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">{{ __('room.debts.sponsor_saved_desc') }}</p>
                 </div>
@@ -222,50 +222,6 @@
                 @endif
             </div>
 
-            <!-- Guidelines & Support Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
-                <div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm border border-outline-variant/30">
-                    <div class="flex items-center justify-between mb-space-sm">
-                        <h4 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
-                            <span class="material-symbols-outlined text-primary text-[22px]">policy</span>
-                            <span>{{ __('room.debts.rule_title') }}</span>
-                        </h4>
-                        <span class="font-label-sm text-label-sm text-primary flex items-center gap-1 font-semibold">
-                            <span class="material-symbols-outlined text-[16px]">info</span> {{ __('room.debts.rule_guide') }}
-                        </span>
-                    </div>
-                    <div class="flex gap-3 items-start p-space-sm rounded-lg bg-surface-container-low">
-                        <span class="material-symbols-outlined text-primary text-[22px] mt-0.5 shrink-0">timer</span>
-                        <div>
-                            <span class="font-semibold text-on-surface">{{ __('room.debts.rule_heading') }}</span>
-                            <p class="text-[13px] text-on-surface-variant mt-1 leading-relaxed">
-                                {{ __('room.debts.rule_desc') }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm border border-outline-variant/30">
-                    <div class="flex items-center justify-between mb-space-sm">
-                        <h4 class="font-headline-sm text-headline-sm text-on-surface font-bold flex items-center gap-2">
-                            <span class="material-symbols-outlined text-tertiary text-[22px]">help</span>
-                            <span>{{ __('room.debts.support_title') }}</span>
-                        </h4>
-                        <span class="font-label-sm text-label-sm text-tertiary flex items-center gap-1 font-semibold">
-                            <span class="material-symbols-outlined text-[16px]">support_agent</span> {{ __('room.debts.support_btn') }}
-                        </span>
-                    </div>
-                    <div class="flex gap-3 items-start p-space-sm rounded-lg bg-surface-container-low">
-                        <span class="material-symbols-outlined text-tertiary text-[22px] mt-0.5 shrink-0">receipt_long</span>
-                        <div>
-                            <span class="font-semibold text-on-surface">{{ __('room.debts.support_heading') }}</span>
-                            <p class="text-[13px] text-on-surface-variant mt-1 leading-relaxed">
-                                {{ __('room.debts.support_desc') }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- VietQR Modal -->

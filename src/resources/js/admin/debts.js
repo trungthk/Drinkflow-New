@@ -199,6 +199,28 @@ export function initAdminDebts() {
         }).catch((error) => console.error(error));
     };
 
+    window.approvePendingDebt = async function(debtId, memberName, amount) {
+        const formattedAmount = Number(amount || 0).toLocaleString('vi-VN') + ' ₫';
+        if (!confirm(`Xác nhận bạn đã nhận được tiền từ ${memberName} và duyệt gạch nợ số tiền ${formattedAmount}?`)) {
+            return;
+        }
+        try {
+            const res = await fetch(`/admin/${roomSlug}/debts/${debtId}/approve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                window.location.reload();
+            } else {
+                alert(data.message || 'Lỗi khi duyệt thanh toán.');
+            }
+        } catch(e) {
+            console.error(e);
+            alert('Lỗi kết nối máy chủ.');
+        }
+    };
+
     window.exportDebtCSV = function() {
         window.location.assign(`/admin/${roomSlug}/debts/export`);
     };

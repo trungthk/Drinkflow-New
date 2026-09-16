@@ -28,10 +28,13 @@ class EnsureAdminRoomAccess
         }
         abort_unless($room instanceof Room, 404);
 
-        abort_unless(
-            $admin && $admin->isActive() && ($admin->isSuperadmin() || $admin->rooms()->whereKey($room->id)->exists()),
-            403
-        );
+        if (! ($admin && $admin->isActive() && ($admin->isSuperadmin() || $admin->rooms()->whereKey($room->id)->exists()))) {
+            if ($request->expectsJson()) {
+                abort(Response::HTTP_FORBIDDEN);
+            }
+
+            return redirect()->route('admin.login.page')->with('admin_access_denied', true);
+        }
 
         abort_unless($room->status === RoomStatus::Active, 404);
         $request->route()->setParameter('room', $room);

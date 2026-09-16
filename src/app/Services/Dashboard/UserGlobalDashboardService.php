@@ -6,12 +6,15 @@ namespace App\Services\Dashboard;
 
 use App\Support\Helpers\FormatHelper;
 use App\Enums\OrderStatus;
+use App\Enums\CampaignStatus;
+use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\RoomUser;
 use App\Services\Room\UserRoomsService;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class UserGlobalDashboardService
 {
@@ -29,7 +32,9 @@ class UserGlobalDashboardService
 
         // Query active room users of current user
         $roomUsers = $user->roomUsers()
-            ->with(['room', 'orders'])
+            ->with(['room', 'orders', 'room.campaigns' => function (HasMany $query): void {
+                $query->where('status', CampaignStatus::Active)->orderByDesc('started_at')->orderByDesc('id');
+            }])
             ->where('status', RoomUserStatus::Active->value)
             ->orderByDesc('last_active_at')
             ->orderByDesc('updated_at')
@@ -61,7 +66,18 @@ class UserGlobalDashboardService
         // Recent rooms (up to 4)
         $roomService = new UserRoomsService();
         $recentRooms = $roomUsers->take(4)->map(
-            fn (RoomUser $membership): object => $roomService->formatRoomCard($membership)
+            function (RoomUser $membership) use ($roomService): object {
+                $card = $roomService->formatRoomCard($membership);
+                $campaign = $membership->room?->status === RoomStatus::Active
+                    ? $membership->room->campaigns->first()
+                    : null;
+                $card->is_live = $campaign !== null;
+                $card->live_deadline = $campaign?->deadline
+                    ? FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i')
+                    : null;
+
+                return $card;
+            }
         );
 
         // Recent orders (up to 5)

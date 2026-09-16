@@ -27,11 +27,16 @@ Route::middleware(['global.user', 'room.user'])->group(function () {
     Route::get('/rooms/{room}/campaigns', [\App\Http\Controllers\User\CampaignController::class, 'index'])->name('user.campaigns.index');
     Route::get('/rooms/{room}/campaigns/{campaign}', [\App\Http\Controllers\User\CampaignController::class, 'show'])->name('user.campaigns.show');
     Route::post('/rooms/{room}/campaigns/{campaign}/decline', [\App\Http\Controllers\User\CampaignController::class, 'decline'])->name('user.campaigns.decline');
+    Route::post('/rooms/{room}/campaigns/{campaign}/rejoin', [\App\Http\Controllers\User\CampaignController::class, 'rejoin'])->name('user.campaigns.rejoin');
     Route::get('/rooms/{room}/campaigns/{campaign}/order', \App\Http\Controllers\User\CampaignOrderPageController::class)->name('user.campaigns.order-page');
+    Route::post('/rooms/{room}/campaigns/{campaign}/cart', [\App\Http\Controllers\User\CampaignController::class, 'addToCart'])->name('user.campaigns.cart.store');
+    Route::delete('/rooms/{room}/campaigns/{campaign}/cart', [\App\Http\Controllers\User\CampaignController::class, 'clearCart'])->name('user.campaigns.cart.clear');
+    Route::delete('/rooms/{room}/campaigns/{campaign}/cart/{index}', [\App\Http\Controllers\User\CampaignController::class, 'removeFromCart'])->name('user.campaigns.cart.remove');
     Route::post('/rooms/{room}/campaigns/{campaign}/orders', [\App\Http\Controllers\User\OrderController::class, 'store'])->name('user.orders.store');
     Route::get('/rooms/{room}/orders/{order}', [\App\Http\Controllers\User\OrderController::class, 'show'])->name('user.orders.show');
     Route::get('/rooms/{room}/orders/{order}/view', \App\Http\Controllers\User\OrderPageController::class)->name('user.orders.page');
     Route::get('/rooms/{room}/orders/{order}/payment', [\App\Http\Controllers\User\OrderController::class, 'payment'])->name('user.orders.payment');
+    Route::post('/rooms/{room}/orders/{order}/confirm-payment', [\App\Http\Controllers\User\OrderController::class, 'confirmPayment'])->name('user.orders.confirm-payment');
     Route::get('/rooms/{room}/debts', [\App\Http\Controllers\User\DebtController::class, 'index'])->name('user.debts.index');
     Route::get('/rooms/{room}/analytics', [\App\Http\Controllers\User\AnalyticsController::class, 'room'])->name('user.analytics.room');
     Route::get('/rooms/{room}/socket-token', \App\Http\Controllers\User\SocketTokenController::class)->name('user.socket-token');

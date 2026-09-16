@@ -9,7 +9,7 @@
     $suggestedCode = $suggestedCode ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $user->name ?? 'MEM'), 0, 8));
 @endphp
 
-<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto">
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md overflow-y-auto" style="margin: 0;">
   <div class="w-full max-w-[580px] bg-white rounded-2xl shadow-2xl p-6 sm:p-8 relative border border-slate-200/80 my-auto animate-fadeIn">
     <!-- Modal Header -->
     <div class="flex flex-col items-center text-center">
@@ -66,7 +66,7 @@
         <span>{{ __('room.join.button', ['name' => $room->name ?? 'Room']) }}</span>
       </button>
       <a class="inline-flex items-center justify-center py-2 text-xs text-slate-500 hover:text-slate-900 transition-colors text-center font-medium" href="{{ route('user.me.rooms') }}">
-        {{ __('room.join.back_to_my_rooms') }}
+        {{ __('global.common.back') }}
       </a>
     </form>
 

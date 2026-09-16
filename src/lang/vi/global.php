@@ -150,6 +150,8 @@ return [
         'yesterday_at' => 'Hôm qua, :time',
         'cups_collected' => 'Đã gom: :cups ly',
         'deadline' => 'Hạn: :time',
+        'room_live' => 'Room đang live',
+        'room_order_deadline' => 'Hạn chót chốt đơn: :time',
         'members_count' => ':count thành viên',
         'order_now' => 'Order ngay',
         'enter_room' => 'Vào Room',

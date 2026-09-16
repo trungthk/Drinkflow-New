@@ -48,6 +48,7 @@ class UserRoomNotificationService
             });
 
         $unreadCount = $notifications->where('is_read', false)->count();
+        $globalUnreadCount = $user?->notifications()->whereNull('read_at')->count() ?? 0;
 
         if ($request->expectsJson()) {
             return [
@@ -70,7 +71,7 @@ class UserRoomNotificationService
                 'user' => $user,
                 'notifications' => $notifications,
                 'unreadCount' => $unreadCount,
-                'unreadNotificationsCount' => $unreadCount,
+                'unreadNotificationsCount' => $globalUnreadCount,
                 'activeCampaign' => $activeCampaign ? [
                     'name' => $activeCampaign->name,
                     'time_remaining' => $activeCampaign->deadline ? ($activeCampaign->deadline->isFuture() ? $activeCampaign->deadline->diffForHumans(['parts' => 2, 'short' => true]) : '00:00') : '14:22',

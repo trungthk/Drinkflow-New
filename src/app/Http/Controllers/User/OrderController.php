@@ -128,9 +128,11 @@ class OrderController extends Controller
         }
 
         if ($request->expectsJson()) {
+            $request->session()->forget("room_campaign_cart_{$room->id}_{$campaign->id}");
             return response()->json(['data' => $order], 201);
         }
 
+        $request->session()->forget("room_campaign_cart_{$room->id}_{$campaign->id}");
         return redirect()->route('user.orders.index', $room->slug)->with('status', __('room.campaign.order_success'));
     }
 
@@ -188,5 +190,33 @@ class OrderController extends Controller
             'transfer_content' => $content,
             'qr_url'           => $vietQr->imageUrl($account, $amount, $content),
         ]]);
+    }
+
+    /**
+     * Submit payment confirmation for an order to await admin approval.
+     *
+     * @param Request $request Incoming request.
+     * @param Room $room Target room model.
+     * @param Order $order Target order model.
+     * @param \App\Actions\Order\ConfirmOrderPaymentAction $action Domain action to confirm payment.
+     * @return JsonResponse|RedirectResponse Success response.
+     */
+    public function confirmPayment(Request $request, Room $room, Order $order, \App\Actions\Order\ConfirmOrderPaymentAction $action): JsonResponse|RedirectResponse
+    {
+        /** @var RoomUser $roomUser */
+        $roomUser = $request->attributes->get('room_user');
+        abort_unless($order->room_id === $room->id && $order->room_user_id === $roomUser->id, 404);
+
+        $action->execute($order, $roomUser);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => __('room.orders.payment_submitted_success'),
+                'payment_status' => 'pending',
+            ]);
+        }
+
+        return redirect()->route('user.orders.index', $room->slug)->with('status', __('room.orders.payment_submitted_success'));
     }
 }

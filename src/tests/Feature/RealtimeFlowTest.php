@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Actions\Campaign\DeclineCampaignAction;
+use App\Actions\Campaign\RejoinCampaignAction;
 use App\Actions\User\SetRoomUserStatusAction;
 use App\Enums\CampaignStatus;
 use App\Events\RoomRealtimeEvent;
@@ -40,6 +41,22 @@ class RealtimeFlowTest extends TestCase
 
         $this->assertDatabaseHas('campaign_participants', ['campaign_id' => $campaign->id, 'room_user_id' => $roomUser->id, 'status' => 'declined']);
         Event::assertDispatched(RoomRealtimeEvent::class, fn (RoomRealtimeEvent $event): bool => $event->name === 'campaign.participant.declined' && $event->roomId === $room->id && $event->payload['room_user_id'] === $roomUser->id);
+    }
+
+    /** Verify that rejoining removes the decline and notifies the room. */
+    public function test_user_rejoining_campaign_removes_response_and_dispatches_realtime_event(): void
+    {
+        Event::fake([RoomRealtimeEvent::class]);
+        $user = GlobalUser::create(['name' => 'Member', 'normalized_name' => 'MEMBER', 'email' => 'rejoin@example.com']);
+        $room = Room::create(['name' => 'Engineering', 'slug' => 'engineering-rejoin']);
+        $roomUser = RoomUser::create(['room_id' => $room->id, 'global_user_id' => $user->id, 'user_code' => 'ENG-002', 'display_name' => 'Member', 'normalized_name' => 'MEMBER', 'status' => 'active']);
+        $campaign = Campaign::create(['room_id' => $room->id, 'name' => 'Lunch', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Active]);
+
+        app(DeclineCampaignAction::class)->execute($campaign, $roomUser);
+        app(RejoinCampaignAction::class)->execute($campaign, $roomUser);
+
+        $this->assertDatabaseMissing('campaign_participants', ['campaign_id' => $campaign->id, 'room_user_id' => $roomUser->id]);
+        Event::assertDispatched(RoomRealtimeEvent::class, fn (RoomRealtimeEvent $event): bool => $event->name === 'campaign.participant.rejoined' && $event->roomId === $room->id && $event->payload['room_user_id'] === $roomUser->id);
     }
 
     /** Verify a room event is forwarded to the internal Socket.IO gateway. */

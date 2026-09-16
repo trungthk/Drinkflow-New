@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enums;
 
 enum DebtStatus: string
 {
     case Unpaid = 'unpaid';
+    case Pending = 'pending';
     case Partial = 'partial';
     case Paid = 'paid';
     case Waived = 'waived';
@@ -16,6 +19,6 @@ enum DebtStatus: string
      */
     public static function outstandingValues(): array
     {
-        return [self::Unpaid->value, self::Partial->value];
+        return [self::Unpaid->value, self::Partial->value, self::Pending->value];
     }
 }

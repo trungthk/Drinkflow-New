@@ -150,6 +150,8 @@ return [
         'yesterday_at' => '昨日, :time',
         'cups_collected' => '集まった数: :cups 杯',
         'deadline' => '締切: :time',
+        'room_live' => 'ルームで注文受付中',
+        'room_order_deadline' => '注文締切: :time',
         'members_count' => ':count 名のメンバー',
         'order_now' => '今すぐ注文',
         'enter_room' => 'ルームに入る',

@@ -10,14 +10,25 @@
 >
   <div class="space-y-6" x-data="{
     searchQuery: '',
+    searchInput: '',
+    searchTimer: null,
     selectedCategory: 'all',
+    menuItems: {{ Js::from($activeCampaign?->items ?? []) }},
     showCustomModal: false,
+    showCartModal: false,
+    showConfirmModal: false,
+    cartItems: {{ Js::from($cart ?? []) }},
+    cartSubmitting: false,
+    cartUpdating: false,
     selectedItem: null,
     selectedSize: null,
     selectedToppings: [],
-    icePercent: 70,
-    sugarPercent: 70,
     note: '',
+    sampleNotes: [
+      '{{ __('room.campaign.sample_note_less_sweet') }}',
+      '{{ __('room.campaign.sample_note_no_ice') }}',
+      '{{ __('room.campaign.sample_note_separate') }}'
+    ],
     get calculatedPrice() {
       if (!this.selectedItem) return 0;
       let total = parseInt(this.selectedItem.base_price || 0);
@@ -35,10 +46,99 @@
       this.selectedItem = item;
       this.selectedSize = (item.sizes && item.sizes.length > 0) ? item.sizes[0] : null;
       this.selectedToppings = [];
-      this.icePercent = 70;
-      this.sugarPercent = 70;
       this.note = '';
       this.showCustomModal = true;
+    },
+    async addToCart() {
+      this.cartSubmitting = true;
+      try {
+        const response = await fetch('{{ $activeCampaign ? route('user.campaigns.cart.store', [$room, $activeCampaign]) : '' }}', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            item_id: this.selectedItem.id,
+            size_id: this.selectedSize?.id || null,
+            topping_ids: this.selectedToppings.map(top => top.id),
+            quantity: 1,
+            note: this.note
+          })
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message || '{{ __('room.campaign.error_generic') }}');
+        this.cartItems = payload.data || [];
+        this.showCustomModal = false;
+      } catch (error) {
+        window.alert(error.message);
+      } finally {
+        this.cartSubmitting = false;
+      }
+    },
+    async confirmCart() {
+      this.cartSubmitting = true;
+      try {
+        const response = await fetch('{{ $activeCampaign ? route('user.orders.store', [$room, $activeCampaign]) : '' }}', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ items: this.cartItems, payment_method: 'transfer' })
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message || '{{ __('room.campaign.error_generic') }}');
+        window.location.href = '{{ route('user.orders.index', $room->slug) }}';
+      } catch (error) {
+        window.alert(error.message);
+      } finally {
+        this.cartSubmitting = false;
+      }
+    },
+    cartTotal() {
+      return this.cartItems.reduce((total, item) => total + (Number(item.unit_price) * Number(item.quantity)), 0);
+    },
+    get filteredItemCount() {
+      return this.menuItems.filter(item => this.filterMatch(item)).length;
+    },
+    async removeCartItem(index) {
+      this.cartUpdating = true;
+      try {
+        const response = await fetch('{{ $activeCampaign ? route('user.campaigns.cart.remove', [$room, $activeCampaign, '__INDEX__']) : '' }}'.replace('__INDEX__', index), {
+          method: 'DELETE',
+          headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message || '{{ __('room.campaign.error_generic') }}');
+        this.cartItems = payload.data || [];
+      } catch (error) {
+        window.alert(error.message);
+      } finally {
+        this.cartUpdating = false;
+      }
+    },
+    async clearCart() {
+      this.cartUpdating = true;
+      try {
+        const response = await fetch('{{ $activeCampaign ? route('user.campaigns.cart.clear', [$room, $activeCampaign]) : '' }}', {
+          method: 'DELETE',
+          headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message || '{{ __('room.campaign.error_generic') }}');
+        this.cartItems = payload.data || [];
+      } catch (error) {
+        window.alert(error.message);
+      } finally {
+        this.cartUpdating = false;
+      }
+    },
+    debounceSearch(value) {
+      clearTimeout(this.searchTimer);
+      this.searchTimer = setTimeout(() => { this.searchQuery = value; }, 300);
     },
     filterMatch(item) {
       if (this.selectedCategory !== 'all' && item.category !== this.selectedCategory) {
@@ -146,12 +246,12 @@
           </a>
         </div>
       @else
-        <form data-decline-campaign action="{{ route('user.campaigns.decline', [$room, $activeCampaign]) }}" method="POST" class="flex justify-end">
+        <form data-participation-form action="{{ $hasDeclined ? route('user.campaigns.rejoin', [$room, $activeCampaign]) : route('user.campaigns.decline', [$room, $activeCampaign]) }}" method="POST" class="fixed right-4 top-1/2 z-30 -translate-y-1/2">
           @csrf
-          <button type="submit" class="text-xs font-semibold text-slate-500 hover:text-rose-700 underline underline-offset-2 transition-colors">
-            {{ __('room.campaign.decline') }}
+          <button type="submit" class="group inline-flex items-center gap-2 rounded-full border {{ $hasDeclined ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-600' : 'border-rose-200 text-rose-700 hover:bg-rose-600' }} bg-white px-3 py-2 text-xs font-bold shadow-lg transition-all duration-200 hover:-translate-x-1 hover:text-white hover:shadow-xl focus:outline-none focus:ring-2 {{ $hasDeclined ? 'focus:ring-emerald-300' : 'focus:ring-rose-300' }}" title="{{ $hasDeclined ? __('room.campaign.rejoin') : __('room.campaign.decline') }}">
+            <span class="material-symbols-outlined text-[17px] transition-transform duration-200 group-hover:rotate-90">{{ $hasDeclined ? 'undo' : 'close' }}</span>
+            {{ $hasDeclined ? __('room.campaign.rejoin') : __('room.campaign.decline') }}
           </button>
-          <span data-decline-message class="hidden text-xs font-medium text-slate-500">{{ __('room.campaign.declined') }}</span>
         </form>
       @endif
 
@@ -160,17 +260,11 @@
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           <!-- Category Pills -->
           <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-            <button type="button" 
-                    @click="selectedCategory = 'all'"
-                    class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer"
-                    :class="selectedCategory === 'all' ? 'bg-[#006948] text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'">
+            <button type="button" @click="selectedCategory = 'all'" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer" :class="selectedCategory === 'all' ? 'bg-[#006948] text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'">
               {{ __('room.campaign.filter_all') }}
             </button>
             @foreach($categories as $cat)
-              <button type="button" 
-                      @click="selectedCategory = '{{ $cat }}'"
-                      class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer"
-                      :class="selectedCategory === '{{ $cat }}' ? 'bg-[#006948] text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'">
+              <button type="button" @click="selectedCategory = '{{ $cat }}'" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer" :class="selectedCategory === '{{ $cat }}' ? 'bg-[#006948] text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'">
                 {{ $cat }}
               </button>
             @endforeach
@@ -178,21 +272,15 @@
 
           <!-- Search Bar with Clear Button -->
           <div class="relative w-full sm:w-72">
-            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
-            <input x-model="searchQuery"
-                   type="text" 
-                   class="w-full pl-9 pr-8 h-10 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#006948] focus:ring-1 focus:ring-[#006948] outline-none transition-all"
-                   placeholder="{{ __('room.campaign.search_placeholder') }}">
-            <button x-show="searchQuery.length > 0" 
-                    x-cloak 
-                    type="button" 
-                    @click="searchQuery = ''" 
-                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-0.5 cursor-pointer">
-              <span class="material-symbols-outlined text-[16px]">cancel</span>
+            <span class="absolute left-0 top-0 bottom-0 flex w-10 items-center justify-center text-slate-400 pointer-events-none">
+              <span class="material-symbols-outlined text-[18px]">search</span>
+            </span>
+            <input x-model="searchInput" @input="debounceSearch($event.target.value)" type="text" class="w-full pl-9 pr-8 h-10 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#006948] focus:ring-1 focus:ring-[#006948] outline-none transition-all" placeholder="{{ __('room.campaign.search_placeholder') }}">
+            <button x-show="searchInput.length > 0" x-cloak type="button" @click="searchInput = ''; searchQuery = ''" class="absolute right-0 top-0 bottom-0 flex w-9 items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer">
+              <span class="material-symbols-outlined text-[16px]">close</span>
             </button>
           </div>
         </div>
-
         <!-- Menu Items Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           @forelse($activeCampaign->items as $item)
@@ -213,29 +301,36 @@
 
               <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                 <span class="text-sm font-bold font-mono text-slate-900">{{ number_format($item->base_price, 0, ',', '.') }}đ</span>
-                <button type="button" 
-                        @click="openCustomize({{ json_encode($item) }})"
-                        class="px-3.5 h-8 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors shadow-2xs cursor-pointer">
-                  <span class="material-symbols-outlined text-[15px]">add</span>
-                  <span>{{ __('room.dashboard.select_drink') }}</span>
-                </button>
+                @if(!$activeUserOrder)
+                  <button type="button"
+                          @click="openCustomize({{ json_encode($item) }})"
+                          class="px-3.5 h-8 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors shadow-2xs cursor-pointer">
+                    <span class="material-symbols-outlined text-[15px]">add</span>
+                    <span>{{ __('room.dashboard.select_drink') }}</span>
+                  </button>
+                @endif
               </div>
             </div>
           @empty
-            <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+            <div x-show="menuItems.length === 0" class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
               <span class="material-symbols-outlined text-[36px] text-slate-300 mb-2">restaurant_menu</span>
               <p class="text-xs font-semibold text-slate-700">{{ __('room.campaign.menu_empty') }}</p>
             </div>
           @endforelse
+        </div>
+        <div x-show="menuItems.length > 0 && filteredItemCount === 0" x-cloak class="py-12 text-center text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+          <span class="material-symbols-outlined text-[36px] text-slate-300 mb-2">search_off</span>
+          <p class="text-xs font-semibold text-slate-700">{{ __('room.campaign.search_empty_title') }}</p>
+          <p class="mt-1 text-xs text-slate-400">{{ __('room.campaign.search_empty_desc') }}</p>
         </div>
       </section>
 
       <!-- 3. Modal Tùy chỉnh món (Item Customization Modal) -->
       <div x-show="showCustomModal" 
            x-cloak 
-           class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+           class="fixed inset-0 z-[100] flex h-screen min-h-screen w-screen items-center justify-center overflow-y-auto bg-slate-900/60 p-0 backdrop-blur-md">
         <div @click.outside="showCustomModal = false"
-             class="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto animate-fadeIn">
+             class="my-auto h-screen min-h-screen w-full overflow-hidden border border-slate-200 bg-white shadow-2xl sm:h-auto sm:min-h-0 sm:max-h-[calc(100dvh-2rem)] sm:max-w-lg sm:rounded-2xl animate-fadeIn">
           <!-- Modal Header -->
           <div class="p-5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
@@ -253,12 +348,10 @@
           </div>
 
           <!-- Modal Body Form -->
-          <form method="POST" :action="'/rooms/{{ $room->slug }}/campaigns/{{ $activeCampaign->id }}/orders'" class="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <form @submit.prevent="addToCart()" class="p-5 sm:p-6 space-y-4 max-h-[calc(100dvh-5rem)] sm:max-h-[70vh] overflow-y-auto">
             @csrf
             <input type="hidden" name="campaign_item_id" :value="selectedItem?.id">
             <input type="hidden" name="campaign_item_size_id" :value="selectedSize?.id">
-            <input type="hidden" name="ice_percent" :value="icePercent">
-            <input type="hidden" name="sugar_percent" :value="sugarPercent">
             <input type="hidden" name="quantity" value="1">
 
             <!-- Size Options -->
@@ -301,43 +394,14 @@
               </div>
             </template>
 
-            <!-- Ice Level -->
-            <div class="space-y-2">
-              <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700">
-                <span>{{ __('room.campaign.ice_label') }}</span>
-                <span class="font-mono text-[#006948]" x-text="icePercent + '%'"></span>
-              </div>
-              <div class="grid grid-cols-5 gap-1.5 text-center">
-                <template x-for="ice in [0, 30, 50, 70, 100]" :key="ice">
-                  <button type="button" 
-                          @click="icePercent = ice"
-                          class="py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer"
-                          :class="icePercent === ice ? 'border-[#006948] bg-[#006948] text-white' : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'"
-                          x-text="ice + '%'"></button>
-                </template>
-              </div>
-            </div>
-
-            <!-- Sugar Level -->
-            <div class="space-y-2">
-              <div class="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700">
-                <span>{{ __('room.campaign.sugar_label') }}</span>
-                <span class="font-mono text-[#006948]" x-text="sugarPercent + '%'"></span>
-              </div>
-              <div class="grid grid-cols-5 gap-1.5 text-center">
-                <template x-for="sugar in [0, 30, 50, 70, 100]" :key="sugar">
-                  <button type="button" 
-                          @click="sugarPercent = sugar"
-                          class="py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer"
-                          :class="sugarPercent === sugar ? 'border-[#006948] bg-[#006948] text-white' : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'"
-                          x-text="sugar + '%'"></button>
-                </template>
-              </div>
-            </div>
-
             <!-- Special Note -->
             <div class="space-y-1.5">
               <label class="text-xs font-bold uppercase tracking-wider text-slate-700 block">{{ __('room.campaign.note_label') }}</label>
+              <div class="flex flex-wrap gap-1.5">
+                <template x-for="sample in sampleNotes" :key="sample">
+                  <button type="button" @click="note = note ? note + '; ' + sample : sample" class="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-[#006948]" x-text="sample"></button>
+                </template>
+              </div>
               <textarea name="note" 
                         x-model="note"
                         rows="2" 
@@ -351,16 +415,85 @@
                 <span class="text-[11px] text-slate-400 block">{{ __('room.campaign.unit_price') }}</span>
                 <span class="text-sm sm:text-base font-bold font-mono text-[#006948]" x-text="new Intl.NumberFormat('vi-VN').format(calculatedPrice) + 'đ'"></span>
               </div>
-              <button type="submit" 
+              <button type="submit" :disabled="cartSubmitting"
                       class="px-5 h-10 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer">
-                <span class="material-symbols-outlined text-[17px]">shopping_bag</span>
-                <span>{{ __('room.campaign.add_to_order', ['amount' => '']) }}</span>
+                <span x-show="!cartSubmitting" class="material-symbols-outlined text-[17px]">shopping_bag</span>
+                <span x-show="cartSubmitting" class="material-symbols-outlined animate-spin text-[17px]">progress_activity</span>
+                <span x-text="cartSubmitting ? '{{ __('global.common.loading') }}' : '{{ __('room.campaign.add_to_order') }}'"></span>
               </button>
             </div>
           </form>
         </div>
       </div>
 
+      @if(!$activeUserOrder)
+      <!-- Fixed Cart and Confirmation Modal -->
+      <button type="button" @click="showCartModal = true" class="fixed right-4 top-[calc(50%+0.5rem)] z-30 flex items-center gap-2 rounded-full bg-[#006948] px-4 py-3 text-xs font-bold text-white shadow-xl transition-all duration-200 hover:-translate-x-1 hover:bg-[#005137] hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-emerald-300">
+        <span class="material-symbols-outlined text-[19px]">shopping_cart</span>
+        <span>{{ __('room.campaign.cart_button') }}</span>
+        <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1 text-[11px]" x-text="cartItems.length"></span>
+      </button>
+
+      <div x-show="showCartModal" x-cloak class="fixed inset-0 z-50 flex min-h-[100dvh] items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md" @click.self="showCartModal = false">
+        <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl" @click.stop>
+          <div class="flex items-center justify-between border-b border-slate-100 p-5">
+            <h3 class="text-base font-bold text-slate-900">{{ __('room.campaign.cart_title') }}</h3>
+            <div class="flex items-center gap-1">
+              <button type="button" @click="clearCart()" :disabled="cartItems.length === 0 || cartUpdating" class="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_clear') }}">
+                <span x-show="!cartUpdating" class="material-symbols-outlined text-[18px]">delete_sweep</span>
+                <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+              </button>
+              <button type="button" @click="showCartModal = false" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><span class="material-symbols-outlined">close</span></button>
+            </div>
+          </div>
+          <div class="max-h-[50vh] space-y-3 overflow-y-auto p-5">
+            <template x-if="cartItems.length === 0">
+              <div class="flex flex-col items-center justify-center py-10 text-center">
+                <span class="material-symbols-outlined mb-2 text-[42px] text-slate-300">shopping_cart</span>
+                <p class="text-sm font-semibold text-slate-700">{{ __('room.campaign.cart_empty_title') }}</p>
+                <p class="mt-1 max-w-xs text-xs leading-relaxed text-slate-400">{{ __('room.campaign.cart_empty_desc') }}</p>
+              </div>
+            </template>
+            <template x-for="(item, index) in cartItems" :key="item.item_id + '-' + item.size_id + '-' + item.note + '-' + index">
+              <div class="flex items-start justify-between gap-3 rounded-xl bg-slate-50 p-3">
+                <div class="min-w-0">
+                  <p class="truncate text-sm font-bold text-slate-900" x-text="item.item_name"></p>
+                  <p class="mt-0.5 text-[11px] text-slate-500" x-text="[item.size_name, ...(item.topping_names || [])].filter(Boolean).join(' · ')"></p>
+                  <p class="mt-1 text-[11px] text-slate-500" x-show="item.note" x-text="item.note"></p>
+                </div>
+                <div class="flex shrink-0 items-center gap-1">
+                  <span class="text-xs font-bold font-mono text-[#006948]" x-text="new Intl.NumberFormat('vi-VN').format(item.unit_price * item.quantity) + 'đ'"></span>
+                  <button type="button" @click="removeCartItem(index)" :disabled="cartUpdating" class="rounded-md p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_remove_item') }}">
+                    <span x-show="!cartUpdating" class="material-symbols-outlined text-[16px]">delete</span>
+                    <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+          <div class="flex items-center justify-between border-t border-slate-100 p-5">
+            <div><span class="block text-[11px] text-slate-400">{{ __('room.campaign.cart_total') }}</span><strong class="font-mono text-base text-[#006948]" x-text="new Intl.NumberFormat('vi-VN').format(cartTotal()) + 'đ'"></strong></div>
+            <button type="button" :disabled="cartItems.length === 0" @click="showConfirmModal = true; showCartModal = false" class="rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50">{{ __('room.campaign.cart_confirm') }}</button>
+          </div>
+        </div>
+      </div>
+
+      <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-[60] flex min-h-[100dvh] items-center justify-center bg-slate-900/70 p-4 backdrop-blur-md" @click.self="showConfirmModal = false">
+        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl" @click.stop>
+          <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-[#006948]"><span class="material-symbols-outlined">fact_check</span></div>
+          <h3 class="text-base font-bold text-slate-900">{{ __('room.campaign.confirm_title') }}</h3>
+          <p class="mt-1 text-sm leading-relaxed text-slate-500">{{ __('room.campaign.confirm_desc') }}</p>
+          <div class="mt-5 flex justify-end gap-2">
+            <button type="button" @click="showConfirmModal = false" class="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">{{ __('global.common.cancel') }}</button>
+            <button type="button" :disabled="cartSubmitting" @click="confirmCart()" class="inline-flex items-center gap-1.5 rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50">
+              <span x-show="!cartSubmitting" class="material-symbols-outlined text-[16px]">send</span>
+              <span x-show="cartSubmitting" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+              <span x-text="cartSubmitting ? '{{ __('global.common.loading') }}' : '{{ __('room.campaign.confirm_order') }}'"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+      @endif
     @else
       <!-- Empty State when no campaign is open -->
       <section class="bg-white border border-slate-200/80 rounded-2xl p-12 text-center shadow-xs">

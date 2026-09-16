@@ -150,6 +150,8 @@ return [
         'yesterday_at' => 'Yesterday, :time',
         'cups_collected' => 'Collected: :cups cups',
         'deadline' => 'Deadline: :time',
+        'room_live' => 'Room is live',
+        'room_order_deadline' => 'Order cutoff: :time',
         'members_count' => ':count members',
         'order_now' => 'Order Now',
         'enter_room' => 'Enter Room',

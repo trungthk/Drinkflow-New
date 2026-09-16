@@ -37,7 +37,7 @@ class AuthController extends Controller
      */
     public function loginPage(Request $request): View|RedirectResponse
     {
-        if ($request->user('admin')) {
+        if ($request->user('admin') && ! $request->session()->pull('admin_access_denied', false)) {
             return redirect()->route('admin.landing');
         }
 

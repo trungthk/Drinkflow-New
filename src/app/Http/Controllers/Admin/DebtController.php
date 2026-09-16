@@ -100,6 +100,23 @@ class DebtController extends Controller
     }
 
     /**
+     * Approve a pending payment and clear remaining debt balance.
+     *
+     * @param Room $room Current room model.
+     * @param Debt $debt Debt entity.
+     * @param \App\Actions\Debt\ApproveDebtPaymentAction $action Domain action to approve debt payment.
+     * @return JsonResponse Approved debt payload.
+     */
+    public function approve(Room $room, Debt $debt, \App\Actions\Debt\ApproveDebtPaymentAction $action): JsonResponse
+    {
+        $this->assertRoom($room, $debt);
+        return response()->json([
+            'data' => $action->execute($debt),
+            'message' => __('admin.payment_approved_successfully'),
+        ]);
+    }
+
+    /**
      * Settle every outstanding debt selected by a campaign, date, member, or explicit debt IDs.
      *
      * @param Request $request Incoming request.

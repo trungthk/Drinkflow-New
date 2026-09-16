@@ -133,7 +133,7 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <span class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight">DrinkFlow</span>
-                        <span class="font-label-sm text-label-sm uppercase px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-semibold">Admin Core</span>
+                        <span class="font-label-sm text-label-sm uppercase px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-semibold">Admin</span>
                     </div>
                     <p class="font-label-md text-label-md text-outline">{{ __('admin.brand_subtitle') }}</p>
                 </div>
@@ -142,18 +142,17 @@
             <!-- Right Actions: Language Switcher & User Session Chip -->
             <div class="flex items-center gap-2 sm:gap-3 self-start sm:self-auto">
                 <!-- Language Switcher Dropdown -->
-                <div class="relative" data-admin-language-switcher>
-                    <button type="button"
-                            data-language-toggle aria-expanded="false" aria-controls="admin-language-menu"
-                            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors bg-surface-container-lowest border border-outline-variant/60 shadow-xs cursor-pointer">
+                <details class="relative group/language" data-room-language-switcher>
+                    <summary aria-controls="admin-language-menu"
+                            class="list-none [&::-webkit-details-marker]:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors bg-surface-container-lowest border border-outline-variant/60 shadow-xs cursor-pointer">
                         <span>{{ $activeLocaleMeta['flag'] }}</span>
                         <span class="font-semibold text-on-surface">{{ $activeLocaleMeta['code'] }}</span>
-                        <span data-language-chevron class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200">arrow_drop_down</span>
-                    </button>
+                        <span class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200 group-open/language:rotate-180">arrow_drop_down</span>
+                    </summary>
 
                     <!-- Dropdown Menu -->
-                    <div id="admin-language-menu" data-language-menu
-                         class="hidden absolute right-0 mt-1.5 w-36 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant/80 py-1.5 z-50">
+                    <div id="admin-language-menu"
+                         class="absolute right-0 top-full mt-1.5 w-36 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant/80 py-1.5 z-50">
                         @foreach($locales as $code => $meta)
                             <a href="{{ route('locale.switch', $code) }}"
                                class="flex items-center justify-between px-3 py-2 text-xs text-on-surface hover:bg-primary/10 hover:text-primary transition-colors {{ $currentLocale === $code ? 'font-semibold text-primary bg-primary/5' : '' }}">
@@ -167,23 +166,24 @@
                             </a>
                         @endforeach
                     </div>
-                </div>
+                </details>
 
                 <!-- User Session & Enterprise SSO Chip -->
                 <div class="flex items-center gap-3 bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-1.5 pr-4 shadow-xs">
+                    <a href="{{ route('admin.profile') }}" title="{{ __('admin.profile_security') }}" class="flex items-center gap-3 no-underline rounded-lg hover:bg-surface-container-low transition-colors">
                     <div class="w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center font-label-md text-label-md font-bold">
                         {{ $adminInitials }}
                     </div>
                     <div class="flex flex-col text-left">
                         <div class="flex items-center gap-1.5">
-                            <a href="{{ route('admin.profile') }}" class="font-headline-sm text-[13px] leading-tight font-semibold text-on-surface hover:text-primary transition-colors no-underline" title="{{ __('admin.profile_security') }}">{{ $admin->name }}</a>
-                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-primary" title="Active"></span>
-                            <span class="font-label-sm text-label-sm text-outline">{{ $admin->role ?? __('admin.room_manager_role') }}</span>
+                            <span class="font-headline-sm text-[13px] leading-tight font-semibold text-on-surface">{{ $admin->name }}</span>
+                            <span class="inline-block w-1.5 h-1.5 rounded-full bg-primary" title="{{ __('admin.status_active') }}"></span>
                         </div>
                         <span class="font-label-sm text-label-sm text-outline-variant flex items-center gap-1">
                             {{ $admin->email }}
                         </span>
                     </div>
+                    </a>
                     <div class="h-6 w-[1px] bg-outline-variant/50 mx-1"></div>
                     <button class="text-on-surface-variant hover:text-error transition-colors flex items-center gap-1 font-label-sm text-label-sm cursor-pointer"
                             title="{{ __('admin.logout') }}" type="button" onclick="openAdminLogoutModal()">
@@ -199,10 +199,6 @@
     <main class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 flex-1 py-4">
         <!-- Title & Subtitle Banner -->
         <div class="mb-4">
-            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-secondary-container/70 text-on-secondary-container font-label-sm text-label-sm mb-2">
-                <span class="material-symbols-outlined text-[14px]">room_preferences</span>
-                <span>{{ __('admin.switch_to_rooms') }}</span>
-            </div>
             <h1 class="font-display-lg text-display-lg text-on-surface font-extrabold tracking-tight">
                 {{ __('admin.select_room_heading') }}
             </h1>
@@ -284,17 +280,7 @@
                                             <span class="material-symbols-outlined text-[14px]">warning</span>
                                             ⚠️ {{ __('admin.badge_needs_debt_audit') }}
                                         </span>
-                                    @else
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded font-label-sm text-label-sm font-semibold bg-surface-container text-outline border border-outline-variant/60">
-                                            <span class="w-2 h-2 rounded-full bg-outline"></span>
-                                            {{ __('admin.badge_idle_ready') }}
-                                        </span>
                                     @endif
-                                </div>
-
-                                <div class="flex items-center gap-1 font-label-sm text-label-sm text-outline shrink-0">
-                                    <span class="material-symbols-outlined text-[15px]">shield_person</span>
-                                    <span>{{ __('admin.room_manager_role') }}</span>
                                 </div>
                             </div>
 
@@ -311,7 +297,7 @@
                             </div>
 
                             <!-- Key Metrics Grid -->
-                            <div class="grid grid-cols-3 gap-3 my-4 py-3 px-3.5 bg-surface rounded-lg border border-outline-variant/40">
+                            <div class="grid {{ $r->unpaid_debts_sum > 0 ? 'grid-cols-3' : 'grid-cols-2' }} gap-3 my-4 py-3 px-3.5 bg-surface rounded-lg border border-outline-variant/40">
                                 <div>
                                     <span class="font-label-sm text-label-sm text-outline block">{{ __('admin.metric_members') }}</span>
                                     <div class="flex items-baseline gap-1 mt-0.5">
@@ -319,19 +305,14 @@
                                         <span class="font-label-sm text-label-sm text-outline">{{ __('admin.status_active') }}</span>
                                     </div>
                                 </div>
-                                <div>
-                                    @if($r->unpaid_debts_sum > 0)
+                                @if($r->unpaid_debts_sum > 0)
+                                    <div>
                                         <span class="font-label-sm text-label-sm text-[#D97706] block">{{ __('admin.metric_unpaid_debt') }}</span>
                                         <div class="flex items-baseline gap-1 mt-0.5">
                                             <span class="font-headline-sm text-[18px] font-bold text-[#D97706]">{{ number_format($r->unpaid_debts_sum) }}₫</span>
                                         </div>
-                                    @else
-                                        <span class="font-label-sm text-label-sm text-outline block">{{ __('admin.metric_fund_limit') }}</span>
-                                        <div class="flex items-baseline gap-1 mt-0.5">
-                                            <span class="font-headline-sm text-[18px] font-bold text-primary">{{ $r->payment_account ? __('admin.vietqr_ready') : __('admin.not_configured') }}</span>
-                                        </div>
-                                    @endif
-                                </div>
+                                    </div>
+                                @endif
                                 <div>
                                     <span class="font-label-sm text-label-sm text-outline block">{{ __('admin.metric_today_orders') }}</span>
                                     <div class="flex items-baseline gap-1 mt-0.5">
@@ -390,11 +371,28 @@
                                 <span class="material-symbols-outlined text-[16px]">schedule</span>
                                 <span>{{ __('admin.updated_time', ['time' => $r->updated_at?->diffForHumans() ?? __('admin.ready_status')]) }}</span>
                             </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                            <button type="button" data-copy-room-join
+                                    data-join-url="{{ route('user.rooms.join.show', $r->slug) }}"
+                                    data-copy-label="{{ __('admin.copy_room_join_url') }}"
+                                    data-copied-label="{{ __('admin.copied_to_clipboard') }}"
+                                    data-error-label="{{ __('admin.copy_room_join_url_failed') }}"
+                                    aria-label="{{ __('admin.copy_room_join_url') }}"
+                                    aria-describedby="room-join-copy-tooltip-{{ $r->id }}"
+                                    class="relative group/copy inline-flex items-center justify-center p-2 rounded-lg border border-outline-variant/60 text-primary hover:bg-primary/10 transition-colors cursor-pointer disabled:cursor-wait">
+                                <span data-copy-icon class="material-symbols-outlined text-[18px]" aria-hidden="true">content_copy</span>
+                                <span data-copy-status class="sr-only" role="status"></span>
+                                <span id="room-join-copy-tooltip-{{ $r->id }}" data-copy-tooltip role="tooltip"
+                                      class="pointer-events-none absolute bottom-full right-0 mb-2 w-40 px-2.5 py-1.5 rounded-lg bg-slate-900 text-white text-xs font-medium text-center shadow-lg z-50 invisible opacity-0 group-hover/copy:visible group-hover/copy:opacity-100 group-focus-visible/copy:visible group-focus-visible/copy:opacity-100 transition-opacity duration-150">
+                                    {{ __('admin.copy_room_join_url') }}
+                                </span>
+                            </button>
                             <a href="{{ route('admin.dashboard.page', $r->model) }}"
                                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-[#059669] text-on-primary font-label-md text-label-md font-semibold transition shadow-xs active:scale-[0.98] no-underline">
                                 <span>{{ __('admin.open_dashboard') }}</span>
                                 <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
                             </a>
+                            </div>
                         </div>
                     </article>
                 @endforeach
@@ -422,6 +420,67 @@
     <!-- Search, Debounce & Filter Logic -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-copy-room-join]').forEach((button) => {
+                let resetTimer;
+                button.addEventListener('click', async () => {
+                    const icon = button.querySelector('[data-copy-icon]');
+                    const status = button.querySelector('[data-copy-status]');
+                    const tooltip = button.querySelector('[data-copy-tooltip]');
+                    button.disabled = true;
+                    clearTimeout(resetTimer);
+
+                    try {
+                        if (navigator.clipboard && window.isSecureContext) {
+                            await navigator.clipboard.writeText(button.dataset.joinUrl);
+                        } else {
+                            const input = document.createElement('textarea');
+                            input.value = button.dataset.joinUrl;
+                            input.style.position = 'fixed';
+                            input.style.opacity = '0';
+                            input.setAttribute('readonly', '');
+                            document.body.appendChild(input);
+                            try {
+                                input.select();
+                                if (!document.execCommand('copy')) throw new Error('Copy failed');
+                            } finally {
+                                input.remove();
+                                button.focus();
+                            }
+                        }
+
+                        icon.textContent = 'check';
+                        status.textContent = button.dataset.copiedLabel;
+                        tooltip.textContent = button.dataset.copiedLabel;
+                        button.setAttribute('aria-label', button.dataset.copiedLabel);
+                    } catch (error) {
+                        icon.textContent = 'content_copy';
+                        status.textContent = button.dataset.errorLabel;
+                        tooltip.textContent = button.dataset.errorLabel;
+                    } finally {
+                        button.disabled = false;
+                        resetTimer = setTimeout(() => {
+                            icon.textContent = 'content_copy';
+                            status.textContent = '';
+                            tooltip.textContent = button.dataset.copyLabel;
+                            button.setAttribute('aria-label', button.dataset.copyLabel);
+                        }, 2000);
+                    }
+                });
+            });
+
+            const languageSwitcher = document.querySelector('[data-room-language-switcher]');
+            document.addEventListener('click', (event) => {
+                if (languageSwitcher && !languageSwitcher.contains(event.target)) {
+                    languageSwitcher.open = false;
+                }
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && languageSwitcher?.open) {
+                    languageSwitcher.open = false;
+                    languageSwitcher.querySelector('summary').focus();
+                }
+            });
+
             const searchInput = document.getElementById('roomSearchInput');
             const clearBtn = document.getElementById('clearRoomSearchBtn');
             const filterButtons = document.querySelectorAll('.filter-btn');

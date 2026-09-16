@@ -1,6 +1,6 @@
-/** Submit the room-member decline decision without leaving the campaign menu. */
+/** Submit the room-member participation decision without leaving the campaign menu. */
 export function initCampaignDecline() {
-    const form = document.querySelector('[data-decline-campaign]');
+    const form = document.querySelector('[data-participation-form]');
     if (!form) return;
 
     form.addEventListener('submit', async (event) => {
@@ -15,9 +15,8 @@ export function initCampaignDecline() {
                 headers: { Accept: 'application/json', 'X-CSRF-TOKEN': token },
                 credentials: 'same-origin'
             });
-            if (!response.ok) throw new Error('Unable to record campaign decline.');
-            button?.classList.add('hidden');
-            form.querySelector('[data-decline-message]')?.classList.remove('hidden');
+            if (!response.ok) throw new Error('Unable to update campaign participation.');
+            window.location.reload();
         } catch (_) {
             if (button) button.disabled = false;
         }

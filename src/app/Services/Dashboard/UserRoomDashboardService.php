@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services\Dashboard;
 
-use App\Enums\CampaignItemStatus;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
+use App\Enums\OrderStatus;
 use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -31,22 +31,28 @@ class UserRoomDashboardService
     {
         $activeCampaign = $room->campaigns()
             ->where('status', CampaignStatus::Active->value)
-            ->with(['items.sizes', 'items.toppings'])
             ->first();
 
         $campaignData = null;
         if ($activeCampaign) {
-            $totalMembers = $room->roomUsers()->where('status', RoomUserStatus::Active->value)->count();
-            $orderedMembersCount = Order::where('campaign_id', $activeCampaign->id)
-                ->distinct('room_user_id')
-                ->count('room_user_id');
-            $totalPoolValue = (int) Order::where('campaign_id', $activeCampaign->id)->sum('final_amount');
             $sponsorUsed = (int) Order::where('campaign_id', $activeCampaign->id)->sum('sponsor_amount');
             $sponsorBudget = 200000;
             $sponsorRemaining = max(0, $sponsorBudget - $sponsorUsed);
             $sponsorPercent = $sponsorBudget > 0 ? min(100.0, round(($sponsorUsed / $sponsorBudget) * 100, 1)) : 0.0;
-
-            $recommendedItems = $activeCampaign->items()->where('status', CampaignItemStatus::Active)->take(6)->get();
+            $popularItems = DB::table('order_items')
+                ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                ->where('orders.campaign_id', $activeCampaign->id)
+                ->where('orders.status', '!=', OrderStatus::Cancelled->value)
+                ->selectRaw('order_items.item_name, SUM(order_items.quantity) AS total_quantity')
+                ->groupBy('order_items.item_name')
+                ->orderByDesc('total_quantity')
+                ->orderBy('order_items.item_name')
+                ->limit(5)
+                ->get()
+                ->map(static fn (object $item): object => (object) [
+                    'name' => (string) $item->item_name,
+                    'quantity' => (int) $item->total_quantity,
+                ]);
 
             $campaignData = [
                 'id' => $activeCampaign->id,
@@ -61,10 +67,7 @@ class UserRoomDashboardService
                 'sponsor_remaining' => $sponsorRemaining,
                 'sponsor_used' => $sponsorUsed,
                 'sponsor_percent' => $sponsorPercent,
-                'total_members' => max(1, $totalMembers),
-                'ordered_members' => $orderedMembersCount,
-                'total_pool_value' => $totalPoolValue,
-                'recommended_items' => $recommendedItems,
+                'popular_items' => $popularItems,
                 'order_url' => route('user.campaigns.order-page', [$room->slug, $activeCampaign->id]),
             ];
         }

@@ -53,7 +53,7 @@ class NotificationController extends Controller
         $markedCount = $service->markAllAsRead($user);
 
         if ($request->expectsJson()) {
-            return response()->json(['marked_count' => $markedCount]);
+            return response()->json(['marked_count' => $markedCount, 'unread_count' => 0]);
         }
 
         return back()->with('status', __('global.notifications.marked_all_read_status'));
@@ -75,7 +75,10 @@ class NotificationController extends Controller
         $updated = $service->markAsRead($user, $notification);
 
         if ($request->expectsJson()) {
-            return response()->json(['data' => $updated]);
+            return response()->json([
+                'data' => $updated,
+                'unread_count' => $user->notifications()->whereNull('read_at')->count(),
+            ]);
         }
 
         return back()->with('status', __('global.notifications.marked_read_status'));

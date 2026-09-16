@@ -99,6 +99,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::post('/debts/remind', [\App\Http\Controllers\Admin\DebtController::class, 'remind'])->name('admin.debts.remind');
     Route::get('/debts/{debt}', [\App\Http\Controllers\Admin\DebtController::class, 'show'])->name('admin.debts.show');
     Route::post('/debts/{debt}/payments', [\App\Http\Controllers\Admin\DebtController::class, 'pay'])->name('admin.debts.pay');
+    Route::post('/debts/{debt}/approve', [\App\Http\Controllers\Admin\DebtController::class, 'approve'])->name('admin.debts.approve');
     Route::post('/debts/{debt}/adjust', [\App\Http\Controllers\Admin\DebtController::class, 'adjust'])->name('admin.debts.adjust');
     Route::patch('/debts/{debt}/status', [\App\Http\Controllers\Admin\DebtController::class, 'status'])->name('admin.debts.status');
     Route::get('/room-users', [\App\Http\Controllers\Admin\RoomUserController::class, 'index'])->name('admin.room-users.index');
