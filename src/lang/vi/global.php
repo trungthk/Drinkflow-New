@@ -2,6 +2,12 @@
 
 return [
     'common' => [
+        'room' => 'Room',
+        'campaign' => 'Chiến dịch',
+        'user' => 'Người dùng',
+        'admin' => 'Quản trị viên',
+        'member' => 'Thành viên',
+        'not_available' => 'Không có',
         'close' => 'Đóng',
         'cancel' => 'Hủy bỏ',
         'save' => 'Lưu thay đổi',
@@ -293,6 +299,7 @@ return [
         'active_order_exists' => 'Bạn đã có một đơn đang hoạt động cho campaign này.',
     ],
     'payments' => [
+        'host_room' => 'Chủ trì Room :name',
         'page_title' => 'Quản lý Thanh toán & Nợ đọng',
         'breadcrumb_portal' => 'DrinkFlow Portal',
         'breadcrumb_personal' => 'Tài khoản cá nhân',

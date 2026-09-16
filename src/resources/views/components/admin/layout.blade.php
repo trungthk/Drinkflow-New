@@ -6,36 +6,8 @@
 ])
 
 @php
-    $room = $room ?? request()->attributes->get('room') ?? request()->route('room');
     $roomLabel = $room?->name ?? 'DrinkFlow';
     $pageTitle = $title ?: __('admin.dashboard');
-    $adminUser = auth('admin')->user();
-    
-    if (!isset($assignedRooms) || $assignedRooms === null) {
-        if ($adminUser) {
-            if ($adminUser->isSuperadmin()) {
-                $assignedRoomsList = \App\Models\Room::where('status', \App\Enums\RoomStatus::Active)->orderBy('name')->get();
-            } else {
-                $assignedRoomsList = $adminUser->rooms()->where('status', \App\Enums\RoomStatus::Active)->orderBy('name')->get();
-            }
-        } else {
-            $assignedRoomsList = collect();
-        }
-    } else {
-        $assignedRoomsList = $assignedRooms;
-    }
-
-    if ($room && !$assignedRoomsList->contains('id', $room->id)) {
-        $assignedRoomsList = $assignedRoomsList->prepend($room);
-    }
-
-    $unreadNotifications = $room && $adminUser
-        ? app(\App\Services\Notification\AdminNotificationService::class)->unreadForRoom($adminUser, $room)
-        : collect();
-    $unreadCount = $unreadNotifications->count();
-    $currentLocale = app()->getLocale();
-    $locales = $locales ?? \App\Constants\AppLocale::SUPPORTED;
-    $activeLocaleMeta = \App\Constants\AppLocale::get($currentLocale);
 @endphp
 <!doctype html>
 <html lang="{{ app()->getLocale() }}">
@@ -153,15 +125,17 @@
                         </div>
                     </a>
 
-                    <!-- Orders -->
-                    <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'orders' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
-                        href="{{ route('admin.orders.page', $room) }}" title="{{ __('admin.orders') }}">
-                        <span class="material-symbols-outlined text-[18px] shrink-0">local_shipping</span>
-                        <span class="sidebar-text truncate">{{ __('admin.orders') }}</span>
-                        <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
-                            {{ __('admin.orders') }}
-                        </div>
-                    </a>
+                    @if($hasLiveCampaign)
+                        <!-- Orders -->
+                        <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'orders' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                            href="{{ route('admin.orders.page', $room) }}" title="{{ __('admin.orders') }}">
+                            <span class="material-symbols-outlined text-[18px] shrink-0">local_shipping</span>
+                            <span class="sidebar-text truncate">{{ __('admin.orders') }}</span>
+                            <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
+                                {{ __('admin.orders') }}
+                            </div>
+                        </a>
+                    @endif
 
                     <!-- Payments & Debt -->
                     <a class="sidebar-nav-link relative group flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors {{ in_array($active, ['debts', 'payments']) ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
@@ -237,8 +211,8 @@
                         {{ mb_strtoupper(mb_substr($adminUser?->name ?? 'AD', 0, 2)) }}
                     </div>
                     <div class="flex flex-col min-w-0 flex-1 sidebar-text">
-                        <span class="text-xs font-semibold text-on-surface truncate leading-tight">{{ $adminUser?->name ?? 'Admin' }}</span>
-                        <span class="text-[10px] text-outline font-mono truncate leading-tight">{{ $adminUser?->email ?? ($adminUser?->isSuperadmin() ? 'Super Admin' : 'Room Dispatcher') }}</span>
+                        <span class="text-xs font-semibold text-on-surface truncate leading-tight">{{ $adminUser?->name ?? __('global.common.admin') }}</span>
+                        <span class="text-[10px] text-outline font-mono truncate leading-tight">{{ $adminUser?->email ?? ($adminUser?->isSuperadmin() ? __('admin.super_admin_role') : __('admin.room_dispatcher_role')) }}</span>
                     </div>
                     <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
                         {{ $adminUser?->name }} ({{ $adminUser?->email }})
@@ -271,7 +245,7 @@
                     <span class="material-symbols-outlined text-[20px] sidebar-collapse-toggle-icon">dock_to_left</span>
                 </button>
                 <nav class="flex items-center gap-2 text-xs text-outline font-medium">
-                    <span>Admin</span>
+                    <span>{{ __('global.common.admin') }}</span>
                     <span>/</span>
                     <a href="{{ route('admin.landing') }}" class="hover:text-on-surface transition-colors">Rooms</a>
                     @if(request()->routeIs('admin.profile'))
@@ -327,13 +301,13 @@
                                 @if($unreadCount > 0)
                                 <span data-unread-count class="px-1.5 py-0.5 rounded-full bg-error-container text-error text-[10px] font-mono font-bold">{{ $unreadCount }}</span>
                                 @endif
-                                <button type="button" data-mark-all-read class="text-[10px] font-semibold text-primary hover:underline disabled:opacity-50">{{ __('admin.mark_all_read') }}</button>
+                                <button type="button" data-mark-all-read class="text-[10px] font-semibold text-primary hover:no-underline disabled:opacity-50">{{ __('admin.mark_all_read') }}</button>
                             </div>
                         </div>
 
                         <div class="max-h-64 overflow-y-auto divide-y divide-outline-variant/40">
                             @forelse($unreadNotifications as $notif)
-                            @php($notificationPresentation = app(\App\Services\Notification\NotificationPresentationService::class)->present($notif))
+                            @php($notificationPresentation = $notificationPresentations[$notif->getKey()] ?? ['title' => '', 'body' => '', 'icon' => 'notifications'])
                             <div data-unread-notification class="px-4 py-2.5 hover:bg-surface-container-low transition-colors">
                                 <div class="flex items-start gap-2.5">
                                     <span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
@@ -357,7 +331,7 @@
                         </div>
 
                         <div class="px-4 py-2 border-t border-outline-variant/60 bg-surface-container-low/50 text-center">
-                            <a href="{{ route('admin.audit.page', $room) }}" class="text-xs text-primary font-semibold hover:underline no-underline block">
+                            <a href="{{ route('admin.audit.page', $room) }}" class="text-xs text-primary font-semibold no-underline hover:no-underline block">
                                 {{ __('admin.view_all_notifications') }} →
                             </a>
                         </div>

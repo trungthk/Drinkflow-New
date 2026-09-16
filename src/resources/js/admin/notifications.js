@@ -48,6 +48,8 @@ export function initAdminNotifications() {
     const switchPlatform = (type) => {
         document.querySelectorAll('.platform-config-fields').forEach((element) => element.classList.add('hidden'));
         document.querySelector(`#platform-${type}`)?.classList.remove('hidden');
+        document.querySelectorAll('.platform-integration-guide').forEach((element) => element.classList.add('hidden'));
+        document.querySelector(`[data-platform-guide="${type}"]`)?.classList.remove('hidden');
     };
     const resetCredentialFields = () => {
         ['#ch-tg-token', '#ch-tg-chat-id', '#ch-slack-url', '#ch-cw-token', '#ch-cw-room-id', '#ch-wh-url', '#ch-wh-secret'].forEach((selector) => {

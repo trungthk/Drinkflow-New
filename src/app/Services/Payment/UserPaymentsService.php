@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Payment;
 
+use App\Enums\OrderStatus;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\PaymentAccount;
@@ -21,7 +22,7 @@ class UserPaymentsService
     public function getPaymentsData(GlobalUser $user, Request $request): array
     {
         $unreadNotificationsCount = $user->notifications()->whereNull('read_at')->count();
-        $notifications = $user->notifications()->latest()->take(5)->get();
+        $notifications = $user->notifications()->whereNull('read_at')->latest()->take(5)->get();
 
         $breadcrumbs = [
             ['label' => __('global.rooms.breadcrumb_personal'), 'url' => route('user.me.dashboard')],
@@ -42,7 +43,7 @@ class UserPaymentsService
 
         // Separate into Unpaid and Paid
         $unpaidStatuses = ['submitted', 'confirmed', 'pending'];
-        $paidStatuses = ['paid', 'completed'];
+        $paidStatuses = [OrderStatus::Completed->value];
 
         $unpaidOrders = $allOrders->filter(fn($o) => in_array((string)(is_object($o->status) ? $o->status->value : $o->status), $unpaidStatuses));
         $paidOrders = $allOrders->filter(fn($o) => in_array((string)(is_object($o->status) ? $o->status->value : $o->status), $paidStatuses));
@@ -61,9 +62,9 @@ class UserPaymentsService
             $paidThisMonthCount = $paidOrders->count();
         }
 
-        $totalSponsorReceived = (int) $allOrders->where('created_at', '>=', $thisMonthStart)->sum('sponsor_amount');
+        $totalSponsorReceived = (int) $paidOrders->filter(fn($o) => $o->created_at && $o->created_at >= $thisMonthStart)->sum('sponsor_amount');
         if ($totalSponsorReceived === 0) {
-            $totalSponsorReceived = (int) $allOrders->sum('sponsor_amount');
+            $totalSponsorReceived = (int) $paidOrders->sum('sponsor_amount');
         }
 
         // Active Tab Filter: 'all', 'unpaid', 'paid'
@@ -71,11 +72,10 @@ class UserPaymentsService
         $sort = $request->input('sort', 'due_asc');
 
         if ($activeFilter === 'unpaid') {
-            $displayedOrders = $unpaidOrders;
-        } elseif ($activeFilter === 'paid') {
-            $displayedOrders = $paidOrders;
+            // The payment statement list is intentionally limited to completed orders.
+            $displayedOrders = collect();
         } else {
-            $displayedOrders = $allOrders;
+            $displayedOrders = $paidOrders;
         }
 
         // Sorting
@@ -111,7 +111,7 @@ class UserPaymentsService
             'user' => $user,
             'allOrders' => $allOrders,
             'displayedOrders' => $displayedOrders,
-            'totalCount' => $allOrders->count(),
+            'totalCount' => $displayedOrders->count(),
             'unpaidCount' => $unpaidCount,
             'paidCount' => $paidOrders->count(),
             'totalUnpaidAmount' => $totalUnpaidAmount,

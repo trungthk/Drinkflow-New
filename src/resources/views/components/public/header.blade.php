@@ -1,10 +1,10 @@
 @props([
     'activeTab' => 'about',
-    'version' => \App\Models\Version::getLatestVersionString(),
-    'termsUrl' => url('/terms'),
-    'versionsUrl' => url('/versions'),
-    'contactUrl' => route('contact'),
-    'googleAuthUrl' => route('auth.google'),
+    'version' => null,
+    'termsUrl' => null,
+    'versionsUrl' => null,
+    'contactUrl' => null,
+    'googleAuthUrl' => null,
 ])
 
 @php

@@ -5,11 +5,11 @@
     :ogDescription="__('terms.meta_description')"
     ogType="article"
     activeTab="terms"
-    :version="$appVersion ?? 'v2.3.0'"
-    :termsUrl="$termsUrl ?? url('/terms')"
-    :versionsUrl="$versionsUrl ?? url('/versions')"
-    :contactUrl="$contactUrl ?? route('contact')"
-    :googleAuthUrl="$googleAuthUrl ?? route('auth.google')"
+    :version="$appVersion"
+    :termsUrl="$termsUrl"
+    :versionsUrl="$versionsUrl"
+    :contactUrl="$contactUrl"
+    :googleAuthUrl="$googleAuthUrl"
 >
     <!-- MAIN DOCUMENTATION CONTAINER -->
     <main class="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-8">

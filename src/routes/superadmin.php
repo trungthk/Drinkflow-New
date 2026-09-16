@@ -11,6 +11,7 @@ Route::middleware(['auth:admin', 'superadmin'])->prefix('superadmin')->group(fun
     Route::get('/rooms/{room}', [\App\Http\Controllers\Superadmin\RoomController::class, 'show'])->name('superadmin.rooms.show');
     Route::match(['put', 'patch'], '/rooms/{room}', [\App\Http\Controllers\Superadmin\RoomController::class, 'update'])->name('superadmin.rooms.update');
     Route::patch('/rooms/{room}/status', [\App\Http\Controllers\Superadmin\RoomController::class, 'status'])->name('superadmin.rooms.status');
+    Route::delete('/rooms/{room}', [\App\Http\Controllers\Superadmin\RoomController::class, 'destroy'])->name('superadmin.rooms.destroy');
     Route::get('/admins/page', [\App\Http\Controllers\Superadmin\PageController::class, 'admins'])->name('superadmin.admins.page');
     Route::get('/admins', [\App\Http\Controllers\Superadmin\AdminController::class, 'index'])->name('superadmin.admins.index');
     Route::post('/admins', [\App\Http\Controllers\Superadmin\AdminController::class, 'store'])->name('superadmin.admins.store');
@@ -27,6 +28,7 @@ Route::middleware(['auth:admin', 'superadmin'])->prefix('superadmin')->group(fun
     Route::get('/global-users/{globalUser}/page', [\App\Http\Controllers\Superadmin\PageController::class, 'user'])->name('superadmin.global-users.detail.page');
     Route::get('/global-users/{globalUser}', [\App\Http\Controllers\Superadmin\GlobalUserController::class, 'show'])->name('superadmin.global-users.show');
     Route::patch('/global-users/{globalUser}/status', [\App\Http\Controllers\Superadmin\GlobalUserController::class, 'status'])->name('superadmin.global-users.status');
+    Route::delete('/global-users/{globalUser}', [\App\Http\Controllers\Superadmin\GlobalUserController::class, 'destroy'])->name('superadmin.global-users.destroy');
     Route::delete('/global-users/{globalUser}/memberships/{roomUser}', [\App\Http\Controllers\Superadmin\GlobalUserController::class, 'removeMembership'])->name('superadmin.global-users.memberships.remove');
     Route::post('/global-users/{globalUser}/memberships/{roomUser}/devices/{device}/revoke', [\App\Http\Controllers\Superadmin\GlobalUserController::class, 'revokeDevice'])->name('superadmin.global-users.devices.revoke');
     Route::post('/global-users/merge', [\App\Http\Controllers\Superadmin\GlobalUserController::class, 'merge'])->name('superadmin.global-users.merge');

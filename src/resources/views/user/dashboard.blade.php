@@ -1,5 +1,5 @@
 <x-room.layout
-  :title="'DrinkFlow - ' . __('room.dashboard.page_title') . ' - ' . ($room->name ?? 'Room')"
+  :title="'DrinkFlow - ' . __('room.dashboard.page_title') . ' - ' . ($room->name ?? __('global.common.room'))"
   :room="$room"
   :room-user="$roomUser"
   :user="$user"

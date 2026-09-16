@@ -1,5 +1,5 @@
 @props([
-    'googleAuthUrl' => route('auth.google'),
+    'googleAuthUrl' => null,
 ])
 
 <!-- SECTION: FINAL HIGH-CONTRAST CTA SECTION -->

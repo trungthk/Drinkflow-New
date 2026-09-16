@@ -5,7 +5,7 @@
 
 @php
     $currentLocale = app()->getLocale();
-    $activeLocaleMeta = $locales[$currentLocale] ?? $locales['vi'];
+    $activeLocaleMeta = \App\Constants\AppLocale::get($currentLocale);
 @endphp
 
 <!doctype html>

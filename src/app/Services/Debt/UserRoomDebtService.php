@@ -6,6 +6,7 @@ namespace App\Services\Debt;
 
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
+use App\Enums\OrderStatus;
 use App\Enums\PaymentAccountStatus;
 use App\Enums\RoomStatus;
 use App\Models\Debt;
@@ -13,6 +14,7 @@ use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
 use App\Services\Payment\VietQrService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class UserRoomDebtService
@@ -29,17 +31,15 @@ class UserRoomDebtService
      */
     public function getDebtViewData(Room $room, RoomUser $roomUser, ?GlobalUser $user): array
     {
-        $debtsQuery = $roomUser->debts()->where('room_id', $room->id)->with('campaign.paymentAccount')->latest();
-        $debts = $debtsQuery->paginate(20);
+        $baseDebtsQuery = $this->queryVisibleDebts($room, $roomUser);
+        $debts = (clone $baseDebtsQuery)->with('campaign.paymentAccount')->latest()->paginate(20);
 
-        $unpaidDebts = Debt::where('room_user_id', $roomUser->id)
-            ->where('room_id', $room->id)
+        $unpaidDebts = (clone $baseDebtsQuery)
             ->whereIn('status', DebtStatus::outstandingValues())
             ->get();
         $totalUnpaidAmount = (int) $unpaidDebts->sum('remaining_amount');
 
-        $paidThisMonth = Debt::where('room_user_id', $roomUser->id)
-            ->where('room_id', $room->id)
+        $paidThisMonth = (clone $baseDebtsQuery)
             ->where('status', DebtStatus::Paid->value)
             ->whereMonth('updated_at', now()->month)
             ->whereYear('updated_at', now()->year)
@@ -76,7 +76,7 @@ class UserRoomDebtService
             'totalUnpaidAmount' => $totalUnpaidAmount,
             'totalPaidMonthAmount' => $totalPaidMonthAmount,
             'totalPaidMonthCount' => $totalPaidMonthCount,
-            'totalSponsorAmount' => (int) $debts->sum('sponsor_amount'),
+            'totalSponsorAmount' => (int) (clone $baseDebtsQuery)->sum('sponsor_amount'),
             'vietqrData' => $vietqrData,
             'activeCampaign' => $activeCampaign ? [
                 'name' => $activeCampaign->name,
@@ -85,5 +85,24 @@ class UserRoomDebtService
             'userRooms' => $userRooms,
             'unreadNotificationsCount' => $unreadCount,
         ];
+    }
+
+    /**
+     * Build the room-user debt query while excluding debts backed only by cancelled orders.
+     *
+     * @param Room $room Current room.
+     * @param RoomUser $roomUser Current room member.
+     * @return Builder<Debt> Visible debt query.
+     */
+    public function queryVisibleDebts(Room $room, RoomUser $roomUser): Builder
+    {
+        return Debt::query()
+            ->where('room_id', $room->id)
+            ->where('room_user_id', $roomUser->id)
+            ->whereHas('campaign.orders', static function (Builder $orderQuery) use ($roomUser): void {
+                $orderQuery
+                    ->where('room_user_id', $roomUser->id)
+                    ->where('status', '!=', OrderStatus::Cancelled->value);
+            });
     }
 }

@@ -2,6 +2,12 @@
 
 return [
     'common' => [
+        'room' => 'ルーム',
+        'campaign' => 'キャンペーン',
+        'user' => 'ユーザー',
+        'admin' => '管理者',
+        'member' => 'メンバー',
+        'not_available' => '該当なし',
         'close' => '閉じる',
         'cancel' => 'キャンセル',
         'save' => '変更を保存',
@@ -293,6 +299,7 @@ return [
         'active_order_exists' => 'このキャンペーンにはすでにアクティブな注文があります。',
     ],
     'payments' => [
+        'host_room' => 'ホストルーム :name',
         'page_title' => '支払い＆未払い債務管理',
         'breadcrumb_portal' => 'DrinkFlow ポータル',
         'breadcrumb_personal' => '個人アカウント',

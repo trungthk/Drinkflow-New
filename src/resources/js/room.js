@@ -7,6 +7,7 @@ import { initGlobalGoToTop } from './global/go-to-top';
 import { initGlobalLoading } from './global/loading';
 import { initRoomRealtime } from './room/realtime';
 import { initCampaignDecline } from './room/campaign-decline';
+import { initRoomHeader } from './room/header';
 
 document.addEventListener('DOMContentLoaded', () => {
     initToastNotifications();
@@ -16,4 +17,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initGlobalLoading();
     initRoomRealtime();
     initCampaignDecline();
+    initRoomHeader();
 });

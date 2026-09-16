@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services\Analytics;
 
+use App\Enums\OrderStatus;
 use App\Models\GlobalUser;
+use App\Models\Order;
 use App\Support\Helpers\FormatHelper;
 
 class UserGlobalAnalyticsService
@@ -18,7 +20,9 @@ class UserGlobalAnalyticsService
     public function getAnalyticsViewData(GlobalUser $user): array
     {
         $roomUsers = $user->roomUsers()->with(['room', 'orders.campaign', 'orders.items'])->get();
-        $orders = $roomUsers->pluck('orders')->flatten();
+        $orders = $roomUsers->pluck('orders')->flatten()
+            ->filter(fn (Order $order): bool => $order->status === OrderStatus::Completed)
+            ->values();
         $items = $orders->pluck('items')->flatten();
 
         $totalOrders = $orders->count();
@@ -94,7 +98,11 @@ class UserGlobalAnalyticsService
         // Spending by Room
         $roomStats = [];
         foreach ($roomUsers as $ru) {
-            $rOrders = $ru->orders;
+            // Keep the per-room breakdown consistent with the completed-only
+            // dataset used by the rest of the global statistics.
+            $rOrders = $ru->orders
+                ->filter(fn (Order $order): bool => $order->status === OrderStatus::Completed)
+                ->values();
             if ($rOrders->isNotEmpty()) {
                 $roomStats[] = [
                     'name' => $ru->room?->name ?? 'Room #' . $ru->room_id,
@@ -127,7 +135,7 @@ class UserGlobalAnalyticsService
         ];
 
         $unreadNotificationsCount = $user->notifications()->whereNull('read_at')->count();
-        $notifications = $user->notifications()->latest()->take(5)->get();
+        $notifications = $user->notifications()->whereNull('read_at')->latest()->take(5)->get();
 
         return compact(
             'user',
@@ -157,7 +165,9 @@ class UserGlobalAnalyticsService
      */
     public function getAnalyticsApiData(GlobalUser $user): array
     {
-        $orders = $user->roomUsers()->with('orders.items')->get()->pluck('orders')->flatten();
+        $orders = $user->roomUsers()->with('orders.items')->get()->pluck('orders')->flatten()
+            ->filter(fn (Order $order): bool => $order->status === OrderStatus::Completed)
+            ->values();
         $items = $orders->pluck('items')->flatten();
 
         return [

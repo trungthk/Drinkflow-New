@@ -1,6 +1,6 @@
 @props([
-    'version' => \App\Models\Version::getLatestVersionString(),
-    'googleAuthUrl' => route('auth.google'),
+    'version' => null,
+    'googleAuthUrl' => null,
 ])
 
 <!-- HERO SECTION -->

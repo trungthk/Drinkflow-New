@@ -7,10 +7,6 @@
     'notifications' => collect(),
 ])
 
-@php
-    $user = $user ?? request()->attributes->get('global_user') ?? auth('web')->user();
-@endphp
-
 <!DOCTYPE html>
 <html class="light" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>

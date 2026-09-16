@@ -50,8 +50,20 @@
             } = await dfApi('{{ route('superadmin.rooms.index') }}' + (params.toString() ? '?' + params.toString() : ''));
             document.querySelector('#room-count').textContent = `${data.total} room`;
             document.querySelector('#rooms-table').innerHTML = data.data.length ? data.data.map(r =>
-                `<tr><td><strong>${escapeHtml(r.name)}</strong><br><small>${escapeHtml(r.slug)}</small></td><td>${statusPill(r.status)}</td><td>${r.room_users_count} <small>(${r.active_room_users_count} active)</small></td><td>${r.campaigns_count}</td><td><div class="superadmin-actions"><a class="sa-button secondary" href="/superadmin/rooms/${r.id}/page">Detail</a><button class="sa-button secondary" onclick="editRoom(${r.id})">Edit</button>${r.status==='active'?`<button class="sa-button danger" onclick="setRoomStatus(${r.id},'disabled')">Disable</button>`:r.status==='archived'?`<button class="sa-button" onclick="setRoomStatus(${r.id},'active')">Restore</button>`:`<button class="sa-button" onclick="setRoomStatus(${r.id},'active')">Enable</button><button class="sa-button danger" onclick="setRoomStatus(${r.id},'archived')">Archive</button>`}</div></td></tr>`
+                `<tr><td><strong>${escapeHtml(r.name)}</strong><br><small>${escapeHtml(r.slug)}</small></td><td>${statusPill(r.status)}</td><td>${r.room_users_count} <small>(${r.active_room_users_count} active)</small></td><td>${r.campaigns_count}</td><td><div class="superadmin-actions"><a class="sa-button secondary" href="/superadmin/rooms/${r.id}/page">Detail</a><button class="sa-button secondary" onclick="editRoom(${r.id})">Edit</button>${r.status==='active'?`<button class="sa-button danger" onclick="setRoomStatus(${r.id},'disabled')">Disable</button>`:r.status==='archived'?`<button class="sa-button" onclick="setRoomStatus(${r.id},'active')">Restore</button>`:`<button class="sa-button" onclick="setRoomStatus(${r.id},'active')">Enable</button><button class="sa-button danger" onclick="setRoomStatus(${r.id},'archived')">Archive</button>`}<button class="sa-button danger" onclick="deleteRoom(${r.id})">Delete</button></div></td></tr>`
                 ).join('') : '<tr><td colspan="5" class="sa-empty">Chưa có Room phù hợp.</td></tr>';
+        }
+        async function deleteRoom(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa Room này? Thao tác không thể hoàn tác nếu Room không còn nợ.')) return;
+            try {
+                await dfApi(`/superadmin/rooms/${id}`, {
+                    method: 'DELETE'
+                });
+                roomNotice('Đã xóa Room thành công.');
+                loadRooms();
+            } catch (e) {
+                roomNotice(e.message, 'error');
+            }
         }
         async function setRoomStatus(id, status) {
             try {

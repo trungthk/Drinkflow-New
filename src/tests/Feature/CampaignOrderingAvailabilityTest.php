@@ -1,0 +1,189 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature;
+
+use App\Actions\User\JoinRoomAction;
+use App\Enums\CampaignStatus;
+use App\Models\Campaign;
+use App\Models\CampaignItem;
+use App\Models\GlobalUser;
+use App\Models\Room;
+use App\Models\RoomUser;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class CampaignOrderingAvailabilityTest extends TestCase
+{
+    use RefreshDatabase;
+
+    /**
+     * Verify that an active campaign before its deadline displays ordering controls.
+     *
+     * @return void
+     */
+    public function test_live_campaign_before_deadline_allows_ordering(): void
+    {
+        [$user, $room, $roomUser] = $this->createRoomMember('open');
+        [$campaign, $item] = $this->createCampaignWithItem($room, CampaignStatus::Active, now()->addHour());
+
+        $this->actingAs($user, 'web')
+            ->get(route('user.campaigns.index', $room))
+            ->assertOk()
+            ->assertSee('data-add-to-cart-button', false)
+            ->assertSee('data-campaign-cart-button', false);
+
+        $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($user, 'web')
+            ->postJson(route('user.orders.store', [$room, $campaign]), [
+                'items' => [['item_id' => $item->id, 'quantity' => 1]],
+            ])
+            ->assertCreated();
+
+        $this->assertDatabaseHas('orders', [
+            'campaign_id' => $campaign->id,
+            'room_user_id' => $roomUser->id,
+        ]);
+    }
+
+    /**
+     * Verify that an expired live campaign hides ordering controls and rejects cart changes.
+     *
+     * @return void
+     */
+    public function test_expired_live_campaign_hides_cart_and_rejects_cart_submission(): void
+    {
+        [$user, $room] = $this->createRoomMember('expired-cart');
+        [$campaign, $item] = $this->createCampaignWithItem($room, CampaignStatus::Active, now()->subMinute());
+
+        $this->actingAs($user, 'web')
+            ->get(route('user.campaigns.index', $room))
+            ->assertOk()
+            ->assertDontSee('data-add-to-cart-button', false)
+            ->assertDontSee('data-campaign-cart-button', false)
+            ->assertDontSee('data-participation-form', false)
+            ->assertSee(__('room.campaign.ordering_closed'));
+
+        $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($user, 'web')
+            ->postJson(route('user.campaigns.cart.store', [$room, $campaign]), [
+                'item_id' => $item->id,
+                'quantity' => 1,
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('campaign');
+
+        $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($user, 'web')
+            ->postJson(route('user.campaigns.decline', [$room, $campaign]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('campaign');
+
+        $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($user, 'web')
+            ->postJson(route('user.campaigns.rejoin', [$room, $campaign]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('campaign');
+
+        $this->assertDatabaseCount('campaign_participants', 0);
+    }
+
+    /**
+     * Verify that a direct order request is rejected after the campaign deadline.
+     *
+     * @return void
+     */
+    public function test_expired_live_campaign_rejects_direct_order_submission(): void
+    {
+        [$user, $room] = $this->createRoomMember('expired-order');
+        [$campaign, $item] = $this->createCampaignWithItem($room, CampaignStatus::Active, now()->subSecond());
+
+        $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($user, 'web')
+            ->postJson(route('user.orders.store', [$room, $campaign]), [
+                'items' => [['item_id' => $item->id, 'quantity' => 1]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('campaign');
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    /**
+     * Verify that a scheduled campaign cannot accept a forged direct order request.
+     *
+     * @return void
+     */
+    public function test_non_live_campaign_rejects_direct_order_submission(): void
+    {
+        [$user, $room] = $this->createRoomMember('scheduled');
+        [$campaign, $item] = $this->createCampaignWithItem($room, CampaignStatus::Scheduled, now()->addHour());
+
+        $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($user, 'web')
+            ->postJson(route('user.orders.store', [$room, $campaign]), [
+                'items' => [['item_id' => $item->id, 'quantity' => 1]],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('campaign');
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    /**
+     * Create an active global user and room membership for an ordering scenario.
+     *
+     * @param string $suffix Unique value used for test data.
+     * @return array{0: GlobalUser, 1: Room, 2: RoomUser} Created user, room, and membership.
+     */
+    private function createRoomMember(string $suffix): array
+    {
+        $user = GlobalUser::create([
+            'name' => 'Campaign User',
+            'normalized_name' => 'CAMPAIGN USER',
+            'email' => "campaign-{$suffix}@company.com",
+        ]);
+        $room = Room::create([
+            'name' => "Campaign Room {$suffix}",
+            'slug' => "campaign-room-{$suffix}",
+        ]);
+        $roomUser = app(JoinRoomAction::class)->execute(
+            $user,
+            $room,
+            "device-{$suffix}",
+            "hash-{$suffix}",
+        );
+
+        return [$user, $room, $roomUser];
+    }
+
+    /**
+     * Create a campaign and one active item for an ordering scenario.
+     *
+     * @param Room $room Room owning the campaign.
+     * @param CampaignStatus $status Campaign lifecycle status.
+     * @param \DateTimeInterface $deadline Campaign ordering deadline.
+     * @return array{0: Campaign, 1: CampaignItem} Created campaign and item.
+     */
+    private function createCampaignWithItem(Room $room, CampaignStatus $status, \DateTimeInterface $deadline): array
+    {
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Campaign availability',
+            'restaurant' => 'Cafe',
+            'status' => $status,
+            'deadline' => $deadline,
+        ]);
+        $item = CampaignItem::create([
+            'campaign_id' => $campaign->id,
+            'name' => 'Green tea',
+            'normalized_name' => 'GREEN TEA',
+            'base_price' => 20000,
+            'status' => 'active',
+        ]);
+
+        return [$campaign, $item];
+    }
+}

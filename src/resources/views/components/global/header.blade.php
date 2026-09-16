@@ -17,6 +17,10 @@
     $activeLocaleMeta = $locales[$currentLocale] ?? $locales['vi'];
 
     $hasRooms = $user ? $user->roomUsers()->exists() : false;
+    $unreadNotificationsCount = $unreadNotificationsCount ?? ($user ? $user->notifications()->whereNull('read_at')->count() : 0);
+    $notifications = ($notifications && $notifications->isNotEmpty())
+        ? $notifications->filter(fn($n) => is_null($n->read_at))
+        : ($user ? $user->notifications()->whereNull('read_at')->latest()->take(5)->get() : collect());
 @endphp
 
 <!-- Top Navigation Bar (2 Tầng chuẩn hệ thống, responsive mobile tối ưu) -->

@@ -8,10 +8,12 @@ use App\Actions\Order\CreateOrderAction;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentAccountStatus;
+use App\Enums\PaymentStatus;
 use App\Enums\RoomStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
 use App\Models\Campaign;
+use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\PaymentAccount;
@@ -42,7 +44,11 @@ class OrderController extends Controller
         /** @var GlobalUser|null $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $query = $roomUser->orders()->where('room_id', $room->id)->with(['items.toppings', 'campaign.paymentAccount'])->latest();
+        $query = $roomUser->orders()
+            ->where('room_id', $room->id)
+            ->where('status', '!=', OrderStatus::Cancelled->value)
+            ->with(['items.toppings', 'campaign.paymentAccount'])
+            ->latest();
         if ($request->filled('status')) {
             $query->where('status', $request->string('status')->toString());
         }
@@ -62,6 +68,25 @@ class OrderController extends Controller
         $activeCampaign = $room->campaigns()->where('status', CampaignStatus::Active->value)->first();
         $userRooms = $user ? $user->rooms()->where('rooms.status', RoomStatus::Active->value)->get() : collect();
         $unreadCount = $user ? DB::table('user_notifications')->where('global_user_id', $user->id)->whereNull('read_at')->count() : 0;
+        $activeOrder = $orders->first();
+        $paymentConfirmationDetails = null;
+        if ($activeOrder instanceof Order) {
+            $debt = Debt::query()
+                ->where('campaign_id', $activeOrder->campaign_id)
+                ->where('room_user_id', $activeOrder->room_user_id)
+                ->with('payments.createdByAdmin')
+                ->first();
+            $approvalPayment = $activeOrder->payment_status === PaymentStatus::Paid
+                ? $debt?->payments->sortByDesc('paid_at')->first()
+                : null;
+
+            $paymentConfirmationDetails = [
+                'requestedAt' => $debt?->payment_requested_at?->format('d/m/Y H:i'),
+                'content' => $debt?->note ?: 'DF'.$activeOrder->id.' '.$roomUser->room_user_code,
+                'approvedBy' => $approvalPayment?->createdByAdmin?->name,
+                'approvedAt' => $approvalPayment?->paid_at?->format('d/m/Y H:i'),
+            ];
+        }
 
         return view('user.orders', [
             'room' => $room,
@@ -74,6 +99,7 @@ class OrderController extends Controller
             ] : null,
             'userRooms' => $userRooms,
             'unreadNotificationsCount' => $unreadCount,
+            'paymentConfirmationDetails' => $paymentConfirmationDetails,
         ]);
     }
 
@@ -208,12 +234,22 @@ class OrderController extends Controller
         abort_unless($order->room_id === $room->id && $order->room_user_id === $roomUser->id, 404);
 
         $action->execute($order, $roomUser);
+        $debt = Debt::query()
+            ->where('campaign_id', $order->campaign_id)
+            ->where('room_user_id', $roomUser->id)
+            ->first();
 
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => __('room.orders.payment_submitted_success'),
                 'payment_status' => 'pending',
+                'payment_confirmation' => [
+                    'requestedAt' => $debt?->payment_requested_at?->format('d/m/Y H:i'),
+                    'content' => $debt?->note,
+                    'approvedBy' => null,
+                    'approvedAt' => null,
+                ],
             ]);
         }
 

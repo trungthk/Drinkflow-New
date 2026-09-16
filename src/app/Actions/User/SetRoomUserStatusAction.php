@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\User;
 
+use App\Enums\DebtStatus;
 use App\Enums\RoomUserStatus;
 use App\Events\RoomMembershipUpdated;
 use App\Models\RoomUser;
@@ -19,13 +20,19 @@ class SetRoomUserStatusAction
      * @param RoomUser $roomUser Room user entity instance.
      * @param string $status New status string ('active', 'blocked', 'removed').
      * @return RoomUser Updated room user instance.
-     * @throws ValidationException If status string is invalid.
+     * @throws ValidationException If status string is invalid or member has outstanding debt when removing.
      */
     public function execute(RoomUser $roomUser, string $status): RoomUser
     {
         if (RoomUserStatus::tryFrom($status) === null) {
             throw ValidationException::withMessages([
                 'status' => __('admin.invalid_status'),
+            ]);
+        }
+
+        if ($status === RoomUserStatus::Removed->value && $roomUser->hasOutstandingDebts()) {
+            throw ValidationException::withMessages([
+                'room_user' => __('admin.cannot_remove_member_with_outstanding_debt'),
             ]);
         }
 

@@ -1,9 +1,7 @@
 @php
     $roomsCount = $rooms->count();
-    $adminInitials = strtoupper(substr($admin->name ?? 'Admin', 0, 2));
-    $currentLocale = app()->getLocale();
-    $locales = $locales ?? \App\Constants\AppLocale::SUPPORTED;
-    $activeLocaleMeta = \App\Constants\AppLocale::get($currentLocale);
+    $adminUser = $adminUser ?? $admin ?? auth('admin')->user();
+    $adminInitials = strtoupper(substr($adminUser?->name ?? 'Admin', 0, 2));
 @endphp
 <!DOCTYPE html>
 <html class="h-full" lang="{{ app()->getLocale() }}">

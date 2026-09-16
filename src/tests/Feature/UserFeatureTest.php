@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Campaign\CreateCampaignAction;
 use App\Actions\User\JoinRoomAction;
 use App\Enums\CampaignStatus;
+use App\Enums\OrderStatus;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
 use App\Models\GlobalUser;
@@ -56,7 +57,7 @@ class UserFeatureTest extends TestCase
         $room = Room::create(['name' => 'IT', 'slug' => 'analytics-it']);
         $roomUser = app(JoinRoomAction::class)->execute($user, $room, 'device', 'hash');
         $campaign = Campaign::create(['room_id' => $room->id, 'name' => 'Lunch', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Active]);
-        $roomUser->orders()->create(['room_id' => $room->id, 'campaign_id' => $campaign->id, 'subtotal' => 10000, 'final_amount' => 10000, 'status' => 'submitted']);
+        $roomUser->orders()->create(['room_id' => $room->id, 'campaign_id' => $campaign->id, 'subtotal' => 10000, 'final_amount' => 10000, 'status' => OrderStatus::Completed]);
 
         $this->actingAs($user, 'web')->get('/analytics')->assertOk()->assertJsonPath('data.total_orders', 1);
     }

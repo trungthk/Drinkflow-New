@@ -7,7 +7,7 @@
         <span class="text-outline-variant">/</span>
         <a href="{{ route('admin.manage.page', [$room, 'tab' => 'campaigns']) }}" class="hover:text-on-surface transition-colors no-underline text-outline">{{ __('admin.campaigns') }}</a>
         <span class="text-outline-variant">/</span>
-        <span class="text-primary font-semibold">#CMP-{{ $campaign->id }} · {{ $campaign->name }}</span>
+        <span class="text-primary font-semibold">{{ $campaign->code ?? 'N/A' }} · {{ $campaign->name }}</span>
     </nav>
 
     <!-- SECTION 1: STORE & CAMPAIGN BANNER (2/3 & 1/3 SPLIT LAYOUT) -->
@@ -21,7 +21,7 @@
                         {{ __('admin.status_' . ($campaign->status?->value ?? 'closed')) }}
                     </span>
                     <span class="text-xs text-outline bg-surface-container-low border border-outline-variant px-2 py-0.5 rounded font-mono">
-                        #CMP-{{ $campaign->id }} • {{ $campaign->restaurant }}
+                        {{ $campaign->code ?? 'N/A' }} • {{ $campaign->restaurant }}
                     </span>
                     <span class="text-xs text-on-surface-variant bg-surface-container-lowest border border-outline-variant px-2 py-0.5 rounded">
                         {{ __('admin.room_label') }} <strong>{{ $room->name }}</strong>

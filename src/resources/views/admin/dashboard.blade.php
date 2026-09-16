@@ -143,10 +143,10 @@
                                 {{ __('admin.live_now') }}
                             </span>
                             <h3 id="hero-campaign-title" class="text-lg font-bold text-on-surface">{{ $activeCampaign?->name ?? __('admin.loading_campaign') }}</h3>
-                            <span id="hero-campaign-code" class="text-xs font-mono text-outline">{{ $activeCampaign?->code ?? '#CMP' }}</span>
+                            <span id="hero-campaign-code" class="text-xs font-mono text-outline">{{ $activeCampaign?->code ?? 'N/A' }}</span>
                         </div>
                         <div class="flex items-center gap-2 text-xs font-mono text-outline">
-                            <span>Room: <strong class="text-on-surface">{{ $room->name }}</strong></span>
+                                <span>{{ __('global.common.room') }}: <strong class="text-on-surface">{{ $room->name }}</strong></span>
                             <span>•</span>
                             <span id="hero-campaign-time">{{ __('admin.ready') }}</span>
                         </div>
@@ -211,7 +211,7 @@
                             <span class="w-2 h-2 rounded-full bg-primary"></span>
                             {{ __('admin.running_secondary') }}
                         </span>
-                        <span id="sec-campaign-code" class="text-xs font-mono text-outline">{{ $secondaryCampaign?->code ?? '#CMP' }}</span>
+                        <span id="sec-campaign-code" class="text-xs font-mono text-outline">{{ $secondaryCampaign?->code ?? 'N/A' }}</span>
                     </div>
                     <h3 id="sec-campaign-title" class="text-base font-bold text-on-surface mb-1 truncate">{{ $secondaryCampaign?->name ?? __('admin.no_secondary_campaign') }}</h3>
                     <p id="sec-campaign-vendor" class="text-xs text-outline mb-4 font-mono">{{ $secondaryCampaign?->restaurant ?? '—' }}</p>
@@ -270,8 +270,8 @@
                                 @foreach($liveOrders as $order)
                                     <tr class="hover:bg-surface-container-low/50 transition-colors">
                                         <td class="py-2.5 px-3 font-mono text-outline">#{{ $order->id }}</td>
-                                        <td class="py-2.5 px-3 font-semibold text-on-surface">{{ $order->roomUser?->globalUser?->name ?? $order->roomUser?->display_name ?? 'Member' }}</td>
-                                        <td class="py-2.5 px-3 text-outline">{{ $order->campaign?->name ?? 'Campaign' }}</td>
+                                        <td class="py-2.5 px-3 font-semibold text-on-surface">{{ $order->roomUser?->globalUser?->name ?? $order->roomUser?->display_name ?? __('global.common.member') }}</td>
+                                        <td class="py-2.5 px-3 text-outline">{{ $order->campaign?->name ?? __('global.common.campaign') }}</td>
                                         <td class="py-2.5 px-3 text-right font-mono font-bold text-on-surface">{{ number_format($order->final_amount ?? 0, 0, ',', '.') }} ₫</td>
                                         <td class="py-2.5 px-3 text-center">
                                             <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold {{ ($order->status instanceof \BackedEnum ? $order->status->value : $order->status) === 'confirmed' ? 'bg-emerald-50 text-emerald-700' : (($order->status instanceof \BackedEnum ? $order->status->value : $order->status) === 'cancelled' ? 'bg-rose-50 text-rose-700' : 'bg-blue-50 text-blue-700') }}">

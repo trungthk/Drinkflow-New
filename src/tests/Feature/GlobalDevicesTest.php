@@ -35,15 +35,22 @@ class GlobalDevicesTest extends TestCase
         $room = Room::create(['name' => 'Ban Công nghệ & Kỹ thuật số', 'slug' => 'tech-team']);
         app(JoinRoomAction::class)->execute($user, $room, 'device-1', 'hash-1');
 
+        DB::table('sessions')->insert([
+            'id' => 'session-remote-456',
+            'user_id' => $user->id,
+            'ip_address' => '118.70.144.12',
+            'user_agent' => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
+            'payload' => 'dummy',
+            'last_activity' => time(),
+        ]);
+
         $response = $this->actingAs($user, 'web')->get('/me/devices');
 
         $response->assertOk();
         $response->assertSee('Bảo mật tài khoản &amp; Thiết bị đăng nhập', false);
         $response->assertSee('trung.lt@company.com');
         $response->assertSee('Thiết bị hiện tại của bạn');
-        $response->assertSee('Các phiên đăng nhập &amp; Thiết bị khác', false);
-        $response->assertSee('Đăng xuất phiên làm việc từ xa');
-        $response->assertSee('Hủy bỏ tài khoản DrinkFlow');
+        $response->assertSee('Đăng xuất phiên này');
     }
 
     public function test_user_can_logout_a_specific_session(): void

@@ -6,6 +6,7 @@ namespace App\Services\Room;
 
 use App\Support\Helpers\FormatHelper;
 use App\Enums\RoomUserStatus;
+use App\Enums\CampaignStatus;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\Room;
@@ -39,6 +40,11 @@ class UserRoomsService
                 'room' => function ($q) {
                     $q->withCount(['roomUsers' => function ($ru) {
                         $ru->where('status', RoomUserStatus::Active->value);
+                    }]);
+                    $q->with(['campaigns' => function ($campaigns): void {
+                        $campaigns->where('status', CampaignStatus::Active->value)
+                            ->orderByDesc('started_at')
+                            ->orderByDesc('id');
                     }]);
                 },
                 'orders',
@@ -89,7 +95,7 @@ class UserRoomsService
 
         // Notifications for layout
         $unreadNotificationsCount = $user->notifications()->whereNull('read_at')->count();
-        $notifications = $user->notifications()->latest()->take(5)->get();
+        $notifications = $user->notifications()->whereNull('read_at')->latest()->take(5)->get();
 
         $breadcrumbs = [
             ['label' => __('global.rooms.breadcrumb_personal'), 'url' => route('user.me.dashboard')],
@@ -138,6 +144,8 @@ class UserRoomsService
 
         $roomSlug = $membership->room?->slug ?: ('room-' . $membership->room_id);
         $roomIdDisplay = 'ROOM-ID: ' . strtoupper($roomSlug);
+        $campaign = $membership->room?->campaigns?->first();
+        $isLive = $campaign !== null;
 
         return (object) [
             'id' => $membership->id,
@@ -154,6 +162,11 @@ class UserRoomsService
             'total_spent_formatted' => FormatHelper::formatCurrency($totalSpent),
             'last_order_time' => $lastOrderTime,
             'dashboard_url' => $membership->room ? route('user.dashboard', $membership->room->slug ?? $membership->room->id) : '#',
+            'is_live' => $isLive,
+            'live_deadline' => $campaign?->deadline
+                ? FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i')
+                : null,
+            'live_ordering_expired' => $campaign?->deadline?->isPast() ?? false,
         ];
 
     }

@@ -14,6 +14,7 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CampaignController extends Controller
 {
@@ -27,7 +28,13 @@ class CampaignController extends Controller
      */
     public function addToCart(StoreCampaignCartRequest $request, \App\Models\Room $room, Campaign $campaign): JsonResponse
     {
-        abort_unless($campaign->room_id === $room->id && $campaign->status?->value === 'active', 404);
+        abort_unless($campaign->room_id === $room->id, 404);
+
+        if (! $campaign->isOrderable()) {
+            throw ValidationException::withMessages([
+                'campaign' => __('room.campaign.ordering_closed'),
+            ]);
+        }
 
         $data = $request->validated();
 
@@ -161,6 +168,7 @@ class CampaignController extends Controller
         /** @var \App\Models\RoomUser $roomUser */
         $roomUser = $request->attributes->get('room_user');
         abort_unless($campaign->room_id === $room->id, 404);
+        $this->ensureCampaignIsOrderable($campaign);
 
         return response()->json(['data' => $action->execute($campaign, $roomUser)]);
     }
@@ -179,9 +187,26 @@ class CampaignController extends Controller
         /** @var \App\Models\RoomUser $roomUser */
         $roomUser = $request->attributes->get('room_user');
         abort_unless($campaign->room_id === $room->id, 404);
+        $this->ensureCampaignIsOrderable($campaign);
 
         $action->execute($campaign, $roomUser);
 
         return response()->json(['data' => ['status' => 'pending']]);
+    }
+
+    /**
+     * Ensure that campaign participation changes are only available while ordering is open.
+     *
+     * @param Campaign $campaign Campaign being updated.
+     * @return void
+     * @throws ValidationException When the campaign is not currently orderable.
+     */
+    private function ensureCampaignIsOrderable(Campaign $campaign): void
+    {
+        if (! $campaign->isOrderable()) {
+            throw ValidationException::withMessages([
+                'campaign' => __('room.campaign.ordering_closed'),
+            ]);
+        }
     }
 }

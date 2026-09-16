@@ -169,12 +169,16 @@
                         </thead>
                         <tbody class="text-on-surface divide-y divide-outline-variant/20">
                             @forelse($debts as $debt)
+                                @php
+                                    $debtStatus = $debt->status instanceof \BackedEnum ? $debt->status->value : (string) $debt->status;
+                                    $isPaid = $debtStatus === \App\Enums\DebtStatus::Paid->value;
+                                @endphp
                                 <tr class="hover:bg-surface-container-low/50 transition-colors">
-                                    <td class="py-4 px-space-md font-tabular-nums font-bold text-primary">#DB-{{ $debt->id }}</td>
+                                    <td class="py-4 px-space-md font-tabular-nums font-bold text-primary font-mono">{{ $debt->code ?? 'N/A' }}</td>
                                     <td class="py-4 px-space-sm text-on-surface-variant whitespace-nowrap">{{ $debt->created_at?->format('d/m/Y H:i') }}</td>
                                     <td class="py-4 px-space-sm font-medium">
                                         <div class="flex flex-col">
-                                            <span class="text-on-surface font-semibold">{{ $debt->campaign?->name ?? 'Order' }}</span>
+                                            <span class="text-on-surface font-semibold">{{ $debt->campaign?->name ?? __('global.common.campaign') }}</span>
                                             <span class="text-[11px] text-on-surface-variant">{{ $debt->sponsor_description ?? '' }}</span>
                                         </div>
                                     </td>
@@ -184,13 +188,13 @@
                                         {{ number_format($debt->remaining_amount, 0, ',', '.') }}đ
                                     </td>
                                     <td class="py-4 px-space-sm text-center">
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm {{ $debt->status === 'paid' ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-error-container text-on-error-container' }} font-medium">
-                                            <span class="w-1.5 h-1.5 rounded-full {{ $debt->status === 'paid' ? 'bg-primary' : 'bg-error' }}"></span>
-                                            {{ $debt->status === 'paid' ? __('room.debts.status_paid') : __('room.debts.status_unpaid') }}
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-label-sm text-label-sm {{ $isPaid ? 'bg-primary-fixed text-on-primary-fixed-variant' : 'bg-error-container text-on-error-container' }} font-medium">
+                                            <span class="w-1.5 h-1.5 rounded-full {{ $isPaid ? 'bg-primary' : 'bg-error' }}"></span>
+                                            {{ $isPaid ? __('room.debts.status_paid') : __('room.debts.status_unpaid') }}
                                         </span>
                                     </td>
                                     <td class="py-4 px-space-md text-center">
-                                        @if($debt->status !== 'paid' && $debt->remaining_amount > 0)
+                                        @if(!$isPaid && $debt->remaining_amount > 0)
                                             <button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm hover:bg-primary-container transition-all inline-flex items-center gap-1 shadow-sm cursor-pointer"
                                                     @click="openQr({{ (int)$debt->remaining_amount }}, '{{ number_format($debt->remaining_amount, 0, ',', '.') }}đ', 'DFDB{{ $debt->id }} {{ $roomUser->user_code }}')">
                                                 <span class="material-symbols-outlined text-[16px]">qr_code</span>
@@ -206,8 +210,11 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="py-8 text-center text-on-surface-variant font-body-sm">
-                                        {{ __('room.debts.all_settled') }}
+                                    <td colspan="8" class="py-10 text-center text-on-surface-variant font-body-sm">
+                                        <div class="flex flex-col items-center justify-center gap-2">
+                                            <span class="material-symbols-outlined text-[36px] text-outline-variant" aria-hidden="true">receipt_long</span>
+                                            <span>{{ __('room.debts.all_settled') }}</span>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforelse

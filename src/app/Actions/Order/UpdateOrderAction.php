@@ -7,6 +7,7 @@ namespace App\Actions\Order;
 use App\Models\Order;
 use App\Models\Campaign;
 use App\Events\OrderUpdated;
+use App\Models\OrderItem;
 use App\Services\Audit\AuditService;
 use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Facades\DB;
@@ -26,9 +27,9 @@ class UpdateOrderAction
     {
         return DB::transaction(function () use ($order, $data): Order {
             $order = Order::query()->lockForUpdate()->findOrFail($order->id);
-            if (! $order->status->isActive()) {
+            if (! $order->status->isActive() || $order->status->value === 'cancelled') {
                 throw ValidationException::withMessages([
-                    'order' => __('admin.order_must_be_active_to_edit'),
+                    'order' => __('admin.order_cannot_edit_cancelled'),
                 ]);
             }
 
@@ -39,6 +40,7 @@ class UpdateOrderAction
             if (! empty($data['items']) && is_array($data['items'])) {
                 $priceChanges = [];
                 foreach ($data['items'] as $itemData) {
+                    /** @var OrderItem|null $orderItem */
                     $orderItem = $order->items()->whereKey($itemData['id'] ?? 0)->first();
                     if ($orderItem && isset($itemData['unit_price'])) {
                         $oldPrice = $orderItem->unit_price;
@@ -76,13 +78,34 @@ class UpdateOrderAction
                 $orderUpdate['final_amount'] = max(0, $newSubtotal + $order->delivery_amount - $order->discount_amount - $orderUpdate['sponsor_amount']);
 
                 if (! empty($priceChanges)) {
+                    $reason = (string) ($data['reason'] ?? __('admin.adjust_price'));
                     app(AuditService::class)->record('order.price_adjusted', 'order', $order->id, $order->room_id, [
                         'changes' => $priceChanges,
-                        'reason' => $data['reason'] ?? 'Price adjustment',
+                        'reason' => $reason,
                     ], [
                         'new_subtotal' => $orderUpdate['subtotal'],
                         'new_final_amount' => $orderUpdate['final_amount'],
                     ]);
+
+                    if ($order->roomUser) {
+                        $formattedFinal = FormatHelper::formatCurrency((int) $orderUpdate['final_amount']);
+                        app(\App\Services\Notification\UserNotificationService::class)->toRoomUser(
+                            $order->roomUser,
+                            'order.price_adjusted',
+                            __('messages.order_price_adjusted_title'),
+                            __('messages.order_price_adjusted_body', [
+                                'order_id' => $order->id,
+                                'amount' => $formattedFinal,
+                                'reason' => $reason,
+                            ]),
+                            [
+                                'order_id' => $order->id,
+                                'reason' => $reason,
+                                'final_amount' => $orderUpdate['final_amount'],
+                                'room_id' => $order->room_id,
+                            ]
+                        );
+                    }
                 }
             }
 

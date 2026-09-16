@@ -73,6 +73,10 @@
                 <span class="material-symbols-outlined text-[16px]">filter_alt</span>
                 {{ __('admin.filter_apply') }}
             </button>
+            <a href="{{ route('admin.room-users.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
+                <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
+                {{ __('admin.filter_clear') }}
+            </a>
         </div>
     </form>
 
@@ -94,7 +98,7 @@
                     @forelse($roomUsers as $ru)
                         @php
                             $name = $ru->globalUser?->name ?? $ru->display_name ?? 'Member #' . $ru->id;
-                            $email = $ru->globalUser?->email ?? 'N/A';
+                            $email = $ru->globalUser?->email ?? __('global.common.not_available');
                             $statusVal = $ru->status instanceof \BackedEnum ? $ru->status->value : (string) ($ru->status ?? 'active');
                             $roleVal = $ru->role instanceof \BackedEnum ? $ru->role->value : (string) ($ru->role ?? 'member');
                             $roleClass = match($roleVal) {

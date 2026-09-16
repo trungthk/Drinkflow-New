@@ -18,7 +18,7 @@
         <span>{{ __('room.blocked.badge', ['name' => strtoupper($room->name ?? 'ROOM')]) }}</span>
       </div>
       <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-        {{ __('room.blocked.title', ['name' => $room->name ?? 'Room']) }}
+        {{ __('room.blocked.title', ['name' => $room->name ?? __('global.common.room')]) }}
       </h1>
       <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-md">
         {{ __('room.blocked.subtitle') }}
@@ -32,7 +32,7 @@
         <div>
           <span class="font-bold text-slate-900 block">{{ __('room.blocked.reason_title') }}</span>
           <p class="mt-0.5 text-slate-600 leading-relaxed">
-            {{ __('room.blocked.reason_desc', ['name' => $room->name ?? 'Room']) }}
+            {{ __('room.blocked.reason_desc', ['name' => $room->name ?? __('global.common.room')]) }}
           </p>
         </div>
       </div>
@@ -44,7 +44,7 @@
         </div>
         <div class="flex items-center gap-2">
           <span class="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0"></span>
-          <span>{{ __('room.blocked.restriction_2', ['name' => $room->name ?? 'Room']) }}</span>
+          <span>{{ __('room.blocked.restriction_2', ['name' => $room->name ?? __('global.common.room')]) }}</span>
         </div>
         <div class="flex items-center gap-2">
           <span class="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0"></span>
@@ -61,7 +61,7 @@
         </div>
         <div>
           <span class="text-[10px] text-slate-400 block uppercase tracking-wider font-semibold">{{ __('room.blocked.admin_label') }}</span>
-          <span class="text-xs font-bold text-slate-900">{{ $adminUser->name ?? 'Quản trị viên Room' }}</span>
+          <span class="text-xs font-bold text-slate-900">{{ $adminUser->name ?? __('global.common.admin') }}</span>
         </div>
       </div>
       <a class="inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-[#006948] bg-white border border-slate-200 hover:border-emerald-300 px-3 py-1.5 rounded-xl shadow-2xs transition-colors" href="https://slack.com" rel="noopener noreferrer" target="_blank">

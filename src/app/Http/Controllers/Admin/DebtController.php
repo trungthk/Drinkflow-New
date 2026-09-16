@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Actions\Debt\AdjustDebtAction;
 use App\Actions\Debt\RecordDebtPaymentAction;
 use App\Actions\Debt\SetDebtStatusAction;
+use App\Enums\DebtStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DebtAdjustmentRequest;
 use App\Http\Requests\DebtPaymentRequest;
@@ -18,6 +19,7 @@ use App\Models\Room;
 use App\Services\Debt\DebtReminderService;
 use App\Services\Debt\DebtSettlementService;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -48,17 +50,63 @@ class DebtController extends Controller
      */
     public function page(Request $request, Room $room, \App\Services\Admin\AdminDebtService $debtService): View
     {
-        $debts = Debt::query()
+        $query = Debt::query()
             ->where('room_id', $room->id)
             ->with(['roomUser.globalUser', 'campaign'])
-            ->latest()
-            ->paginate(50);
+            ->latest();
+
+        $search = trim($request->string('search')->toString());
+        if ($search !== '') {
+            $normalizedSearch = mb_strtolower($search);
+            $query->where(function (Builder $debtQuery) use ($normalizedSearch, $search): void {
+                if (preg_match('/^(?:#?db-?)?(\d+)$/i', $search, $matches) === 1) {
+                    $debtQuery->orWhere('id', (int) $matches[1]);
+                }
+                $debtQuery
+                    ->orWhereRaw('LOWER(note) LIKE ?', ['%' . $normalizedSearch . '%'])
+                    ->orWhereHas('campaign', function (Builder $campaignQuery) use ($normalizedSearch): void {
+                        $campaignQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                            ->orWhereRaw('LOWER(restaurant) LIKE ?', ['%' . $normalizedSearch . '%']);
+                    })
+                    ->orWhereHas('roomUser', function (Builder $roomUserQuery) use ($normalizedSearch): void {
+                        $roomUserQuery->whereRaw('LOWER(display_name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                            ->orWhereRaw('LOWER(user_code) LIKE ?', ['%' . $normalizedSearch . '%'])
+                            ->orWhereHas('globalUser', function (Builder $userQuery) use ($normalizedSearch): void {
+                                $userQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                                    ->orWhereRaw('LOWER(email) LIKE ?', ['%' . $normalizedSearch . '%']);
+                            });
+                    });
+            });
+        }
+
+        $selectedStatus = $request->string('status')->toString() ?: 'all';
+        $status = DebtStatus::tryFrom($selectedStatus);
+        if ($status !== null) {
+            $query->where('status', $status->value);
+        } elseif ($selectedStatus !== 'all') {
+            $selectedStatus = 'all';
+        }
+
+        $debts = $query->paginate(50)->withQueryString();
 
         $summary = $debtService->getLedgerSummary($room);
 
         return view('admin.debts', array_merge([
             'room' => $room,
             'debts' => $debts,
+            'statusFilters' => collect([
+                DebtStatus::Pending,
+                DebtStatus::Unpaid,
+                DebtStatus::Partial,
+                DebtStatus::Paid,
+            ])->map(static fn (DebtStatus $status): array => [
+                'value' => $status->value,
+                'label' => __('admin.filter_debt_'.$status->value),
+            ])->all(),
+            'filters' => [
+                'search' => $search,
+                'status' => $selectedStatus,
+            ],
         ], $summary));
     }
 
@@ -157,13 +205,48 @@ class DebtController extends Controller
     public function export(Request $request, Room $room): \Symfony\Component\HttpFoundation\StreamedResponse
     {
         $debts = Debt::query()->where('room_id', $room->id)->with(['campaign', 'roomUser.globalUser'])->latest()->get();
+        $headings = [
+            __('admin.debt_export_campaign'),
+            __('admin.debt_export_user_code'),
+            __('admin.debt_export_user'),
+            __('admin.debt_export_date'),
+            __('admin.debt_export_original_amount'),
+            __('admin.debt_export_sponsor_type'),
+            __('admin.debt_export_sponsor_amount'),
+            __('admin.debt_export_paid_amount'),
+            __('admin.debt_export_remaining_amount'),
+            __('admin.debt_export_status'),
+        ];
+        $rows = $debts->map(static function (Debt $debt): array {
+            $sponsorType = $debt->sponsor_type ?: 'none';
+            $status = $debt->status instanceof DebtStatus ? $debt->status->value : (string) $debt->status;
 
-        return response()->streamDownload(function () use ($debts): void {
+            return [
+                $debt->campaign?->name,
+                $debt->roomUser?->user_code,
+                $debt->roomUser?->globalUser?->email,
+                $debt->created_at?->format('Y-m-d'),
+                $debt->original_amount,
+                __('admin.sponsor_type_'.$sponsorType),
+                $debt->sponsor_amount,
+                $debt->paid_amount,
+                $debt->remaining_amount,
+                __('admin.status_'.$status),
+            ];
+        });
+
+        return response()->streamDownload(function () use ($headings, $rows): void {
             $output = fopen('php://output', 'w');
-            fputcsv($output, ['campaign', 'user_code', 'user', 'date', 'original_amount', 'sponsor_type', 'sponsor_amount', 'paid_amount', 'remaining_amount', 'status']);
-            foreach ($debts as $debt) {
-                fputcsv($output, [$debt->campaign?->name, $debt->roomUser?->user_code, $debt->roomUser?->globalUser?->email, $debt->created_at?->format('Y-m-d'), $debt->original_amount, $debt->sponsor_type, $debt->sponsor_amount, $debt->paid_amount, $debt->remaining_amount, $debt->status?->value]);
+            if ($output === false) {
+                throw new \RuntimeException('Unable to open the CSV output stream.');
             }
+
+            fwrite($output, "\xEF\xBB\xBF");
+            fputcsv($output, $headings);
+            foreach ($rows as $row) {
+                fputcsv($output, $row);
+            }
+
             fclose($output);
         }, 'drinkflow-'.$room->slug.'-debts.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }

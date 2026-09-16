@@ -222,7 +222,7 @@
             $bankCode = $account?->bank_code ?? $defaultBank['bank_code'];
             $accNumber = $account ? $account->getRawOriginal('account_number') : $defaultBank['account_number'];
             $accName = $account?->account_name ?? ($order->campaign?->sponsor_name ?? $defaultBank['account_name']);
-            $hostName = $order->campaign?->sponsor_name ?? 'Host Room ' . ($order->room?->name ?? '');
+          $hostName = $order->campaign?->sponsor_name ?? __('global.payments.host_room', ['name' => $order->room?->name ?? '']);
 
             // Transfer note syntax
             $transferSyntax = 'DF' . $order->id . ' ' . strtoupper(Str::slug($user->name ?: 'USER', ''));
@@ -236,14 +236,14 @@
 
             $orderQrData = [
                 'order_id' => $order->id,
-                'order_code' => '#ORD-' . $order->id,
+                'order_code' => $order->code ?? 'N/A',
                 'amount' => (int) $order->final_amount,
                 'bank_name' => $bankName,
                 'bank_code' => $bankCode,
                 'account_number' => $accNumber,
                 'account_name' => $accName,
                 'transfer_content' => $transferSyntax,
-                'room_name' => $order->room?->name ?? 'DrinkFlow Room',
+                'room_name' => $order->room?->name ?? __('global.common.room'),
                 'restaurant' => $order->campaign?->restaurant ?? ($order->campaign?->name ?? 'Store'),
             ];
           @endphp
@@ -259,12 +259,12 @@
                   </div>
                   <div>
                     <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                      <span class="font-bold text-base text-slate-900 font-mono">#ORD-{{ $order->id }}</span>
+                      <span class="font-bold text-base text-slate-900 font-mono">{{ $order->code ?? 'N/A' }}</span>
                       <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
                         <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
                         {{ __('global.payments.tab_unpaid') }}
                       </span>
-                      <span class="text-xs text-slate-400">• Room: <strong class="text-slate-800">{{ $order->room?->name ?? 'General' }}</strong></span>
+                      <span class="text-xs text-slate-400">• {{ __('global.common.room') }}: <strong class="text-slate-800">{{ $order->room?->name ?? __('global.common.room') }}</strong></span>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-y-1 gap-x-3 text-xs text-slate-500">
@@ -273,44 +273,40 @@
                         {{ __('global.dashboard.col_restaurant') }}: <strong class="text-slate-800 font-medium">{{ $order->campaign?->restaurant ?? ($order->campaign?->name ?? '') }}</strong>
                       </span>
                       <span>•</span>
-                      <span class="flex items-center gap-1 text-rose-600 font-medium">
-                        <span class="material-symbols-outlined text-[15px]">schedule</span>
-                        {{ __('global.payments.due_today') }}
+                      <span class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[15px] text-slate-400">schedule</span>
+                        {{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '' }}
                       </span>
                     </div>
 
-                    <p class="text-xs text-slate-500 mt-2 line-clamp-1">
-                      {{ __('global.payments.order_items_detail') }} <span class="text-slate-700 font-medium">{{ $itemsSummary ?: 'Drink item' }}</span>
-                    </p>
+                    <div class="text-xs text-slate-400 mt-2 flex flex-wrap items-center gap-2">
+                      <span>{{ __('global.payments.transfer_syntax') }} <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono text-[11px]">{{ $transferSyntax }}</code></span>
+                      <span>•</span>
+                      <span>{{ __('global.payments.reconcile_code') }} <span class="font-mono text-slate-700">NP{{ $order->created_at ? $order->created_at->format('Ymd') : '2026' }}{{ $order->id }}</span></span>
+                    </div>
                   </div>
                 </div>
 
-                <!-- Column 2: Financials & Settlement Actions -->
+                <!-- Column 2: Financials & Instant Actions -->
                 <div class="flex flex-col sm:flex-row lg:flex-col sm:items-end justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100 gap-3 shrink-0">
                   <div class="text-left sm:text-right">
-                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('global.payments.amount_to_pay') }}</div>
+                    <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('global.payments.col_total_amount') }}</div>
                     <div class="text-2xl font-bold text-rose-600 font-mono">{{ number_format($order->final_amount, 0, ',', '.') }} {{ __('global.common.money_suffix') }}</div>
-                    <div class="text-xs text-slate-400">{{ __('global.payments.host_label') }} <span class="font-medium text-slate-700">{{ $hostName }}</span></div>
+                    @if($order->sponsor_amount > 0)
+                      <div class="text-xs text-emerald-700 font-semibold mt-0.5">
+                        {{ __('global.payments.sponsored_amount', ['amount' => number_format($order->sponsor_amount, 0, ',', '.') . ' ' . __('global.common.money_suffix')]) }}
+                      </div>
+                    @endif
                   </div>
 
-                  <!-- Action Buttons -->
                   <div class="flex items-center gap-2">
                     <button
                       type="button"
-                      @click="openQr(@js($orderQrData))"
-                      class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-300 hover:border-[#006948] hover:text-[#006948] text-slate-700 rounded-xl text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
+                      @click="openQrModal({{ json_encode($orderQrData) }})"
+                      class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                     >
-                      <span class="material-symbols-outlined text-[17px] text-[#006948]">qr_code_scanner</span>
+                      <span class="material-symbols-outlined text-[16px]">qr_code_scanner</span>
                       {{ __('global.payments.scan_vietqr') }}
-                    </button>
-
-                    <button
-                      type="button"
-                      @click="triggerToast('{{ __('global.common.copied') }}')"
-                      class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-semibold transition-colors shadow-xs cursor-pointer"
-                    >
-                      <span class="material-symbols-outlined text-[17px]">check_circle</span>
-                      {{ __('global.payments.confirm_transferred') }}
                     </button>
                   </div>
                 </div>
@@ -327,12 +323,12 @@
                   </div>
                   <div>
                     <div class="flex flex-wrap items-center gap-2 mb-1.5">
-                      <span class="font-bold text-base text-slate-900 font-mono">#ORD-{{ $order->id }}</span>
+                      <span class="font-bold text-base text-slate-900 font-mono">{{ $order->code ?? 'N/A' }}</span>
                       <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         <span class="material-symbols-outlined text-[13px]">check</span>
                         {{ __('global.payments.paid_badge') }}
                       </span>
-                      <span class="text-xs text-slate-400">• Room: <strong class="text-slate-800">{{ $order->room?->name ?? 'General' }}</strong></span>
+                      <span class="text-xs text-slate-400">• {{ __('global.common.room') }}: <strong class="text-slate-800">{{ $order->room?->name ?? __('global.common.room') }}</strong></span>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-y-1 gap-x-3 text-xs text-slate-500">
@@ -369,7 +365,7 @@
                   <div>
                     <button
                       type="button"
-                      @click="triggerToast('{{ __('global.payments.transfer_receipt') }} #ORD-{{ $order->id }}')"
+                      @click="triggerToast('{{ __('global.payments.transfer_receipt') }} ' + '{{ $order->code ?? 'N/A' }}')"
                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
                     >
                       <span class="material-symbols-outlined text-[15px]">receipt</span>

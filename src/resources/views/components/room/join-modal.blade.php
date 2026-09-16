@@ -21,10 +21,10 @@
         <span class="material-symbols-outlined text-[32px]">corporate_fare</span>
       </div>
       <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
-        {{ __('room.join.title', ['name' => $room->name ?? 'Room']) }}
+        {{ __('room.join.title', ['name' => $room->name ?? __('global.common.room')]) }}
       </h1>
       <p class="text-xs sm:text-sm text-slate-500 mt-1 flex items-center justify-center gap-1.5 flex-wrap">
-        <span>{{ $room->description ?? 'Không gian đặt đồ uống nội bộ' }}</span>
+        <span>{{ $room->description ?? __('room.join.default_description') }}</span>
         @if($room->timezone)
           <span class="text-slate-300">•</span>
           <span>{{ $room->timezone }}</span>
@@ -37,13 +37,13 @@
       <div class="relative shrink-0">
         <img class="w-13 h-13 rounded-full object-cover border-2 border-white ring-2 ring-emerald-600/30 shadow-xs" 
              src="{{ $user->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($user->name ?? 'User').'&background=006948&color=ffffff&bold=true' }}" 
-             alt="{{ $user->name ?? 'User' }}"
+             alt="{{ $user->name ?? __('global.common.user') }}"
              loading="lazy">
         <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full ring-2 ring-white" title="{{ __('room.join.ready_badge') }}"></span>
       </div>
       <div class="flex flex-col min-w-0 flex-1">
         <div class="flex items-center justify-between gap-2">
-          <span class="font-bold text-sm text-slate-900 truncate">{{ $user->name ?? 'User' }}</span>
+          <span class="font-bold text-sm text-slate-900 truncate">{{ $user->name ?? __('global.common.user') }}</span>
           <span class="shrink-0 px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-mono text-xs font-semibold">{{ $suggestedCode }}</span>
         </div>
         <span class="text-xs text-slate-500 truncate">{{ $user->email ?? '' }}</span>
@@ -54,7 +54,7 @@
     <!-- Info Explanation Box -->
     <div class="mt-3.5 p-3.5 rounded-xl bg-emerald-50/50 border border-emerald-100 flex items-start gap-2.5 text-slate-600 text-xs leading-relaxed">
       <span class="material-symbols-outlined text-[#006948] text-[18px] shrink-0 mt-0.5">info</span>
-      <p>{{ __('room.join.intro_desc', ['name' => $room->name ?? 'Room', 'code' => $suggestedCode]) }}</p>
+      <p>{{ __('room.join.intro_desc', ['name' => $room->name ?? __('global.common.room'), 'code' => $suggestedCode]) }}</p>
     </div>
 
     <!-- Actions Form -->
@@ -63,7 +63,7 @@
       <input type="hidden" name="user_code" value="{{ $suggestedCode }}">
       <button type="submit" class="w-full h-11 inline-flex items-center justify-center gap-2 rounded-xl bg-[#006948] hover:bg-[#005137] text-white font-semibold text-xs transition-colors shadow-xs cursor-pointer">
         <span class="material-symbols-outlined text-[18px]">group_add</span>
-        <span>{{ __('room.join.button', ['name' => $room->name ?? 'Room']) }}</span>
+        <span>{{ __('room.join.button', ['name' => $room->name ?? __('global.common.room')]) }}</span>
       </button>
       <a class="inline-flex items-center justify-center py-2 text-xs text-slate-500 hover:text-slate-900 transition-colors text-center font-medium" href="{{ route('user.me.rooms') }}">
         {{ __('global.common.back') }}

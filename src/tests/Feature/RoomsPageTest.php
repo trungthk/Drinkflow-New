@@ -127,7 +127,8 @@ class RoomsPageTest extends TestCase
             'room_id' => $room->id,
             'name' => 'Trà sữa chiều',
             'restaurant' => 'Phúc Long',
-            'status' => CampaignStatus::Closed->value,
+            'status' => CampaignStatus::Active->value,
+            'deadline' => now()->addHour(),
         ]);
 
         Order::create([
@@ -145,7 +146,10 @@ class RoomsPageTest extends TestCase
         $response->assertSee('Room của tôi');
         $response->assertSee('Team Kỹ thuật &amp; Hạ tầng', false);
         $response->assertSee('ROOM-ID: TECH-INFRA-88');
-        $response->assertSee('Đang hoạt động');
+        $response->assertSee(__('global.dashboard.room_live'));
+        $response->assertSee(__('global.dashboard.room_order_deadline', [
+            'time' => $campaign->deadline->format('d/m/Y H:i'),
+        ]));
         $response->assertSee('1 đơn');
         $response->assertSee('50.000đ');
         $response->assertSee('Vào Room');

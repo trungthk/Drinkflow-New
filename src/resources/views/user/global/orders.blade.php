@@ -265,7 +265,7 @@
 
                   $orderJson = [
                       'id' => $order->id,
-                      'code' => '#ORD-' . $order->id,
+                      'code' => $order->code ?? 'N/A',
                       'created_at' => $order->created_at ? $order->created_at->format('d/m/Y H:i') : '',
                       'room_name' => $order->room?->name ?? '',
                       'restaurant' => $order->campaign?->restaurant ?? ($order->campaign?->name ?? ''),
@@ -287,7 +287,7 @@
                   <td class="py-3 px-4">
                     <div class="flex items-center gap-1 font-bold text-[#006948] font-mono">
                       <span class="material-symbols-outlined text-[15px]">pin</span>
-                      #ORD-{{ $order->id }}
+                      {{ $order->code ?? 'N/A' }}
                     </div>
                     <div class="text-[11px] text-slate-400 mt-0.5">
                       {{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : '' }}
@@ -298,7 +298,7 @@
                   <td class="py-3 px-4">
                     <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">
                       <span class="w-1.5 h-1.5 rounded-full bg-[#006948]"></span>
-                      {{ $order->room?->name ?? 'Room' }}
+                      {{ $order->room?->name ?? __('global.common.room') }}
                     </span>
                   </td>
 

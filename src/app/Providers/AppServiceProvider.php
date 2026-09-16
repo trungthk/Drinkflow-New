@@ -22,7 +22,12 @@ use App\Listeners\NotifyCampaignCancelled;
 use App\Listeners\NotifyCampaignCreated;
 use App\Listeners\NotifyOrderDeleted;
 use App\Listeners\PublishRealtimeEvent;
+use App\View\Composers\AdminLayoutComposer;
+use App\View\Composers\UserGlobalLayoutComposer;
+use App\View\Composers\UserRoomLayoutComposer;
+use App\View\Composers\PublicLayoutComposer;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -136,7 +141,11 @@ class AppServiceProvider extends ServiceProvider
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(20)->by($ip);
         });
 
-        \Illuminate\Support\Facades\View::share('locales', \App\Constants\AppLocale::SUPPORTED);
+        View::composer(['components.admin.*', 'admin.*'], AdminLayoutComposer::class);
+        View::composer(['components.global.*', 'user.global.*'], UserGlobalLayoutComposer::class);
+        View::composer(['components.room.*', 'user.room.*'], UserRoomLayoutComposer::class);
+        View::composer(['components.public.*', 'public.*'], PublicLayoutComposer::class);
+        View::share('locales', \App\Constants\AppLocale::SUPPORTED);
 
         \Illuminate\Support\Facades\Blade::directive('formatDate', function ($expression) {
             return "<?php echo \App\Support\Helpers\FormatHelper::formatDate($expression); ?>";

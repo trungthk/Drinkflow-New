@@ -10,11 +10,15 @@ use App\Actions\Order\UpdateOrderStatusAction;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\BulkCancelOrdersRequest;
+use App\Http\Requests\BulkUpdateOrderStatusRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
+use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\Room;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -47,37 +51,59 @@ class OrderController extends Controller
      */
     public function page(Request $request, Room $room): View
     {
+        $activeCampaign = Campaign::where('room_id', $room->id)
+            ->where('status', CampaignStatus::Active->value)
+            ->with(['paymentAccount'])
+            ->withCount('orders')
+            ->first();
+
+        $paymentAccount = $activeCampaign?->paymentAccount
+            ?? $room->paymentAccounts()->where('is_default', true)->first()
+            ?? $room->paymentAccounts()->first();
+
         $query = Order::where('room_id', $room->id)
-            ->whereHas('campaign', fn ($campaignQuery) => $campaignQuery->where('status', CampaignStatus::Active->value))
+            ->whereHas('campaign', static fn (Builder $campaignQuery): Builder => $campaignQuery->where('status', CampaignStatus::Active->value))
             ->with(['roomUser.globalUser', 'items.toppings', 'campaign'])
             ->latest();
 
         $search = trim($request->string('search')->toString());
         if ($search !== '') {
             $normalizedSearch = mb_strtolower($search);
-            $query->where(function ($orderQuery) use ($normalizedSearch, $search): void {
-                if (ctype_digit($search)) {
-                    $orderQuery->orWhere('id', (int) $search);
+            $query->where(function (Builder $orderQuery) use ($normalizedSearch, $search): void {
+                if (preg_match('/^(?:#?ord-?)?(\d+)$/i', $search, $matches) === 1) {
+                    $orderQuery->orWhere('id', (int) $matches[1]);
                 }
                 $orderQuery
+                    ->orWhereRaw('LOWER(code) LIKE ?', ['%' . $normalizedSearch . '%'])
                     ->orWhereRaw('LOWER(note) LIKE ?', ['%' . $normalizedSearch . '%'])
-                    ->orWhereHas('campaign', function ($campaignQuery) use ($normalizedSearch): void {
+                    ->orWhereHas('campaign', function (Builder $campaignQuery) use ($normalizedSearch): void {
                         $campaignQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearch . '%'])
                             ->orWhereRaw('LOWER(restaurant) LIKE ?', ['%' . $normalizedSearch . '%']);
                     })
-                    ->orWhereHas('roomUser', function ($roomUserQuery) use ($normalizedSearch): void {
+                    ->orWhereHas('roomUser', function (Builder $roomUserQuery) use ($normalizedSearch): void {
                         $roomUserQuery->whereRaw('LOWER(display_name) LIKE ?', ['%' . $normalizedSearch . '%'])
                             ->orWhereRaw('LOWER(user_code) LIKE ?', ['%' . $normalizedSearch . '%'])
-                            ->orWhereHas('globalUser', function ($userQuery) use ($normalizedSearch): void {
+                            ->orWhereHas('globalUser', function (Builder $userQuery) use ($normalizedSearch): void {
                                 $userQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearch . '%'])
                                     ->orWhereRaw('LOWER(email) LIKE ?', ['%' . $normalizedSearch . '%']);
+                            });
+                    })
+                    ->orWhereHas('items', function (Builder $itemQuery) use ($normalizedSearch): void {
+                        $itemQuery->whereRaw('LOWER(item_name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                            ->orWhereRaw('LOWER(size_name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                            ->orWhereHas('toppings', function (Builder $toppingQuery) use ($normalizedSearch): void {
+                                $toppingQuery->whereRaw('LOWER(topping_name) LIKE ?', ['%' . $normalizedSearch . '%']);
                             });
                     });
             });
         }
 
-        if ($request->filled('status') && $request->string('status')->toString() !== 'all') {
-            $query->where('status', $request->string('status')->toString());
+        $selectedStatus = $request->string('status')->toString() ?: 'all';
+        $status = OrderStatus::tryFrom($selectedStatus);
+        if ($status !== null) {
+            $query->where('status', $status->value);
+        } elseif ($selectedStatus !== 'all') {
+            $selectedStatus = 'all';
         }
 
         $orders = $query->paginate(50)->withQueryString();
@@ -85,6 +111,8 @@ class OrderController extends Controller
         return view('admin.orders', [
             'room' => $room,
             'orders' => $orders,
+            'activeCampaign' => $activeCampaign,
+            'paymentAccount' => $paymentAccount,
             'statusFilters' => collect(OrderStatus::cases())->map(static fn (OrderStatus $status): array => [
                 'value' => $status->value,
                 'label' => __('admin.status_'.match ($status) {
@@ -95,13 +123,14 @@ class OrderController extends Controller
             ])->values()->all(),
             'filters' => [
                 'search' => $search,
-                'status' => $request->string('status')->toString() ?: 'all',
+                'status' => $selectedStatus,
             ],
         ]);
     }
 
     /**
-     * Handle the show operation.
+     * Display the specified order details as JSON.
+     *
      * @param Room $room Parameter value.
      * @param Order $order Parameter value.
      * @return JsonResponse Result of the operation.
@@ -109,11 +138,11 @@ class OrderController extends Controller
     public function show(Room $room, Order $order): JsonResponse
     {
         $this->assertRoom($order);
-        return response()->json(['data' => $order->load(['roomUser.globalUser', 'items.toppings', 'campaign'])]);
+        return response()->json(['data' => $order->loadMissing(['roomUser.globalUser', 'items.toppings', 'campaign'])]);
     }
 
     /**
-     * Handle the update operation.
+     * Handle the update item price operation.
      * @param UpdateOrderRequest $request Parameter value.
      * @param Room $room Parameter value.
      * @param Order $order Parameter value.
@@ -138,6 +167,91 @@ class OrderController extends Controller
     {
         $this->assertRoom($order);
         return response()->json(['data' => $action->execute($order, $request->validated('status'))]);
+    }
+
+    /**
+     * Batch update status for multiple orders.
+     *
+     * @param BulkUpdateOrderStatusRequest $request Incoming validated request.
+     * @param Room $room Target room.
+     * @param UpdateOrderStatusAction $action Status transition action.
+     * @return JsonResponse Result with count of updated orders.
+     */
+    public function bulkStatus(BulkUpdateOrderStatusRequest $request, Room $room, UpdateOrderStatusAction $action): JsonResponse
+    {
+        $orderIds = $request->validated('order_ids');
+        $targetStatus = (string) $request->validated('status');
+
+        $orders = Order::where('room_id', $room->id)
+            ->whereIn('id', $orderIds)
+            ->where('status', '!=', OrderStatus::Cancelled->value)
+            ->whereNull('cancelled_at')
+            ->get();
+
+        $updatedCount = 0;
+        foreach ($orders as $order) {
+            $statusValue = $order->status instanceof \BackedEnum ? $order->status->value : (string) $order->status;
+            if ($statusValue === 'cancelled' || $order->cancelled_at !== null || $statusValue === $targetStatus) {
+                continue;
+            }
+            try {
+                $action->execute($order, $targetStatus);
+                $updatedCount++;
+            } catch (\Throwable) {
+                // Skip invalid transitions for individual orders in bulk mode
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'updated_count' => $updatedCount,
+            ],
+            'updated_count' => $updatedCount,
+            'message' => __('admin.bulk_status_updated_success', ['count' => $updatedCount]),
+        ]);
+    }
+
+    /**
+     * Batch cancel multiple orders.
+     *
+     * @param BulkCancelOrdersRequest $request Incoming validated request.
+     * @param Room $room Target room.
+     * @param UpdateOrderStatusAction $action Status transition action.
+     * @return JsonResponse Result with count of cancelled orders.
+     */
+    public function bulkCancel(BulkCancelOrdersRequest $request, Room $room, UpdateOrderStatusAction $action): JsonResponse
+    {
+        $orderIds = $request->validated('order_ids');
+
+        $orders = Order::where('room_id', $room->id)
+            ->whereIn('id', $orderIds)
+            ->where('status', '!=', OrderStatus::Cancelled->value)
+            ->whereNull('cancelled_at')
+            ->get();
+
+        $cancelledCount = 0;
+        foreach ($orders as $order) {
+            $statusValue = $order->status instanceof \BackedEnum ? $order->status->value : (string) $order->status;
+            if ($statusValue === 'cancelled' || $order->cancelled_at !== null) {
+                continue;
+            }
+            try {
+                $action->execute($order, OrderStatus::Cancelled->value);
+                $cancelledCount++;
+            } catch (\Throwable) {
+                // Skip invalid transitions for individual orders in bulk mode
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'cancelled_count' => $cancelledCount,
+            ],
+            'cancelled_count' => $cancelledCount,
+            'message' => __('admin.bulk_cancelled_success', ['count' => $cancelledCount]),
+        ]);
     }
 
     /**

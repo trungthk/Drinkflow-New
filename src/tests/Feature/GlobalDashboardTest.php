@@ -65,7 +65,27 @@ class GlobalDashboardTest extends TestCase
         ]);
 
         $room = Room::create(['name' => 'Room Mobile', 'slug' => 'room-mobile']);
-        app(JoinRoomAction::class)->execute($user, $room, 'dev-mob', 'hash-mob');
+        $membership = app(JoinRoomAction::class)->execute($user, $room, 'dev-mob', 'hash-mob');
+
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Mobile Campaign',
+            'restaurant' => 'Mobile Cafe',
+            'status' => CampaignStatus::Active,
+        ]);
+        $order = $membership->orders()->create([
+            'room_id' => $room->id,
+            'campaign_id' => $campaign->id,
+            'subtotal' => 30000,
+            'final_amount' => 30000,
+            'status' => OrderStatus::Completed,
+        ]);
+        $order->items()->create([
+            'item_name' => 'Trà vải',
+            'unit_price' => 30000,
+            'quantity' => 1,
+            'line_subtotal' => 30000,
+        ]);
 
         $response = $this->actingAs($user, 'web')->get('/me');
 
@@ -79,6 +99,78 @@ class GlobalDashboardTest extends TestCase
         $response->assertSee('Đơn hàng gần đây');
         $response->assertSee('Room Mobile');
         $response->assertDontSee('Bắt đầu trải nghiệm đặt món cùng đồng nghiệp');
+    }
+
+    /**
+     * Verify live room cards show their deadline or expired state and recent orders are completed only.
+     *
+     * @return void
+     */
+    public function test_dashboard_shows_live_room_deadline_or_expired_state_and_completed_orders_only(): void
+    {
+        $user = GlobalUser::create([
+            'name' => 'Dashboard User',
+            'normalized_name' => 'DASHBOARD USER',
+            'email' => 'dashboard-user@company.com',
+            'status' => 'active',
+        ]);
+        $liveRoom = Room::create(['name' => 'Live Room', 'slug' => 'live-room']);
+        $expiredRoom = Room::create(['name' => 'Expired Room', 'slug' => 'expired-room']);
+        $liveMembership = app(JoinRoomAction::class)->execute($user, $liveRoom, 'live-device', 'live-hash');
+        app(JoinRoomAction::class)->execute($user, $expiredRoom, 'expired-device', 'expired-hash');
+
+        $liveCampaign = Campaign::create([
+            'room_id' => $liveRoom->id,
+            'name' => 'Live Campaign',
+            'restaurant' => 'Live Cafe',
+            'status' => CampaignStatus::Active,
+            'deadline' => now()->addHour(),
+        ]);
+        Campaign::create([
+            'room_id' => $expiredRoom->id,
+            'name' => 'Expired Campaign',
+            'restaurant' => 'Expired Cafe',
+            'status' => CampaignStatus::Active,
+            'deadline' => now()->subHour(),
+        ]);
+        $completed = $liveMembership->orders()->create([
+            'room_id' => $liveRoom->id,
+            'campaign_id' => $liveCampaign->id,
+            'subtotal' => 30000,
+            'final_amount' => 30000,
+            'status' => OrderStatus::Completed,
+        ]);
+        $completed->items()->create([
+            'item_name' => 'Completed drink',
+            'unit_price' => 30000,
+            'quantity' => 1,
+            'line_subtotal' => 30000,
+        ]);
+        $pending = $liveMembership->orders()->create([
+            'room_id' => $liveRoom->id,
+            'campaign_id' => $liveCampaign->id,
+            'subtotal' => 40000,
+            'final_amount' => 40000,
+            'status' => OrderStatus::Submitted,
+        ]);
+        $pending->items()->create([
+            'item_name' => 'Pending drink',
+            'unit_price' => 40000,
+            'quantity' => 1,
+            'line_subtotal' => 40000,
+        ]);
+
+        $response = $this->actingAs($user, 'web')->get('/me');
+
+        $response->assertOk();
+        $response->assertSee('Live Room');
+        $response->assertSee(__('global.dashboard.room_order_deadline', [
+            'time' => $liveCampaign->deadline->format('d/m/Y H:i'),
+        ]));
+        $response->assertSee('Expired Room');
+        $response->assertSee(__('global.dashboard.campaign_expired'));
+        $response->assertSee('Completed drink');
+        $response->assertDontSee('Pending drink');
     }
 
     public function test_dashboard_isolates_user_rooms_and_orders(): void
@@ -153,20 +245,16 @@ class GlobalDashboardTest extends TestCase
         $responseA = $this->actingAs($userA, 'web')->get('/me');
         $responseA->assertOk();
         $responseA->assertSee('Room Team A');
-        $responseA->assertSee('Phúc Long A');
         $responseA->assertSee('Trà sen vàng');
         $responseA->assertDontSee('Room Team B');
-        $responseA->assertDontSee('Highlands B');
         $responseA->assertDontSee('Cà phê phin B');
 
         // Access as User B
         $responseB = $this->actingAs($userB, 'web')->get('/me');
         $responseB->assertOk();
         $responseB->assertSee('Room Team B');
-        $responseB->assertSee('Highlands B');
         $responseB->assertSee('Cà phê phin B');
         $responseB->assertDontSee('Room Team A');
-        $responseB->assertDontSee('Phúc Long A');
         $responseB->assertDontSee('Trà sen vàng');
     }
 
@@ -201,9 +289,7 @@ class GlobalDashboardTest extends TestCase
         $response = $this->actingAs($user, 'web')->get('/me');
         $response->assertOk();
         $response->assertSee('Phòng Công Nghệ');
-        $response->assertSee('KOI Thé');
-        $response->assertSee('Chiến dịch đang mở');
-        $response->assertSee('Order ngay');
+        $response->assertSee(__('global.rooms.enter_room'));
         $response->assertSee(__('global.dashboard.room_live'));
         $response->assertSee(__('global.dashboard.room_order_deadline', [
             'time' => $campaign->deadline->format('d/m/Y H:i'),

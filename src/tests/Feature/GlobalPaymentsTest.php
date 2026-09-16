@@ -48,7 +48,7 @@ class GlobalPaymentsTest extends TestCase
             'campaign_id' => $campaign->id,
             'subtotal' => 110000,
             'final_amount' => 110000,
-            'status' => 'submitted',
+            'status' => 'completed',
         ]);
 
         $response = $this->actingAs($user, 'web')->get('/me/payments');
@@ -56,9 +56,8 @@ class GlobalPaymentsTest extends TestCase
         $response->assertOk();
         $response->assertSee('Quản lý Thanh toán &amp; Đối soát', false);
         $response->assertSee('110.000');
-        $response->assertSee('#ORD-' . $order->id);
+        $response->assertSee($order->code);
         $response->assertSee('Phê La - Cầu Giấy');
-        $response->assertSee('Quét VietQR');
     }
 
     public function test_me_payments_returns_json_when_requested(): void

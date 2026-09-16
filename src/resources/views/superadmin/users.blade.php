@@ -46,8 +46,20 @@
             } = await dfApi('{{ route('superadmin.global-users.index') }}' + (q ? '?q=' + encodeURIComponent(q) : ''));
             document.querySelector('#user-count').textContent = `${data.total} global user`;
             document.querySelector('#users-table').innerHTML = data.data.length ? data.data.map(u =>
-                `<tr><td><strong>${escapeHtml(u.name)}</strong><br><small>${escapeHtml(u.email)}</small></td><td>${(u.oauth_identities||[]).map(i=>escapeHtml(i.provider)).join(', ')||'—'}</td><td>${u.room_users_count}</td><td>${statusPill(u.status)}</td><td><div class="superadmin-actions"><a class="sa-button secondary" href="/superadmin/global-users/${u.id}/page">Detail</a>${u.status==='blocked'?`<button class="sa-button" onclick="setUserStatus(${u.id},'active')">Unblock</button>`:`<button class="sa-button danger" onclick="setUserStatus(${u.id},'blocked')">Block</button>`}</div></td></tr>`
+                `<tr><td><strong>${escapeHtml(u.name)}</strong><br><small>${escapeHtml(u.email)}</small></td><td>${(u.oauth_identities||[]).map(i=>escapeHtml(i.provider)).join(', ')||'—'}</td><td>${u.room_users_count}</td><td>${statusPill(u.status)}</td><td><div class="superadmin-actions"><a class="sa-button secondary" href="/superadmin/global-users/${u.id}/page">Detail</a>${u.status==='blocked'?`<button class="sa-button" onclick="setUserStatus(${u.id},'active')">Unblock</button>`:`<button class="sa-button danger" onclick="setUserStatus(${u.id},'blocked')">Block</button>`}<button class="sa-button danger" onclick="deleteUser(${u.id})">Delete</button></div></td></tr>`
                 ).join('') : '<tr><td colspan="5" class="sa-empty">Chưa có user phù hợp.</td></tr>';
+        }
+        async function deleteUser(id) {
+            if (!confirm('Bạn có chắc chắn muốn xóa Global User này? Thao tác không thể hoàn tác nếu user không còn nợ.')) return;
+            try {
+                await dfApi(`/superadmin/global-users/${id}`, {
+                    method: 'DELETE'
+                });
+                userNotice('Đã xóa Global User thành công.');
+                loadUsers();
+            } catch (e) {
+                userNotice(e.message, 'error');
+            }
         }
         async function setUserStatus(id, status) {
             try {

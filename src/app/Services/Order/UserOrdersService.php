@@ -24,7 +24,7 @@ class UserOrdersService
     public function getOrdersPageData(GlobalUser $user, Request $request): array
     {
         $unreadNotificationsCount = $user->notifications()->whereNull('read_at')->count();
-        $notifications = $user->notifications()->latest()->take(5)->get();
+        $notifications = $user->notifications()->whereNull('read_at')->latest()->take(5)->get();
 
         $breadcrumbs = [
             ['label' => __('global.rooms.breadcrumb_personal'), 'url' => route('user.me.dashboard')],
@@ -101,15 +101,13 @@ class UserOrdersService
         $prevMonthEnd = $now->copy()->subMonth()->endOfMonth();
 
         $allUserOrders = Order::query()->whereIn('room_user_id', $roomUserIds);
-        $thisMonthOrders = (clone $allUserOrders)->whereDate('created_at', '>=', $thisMonthStart);
-        $prevMonthOrdersCount = (clone $allUserOrders)->whereDate('created_at', '>=', $prevMonthStart)->whereDate('created_at', '<=', $prevMonthEnd)->count();
+        $completedOrders = (clone $allUserOrders)->where('status', OrderStatus::Completed->value);
+        $thisMonthOrders = (clone $completedOrders)->whereDate('created_at', '>=', $thisMonthStart);
+        $prevMonthOrdersCount = (clone $completedOrders)->whereDate('created_at', '>=', $prevMonthStart)->whereDate('created_at', '<=', $prevMonthEnd)->count();
 
         $totalOrdersCount = (clone $thisMonthOrders)->count();
         $ordersDiff = $totalOrdersCount - $prevMonthOrdersCount;
-        $totalSpent = (int) (clone $thisMonthOrders)->whereIn('status', ['paid', 'completed'])->sum('final_amount');
-        if ($totalSpent === 0) {
-            $totalSpent = (int) (clone $thisMonthOrders)->sum('final_amount');
-        }
+        $totalSpent = (int) (clone $thisMonthOrders)->sum('final_amount');
         $totalSponsor = (int) (clone $thisMonthOrders)->sum('sponsor_amount');
         $pendingPaymentAmount = (int) (clone $allUserOrders)->whereIn('status', ['submitted', 'confirmed'])->sum('final_amount');
         $pendingPaymentCount = (clone $allUserOrders)->whereIn('status', ['submitted', 'confirmed'])->count();

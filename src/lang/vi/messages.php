@@ -20,4 +20,6 @@ return [
     'campaign_product_budget_unlimited' => 'Không giới hạn',
     'campaign_sponsor_not_set' => 'Không có',
     'campaign_order' => 'Đặt món: :url',
+    'order_price_adjusted_title' => 'Điều chỉnh giá đơn hàng',
+    'order_price_adjusted_body' => 'Đơn hàng #:order_id đã được điều chỉnh giá thành :amount. Lý do: :reason',
 ];

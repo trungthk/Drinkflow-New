@@ -69,6 +69,7 @@ const httpServer = createServer((req, res) => {
         const input = JSON.parse(body || '{}');
         const allowedEvents = new Set([
           'order.created', 'order.updated', 'order.deleted',
+          'order.payment_submitted', 'order.payment_approved', 'debt.payment_approved',
           'campaign.created', 'campaign.updated', 'campaign.deleted', 'campaign.closed',
           'campaign.menu.updated', 'campaign.menu.deleted', 'campaign.participant.declined', 'campaign.participant.rejoined', 'notification.created',
           'room.membership.updated'

@@ -20,4 +20,6 @@ return [
     'campaign_product_budget_unlimited' => '制限なし',
     'campaign_sponsor_not_set' => 'なし',
     'campaign_order' => '注文: :url',
+    'order_price_adjusted_title' => '注文価格の調整',
+    'order_price_adjusted_body' => '注文番号 #:order_id の価格が :amount に調整されました。理由: :reason',
 ];

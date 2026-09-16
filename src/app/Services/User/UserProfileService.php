@@ -128,7 +128,7 @@ class UserProfileService
         $notifySound = $preferences['notify_sound'] ?? true;
 
         $unreadNotificationsCount = $user->notifications()->whereNull('read_at')->count();
-        $notifications = $user->notifications()->latest()->take(5)->get();
+        $notifications = $user->notifications()->whereNull('read_at')->latest()->take(5)->get();
 
         $breadcrumbs = [
             ['label' => __('global.rooms.breadcrumb_personal'), 'url' => route('user.me.dashboard')],
@@ -237,6 +237,12 @@ class UserProfileService
         $confirmText = trim((string) $request->input('confirm_delete'));
         if ($confirmText !== $user->email && $confirmText !== 'XÓA TÀI KHOẢN' && $confirmText !== 'DELETE ACCOUNT') {
             return false;
+        }
+
+        if ($user->hasOutstandingDebts()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'confirm_delete' => __('admin.cannot_delete_user_with_outstanding_debt'),
+            ]);
         }
 
         $user->update(['status' => GlobalUserStatus::Disabled]);

@@ -177,4 +177,36 @@ class GlobalNotificationsTest extends TestCase
 
         $this->assertNull($notification->fresh()->read_at);
     }
+
+    /**
+     * Ensure notification automatically populates body when not explicitly provided.
+     */
+    public function test_notification_auto_generates_body_when_missing(): void
+    {
+        $user = GlobalUser::create([
+            'name' => 'Auto Body User',
+            'normalized_name' => 'AUTO BODY USER',
+            'email' => 'autobody@company.com',
+            'status' => 'active',
+        ]);
+
+        $notif1 = UserNotification::create([
+            'global_user_id' => $user->id,
+            'type' => 'order.created',
+            'title' => 'Order created',
+            'data' => ['order_id' => 123, 'order_code' => 'ORD-20260916-TEST'],
+        ]);
+
+        $notif2 = UserNotification::create([
+            'global_user_id' => $user->id,
+            'type' => 'campaign.created',
+            'title' => 'Campaign started',
+        ]);
+
+        $this->assertNotEmpty($notif1->fresh()->body);
+        $this->assertStringContainsString('ORD-20260916-TEST', $notif1->fresh()->body);
+
+        $this->assertNotEmpty($notif2->fresh()->body);
+        $this->assertStringContainsString('Chiến dịch đặt món mới', $notif2->fresh()->body);
+    }
 }

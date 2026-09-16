@@ -60,11 +60,11 @@ class TransitionCampaignAction
     }
 
     /**
-     * Cancel an active or pending campaign.
+     * Cancel an active or pending campaign and all its active orders.
      *
      * @param Campaign $campaign Campaign instance to cancel.
      * @return Campaign Cancelled campaign instance.
-     * @throws ValidationException If campaign has active orders or cannot be cancelled.
+     * @throws ValidationException If campaign cannot be cancelled from its current state.
      */
     public function cancel(Campaign $campaign): Campaign
     {
@@ -75,17 +75,32 @@ class TransitionCampaignAction
                     'campaign' => __('admin.campaign_cannot_cancel_state'),
                 ]);
             }
-            if ($campaign->orders()->whereIn('status', [
-                OrderStatus::Submitted->value,
-                OrderStatus::Confirmed->value,
-                OrderStatus::Ordering->value,
-                OrderStatus::Ordered->value,
-                OrderStatus::Delivering->value,
-            ])->exists()) {
-                throw ValidationException::withMessages([
-                    'campaign' => __('admin.campaign_has_active_orders'),
+
+            $ordersToCancel = $campaign->orders()
+                ->where('status', '!=', OrderStatus::Cancelled->value)
+                ->get();
+
+            $now = now();
+            /** @var \App\Models\Order $order */
+            foreach ($ordersToCancel as $order) {
+                $previousStatus = $order->status->value;
+                $order->update([
+                    'status' => OrderStatus::Cancelled,
+                    'cancelled_at' => $now,
                 ]);
+
+                app(\App\Services\Audit\AuditService::class)->record(
+                    'order.status_updated',
+                    'order',
+                    $order->id,
+                    $order->room_id,
+                    ['status' => $previousStatus],
+                    ['status' => OrderStatus::Cancelled->value]
+                );
+
+                \App\Events\OrderUpdated::dispatch($order->fresh(), $previousStatus);
             }
+
             $campaign->update(['status' => CampaignStatus::Cancelled]);
 
             return $campaign->fresh();

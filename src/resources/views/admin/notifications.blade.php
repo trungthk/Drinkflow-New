@@ -184,6 +184,24 @@
                     </div>
                 </form>
             </div>
+
+            <aside id="platform-integration-guide" class="bg-primary/5 border border-primary/20 rounded-xl p-5 shadow-xs" aria-live="polite">
+                <div class="flex items-center gap-2 pb-3 border-b border-primary/15 mb-3">
+                    <span class="material-symbols-outlined text-[20px] text-primary">help</span>
+                    <h2 class="font-bold text-sm text-on-surface">{{ __('admin.integration_guide_title') }}</h2>
+                </div>
+
+                @foreach(['telegram', 'slack', 'chatwork', 'webhook'] as $platform)
+                    <div data-platform-guide="{{ $platform }}" class="platform-integration-guide {{ $platform === 'telegram' ? '' : 'hidden' }}">
+                        <div class="mb-2 text-xs font-bold text-primary">{{ __('admin.platform_' . $platform) }}</div>
+                        <ol class="space-y-2 list-decimal pl-4 text-xs leading-5 text-on-surface-variant">
+                            @for($step = 1; $step <= 3; $step++)
+                                <li>{{ __('admin.integration_guide_' . $platform . '_step_' . $step) }}</li>
+                            @endfor
+                        </ol>
+                    </div>
+                @endforeach
+            </aside>
         </div>
     </div>
 

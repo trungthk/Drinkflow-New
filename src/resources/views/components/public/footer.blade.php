@@ -1,9 +1,9 @@
 @props([
     'activeTab' => 'about',
-    'version' => \App\Models\Version::getLatestVersionString(),
-    'termsUrl' => url('/terms'),
-    'versionsUrl' => url('/versions'),
-    'contactUrl' => route('contact'),
+    'version' => null,
+    'termsUrl' => null,
+    'versionsUrl' => null,
+    'contactUrl' => null,
 ])
 
 @php

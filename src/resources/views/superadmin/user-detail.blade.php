@@ -7,7 +7,11 @@
         <div><a class="sa-back-link" href="{{ route('superadmin.global-users.page') }}">← Global Users</a>
             <h1 id="user-name">Global user profile</h1>
             <p id="user-meta">Đang tải thông tin user...</p>
-        </div><button class="sa-button danger" id="user-status" type="button">Update status</button>
+        </div>
+        <div class="superadmin-actions">
+            <button class="sa-button danger" id="user-status" type="button">Update status</button>
+            <button class="sa-button danger" onclick="deleteUser()" type="button">Delete user</button>
+        </div>
     </div>
     <div id="notice" class="sa-notice" role="status"></div>
     <div class="sa-split">
@@ -89,6 +93,18 @@
                 });
                 userNotice('Đã remove membership.');
                 loadUser();
+            } catch (error) {
+                userNotice(error.message, 'error');
+            }
+        }
+        async function deleteUser() {
+            if (!confirm('Bạn có chắc chắn muốn xóa Global User này? Thao tác không thể hoàn tác nếu user không còn nợ.')) return;
+            try {
+                await dfApi(`/superadmin/global-users/${globalUserId}`, {
+                    method: 'DELETE'
+                });
+                alert('Đã xóa Global User thành công.');
+                window.location.href = '{{ route('superadmin.global-users.page') }}';
             } catch (error) {
                 userNotice(error.message, 'error');
             }

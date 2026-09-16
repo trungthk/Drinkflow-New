@@ -2,6 +2,12 @@
 
 return [
     'common' => [
+        'room' => 'Room',
+        'campaign' => 'Campaign',
+        'user' => 'User',
+        'admin' => 'Admin',
+        'member' => 'Member',
+        'not_available' => 'N/A',
         'close' => 'Close',
         'cancel' => 'Cancel',
         'save' => 'Save Changes',
@@ -293,6 +299,7 @@ return [
         'active_order_exists' => 'You already have an active order for this campaign.',
     ],
     'payments' => [
+        'host_room' => 'Host Room :name',
         'page_title' => 'Payment & Outstanding Debt Management',
         'breadcrumb_portal' => 'DrinkFlow Portal',
         'breadcrumb_personal' => 'Personal Account',

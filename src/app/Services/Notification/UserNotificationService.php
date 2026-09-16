@@ -56,6 +56,31 @@ class UserNotificationService
 
         return $notification;
     }
+
+    /**
+     * Gửi thông báo toàn hệ thống đến người dùng cụ thể.
+     *
+     * @param  \App\Models\GlobalUser  $user  Tài khoản người dùng toàn hệ thống
+     * @param  string  $type  Loại thông báo
+     * @param  string  $title  Tiêu đề thông báo
+     * @param  string|null  $body  Nội dung chi tiết
+     * @param  array<string, mixed>  $data  Dữ liệu bổ sung
+     * @return \App\Models\UserNotification  Bản ghi thông báo vừa tạo
+     */
+    public function toGlobalUser(GlobalUser $user, string $type, string $title, ?string $body = null, array $data = []): UserNotification
+    {
+        $notification = UserNotification::create([
+            'global_user_id' => $user->id,
+            'room_user_id' => null,
+            'type' => $type,
+            'title' => $title,
+            'body' => $body,
+            'data' => $data,
+        ]);
+        UserNotificationCreated::dispatch($notification);
+
+        return $notification;
+    }
     /**
      * Lấy danh sách thông báo phân trang theo từng tab và tính số lượng thông báo theo danh mục.
      *

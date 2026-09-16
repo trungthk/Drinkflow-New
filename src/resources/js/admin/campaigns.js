@@ -16,6 +16,7 @@ export function initAdminCampaigns() {
             filterForm?.requestSubmit();
         }
     });
+    searchInput?.addEventListener('admin:search-cleared', () => filterForm?.requestSubmit());
 
     const closeDuplicateModal = () => {
         duplicateModal?.classList.add('hidden');

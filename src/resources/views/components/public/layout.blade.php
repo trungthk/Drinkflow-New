@@ -8,24 +8,12 @@
     'ogImage' => null,
     'canonicalUrl' => null,
     'activeTab' => 'about',
-    'version' => \App\Models\Version::getLatestVersionString(),
-    'termsUrl' => url('/terms'),
-    'versionsUrl' => url('/versions'),
-    'contactUrl' => route('contact'),
-    'googleAuthUrl' => route('auth.google'),
+    'version' => null,
+    'termsUrl' => null,
+    'versionsUrl' => null,
+    'contactUrl' => null,
+    'googleAuthUrl' => null,
 ])
-
-@php
-    $pageTitle = $title ?? __('public.meta.title');
-    $pageDescription = $description ?? __('public.meta.description');
-    $pageKeywords = $keywords ?? __('public.meta.keywords');
-    $pageOgTitle = $ogTitle ?? ($title ?? __('public.meta.og_title'));
-    $pageOgDescription = $ogDescription ?? ($description ?? __('public.meta.og_description'));
-    $pageOgImage = $ogImage ?? asset('images/default-avatar.svg');
-    $currentUrl = $canonicalUrl ?? url()->current();
-    $locale = app()->getLocale();
-    $ogLocale = $locale === 'vi' ? 'vi_VN' : ($locale === 'ja' ? 'ja_JP' : 'en_US');
-@endphp
 
 <!DOCTYPE html>
 <html class="light h-full" lang="{{ $locale }}">

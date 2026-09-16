@@ -43,6 +43,8 @@ class ConfirmOrderPaymentAction
             $lockedOrder = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
             $lockedOrder->payment_status = PaymentStatus::Pending;
             $lockedOrder->save();
+            $paymentContent = 'DF'.$lockedOrder->id.' '.$roomUser->room_user_code;
+            $paymentRequestedAt = now();
 
             // Synchronize or create pending debt record for room ledger
             $debt = Debt::query()
@@ -54,6 +56,8 @@ class ConfirmOrderPaymentAction
             if ($debt) {
                 if ($debt->status !== DebtStatus::Paid) {
                     $debt->status = DebtStatus::Pending;
+                    $debt->payment_requested_at = $paymentRequestedAt;
+                    $debt->note = $paymentContent;
                     $debt->save();
                 }
             } else {
@@ -69,6 +73,8 @@ class ConfirmOrderPaymentAction
                     'paid_amount' => 0,
                     'remaining_amount' => (int) $lockedOrder->final_amount,
                     'status' => DebtStatus::Pending,
+                    'payment_requested_at' => $paymentRequestedAt,
+                    'note' => $paymentContent,
                 ]);
             }
 

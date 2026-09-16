@@ -80,4 +80,27 @@ class GlobalUser extends Authenticatable
     {
         return $this->hasMany(AuditLog::class, 'actor_id')->where('actor_type', 'user');
     }
+
+    /**
+     * Check if this global user has any outstanding debt in any room (or a specific room).
+     *
+     * @param int|null $roomId Optional room id to restrict check.
+     * @return bool True if outstanding debt exists, false otherwise.
+     */
+    public function hasOutstandingDebts(?int $roomId = null): bool
+    {
+        $roomUserIds = $this->roomUsers()
+            ->when($roomId !== null, fn ($q) => $q->where('room_id', $roomId))
+            ->pluck('id');
+
+        if ($roomUserIds->isEmpty()) {
+            return false;
+        }
+
+        return \App\Models\Debt::query()
+            ->whereIn('room_user_id', $roomUserIds)
+            ->whereIn('status', \App\Enums\DebtStatus::outstandingValues())
+            ->where('remaining_amount', '>', 0)
+            ->exists();
+    }
 }

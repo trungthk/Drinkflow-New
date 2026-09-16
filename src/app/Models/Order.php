@@ -18,6 +18,7 @@ class Order extends Model
 
     protected $fillable = [
         'room_id',
+        'code',
         'campaign_id',
         'room_user_id',
         'payment_method',
@@ -34,6 +35,18 @@ class Order extends Model
         'cancelled_at',
         'paid_at',
     ];
+
+    /**
+     * Bootstrap the model and its traits.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Order $order): void {
+            if (empty($order->code)) {
+                $order->code = \App\Services\Code\CodeGeneratorService::generateOrderCode();
+            }
+        });
+    }
 
     protected function casts(): array
     {

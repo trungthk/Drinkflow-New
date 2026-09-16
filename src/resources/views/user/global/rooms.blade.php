@@ -121,7 +121,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @forelse($roomUsers as $item)
           @if($item->is_active)
-            <x-global.room-card :item="$item" />
+            <x-global.room-card :item="$item" :show-live-status="true" />
           @else
             <!-- CARD: Restricted / Blocked Room -->
             <div class="bg-white rounded-xl border border-slate-200/80 p-6 shadow-xs flex flex-col justify-between opacity-95 relative overflow-hidden">

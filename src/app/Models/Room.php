@@ -67,8 +67,31 @@ class Room extends Model
         return $this->hasMany(NotificationChannel::class);
     }
 
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function debts(): HasMany
+    {
+        return $this->hasMany(Debt::class);
+    }
+
     public function admins(): BelongsToMany
     {
         return $this->belongsToMany(AdminAccount::class, 'admin_rooms', 'room_id', 'admin_id');
+    }
+
+    /**
+     * Check if the room currently has any member with an outstanding debt balance.
+     *
+     * @return bool True if outstanding debt exists in room, false otherwise.
+     */
+    public function hasOutstandingDebts(): bool
+    {
+        return $this->debts()
+            ->whereIn('status', \App\Enums\DebtStatus::outstandingValues())
+            ->where('remaining_amount', '>', 0)
+            ->exists();
     }
 }

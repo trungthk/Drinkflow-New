@@ -88,7 +88,7 @@ class UserFeedbackService
         ];
 
         $unreadNotificationsCount = $user->notifications()->whereNull('read_at')->count();
-        $notifications = $user->notifications()->latest()->take(5)->get();
+        $notifications = $user->notifications()->whereNull('read_at')->latest()->take(5)->get();
 
         return [
             'is_json' => false,

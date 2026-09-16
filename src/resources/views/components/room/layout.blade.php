@@ -1,5 +1,5 @@
 @props([
-    'title' => 'DrinkFlow - Room Portal',
+    'title' => 'DrinkFlow - ' . __('room.dashboard.page_title'),
     'room' => null,
     'roomUser' => null,
     'user' => null,
@@ -9,11 +9,6 @@
     'unreadNotificationsCount' => 0,
     'userRooms' => collect(),
 ])
-
-@php
-    $user = $user ?? request()->attributes->get('global_user') ?? auth('web')->user();
-    $roomUser = $roomUser ?? request()->attributes->get('room_user');
-@endphp
 
 <!DOCTYPE html>
 <html class="light" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -72,6 +67,7 @@
     :breadcrumbs="$breadcrumbs"
     :active-campaign="$activeCampaign"
     :unread-notifications-count="$unreadNotificationsCount"
+    :notifications="$notifications ?? null"
     :user-rooms="$userRooms"
   />
 

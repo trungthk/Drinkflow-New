@@ -79,6 +79,9 @@ export function initSearchDebounceAndClear() {
                 bubbles: true,
                 detail: { query: '' }
             }));
+            input.dispatchEvent(new CustomEvent('admin:search-cleared', {
+                bubbles: true
+            }));
         });
 
         toggleClearBtn();

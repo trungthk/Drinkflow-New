@@ -26,7 +26,7 @@ class DebtController extends Controller
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
         if ($request->expectsJson()) {
-            $debts = $roomUser->debts()->where('room_id', $room->id)->with('campaign.paymentAccount')->latest()->paginate(20);
+            $debts = $service->queryVisibleDebts($room, $roomUser)->with('campaign.paymentAccount')->latest()->paginate(20);
             return response()->json(['data' => $debts]);
         }
 
@@ -35,4 +35,3 @@ class DebtController extends Controller
         return view('user.debts', $data);
     }
 }
-

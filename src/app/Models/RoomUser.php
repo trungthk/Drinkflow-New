@@ -60,4 +60,17 @@ class RoomUser extends Model
     {
         return $this->hasMany(Debt::class);
     }
+
+    /**
+     * Check if this room user has any outstanding debt balance in this room.
+     *
+     * @return bool True if outstanding debt exists, false otherwise.
+     */
+    public function hasOutstandingDebts(): bool
+    {
+        return $this->debts()
+            ->whereIn('status', \App\Enums\DebtStatus::outstandingValues())
+            ->where('remaining_amount', '>', 0)
+            ->exists();
+    }
 }

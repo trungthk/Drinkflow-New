@@ -28,6 +28,12 @@ class SetGlobalUserStatusAction
             ]);
         }
 
+        if ($status === GlobalUserStatus::Disabled->value && $user->hasOutstandingDebts()) {
+            throw ValidationException::withMessages([
+                'status' => __('admin.cannot_delete_user_with_outstanding_debt'),
+            ]);
+        }
+
         return DB::transaction(function () use ($user, $status): GlobalUser {
             $user->refresh();
             $before = $user->status->value;

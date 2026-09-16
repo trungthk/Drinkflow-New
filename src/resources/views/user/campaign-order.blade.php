@@ -1,12 +1,12 @@
 <x-room.layout
-  :title="'DrinkFlow - ' . ($campaign->name ?? 'Campaign') . ' - ' . ($room->name ?? 'Room')"
+  :title="'DrinkFlow - ' . ($campaign->name ?? __('global.common.campaign')) . ' - ' . ($room->name ?? __('global.common.room'))"
   :room="$room"
   :room-user="request()->attributes->get('room_user')"
   :user="request()->attributes->get('global_user') ?? auth('web')->user()"
   :active-tab="'campaigns'"
   :breadcrumbs="[
       ['title' => __('room.campaign.page_title'), 'url' => route('user.campaigns.index', $room->slug)],
-      ['title' => $campaign->name ?? 'Campaign', 'url' => '']
+      ['title' => $campaign->name ?? __('global.common.campaign'), 'url' => '']
   ]"
 >
   <main class="w-full max-w-3xl mx-auto space-y-6"

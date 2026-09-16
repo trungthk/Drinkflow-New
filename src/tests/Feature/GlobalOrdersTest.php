@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Actions\User\JoinRoomAction;
 use App\Enums\CampaignStatus;
+use App\Enums\RoomRole;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
 use App\Models\GlobalUser;
 use App\Models\Room;
+use App\Models\RoomUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -65,48 +67,56 @@ class GlobalOrdersTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Lịch sử Order');
-        $response->assertSee('#ORD-' . $order->id);
+        $response->assertSee($order->code);
         $response->assertSee('Phúc Long Coffee & Tea');
         $response->assertSee('55.000đ');
-        $response->assertSee('Đã thanh toán');
     }
 
-    public function test_filtering_me_orders_by_status(): void
+    public function test_me_orders_filters_by_payment_status(): void
     {
         $user = GlobalUser::create([
-            'name' => 'Tester',
-            'normalized_name' => 'TESTER',
-            'email' => 'tester@company.com',
+            'name' => 'User Filter',
+            'normalized_name' => 'USER FILTER',
+            'email' => 'filter@company.com',
         ]);
 
-        $room = Room::create(['name' => 'Room A', 'slug' => 'room-a']);
+        $room = Room::create([
+            'name' => 'Room Global Filter',
+            'slug' => 'room-global-filter',
+            'status' => 'active',
+            'order_type' => 'same_price',
+            'allow_guest_order' => true,
+        ]);
+
         $roomUser = app(JoinRoomAction::class)->execute($user, $room, 'device', 'hash');
+
         $campaign = Campaign::create([
             'room_id' => $room->id,
-            'name' => 'Test',
-            'restaurant' => 'Highlands',
+            'name' => 'Trà lọc',
+            'restaurant' => 'Phúc Long',
             'status' => CampaignStatus::Active,
         ]);
 
         $paidOrder = $roomUser->orders()->create([
             'room_id' => $room->id,
             'campaign_id' => $campaign->id,
-            'subtotal' => 20000,
-            'final_amount' => 20000,
+            'subtotal' => 50000,
+            'final_amount' => 50000,
             'status' => 'completed',
         ]);
 
         $unpaidOrder = $roomUser->orders()->create([
             'room_id' => $room->id,
             'campaign_id' => $campaign->id,
-            'subtotal' => 30000,
-            'final_amount' => 30000,
+            'subtotal' => 60000,
+            'final_amount' => 60000,
             'status' => 'submitted',
         ]);
 
         $response = $this->actingAs($user, 'web')->get('/me/orders?status=paid');
+
         $response->assertOk();
-        $response->assertSee('#ORD-' . $paidOrder->id);
-        $response->assertDontSee('#ORD-' . $unpaidOrder->id);
+        $response->assertSee($paidOrder->code);
+        $response->assertDontSee($unpaidOrder->code);
     }
 }

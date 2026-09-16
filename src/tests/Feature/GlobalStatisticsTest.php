@@ -58,9 +58,21 @@ class GlobalStatisticsTest extends TestCase
             'line_subtotal' => 90000,
         ]);
 
+        // Non-completed orders must not affect the per-room spending card.
+        $roomUser->orders()->create([
+            'room_id' => $room->id,
+            'campaign_id' => $campaign->id,
+            'subtotal' => 150000,
+            'sponsor_amount' => 0,
+            'final_amount' => 150000,
+            'status' => 'submitted',
+        ]);
+
         $response = $this->actingAs($user, 'web')->get('/me/statistics');
 
         $response->assertOk();
+        $response->assertSee('60.000');
+        $response->assertDontSee('150.000');
         $response->assertSee('Báo cáo &amp; Thống kê chi tiêu cá nhân', false);
         $response->assertSee('Tổng đơn đã đặt');
         $response->assertSee('Tổng chi tiêu cá nhân');

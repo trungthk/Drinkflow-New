@@ -8,7 +8,9 @@
             <h1 id="room-name">Room profile</h1>
             <p id="room-meta">Đang tải thông tin Room...</p>
         </div>
-        <div class="superadmin-actions"><button class="sa-button" id="room-status-action" type="button">Update status</button>
+        <div class="superadmin-actions">
+            <button class="sa-button" id="room-status-action" type="button">Update status</button>
+            <button class="sa-button danger" onclick="deleteRoom()" type="button">Delete room</button>
         </div>
     </div>
     <div id="notice" class="sa-notice" role="status"></div>
@@ -108,6 +110,18 @@
                 });
                 roomNotice('Đã cập nhật trạng thái Room.');
                 loadRoom();
+            } catch (error) {
+                roomNotice(error.message, 'error');
+            }
+        }
+        async function deleteRoom() {
+            if (!confirm('Bạn có chắc chắn muốn xóa Room này? Thao tác không thể hoàn tác nếu Room không còn nợ.')) return;
+            try {
+                await dfApi(`/superadmin/rooms/${roomId}`, {
+                    method: 'DELETE'
+                });
+                alert('Đã xóa Room thành công.');
+                window.location.href = '{{ route('superadmin.rooms.page') }}';
             } catch (error) {
                 roomNotice(error.message, 'error');
             }

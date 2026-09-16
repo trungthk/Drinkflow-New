@@ -5,41 +5,29 @@ import { renderSubmitLoading } from '../shared/submit-loading';
  */
 export function initAdminDebts() {
     const searchInput = document.querySelector('#debt-search');
-    const statusBtns = document.querySelectorAll('.debt-status-filter');
-    const rows = document.querySelectorAll('[data-debt-row]');
+    const filterForm = document.querySelector('#debts-filter-form');
     const modal = document.querySelector('#debt-modal');
     const modalBackdrop = document.querySelector('#debt-backdrop');
     const modalBody = document.querySelector('#debt-modal-body');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
 
-    if (!searchInput && !rows.length && !modal) return;
+    if (!filterForm && !modal) return;
 
+    const closeDebtModal = () => {
+        modal?.classList.add('hidden');
+        modal?.classList.remove('flex');
+    };
+    window.closeDebtModal = closeDebtModal;
     modalBackdrop?.addEventListener('click', closeDebtModal);
 
-    function applyDebtFilters() {
-        const term = searchInput?.value.trim().toLowerCase() || '';
-        const activeStatus = document.querySelector('.debt-status-filter.bg-primary')?.dataset.status || 'all';
-
-        rows.forEach(row => {
-            const matchesSearch = row.dataset.search?.includes(term);
-            const matchesStatus = activeStatus === 'all' || row.dataset.status === activeStatus;
-            row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
-        });
-    }
-
-    searchInput?.addEventListener('admin:search', applyDebtFilters);
-    statusBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            statusBtns.forEach(b => {
-                b.classList.remove('bg-primary', 'text-on-primary');
-                b.classList.add('bg-surface-container', 'text-on-surface');
-            });
-            btn.classList.add('bg-primary', 'text-on-primary');
-            btn.classList.remove('bg-surface-container', 'text-on-surface');
-            applyDebtFilters();
-        });
+    searchInput?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            filterForm?.requestSubmit();
+        }
     });
+    searchInput?.addEventListener('admin:search-cleared', () => filterForm?.requestSubmit());
 
     window.openRecordPaymentModal = function(debtId, remaining, memberName) {
         const titleEl = document.querySelector('#debt-modal-title');
@@ -183,43 +171,139 @@ export function initAdminDebts() {
         });
     };
 
-    window.closeDebtModal = function() {
-        modal?.classList.add('hidden');
-        modal?.classList.remove('flex');
-    };
+    // ── Approve Payment Detail Modal ──────────────────────────────────────
+    const approveModal    = document.querySelector('#approve-debt-modal');
+    const approveBackdrop = document.querySelector('#approve-debt-backdrop');
+    const approveClose    = document.querySelector('#approve-modal-close');
+    const approveCancel   = document.querySelector('#approve-modal-cancel');
+    const approveConfirm  = document.querySelector('#approve-modal-confirm');
+    const approveConfirmText = document.querySelector('#approve-modal-confirm-text');
 
-    window.triggerBotReminder = function() {
-        fetch(`/admin/${roomSlug}/debts/remind`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-            body: JSON.stringify({ all: true })
-        }).then((response) => {
-            if (!response.ok) throw new Error('Reminder failed');
-            window.location.reload();
-        }).catch((error) => console.error(error));
-    };
+    /**
+     * Open the Approve Payment detail modal and fill it with debt data.
+     *
+     * @param {Object} data – Debt info passed from Blade inline call.
+     */
+    window.openApproveDebtModal = function(data) {
+        if (!approveModal) return;
 
-    window.approvePendingDebt = async function(debtId, memberName, amount) {
-        const formattedAmount = Number(amount || 0).toLocaleString('vi-VN') + ' ₫';
-        if (!confirm(`Xác nhận bạn đã nhận được tiền từ ${memberName} và duyệt gạch nợ số tiền ${formattedAmount}?`)) {
-            return;
+        // Fill member info
+        const memberEl = document.querySelector('#approve-modal-member');
+        const memberMetaEl = document.querySelector('#approve-modal-member-meta');
+        if (memberEl) memberEl.textContent = data.member || '—';
+        if (memberMetaEl) {
+            const parts = [];
+            if (data.memberEmail) parts.push(data.memberEmail);
+            if (data.memberCode) parts.push(data.memberCode);
+            memberMetaEl.textContent = parts.join(' · ') || '—';
         }
+
+        // Fill time – prefer updatedAt (time member submitted request), fallback to createdAt
+        const timeEl = document.querySelector('#approve-modal-time');
+        if (timeEl) timeEl.textContent = data.updatedAt || data.createdAt || '—';
+
+        // Fill campaign
+        const campaignEl = document.querySelector('#approve-modal-campaign');
+        if (campaignEl) campaignEl.textContent = data.campaign || '—';
+
+        // Fill transfer content/note
+        const contentEl = document.querySelector('#approve-modal-content');
+        if (contentEl) contentEl.textContent = data.transferContent || '—';
+
+        // Fill amount
+        const amountEl = document.querySelector('#approve-modal-amount');
+        if (amountEl) {
+            amountEl.textContent = Number(data.amount || 0).toLocaleString('vi-VN') + ' ₫';
+        }
+
+        // Bind debt id to confirm button
+        if (approveConfirm) approveConfirm.dataset.debtId = data.id;
+
+        // Show modal
+        approveModal.classList.remove('hidden');
+        approveModal.classList.add('flex');
+    };
+
+    function closeApproveModal() {
+        approveModal?.classList.add('hidden');
+        approveModal?.classList.remove('flex');
+    }
+
+    approveBackdrop?.addEventListener('click', closeApproveModal);
+    approveClose?.addEventListener('click', closeApproveModal);
+    approveCancel?.addEventListener('click', closeApproveModal);
+
+    // ESC key closes approve modal
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeApproveModal();
+    });
+
+    approveConfirm?.addEventListener('click', async () => {
+        const debtId = approveConfirm.dataset.debtId;
+        if (!debtId) return;
+
+        // Loading state
+        const origText = approveConfirmText ? approveConfirmText.textContent : '';
+        if (approveConfirmText) approveConfirmText.textContent = '...';
+        approveConfirm.disabled = true;
+        approveConfirm.classList.add('opacity-75', 'cursor-not-allowed');
+
         try {
             const res = await fetch(`/admin/${roomSlug}/debts/${debtId}/approve`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
             });
             const data = await res.json();
+
             if (res.ok) {
-                window.location.reload();
+                closeApproveModal();
+                // Optimistically update the row on the page
+                const row = document.querySelector(`[data-debt-id="${debtId}"]`);
+                if (row) {
+                    // Update status badge cell
+                    const statusCell = row.querySelector('td:nth-child(3) span');
+                    if (statusCell) {
+                        statusCell.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border bg-emerald-50 text-emerald-700 border-emerald-200';
+                        statusCell.textContent = '✓ Đã thanh toán';
+                    }
+                    // Update remaining amount cell
+                    const amtCell = row.querySelector('td:nth-child(5)');
+                    if (amtCell) {
+                        amtCell.className = 'py-3.5 px-4 text-right font-mono font-bold text-sm text-emerald-600';
+                        amtCell.textContent = '0 ₫';
+                    }
+                    // Update action cell
+                    const actCell = row.querySelector('td:nth-child(6) div');
+                    if (actCell) {
+                        actCell.innerHTML = `<span class="text-[11px] text-emerald-700 font-semibold flex items-center gap-0.5">
+                            <span class="material-symbols-outlined text-[14px]">verified</span>
+                            <span>Đã quyết toán</span>
+                        </span>`;
+                    }
+                    row.dataset.status = 'paid';
+                } else {
+                    // Fallback reload
+                    window.location.reload();
+                }
             } else {
                 alert(data.message || 'Lỗi khi duyệt thanh toán.');
+                // Restore button
+                if (approveConfirmText) approveConfirmText.textContent = origText;
+                approveConfirm.disabled = false;
+                approveConfirm.classList.remove('opacity-75', 'cursor-not-allowed');
             }
-        } catch(e) {
+        } catch (e) {
             console.error(e);
             alert('Lỗi kết nối máy chủ.');
+            if (approveConfirmText) approveConfirmText.textContent = origText;
+            approveConfirm.disabled = false;
+            approveConfirm.classList.remove('opacity-75', 'cursor-not-allowed');
         }
-    };
+    });
 
     window.exportDebtCSV = function() {
         window.location.assign(`/admin/${roomSlug}/debts/export`);

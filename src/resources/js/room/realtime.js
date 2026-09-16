@@ -20,6 +20,13 @@ export function initRoomRealtime() {
                 'campaign.created', 'campaign.updated', 'campaign.deleted', 'campaign.closed',
                 'campaign.menu.updated', 'campaign.menu.deleted'
             ].forEach((event) => socket.on(event, refresh));
+            ['debt.payment_approved', 'order.payment_approved'].forEach((event) => {
+                socket.on(event, (eventPayload) => {
+                    window.dispatchEvent(new CustomEvent('realtime-event', {
+                        detail: { name: event, payload: eventPayload }
+                    }));
+                });
+            });
             socket.on('notification.created', showDesktopNotification);
             socket.on('room.membership.updated', (payload) => {
                 if (payload?.status === 'removed') {

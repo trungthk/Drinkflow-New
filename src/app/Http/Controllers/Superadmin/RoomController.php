@@ -71,4 +71,18 @@ class RoomController extends Controller
         abort_unless(in_array($request->validated('status'), ['active', 'disabled', 'archived'], true), 422);
         return response()->json(['data' => $action->setStatus($room, $request->validated('status'))]);
     }
+
+    /**
+     * Handle the destroy operation.
+     *
+     * @param Room $room Room to delete.
+     * @param ManageRoomAction $action Room management action.
+     * @return JsonResponse Result of the operation.
+     */
+    public function destroy(Room $room, ManageRoomAction $action): JsonResponse
+    {
+        $action->delete($room);
+
+        return response()->json(['data' => ['deleted' => true]]);
+    }
 }

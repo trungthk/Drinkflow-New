@@ -20,4 +20,6 @@ return [
     'campaign_product_budget_unlimited' => 'No limit',
     'campaign_sponsor_not_set' => 'None',
     'campaign_order' => 'Order: :url',
+    'order_price_adjusted_title' => 'Order Price Adjusted',
+    'order_price_adjusted_body' => 'Order #:order_id price has been adjusted to :amount. Reason: :reason',
 ];

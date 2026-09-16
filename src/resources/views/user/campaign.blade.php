@@ -1,5 +1,5 @@
 <x-room.layout
-  :title="'DrinkFlow - ' . __('room.campaign.page_title') . ' - ' . ($room->name ?? 'Room')"
+  :title="'DrinkFlow - ' . __('room.campaign.page_title') . ' - ' . ($room->name ?? __('global.common.room'))"
   :room="$room"
   :room-user="$roomUser"
   :user="$user"
@@ -181,7 +181,7 @@
                   <span class="material-symbols-outlined text-[15px] text-[#006948]">storefront</span>
                   <span class="font-semibold text-slate-800">{{ $activeCampaign->restaurant }}</span>
                   <span class="text-slate-300">•</span>
-                  <span>{{ __('room.dashboard.created_by', ['name' => $activeCampaign->creator?->name ?? 'Admin']) }}</span>
+                  <span>{{ __('room.dashboard.created_by', ['name' => $activeCampaign->creator?->name ?? __('global.common.admin')]) }}</span>
                 </p>
               </div>
             </div>
@@ -245,7 +245,7 @@
             <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
           </a>
         </div>
-      @else
+      @elseif($canOrderCampaign)
         <form data-participation-form action="{{ $hasDeclined ? route('user.campaigns.rejoin', [$room, $activeCampaign]) : route('user.campaigns.decline', [$room, $activeCampaign]) }}" method="POST" class="fixed right-4 top-1/2 z-30 -translate-y-1/2">
           @csrf
           <button type="submit" class="group inline-flex items-center gap-2 rounded-full border {{ $hasDeclined ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-600' : 'border-rose-200 text-rose-700 hover:bg-rose-600' }} bg-white px-3 py-2 text-xs font-bold shadow-lg transition-all duration-200 hover:-translate-x-1 hover:text-white hover:shadow-xl focus:outline-none focus:ring-2 {{ $hasDeclined ? 'focus:ring-emerald-300' : 'focus:ring-rose-300' }}" title="{{ $hasDeclined ? __('room.campaign.rejoin') : __('room.campaign.decline') }}">
@@ -253,6 +253,16 @@
             {{ $hasDeclined ? __('room.campaign.rejoin') : __('room.campaign.decline') }}
           </button>
         </form>
+      @endif
+
+      @if(!$canOrderCampaign && !$activeUserOrder)
+        <div class="flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <span class="material-symbols-outlined text-[20px]">event_busy</span>
+          <div>
+            <p class="font-bold">{{ __('room.campaign.ordering_closed_title') }}</p>
+            <p class="mt-0.5 text-xs leading-relaxed text-amber-800">{{ __('room.campaign.ordering_closed') }}</p>
+          </div>
+        </div>
       @endif
 
       <!-- 2. Controls: Category Pills & Search Bar -->
@@ -301,9 +311,10 @@
 
               <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                 <span class="text-sm font-bold font-mono text-slate-900">{{ number_format($item->base_price, 0, ',', '.') }}đ</span>
-                @if(!$activeUserOrder)
+                @if($canOrderCampaign && !$activeUserOrder)
                   <button type="button"
                           @click="openCustomize({{ json_encode($item) }})"
+                          data-add-to-cart-button
                           class="px-3.5 h-8 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-semibold flex items-center gap-1 transition-colors shadow-2xs cursor-pointer">
                     <span class="material-symbols-outlined text-[15px]">add</span>
                     <span>{{ __('room.dashboard.select_drink') }}</span>
@@ -325,6 +336,7 @@
         </div>
       </section>
 
+      @if($canOrderCampaign && !$activeUserOrder)
       <!-- 3. Modal Tùy chỉnh món (Item Customization Modal) -->
       <div x-show="showCustomModal" 
            x-cloak 
@@ -425,10 +437,11 @@
           </form>
         </div>
       </div>
+      @endif
 
-      @if(!$activeUserOrder)
+      @if($canOrderCampaign && !$activeUserOrder)
       <!-- Fixed Cart and Confirmation Modal -->
-      <button type="button" @click="showCartModal = true" class="fixed right-4 top-[calc(50%+0.5rem)] z-30 flex items-center gap-2 rounded-full bg-[#006948] px-4 py-3 text-xs font-bold text-white shadow-xl transition-all duration-200 hover:-translate-x-1 hover:bg-[#005137] hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-emerald-300">
+      <button type="button" @click="showCartModal = true" data-campaign-cart-button class="fixed right-4 top-[calc(50%+0.5rem)] z-30 flex items-center gap-2 rounded-full bg-[#006948] px-4 py-3 text-xs font-bold text-white shadow-xl transition-all duration-200 hover:-translate-x-1 hover:bg-[#005137] hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-emerald-300">
         <span class="material-symbols-outlined text-[19px]">shopping_cart</span>
         <span>{{ __('room.campaign.cart_button') }}</span>
         <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1 text-[11px]" x-text="cartItems.length"></span>

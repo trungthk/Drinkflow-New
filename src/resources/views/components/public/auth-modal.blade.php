@@ -1,6 +1,6 @@
 @props([
-    'googleAuthUrl' => route('auth.google'),
-    'termsUrl' => url('/terms'),
+    'googleAuthUrl' => null,
+    'termsUrl' => null,
 ])
 
 @php

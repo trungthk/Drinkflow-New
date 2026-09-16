@@ -5,18 +5,12 @@
     'activeTab' => 'overview',
     'breadcrumbs' => [],
     'activeCampaign' => null,
-    'unreadNotificationsCount' => 0,
+    'unreadNotificationsCount' => null,
+    'notifications' => null,
     'userRooms' => collect(),
 ])
 
-@php
-    $user = $user ?? request()->attributes->get('global_user') ?? auth('web')->user();
-    $roomUser = $roomUser ?? request()->attributes->get('room_user');
-    $currentLocale = app()->getLocale();
-    $activeLocaleMeta = $locales[$currentLocale] ?? $locales['vi'];
-@endphp
-
-<header class="sticky top-0 w-full z-40 bg-white border-b border-slate-200/80 shadow-2xs" x-data="{ showRoomDropdown: false, showLangDropdown: false }">
+<header class="sticky top-0 w-full z-40 bg-white border-b border-slate-200/80 shadow-2xs" x-data="{ showRoomDropdown: false, showLangDropdown: false, showNotifDropdown: false }">
   <!-- Tier 1: Main Global Header Bar -->
   <div class="h-14 border-b border-slate-100 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-4">
@@ -37,7 +31,7 @@
             <span class="w-6 h-6 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-300 ring-1 ring-emerald-500/20 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
               <span class="material-symbols-outlined text-[15px]">corporate_fare</span>
             </span>
-            <span class="font-bold text-xs sm:text-sm text-slate-900 truncate max-w-[140px] sm:max-w-[200px]">{{ $room->name ?? 'Room' }}</span>
+            <span class="font-bold text-xs sm:text-sm text-slate-900 truncate max-w-[140px] sm:max-w-[200px]">{{ $room->name ?? __('global.common.room') }}</span>
             <span class="material-symbols-outlined text-[16px] text-slate-400" :class="{ 'rotate-180': showRoomDropdown }">expand_more</span>
           </button>
 
@@ -105,17 +99,81 @@
           </div>
         </div>
 
-        <!-- Notifications Icon -->
-        <a href="{{ $room ? route('user.rooms.notifications', $room->slug) : '#' }}" 
-           class="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer shrink-0"
-          title="{{ __('room.header.notifications') }}" aria-label="{{ __('room.header.notifications') }}">
-          <span class="material-symbols-outlined text-[17px] sm:text-[19px]">notifications</span>
-          @if($unreadNotificationsCount > 0)
-            <span data-user-notification-badge class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-rose-600 text-white text-[10px] font-bold flex items-center justify-center ring-2 ring-white animate-pulse">
-              {{ $unreadNotificationsCount > 9 ? '9+' : $unreadNotificationsCount }}
-            </span>
-          @endif
-        </a>
+        <!-- Notifications Action & Dropdown -->
+        <div class="relative shrink-0">
+          <button @click="showNotifDropdown = !showNotifDropdown; showRoomDropdown = false; showLangDropdown = false"
+                  @click.outside="showNotifDropdown = false"
+                  type="button"
+                  class="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors shadow-2xs cursor-pointer shrink-0"
+                  id="room-notification-btn"
+                  title="{{ __('room.header.notifications') }}"
+                  aria-label="{{ __('room.header.notifications') }}">
+            <span class="material-symbols-outlined text-[17px] sm:text-[19px]">notifications</span>
+            @if($unreadNotificationsCount > 0)
+              <span data-user-notification-badge class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-white text-[10px] font-bold pointer-events-none ring-2 ring-white" id="room-notif-badge">
+                {{ $unreadNotificationsCount > 9 ? '9+' : $unreadNotificationsCount }}
+              </span>
+            @endif
+          </button>
+
+          <!-- Notification Dropdown Menu (Responsive: fixed centered on mobile, absolute on desktop) -->
+          <div x-show="showNotifDropdown"
+               x-cloak
+               x-transition:enter="transition ease-out duration-100"
+               x-transition:enter-start="opacity-0 scale-95"
+               x-transition:enter-end="opacity-100 scale-100"
+               class="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-14 sm:top-12 z-50 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden"
+               id="room-notification-dropdown">
+            <div class="p-3.5 px-4 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <h3 class="text-sm font-semibold text-slate-900">{{ __('global.header.notifications') }}</h3>
+                @if($unreadNotificationsCount > 0)
+                  <span class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200/60">{{ __('global.header.new_badge', ['count' => $unreadNotificationsCount]) }}</span>
+                @endif
+              </div>
+              <button class="text-xs font-medium text-[#006948] hover:text-[#047857] transition-colors cursor-pointer"
+                      id="room-mark-all-read-btn"
+                      type="button"
+                      data-read-all-url="{{ route('user.me.notifications.read-all') }}"
+                      data-read-text="{{ __('global.header.all_read') }}">
+                {{ __('global.header.mark_all_read') }}
+              </button>
+            </div>
+            <div class="divide-y divide-slate-100 max-h-[380px] overflow-y-auto">
+              @forelse($notifications as $notif)
+                @php($notificationPresentation = $notificationPresentations[$notif->getKey()] ?? ['title' => '', 'body' => '', 'icon' => 'notifications'])
+                <div class="p-3.5 flex items-start gap-3 hover:bg-slate-50/80 transition-colors {{ is_null($notif->read_at) ? 'bg-emerald-50/20' : '' }}">
+                  <span class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100">
+                    <span class="material-symbols-outlined text-[17px]">
+                      {{ $notificationPresentation['icon'] }}
+                    </span>
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-semibold text-slate-800">{{ $notificationPresentation['title'] }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ $notificationPresentation['body'] }}</p>
+                    <span class="text-[11px] text-slate-400 block mt-1 flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[12px]">schedule</span> {{ $notif->created_at->diffForHumans() }}
+                    </span>
+                  </div>
+                  @if(is_null($notif->read_at))
+                    <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0 mt-2"></span>
+                  @endif
+                </div>
+              @empty
+                <div class="p-6 text-center text-slate-500 text-xs">
+                  <span class="material-symbols-outlined text-slate-300 text-[26px] mb-1.5 block">notifications_off</span>
+                  {{ __('global.header.no_notifications') }}
+                </div>
+              @endforelse
+            </div>
+            <div class="p-2.5 bg-slate-50/60 border-t border-slate-100 text-center">
+              <a class="text-xs font-medium text-[#006948] hover:text-[#047857] inline-flex items-center gap-1" href="{{ $room ? route('user.rooms.notifications', $room->slug) : route('user.me.notifications') }}">
+                {{ __('global.header.view_all_notifications') }}
+                <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+              </a>
+            </div>
+          </div>
+        </div>
 
         <!-- User Profile Pill -->
         <a href="{{ $room ? route('user.rooms.profile', $room->slug) : '#' }}" 
@@ -123,11 +181,11 @@
            title="{{ __('global.header.profile_menu') }}" aria-label="{{ __('global.header.profile_menu') }}">
           <img class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-white ring-2 ring-[#006948]/30 shadow-xs"
                src="{{ $user->avatar_url ?? 'https://ui-avatars.com/api/?name='.urlencode($user->name ?? 'User').'&background=006948&color=ffffff&bold=true' }}" 
-               alt="{{ $user->name ?? 'User' }}"
+               alt="{{ $user->name ?? __('global.common.user') }}"
                loading="lazy">
           <span class="hidden lg:flex flex-col text-left">
             <span class="text-xs font-semibold text-slate-800 truncate max-w-[130px]">
-              {{ $user->name ?? 'User' }}
+              {{ $user->name ?? __('global.common.user') }}
             </span>
             @if($roomUser && $roomUser->user_code)
               <span class="text-[10px] font-mono font-bold text-[#006948] truncate max-w-[130px]" title="{{ __('room.header.user_code') }}">
@@ -151,7 +209,7 @@
         </a>
         <span class="material-symbols-outlined text-[13px] text-slate-400">chevron_right</span>
         <a class="hover:text-slate-900 transition-colors font-medium truncate" href="{{ $room ? route('user.dashboard', $room->slug) : '#' }}">
-          {{ $room->name ?? 'Room' }}
+          {{ $room->name ?? __('global.common.room') }}
         </a>
         @if(!empty($breadcrumbs))
           @foreach($breadcrumbs as $crumb)

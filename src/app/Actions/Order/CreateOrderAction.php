@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Actions\Order;
 
-use App\Enums\CampaignStatus;
 use App\Events\OrderCreated;
 use App\Models\Campaign;
 use App\Models\Order;
@@ -29,11 +28,12 @@ class CreateOrderAction
         $campaign->refresh();
         $roomUser->refresh();
         $roomUser->loadMissing('globalUser');
-        if ($campaign->status !== CampaignStatus::Active || $campaign->room_id !== $roomUser->room_id) {
+        if ($campaign->room_id !== $roomUser->room_id) {
             throw ValidationException::withMessages([
                 'campaign' => __('admin.campaign_unavailable'),
             ]);
         }
+        $this->ensureCampaignIsOrderable($campaign);
         if ($roomUser->status->value !== 'active' || $roomUser->globalUser->status->value !== 'active') {
             throw ValidationException::withMessages([
                 'user' => __('admin.account_inactive'),
@@ -42,6 +42,7 @@ class CreateOrderAction
 
         $order = DB::transaction(function () use ($campaign, $roomUser, $data): Order {
             $campaign = Campaign::query()->lockForUpdate()->findOrFail($campaign->id);
+            $this->ensureCampaignIsOrderable($campaign);
             $items = $data['items'] ?? [];
             if ($items === []) {
                 throw ValidationException::withMessages([
@@ -137,6 +138,22 @@ class CreateOrderAction
         OrderCreated::dispatch($order);
 
         return $order;
+    }
+
+    /**
+     * Ensure that a campaign still accepts orders at the current time.
+     *
+     * @param Campaign $campaign Campaign being ordered from.
+     * @return void
+     * @throws ValidationException When the campaign is not live or its deadline has passed.
+     */
+    private function ensureCampaignIsOrderable(Campaign $campaign): void
+    {
+        if (! $campaign->isOrderable()) {
+            throw ValidationException::withMessages([
+                'campaign' => __('room.campaign.ordering_closed'),
+            ]);
+        }
     }
 
     /**

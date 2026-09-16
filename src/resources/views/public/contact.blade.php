@@ -5,11 +5,11 @@
     :ogDescription="__('contact.meta.description')"
     ogType="website"
     activeTab="contact"
-    :version="$appVersion ?? 'v2.3.0'"
-    :termsUrl="$termsUrl ?? url('/terms')"
-    :versionsUrl="$versionsUrl ?? url('/versions')"
-    :contactUrl="$contactUrl ?? route('contact')"
-    :googleAuthUrl="$googleAuthUrl ?? route('auth.google')"
+    :version="$appVersion"
+    :termsUrl="$termsUrl"
+    :versionsUrl="$versionsUrl"
+    :contactUrl="$contactUrl"
+    :googleAuthUrl="$googleAuthUrl"
 >
     <!-- Hero Intro Section -->
     <section class="bg-white border-b border-slate-200/80 py-10 px-6">

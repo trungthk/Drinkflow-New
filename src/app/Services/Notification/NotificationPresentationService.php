@@ -71,7 +71,23 @@ class NotificationPresentationService
      */
     private function body(UserNotification|AdminNotification $notification, string $type, array $data): string
     {
+        if ($notification instanceof AdminNotification) {
+            if (!empty($notification->body)) {
+                return (string) $notification->body;
+            }
+
+            $auditKey = 'admin.audit_event_' . str_replace('.', '_', $type);
+            $translated = __($auditKey);
+            if ($translated !== $auditKey) {
+                return $translated;
+            }
+
+            return (string) ($notification->title ?? __('admin.system_updated'));
+        }
+
         $orderId = $data['order_id'] ?? null;
+        $orderCode = $data['order_code'] ?? ($orderId ? ('#' . $orderId) : '');
+
         if ($type === 'order.created' && $orderId !== null) {
             return __('messages.order_created_body', ['order_id' => $orderId]);
         }

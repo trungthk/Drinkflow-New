@@ -75,6 +75,7 @@ class UserGlobalDashboardService
                 $card->live_deadline = $campaign?->deadline
                     ? FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i')
                     : null;
+                $card->live_ordering_expired = $campaign?->deadline?->isPast() ?? false;
 
                 return $card;
             }
@@ -82,6 +83,7 @@ class UserGlobalDashboardService
 
         // Recent orders (up to 5)
         $recentOrders = (clone $ordersQuery)
+            ->where('status', OrderStatus::Completed->value)
             ->with(['room', 'campaign', 'items'])
             ->latest()
             ->take(5)
@@ -132,7 +134,7 @@ class UserGlobalDashboardService
 
         // Notifications
         $unreadNotificationsCount = $user->notifications()->whereNull('read_at')->count();
-        $notifications = $user->notifications()->latest()->take(5)->get();
+        $notifications = $user->notifications()->whereNull('read_at')->latest()->take(5)->get();
 
         return [
             'user' => $user,

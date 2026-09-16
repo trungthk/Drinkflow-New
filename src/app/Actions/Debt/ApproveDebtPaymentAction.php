@@ -28,9 +28,12 @@ class ApproveDebtPaymentAction
      */
     public function execute(Debt $debt, ?string $reference = null): Debt
     {
-        $updated = DB::transaction(function () use ($debt, $reference): Debt {
+        $approvingAdmin = request()->user('admin');
+        $approvedAt = now();
+        $updated = DB::transaction(function () use ($debt, $reference, $approvingAdmin, $approvedAt): Debt {
             $lockedDebt = Debt::whereKey($debt->id)->lockForUpdate()->firstOrFail();
             $beforeRemaining = (int) $lockedDebt->remaining_amount;
+            $approvingAdminId = $approvingAdmin?->id;
 
             if ($lockedDebt->status === DebtStatus::Paid && $beforeRemaining === 0) {
                 throw ValidationException::withMessages([
@@ -46,7 +49,8 @@ class ApproveDebtPaymentAction
                 'amount' => $approvedAmount,
                 'payment_method' => 'vietqr',
                 'reference' => $reference ?? 'Admin approved payment',
-                'created_by_admin_id' => request()->user('admin')?->id,
+                'paid_at' => $approvedAt,
+                'created_by_admin_id' => $approvingAdminId,
             ]);
 
             $lockedDebt->paid_amount += $beforeRemaining;
@@ -60,7 +64,7 @@ class ApproveDebtPaymentAction
                 ->where('room_user_id', $lockedDebt->room_user_id)
                 ->update([
                     'payment_status' => PaymentStatus::Paid->value,
-                    'paid_at' => now(),
+                    'paid_at' => $approvedAt,
                 ]);
 
             app(AuditService::class)->record(
@@ -96,6 +100,8 @@ class ApproveDebtPaymentAction
             'room_user_id' => $updated->room_user_id,
             'status' => 'paid',
             'remaining_amount' => 0,
+            'approved_by' => $approvingAdmin?->name,
+            'approved_at' => $approvedAt->format('d/m/Y H:i'),
         ]);
 
         return $updated;

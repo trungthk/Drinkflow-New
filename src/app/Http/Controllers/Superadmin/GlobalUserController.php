@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Superadmin;
 
 use App\Actions\User\SetGlobalUserStatusAction;
@@ -16,6 +18,7 @@ use App\Http\Requests\MergeGlobalUsersRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class GlobalUserController extends Controller
 {
@@ -63,10 +66,18 @@ class GlobalUserController extends Controller
      * @param RoomUser $roomUser Parameter value.
      * @param AuditService $audit Parameter value.
      * @return JsonResponse Result of the operation.
+     * @throws ValidationException If member has outstanding debts in the room.
      */
     public function removeMembership(GlobalUser $globalUser, RoomUser $roomUser, AuditService $audit): JsonResponse
     {
         abort_unless($roomUser->global_user_id === $globalUser->id, 404);
+
+        if ($roomUser->hasOutstandingDebts()) {
+            throw ValidationException::withMessages([
+                'room_user' => __('admin.cannot_remove_member_with_outstanding_debt'),
+            ]);
+        }
+
         $before = ['status' => $roomUser->status?->value];
         DB::transaction(function () use ($roomUser): void {
             $roomUser->update(['status' => 'removed']);
@@ -76,6 +87,40 @@ class GlobalUserController extends Controller
         RoomMembershipUpdated::dispatch($roomUser->fresh());
 
         return response()->json(['data' => ['removed' => true]]);
+    }
+
+    /**
+     * Delete a global user and all associated records if no outstanding debts exist.
+     *
+     * @param GlobalUser $globalUser Target global user.
+     * @param AuditService $audit Audit service.
+     * @return JsonResponse Result of the operation.
+     * @throws ValidationException If the user has outstanding debts in any room.
+     */
+    public function destroy(GlobalUser $globalUser, AuditService $audit): JsonResponse
+    {
+        if ($globalUser->hasOutstandingDebts()) {
+            throw ValidationException::withMessages([
+                'global_user' => __('admin.cannot_delete_user_with_outstanding_debt'),
+            ]);
+        }
+
+        DB::transaction(function () use ($globalUser, $audit): void {
+            $userId = $globalUser->id;
+            $userName = $globalUser->name;
+
+            $globalUser->roomUsers()->each(function (RoomUser $ru): void {
+                $ru->devices()->delete();
+                $ru->delete();
+            });
+            $globalUser->oauthIdentities()->delete();
+            $globalUser->notifications()->delete();
+            $globalUser->delete();
+
+            $audit->record('global_user.deleted', 'global_user', $userId, null, ['name' => $userName], []);
+        });
+
+        return response()->json(['data' => ['deleted' => true]]);
     }
 
     /**

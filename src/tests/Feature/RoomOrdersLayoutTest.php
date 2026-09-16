@@ -6,8 +6,10 @@ namespace Tests\Feature;
 
 use App\Actions\User\JoinRoomAction;
 use App\Enums\CampaignStatus;
+use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Models\Campaign;
+use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -20,11 +22,11 @@ class RoomOrdersLayoutTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Ensure the room order page uses the compact item layout and three-stage progress.
+     * Ensure the room order page uses the compact item layout and four-stage progress.
      *
      * @return void
      */
-    public function test_order_page_shows_three_progress_steps_without_room_history(): void
+    public function test_order_page_shows_four_progress_steps_without_room_history(): void
     {
         $user = GlobalUser::create([
             'name' => 'Order Member',
@@ -63,18 +65,62 @@ class RoomOrdersLayoutTest extends TestCase
             'line_subtotal' => 90000,
             'note' => 'Để riêng topping',
         ]);
+        Debt::create([
+            'room_id' => $room->id,
+            'campaign_id' => $campaign->id,
+            'room_user_id' => $roomUser->id,
+            'original_amount' => 90000,
+            'sponsor_amount' => 0,
+            'paid_amount' => 0,
+            'remaining_amount' => 90000,
+            'status' => DebtStatus::Unpaid,
+        ]);
+
+        $cancelledCampaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Cancelled Campaign',
+            'restaurant' => 'Cancelled Cafe',
+            'status' => CampaignStatus::Closed,
+        ]);
+        $cancelledOrder = Order::create([
+            'room_id' => $room->id,
+            'campaign_id' => $cancelledCampaign->id,
+            'room_user_id' => $roomUser->id,
+            'subtotal' => 50000,
+            'final_amount' => 50000,
+            'status' => OrderStatus::Cancelled,
+        ]);
+        OrderItem::create([
+            'order_id' => $cancelledOrder->id,
+            'item_name' => 'Cancelled Drink',
+            'unit_price' => 50000,
+            'quantity' => 1,
+            'line_subtotal' => 50000,
+        ]);
+        Debt::create([
+            'room_id' => $room->id,
+            'campaign_id' => $cancelledCampaign->id,
+            'room_user_id' => $roomUser->id,
+            'original_amount' => 50000,
+            'sponsor_amount' => 0,
+            'paid_amount' => 0,
+            'remaining_amount' => 50000,
+            'status' => DebtStatus::Unpaid,
+        ]);
 
         $response = $this->actingAs($user, 'web')->get('/rooms/cong-nghe/orders');
 
         $response->assertOk();
-        $response->assertSee('1. Đã gửi');
-        $response->assertSee('2. Món đã được giao đến');
-        $response->assertSee('3. Hoàn thành');
+        $response->assertSeeText(__('room.orders.step_1_title'));
+        $response->assertSeeText(__('room.orders.step_confirmed_title'));
+        $response->assertSeeText(__('room.orders.step_delivered_title'));
+        $response->assertSeeText(__('room.orders.step_completed_title'));
         $response->assertSee('Trà sữa ô long');
         $response->assertSee('90.000đ');
         $response->assertSee('Size L');
         $response->assertSee('30% đường');
         $response->assertSee('50% đá');
+        $response->assertDontSee('Cancelled Drink');
         $response->assertSee(__('room.orders.confirm_modal_title'));
         $response->assertSee('bg-blue-600 hover:bg-blue-700', false);
         $response->assertSee('openPaymentConfirm', false);
@@ -82,8 +128,19 @@ class RoomOrdersLayoutTest extends TestCase
         $response->assertDontSee(__('room.orders.pay_now_vietqr').' (90.000đ)');
         $response->assertDontSee('Chờ duyệt thanh toán');
         $response->assertDontSee('confirm(', false);
+
+        $debtResponse = $this->actingAs($user, 'web')->get('/rooms/cong-nghe/debts');
+        $debtResponse->assertOk();
+        $debtResponse->assertSee('Coffee Live');
+        $debtResponse->assertDontSee('Cancelled Campaign');
+        $debtResponse->assertDontSee('Cancelled Drink');
         $response->assertDontSee('Lịch sử đơn trong Room');
-        $response->assertDontSee('2. Đã xác nhận');
         $response->assertDontSee('5. Đang giao');
+
+        $this->actingAs($user, 'web')
+            ->get('/rooms/cong-nghe/debts')
+            ->assertOk()
+            ->assertSee('Coffee Live')
+            ->assertDontSee('Cancelled Campaign');
     }
 }

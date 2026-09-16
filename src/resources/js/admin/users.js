@@ -51,6 +51,7 @@ export function initAdminUsers() {
             filterForm?.requestSubmit();
         }
     });
+    searchInput?.addEventListener('admin:search-cleared', () => filterForm?.requestSubmit());
 
     const closeActionModal = () => {
         actionModal?.classList.add('hidden');
@@ -191,12 +192,23 @@ export function initAdminUsers() {
             actionModal?.dataset.statusTitle || 'Toggle User Status',
             actionModal?.dataset[isBlocking ? 'blockMessage' : 'unblockMessage'] || 'Confirm status change?',
             async () => {
-                const res = await fetch(`/admin/${roomSlug}/room-users/${roomUserId}/status`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify({ status: newStatus })
-                });
-                if (res.ok) window.location.reload();
+                try {
+                    const res = await fetch(`/admin/${roomSlug}/room-users/${roomUserId}/status`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                        body: JSON.stringify({ status: newStatus })
+                    });
+                    if (res.ok) {
+                        window.location.reload();
+                    } else {
+                        const err = await res.json().catch(() => ({}));
+                        const msg = err.errors ? Object.values(err.errors).flat().join('\n') : (err.message || 'Error updating status');
+                        alert(msg);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('An error occurred.');
+                }
             }
         );
     };
@@ -206,11 +218,22 @@ export function initAdminUsers() {
             actionModal?.dataset.removeTitle || 'Remove User',
             actionModal?.dataset.removeMessage || 'Remove this user from the room?',
             async () => {
-                const res = await fetch(`/admin/${roomSlug}/room-users/${roomUserId}`, {
-                    method: 'DELETE',
-                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
-                });
-                if (res.ok) window.location.reload();
+                try {
+                    const res = await fetch(`/admin/${roomSlug}/room-users/${roomUserId}`, {
+                        method: 'DELETE',
+                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+                    });
+                    if (res.ok) {
+                        window.location.reload();
+                    } else {
+                        const err = await res.json().catch(() => ({}));
+                        const msg = err.errors ? Object.values(err.errors).flat().join('\n') : (err.message || 'Error removing user');
+                        alert(msg);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('An error occurred.');
+                }
             }
         );
     };

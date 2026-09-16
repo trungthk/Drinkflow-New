@@ -1,17 +1,17 @@
 <x-public.layout
     activeTab="about"
-    :version="$version ?? 'v2.3.0'"
-    :termsUrl="$termsUrl ?? url('/terms')"
-    :versionsUrl="$versionsUrl ?? url('/versions')"
-    :contactUrl="$contactUrl ?? route('contact')"
-    :googleAuthUrl="$googleAuthUrl ?? route('auth.google')"
+    :version="$version"
+    :termsUrl="$termsUrl"
+    :versionsUrl="$versionsUrl"
+    :contactUrl="$contactUrl"
+    :googleAuthUrl="$googleAuthUrl"
 >
     <!-- MAIN CANVAS -->
     <main class="flex-1 w-full max-w-[1200px] mx-auto px-4 sm:px-6 py-6 sm:py-10 flex flex-col gap-10 sm:gap-16">
         <!-- 1. HERO SECTION -->
         <x-public.hero
-            :version="$version ?? 'v2.3.0'"
-            :googleAuthUrl="$googleAuthUrl ?? route('auth.google')"
+            :version="$version"
+            :googleAuthUrl="$googleAuthUrl"
         />
 
         <!-- 2. PROBLEM VS SOLUTION -->
@@ -95,7 +95,7 @@
 
         <!-- 7. FINAL CTA -->
         <x-public.cta
-            :googleAuthUrl="$googleAuthUrl ?? route('auth.google')"
+            :googleAuthUrl="$googleAuthUrl"
         />
     </main>
 

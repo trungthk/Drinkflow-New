@@ -169,7 +169,6 @@
                 <th class="py-3 px-5">{{ __('global.dashboard.col_code') }}</th>
                 <th class="py-3 px-4">{{ __('global.dashboard.col_time') }}</th>
                 <th class="py-3 px-4">{{ __('global.dashboard.col_room') }}</th>
-                <th class="py-3 px-4">{{ __('global.dashboard.col_restaurant') }}</th>
                 <th class="py-3 px-4">{{ __('global.dashboard.col_items') }}</th>
                 <th class="py-3 px-4 text-right">{{ __('global.dashboard.col_amount') }}</th>
                 <th class="py-3 px-4 text-center">{{ __('global.dashboard.col_status') }}</th>
@@ -184,7 +183,6 @@
                   </td>
                   <td class="py-3.5 px-4 whitespace-nowrap text-slate-400">{{ $order['time_formatted'] }}</td>
                   <td class="py-3.5 px-4 font-medium whitespace-nowrap text-slate-900">{{ $order['room_name'] }}</td>
-                  <td class="py-3.5 px-4 text-slate-600 whitespace-nowrap">{{ $order['restaurant'] }}</td>
                   <td class="py-3.5 px-4 font-medium max-w-[280px] truncate text-slate-800" title="{{ $order['items_summary'] }}">{{ $order['items_summary'] }}</td>
                   <td class="py-3.5 px-4 text-right font-semibold tabular-nums whitespace-nowrap text-slate-900">{{ $order['final_amount_formatted'] }}</td>
                   <td class="py-3.5 px-4 text-center whitespace-nowrap">
@@ -210,7 +208,7 @@
                 </tr>
               @empty
                 <tr>
-                  <td colspan="8" class="py-8 text-center text-slate-400 text-xs">
+                  <td colspan="7" class="py-8 text-center text-slate-400 text-xs">
                     <span class="material-symbols-outlined text-slate-300 text-[24px] mb-1 block">receipt_long</span>
                     {{ __('global.dashboard.no_recent_orders') }}
                   </td>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Dashboard;
 
 use App\Enums\CampaignStatus;
+use App\Enums\OrderStatus;
 use App\Enums\PaymentAccountStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\AdminAccount;
@@ -14,6 +15,8 @@ use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Support\Helpers\FormatHelper;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 class AdminDashboardService
@@ -36,6 +39,7 @@ class AdminDashboardService
 
         $liveOrders = Order::query()
             ->where('room_id', $room->id)
+            ->where('status', '!=', OrderStatus::Cancelled->value)
             ->with(['roomUser.globalUser', 'items.toppings'])
             ->latest()
             ->take(15)
@@ -82,10 +86,19 @@ class AdminDashboardService
         $orders = Order::query()->where('room_id', $room->id);
         $debts = Debt::query()->where('room_id', $room->id);
 
-        $campaignMetrics = fn ($query) => $query
-            ->withCount('orders')
-            ->withSum('orders as total_amount', 'final_amount')
-            ->withSum('orders as sponsor_total', 'sponsor_amount');
+        $campaignMetrics = static fn (HasMany $query): HasMany => $query
+            ->withCount([
+                'orders' => static fn (Builder $orderQuery): Builder => $orderQuery
+                    ->where('status', '!=', OrderStatus::Cancelled->value),
+            ])
+            ->withSum([
+                'orders as total_amount' => static fn (Builder $orderQuery): Builder => $orderQuery
+                    ->where('status', '!=', OrderStatus::Cancelled->value),
+            ], 'final_amount')
+            ->withSum([
+                'orders as sponsor_total' => static fn (Builder $orderQuery): Builder => $orderQuery
+                    ->where('status', '!=', OrderStatus::Cancelled->value),
+            ], 'sponsor_amount');
 
         $activeCampaigns = $campaignMetrics($room->campaigns()->where('status', CampaignStatus::Active))
             ->latest('started_at')
@@ -94,14 +107,15 @@ class AdminDashboardService
         $activeCampaign = $activeCampaigns->first();
         $secondaryCampaign = $activeCampaigns->count() > 1 ? $activeCampaigns->get(1) : null;
 
-        $ordersTodayCount = (clone $orders)->whereDate('created_at', $today)->count();
-        $ordersYesterdayCount = (clone $orders)->whereDate('created_at', $yesterday)->count();
+        $completedStatus = OrderStatus::Completed->value;
+        $ordersTodayCount = (clone $orders)->whereDate('created_at', $today)->where('status', $completedStatus)->count();
+        $ordersYesterdayCount = (clone $orders)->whereDate('created_at', $yesterday)->where('status', $completedStatus)->count();
         $ordersGrowth = $ordersYesterdayCount > 0
             ? round((($ordersTodayCount - $ordersYesterdayCount) / $ordersYesterdayCount) * 100)
             : ($ordersTodayCount > 0 ? 100 : 0);
 
-        $todayTotalValue = (int) (clone $orders)->whereDate('created_at', $today)->whereNotIn('status', ['cancelled'])->sum('final_amount');
-        $todaySponsorValue = (int) (clone $orders)->whereDate('created_at', $today)->sum('sponsor_amount');
+        $todayTotalValue = (int) (clone $orders)->whereDate('created_at', $today)->where('status', $completedStatus)->sum('final_amount');
+        $todaySponsorValue = (int) (clone $orders)->whereDate('created_at', $today)->where('status', $completedStatus)->sum('sponsor_amount');
 
         $pendingDebtUsersCount = (clone $debts)->whereIn('status', ['unpaid', 'partial'])->distinct('room_user_id')->count('room_user_id');
 
@@ -131,7 +145,7 @@ class AdminDashboardService
             $sAmount = (int) Order::query()
                 ->where('room_id', $room->id)
                 ->whereDate('created_at', $currentDate)
-                ->whereNotIn('status', ['cancelled'])
+                ->where('status', $completedStatus)
                 ->sum('final_amount');
 
             $totalWeekCampaigns += $cCount;
@@ -155,6 +169,7 @@ class AdminDashboardService
         if ($activeCampaign) {
             $activeParticipants = Order::query()
                 ->where('campaign_id', $activeCampaign->id)
+                ->where('status', '!=', OrderStatus::Cancelled->value)
                 ->distinct('room_user_id')
                 ->count('room_user_id');
         }
