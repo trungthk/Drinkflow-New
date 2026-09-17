@@ -52,7 +52,7 @@ class CampaignController extends Controller
         $query = Campaign::query()
             ->where('room_id', $room->id)
             ->withCount('orders')
-            ->when($request->filled('status'), fn ($query) => $query->where('status', $request->string('status')->toString()))
+            ->when($request->filled('status'), fn($query) => $query->where('status', $request->string('status')->toString()))
             ->latest();
 
         return response()->json(['data' => $query->paginate(20)]);
@@ -70,10 +70,13 @@ class CampaignController extends Controller
     {
         $validated = $request->validate([
             'search' => ['nullable', 'string', 'max:255'],
-            'status' => ['nullable', Rule::in(array_merge(
-                ['all'],
-                array_map(static fn (CampaignStatus $status): string => $status->value, CampaignStatus::cases())
-            ))],
+            'status' => [
+                'nullable',
+                Rule::in(array_merge(
+                    ['all'],
+                    array_map(static fn(CampaignStatus $status): string => $status->value, CampaignStatus::cases())
+                ))
+            ],
         ]);
         $query = Campaign::query()
             ->where('room_id', $room->id)
@@ -101,15 +104,15 @@ class CampaignController extends Controller
             'room' => $room,
             'campaigns' => $campaigns,
             'statusFilters' => collect(CampaignStatus::cases())
-                ->filter(static fn (CampaignStatus $status): bool => in_array($status, [
+                ->filter(static fn(CampaignStatus $status): bool => in_array($status, [
                     CampaignStatus::Active,
                     CampaignStatus::Scheduled,
                     CampaignStatus::Closed,
                     CampaignStatus::Archived,
                 ], true))
-                ->map(static fn (CampaignStatus $status): array => [
+                ->map(static fn(CampaignStatus $status): array => [
                     'value' => $status->value,
-                    'label' => __('admin.filter_'.$status->value),
+                    'label' => __('admin.filter_' . $status->value),
                 ])->values()->all(),
             'filters' => [
                 'search' => $search,
@@ -133,7 +136,7 @@ class CampaignController extends Controller
             ->whereIn('key', ['campaign_title_template', 'max_campaign_budget', 'default_payment_account_id', 'default_sponsor'])
             ->get()
             ->keyBy('key');
-        $titleTemplate = (string) ($settings->get('campaign_title_template')?->value ?? ('['.$room->name.'] Trà chiều & Cafe {date}'));
+        $titleTemplate = (string) ($settings->get('campaign_title_template')?->value ?? ('[' . $room->name . '] Trà chiều & Cafe {date}'));
         $creatorName = (string) ($request->user('admin')?->name ?? '');
         $campaignDefaults = [
             'name' => strtr($titleTemplate, [
@@ -142,11 +145,11 @@ class CampaignController extends Controller
                 '{day_of_week}' => now()->translatedFormat('l'),
                 '{creator_name}' => $creatorName,
             ]),
-            'max_budget' => (int) ($settings->get('max_campaign_budget')?->value ?? 2_000_000),
+            'max_budget' => (int) ($settings->get('max_campaign_budget')?->value ?? 70_000),
             'payment_account_id' => (int) ($settings->get('default_payment_account_id')?->value ?? 0),
             'sponsor_name' => (string) ($settings->get('default_sponsor')?->value ?? ''),
         ];
-        if (! $paymentAccounts->contains('id', $campaignDefaults['payment_account_id'])) {
+        if (!$paymentAccounts->contains('id', $campaignDefaults['payment_account_id'])) {
             $campaignDefaults['payment_account_id'] = (int) ($paymentAccounts->first()?->id ?? 0);
         }
         $roomUsers = $room->roomUsers()->with('globalUser')->where('status', RoomUserStatus::Active)->get();
@@ -241,7 +244,7 @@ class CampaignController extends Controller
             ->whereIn('key', ['max_campaign_budget', 'default_payment_account_id'])
             ->get()
             ->keyBy('key');
-        $maxBudget = (int) ($settings->get('max_campaign_budget')?->value ?? 2_000_000);
+        $maxBudget = (int) ($settings->get('max_campaign_budget')?->value ?? 70_000);
         $roomUsers = $room->roomUsers()->with('globalUser')->where('status', RoomUserStatus::Active)->get();
         $previousCampaigns = Campaign::query()
             ->where('room_id', $room->id)
@@ -352,6 +355,25 @@ class CampaignController extends Controller
     {
         $this->assertCampaign($campaign);
         return response()->json(['data' => $action->activate($campaign)]);
+    }
+
+    /**
+     * Mark all orders in campaign as delivering and broadcast pick-up notifications.
+     *
+     * @param Room $room Current room.
+     * @param Campaign $campaign Target campaign.
+     * @param \App\Actions\Campaign\MarkCampaignDeliveringAction $action Transition action.
+     * @return JsonResponse Operation response.
+     */
+    public function markDelivering(Room $room, Campaign $campaign, \App\Actions\Campaign\MarkCampaignDeliveringAction $action): JsonResponse
+    {
+        $this->assertCampaign($campaign);
+        $updated = $action->execute($campaign, request()->user('admin')?->id);
+
+        return response()->json([
+            'message' => __('admin.campaign_delivering_success'),
+            'data' => $updated,
+        ]);
     }
 
     /**
@@ -477,10 +499,67 @@ class CampaignController extends Controller
     public function archiveItem(Room $room, Campaign $campaign, CampaignItem $item, AuditService $audit): JsonResponse
     {
         $this->assertItem($campaign, $item);
-        $before = $item->status;
-        $item->update(['status' => 'hidden']);
-        $audit->record('campaign_item.archived', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before], ['status' => 'hidden']);
+        $before = $item->status?->value ?? (string) $item->status;
+        $item->update(['status' => \App\Enums\CampaignItemStatus::Inactive]);
+        $audit->record('campaign_item.archived', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before], ['status' => \App\Enums\CampaignItemStatus::Inactive->value]);
         $this->publishMenuEvent('campaign.menu.deleted', $campaign, $item);
+        return response()->json(['data' => $item->fresh()]);
+    }
+
+    /**
+     * Batch update campaign items availability statuses.
+     *
+     * @param Request $request Incoming HTTP request containing items array.
+     * @param Room $room Room entity.
+     * @param Campaign $campaign Campaign entity.
+     * @param AuditService $audit Audit service.
+     * @return JsonResponse Result of the batch update operation.
+     */
+    public function batchUpdateItemStatus(Request $request, Room $room, Campaign $campaign, AuditService $audit): JsonResponse
+    {
+        $this->assertCampaign($campaign);
+        $validated = $request->validate([
+            'items' => ['required', 'array'],
+            'items.*.id' => ['required', 'integer'],
+            'items.*.status' => ['required', 'in:active,inactive'],
+        ]);
+
+        $itemIds = collect($validated['items'])->pluck('id')->all();
+        $existingItems = $campaign->items()->whereIn('id', $itemIds)->get()->keyBy('id');
+
+        $updatedCount = 0;
+        foreach ($validated['items'] as $itemData) {
+            $item = $existingItems->get($itemData['id']);
+            if (! $item) {
+                continue;
+            }
+            $newStatus = $itemData['status'];
+            $before = $item->status?->value ?? (string) $item->status;
+            if ($before !== $newStatus) {
+                $item->update(['status' => \App\Enums\CampaignItemStatus::from($newStatus)]);
+                $audit->record('campaign_item.status_updated', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before], ['status' => $newStatus]);
+                $this->publishMenuEvent('campaign.menu.updated', $campaign, $item);
+                $updatedCount++;
+            }
+        }
+
+        return response()->json([
+            'data' => [
+                'updated_count' => $updatedCount,
+            ],
+            'message' => __('admin.campaign_items_batch_updated_success', ['count' => $updatedCount]),
+        ]);
+    }
+
+    /** Toggle a campaign item's availability status. */
+    public function toggleItemStatus(Request $request, Room $room, Campaign $campaign, CampaignItem $item, AuditService $audit): JsonResponse
+    {
+        $this->assertItem($campaign, $item);
+        $status = $request->validate(['status' => ['required', 'in:active,inactive']])['status'];
+        $before = $item->status?->value ?? (string) $item->status;
+        $item->update(['status' => \App\Enums\CampaignItemStatus::from($status)]);
+        $audit->record('campaign_item.status_updated', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before], ['status' => $status]);
+        $this->publishMenuEvent('campaign.menu.updated', $campaign, $item);
         return response()->json(['data' => $item->fresh()]);
     }
 
@@ -599,7 +678,8 @@ class CampaignController extends Controller
         return response()->streamDownload(function () use ($rows): void {
             $handle = fopen('php://output', 'w');
             fputcsv($handle, ['Item', 'Size', 'Toppings', 'Quantity']);
-            foreach ($rows as $row) fputcsv($handle, [$row['name'], $row['size'], $row['toppings'], $row['quantity']]);
+            foreach ($rows as $row)
+                fputcsv($handle, [$row['name'], $row['size'], $row['toppings'], $row['quantity']]);
             fclose($handle);
         }, 'drinkflow-aggregator.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }

@@ -14,6 +14,9 @@ class UpdateCampaignRequest extends StoreCampaignRequest
     public function rules(): array
     {
         return array_merge(parent::rules(), [
+            'restaurant' => ['sometimes', 'required', 'string', 'max:160'],
+            'sponsor_type' => ['sometimes', 'required', 'in:none,full'],
+            'max_budget' => ['sometimes', 'required', 'integer', 'min:0'],
             'deadline' => ['nullable', 'date'],
             'status' => ['sometimes', 'in:draft,scheduled,active,closed,cancelled,archived'],
             'items.*.id' => ['nullable', 'integer'],

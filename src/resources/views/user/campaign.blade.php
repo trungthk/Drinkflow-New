@@ -14,9 +14,11 @@
     searchTimer: null,
     selectedCategory: 'all',
     menuItems: {{ Js::from($activeCampaign?->items ?? []) }},
+    maxBudget: {{ (int) ($activeCampaign?->max_budget ?? 0) }},
     showCustomModal: false,
     showCartModal: false,
     showConfirmModal: false,
+    showBudgetErrors: false,
     cartItems: {{ Js::from($cart ?? []) }},
     cartSubmitting: false,
     cartUpdating: false,
@@ -42,6 +44,18 @@
       }
       return total;
     },
+    get isCustomItemExceeded() {
+      return this.maxBudget > 0 && this.calculatedPrice > this.maxBudget;
+    },
+    isItemExceeded(item) {
+      return this.maxBudget > 0 && Number(item.unit_price) > this.maxBudget;
+    },
+    hasExceededItems() {
+      return this.cartItems.some(item => this.isItemExceeded(item));
+    },
+    exceededCount() {
+      return this.cartItems.filter(item => this.isItemExceeded(item)).length;
+    },
     openCustomize(item) {
       this.selectedItem = item;
       this.selectedSize = (item.sizes && item.sizes.length > 0) ? item.sizes[0] : null;
@@ -50,6 +64,10 @@
       this.showCustomModal = true;
     },
     async addToCart() {
+      if (this.isCustomItemExceeded) {
+        window.alert('{{ __('room.campaign.custom_exceeds_budget_msg', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}');
+        return;
+      }
       this.cartSubmitting = true;
       try {
         const response = await fetch('{{ $activeCampaign ? route('user.campaigns.cart.store', [$room, $activeCampaign]) : '' }}', {
@@ -77,7 +95,20 @@
         this.cartSubmitting = false;
       }
     },
+    proceedToConfirm() {
+      if (this.hasExceededItems()) {
+        this.showBudgetErrors = true;
+        return;
+      }
+      this.showBudgetErrors = false;
+      this.showConfirmModal = true;
+      this.showCartModal = false;
+    },
     async confirmCart() {
+      if (this.hasExceededItems()) {
+        window.alert('{{ __('room.campaign.cart_exceeded_banner_desc', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}');
+        return;
+      }
       this.cartSubmitting = true;
       try {
         const response = await fetch('{{ $activeCampaign ? route('user.orders.store', [$room, $activeCampaign]) : '' }}', {
@@ -304,16 +335,53 @@
       <!-- 2. Controls: Category Pills & Search Bar -->
       <section class="space-y-4">
         <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <!-- Category Pills -->
-          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-            <button type="button" @click="selectedCategory = 'all'" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer" :class="selectedCategory === 'all' ? 'bg-[#006948] text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'">
+          <!-- Category Pills & Dropdown (Show 3 categories + Dropdown for the rest) -->
+          <div class="flex flex-wrap items-center gap-2 py-1">
+            <button type="button" @click="selectedCategory = 'all'" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer shrink-0" :class="selectedCategory === 'all' ? 'bg-[#006948] text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'">
               {{ __('room.campaign.filter_all') }}
             </button>
-            @foreach($categories as $cat)
-              <button type="button" @click="selectedCategory = '{{ $cat }}'" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer" :class="selectedCategory === '{{ $cat }}' ? 'bg-[#006948] text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'">
+            @foreach($categories->take(3) as $cat)
+              <button type="button" @click="selectedCategory = '{{ $cat }}'" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap cursor-pointer shrink-0" :class="selectedCategory === '{{ $cat }}' ? 'bg-[#006948] text-white shadow-2xs' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'">
                 {{ $cat }}
               </button>
             @endforeach
+
+            @if($categories->count() > 3)
+              @php
+                $moreCategories = $categories->slice(3)->values();
+              @endphp
+              <div class="relative shrink-0" x-data="{ openMoreCats: false }" @click.outside="openMoreCats = false">
+                <button type="button" 
+                        @click="openMoreCats = !openMoreCats"
+                        class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap flex items-center gap-1 cursor-pointer"
+                        :class="({{ Js::from($moreCategories->all()) }}).includes(selectedCategory) 
+                          ? 'bg-[#006948] text-white shadow-2xs font-bold' 
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'">
+                  <span x-text="({{ Js::from($moreCategories->all()) }}).includes(selectedCategory) ? selectedCategory : '{{ __('room.campaign.more_categories_count', ['count' => $moreCategories->count()]) }}'"></span>
+                  <span class="material-symbols-outlined text-[16px] transition-transform duration-200" :class="openMoreCats ? 'rotate-180' : ''">expand_more</span>
+                </button>
+
+                <div x-show="openMoreCats" 
+                     x-cloak 
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="transform opacity-0 scale-95"
+                     x-transition:enter-end="transform opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-75"
+                     x-transition:leave-start="transform opacity-100 scale-100"
+                     x-transition:leave-end="transform opacity-0 scale-95"
+                     class="absolute left-0 top-full mt-1.5 z-50 min-w-[180px] max-h-60 overflow-y-auto rounded-xl bg-white border border-slate-200 shadow-2xl py-1">
+                  @foreach($moreCategories as $cat)
+                    <button type="button" 
+                            @click="selectedCategory = '{{ $cat }}'; openMoreCats = false"
+                            class="w-full text-left px-3.5 py-2 text-xs font-semibold transition-colors flex items-center justify-between gap-2 cursor-pointer"
+                            :class="selectedCategory === '{{ $cat }}' ? 'bg-emerald-50 text-[#006948] font-bold' : 'text-slate-700 hover:bg-slate-50'">
+                      <span class="truncate">{{ $cat }}</span>
+                      <span x-show="selectedCategory === '{{ $cat }}'" class="material-symbols-outlined text-[16px] text-[#006948] shrink-0">check</span>
+                    </button>
+                  @endforeach
+                </div>
+              </div>
+            @endif
           </div>
 
           <!-- Search Bar with Clear Button -->
@@ -336,7 +404,7 @@
                 <div class="w-full h-28 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-[#006948] overflow-hidden mb-2.5 relative">
                   <span class="material-symbols-outlined text-[32px]">local_cafe</span>
                   <template x-if="itemImageUrl({{ Js::from($item) }})">
-                    <img :src="itemImageUrl({{ Js::from($item) }})"
+                    <img x-lazy-src="itemImageUrl({{ Js::from($item) }})"
                          alt="{{ $item->name }}"
                          data-menu-item-image
                          loading="lazy"
@@ -394,7 +462,7 @@
               <div class="relative w-9 h-9 overflow-hidden rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-[20px]">local_cafe</span>
                 <template x-if="itemImageUrl(selectedItem)">
-                  <img :src="itemImageUrl(selectedItem)"
+                  <img x-lazy-src="itemImageUrl(selectedItem)"
                        :alt="selectedItem?.name || '{{ __('admin.item_image_alt') }}'"
                        loading="lazy"
                        x-on:load="$el.hidden = false"
@@ -474,14 +542,22 @@
                         placeholder="{{ __('room.campaign.note_placeholder') }}"></textarea>
             </div>
 
+            <!-- Budget Limit Alert -->
+            <template x-if="isCustomItemExceeded">
+              <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 font-medium">
+                <span class="material-symbols-outlined text-[18px] text-rose-600 shrink-0">error</span>
+                <span>{{ __('room.campaign.custom_exceeds_budget_msg', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</span>
+              </div>
+            </template>
+
             <!-- Modal Footer CTA -->
             <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
               <div class="text-left">
                 <span class="text-[11px] text-slate-400 block">{{ __('room.campaign.unit_price') }}</span>
-                <span class="text-sm sm:text-base font-bold font-mono text-[#006948]" x-text="new Intl.NumberFormat('vi-VN').format(calculatedPrice) + 'đ'"></span>
+                <span class="text-sm sm:text-base font-bold font-mono" :class="isCustomItemExceeded ? 'text-rose-600' : 'text-[#006948]'" x-text="new Intl.NumberFormat('vi-VN').format(calculatedPrice) + 'đ'"></span>
               </div>
-              <button type="submit" :disabled="cartSubmitting"
-                      class="px-5 h-10 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer">
+              <button type="submit" :disabled="cartSubmitting || isCustomItemExceeded"
+                      class="px-5 h-10 bg-[#006948] hover:bg-[#005137] disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer">
                 <span x-show="!cartSubmitting" class="material-symbols-outlined text-[17px]">shopping_bag</span>
                 <span x-show="cartSubmitting" class="material-symbols-outlined animate-spin text-[17px]">progress_activity</span>
                 <span x-text="cartSubmitting ? '{{ __('global.common.loading') }}' : '{{ __('room.campaign.add_to_order') }}'"></span>
@@ -513,6 +589,17 @@
             </div>
           </div>
           <div class="max-h-[50vh] space-y-3 overflow-y-auto p-5">
+            <!-- Exceeded items alert banner -->
+            <template x-if="hasExceededItems()">
+              <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2 shadow-2xs">
+                <span class="material-symbols-outlined text-[18px] text-rose-600 shrink-0 mt-0.5">warning</span>
+                <div>
+                  <p class="font-bold">{{ __('room.campaign.cart_exceeded_banner_title') }}</p>
+                  <p class="mt-0.5 text-[11px] text-rose-700 leading-relaxed">{{ __('room.campaign.cart_exceeded_banner_desc', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</p>
+                </div>
+              </div>
+            </template>
+
             <template x-if="cartItems.length === 0">
               <div class="flex flex-col items-center justify-center py-10 text-center">
                 <span class="material-symbols-outlined mb-2 text-[42px] text-slate-300">shopping_cart</span>
@@ -521,36 +608,54 @@
               </div>
             </template>
             <template x-for="(item, index) in cartItems" :key="item.item_id + '-' + item.size_id + '-' + item.note + '-' + index">
-              <div class="flex items-start justify-between gap-3 rounded-xl bg-slate-50 p-3">
-                <div class="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white text-[#006948]">
-                  <span class="material-symbols-outlined text-[20px]">local_cafe</span>
-                  <template x-if="itemImageUrl(item)">
-                    <img :src="itemImageUrl(item)"
-                         :alt="item.item_name || '{{ __('admin.item_image_alt') }}'"
-                         loading="lazy"
-                         x-on:load="$el.hidden = false"
-                         x-on:error="$el.hidden = true"
-                         class="absolute inset-0 h-full w-full object-cover">
-                  </template>
+              <div class="flex flex-col gap-1.5 rounded-xl p-3 transition-colors"
+                   :class="isItemExceeded(item) ? 'bg-rose-50/70 border border-rose-300 shadow-2xs' : 'bg-slate-50 border border-transparent'">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white text-[#006948]">
+                    <span class="material-symbols-outlined text-[20px]">local_cafe</span>
+                    <template x-if="itemImageUrl(item)">
+                      <img x-lazy-src="itemImageUrl(item)"
+                           :alt="item.item_name || '{{ __('admin.item_image_alt') }}'"
+                           loading="lazy"
+                           x-on:load="$el.hidden = false"
+                           x-on:error="$el.hidden = true"
+                           class="absolute inset-0 h-full w-full object-cover">
+                    </template>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-bold text-slate-900" x-text="item.item_name"></p>
+                    <p class="mt-0.5 text-[11px] text-slate-500" x-text="[item.size_name, ...(item.topping_names || [])].filter(Boolean).join(' · ')"></p>
+                    <p class="mt-1 text-[11px] text-slate-500" x-show="item.note" x-text="item.note"></p>
+                  </div>
+                  <div class="flex shrink-0 items-center gap-1">
+                    <span class="text-xs font-bold font-mono" :class="isItemExceeded(item) ? 'text-rose-600 font-bold' : 'text-[#006948]'" x-text="new Intl.NumberFormat('vi-VN').format(item.unit_price * item.quantity) + 'đ'"></span>
+                    <button type="button" @click="removeCartItem(index)" :disabled="cartUpdating" class="rounded-md p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_remove_item') }}">
+                      <span x-show="!cartUpdating" class="material-symbols-outlined text-[16px]">delete</span>
+                      <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                    </button>
+                  </div>
                 </div>
-                <div class="min-w-0">
-                  <p class="truncate text-sm font-bold text-slate-900" x-text="item.item_name"></p>
-                  <p class="mt-0.5 text-[11px] text-slate-500" x-text="[item.size_name, ...(item.topping_names || [])].filter(Boolean).join(' · ')"></p>
-                  <p class="mt-1 text-[11px] text-slate-500" x-show="item.note" x-text="item.note"></p>
-                </div>
-                <div class="flex shrink-0 items-center gap-1">
-                  <span class="text-xs font-bold font-mono text-[#006948]" x-text="new Intl.NumberFormat('vi-VN').format(item.unit_price * item.quantity) + 'đ'"></span>
-                  <button type="button" @click="removeCartItem(index)" :disabled="cartUpdating" class="rounded-md p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_remove_item') }}">
-                    <span x-show="!cartUpdating" class="material-symbols-outlined text-[16px]">delete</span>
-                    <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                  </button>
-                </div>
+                <template x-if="isItemExceeded(item)">
+                  <div class="mt-1 pt-1.5 border-t border-rose-200/80 flex items-center gap-1 text-[11px] font-semibold text-rose-600">
+                    <span class="material-symbols-outlined text-[14px]">error</span>
+                    <span>{{ __('room.campaign.item_exceeded_budget_error', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</span>
+                  </div>
+                </template>
               </div>
             </template>
           </div>
           <div class="flex items-center justify-between border-t border-slate-100 p-5">
-            <div><span class="block text-[11px] text-slate-400">{{ __('room.campaign.cart_total') }}</span><strong class="font-mono text-base text-[#006948]" x-text="new Intl.NumberFormat('vi-VN').format(cartTotal()) + 'đ'"></strong></div>
-            <button type="button" :disabled="cartItems.length === 0" @click="showConfirmModal = true; showCartModal = false" class="rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50">{{ __('room.campaign.cart_confirm') }}</button>
+            <div>
+              <span class="block text-[11px] text-slate-400">{{ __('room.campaign.cart_total') }}</span>
+              <strong class="font-mono text-base text-[#006948]" x-text="new Intl.NumberFormat('vi-VN').format(cartTotal()) + 'đ'"></strong>
+            </div>
+            <button type="button" 
+                    :disabled="cartItems.length === 0 || hasExceededItems()" 
+                    @click="proceedToConfirm()" 
+                    class="rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer">
+              <span>{{ __('room.campaign.cart_confirm') }}</span>
+              <span x-show="hasExceededItems()" class="material-symbols-outlined text-[14px] text-amber-300">warning</span>
+            </button>
           </div>
         </div>
       </div>

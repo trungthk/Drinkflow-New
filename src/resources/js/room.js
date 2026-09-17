@@ -1,5 +1,8 @@
 import './bootstrap';
 import { initToastNotifications } from './shared/toast';
+import { initLazyImages } from './shared/lazy-image';
+
+initLazyImages();
 
 import { initOrderStatus } from './room/order-status';
 import { initCampaignOrder } from './room/campaign-order';

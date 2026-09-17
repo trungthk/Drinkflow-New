@@ -15,7 +15,7 @@ class Debt extends Model
 {
     use HasStatus, BelongsToRoom;
 
-    protected $fillable = ['room_id', 'code', 'campaign_id', 'room_user_id', 'original_amount', 'sponsor_amount', 'sponsor_type', 'sponsor_description', 'adjustment_amount', 'paid_amount', 'remaining_amount', 'status', 'payment_requested_at', 'note'];
+    protected $fillable = ['room_id', 'code', 'campaign_id', 'room_user_id', 'original_amount', 'sponsor_amount', 'sponsor_type', 'sponsor_description', 'adjustment_amount', 'paid_amount', 'remaining_amount', 'status', 'payment_requested_at', 'payment_content', 'note'];
 
     /**
      * Bootstrap the model and its traits.

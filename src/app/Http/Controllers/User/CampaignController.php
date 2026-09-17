@@ -6,9 +6,15 @@ namespace App\Http\Controllers\User;
 
 use App\Actions\Campaign\DeclineCampaignAction;
 use App\Actions\Campaign\RejoinCampaignAction;
+use App\Enums\CampaignStatus;
+use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCampaignCartRequest;
 use App\Models\Campaign;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\Room;
+use App\Models\RoomUser;
 use App\Services\Campaign\UserRoomCampaignService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +24,101 @@ use Illuminate\Validation\ValidationException;
 
 class CampaignController extends Controller
 {
+    /**
+     * Get campaign details and its orders for modal display.
+     * If campaign has full sponsor: returns all orders in the campaign.
+     * If campaign has no sponsor or partial: returns only the current user's orders.
+     *
+     * @param Request $request Current HTTP request.
+     * @param Room $room Current room.
+     * @param Campaign $campaign Target campaign.
+     * @return JsonResponse Campaign and orders detail payload.
+     */
+    public function details(Request $request, Room $room, Campaign $campaign): JsonResponse
+    {
+        abort_unless($campaign->room_id === $room->id, 404);
+
+        /** @var RoomUser|null $roomUser */
+        $roomUser = $request->attributes->get('room_user');
+        $isFullSponsor = $campaign->sponsor_type === 'full';
+
+        $ordersQuery = $campaign->orders()
+            ->with([
+                'roomUser.globalUser',
+                'items.toppings',
+            ])
+            ->where('status', '!=', OrderStatus::Cancelled->value);
+
+        if (! $isFullSponsor && $roomUser) {
+            $ordersQuery->where('room_user_id', $roomUser->id);
+        }
+
+        $orders = $ordersQuery->oldest('id')->get();
+
+        $orderData = $orders->map(function (Order $order): array {
+            $roomUser = $order->roomUser;
+            $globalUser = $roomUser?->globalUser;
+            $displayName = $roomUser?->display_name ?: ($globalUser?->name ?: __('room.debts.campaign_orderer'));
+            $userCode = $roomUser?->user_code ?: '';
+            $avatarUrl = $globalUser?->avatar_url ?: null;
+
+            $items = $order->items->map(function (OrderItem $item): array {
+                $toppings = $item->toppings->map(fn ($t) => [
+                    'name' => $t->topping_name,
+                    'price' => (int) ($t->unit_price ?: $t->subtotal),
+                ])->values()->all();
+
+                return [
+                    'id' => $item->id,
+                    'item_name' => $item->item_name,
+                    'size_name' => $item->size_name,
+                    'unit_price' => (int) $item->unit_price,
+                    'quantity' => (int) $item->quantity,
+                    'ice_percent' => $item->ice_percent,
+                    'sugar_percent' => $item->sugar_percent,
+                    'line_subtotal' => (int) $item->line_subtotal,
+                    'note' => $item->note,
+                    'toppings' => $toppings,
+                ];
+            })->values()->all();
+
+            return [
+                'id' => $order->id,
+                'code' => $order->code,
+                'orderer_name' => $displayName,
+                'orderer_code' => $userCode,
+                'orderer_avatar' => $avatarUrl,
+                'status' => $order->status instanceof OrderStatus ? $order->status->value : (string) $order->status,
+                'status_label' => $order->status instanceof OrderStatus ? $order->status->label() : (string) $order->status,
+                'subtotal' => (int) $order->subtotal,
+                'delivery_amount' => (int) $order->delivery_amount,
+                'discount_amount' => (int) $order->discount_amount,
+                'sponsor_amount' => (int) $order->sponsor_amount,
+                'final_amount' => (int) $order->final_amount,
+                'note' => $order->note,
+                'items' => $items,
+            ];
+        })->values()->all();
+
+        return response()->json([
+            'data' => [
+                'id' => $campaign->id,
+                'code' => $campaign->code,
+                'name' => $campaign->name,
+                'restaurant' => $campaign->restaurant,
+                'status' => $campaign->status instanceof CampaignStatus ? $campaign->status->value : (string) $campaign->status,
+                'sponsor_type' => $campaign->sponsor_type,
+                'sponsor_name' => $campaign->sponsor_name,
+                'sponsor_description' => $campaign->sponsor_description,
+                'is_full_sponsor' => $isFullSponsor,
+                'delivery_fee' => (int) ($campaign->delivery_fee ?? 0),
+                'discount' => (int) ($campaign->discount ?? 0),
+                'total_orders' => count($orderData),
+                'total_cups' => $orders->sum(fn ($o) => $o->items->sum('quantity')),
+                'orders' => $orderData,
+            ],
+        ]);
+    }
     /**
      * Add a configured campaign item to the current user's session cart.
      *
@@ -46,6 +147,7 @@ class CampaignController extends Controller
 
         $cartKey = $this->cartKey($room->id, $campaign->id);
         $cart = session()->get($cartKey, []);
+        abort_if(count($cart) >= 50, 422, __('room.campaign.cart_limit_reached'));
         $cart[] = [
             'item_id' => (int) $item->id,
             'item_name' => $item->name,

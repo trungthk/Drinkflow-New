@@ -129,8 +129,9 @@ class UserRoomCampaignService
 
             $totalMembers       = $room->roomUsers()->where('status', RoomUserStatus::Active)->count();
             $orderedMembersCount = Order::where('campaign_id', $activeCampaign->id)->distinct('room_user_id')->count('room_user_id');
-            $totalPoolValue     = Order::where('campaign_id', $activeCampaign->id)->sum('final_amount');
+            $totalPoolValue     = Order::where('campaign_id', $activeCampaign->id)->where('status', '!=', OrderStatus::Cancelled->value)->sum('final_amount');
             $participants       = Order::where('campaign_id', $activeCampaign->id)
+                ->where('status', '!=', OrderStatus::Cancelled->value)
                 ->with('roomUser.globalUser')
                 ->latest()
                 ->take(10)

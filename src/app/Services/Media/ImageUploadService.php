@@ -46,7 +46,7 @@ class ImageUploadService
         }
 
         try {
-            $source = $file instanceof UploadedFile ? $file->getRealPath() : $file;
+            $source = $file instanceof UploadedFile ? ($file->getRealPath() ?: $file->getPathname()) : $file;
             $image = $this->imageManager->read($source);
         } catch (\Throwable $e) {
             throw new InvalidArgumentException('Không thể đọc file hình ảnh: ' . $e->getMessage(), 0, $e);
@@ -55,12 +55,19 @@ class ImageUploadService
         // Tự động scale down giữ nguyên tỷ lệ nếu kích thước vượt ngưỡng
         $image->scaleDown(width: $maxWidth, height: $maxHeight);
 
-        // Chuyển đổi toàn bộ sang định dạng WebP với mức nén tối ưu
-        $encoded = $image->toWebp(quality: $quality);
+        // Chuyển đổi sang định dạng WebP (nếu GD hỗ trợ) hoặc fallback sang Jpeg
+        $extension = 'webp';
+        if (function_exists('imagewebp')) {
+            $encoded = $image->toWebp(quality: $quality);
+            $extension = 'webp';
+        } else {
+            $encoded = $image->toJpeg(quality: $quality);
+            $extension = 'jpg';
+        }
         $encodedBinary = (string) $encoded;
 
-        // Sinh tên file ngẫu nhiên bảo mật với đuôi .webp
-        $filename = Str::uuid()->toString() . '.webp';
+        // Sinh tên file ngẫu nhiên bảo mật
+        $filename = Str::uuid()->toString() . '.' . $extension;
         $directory = trim($directory, '/\\');
         $storagePath = $directory . '/' . $filename;
 
@@ -70,9 +77,17 @@ class ImageUploadService
             throw new RuntimeException('Lỗi lưu trữ tệp tin vào public storage.');
         }
 
+        $url = Storage::url($storagePath);
+        if (str_contains($url, '://')) {
+            $parsedPath = parse_url($url, PHP_URL_PATH);
+            if ($parsedPath) {
+                $url = $parsedPath;
+            }
+        }
+
         return [
             'path' => $storagePath,
-            'url' => Storage::url($storagePath),
+            'url' => $url,
             'filename' => $filename,
             'width' => $image->width(),
             'height' => $image->height(),

@@ -29,5 +29,8 @@ return [
     'debt_channel_reminder_title' => '未払い清算リマインダー',
     'order_price_adjusted_title' => '注文価格の調整',
     'order_price_adjusted_body' => '注文番号 #:order_id の価格が :amount に調整されました。理由: :reason',
+    'campaign_updated_title' => 'キャンペーン更新',
+    'campaign_updated_body' => 'キャンペーンのメニュー情報または注文締切日時が更新されました。',
+    'campaign_delivering_title' => '商品が届きました！ 🧋',
+    'campaign_delivering_body' => ':restaurant（#:code）の注文が部屋に届きました。商品をお受け取りください！',
 ];
-

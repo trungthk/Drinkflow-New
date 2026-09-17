@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\Debt\AdjustDebtAction;
+use App\Exports\AdminDebtLedgerExport;
 use App\Actions\Debt\RecordDebtPaymentAction;
 use App\Actions\Debt\SetDebtStatusAction;
 use App\Enums\DebtStatus;
@@ -22,6 +23,9 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Excel as ExcelWriter;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DebtController extends Controller
 {
@@ -52,7 +56,11 @@ class DebtController extends Controller
     {
         $query = Debt::query()
             ->where('room_id', $room->id)
-            ->with(['roomUser.globalUser', 'campaign'])
+            ->with([
+                'roomUser.globalUser',
+                'roomUser.debts' => fn($q) => $q->where('room_id', $room->id)->where('status', DebtStatus::Pending)->with('campaign'),
+                'campaign',
+            ])
             ->latest();
 
         $search = trim($request->string('search')->toString());
@@ -202,53 +210,9 @@ class DebtController extends Controller
      * @param Room $room Current room.
      * @return \Symfony\Component\HttpFoundation\StreamedResponse CSV download.
      */
-    public function export(Request $request, Room $room): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function export(Request $request, Room $room): BinaryFileResponse
     {
-        $debts = Debt::query()->where('room_id', $room->id)->with(['campaign', 'roomUser.globalUser'])->latest()->get();
-        $headings = [
-            __('admin.debt_export_campaign'),
-            __('admin.debt_export_user_code'),
-            __('admin.debt_export_user'),
-            __('admin.debt_export_date'),
-            __('admin.debt_export_original_amount'),
-            __('admin.debt_export_sponsor_type'),
-            __('admin.debt_export_sponsor_amount'),
-            __('admin.debt_export_paid_amount'),
-            __('admin.debt_export_remaining_amount'),
-            __('admin.debt_export_status'),
-        ];
-        $rows = $debts->map(static function (Debt $debt): array {
-            $sponsorType = $debt->sponsor_type ?: 'none';
-            $status = $debt->status instanceof DebtStatus ? $debt->status->value : (string) $debt->status;
-
-            return [
-                $debt->campaign?->name,
-                $debt->roomUser?->user_code,
-                $debt->roomUser?->globalUser?->email,
-                $debt->created_at?->format('Y-m-d'),
-                $debt->original_amount,
-                __('admin.sponsor_type_'.$sponsorType),
-                $debt->sponsor_amount,
-                $debt->paid_amount,
-                $debt->remaining_amount,
-                __('admin.status_'.$status),
-            ];
-        });
-
-        return response()->streamDownload(function () use ($headings, $rows): void {
-            $output = fopen('php://output', 'w');
-            if ($output === false) {
-                throw new \RuntimeException('Unable to open the CSV output stream.');
-            }
-
-            fwrite($output, "\xEF\xBB\xBF");
-            fputcsv($output, $headings);
-            foreach ($rows as $row) {
-                fputcsv($output, $row);
-            }
-
-            fclose($output);
-        }, 'drinkflow-'.$room->slug.'-debts.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+        return Excel::download(new AdminDebtLedgerExport($room->id), 'drinkflow-'.$room->slug.'-debts.csv', ExcelWriter::CSV);
     }
 
     /**

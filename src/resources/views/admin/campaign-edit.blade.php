@@ -42,6 +42,8 @@
      data-budget-error="{{ __('admin.campaign_budget_exceeds_limit', ['limit' => ':limit']) }}"
      data-sponsor-percentage-error="{{ __('admin.sponsor_percentage_total_invalid') }}"
      data-submit-url="{{ route('admin.campaigns.update', [$room, $campaign]) }}"
+     data-delete-url="{{ route('admin.campaigns.destroy', [$room, $campaign]) }}"
+     data-index-url="{{ route('admin.campaigns.page', $room) }}"
      data-image-upload-url="{{ route('admin.campaigns.menu-images.store', $room) }}"
      x-data="campaignCreateComponent(
         { max_budget: {{ (int) $maxBudget }} },
@@ -72,11 +74,76 @@
                 <span class="material-symbols-outlined text-[16px]">visibility</span>
                 <span>{{ __('admin.view_campaign_details') }}</span>
             </a>
-            <button type="button" @click="saveChanges()" :disabled="submitting" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50">
-                <span x-show="submitting" class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-                <span x-show="!submitting" class="material-symbols-outlined text-[16px]">save</span>
-                <span x-text="submitting ? '{{ __('admin.processing') }}' : '{{ __('admin.save_changes') }}'"></span>
-            </button>
+
+            <!-- Save Actions Dropdown -->
+            <div class="relative inline-flex rounded-lg shadow-sm" x-data="{ saveDropdownOpen: false }" @click.outside="saveDropdownOpen = false">
+                <!-- Main button: Lưu thay đổi (giữ nguyên trạng thái) -->
+                <button type="button"
+                        @click="saveChanges()"
+                        :disabled="submitting || cancelSubmitting"
+                        class="px-4 py-2 rounded-l-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50">
+                    <span x-show="submitting" class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                    <span x-show="!submitting" class="material-symbols-outlined text-[16px]">save</span>
+                    <span x-text="submitting ? '{{ __('admin.processing') }}' : '{{ __('admin.save_changes') }}'"></span>
+                </button>
+
+                <!-- Dropdown Trigger Button -->
+                <button type="button"
+                        @click="saveDropdownOpen = !saveDropdownOpen"
+                        :disabled="submitting || cancelSubmitting"
+                        class="px-2 py-2 rounded-r-lg bg-primary hover:bg-primary-container text-on-primary text-xs border-l border-white/20 transition-colors flex items-center justify-center disabled:opacity-50"
+                        title="{{ __('admin.save_changes') }}">
+                    <span class="material-symbols-outlined text-[18px] transition-transform duration-200" :class="saveDropdownOpen ? 'rotate-180' : ''">expand_more</span>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div x-show="saveDropdownOpen"
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-100"
+                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                     class="absolute right-0 top-full mt-1.5 z-40 w-64 rounded-xl border border-outline-variant bg-surface-container-lowest p-1.5 shadow-xl">
+                    
+                    <!-- Action 1: Lưu thay đổi -->
+                    <button type="button"
+                            @click="saveDropdownOpen = false; saveChanges()"
+                            :disabled="submitting || cancelSubmitting"
+                            class="flex w-full items-start gap-2.5 rounded-lg px-3 py-2 text-left text-xs text-on-surface hover:bg-surface-container-low transition-colors">
+                        <span class="material-symbols-outlined text-[18px] text-primary shrink-0 mt-0.5">save</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-semibold text-on-surface">{{ __('admin.save_changes') }}</div>
+                            <div class="text-[10px] text-outline leading-tight mt-0.5">{{ __('admin.save_changes_desc') }}</div>
+                        </div>
+                    </button>
+
+                    <!-- Action 2: Lưu thay đổi và phát hành (active) -->
+                    <button type="button"
+                            @click="saveDropdownOpen = false; saveChangesAndPublish()"
+                            :disabled="submitting || cancelSubmitting"
+                            class="flex w-full items-start gap-2.5 rounded-lg px-3 py-2 text-left text-xs text-on-surface hover:bg-surface-container-low transition-colors border-t border-outline-variant/60 mt-1 pt-1.5">
+                        <span class="material-symbols-outlined text-[18px] text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5">rocket_launch</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-semibold text-emerald-700 dark:text-emerald-300">{{ __('admin.save_and_publish') }}</div>
+                            <div class="text-[10px] text-outline leading-tight mt-0.5">{{ __('admin.save_and_publish_desc') }}</div>
+                        </div>
+                    </button>
+
+                    <!-- Action 3: Hủy chiến dịch (Xóa hoàn toàn) -->
+                    <button type="button"
+                            @click="saveDropdownOpen = false; showCancelCampaignModal = true"
+                            :disabled="submitting || cancelSubmitting"
+                            class="flex w-full items-start gap-2.5 rounded-lg px-3 py-2 text-left text-xs text-error hover:bg-error-container/30 transition-colors border-t border-outline-variant/60 mt-1 pt-1.5">
+                        <span class="material-symbols-outlined text-[18px] text-error shrink-0 mt-0.5">delete_forever</span>
+                        <div class="flex-1 min-w-0">
+                            <div class="font-semibold text-error">{{ __('admin.cancel_campaign_action_btn') }}</div>
+                            <div class="text-[10px] text-error/70 leading-tight mt-0.5">{{ __('admin.cancel_campaign_action_desc') }}</div>
+                        </div>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -318,7 +385,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             <template x-for="entry in visibleMenuItems" :key="entry.index">
                 <article class="flex items-center gap-3 rounded-xl border border-outline-variant bg-surface p-3 hover:border-primary/40 transition-colors">
-                    <img x-show="entry.item.image_url && !entry.item.image_load_failed" :src="entry.item.image_url" :alt="entry.item.name || '{{ __('admin.item_image_alt') }}'" x-on:load="entry.item.image_load_failed = false" x-on:error="entry.item.image_load_failed = true" loading="lazy" class="h-16 w-16 shrink-0 rounded-lg object-cover border border-outline-variant">
+                    <img x-show="entry.item.image_url && !entry.item.image_load_failed" x-lazy-src="entry.item.image_url" :alt="entry.item.name || '{{ __('admin.item_image_alt') }}'" x-on:load="entry.item.image_load_failed = false" x-on:error="entry.item.image_load_failed = true" loading="lazy" class="h-16 w-16 shrink-0 rounded-lg object-cover border border-outline-variant">
                     <div x-show="!entry.item.image_url || entry.item.image_load_failed" class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-outline-variant bg-surface-container-low text-outline">
                         <span class="material-symbols-outlined">restaurant</span>
                     </div>
@@ -441,6 +508,59 @@
                     <span x-show="!itemSubmitting && editingItemIndex === null">{{ __('admin.add_new_item_btn') }}</span>
                     <span x-show="!itemSubmitting && editingItemIndex !== null">{{ __('admin.save_item_changes') }}</span>
                     <span x-show="itemSubmitting">{{ __('admin.processing') }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirm Cancel & Delete Temporary Campaign -->
+    <div x-show="showCancelCampaignModal"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+         @keydown.escape.window="showCancelCampaignModal = false">
+        <div class="w-full max-w-md rounded-xl bg-surface-container-lowest border border-outline-variant p-5 shadow-2xl space-y-4"
+             @click.outside="showCancelCampaignModal = false">
+            <div class="flex items-start gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-error-container text-on-error-container">
+                    <span class="material-symbols-outlined text-[22px]">warning</span>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-bold text-base text-on-surface">{{ __('admin.confirm_cancel_campaign_title') }}</h3>
+                    <p class="mt-1 text-xs text-outline leading-relaxed">
+                        {{ __('admin.confirm_delete_temporary_campaign_message') }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="rounded-lg bg-surface-container-low p-3 text-xs space-y-1.5 border border-outline-variant/60">
+                <div class="flex justify-between">
+                    <span class="text-outline">{{ __('admin.campaign_name') }}:</span>
+                    <span class="font-semibold text-on-surface truncate ml-2" x-text="form.name"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-outline">{{ __('admin.restaurant_brand') }}:</span>
+                    <span class="font-semibold text-on-surface truncate ml-2" x-text="form.restaurant"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-outline">{{ __('admin.current_status') }}:</span>
+                    <span class="font-mono font-semibold uppercase text-primary" x-text="form.status"></span>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button"
+                        @click="showCancelCampaignModal = false"
+                        :disabled="cancelSubmitting"
+                        class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface text-xs font-semibold hover:bg-surface-container-low transition-colors disabled:opacity-50">
+                    {{ __('admin.cancel') }}
+                </button>
+                <button type="button"
+                        @click="executeCancelCampaign()"
+                        :disabled="cancelSubmitting"
+                        class="px-4 py-2 rounded-lg bg-error text-on-error text-xs font-semibold hover:opacity-90 shadow-xs transition-all flex items-center gap-1.5 disabled:opacity-50">
+                    <span x-show="cancelSubmitting" class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                    <span x-show="!cancelSubmitting" class="material-symbols-outlined text-[16px]">delete</span>
+                    <span x-text="cancelSubmitting ? '{{ __('admin.processing') }}' : '{{ __('admin.confirm_cancel_campaign_btn') }}'"></span>
                 </button>
             </div>
         </div>

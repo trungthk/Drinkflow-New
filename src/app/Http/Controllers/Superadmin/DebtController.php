@@ -12,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DebtController extends Controller
 {
@@ -41,7 +42,7 @@ class DebtController extends Controller
      * @param Request $request Parameter value.
      * @return mixed Result of the operation.
      */
-    public function export(Request $request, AuditService $audit)
+    public function export(Request $request, AuditService $audit): BinaryFileResponse
     {
         $debts = Debt::query()->with(['room', 'campaign', 'roomUser.globalUser'])->when($request->filled('room_id'), fn($q) => $q->where('room_id', $request->integer('room_id')))->get();
         $audit->record('debt.exported', 'debt', 0, $request->integer('room_id') ?: null, [], [], ['count' => $debts->count()]);

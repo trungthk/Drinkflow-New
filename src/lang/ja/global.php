@@ -486,7 +486,7 @@ return [
         'notif_sound_desc' => 'ドリンクが座席に到着した際にブラウザで「ピコン」と音を鳴らします',
         'membership_stats_title' => '会員統計',
         'internal_title' => '社内バッジ',
-        'total_cups_ordered' => '総注文杯数',
+        'total_cups_ordered' => '総注文品数',
         'on_time_payment' => '期限内支払率',
         'joined_system' => 'システム参加日:',
         'joined_date_val' => ':date月 (:duration)',

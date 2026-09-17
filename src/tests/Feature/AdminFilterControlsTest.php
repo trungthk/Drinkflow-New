@@ -53,7 +53,17 @@ class AdminFilterControlsTest extends TestCase
 
         $this->actingAs($admin, 'admin')->get(route('admin.campaigns.page', $room->slug))
             ->assertOk()
-            ->assertSee(__('admin.filter_clear'));
+            ->assertDontSee('id="campaign-clear-filters"', false);
+
+        $this->actingAs($admin, 'admin')->get(route('admin.campaigns.page', [
+            'room' => $room->slug,
+            'search' => 'Debt',
+        ]))->assertOk()->assertSee('id="campaign-clear-filters"', false);
+
+        $this->actingAs($admin, 'admin')->get(route('admin.campaigns.page', [
+            'room' => $room->slug,
+            'status' => CampaignStatus::Active->value,
+        ]))->assertOk()->assertSee('id="campaign-clear-filters"', false);
 
         $this->actingAs($admin, 'admin')->get(route('admin.room-users.page', $room->slug))
             ->assertOk()

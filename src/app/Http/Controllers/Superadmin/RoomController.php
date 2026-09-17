@@ -11,6 +11,7 @@ use App\Http\Requests\SetStatusRequest;
 use App\Http\Requests\StoreRoomRequest;
 use App\Http\Requests\UpdateRoomRequest;
 use App\Models\Room;
+use App\Services\Audit\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -43,9 +44,11 @@ class RoomController extends Controller
      * @param ManageRoomAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function store(StoreRoomRequest $request, ManageRoomAction $action): JsonResponse
+    public function store(StoreRoomRequest $request, ManageRoomAction $action, AuditService $audit): JsonResponse
     {
-        return response()->json(['data' => $action->create($request->validated())], 201);
+        $room = $action->create($request->validated());
+        $audit->record('room.created', 'room', $room->id, $room->id, [], $room->only(['name', 'slug', 'status']));
+        return response()->json(['data' => $room], 201);
     }
 
     /**
@@ -65,9 +68,12 @@ class RoomController extends Controller
      * @param ManageRoomAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function update(UpdateRoomRequest $request, Room $room, ManageRoomAction $action): JsonResponse
+    public function update(UpdateRoomRequest $request, Room $room, ManageRoomAction $action, AuditService $audit): JsonResponse
     {
-        return response()->json(['data' => $action->update($room, $request->validated())]);
+        $before = $room->only(['name', 'slug', 'status']);
+        $result = $action->update($room, $request->validated());
+        $audit->record('room.updated', 'room', $room->id, $room->id, $before, $result->fresh()->only(array_keys($before)));
+        return response()->json(['data' => $result]);
     }
 
     /**
@@ -77,10 +83,13 @@ class RoomController extends Controller
      * @param ManageRoomAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function status(SetStatusRequest $request, Room $room, ManageRoomAction $action): JsonResponse
+    public function status(SetStatusRequest $request, Room $room, ManageRoomAction $action, AuditService $audit): JsonResponse
     {
         abort_unless(in_array($request->validated('status'), ['active', 'disabled', 'archived'], true), 422);
-        return response()->json(['data' => $action->setStatus($room, $request->validated('status'))]);
+        $before = ['status' => $room->status?->value ?? (string) $room->status];
+        $result = $action->setStatus($room, $request->validated('status'));
+        $audit->record('room.status_changed', 'room', $room->id, $room->id, $before, ['status' => $request->validated('status')]);
+        return response()->json(['data' => $result]);
     }
 
     /**
@@ -90,9 +99,11 @@ class RoomController extends Controller
      * @param ManageRoomAction $action Room management action.
      * @return JsonResponse Result of the operation.
      */
-    public function destroy(Room $room, ManageRoomAction $action): JsonResponse
+    public function destroy(Room $room, ManageRoomAction $action, AuditService $audit): JsonResponse
     {
+        $before = $room->only(['name', 'slug', 'status']);
         $action->delete($room);
+        $audit->record('room.deleted', 'room', $room->id, $room->id, $before, []);
 
         return response()->json(['data' => ['deleted' => true]]);
     }

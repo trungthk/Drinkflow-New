@@ -42,8 +42,8 @@ class CreateOrderStatusNotification
         $alreadyCreated = \App\Models\UserNotification::where('room_user_id', $roomUser->id)
             ->where('type', 'order.status')
             ->where('created_at', '>=', now()->subSeconds(5))
-            ->whereRaw("data->>'order_id' = ?", [(string) $order->id])
-            ->whereRaw("data->>'status' = ?", [$order->status->value])
+            ->where('data->order_id', $order->id)
+            ->where('data->status', $order->status->value)
             ->exists();
 
         if ($alreadyCreated) {

@@ -260,7 +260,7 @@
                 <span class="text-xs text-slate-500 block font-medium">{{ __('global.profile.total_cups_ordered') }}</span>
                 <div class="flex items-baseline gap-1 mt-1">
                   <span class="text-2xl font-bold text-slate-900 tracking-tight">{{ $totalCups }}</span>
-                  <span class="text-xs text-slate-400">{{ __('global.common.cups') }}</span>
+                  <span class="text-xs text-slate-400">{{ __('global.common.items_count') }}</span>
                 </div>
               </div>
               <div class="p-3.5 rounded-xl border border-slate-200/70 bg-slate-50/50">

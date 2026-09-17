@@ -1,5 +1,8 @@
 import './bootstrap';
 import { initToastNotifications } from './shared/toast';
+import { initLazyImages } from './shared/lazy-image';
+
+initLazyImages();
 
 import { initAdminGoToTop } from './admin/go-to-top';
 import { initUiEnhancements, renderTableSkeleton, debounce, toggleAdminSidebar } from './admin/ui-enhancements';

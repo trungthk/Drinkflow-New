@@ -43,7 +43,7 @@ class ConfirmOrderPaymentAction
             $lockedOrder = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
             $lockedOrder->payment_status = PaymentStatus::Pending;
             $lockedOrder->save();
-            $paymentContent = 'DF'.$lockedOrder->id.' '.$roomUser->room_user_code;
+            $paymentContent = $lockedOrder->code ?: ('DF'.$lockedOrder->id.' '.$roomUser->room_user_code);
             $paymentRequestedAt = now();
 
             // Synchronize or create pending debt record for room ledger
@@ -57,7 +57,7 @@ class ConfirmOrderPaymentAction
                 if ($debt->status !== DebtStatus::Paid) {
                     $debt->status = DebtStatus::Pending;
                     $debt->payment_requested_at = $paymentRequestedAt;
-                    $debt->note = $paymentContent;
+                    $debt->payment_content = $paymentContent;
                     $debt->save();
                 }
             } else {
@@ -74,7 +74,8 @@ class ConfirmOrderPaymentAction
                     'remaining_amount' => (int) $lockedOrder->final_amount,
                     'status' => DebtStatus::Pending,
                     'payment_requested_at' => $paymentRequestedAt,
-                    'note' => $paymentContent,
+                    'payment_content' => $paymentContent,
+                    'note' => $lockedOrder->note,
                 ]);
             }
 
@@ -84,9 +85,10 @@ class ConfirmOrderPaymentAction
         $room = $updatedOrder->room;
         $userName = $roomUser->globalUser?->name ?? $roomUser->display_name ?? 'User #' . $roomUser->id;
         $amountFmt = number_format((int) $updatedOrder->final_amount, 0, ',', '.') . ' ₫';
+        $orderIdentifier = $updatedOrder->code ?: ('DF' . $updatedOrder->id);
 
         // Notify room admins via AdminNotification table
-        $room->admins()->each(function (AdminAccount $admin) use ($room, $updatedOrder, $userName, $amountFmt): void {
+        $room->admins()->each(function (AdminAccount $admin) use ($room, $updatedOrder, $userName, $amountFmt, $orderIdentifier): void {
             AdminNotification::create([
                 'admin_id' => $admin->id,
                 'room_id' => $room->id,
@@ -95,7 +97,7 @@ class ConfirmOrderPaymentAction
                 'body' => __('admin.payment_confirmation_request_body', [
                     'user' => $userName,
                     'amount' => $amountFmt,
-                    'order' => 'DF' . $updatedOrder->id,
+                    'order' => $orderIdentifier,
                 ]),
                 'data' => [
                     'order_id' => $updatedOrder->id,

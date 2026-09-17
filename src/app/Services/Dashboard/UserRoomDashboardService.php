@@ -79,7 +79,7 @@ class UserRoomDashboardService
             ->sum('remaining_amount');
 
         // Recent orders by this user in this room
-        $userRecentOrders = $roomUser->orders()->with('items')->latest()->take(5)->get();
+        $userRecentOrders = $roomUser->orders()->where('status', '!=', OrderStatus::Cancelled->value)->with('items')->latest()->take(5)->get();
 
         // All active rooms of user for dropdown
         $userRooms = $user ? $user->rooms()->where('rooms.status', RoomStatus::Active->value)->get() : collect();

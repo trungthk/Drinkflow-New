@@ -43,14 +43,15 @@ class UpdateCampaignAction
         /** @var Room $room */
         $room = $campaign->room;
         $settings = $room->roomSettings()->whereIn('key', ['max_campaign_budget'])->get()->keyBy('key');
-        $maxCampaignBudget = (int) ($settings->get('max_campaign_budget')?->value ?? 2_000_000);
-
-        if (array_key_exists('max_budget', $data) && $data['max_budget'] !== null && (int) $data['max_budget'] > $maxCampaignBudget) {
-            throw ValidationException::withMessages([
-                'max_budget' => __('admin.campaign_budget_exceeds_limit', [
-                    'limit' => number_format($maxCampaignBudget, 0, ',', '.'),
-                ]),
-            ]);
+        if ($settings->has('max_campaign_budget') && $settings->get('max_campaign_budget')?->value !== null) {
+            $maxCampaignBudget = (int) $settings->get('max_campaign_budget')->value;
+            if ($maxCampaignBudget > 0 && array_key_exists('max_budget', $data) && $data['max_budget'] !== null && (int) $data['max_budget'] > $maxCampaignBudget) {
+                throw ValidationException::withMessages([
+                    'max_budget' => __('admin.campaign_budget_exceeds_limit', [
+                        'limit' => number_format($maxCampaignBudget, 0, ',', '.'),
+                    ]),
+                ]);
+            }
         }
 
         $sponsorType = (string) ($data['sponsor_type'] ?? $campaign->sponsor_type ?? 'none');
@@ -60,8 +61,8 @@ class UpdateCampaignAction
             /** @var array<int, array<string, mixed>> $allocationsList */
             $allocationsList = $data['sponsor_allocations'] ?? [];
             $allocations = collect($allocationsList);
-            $percentageTotal = (float) $allocations->sum(static fn (array $allocation): float => (float) ($allocation['percentage'] ?? 0));
-            $roomUserIds = $allocations->pluck('room_user_id')->map(static fn (mixed $id): int => (int) $id);
+            $percentageTotal = (float) $allocations->sum(static fn(array $allocation): float => (float) ($allocation['percentage'] ?? 0));
+            $roomUserIds = $allocations->pluck('room_user_id')->map(static fn(mixed $id): int => (int) $id);
 
             if ($allocations->isEmpty() || abs($percentageTotal - 100.0) > 0.01) {
                 throw ValidationException::withMessages([
@@ -84,16 +85,30 @@ class UpdateCampaignAction
             }
         }
 
-        if (! empty($data['payment_account_id'])) {
+        if (!empty($data['payment_account_id'])) {
             $accountValid = PaymentAccount::query()
                 ->whereKey($data['payment_account_id'])
                 ->where('room_id', $room->id)
                 ->where('status', PaymentAccountStatus::Active)
                 ->exists();
 
-            if (! $accountValid) {
+            if (!$accountValid) {
                 throw ValidationException::withMessages([
                     'payment_account_id' => __('admin.invalid_payment_account'),
+                ]);
+            }
+        }
+
+        if (array_key_exists('discount', $data) && $data['discount'] !== null) {
+            $deliveryFee = array_key_exists('delivery_fee', $data) ? (int) $data['delivery_fee'] : (int) ($campaign->delivery_fee ?? 0);
+            $grossSubtotal = (int) $campaign->orders()->whereNotIn('status', [\App\Enums\OrderStatus::Cancelled->value])->sum('subtotal');
+            $discount = (int) $data['discount'];
+            $maxAllowedDiscount = $grossSubtotal + $deliveryFee;
+            if ($grossSubtotal > 0 && $discount > $maxAllowedDiscount) {
+                throw ValidationException::withMessages([
+                    'discount' => __('admin.discount_cannot_exceed_subtotal_plus_fee', [
+                        'max' => number_format($maxAllowedDiscount, 0, ',', '.'),
+                    ]),
                 ]);
             }
         }
@@ -167,8 +182,13 @@ class UpdateCampaignAction
             }
 
             /** @var Campaign $freshCampaign */
-            $freshCampaign = $campaign->fresh(['items.toppings', 'items.sizes', 'paymentAccount']);
+            $freshCampaign = $campaign->fresh(['items.toppings', 'items.sizes', 'paymentAccount', 'room']);
             $this->auditService->record('campaign.updated', 'campaign', $campaign->id, $campaign->room_id, $before, $freshCampaign->toArray());
+
+            $statusValue = $freshCampaign->status instanceof \BackedEnum ? $freshCampaign->status->value : (string) $freshCampaign->status;
+            if (in_array($statusValue, ['active', 'scheduled', 'closing'], true)) {
+                \App\Events\CampaignUpdated::dispatch($freshCampaign);
+            }
 
             return $freshCampaign;
         });

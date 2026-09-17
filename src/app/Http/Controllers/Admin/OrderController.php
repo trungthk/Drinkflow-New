@@ -17,6 +17,7 @@ use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\Room;
+use App\Services\Audit\AuditService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
@@ -177,7 +178,7 @@ class OrderController extends Controller
      * @param UpdateOrderStatusAction $action Status transition action.
      * @return JsonResponse Result with count of updated orders.
      */
-    public function bulkStatus(BulkUpdateOrderStatusRequest $request, Room $room, UpdateOrderStatusAction $action): JsonResponse
+    public function bulkStatus(BulkUpdateOrderStatusRequest $request, Room $room, UpdateOrderStatusAction $action, AuditService $audit): JsonResponse
     {
         $orderIds = $request->validated('order_ids');
         $targetStatus = (string) $request->validated('status');
@@ -195,7 +196,9 @@ class OrderController extends Controller
                 continue;
             }
             try {
+                $before = ['status' => $statusValue];
                 $action->execute($order, $targetStatus);
+                $audit->record('order.bulk_status_updated', 'order', $order->id, $room->id, $before, ['status' => $targetStatus], ['bulk' => true]);
                 $updatedCount++;
             } catch (\Throwable) {
                 // Skip invalid transitions for individual orders in bulk mode
@@ -220,7 +223,7 @@ class OrderController extends Controller
      * @param UpdateOrderStatusAction $action Status transition action.
      * @return JsonResponse Result with count of cancelled orders.
      */
-    public function bulkCancel(BulkCancelOrdersRequest $request, Room $room, UpdateOrderStatusAction $action): JsonResponse
+    public function bulkCancel(BulkCancelOrdersRequest $request, Room $room, UpdateOrderStatusAction $action, AuditService $audit): JsonResponse
     {
         $orderIds = $request->validated('order_ids');
 
@@ -237,7 +240,9 @@ class OrderController extends Controller
                 continue;
             }
             try {
+                $before = ['status' => $statusValue];
                 $action->execute($order, OrderStatus::Cancelled->value);
+                $audit->record('order.bulk_cancelled', 'order', $order->id, $room->id, $before, ['status' => OrderStatus::Cancelled->value], ['bulk' => true]);
                 $cancelledCount++;
             } catch (\Throwable) {
                 // Skip invalid transitions for individual orders in bulk mode

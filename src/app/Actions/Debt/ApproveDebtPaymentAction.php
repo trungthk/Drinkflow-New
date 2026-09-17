@@ -32,49 +32,78 @@ class ApproveDebtPaymentAction
         $approvedAt = now();
         $updated = DB::transaction(function () use ($debt, $reference, $approvingAdmin, $approvedAt): Debt {
             $lockedDebt = Debt::whereKey($debt->id)->lockForUpdate()->firstOrFail();
-            $beforeRemaining = (int) $lockedDebt->remaining_amount;
+            $roomUser = $lockedDebt->roomUser;
             $approvingAdminId = $approvingAdmin?->id;
 
-            if ($lockedDebt->status === DebtStatus::Paid && $beforeRemaining === 0) {
+            $isPayAll = !empty($lockedDebt->payment_content) && $roomUser && $lockedDebt->payment_content === $roomUser->user_code;
+
+            /** @var \Illuminate\Database\Eloquent\Collection<int, Debt> $debtsToApprove */
+            $debtsToApprove = collect([$lockedDebt]);
+            if ($isPayAll) {
+                $debtsToApprove = Debt::query()
+                    ->where('room_id', $lockedDebt->room_id)
+                    ->where('room_user_id', $lockedDebt->room_user_id)
+                    ->where('status', DebtStatus::Pending)
+                    ->lockForUpdate()
+                    ->get();
+
+                if ($debtsToApprove->isEmpty()) {
+                    $debtsToApprove = collect([$lockedDebt]);
+                }
+            }
+
+            $hasValidSettlement = false;
+
+            foreach ($debtsToApprove as $targetDebt) {
+                $beforeRemaining = (int) $targetDebt->remaining_amount;
+                if ($targetDebt->status === DebtStatus::Paid && $beforeRemaining === 0) {
+                    continue;
+                }
+
+                $hasValidSettlement = true;
+                $approvedAmount = $beforeRemaining > 0 ? $beforeRemaining : (int) $targetDebt->original_amount;
+
+                // Record debt payment receipt
+                DebtPayment::create([
+                    'debt_id' => $targetDebt->id,
+                    'amount' => $approvedAmount,
+                    'payment_method' => 'vietqr',
+                    'reference' => $reference ?? ($isPayAll ? 'Admin approved full debt settlement' : 'Admin approved payment'),
+                    'paid_at' => $approvedAt,
+                    'created_by_admin_id' => $approvingAdminId,
+                ]);
+
+                $targetDebt->paid_amount += $beforeRemaining;
+                $targetDebt->remaining_amount = 0;
+                $targetDebt->status = DebtStatus::Paid;
+                $targetDebt->save();
+
+                // Synchronize corresponding order(s) for this user and campaign
+                if ($targetDebt->campaign_id) {
+                    Order::query()
+                        ->where('campaign_id', $targetDebt->campaign_id)
+                        ->where('room_user_id', $targetDebt->room_user_id)
+                        ->update([
+                            'payment_status' => PaymentStatus::Paid->value,
+                            'paid_at' => $approvedAt,
+                        ]);
+                }
+
+                app(AuditService::class)->record(
+                    'debt.payment_approved',
+                    'debt',
+                    $targetDebt->id,
+                    $targetDebt->room_id,
+                    ['remaining_amount' => $beforeRemaining, 'status' => DebtStatus::Pending->value],
+                    ['remaining_amount' => 0, 'status' => DebtStatus::Paid->value]
+                );
+            }
+
+            if (! $hasValidSettlement && $lockedDebt->status === DebtStatus::Paid) {
                 throw ValidationException::withMessages([
                     'debt' => __('admin.debt_already_settled'),
                 ]);
             }
-
-            $approvedAmount = $beforeRemaining > 0 ? $beforeRemaining : (int) $lockedDebt->original_amount;
-
-            // Record debt payment receipt
-            DebtPayment::create([
-                'debt_id' => $lockedDebt->id,
-                'amount' => $approvedAmount,
-                'payment_method' => 'vietqr',
-                'reference' => $reference ?? 'Admin approved payment',
-                'paid_at' => $approvedAt,
-                'created_by_admin_id' => $approvingAdminId,
-            ]);
-
-            $lockedDebt->paid_amount += $beforeRemaining;
-            $lockedDebt->remaining_amount = 0;
-            $lockedDebt->status = DebtStatus::Paid;
-            $lockedDebt->save();
-
-            // Synchronize corresponding order(s) for this user and campaign
-            Order::query()
-                ->where('campaign_id', $lockedDebt->campaign_id)
-                ->where('room_user_id', $lockedDebt->room_user_id)
-                ->update([
-                    'payment_status' => PaymentStatus::Paid->value,
-                    'paid_at' => $approvedAt,
-                ]);
-
-            app(AuditService::class)->record(
-                'debt.payment_approved',
-                'debt',
-                $lockedDebt->id,
-                $lockedDebt->room_id,
-                ['remaining_amount' => $beforeRemaining, 'status' => $debt->status?->value],
-                ['remaining_amount' => 0, 'status' => DebtStatus::Paid->value]
-            );
 
             return $lockedDebt->fresh(['roomUser.globalUser', 'campaign']);
         });

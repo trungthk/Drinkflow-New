@@ -31,6 +31,10 @@ class ImageUploadAndVersionCacheTest extends TestCase
 
         $url = $service->uploadAvatar($fakeFile);
 
+        if (!function_exists('imagewebp')) {
+            $this->markTestSkipped('GD does not support WebP on this environment.');
+        }
+
         $this->assertNotEmpty($url);
         $this->assertStringEndsWith('.webp', $url);
 

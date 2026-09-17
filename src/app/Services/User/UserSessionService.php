@@ -33,7 +33,7 @@ class UserSessionService
         $currentSessionId = $request->session()->getId();
         $currentUa = $request->userAgent() ?: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/128.0.0.0';
         $currentDeviceInfo = $this->parseUserAgent($currentUa);
-        $currentIp = $request->ip() ?: '14.161.28.92';
+        $currentIp = $request->ip() ?: __('global.devices.internal_network');
         $currentSessionCode = '#SES-' . strtoupper(substr(md5((string) $currentSessionId), 0, 4)) . '-VN';
 
         // Query other sessions from database sessions table
@@ -41,6 +41,7 @@ class UserSessionService
             ->where('user_id', $user->id)
             ->where('id', '!=', $currentSessionId)
             ->orderByDesc('last_activity')
+            ->limit(20)
             ->get();
 
         $otherSessions = [];

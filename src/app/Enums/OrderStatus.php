@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Enums;
 
 enum OrderStatus: string
@@ -11,6 +13,16 @@ enum OrderStatus: string
     case Delivering = 'delivering';
     case Completed = 'completed';
     case Cancelled = 'cancelled';
+
+    /**
+     * Get the translated label for this order status.
+     *
+     * @return string
+     */
+    public function label(): string
+    {
+        return __('admin.status_' . $this->value);
+    }
 
     public function isActive(): bool
     {

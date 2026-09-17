@@ -34,4 +34,35 @@ class DebtController extends Controller
 
         return view('user.debts', $data);
     }
+
+    /**
+     * Submit debt payment confirmation to await admin approval.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @param \App\Actions\Debt\ConfirmDebtPaymentAction $action Domain action.
+     * @return JsonResponse Success response.
+     */
+    public function confirmPayment(Request $request, \App\Actions\Debt\ConfirmDebtPaymentAction $action): JsonResponse
+    {
+        $room = $request->attributes->get('room');
+        $roomUser = $request->attributes->get('room_user');
+
+        $debtId = $request->input('debt_id') ? (int) $request->input('debt_id') : null;
+        $content = $request->input('transfer_content') ? (string) $request->input('transfer_content') : null;
+
+        $updatedDebts = $action->execute($room, $roomUser, $debtId, $content);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('room.orders.payment_submitted_success', ['default' => 'Đã gửi yêu cầu xác nhận thanh toán. Quản trị viên sẽ kiểm tra và phê duyệt.']),
+            'payment_status' => 'pending',
+            'updated_count' => $updatedDebts->count(),
+            'payment_confirmation' => [
+                'requestedAt' => now()->format('d/m/Y H:i'),
+                'content' => $content,
+                'approvedBy' => null,
+                'approvedAt' => null,
+            ],
+        ]);
+    }
 }

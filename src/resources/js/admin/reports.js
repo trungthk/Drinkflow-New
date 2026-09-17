@@ -6,9 +6,26 @@ export function initAdminReports() {
     const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
     const money = v => new Intl.NumberFormat('vi-VN').format(Number(v || 0)) + ' ₫';
 
+    let currentActiveTab = 'campaigns';
+    const loadedTabCache = new Set();
+
+    function emptyStateHtml(icon = 'inbox', title = '', description = '') {
+        return `
+            <div class="flex flex-col items-center justify-center py-10 px-4 text-center rounded-xl border border-dashed border-outline-variant/80 bg-surface-container-low/30">
+                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-surface-container-high/60 text-outline mb-2.5">
+                    <span class="material-symbols-outlined text-[26px]">${icon}</span>
+                </div>
+                ${title ? `<h4 class="text-xs font-bold text-on-surface mb-0.5">${title}</h4>` : ''}
+                <p class="text-xs text-outline font-medium max-w-sm leading-relaxed">${description}</p>
+            </div>
+        `;
+    }
+
     if (!dateRangePicker && !document.querySelector('.rtab')) return;
 
     window.switchReportTab = function(tabId) {
+        currentActiveTab = tabId;
+
         document.querySelectorAll('.report-panel').forEach(p => p.classList.add('hidden'));
         document.querySelectorAll('.rtab').forEach(b => {
             b.classList.remove('border-primary', 'text-primary', 'font-bold');
@@ -19,36 +36,51 @@ export function initAdminReports() {
         const activeBtn = document.querySelector(`#rtab-${tabId}`);
         activeBtn?.classList.add('border-primary', 'text-primary', 'font-bold');
         activeBtn?.classList.remove('border-transparent', 'text-outline');
+
+        // Lazy load tab data on active
+        if (tabId !== 'campaigns') {
+            window.loadTabReportData(tabId);
+        }
     };
 
-    window.loadReportData = async function() {
+    window.loadTabReportData = async function(tabId = currentActiveTab, force = false) {
         const dateFrom = dateRangePicker?.querySelector('.date-from-hidden')?.value || '';
         const dateTo = dateRangePicker?.querySelector('.date-to-hidden')?.value || '';
+        const cacheKey = `${tabId}_${dateFrom}_${dateTo}`;
+
+        if (!force && loadedTabCache.has(cacheKey)) {
+            return;
+        }
 
         const drinksList = document.querySelector('#top-drinks-list');
         const storesList = document.querySelector('#top-stores-list');
+        const debtsList = document.querySelector('#debts-users-list');
+        const sponsorsList = document.querySelector('#sponsors-leaderboard-list');
+        const usersList = document.querySelector('#users-analytics-list');
 
-        if (drinksList) {
-            drinksList.innerHTML = `
-                <div class="space-y-2 animate-pulse">
-                    <div class="h-10 bg-slate-200 dark:bg-slate-800 rounded"></div>
-                    <div class="h-10 bg-slate-200 dark:bg-slate-800 rounded"></div>
-                    <div class="h-10 bg-slate-200 dark:bg-slate-800 rounded"></div>
-                </div>
-            `;
-        }
-        if (storesList) {
-            storesList.innerHTML = `
-                <div class="space-y-2 animate-pulse">
-                    <div class="h-10 bg-slate-200 dark:bg-slate-800 rounded"></div>
-                    <div class="h-10 bg-slate-200 dark:bg-slate-800 rounded"></div>
-                    <div class="h-10 bg-slate-200 dark:bg-slate-800 rounded"></div>
-                </div>
-            `;
+        const skeletonHtml = `
+            <div class="space-y-2 animate-pulse py-2">
+                <div class="h-10 bg-slate-200 dark:bg-slate-800 rounded"></div>
+                <div class="h-10 bg-slate-200 dark:bg-slate-800 rounded"></div>
+                <div class="h-10 bg-slate-200 dark:bg-slate-800 rounded"></div>
+            </div>
+        `;
+
+        // Only show skeleton for the currently requested tab
+        if (tabId === 'products') {
+            if (drinksList) drinksList.innerHTML = skeletonHtml;
+            if (storesList) storesList.innerHTML = skeletonHtml;
+        } else if (tabId === 'debts') {
+            if (debtsList) debtsList.innerHTML = skeletonHtml;
+        } else if (tabId === 'sponsors') {
+            if (sponsorsList) sponsorsList.innerHTML = skeletonHtml;
+        } else if (tabId === 'users') {
+            if (usersList) usersList.innerHTML = skeletonHtml;
         }
 
         try {
             const queryParams = new URLSearchParams();
+            if (tabId) queryParams.set('tab', tabId);
             if (dateFrom) queryParams.set('date_from', dateFrom);
             if (dateTo) queryParams.set('date_to', dateTo);
             const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
@@ -59,54 +91,210 @@ export function initAdminReports() {
             const { data } = await res.json();
             if (!data) return;
 
+            // Update stats cards
             const kpiCmp = document.querySelector('#kpi-campaigns');
             const kpiOrd = document.querySelector('#kpi-orders');
             const kpiSpd = document.querySelector('#kpi-spending');
             const kpiSpon = document.querySelector('#kpi-sponsor');
             const sponSub = document.querySelector('#sponsor-subtotal-text');
+            const debtRemaining = document.querySelector('#debt-summary-remaining');
 
-            if (kpiCmp) kpiCmp.textContent = data.campaign_count || 0;
-            if (kpiOrd) kpiOrd.textContent = data.order_count || 0;
-            if (kpiSpd) kpiSpd.textContent = money(data.spending);
-            if (kpiSpon) kpiSpon.textContent = money(data.sponsor_amount);
-            if (sponSub) sponSub.textContent = money(data.sponsor_amount);
+            if (kpiCmp && data.campaign_count !== undefined) kpiCmp.textContent = data.campaign_count;
+            if (kpiOrd && data.order_count !== undefined) kpiOrd.textContent = data.order_count;
+            if (kpiSpd && data.spending !== undefined) kpiSpd.textContent = money(data.spending);
+            if (kpiSpon && data.sponsor_amount !== undefined) kpiSpon.textContent = money(data.sponsor_amount);
+            if (sponSub && data.sponsor_amount !== undefined) sponSub.textContent = money(data.sponsor_amount);
+            if (debtRemaining && data.debt !== undefined) debtRemaining.textContent = money(data.debt);
 
-            // Popular drinks
-            if (drinksList) {
-                if (data.popular_drinks && data.popular_drinks.length > 0) {
-                    drinksList.innerHTML = data.popular_drinks.map((d, idx) => `
-                        <div class="flex items-center justify-between p-2.5 bg-surface-container-low rounded border border-outline-variant/60">
-                            <div class="flex items-center gap-2">
-                                <span class="w-5 h-5 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
-                                <span class="font-bold text-on-surface">${d.item_name}</span>
+            // Render Products Tab
+            if (tabId === 'products' || tabId === 'all') {
+                if (drinksList) {
+                    if (data.popular_drinks && data.popular_drinks.length > 0) {
+                        drinksList.innerHTML = data.popular_drinks.map((d, idx) => `
+                            <div class="flex items-center justify-between p-2.5 bg-surface-container-low rounded border border-outline-variant/60">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
+                                    <span class="font-bold text-on-surface">${d.item_name}</span>
+                                </div>
+                                <span class="font-mono font-bold text-primary">${d.quantity}</span>
                             </div>
-                            <span class="font-mono font-bold text-primary">${d.quantity}</span>
-                        </div>
-                    `).join('');
-                } else {
-                    drinksList.innerHTML = '<div class="py-6 text-center text-outline">Chưa có dữ liệu</div>';
+                        `).join('');
+                    } else {
+                        drinksList.innerHTML = emptyStateHtml('local_cafe', 'Chưa có dữ liệu món ăn', 'Chưa ghi nhận đồ uống nào trong khoảng thời gian đã chọn.');
+                    }
+                }
+
+                if (storesList) {
+                    if (data.popular_stores && data.popular_stores.length > 0) {
+                        storesList.innerHTML = data.popular_stores.map((s, idx) => `
+                            <div class="flex items-center justify-between p-2.5 bg-surface-container-low rounded border border-outline-variant/60">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-5 h-5 rounded-full bg-secondary/10 text-secondary font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
+                                    <span class="font-bold text-on-surface">${s.restaurant}</span>
+                                </div>
+                                <span class="font-mono font-bold text-on-surface">${s.orders} (${money(s.spending)})</span>
+                            </div>
+                        `).join('');
+                    } else {
+                        storesList.innerHTML = emptyStateHtml('storefront', 'Chưa có dữ liệu quán ăn', 'Chưa ghi nhận quán ăn nào trong khoảng thời gian đã chọn.');
+                    }
                 }
             }
 
-            // Popular stores
-            if (storesList) {
-                if (data.popular_stores && data.popular_stores.length > 0) {
-                    storesList.innerHTML = data.popular_stores.map((s, idx) => `
-                        <div class="flex items-center justify-between p-2.5 bg-surface-container-low rounded border border-outline-variant/60">
-                            <div class="flex items-center gap-2">
-                                <span class="w-5 h-5 rounded-full bg-secondary/10 text-secondary font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
-                                <span class="font-bold text-on-surface">${s.restaurant}</span>
-                            </div>
-                            <span class="font-mono font-bold text-on-surface">${s.orders} (${money(s.spending)})</span>
+            // Render Debts Tab
+            if (tabId === 'debts' || tabId === 'all') {
+                if (debtsList) {
+                    if (data.debts_by_user && data.debts_by_user.length > 0) {
+                        debtsList.innerHTML = `
+                            <div class="overflow-x-auto border border-outline-variant/60 rounded-xl">
+                                <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant/60">
+                                        <th class="py-3 px-4">Thành viên</th>
+                                        <th class="py-3 px-4 text-center">Số đợt nợ</th>
+                                        <th class="py-3 px-4 text-right">Tổng nợ ban đầu</th>
+                                        <th class="py-3 px-4 text-right">Đã thanh toán</th>
+                                        <th class="py-3 px-4 text-right">Còn nợ lại</th>
+                                        <th class="py-3 px-4 text-center">Trạng thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/40">
+                                    ${data.debts_by_user.map(u => {
+                                        const remaining = Number(u.outstanding_debt || 0);
+                                        const isCleared = remaining <= 0;
+                                        return `
+                                            <tr class="hover:bg-surface-container-low/50 transition-colors">
+                                                <td class="py-3 px-4">
+                                                    <div class="font-bold text-on-surface">${u.user_name || 'Thành viên'}</div>
+                                                    ${u.user_code ? `<div class="text-[10px] font-mono text-outline">${u.user_code}</div>` : ''}
+                                                </td>
+                                                <td class="py-3 px-4 text-center font-mono font-semibold text-on-surface">
+                                                    ${u.debt_count}
+                                                </td>
+                                                <td class="py-3 px-4 text-right font-mono font-semibold text-outline">
+                                                    ${money(u.total_original)}
+                                                </td>
+                                                <td class="py-3 px-4 text-right font-mono font-semibold text-emerald-600">
+                                                    ${money(u.total_paid)}
+                                                </td>
+                                                <td class="py-3 px-4 text-right font-mono font-bold ${isCleared ? 'text-outline' : 'text-error'}">
+                                                    ${money(remaining)}
+                                                </td>
+                                                <td class="py-3 px-4 text-center">
+                                                    ${isCleared 
+                                                        ? '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"><span class="material-symbols-outlined text-[12px]">check_circle</span>Đã trả hết</span>'
+                                                        : '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"><span class="material-symbols-outlined text-[12px]">schedule</span>Còn nợ</span>'
+                                                    }
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
                         </div>
-                    `).join('');
-                } else {
-                    storesList.innerHTML = '<div class="py-6 text-center text-outline">Chưa có dữ liệu</div>';
+                    `;
+                    } else {
+                        debtsList.innerHTML = emptyStateHtml('check_circle', 'Không có công nợ phát sinh', 'Tất cả các khoản nợ trong chu kỳ này đã được thanh toán hoặc chưa có phát sinh nợ mới.');
+                    }
                 }
             }
+
+            // Render Sponsors Tab
+            if (tabId === 'sponsors' || tabId === 'all') {
+                if (sponsorsList) {
+                    if (data.sponsors_leaderboard && data.sponsors_leaderboard.length > 0) {
+                        sponsorsList.innerHTML = `
+                            <div class="overflow-x-auto border border-outline-variant/60 rounded-xl">
+                                <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant/60">
+                                        <th class="py-3 px-4 text-center w-12">Hạng</th>
+                                        <th class="py-3 px-4">Nhà tài trợ</th>
+                                        <th class="py-3 px-4 text-center">Số đơn tài trợ</th>
+                                        <th class="py-3 px-4 text-right">Tổng tài trợ</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/40">
+                                    ${data.sponsors_leaderboard.map((s, idx) => `
+                                        <tr class="hover:bg-surface-container-low/50 transition-colors">
+                                            <td class="py-3 px-4 text-center">
+                                                <span class="w-6 h-6 rounded-full inline-flex items-center justify-center font-bold text-xs ${idx === 0 ? 'bg-amber-400 text-amber-950 shadow-xs' : idx === 1 ? 'bg-slate-300 text-slate-800' : idx === 2 ? 'bg-amber-700/20 text-amber-800' : 'bg-surface-container text-outline'}">${idx + 1}</span>
+                                            </td>
+                                            <td class="py-3 px-4">
+                                                <div class="font-bold text-on-surface">${s.user_name || 'Thành viên'}</div>
+                                                ${s.user_code ? `<div class="text-[10px] font-mono text-outline">${s.user_code}</div>` : ''}
+                                            </td>
+                                            <td class="py-3 px-4 text-center font-mono font-semibold text-on-surface">
+                                                ${s.sponsored_orders}
+                                            </td>
+                                            <td class="py-3 px-4 text-right font-mono font-bold text-emerald-600">
+                                                ${money(s.total_sponsored)}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    } else {
+                        sponsorsList.innerHTML = emptyStateHtml('volunteer_activism', 'Chưa có dữ liệu tài trợ', 'Chưa có khoản tài trợ hoặc đóng góp quỹ nào phát sinh trong khoảng thời gian này.');
+                    }
+                }
+            }
+
+            // Render Users Tab
+            if (tabId === 'users' || tabId === 'all') {
+                if (usersList) {
+                    if (data.top_users && data.top_users.length > 0) {
+                        usersList.innerHTML = `
+                            <div class="overflow-x-auto border border-outline-variant/60 rounded-xl">
+                                <table class="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant/60">
+                                        <th class="py-3 px-4 text-center w-12">#</th>
+                                        <th class="py-3 px-4">Thành viên</th>
+                                        <th class="py-3 px-4 text-center">Số đơn đã đặt</th>
+                                        <th class="py-3 px-4 text-right">Tổng chi tiêu cá nhân</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-outline-variant/40">
+                                    ${data.top_users.map((u, idx) => `
+                                        <tr class="hover:bg-surface-container-low/50 transition-colors">
+                                            <td class="py-3 px-4 text-center font-mono font-bold text-outline">
+                                                ${idx + 1}
+                                            </td>
+                                            <td class="py-3 px-4">
+                                                <div class="font-bold text-on-surface">${u.user_name || 'Thành viên'}</div>
+                                                ${u.user_code ? `<div class="text-[10px] font-mono text-outline">${u.user_code}</div>` : ''}
+                                            </td>
+                                            <td class="py-3 px-4 text-center font-mono font-semibold text-on-surface">
+                                                ${u.order_count}
+                                            </td>
+                                            <td class="py-3 px-4 text-right font-mono font-bold text-primary">
+                                                ${money(u.total_spent)}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    } else {
+                        usersList.innerHTML = emptyStateHtml('group', 'Chưa có dữ liệu thành viên', 'Chưa ghi nhận hoạt động đặt món nào từ thành viên trong khoảng thời gian này.');
+                    }
+                }
+            }
+
+            loadedTabCache.add(cacheKey);
         } catch(e) {
-            console.error('Error loading report:', e);
+            console.error('Error loading tab report:', e);
         }
+    };
+
+    window.loadReportData = async function() {
+        // Clear cache on full reload or date range change
+        loadedTabCache.clear();
+        await window.loadTabReportData(currentActiveTab, true);
     };
 
     window.exportReportCSV = function() {
@@ -116,7 +304,5 @@ export function initAdminReports() {
     document.addEventListener('admin:daterange-change', () => {
         window.loadReportData();
     });
-
-    window.loadReportData();
 }
 

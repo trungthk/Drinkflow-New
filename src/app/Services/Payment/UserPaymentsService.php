@@ -92,8 +92,9 @@ class UserPaymentsService
         }
 
         // Default Payment Account for VietQR
-        $defaultPayment = PaymentAccount::query()->where('is_default', true)->first()
-            ?? PaymentAccount::query()->first();
+        $primaryRoom = $user->roomUsers()->with('room.paymentAccounts')->where('status', 'active')->first()?->room;
+        $defaultPayment = $primaryRoom?->paymentAccounts->firstWhere('is_default', true)
+            ?? $primaryRoom?->paymentAccounts->first();
 
         $defaultBank = $defaultPayment ? [
             'bank_name' => $defaultPayment->bank_name,

@@ -39,7 +39,7 @@ class DebtApprovalTest extends TestCase
      *
      * @param string $email Admin email.
      * @param string $slug  Room slug.
-     * @return array{AdminAccount, Room}
+     * @return array{0: AdminAccount, 1: Room}
      */
     private function adminWithRoom(string $email, string $slug): array
     {
@@ -222,7 +222,7 @@ class DebtApprovalTest extends TestCase
             ->assertJsonPath('payment_confirmation.content', 'DF'.$order->id.' '.$member->room_user_code);
 
         $this->assertNotNull($debt->fresh()->payment_requested_at);
-        $this->assertSame('DF'.$order->id.' '.$member->room_user_code, $debt->fresh()->note);
+        $this->assertSame('DF'.$order->id.' '.$member->room_user_code, $debt->fresh()->payment_content);
 
         $this->actingAs($admin, 'admin')
             ->postJson(route('admin.debts.approve', [$room->slug, $debt->id]))
@@ -247,6 +247,43 @@ class DebtApprovalTest extends TestCase
     }
 
     /**
+     * When a debt has payment_content matching member's user_code (Pay All request),
+     * approving it settles ALL pending debts for that member in the room.
+     */
+    public function test_admin_can_approve_pay_all_request_and_settle_all_pending_debts(): void
+    {
+        [$admin, $room] = $this->adminWithRoom('approve-all@example.test', 'approve-all-room');
+        $campaign1 = $this->campaign($room);
+        $campaign2 = Campaign::create([
+            'room_id'    => $room->id,
+            'name'       => 'Approval Campaign 2',
+            'restaurant' => 'Test Restaurant 2',
+            'status'     => CampaignStatus::Closed,
+        ]);
+        $member = $this->member($room, 'Hoang Van F', 'hvf@example.test');
+
+        $debt1 = $this->debt($room, $campaign1, $member, DebtStatus::Pending, 50000);
+        $debt1->update(['payment_content' => $member->user_code]);
+
+        $debt2 = $this->debt($room, $campaign2, $member, DebtStatus::Pending, 30000);
+        $debt2->update(['payment_content' => $member->user_code]);
+
+        $response = $this->actingAs($admin, 'admin')
+            ->postJson(route('admin.debts.approve', [$room->slug, $debt1->id]));
+
+        $response->assertOk();
+
+        $this->assertSame(0, (int) $debt1->fresh()->remaining_amount);
+        $this->assertSame(DebtStatus::Paid, $debt1->fresh()->status);
+
+        $this->assertSame(0, (int) $debt2->fresh()->remaining_amount);
+        $this->assertSame(DebtStatus::Paid, $debt2->fresh()->status);
+
+        $this->assertDatabaseHas('debt_payments', ['debt_id' => $debt1->id, 'amount' => 50000]);
+        $this->assertDatabaseHas('debt_payments', ['debt_id' => $debt2->id, 'amount' => 30000]);
+    }
+
+    /**
      * Attempting to approve an already-settled debt returns a 422 validation error.
      */
     public function test_approving_already_settled_debt_returns_validation_error(): void
@@ -266,8 +303,8 @@ class DebtApprovalTest extends TestCase
      */
     public function test_admin_cannot_approve_debt_from_different_room(): void
     {
-        [$admin, $room]         = $this->adminWithRoom('approve-sec@example.test', 'approve-sec-room');
-        [, $otherRoom]          = $this->adminWithRoom('other-admin@example.test', 'other-sec-room');
+        [$admin, $room]             = $this->adminWithRoom('approve-sec@example.test', 'approve-sec-room');
+        [$otherAdmin, $otherRoom]   = $this->adminWithRoom('other-admin@example.test', 'other-sec-room');
         $campaign  = $this->campaign($otherRoom);
         $member    = $this->member($otherRoom, 'Vo Van E', 'vve@example.test');
         $debt      = $this->debt($otherRoom, $campaign, $member, DebtStatus::Pending);

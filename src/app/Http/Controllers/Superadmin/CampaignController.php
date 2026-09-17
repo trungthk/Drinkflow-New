@@ -37,9 +37,12 @@ class CampaignController extends Controller
      * @param CloseCampaignAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function forceClose(Campaign $campaign, CloseCampaignAction $action): JsonResponse
+    public function forceClose(Campaign $campaign, CloseCampaignAction $action, AuditService $audit): JsonResponse
     {
-        return response()->json(['data' => $action->execute($campaign)]);
+        $before = ['status' => $campaign->status?->value ?? (string) $campaign->status];
+        $result = $action->execute($campaign);
+        $audit->record('campaign.force_closed', 'campaign', $campaign->id, $campaign->room_id, $before, ['status' => $result->status?->value ?? (string) $result->status]);
+        return response()->json(['data' => $result]);
     }
 
     /**

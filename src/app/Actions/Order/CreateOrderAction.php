@@ -90,8 +90,8 @@ class CreateOrderAction
                 $snapshots[] = compact('item', 'size', 'toppings', 'quantity', 'unit', 'line', 'input');
             }
 
-            $discount = (int) $campaign->discount;
-            $delivery = (int) $campaign->delivery_fee;
+            $discount = 0;
+            $delivery = 0;
             $sponsor = $this->sponsorAmount($campaign, $snapshots, $subtotal, $delivery, $discount);
             $final = max(0, $subtotal + $delivery - $discount - $sponsor);
             $this->enforceDebtPolicy($roomUser, $final);
@@ -166,6 +166,7 @@ class CreateOrderAction
      */
     private function enforceDebtPolicy(RoomUser $roomUser, int $orderAmount): void
     {
+        /** @var \App\Models\Room $room */
         $room = $roomUser->room()->firstOrFail();
         $settings = $room->roomSettings()
             ->whereIn('key', ['personal_debt_ceiling', 'auto_lock_on_debt_limit'])

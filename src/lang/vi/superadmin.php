@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'common' => [
+        'filter' => 'Lọc',
         'core_system' => 'Hệ thống cốt lõi', 'platform_data' => 'Dữ liệu nền tảng',
         'infra_security' => 'Hạ tầng & Bảo mật', 'identity_layer' => 'Lớp định danh',
         'system_messaging' => 'Thông báo hệ thống', 'release_operations' => 'Vận hành phát hành',

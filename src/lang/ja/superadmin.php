@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'common' => [
+        'filter' => 'フィルター',
         'core_system' => 'コアシステム', 'platform_data' => 'プラットフォームデータ',
         'infra_security' => 'インフラとセキュリティ', 'identity_layer' => 'IDレイヤー',
         'system_messaging' => 'システム通知', 'release_operations' => 'リリース運用',

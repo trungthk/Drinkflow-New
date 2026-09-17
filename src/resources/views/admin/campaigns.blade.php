@@ -40,10 +40,12 @@
                 <span class="material-symbols-outlined text-[16px]">filter_alt</span>
                 {{ __('admin.filter_apply') }}
             </button>
-            <a href="{{ route('admin.campaigns.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
-                <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
-                {{ __('admin.filter_clear') }}
-            </a>
+            @if(trim((string) ($filters['search'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all')
+                <a id="campaign-clear-filters" href="{{ route('admin.campaigns.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
+                    <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
+                    {{ __('admin.filter_clear') }}
+                </a>
+            @endif
         </div>
     </form>
 

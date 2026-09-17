@@ -38,8 +38,8 @@ class CreateCampaignAction
     public function execute(Room $room, array $data, ?int $adminId = null): Campaign
     {
         $settings = $room->roomSettings()->whereIn('key', ['campaign_title_template', 'max_campaign_budget'])->get()->keyBy('key');
-        $titleTemplate = (string) ($settings->get('campaign_title_template')?->value ?? ('['.$room->name.'] Trà chiều & Cafe {date}'));
-        $maxCampaignBudget = (int) ($settings->get('max_campaign_budget')?->value ?? 2_000_000);
+        $titleTemplate = (string) ($settings->get('campaign_title_template')?->value ?? ('[' . $room->name . '] Trà chiều & Cafe {date}'));
+        $maxCampaignBudget = (int) ($settings->get('max_campaign_budget')?->value ?? 70_000);
         $creatorName = $adminId !== null ? (string) (AdminAccount::query()->whereKey($adminId)->value('name') ?? '') : '';
         $defaultName = strtr($titleTemplate, [
             '{date}' => now()->format('d/m/Y'),
@@ -48,21 +48,25 @@ class CreateCampaignAction
             '{creator_name}' => $creatorName,
         ]);
         $data['name'] = trim((string) ($data['name'] ?? '')) !== '' ? $data['name'] : $defaultName;
-        if (! array_key_exists('max_budget', $data) || $data['max_budget'] === null) {
-            $data['max_budget'] = $maxCampaignBudget;
-        } elseif ((int) $data['max_budget'] > $maxCampaignBudget) {
-            throw ValidationException::withMessages([
-                'max_budget' => __('admin.campaign_budget_exceeds_limit', [
-                    'limit' => number_format($maxCampaignBudget, 0, ',', '.'),
-                ]),
-            ]);
+        if ($settings->has('max_campaign_budget') && $settings->get('max_campaign_budget')?->value !== null) {
+            $maxCampaignBudget = (int) $settings->get('max_campaign_budget')->value;
+            if ($maxCampaignBudget > 0 && array_key_exists('max_budget', $data) && $data['max_budget'] !== null && (int) $data['max_budget'] > $maxCampaignBudget) {
+                throw ValidationException::withMessages([
+                    'max_budget' => __('admin.campaign_budget_exceeds_limit', [
+                        'limit' => number_format($maxCampaignBudget, 0, ',', '.'),
+                    ]),
+                ]);
+            }
+        }
+        if (!array_key_exists('max_budget', $data) || $data['max_budget'] === null) {
+            $data['max_budget'] = (int) ($settings->get('max_campaign_budget')?->value ?? 70_000);
         }
         if (($data['sponsor_type'] ?? 'none') === 'none') {
             $data['sponsor_allocations'] = [];
         } else {
             $allocations = collect($data['sponsor_allocations'] ?? []);
-            $percentageTotal = (float) $allocations->sum(static fn (array $allocation): float => (float) ($allocation['percentage'] ?? 0));
-            $roomUserIds = $allocations->pluck('room_user_id')->map(static fn (mixed $id): int => (int) $id);
+            $percentageTotal = (float) $allocations->sum(static fn(array $allocation): float => (float) ($allocation['percentage'] ?? 0));
+            $roomUserIds = $allocations->pluck('room_user_id')->map(static fn(mixed $id): int => (int) $id);
             if ($allocations->isEmpty() || abs($percentageTotal - 100.0) > 0.01) {
                 throw ValidationException::withMessages([
                     'sponsor_allocations' => __('admin.sponsor_percentage_total_invalid'),
@@ -83,7 +87,7 @@ class CreateCampaignAction
                 ]);
             }
         }
-        if (! empty($data['payment_account_id']) && ! PaymentAccount::whereKey($data['payment_account_id'])->where('room_id', $room->id)->exists()) {
+        if (!empty($data['payment_account_id']) && !PaymentAccount::whereKey($data['payment_account_id'])->where('room_id', $room->id)->exists()) {
             throw ValidationException::withMessages([
                 'payment_account_id' => __('admin.payment_account_not_in_room'),
             ]);

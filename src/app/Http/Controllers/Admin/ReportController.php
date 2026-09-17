@@ -35,18 +35,20 @@ class ReportController extends Controller
      *
      * @param Request $request Incoming request.
      * @param Room $room Room entity.
+     * @param AdminReportService $reportService Report analytics service.
      * @return View Blade view.
      */
-    public function page(Request $request, Room $room): View
+    public function page(Request $request, Room $room, AdminReportService $reportService): View
     {
-        $campaigns = Campaign::where('room_id', $room->id)->with('orders')->latest()->get();
+        $campaigns = Campaign::where('room_id', $room->id)->withCount('orders')->latest()->take(5)->get();
         $roomMembersCount = $room->roomUsers()->count();
+        $stats = $reportService->getReportStats($request, $room);
 
         return view('admin.reports', [
             'room' => $room,
             'campaigns' => $campaigns,
             'roomMembersCount' => $roomMembersCount,
+            'stats' => $stats,
         ]);
     }
 }
-

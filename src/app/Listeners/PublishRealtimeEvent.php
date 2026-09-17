@@ -1,9 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Listeners;
 
+use App\Events\CampaignCancelled;
 use App\Events\CampaignClosed;
 use App\Events\CampaignCreated;
+use App\Events\CampaignDelivering;
+use App\Events\CampaignUpdated;
 use App\Events\OrderCreated;
 use App\Events\OrderDeleted;
 use App\Events\OrderUpdated;
@@ -18,8 +23,16 @@ class PublishRealtimeEvent implements ShouldQueue
 {
     use InteractsWithQueue;
 
+    public ?string $connection = 'sync';
     public int $tries = 3;
     public int $timeout = 5;
+
+    /**
+     * Handle the event and broadcast realtime socket message.
+     *
+     * @param object $event Dispatched event instance.
+     * @return void
+     */
     public function handle(object $event): void
     {
         [$name, $roomId, $payload, $userChannel] = match (true) {
@@ -47,10 +60,40 @@ class PublishRealtimeEvent implements ShouldQueue
                 ['campaign_id' => $event->campaign->id, 'status' => $event->campaign->status?->value],
                 null,
             ],
+            $event instanceof CampaignUpdated => [
+                'campaign.updated',
+                $event->campaign->room_id,
+                [
+                    'campaign_id' => $event->campaign->id,
+                    'name' => $event->campaign->name,
+                    'restaurant' => $event->campaign->restaurant,
+                    'deadline' => $event->campaign->deadline?->toIso8601String(),
+                    'status' => $event->campaign->status?->value,
+                ],
+                null,
+            ],
             $event instanceof CampaignClosed => [
                 'campaign.closed',
                 $event->campaign->room_id,
                 ['campaign_id' => $event->campaign->id, 'status' => $event->campaign->status?->value],
+                null,
+            ],
+            $event instanceof CampaignCancelled => [
+                'campaign.cancelled',
+                $event->campaign->room_id,
+                ['campaign_id' => $event->campaign->id, 'status' => $event->campaign->status?->value],
+                null,
+            ],
+            $event instanceof CampaignDelivering => [
+                'campaign.delivering',
+                $event->campaign->room_id,
+                [
+                    'campaign_id' => $event->campaign->id,
+                    'campaign_code' => $event->campaign->code,
+                    'restaurant' => $event->campaign->restaurant,
+                    'status' => $event->campaign->status?->value,
+                    'orders_status' => 'delivering',
+                ],
                 null,
             ],
             $event instanceof RoomRealtimeEvent => [
@@ -102,6 +145,12 @@ class PublishRealtimeEvent implements ShouldQueue
         }
     }
 
+    /**
+     * Build normalized order payload for realtime broadcasting.
+     *
+     * @param object $order Order instance.
+     * @return array<string, mixed>
+     */
     private function orderPayload(object $order): array
     {
         return [

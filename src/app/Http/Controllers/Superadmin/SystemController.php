@@ -78,9 +78,11 @@ class SystemController extends Controller
      * @param ResetSystemAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function reset(SystemResetRequest $request, ResetSystemAction $action): JsonResponse
+    public function reset(SystemResetRequest $request, ResetSystemAction $action, AuditService $audit): JsonResponse
     {
-        return response()->json(['data' => $action->execute(request()->user('admin'), $request->validated('password'), $request->validated('phrase'))]);
+        $result = $action->execute(request()->user('admin'), $request->validated('password'), $request->validated('phrase'));
+        $audit->record('system.reset', 'system', 0, null, [], [], ['confirmation' => true]);
+        return response()->json(['data' => $result]);
     }
 
     /**

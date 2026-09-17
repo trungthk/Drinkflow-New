@@ -87,6 +87,8 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         sponsors: [],
         roomUsers,
         submitting: false,
+        showCancelCampaignModal: false,
+        cancelSubmitting: false,
         crawlerUrl: '',
         crawlerLoading: false,
         crawlerMessage: '',
@@ -640,6 +642,10 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             this.submitForm(this.form.status);
         },
 
+        saveChangesAndPublish() {
+            this.submitForm('active');
+        },
+
         openPublishConfirmation() {
             this.pendingStatus = 'active';
             this.showConfirmModal = true;
@@ -656,6 +662,39 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
 
         publishCampaign() {
             this.openPublishConfirmation();
+        },
+
+        async executeCancelCampaign() {
+            const deleteUrl = page?.dataset.deleteUrl || '';
+            const indexUrl = page?.dataset.indexUrl || `/admin/${getRoomSlug()}/campaigns`;
+            if (!deleteUrl) {
+                alert('Không tìm thấy đường dẫn hủy chiến dịch.');
+                return;
+            }
+
+            this.cancelSubmitting = true;
+            try {
+                const res = await fetch(deleteUrl, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.message || Object.values(err.errors || {})[0] || 'Lỗi khi hủy chiến dịch.');
+                }
+
+                window.location.href = indexUrl;
+            } catch (e) {
+                alert('Có lỗi xảy ra: ' + e.message);
+            } finally {
+                this.cancelSubmitting = false;
+                this.showCancelCampaignModal = false;
+            }
         }
     };
 }

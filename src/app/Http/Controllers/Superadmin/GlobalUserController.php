@@ -56,9 +56,12 @@ class GlobalUserController extends Controller
      * @param SetGlobalUserStatusAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function status(SetStatusRequest $request, GlobalUser $globalUser, SetGlobalUserStatusAction $action): JsonResponse
+    public function status(SetStatusRequest $request, GlobalUser $globalUser, SetGlobalUserStatusAction $action, AuditService $audit): JsonResponse
     {
-        return response()->json(['data' => $action->execute($globalUser, $request->validated('status'))]);
+        $before = ['status' => $globalUser->status?->value ?? (string) $globalUser->status];
+        $result = $action->execute($globalUser, $request->validated('status'));
+        $audit->record('global_user.status_changed', 'global_user', $globalUser->id, null, $before, ['status' => $request->validated('status')]);
+        return response()->json(['data' => $result]);
     }
 
     /**
@@ -147,9 +150,13 @@ class GlobalUserController extends Controller
      * @param MergeGlobalUsersAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function merge(MergeGlobalUsersRequest $request, MergeGlobalUsersAction $action): JsonResponse
+    public function merge(MergeGlobalUsersRequest $request, MergeGlobalUsersAction $action, AuditService $audit): JsonResponse
     {
         $data = $request->validated();
-        return response()->json(['data' => $action->execute(GlobalUser::findOrFail($data['source_id']), GlobalUser::findOrFail($data['target_id']))]);
+        $source = GlobalUser::findOrFail($data['source_id']);
+        $target = GlobalUser::findOrFail($data['target_id']);
+        $result = $action->execute($source, $target);
+        $audit->record('global_user.merged', 'global_user', $target->id, null, [], [], ['source_id' => $source->id]);
+        return response()->json(['data' => $result]);
     }
 }

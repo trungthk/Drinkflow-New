@@ -15,13 +15,13 @@ use Illuminate\Http\Request;
 class AdminReportService
 {
     /**
-     * Compute comprehensive report analytics and popular trends for a room.
+     * Compute lightweight KPI summary stats for a room.
      *
      * @param Request $request Incoming HTTP request containing period or date range.
      * @param Room $room Room entity.
-     * @return array<string, mixed> Analytics payload.
+     * @return array<string, mixed> Summary KPI statistics.
      */
-    public function getReportMetrics(Request $request, Room $room): array
+    public function getReportStats(Request $request, Room $room): array
     {
         [$from, $to] = $this->period($request, $room->timezone ?? config('app.timezone'));
 
@@ -38,26 +38,6 @@ class AdminReportService
             ->where('debts.room_id', $room->id)
             ->whereBetween('debts.created_at', [$from, $to]);
 
-        $orderIds = (clone $orders)->pluck('id');
-
-        $popularDrinks = $orderIds->isEmpty()
-            ? collect()
-            : OrderItem::query()
-                ->whereIn('order_id', $orderIds)
-                ->selectRaw('item_name, SUM(quantity) as quantity')
-                ->groupBy('item_name')
-                ->orderByDesc('quantity')
-                ->limit(10)
-                ->get();
-
-        $popularStores = (clone $orders)
-            ->join('campaigns', 'campaigns.id', '=', 'orders.campaign_id')
-            ->selectRaw('campaigns.restaurant, COUNT(orders.id) as orders, SUM(orders.final_amount) as spending')
-            ->groupBy('campaigns.restaurant')
-            ->orderByDesc('orders')
-            ->limit(10)
-            ->get();
-
         return [
             'from' => $from->toDateTimeString(),
             'to' => $to->toDateTimeString(),
@@ -66,10 +46,118 @@ class AdminReportService
             'spending' => (int) (clone $orders)->sum('final_amount'),
             'sponsor_amount' => (int) (clone $orders)->sum('sponsor_amount'),
             'debt' => (int) (clone $debts)->whereIn('status', ['unpaid', 'partial'])->sum('remaining_amount'),
+            'debt_total' => (int) (clone $debts)->sum('original_amount'),
+            'debt_paid' => (int) (clone $debts)->sum('paid_amount'),
             'user_participation' => (int) (clone $orders)->distinct('room_user_id')->count('room_user_id'),
-            'popular_drinks' => $popularDrinks,
-            'popular_stores' => $popularStores,
         ];
+    }
+
+    /**
+     * Compute report analytics and metrics for a room, optionally lazy-loading specific tab data.
+     *
+     * @param Request $request Incoming HTTP request containing period, date range, and optional tab.
+     * @param Room $room Room entity.
+     * @return array<string, mixed> Analytics payload.
+     */
+    public function getReportMetrics(Request $request, Room $room): array
+    {
+        [$from, $to] = $this->period($request, $room->timezone ?? config('app.timezone'));
+        $tab = $request->string('tab')->trim()->toString();
+
+        $stats = $this->getReportStats($request, $room);
+        $payload = $stats;
+
+        // If specific tab requested, only compute what is needed for that tab
+        if ($tab === 'products' || empty($tab) || $tab === 'all') {
+            $orders = Order::query()
+                ->where('orders.room_id', $room->id)
+                ->whereBetween('orders.created_at', [$from, $to])
+                ->whereNotIn('orders.status', ['cancelled']);
+
+            $orderIds = (clone $orders)->pluck('id');
+
+            $payload['popular_drinks'] = $orderIds->isEmpty()
+                ? collect()
+                : OrderItem::query()
+                    ->whereIn('order_id', $orderIds)
+                    ->selectRaw('item_name, SUM(quantity) as quantity')
+                    ->groupBy('item_name')
+                    ->orderByDesc('quantity')
+                    ->limit(10)
+                    ->get();
+
+            $payload['popular_stores'] = (clone $orders)
+                ->join('campaigns', 'campaigns.id', '=', 'orders.campaign_id')
+                ->selectRaw('campaigns.restaurant, COUNT(orders.id) as orders, SUM(orders.final_amount) as spending')
+                ->groupBy('campaigns.restaurant')
+                ->orderByDesc('orders')
+                ->limit(10)
+                ->get();
+        }
+
+        if ($tab === 'debts' || empty($tab) || $tab === 'all') {
+            $payload['debts_by_user'] = Debt::query()
+                ->where('debts.room_id', $room->id)
+                ->whereBetween('debts.created_at', [$from, $to])
+                ->join('room_users', 'room_users.id', '=', 'debts.room_user_id')
+                ->leftJoin('global_users', 'global_users.id', '=', 'room_users.global_user_id')
+                ->selectRaw('
+                    debts.room_user_id,
+                    COALESCE(global_users.name, room_users.display_name) as user_name,
+                    room_users.user_code,
+                    COUNT(debts.id) as debt_count,
+                    SUM(debts.original_amount) as total_original,
+                    SUM(debts.paid_amount) as total_paid,
+                    SUM(debts.remaining_amount) as total_remaining,
+                    SUM(CASE WHEN debts.status IN (\'unpaid\', \'partial\') THEN debts.remaining_amount ELSE 0 END) as outstanding_debt
+                ')
+                ->groupBy('debts.room_user_id', 'global_users.name', 'room_users.display_name', 'room_users.user_code')
+                ->orderByDesc('outstanding_debt')
+                ->orderByDesc('total_original')
+                ->get();
+        }
+
+        if ($tab === 'sponsors' || empty($tab) || $tab === 'all') {
+            $payload['sponsors_leaderboard'] = Order::query()
+                ->where('orders.room_id', $room->id)
+                ->whereBetween('orders.created_at', [$from, $to])
+                ->whereNotIn('orders.status', ['cancelled'])
+                ->where('orders.sponsor_amount', '>', 0)
+                ->join('room_users', 'room_users.id', '=', 'orders.room_user_id')
+                ->leftJoin('global_users', 'global_users.id', '=', 'room_users.global_user_id')
+                ->selectRaw('
+                    orders.room_user_id,
+                    COALESCE(global_users.name, room_users.display_name) as user_name,
+                    room_users.user_code,
+                    COUNT(orders.id) as sponsored_orders,
+                    SUM(orders.sponsor_amount) as total_sponsored
+                ')
+                ->groupBy('orders.room_user_id', 'global_users.name', 'room_users.display_name', 'room_users.user_code')
+                ->orderByDesc('total_sponsored')
+                ->get();
+        }
+
+        if ($tab === 'users' || empty($tab) || $tab === 'all') {
+            $payload['top_users'] = Order::query()
+                ->where('orders.room_id', $room->id)
+                ->whereBetween('orders.created_at', [$from, $to])
+                ->whereNotIn('orders.status', ['cancelled'])
+                ->join('room_users', 'room_users.id', '=', 'orders.room_user_id')
+                ->leftJoin('global_users', 'global_users.id', '=', 'room_users.global_user_id')
+                ->selectRaw('
+                    orders.room_user_id,
+                    COALESCE(global_users.name, room_users.display_name) as user_name,
+                    room_users.user_code,
+                    COUNT(orders.id) as order_count,
+                    SUM(orders.final_amount) as total_spent
+                ')
+                ->groupBy('orders.room_user_id', 'global_users.name', 'room_users.display_name', 'room_users.user_code')
+                ->orderByDesc('order_count')
+                ->limit(10)
+                ->get();
+        }
+
+        return $payload;
     }
 
     /**

@@ -106,10 +106,19 @@
                             $memberEmail   = $debt->roomUser?->globalUser?->email ?? '';
                             $memberCode    = $debt->roomUser?->user_code ?? '';
                             $campaignName  = $debt->campaign?->name ?? 'N/A';
-                            $updatedAt     = $debt->updated_at ? $debt->updated_at->format('H:i d/m/Y') : '';
+                            $updatedAt     = $debt->payment_requested_at ? $debt->payment_requested_at->format('H:i d/m/Y') : ($debt->updated_at ? $debt->updated_at->format('H:i d/m/Y') : '');
                             $createdAt     = $debt->created_at ? $debt->created_at->format('H:i d/m/Y') : '';
-                            $transferContent = 'DRINKFLOW-DEBT-' . ($debt->roomUser?->id ?? $debt->room_user_id);
+                            $transferContent = $debt->payment_content ?: ($debt->roomUser?->user_code ?: ('DRINKFLOW-DEBT-' . ($debt->roomUser?->id ?? $debt->room_user_id)));
                             $debtStatusValue = $debt->status instanceof \BackedEnum ? $debt->status->value : (string) $debt->status;
+                            $isPayAll      = !empty($debt->payment_content) && $debt->roomUser && $debt->payment_content === $debt->roomUser->user_code;
+                            $userPendingDebts = ($isPayAll && $debt->roomUser) ? $debt->roomUser->debts->map(fn($d) => [
+                                'id' => $d->id,
+                                'code' => $d->code ?? 'N/A',
+                                'campaign' => $d->campaign?->name ?? 'N/A',
+                                'amount' => (int) ($d->remaining_amount > 0 ? $d->remaining_amount : $d->original_amount),
+                                'note' => $d->note,
+                            ])->values() : collect();
+                            $totalPendingAmount = $isPayAll ? (int) $userPendingDebts->sum('amount') : (int) $debt->remaining_amount;
                             $stClass = match($debtStatusValue) {
                                 'paid'    => 'bg-emerald-50 text-emerald-700 border-emerald-200',
                                 'pending' => 'bg-amber-100 text-amber-900 border-amber-300 font-bold',
@@ -157,10 +166,12 @@
                                                 memberEmail: '{{ addslashes($memberEmail) }}',
                                                 memberCode: '{{ addslashes($memberCode) }}',
                                                 campaign: '{{ addslashes($campaignName) }}',
-                                                amount: {{ (int)$debt->remaining_amount }},
+                                                amount: {{ (int) ($isPayAll ? $totalPendingAmount : $debt->remaining_amount) }},
                                                 updatedAt: '{{ $updatedAt }}',
                                                 createdAt: '{{ $createdAt }}',
-                                                transferContent: '{{ $transferContent }}'
+                                                transferContent: '{{ addslashes($transferContent) }}',
+                                                isPayAll: {{ $isPayAll ? 'true' : 'false' }},
+                                                pendingDebts: {{ Js::from($userPendingDebts) }}
                                             })"
                                         >
                                             <span class="material-symbols-outlined text-[14px]">pending_actions</span>
@@ -224,25 +235,25 @@
     <!-- Approve Payment Detail Modal -->
     <div id="approve-debt-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/65 p-4 backdrop-blur-sm">
         <div id="approve-debt-backdrop" class="absolute inset-0"></div>
-        <div class="relative z-10 w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl overflow-hidden">
+        <div class="relative z-10 w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
             <!-- Modal Header -->
-            <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant bg-amber-50/60">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant bg-amber-50/60 shrink-0">
                 <div class="flex items-center gap-3">
                     <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-[20px]">pending_actions</span>
+                        <span class="material-symbols-outlined text-[20px]" id="approve-modal-icon">pending_actions</span>
                     </span>
                     <div>
                         <h3 class="font-bold text-base text-on-surface" id="approve-modal-title">{{ __('admin.payment_approval_modal_title') }}</h3>
-                        <p class="text-[11px] text-outline mt-0.5">{{ __('admin.payment_approval_modal_subtitle') }}</p>
+                        <p class="text-[11px] text-outline mt-0.5" id="approve-modal-subtitle">{{ __('admin.payment_approval_modal_subtitle') }}</p>
                     </div>
                 </div>
-                <button type="button" id="approve-modal-close" class="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors">
+                <button type="button" id="approve-modal-close" class="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors cursor-pointer">
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
             </div>
 
             <!-- Modal Body -->
-            <div class="px-6 py-5 space-y-4">
+            <div class="px-6 py-5 space-y-4 overflow-y-auto flex-1 text-xs">
                 <!-- User Requester -->
                 <div class="flex items-start gap-3">
                     <span class="material-symbols-outlined text-[18px] text-outline mt-0.5 shrink-0">account_circle</span>
@@ -254,15 +265,15 @@
                     <span id="approve-modal-status-badge"
                           class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-amber-100 text-amber-900 border-amber-300 shrink-0">
                         <span class="material-symbols-outlined text-[12px]" style="font-variation-settings: 'FILL' 1;">schedule</span>
-                        {{ __('admin.status_pending') }}
+                        <span id="approve-modal-badge-text">{{ __('admin.status_pending') }}</span>
                     </span>
                 </div>
 
                 <!-- Divider -->
                 <div class="border-t border-outline-variant/50"></div>
 
-                <!-- Grid Info -->
-                <div class="grid grid-cols-2 gap-3">
+                <!-- Grid Info (Single debt view) -->
+                <div class="grid grid-cols-2 gap-3" id="approve-modal-single-info">
                     <!-- Request time -->
                     <div class="bg-surface-container rounded-lg p-3">
                         <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.request_time') }}</div>
@@ -281,10 +292,20 @@
                     <div class="text-xs font-mono text-primary font-bold tracking-wide" id="approve-modal-content">—</div>
                 </div>
 
+                <!-- Debts Breakdown Container (Shown when isPayAll) -->
+                <div id="approve-modal-breakdown-container" class="hidden space-y-2">
+                    <div class="flex items-center justify-between text-[11px] font-mono uppercase text-outline tracking-wider">
+                        <span>{{ __('admin.debts_breakdown_title') }}</span>
+                        <span id="approve-modal-breakdown-count" class="font-bold text-primary"></span>
+                    </div>
+                    <div class="border border-outline-variant/60 rounded-xl overflow-hidden divide-y divide-outline-variant/40 max-h-48 overflow-y-auto bg-surface-container-low" id="approve-modal-breakdown-list">
+                    </div>
+                </div>
+
                 <!-- Amount to clear -->
                 <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
                     <div>
-                        <div class="text-[11px] font-mono uppercase text-emerald-700 tracking-wider mb-0.5">{{ __('admin.approval_amount_to_clear') }}</div>
+                        <div class="text-[11px] font-mono uppercase text-emerald-700 tracking-wider mb-0.5" id="approve-modal-amount-label">{{ __('admin.approval_amount_to_clear') }}</div>
                         <div class="text-2xl font-bold font-mono text-emerald-700" id="approve-modal-amount">—</div>
                     </div>
                     <span class="material-symbols-outlined text-[32px] text-emerald-400">payments</span>
@@ -292,14 +313,14 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="px-6 py-4 border-t border-outline-variant flex items-center justify-end gap-3 bg-surface-container-low/40">
+            <div class="px-6 py-4 border-t border-outline-variant flex items-center justify-end gap-3 bg-surface-container-low/40 shrink-0">
                 <button type="button" id="approve-modal-cancel"
-                        class="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg text-xs font-semibold transition-colors">
+                        class="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg text-xs font-semibold transition-colors cursor-pointer">
                     {{ __('admin.cancel_btn') }}
                 </button>
                 <button type="button" id="approve-modal-confirm"
                         data-debt-id=""
-                        class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 shadow-xs transition-colors">
+                        class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 shadow-xs transition-colors cursor-pointer">
                     <span class="material-symbols-outlined text-[15px]">check_circle</span>
                     <span id="approve-modal-confirm-text">{{ __('admin.confirm_approve_btn') }}</span>
                 </button>

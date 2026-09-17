@@ -70,11 +70,13 @@ class TransitionCampaignAction
     {
         $cancelled = DB::transaction(function () use ($campaign): Campaign {
             $campaign = Campaign::query()->lockForUpdate()->findOrFail($campaign->id);
-            if (! in_array($campaign->status, [CampaignStatus::Draft, CampaignStatus::Scheduled, CampaignStatus::Active], true)) {
+            if (! in_array($campaign->status, [CampaignStatus::Draft, CampaignStatus::Scheduled, CampaignStatus::Active, CampaignStatus::Closing], true)) {
                 throw ValidationException::withMessages([
                     'campaign' => __('admin.campaign_cannot_cancel_state'),
                 ]);
             }
+
+            $isLive = in_array($campaign->status, [CampaignStatus::Active, CampaignStatus::Scheduled, CampaignStatus::Closing], true);
 
             $ordersToCancel = $campaign->orders()
                 ->where('status', '!=', OrderStatus::Cancelled->value)
@@ -101,7 +103,9 @@ class TransitionCampaignAction
                 \App\Events\OrderUpdated::dispatch($order->fresh(), $previousStatus);
             }
 
-            $campaign->update(['status' => CampaignStatus::Cancelled]);
+            // Live campaigns become archived, while drafts become cancelled
+            $newStatus = $isLive ? CampaignStatus::Archived : CampaignStatus::Cancelled;
+            $campaign->update(['status' => $newStatus]);
 
             return $campaign->fresh();
         });

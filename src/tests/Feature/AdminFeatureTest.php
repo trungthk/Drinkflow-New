@@ -117,10 +117,11 @@ class AdminFeatureTest extends TestCase
         $this->assertStringStartsWith('uploads/admin-avatars/', $storedPath);
         Storage::disk('public')->assertExists($storedPath);
 
+        $expectedContentType = str_ends_with($storedPath, '.webp') ? 'image/webp' : 'image/jpeg';
         $this->actingAs($admin->fresh(), 'admin')
             ->get(route('admin.profile.avatar.show'))
             ->assertOk()
-            ->assertHeader('content-type', 'image/webp');
+            ->assertHeader('content-type', $expectedContentType);
 
         $this->actingAs($admin->fresh(), 'admin')
             ->get('/admin/profile')

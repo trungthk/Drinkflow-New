@@ -19,8 +19,12 @@ class UserGlobalAnalyticsService
      */
     public function getAnalyticsViewData(GlobalUser $user): array
     {
-        $roomUsers = $user->roomUsers()->with(['room', 'orders.campaign', 'orders.items'])->get();
-        $orders = $roomUsers->pluck('orders')->flatten()
+        $roomUsers = $user->roomUsers()->with('room')->get();
+        $roomUserIds = $roomUsers->pluck('id');
+        $orders = Order::query()->whereIn('room_user_id', $roomUserIds)
+            ->with(['campaign', 'items'])
+            ->latest()
+            ->get()
             ->filter(fn (Order $order): bool => $order->status === OrderStatus::Completed)
             ->values();
         $items = $orders->pluck('items')->flatten();

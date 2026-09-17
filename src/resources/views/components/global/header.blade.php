@@ -104,7 +104,9 @@
             </div>
             <div class="divide-y divide-slate-100 max-h-[380px] overflow-y-auto">
               @forelse($notifications as $notif)
-                @php($notificationPresentation = app(\App\Services\Notification\NotificationPresentationService::class)->present($notif))
+                @php
+                  $notificationPresentation = app(\App\Services\Notification\NotificationPresentationService::class)->present($notif);
+                @endphp
                 <div class="p-3.5 flex items-start gap-3 hover:bg-slate-50/80 transition-colors {{ is_null($notif->read_at) ? 'bg-emerald-50/20' : '' }}">
                   <span class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100">
                     <span class="material-symbols-outlined text-[17px]">

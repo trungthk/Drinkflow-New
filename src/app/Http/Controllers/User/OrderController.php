@@ -82,7 +82,7 @@ class OrderController extends Controller
 
             $paymentConfirmationDetails = [
                 'requestedAt' => $debt?->payment_requested_at?->format('d/m/Y H:i'),
-                'content' => $debt?->note ?: 'DF'.$activeOrder->id.' '.$roomUser->room_user_code,
+                'content' => $debt?->note ?: ($activeOrder->code ?: ('DF'.$activeOrder->id.' '.$roomUser->room_user_code)),
                 'approvedBy' => $approvalPayment?->createdByAdmin?->name,
                 'approvedAt' => $approvalPayment?->paid_at?->format('d/m/Y H:i'),
             ];
@@ -198,11 +198,13 @@ class OrderController extends Controller
         abort_unless($order->room_id === $room->id && $order->room_user_id === $roomUser->id, 404);
 
         /** @var PaymentAccount|null $account */
-        $account = $order->campaign()->with('paymentAccount')->first()?->paymentAccount;
+        $account = $order->campaign?->paymentAccount
+            ?? $room->paymentAccounts()->where('is_default', true)->first()
+            ?? $room->paymentAccounts()->first();
         abort_unless($account && $account->status === PaymentAccountStatus::Active, 404);
 
         $amount  = (int) $order->final_amount;
-        $content = 'DRINKFLOW-'.$order->id;
+        $content = $order->code ?: ('DRINKFLOW-'.$order->id);
 
         /** @var VietQrService $vietQr */
         $vietQr = app(VietQrService::class);

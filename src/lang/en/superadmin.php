@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'common' => [
+        'filter' => 'Filter',
         'core_system' => 'Core System',
         'platform_data' => 'Platform Data',
         'infra_security' => 'Infrastructure & Security',

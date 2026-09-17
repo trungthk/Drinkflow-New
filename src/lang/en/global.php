@@ -486,7 +486,7 @@ return [
         'notif_sound_desc' => 'Plays a \'Ding\' chime in browser when drink arrives',
         'membership_stats_title' => 'Membership Statistics',
         'internal_title' => 'Internal Badge',
-        'total_cups_ordered' => 'Total cups ordered',
+        'total_cups_ordered' => 'Total items ordered',
         'on_time_payment' => 'On-time Payment Rate',
         'joined_system' => 'Joined System:',
         'joined_date_val' => 'Month :date (:duration)',

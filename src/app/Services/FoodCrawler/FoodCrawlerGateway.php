@@ -25,6 +25,13 @@ final class FoodCrawlerGateway
         if (! is_array($parts) || ! in_array($parts['scheme'] ?? '', ['http', 'https'], true) || ! isset($parts['host'])) {
             throw new FoodCrawlerException('The crawler URL must use HTTP or HTTPS.');
         }
+        $host = (string) $parts['host'];
+        $ips = gethostbynamelist($host) ?: [];
+        foreach ($ips as $ip) {
+            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+                throw new FoodCrawlerException('The crawler URL must point to a public host.');
+            }
+        }
 
         return $this->resolver->resolve($url)->crawl($url);
     }

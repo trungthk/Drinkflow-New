@@ -75,7 +75,8 @@ class UserProfileService
         $totalCups = (int) OrderItem::query()
             ->whereIn('order_id', function ($q) use ($roomUserIds) {
                 $q->select('id')->from('orders')
-                    ->whereIn('room_user_id', $roomUserIds);
+                    ->whereIn('room_user_id', $roomUserIds)
+                    ->where('status', OrderStatus::Completed->value);
             })
             ->sum('quantity');
 
@@ -103,10 +104,8 @@ class UserProfileService
         $joinedDuration = $user->created_at ? $user->created_at->diffForHumans(['parts' => 1]) : __('global.profile.just_joined');
 
         // Bank / Payment info from real database
-        $defaultPayment = PaymentAccount::query()->where('is_default', true)->first();
-        if (!$defaultPayment && $primaryRoom) {
-            $defaultPayment = $primaryRoom->paymentAccounts->first();
-        }
+        $defaultPayment = $primaryRoom?->paymentAccounts->firstWhere('is_default', true)
+            ?? $primaryRoom?->paymentAccounts->first();
         $bankData = $defaultPayment ? [
             'bank_name' => $defaultPayment->bank_name,
             'bank_code' => $defaultPayment->bank_code,

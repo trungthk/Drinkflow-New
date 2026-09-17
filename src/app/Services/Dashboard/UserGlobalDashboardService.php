@@ -32,7 +32,7 @@ class UserGlobalDashboardService
 
         // Query active room users of current user
         $roomUsers = $user->roomUsers()
-            ->with(['room', 'orders', 'room.campaigns' => function (HasMany $query): void {
+            ->with(['room', 'room.campaigns' => function (HasMany $query): void {
                 $query->where('status', CampaignStatus::Active)->orderByDesc('started_at')->orderByDesc('id');
             }])
             ->where('status', RoomUserStatus::Active->value)

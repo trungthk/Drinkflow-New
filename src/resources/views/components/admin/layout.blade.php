@@ -41,6 +41,8 @@
     </script>
 
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
+    <!-- Alpine.js Plugins & Core -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.14.8/dist/cdn.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 </head>
 
@@ -134,6 +136,9 @@
                             href="{{ route('admin.orders.page', $room) }}" title="{{ __('admin.orders') }}">
                             <span class="material-symbols-outlined text-[18px] shrink-0">local_shipping</span>
                             <span class="sidebar-text truncate">{{ __('admin.orders') }}</span>
+                            @if(($realtimeOrderCount ?? 0) > 0)
+                                <span class="absolute top-1 right-1 min-w-5 px-1.5 py-0.5 rounded-full text-[10px] leading-none text-center font-mono bg-primary text-on-primary shadow-sm" aria-label="{{ __('admin.orders_count_badge', ['count' => $realtimeOrderCount]) }}">{{ $realtimeOrderCount }}</span>
+                            @endif
                             <div class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
                                 {{ __('admin.orders') }}
                             </div>
@@ -303,7 +308,9 @@
 
                         <div class="max-h-64 overflow-y-auto divide-y divide-outline-variant/40">
                             @forelse($unreadNotifications as $notif)
-                            @php($notificationPresentation = $notificationPresentations[$notif->getKey()] ?? ['title' => '', 'body' => '', 'icon' => 'notifications'])
+                            @php
+                                $notificationPresentation = $notificationPresentations[$notif->getKey()] ?? ['title' => '', 'body' => '', 'icon' => 'notifications'];
+                            @endphp
                             <div data-unread-notification class="px-4 py-2.5 hover:bg-surface-container-low transition-colors">
                                 <div class="flex items-start gap-2.5">
                                     <span class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
@@ -357,6 +364,33 @@
 
     <!-- Admin Go To Top Floating Button -->
     <x-admin.go-to-top />
+
+    <!-- Global Admin API Fetch Helper -->
+    <script>
+        window.dfApi = async (url, options = {}) => {
+            const headers = {
+                'Accept': 'application/json',
+                ...(options.headers || {})
+            };
+            if (options.body && typeof options.body !== 'string' && !(options.body instanceof FormData)) {
+                headers['Content-Type'] = 'application/json';
+                options.body = JSON.stringify(options.body);
+            }
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            if (csrfToken) {
+                headers['X-CSRF-TOKEN'] = csrfToken;
+            }
+            const response = await fetch(url, {
+                ...options,
+                headers
+            });
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || `HTTP ${response.status}`);
+            }
+            return response.json();
+        };
+    </script>
 
     {{ $scripts ?? '' }}
     @stack('scripts')

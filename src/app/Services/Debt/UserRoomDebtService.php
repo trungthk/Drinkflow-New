@@ -51,7 +51,7 @@ class UserRoomDebtService
         $paymentAccount = $room->paymentAccounts()->where('status', PaymentAccountStatus::Active)->first();
         $vietqrData = null;
         if ($paymentAccount && $totalUnpaidAmount > 0) {
-            $transferContent = 'DRINKFLOW-DEBT-'.$roomUser->id;
+            $transferContent = $roomUser->user_code ?: ('USER-'.$roomUser->id);
             $vietqrData = [
                 'bank_code'       => $paymentAccount->bank_code,
                 'bank_name'       => $paymentAccount->bank_name,

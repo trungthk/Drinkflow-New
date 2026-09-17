@@ -35,7 +35,8 @@ class ResolveRoomUser
                 abort(401, 'Unauthenticated.');
             }
             $referer = $request->headers->get('referer') ?: url()->previous();
-            if ($referer && $referer !== $request->fullUrl() && $referer !== $request->url() && $referer !== url('/')) {
+            if ($referer && parse_url($referer, PHP_URL_HOST) === $request->getHost()
+                && $referer !== $request->fullUrl() && $referer !== $request->url() && $referer !== url('/')) {
                 return redirect()->to($referer);
             }
 

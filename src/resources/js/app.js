@@ -1,7 +1,9 @@
 import './bootstrap';
 import { initToastNotifications } from './shared/toast';
+import { initLazyImages } from './shared/lazy-image';
 
 initToastNotifications();
+initLazyImages();
 
 import { initPublicHeader } from './public/header';
 import { initAuthModal } from './public/auth-modal';

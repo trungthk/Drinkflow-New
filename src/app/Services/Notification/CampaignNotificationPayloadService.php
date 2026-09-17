@@ -22,9 +22,11 @@ class CampaignNotificationPayloadService
         $title = match ($event) {
             'campaign.created' => __('messages.campaign_created_title'),
             'campaign.cancelled' => __('messages.campaign_cancelled_title'),
+            'campaign.updated' => __('messages.campaign_updated_title'),
+            'campaign.delivering' => __('messages.campaign_delivering_title'),
             default => __('messages.campaign_closed_title'),
         };
-        $orderUrl = $event === 'campaign.created' && $room !== null
+        $orderUrl = in_array($event, ['campaign.created', 'campaign.updated'], true) && $room !== null
             ? route('user.campaigns.index', $room)
             : null;
 
@@ -84,10 +86,25 @@ class CampaignNotificationPayloadService
             if ($orderUrl !== null) {
                 $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
             }
+        } elseif ($event === 'campaign.updated') {
+            $lines[] = __('messages.campaign_updated_body');
+            if ($campaign->deadline) {
+                $lines[] = __('messages.campaign_deadline', [
+                    'date' => FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i'),
+                ]);
+            }
+            if ($orderUrl !== null) {
+                $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
+            }
         } elseif ($event === 'campaign.closed') {
             $lines[] = __('messages.campaign_closed_body');
         } elseif ($event === 'campaign.cancelled') {
             $lines[] = __('messages.campaign_cancelled_body');
+        } elseif ($event === 'campaign.delivering') {
+            $lines[] = __('messages.campaign_delivering_body', [
+                'restaurant' => $campaign->restaurant,
+                'code' => $campaign->code,
+            ]);
         }
 
         return implode("\n", $lines);

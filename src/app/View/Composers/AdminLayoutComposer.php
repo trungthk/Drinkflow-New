@@ -6,9 +6,11 @@ namespace App\View\Composers;
 
 use App\Constants\AppLocale;
 use App\Enums\CampaignStatus;
+use App\Enums\OrderStatus;
 use App\Enums\RoomStatus;
 use App\Models\AdminAccount;
 use App\Models\Room;
+use App\Models\Order;
 use App\Services\Notification\AdminNotificationService;
 use App\Services\Notification\NotificationPresentationService;
 use Illuminate\Support\Collection;
@@ -53,6 +55,9 @@ class AdminLayoutComposer
             'hasLiveCampaign' => $room instanceof Room && $room->campaigns()
                 ->where('status', CampaignStatus::Active->value)
                 ->exists(),
+            'realtimeOrderCount' => $room instanceof Room
+                ? Order::query()->where('room_id', $room->id)->where('status', '!=', OrderStatus::Cancelled->value)->count()
+                : 0,
             'unreadNotifications' => $unreadNotifications,
             'unreadCount' => $unreadNotifications->count(),
             'notificationPresentations' => $this->presentNotifications($unreadNotifications),

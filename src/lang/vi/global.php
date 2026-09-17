@@ -486,7 +486,7 @@ return [
         'notif_sound_desc' => 'Phát âm báo \'Ding\' trên trình duyệt khi Shipper tới bàn',
         'membership_stats_title' => 'Thống kê thành viên',
         'internal_title' => 'Danh hiệu nội bộ',
-        'total_cups_ordered' => 'Tổng ly đã order',
+        'total_cups_ordered' => 'Tổng món đã order',
         'on_time_payment' => 'Thanh toán đúng hạn',
         'joined_system' => 'Tham gia hệ thống:',
         'joined_date_val' => 'Tháng :date (:duration)',
