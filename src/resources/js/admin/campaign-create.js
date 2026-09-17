@@ -14,6 +14,38 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
     const defaultMenuCategory = page?.dataset.defaultMenuCategory || 'General items';
     const crawlerMenuCategory = page?.dataset.crawlerMenuCategory || 'Crawled items';
     const onlineRestaurantName = page?.dataset.onlineRestaurantName || 'Online restaurant';
+    const parseCleanNumber = val => {
+        if (typeof val === 'number') return Number.isFinite(val) ? Math.round(val) : 0;
+        const cleaned = String(val || '').replace(/\D/g, '');
+        return cleaned ? parseInt(cleaned, 10) : 0;
+    };
+
+    const formatCurrencyDisplay = val => {
+        if (val === null || val === undefined || val === '') return '';
+        const num = parseCleanNumber(val);
+        if (num === 0) return '0';
+        return String(num).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    };
+
+    const normalizeImageUrl = value => {
+        const imageUrl = String(value || '').trim();
+        if (!imageUrl) return '';
+
+        if (imageUrl.startsWith('storage/')) {
+            return `/${imageUrl}`;
+        }
+
+        try {
+            const parsedUrl = new URL(imageUrl, window.location.origin);
+            if (parsedUrl.pathname.startsWith('/storage/')) {
+                return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+            }
+        } catch (_) {
+            return imageUrl;
+        }
+
+        return imageUrl;
+    };
     const normalizeSearch = value => String(value || '')
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
@@ -48,7 +80,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         menuSearchInput: '',
         menuSearch: '',
         menuSearchTimer: null,
-        itemCategories: ['Cà phê', 'Trà', 'Trà sữa', 'Nước ép', 'Đồ ăn', 'Khác'],
+        itemCategories: ['Cà phê', 'Trà', 'Trà sữa', 'Nước ép', 'Sinh tố', 'Đá xay', 'Sữa chua', 'Ăn vặt', 'Bánh ngọt', 'Đồ ăn', 'Khác'],
         newItem: { id: null, name: '', price: 0, category: 'Khác', description: '', image_url: '', toppings: [], options: [] },
         imageUploading: false,
         selectedImageFileName: '',
@@ -157,6 +189,12 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 this.form.payment_account_id = this.form.payment_account_id || this.campaignSettings.payment_account_id;
                 this.setDeadlineMinutes(60);
             }
+
+            window.addEventListener('drinkflow:apply-menu-items', (event) => {
+                if (event.detail && Array.isArray(event.detail.items)) {
+                    this.applyMenuItems(event.detail.items);
+                }
+            });
         },
 
         setDeadlineMinutes(mins) {
@@ -183,19 +221,20 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             return {
                 id: item.id || null,
                 name: item.name || '',
-                price: parseInt(item.price ?? item.base_price, 10) || 0,
+                price: parseCleanNumber(item.price ?? item.base_price),
                 category: item.category || 'Khác',
                 description: item.description || '',
-                image_url: item.image_url || '',
+                image_url: normalizeImageUrl(item.image_url),
+                image_load_failed: false,
                 toppings: (item.toppings || []).map(topping => ({
                     id: topping.id || null,
                     name: topping.name || '',
-                    price: parseInt(topping.price, 10) || 0
+                    price: parseCleanNumber(topping.price)
                 })),
                 options: (item.options || item.sizes || []).map(option => ({
                     id: option.id || null,
                     name: option.name || '',
-                    price_delta: parseInt(option.price_delta, 10) || 0
+                    price_delta: parseCleanNumber(option.price_delta)
                 }))
             };
         },
@@ -237,7 +276,18 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             this.editingItemIndex = null;
             this.itemModalTab = 'basic';
             this.selectedImageFileName = '';
-            this.newItem = this.normalizeMenuItem({ category: this.itemCategories[0] });
+            const initialCategory = this.menuView === 'category' && this.selectedCategory ? this.selectedCategory : '';
+            this.newItem = {
+                id: null,
+                name: '',
+                price: '',
+                category: initialCategory,
+                description: '',
+                image_url: '',
+                image_load_failed: false,
+                toppings: [],
+                options: []
+            };
             this.showAddItemModal = true;
         },
 
@@ -246,16 +296,47 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             this.editingItemIndex = index;
             this.itemModalTab = 'basic';
             this.selectedImageFileName = '';
-            this.newItem = this.normalizeMenuItem(this.menuItems[index]);
+            const item = this.menuItems[index];
+            this.newItem = {
+                id: item.id || null,
+                name: item.name || '',
+                price: formatCurrencyDisplay(item.price),
+                category: item.category || 'Khác',
+                description: item.description || '',
+                image_url: normalizeImageUrl(item.image_url),
+                image_load_failed: false,
+                toppings: (item.toppings || []).map(topping => ({
+                    id: topping.id || null,
+                    name: topping.name || '',
+                    price: formatCurrencyDisplay(topping.price)
+                })),
+                options: (item.options || item.sizes || []).map(option => ({
+                    id: option.id || null,
+                    name: option.name || '',
+                    price_delta: formatCurrencyDisplay(option.price_delta)
+                }))
+            };
             this.showAddItemModal = true;
         },
 
         async confirmAddItem() {
-            if (!this.newItem.name.trim() || Number(this.newItem.price) < 0) return;
+            const price = parseCleanNumber(this.newItem.price);
+            if (!this.newItem.name.trim() || price < 0) return;
             this.itemSubmitting = true;
             try {
                 await new Promise(resolve => window.setTimeout(resolve, 150));
-                const normalizedItem = this.normalizeMenuItem(this.newItem);
+                const normalizedItem = this.normalizeMenuItem({
+                    ...this.newItem,
+                    price: price,
+                    toppings: (this.newItem.toppings || []).map(t => ({
+                        ...t,
+                        price: parseCleanNumber(t.price)
+                    })),
+                    options: (this.newItem.options || []).map(o => ({
+                        ...o,
+                        price_delta: parseCleanNumber(o.price_delta)
+                    }))
+                });
                 if (this.editingItemIndex === null) {
                     this.menuItems.push(normalizedItem);
                 } else {
@@ -289,6 +370,10 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 .sort((left, right) => left.localeCompare(right, 'vi'));
         },
 
+        get availableItemCategories() {
+            return [...new Set([...this.itemCategories, ...this.menuItems.map(item => item.category).filter(Boolean)])];
+        },
+
         syncSelectedCategory() {
             if (this.menuView === 'category' && !this.menuCategories.includes(this.selectedCategory)) {
                 this.selectedCategory = this.menuCategories[0] || '';
@@ -307,11 +392,11 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         },
 
         addTopping(item) {
-            item.toppings.push({ name: '', price: 0 });
+            item.toppings.push({ name: '', price: '' });
         },
 
         addOption(item) {
-            item.options.push({ name: '', price_delta: 0 });
+            item.options.push({ name: '', price_delta: '' });
         },
 
         async uploadManualImage(event) {
@@ -470,7 +555,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             if (status) {
                 this.form.status = status;
             }
-            const maxBudget = Number(this.form.max_budget) || 0;
+            const maxBudget = parseCleanNumber(this.form.max_budget);
             if (this.campaignSettings.max_budget > 0 && maxBudget > this.campaignSettings.max_budget) {
                 alert(budgetErrorTemplate.replace(':limit', this.formatVND(this.campaignSettings.max_budget)));
                 this.submitting = false;
@@ -493,8 +578,8 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 description: this.form.description || null,
                 sponsor_type: this.form.sponsor_type,
                 sponsor_description: this.form.sponsor_description || null,
-                max_budget: this.form.max_budget ? parseInt(this.form.max_budget, 10) : null,
-                flat_price: this.form.flat_price ? parseInt(this.form.flat_price, 10) : null,
+                max_budget: this.form.max_budget ? parseCleanNumber(this.form.max_budget) : null,
+                flat_price: this.form.flat_price ? parseCleanNumber(this.form.flat_price) : null,
                 sponsor_allocations: this.form.sponsor_type === 'full' ? this.sponsors.filter(sponsor => sponsor.user_id).map(sponsor => ({
                         room_user_id: Number(sponsor.user_id),
                         percentage: Number(sponsor.percentage) || 0

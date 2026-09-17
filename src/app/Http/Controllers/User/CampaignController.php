@@ -49,6 +49,7 @@ class CampaignController extends Controller
         $cart[] = [
             'item_id' => (int) $item->id,
             'item_name' => $item->name,
+            'image_url' => $item->image_url,
             'size_id' => $size?->id,
             'size_name' => $size?->name,
             'topping_ids' => $toppings->pluck('id')->values()->all(),

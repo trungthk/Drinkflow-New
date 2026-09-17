@@ -67,7 +67,8 @@ class UserFeatureTest extends TestCase
         $user = GlobalUser::create(['name' => 'User', 'normalized_name' => 'USER', 'email' => 'campaign-notify@company.com']);
         $room = Room::create(['name' => 'IT', 'slug' => 'campaign-notify-it']);
         app(JoinRoomAction::class)->execute($user, $room, 'device', 'hash');
-        app(CreateCampaignAction::class)->execute($room, ['name' => 'Breakfast', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Active]);
+        $campaign = app(CreateCampaignAction::class)->execute($room, ['name' => 'Breakfast', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Active]);
+        (new \App\Listeners\NotifyCampaignCreated())->handle(new \App\Events\CampaignCreated($campaign));
 
         $this->assertDatabaseHas('user_notifications', ['global_user_id' => $user->id, 'type' => 'campaign.created']);
     }

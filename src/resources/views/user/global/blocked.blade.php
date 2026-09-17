@@ -84,7 +84,7 @@
                   @click="openLang = !openLang"
                   @click.outside="openLang = false"
                   class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors border border-slate-200 shadow-2xs cursor-pointer"
-                  title="Ngôn ngữ / Language">
+                  title="{{ __('global.header.language_select') }}">
             <span>{{ $activeLocaleMeta['flag'] }}</span>
             <span class="font-semibold text-slate-800">{{ $activeLocaleMeta['code'] }}</span>
             <span class="material-symbols-outlined text-[16px] text-slate-400">arrow_drop_down</span>

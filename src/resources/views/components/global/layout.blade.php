@@ -1,11 +1,15 @@
 @props([
-    'title' => 'DrinkFlow - Cổng thông tin người dùng',
+    'title' => null,
     'user' => null,
     'activeTab' => 'overview',
     'breadcrumbs' => [],
     'unreadNotificationsCount' => 0,
     'notifications' => collect(),
 ])
+
+@php
+    $pageTitle = $title ? (str_starts_with($title, 'DrinkFlow') ? $title : 'DrinkFlow - ' . $title) : ('DrinkFlow - ' . __('global.portal_title'));
+@endphp
 
 <!DOCTYPE html>
 <html class="light" lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -14,7 +18,7 @@
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <script src="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}/socket.io/socket.io.js"></script>
-  <title>{{ $title }}</title>
+  <title>{{ $pageTitle }}</title>
   <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
   <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
   <link href="https://fonts.googleapis.com" rel="preconnect">

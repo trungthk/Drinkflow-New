@@ -100,6 +100,12 @@ Route::middleware(['auth:admin', 'admin.room'])
         ->middleware('throttle:crawler-preview')
         ->name('admin.crawler.preview');
     Route::post('/campaigns/{campaign}/crawler/import', [\App\Http\Controllers\Admin\CrawlerController::class, 'import'])->name('admin.crawler.import');
+
+    // Data Gateway Converter API
+    Route::get('/data-gateway/config', [\App\Http\Controllers\Admin\DataGatewayController::class, 'config'])->name('admin.data-gateway.config');
+    Route::post('/data-gateway/generate-prompt', [\App\Http\Controllers\Admin\DataGatewayController::class, 'generatePrompt'])
+        ->middleware('throttle:crawler-preview')
+        ->name('admin.data-gateway.generate-prompt');
     Route::get('/debts', [\App\Http\Controllers\Admin\DebtController::class, 'index'])->name('admin.debts.index');
     Route::get('/debts/export', [\App\Http\Controllers\Admin\DebtController::class, 'export'])->name('admin.debts.export');
     Route::post('/debts/settle', [\App\Http\Controllers\Admin\DebtController::class, 'settle'])->name('admin.debts.settle');

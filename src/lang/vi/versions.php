@@ -32,4 +32,5 @@ return [
     'no_next_version' => 'Chưa có (Bản mới nhất)',
     'empty_search' => 'Không tìm thấy phiên bản phù hợp.',
     'empty_changelog' => 'Chưa có ghi chú chi tiết cho mục này.',
+    'not_found' => 'Phiên bản không tồn tại.',
 ];

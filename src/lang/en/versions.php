@@ -30,6 +30,7 @@ return [
     'nav_next' => 'Next Version',
     'no_prev_version' => 'None (First Version)',
     'no_next_version' => 'None (Latest Version)',
-    'empty_search' => 'No matching versions found.',
-    'empty_changelog' => 'No detailed notes recorded for this category.',
+    'empty_search' => 'No matching version found.',
+    'empty_changelog' => 'No changelog notes available for this section.',
+    'not_found' => 'Version not found.',
 ];

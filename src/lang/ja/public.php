@@ -138,6 +138,7 @@ return [
         'error_domain_unsupported' => "ドメイン「:domain」のアカウントはログインに対応していません。許可された企業用メールアドレスをご使用ください。",
         'error_email_invalid' => '無効なメールアドレスです。',
         'error_invalid_identity' => '無効なGoogle認証情報です。',
+        'error_identity_conflict' => 'Google IDは既に別のアカウントに連携されています。',
         'require_login_room' => "「:room」に参加するにはGoogle Workspaceでログインしてください。",
     ],
     'video_modal' => [

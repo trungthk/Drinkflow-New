@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Superadmin;
 
 use App\Enums\AdminRole;
@@ -23,10 +25,10 @@ class ResetSystemAction
     public function execute(AdminAccount $admin, string $password, string $phrase): array
     {
         if (! Hash::check($password, $admin->password)) {
-            throw ValidationException::withMessages(['password' => 'Máº­t kháº©u xĂ¡c nháº­n khĂ´ng Ä‘Ăºng.']);
+            throw ValidationException::withMessages(['password' => __('superadmin.actions.reset_password_invalid')]);
         }
         if (! hash_equals(self::CONFIRMATION_PHRASE, $phrase)) {
-            throw ValidationException::withMessages(['phrase' => 'Cá»¥m tá»« xĂ¡c nháº­n khĂ´ng Ä‘Ăºng.']);
+            throw ValidationException::withMessages(['phrase' => __('superadmin.actions.reset_phrase_invalid')]);
         }
 
         return DB::transaction(function (): array {
@@ -39,3 +41,4 @@ class ResetSystemAction
         });
     }
 }
+

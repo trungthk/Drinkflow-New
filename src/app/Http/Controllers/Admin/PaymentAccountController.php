@@ -11,8 +11,6 @@ use App\Http\Requests\StorePaymentAccountRequest;
 use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Services\Audit\AuditService;
-use App\Services\Common\BankService;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -26,7 +24,7 @@ class PaymentAccountController extends Controller
      */
     public function index(Room $room): JsonResponse
     {
-        return response()->json(['data' => $room->paymentAccounts()->paginate(20)->through(fn (PaymentAccount $account) => $this->payload($account))]);
+        return response()->json(['data' => $room->paymentAccounts()->paginate(20)->through(fn(PaymentAccount $account) => $this->payload($account))]);
     }
 
 
@@ -60,7 +58,7 @@ class PaymentAccountController extends Controller
     public function update(StorePaymentAccountRequest $request, Room $room, PaymentAccount $account, SavePaymentAccountAction $action, AuditService $audit): JsonResponse
     {
         abort_unless($account->room_id === $room->id, 404);
-        $before  = ['bank_code' => $account->bank_code, 'status' => $account->status, 'is_default' => $account->is_default];
+        $before = ['bank_code' => $account->bank_code, 'status' => $account->status, 'is_default' => $account->is_default];
         $account = $action->execute($room, $request->validated(), $account);
         $audit->record('payment_account.updated', 'payment_account', $account->id, $room->id, $before, ['bank_code' => $account->bank_code, 'status' => $account->status, 'is_default' => $account->is_default]);
 
@@ -118,7 +116,7 @@ class PaymentAccountController extends Controller
     {
         abort_unless($account->room_id === $room->id, 404);
 
-        $amount      = (int) $request->query('amount', 0);
+        $amount = $request->integer('amount');
         $description = (string) $request->query('description', '');
 
         $payload = $this->buildLocalQrPayload($account, $amount, $description);
@@ -137,14 +135,14 @@ class PaymentAccountController extends Controller
 
         return response()->json([
             'data' => [
-                'payload'        => $payload,
-                'qr_url'         => $qrUrl,
-                'bank_code'      => $account->bank_code,
-                'bank_name'      => $account->bank_name ?: $account->bank_code,
+                'payload' => $payload,
+                'qr_url' => $qrUrl,
+                'bank_code' => $account->bank_code,
+                'bank_name' => $account->bank_name ?: $account->bank_code,
                 'account_number' => $accNumber,
-                'account_name'   => $accName,
-                'amount'         => $amount,
-                'description'    => $description,
+                'account_name' => $accName,
+                'amount' => $amount,
+                'description' => $description,
             ],
         ]);
     }
@@ -188,13 +186,13 @@ class PaymentAccountController extends Controller
     private function payload(PaymentAccount $account): array
     {
         return [
-            'id'             => $account->id,
-            'bank_code'      => $account->bank_code,
-            'bank_name'      => $account->bank_name,
+            'id' => $account->id,
+            'bank_code' => $account->bank_code,
+            'bank_name' => $account->bank_name,
             'account_number' => $this->mask($account->getRawOriginal('account_number')),
-            'account_name'   => $account->account_name,
-            'is_default'     => (bool) $account->is_default,
-            'status'         => $account->status,
+            'account_name' => $account->account_name,
+            'is_default' => (bool) $account->is_default,
+            'status' => $account->status,
         ];
     }
 

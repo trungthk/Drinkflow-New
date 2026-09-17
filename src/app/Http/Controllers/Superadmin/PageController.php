@@ -1,8 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
+use App\Enums\DebtStatus;
+use App\Models\AdminAccount;
+use App\Models\AuditLog;
+use App\Models\Campaign;
+use App\Models\Debt;
+use App\Models\GlobalUser;
+use App\Models\Room;
+use App\Models\SecurityEvent;
+use App\Models\SystemNotificationChannel;
+use App\Models\Version;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\View\View;
 
 class PageController extends Controller
@@ -11,75 +25,165 @@ class PageController extends Controller
      * Handle the rooms operation.
      * @return View Result of the operation.
      */
-    public function rooms(): View { return view('superadmin.rooms'); }
+    public function rooms(Request $request): View
+    {
+        $query = Room::query()->withCount(['roomUsers', 'campaigns', 'admins'])->latest();
+        $search = trim($request->string('q')->toString());
+        if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
+        $status = $request->string('status')->toString();
+        if ($status !== '') $query->where('status', $status);
+        return view('superadmin.rooms', ['rooms' => $query->paginate(20)->withQueryString(), 'filters' => compact('search', 'status')]);
+    }
     /**
      * Handle the room operation.
      * @return View Result of the operation.
      */
-    public function room(): View { return view('superadmin.room-detail'); }
+    public function room(): View
+    {
+        return view('superadmin.room-detail');
+    }
     /**
      * Handle the admins operation.
      * @return View Result of the operation.
      */
-    public function admins(): View { return view('superadmin.admins'); }
+    public function admins(Request $request): View
+    {
+        $query = AdminAccount::query()->withCount('rooms')->latest();
+        $search = trim($request->string('q')->toString());
+        if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+        $role = $request->string('role')->toString();
+        $status = $request->string('status')->toString();
+        if ($role !== '') $query->where('role', $role);
+        if ($status !== '') $query->where('status', $status);
+        return view('superadmin.admins', ['admins' => $query->paginate(20)->withQueryString(), 'filters' => compact('search', 'role', 'status')]);
+    }
     /**
      * Handle the admin operation.
      * @return View Result of the operation.
      */
-    public function admin(): View { return view('superadmin.admin-detail'); }
+    public function admin(): View
+    {
+        return view('superadmin.admin-detail');
+    }
     /**
      * Handle the users operation.
      * @return View Result of the operation.
      */
-    public function users(): View { return view('superadmin.users'); }
+    public function users(Request $request): View
+    {
+        $query = GlobalUser::query()->withCount('roomUsers')->latest();
+        $search = trim($request->string('q')->toString());
+        if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('normalized_name', 'like', "%".strtoupper($search)."%")->orWhere('email', 'like', "%{$search}%"));
+        $status = $request->string('status')->toString();
+        if ($status !== '') $query->where('status', $status);
+        return view('superadmin.users', ['users' => $query->paginate(20)->withQueryString(), 'filters' => compact('search', 'status')]);
+    }
     /**
      * Handle the user operation.
      * @return View Result of the operation.
      */
-    public function user(): View { return view('superadmin.user-detail'); }
+    public function user(): View
+    {
+        return view('superadmin.user-detail');
+    }
     /**
      * Handle the campaigns operation.
      * @return View Result of the operation.
      */
-    public function campaigns(): View { return view('superadmin.campaigns'); }
+    public function campaigns(Request $request): View
+    {
+        $query = Campaign::query()->with('room:id,name')->withCount(['orders', 'debts'])->latest();
+        $search = trim($request->string('q')->toString());
+        if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('restaurant', 'like', "%{$search}%"));
+        $status = $request->string('status')->toString();
+        if ($status !== '') $query->where('status', $status);
+        return view('superadmin.campaigns', ['campaigns' => $query->paginate(20)->withQueryString(), 'filters' => compact('search', 'status')]);
+    }
     /**
      * Handle the debts operation.
      * @return View Result of the operation.
      */
-    public function debts(): View { return view('superadmin.debts'); }
+    public function debts(Request $request): View
+    {
+        $query = Debt::query()->with(['room:id,name', 'campaign:id,name', 'roomUser.globalUser:id,name,email'])->latest();
+        $search = trim($request->string('q')->toString());
+        if ($search !== '') $query->where(fn ($q) => $q->whereHas('campaign', fn ($c) => $c->where('name', 'like', "%{$search}%"))->orWhereHas('roomUser.globalUser', fn ($u) => $u->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")));
+        $status = DebtStatus::tryFrom($request->string('status')->toString());
+        if ($status !== null) $query->where('status', $status->value);
+        $debts = $query->paginate(20)->withQueryString();
+        return view('superadmin.debts', ['debts' => $debts, 'filters' => ['search' => $search, 'status' => $status?->value ?? ''], 'totalDebt' => (int) Debt::whereIn('status', DebtStatus::outstandingValues())->sum('remaining_amount')]);
+    }
     /**
      * Handle the notifications operation.
      * @return View Result of the operation.
      */
-    public function notifications(): View { return view('superadmin.notifications'); }
+    public function notifications(Request $request): View
+    {
+        $query = SystemNotificationChannel::query()->latest();
+        $search = trim($request->string('q')->toString());
+        if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('type', 'like', "%{$search}%"));
+        return view('superadmin.notifications', ['channels' => $query->paginate(20)->withQueryString(), 'filters' => compact('search')]);
+    }
     /**
      * Handle the system operation.
      * @return View Result of the operation.
      */
-    public function system(): View { return view('superadmin.system'); }
+    public function system(): View
+    {
+        return view('superadmin.system');
+    }
     /**
      * Handle the audit operation.
      * @return View Result of the operation.
      */
-    public function audit(): View { return view('superadmin.audit'); }
+    public function audit(Request $request): View
+    {
+        $query = AuditLog::query()->with('room:id,name')->latest('created_at');
+        $event = trim($request->string('event')->toString());
+        if ($event !== '') $query->where('event', 'like', "%{$event}%");
+        return view('superadmin.audit', ['audits' => $query->paginate(20)->withQueryString(), 'filters' => ['event' => $event]]);
+    }
     /**
      * Handle the security operation.
      * @return View Result of the operation.
      */
-    public function security(): View { return view('superadmin.security'); }
+    public function security(Request $request): View
+    {
+        $query = SecurityEvent::query()->with('room:id,name')->latest('created_at');
+        $search = trim($request->string('q')->toString());
+        if ($search !== '') $query->where(fn ($q) => $q->where('type', 'like', "%{$search}%")->orWhere('ip_address', 'like', "%{$search}%"));
+        $severity = $request->string('severity')->toString();
+        if ($severity !== '') $query->where('severity', $severity);
+        return view('superadmin.security', ['events' => $query->paginate(20)->withQueryString(), 'filters' => ['search' => $search, 'severity' => $severity]]);
+    }
     /**
      * Handle the socket operation.
      * @return View Result of the operation.
      */
-    public function socket(): View { return view('superadmin.socket'); }
+    public function socket(): View
+    {
+        return view('superadmin.socket');
+    }
     /**
      * Handle the queue operation.
      * @return View Result of the operation.
      */
-    public function queue(): View { return view('superadmin.queue'); }
+    public function queue(Request $request): View
+    {
+        $query = DB::table('failed_jobs')->latest('failed_at');
+        $search = trim($request->string('q')->toString());
+        if ($search !== '') $query->where(fn ($q) => $q->where('queue', 'like', "%{$search}%")->orWhere('uuid', 'like', "%{$search}%"));
+        return view('superadmin.queue', ['jobs' => $query->paginate(20)->withQueryString(), 'filters' => compact('search')]);
+    }
     /**
      * Handle the versions operation.
      * @return View Result of the operation.
      */
-    public function versions(): View { return view('superadmin.versions'); }
+    public function versions(Request $request): View
+    {
+        $query = Version::query()->latest('release_date');
+        $search = trim($request->string('q')->toString());
+        if ($search !== '') $query->where(fn ($q) => $q->where('version', 'like', "%{$search}%")->orWhere('title', 'like', "%{$search}%"));
+        return view('superadmin.versions', ['versions' => $query->paginate(20)->withQueryString(), 'filters' => compact('search')]);
+    }
 }

@@ -338,4 +338,15 @@ return [
         'created' => 'Release created.',
         'confirm_delete' => 'Delete this release?',
     ],
+    'actions' => [
+        'campaign_already_closed' => 'Campaign is already closed and cannot be cancelled.',
+        'invalid_admin_status' => 'Invalid administrator status.',
+        'cannot_demote_last_superadmin' => 'Cannot demote the last remaining superadmin.',
+        'must_retain_at_least_one_superadmin' => 'Must retain at least one superadmin.',
+        'cannot_merge_self' => 'Cannot merge an account with itself.',
+        'merge_conflict_membership' => 'Both accounts hold memberships in the same room; resolve room memberships first.',
+        'merge_conflict_oauth' => 'Both accounts share conflicting OAuth identities.',
+        'reset_password_invalid' => 'Confirmation password is incorrect.',
+        'reset_phrase_invalid' => 'Confirmation phrase is incorrect.',
+    ],
 ];

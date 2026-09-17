@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Superadmin;
 
 use App\Models\GlobalUser;
@@ -17,19 +19,19 @@ class MergeGlobalUsersAction
      */
     public function execute(GlobalUser $source, GlobalUser $target): GlobalUser
     {
-        if ($source->is($target)) throw ValidationException::withMessages(['target_id' => 'KhĂ´ng thá»ƒ gá»™p tĂ i khoáº£n vá»›i chĂ­nh nĂ³.']);
+        if ($source->is($target)) throw ValidationException::withMessages(['target_id' => __('superadmin.actions.cannot_merge_self')]);
 
         return DB::transaction(function () use ($source, $target): GlobalUser {
             $source->load('oauthIdentities', 'roomUsers');
             $target->load('oauthIdentities', 'roomUsers');
             $targetRooms = $target->roomUsers->pluck('room_id')->all();
             if ($source->roomUsers->pluck('room_id')->intersect($targetRooms)->isNotEmpty()) {
-                throw ValidationException::withMessages(['source_id' => 'Hai tĂ i khoáº£n cĂ¹ng cĂ³ membership trong má»™t room; cáº§n xá»­ lĂ½ membership trÆ°á»›c.']);
+                throw ValidationException::withMessages(['source_id' => __('superadmin.actions.merge_conflict_membership')]);
             }
             $targetIdentityKeys = $target->oauthIdentities->map(fn ($identity) => $identity->provider.':'.$identity->provider_user_id)->all();
             foreach ($source->oauthIdentities as $identity) {
                 if (in_array($identity->provider.':'.$identity->provider_user_id, $targetIdentityKeys, true)) {
-                    throw ValidationException::withMessages(['source_id' => 'Hai tĂ i khoáº£n cĂ³ OAuth identity trĂ¹ng nhau.']);
+                    throw ValidationException::withMessages(['source_id' => __('superadmin.actions.merge_conflict_oauth')]);
                 }
                 $identity->update(['global_user_id' => $target->id]);
             }
@@ -41,3 +43,4 @@ class MergeGlobalUsersAction
         });
     }
 }
+

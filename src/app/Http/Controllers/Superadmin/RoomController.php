@@ -23,13 +23,18 @@ class RoomController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Room::query()->withCount(['roomUsers', 'campaigns', 'admins',
-            'roomUsers as active_room_users_count'  => fn ($q) => $q->where('status', RoomUserStatus::Active),
-            'roomUsers as blocked_room_users_count' => fn ($q) => $q->where('status', RoomUserStatus::Blocked),
+        $query = Room::query()->withCount([
+            'roomUsers',
+            'campaigns',
+            'admins',
+            'roomUsers as active_room_users_count' => fn($q) => $q->where('status', RoomUserStatus::Active),
+            'roomUsers as blocked_room_users_count' => fn($q) => $q->where('status', RoomUserStatus::Blocked),
         ])->latest();
-        if ($request->filled('q')) $query->where(fn ($q) => $q->where('name', 'like', '%'.$request->string('q').'%')->orWhere('slug', 'like', '%'.$request->string('q').'%'));
-        if ($request->filled('status')) $query->where('status', $request->string('status')->toString());
-        return response()->json(['data' => $query->paginate(50)]);
+        if ($request->filled('q'))
+            $query->where(fn($q) => $q->where('name', 'like', '%' . $request->string('q') . '%')->orWhere('slug', 'like', '%' . $request->string('q') . '%'));
+        if ($request->filled('status'))
+            $query->where('status', $request->string('status')->toString());
+        return response()->json(['data' => $query->paginate(20)]);
     }
 
     /**
@@ -38,7 +43,10 @@ class RoomController extends Controller
      * @param ManageRoomAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function store(StoreRoomRequest $request, ManageRoomAction $action): JsonResponse { return response()->json(['data' => $action->create($request->validated())], 201); }
+    public function store(StoreRoomRequest $request, ManageRoomAction $action): JsonResponse
+    {
+        return response()->json(['data' => $action->create($request->validated())], 201);
+    }
 
     /**
      * Handle the show operation.
@@ -57,7 +65,10 @@ class RoomController extends Controller
      * @param ManageRoomAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function update(UpdateRoomRequest $request, Room $room, ManageRoomAction $action): JsonResponse { return response()->json(['data' => $action->update($room, $request->validated())]); }
+    public function update(UpdateRoomRequest $request, Room $room, ManageRoomAction $action): JsonResponse
+    {
+        return response()->json(['data' => $action->update($room, $request->validated())]);
+    }
 
     /**
      * Handle the status operation.

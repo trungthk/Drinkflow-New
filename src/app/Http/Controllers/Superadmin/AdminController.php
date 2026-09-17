@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Superadmin;
 
 use App\Actions\Superadmin\ManageAdminAction;
@@ -24,10 +26,13 @@ class AdminController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = AdminAccount::with('rooms:id,name,slug')->withCount('rooms')->latest();
-        if ($request->filled('q')) $query->where(fn ($q) => $q->where('name', 'like', '%'.$request->string('q').'%')->orWhere('email', 'like', '%'.$request->string('q').'%'));
-        if ($request->filled('role')) $query->where('role', $request->string('role')->toString());
-        if ($request->filled('status')) $query->where('status', $request->string('status')->toString());
-        return response()->json(['data' => $query->paginate(50)]);
+        if ($request->filled('q'))
+            $query->where(fn($q) => $q->where('name', 'like', '%' . $request->string('q') . '%')->orWhere('email', 'like', '%' . $request->string('q') . '%'));
+        if ($request->filled('role'))
+            $query->where('role', $request->string('role')->toString());
+        if ($request->filled('status'))
+            $query->where('status', $request->string('status')->toString());
+        return response()->json(['data' => $query->paginate(20)]);
     }
 
     /**
@@ -38,9 +43,12 @@ class AdminController extends Controller
      */
     public function store(StoreAdminRequest $request, ManageAdminAction $action): JsonResponse
     {
-        $data = $request->validated(); $roomIds = $data['room_ids'] ?? []; unset($data['room_ids']);
+        $data = $request->validated();
+        $roomIds = $data['room_ids'] ?? [];
+        unset($data['room_ids']);
         $admin = $action->create($data);
-        if ($roomIds !== []) $admin = $action->syncRooms($admin, $roomIds);
+        if ($roomIds !== [])
+            $admin = $action->syncRooms($admin, $roomIds);
         return response()->json(['data' => $admin->load('rooms')], 201);
     }
 
@@ -49,7 +57,10 @@ class AdminController extends Controller
      * @param AdminAccount $admin Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function show(AdminAccount $admin): JsonResponse { return response()->json(['data' => $admin->load('rooms:id,name,slug')]); }
+    public function show(AdminAccount $admin): JsonResponse
+    {
+        return response()->json(['data' => $admin->load('rooms:id,name,slug')]);
+    }
 
     /**
      * Handle the update operation.
@@ -60,10 +71,14 @@ class AdminController extends Controller
      */
     public function update(UpdateAdminRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse
     {
-        $data = $request->validated(); $roomIds = $data['room_ids'] ?? null; unset($data['room_ids']);
-        if (array_key_exists('password', $data) && $data['password'] === null) unset($data['password']);
+        $data = $request->validated();
+        $roomIds = $data['room_ids'] ?? null;
+        unset($data['room_ids']);
+        if (array_key_exists('password', $data) && $data['password'] === null)
+            unset($data['password']);
         $admin = $action->update($admin, $data);
-        if ($roomIds !== null) $admin = $action->syncRooms($admin, $roomIds);
+        if ($roomIds !== null)
+            $admin = $action->syncRooms($admin, $roomIds);
         return response()->json(['data' => $admin->load('rooms')]);
     }
 
@@ -74,7 +89,11 @@ class AdminController extends Controller
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function status(SetStatusRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse { return response()->json(['data' => $action->setStatus($admin, $request->validated('status'))]); }
+    public function status(SetStatusRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse
+    {
+        return response()->json(['data' => $action->setStatus($admin, $request->validated('status'))]);
+    }
+
     /**
      * Handle the role operation.
      * @param AdminRoleRequest $request Parameter value.
@@ -82,7 +101,11 @@ class AdminController extends Controller
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function role(AdminRoleRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse { return response()->json(['data' => $action->setRole($admin, $request->validated('role'))]); }
+    public function role(AdminRoleRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse
+    {
+        return response()->json(['data' => $action->setRole($admin, $request->validated('role'))]);
+    }
+
     /**
      * Handle the rooms operation.
      * @param AdminRoomsRequest $request Parameter value.
@@ -90,7 +113,11 @@ class AdminController extends Controller
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function rooms(AdminRoomsRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse { return response()->json(['data' => $action->syncRooms($admin, $request->validated('room_ids'))]); }
+    public function rooms(AdminRoomsRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse
+    {
+        return response()->json(['data' => $action->syncRooms($admin, $request->validated('room_ids'))]);
+    }
+
     /**
      * Handle the reset password operation.
      * @param AdminPasswordRequest $request Parameter value.
@@ -98,12 +125,21 @@ class AdminController extends Controller
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function resetPassword(AdminPasswordRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse { $action->resetPassword($admin, $request->validated('password')); return response()->json(['data' => ['reset' => true]]); }
+    public function resetPassword(AdminPasswordRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse
+    {
+        $action->resetPassword($admin, $request->validated('password'));
+        return response()->json(['data' => ['reset' => true]]);
+    }
+
     /**
      * Handle the destroy operation.
      * @param AdminAccount $admin Parameter value.
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function destroy(AdminAccount $admin, ManageAdminAction $action): JsonResponse { $action->delete($admin); return response()->json(['data' => ['deleted' => true]]); }
+    public function destroy(AdminAccount $admin, ManageAdminAction $action): JsonResponse
+    {
+        $action->delete($admin);
+        return response()->json(['data' => ['deleted' => true]]);
+    }
 }

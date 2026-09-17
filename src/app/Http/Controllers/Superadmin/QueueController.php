@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
 use App\Services\Audit\AuditService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
@@ -15,7 +16,10 @@ class QueueController extends Controller
      * Handle the index operation.
      * @return JsonResponse Result of the operation.
      */
-    public function index(): JsonResponse { return response()->json(['data' => ['connection' => config('queue.default'), 'failed_jobs' => DB::table('failed_jobs')->latest('failed_at')->paginate(50)]]); }
+    public function index(): JsonResponse
+    {
+        return response()->json(['data' => ['connection' => config('queue.default'), 'failed_jobs' => DB::table('failed_jobs')->latest('failed_at')->paginate(20)]]);
+    }
 
     /**
      * Handle the retry operation.

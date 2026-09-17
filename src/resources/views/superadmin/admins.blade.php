@@ -12,8 +12,8 @@
         <div class="sa-section-header">
             <div>
                 <h2>{{ __('superadmin.admins.administrators') }}</h2>
-                <p id="admin-count">{{ __('superadmin.common.loading') }}</p>
-            </div><input id="admin-search" class="sa-input" placeholder="{{ __('superadmin.admins.search') }}" oninput="loadAdmins()">
+                <p>{{ __('superadmin.common.accounts_count', ['count' => $admins->total()]) }}</p>
+            </div><form method="GET" class="superadmin-actions"><input name="q" value="{{ $filters['search'] ?? '' }}" class="sa-input" placeholder="{{ __('superadmin.admins.search') }}"><select name="role" class="sa-input"><option value="">All roles</option><option value="admin" @selected(($filters['role'] ?? '') === 'admin')>Admin</option><option value="superadmin" @selected(($filters['role'] ?? '') === 'superadmin')>Superadmin</option></select><select name="status" class="sa-input"><option value="">All status</option><option value="active" @selected(($filters['status'] ?? '') === 'active')>Active</option><option value="blocked" @selected(($filters['status'] ?? '') === 'blocked')>Blocked</option></select><button class="sa-button secondary" type="submit">Filter</button></form>
         </div>
         <div class="sa-table-wrap">
             <table class="sa-table">
@@ -26,8 +26,9 @@
                         <th>{{ __('superadmin.common.actions') }}</th>
                     </tr>
                 </thead>
-                <tbody id="admins-table"></tbody>
+                <tbody>@forelse($admins as $admin)<tr><td><strong>{{ $admin->name }}</strong><br><small>{{ $admin->email }}</small></td><td>{{ $admin->role }}</td><td>{{ $admin->status }}</td><td>{{ $admin->rooms_count }} {{ __('superadmin.common.rooms') }}</td><td><div class="superadmin-actions"><a class="sa-button secondary" href="{{ route('superadmin.admins.detail.page', $admin) }}">{{ __('superadmin.common.details') }}</a>@if($admin->role === 'superadmin')<span class="status-pill status-active">{{ __('superadmin.common.protected') }}</span>@elseif($admin->status === 'active')<button class="sa-button danger" onclick="setAdminStatus({{ $admin->id }}, 'blocked')">{{ __('superadmin.common.block') }}</button>@else<button class="sa-button" onclick="setAdminStatus({{ $admin->id }}, 'active')">{{ __('superadmin.common.unblock') }}</button>@endif</div></td></tr>@empty<tr><td colspan="5" class="sa-empty">{{ __('superadmin.admins.no_results') }}</td></tr>@endforelse</tbody>
             </table>
+            <div class="mt-4">{{ $admins->links() }}</div>
         </div>
     </section>
 @endsection
@@ -38,16 +39,6 @@
             n.textContent = message;
             n.className = `sa-notice ${type} is-visible`;
         };
-        async function loadAdmins() {
-            const q = document.querySelector('#admin-search').value;
-            const {
-                data
-            } = await dfApi('{{ route('superadmin.admins.index') }}' + (q ? '?q=' + encodeURIComponent(q) : ''));
-            document.querySelector('#admin-count').textContent = @js(__('superadmin.common.accounts_count', ['count' => '__COUNT__'])).replace('__COUNT__', data.total);
-            document.querySelector('#admins-table').innerHTML = data.data.length ? data.data.map(a =>
-                `<tr><td><strong>${escapeHtml(a.name)}</strong><br><small>${escapeHtml(a.email)}</small></td><td>${escapeHtml(a.role)}</td><td>${statusPill(a.status)}</td><td>${a.rooms_count} ${@js(__('superadmin.common.rooms'))}</td><td><div class="superadmin-actions"><a class="sa-button secondary" href="/superadmin/admins/${a.id}/page">${@js(__('superadmin.common.details'))}</a>${a.role==='superadmin'?`<span class="status-pill status-active">${@js(__('superadmin.common.protected'))}</span>`:a.status==='active'?`<button class="sa-button danger" onclick="setAdminStatus(${a.id},'blocked')">${@js(__('superadmin.common.block'))}</button>`:`<button class="sa-button" onclick="setAdminStatus(${a.id},'active')">${@js(__('superadmin.common.unblock'))}</button>`}</div></td></tr>`
-                ).join('') : `<tr><td colspan="5" class="sa-empty">${@js(__('superadmin.admins.no_results'))}</td></tr>`;
-        }
         async function setAdminStatus(id, status) {
             try {
                 await dfApi(`/superadmin/admins/${id}/status`, {
@@ -57,7 +48,7 @@
                     }
                 });
                 adminNotice(@js(__('superadmin.admins.updated')));
-                loadAdmins();
+                window.location.reload();
             } catch (e) {
                 adminNotice(e.message, 'error');
             }
@@ -80,11 +71,10 @@
                     }
                 });
                 adminNotice(@js(__('superadmin.admins.created')));
-                loadAdmins();
+                window.location.reload();
             } catch (e) {
                 adminNotice(e.message, 'error');
             }
         }
-        loadAdmins();
     </script>
 @endpush

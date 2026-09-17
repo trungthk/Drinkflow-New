@@ -263,7 +263,7 @@
                 <!-- Rate limit note -->
                 <div class="flex items-center gap-1.5 text-[11px] text-outline">
                     <span class="material-symbols-outlined text-[14px]">info</span>
-                    <span>Tối đa 5 lần gửi thử nghiệm / phút cho mỗi kênh (Rate Limit).</span>
+                    <span>{{ __('admin.test_notification_rate_limit_note') }}</span>
                 </div>
             </div>
 

@@ -138,6 +138,7 @@ return [
         'error_domain_unsupported' => "Tài khoản có domain ':domain' không hỗ trợ đăng nhập. Vui lòng sử dụng tài khoản email doanh nghiệp được cấp phép.",
         'error_email_invalid' => 'Email không hợp lệ.',
         'error_invalid_identity' => 'Google identity không hợp lệ.',
+        'error_identity_conflict' => 'Google identity đã liên kết với tài khoản khác.',
         'require_login_room' => "Vui lòng đăng nhập Google Workspace để tham gia phòng ':room'.",
     ],
     'video_modal' => [

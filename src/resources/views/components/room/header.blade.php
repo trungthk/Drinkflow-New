@@ -76,7 +76,7 @@
                   @click.outside="showLangDropdown = false"
                   type="button" 
           class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors duration-150 border border-slate-200 shadow-2xs cursor-pointer shrink-0"
-          title="Ngôn ngữ / Language">
+          title="{{ __('global.header.language_select') }}">
         <span class="text-xs sm:text-sm leading-none">{{ $activeLocaleMeta['flag'] }}</span>
         <span class="font-semibold text-slate-800 text-[11px] sm:text-xs leading-none">{{ $activeLocaleMeta['code'] }}</span>
         <span class="material-symbols-outlined text-[14px] sm:text-[16px] text-slate-400">arrow_drop_down</span>

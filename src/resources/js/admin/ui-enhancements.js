@@ -541,6 +541,43 @@ export function initAdminLayoutDropdowns() {
 }
 
 /**
+ * 7. Currency Input Formatter (data-format-currency="true")
+ */
+export function initCurrencyFormatters() {
+    function formatValue(input) {
+        if (!input) return;
+        const raw = String(input.value || '').replace(/\D/g, '');
+        if (!raw) {
+            input.value = '';
+            return;
+        }
+        input.value = raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    }
+
+    const attach = (input) => {
+        if (!input || input.dataset.currencyFormatted) return;
+        input.dataset.currencyFormatted = 'true';
+        input.setAttribute('inputmode', 'numeric');
+
+        formatValue(input);
+        input.addEventListener('input', () => formatValue(input));
+        input.addEventListener('change', () => formatValue(input));
+        input.addEventListener('focus', () => formatValue(input));
+        input.addEventListener('blur', () => formatValue(input));
+    };
+
+    document.querySelectorAll('input[data-format-currency="true"]').forEach(attach);
+
+    // Dynamic observer for dynamically rendered inputs (modals, x-for templates)
+    if (typeof MutationObserver !== 'undefined' && document.body) {
+        const observer = new MutationObserver(() => {
+            document.querySelectorAll('input[data-format-currency="true"]:not([data-currency-formatted])').forEach(attach);
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+}
+
+/**
  * Master Initialize all UI Enhancements
  */
 export function initUiEnhancements() {
@@ -550,4 +587,5 @@ export function initUiEnhancements() {
     initFormSubmitLoading();
     initAdminSidebar();
     initAdminLayoutDropdowns();
+    initCurrencyFormatters();
 }

@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ContactRequest;
-use App\Models\Version;
 use App\Services\Contact\ContactService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -21,21 +20,7 @@ class ContactController extends Controller
      */
     public function index(): View
     {
-        $appVersion = Version::getLatestVersionString();
-        $googleAuthUrl = route('auth.google');
-        $termsUrl = route('terms');
-        $versionsUrl = route('versions');
-        $landingUrl = route('landing');
-        $contactUrl = route('contact');
-
-        return view('public.contact', [
-            'appVersion' => $appVersion,
-            'googleAuthUrl' => $googleAuthUrl,
-            'termsUrl' => $termsUrl,
-            'versionsUrl' => $versionsUrl,
-            'landingUrl' => $landingUrl,
-            'contactUrl' => $contactUrl,
-        ]);
+        return view('public.contact');
     }
 
     /**

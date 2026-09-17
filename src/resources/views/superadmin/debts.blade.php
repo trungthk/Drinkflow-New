@@ -1,60 +1,7 @@
 @extends('superadmin.layout', ['title' => 'Global Debt Overview', 'active' => 'debts'])
 @section('content')
-    <div class="superadmin-heading">
-        <div>
-            <p class="superadmin-eyebrow">Platform Data</p>
-            <h1>Global Debt Overview</h1>
-            <p>Theo dõi công nợ theo Room, campaign và người dùng; dữ liệu có thể xuất thành CSV.</p>
-        </div><a class="sa-button" href="{{ route('superadmin.debts.export') }}"><span
-                class="material-symbols-outlined">download</span>Export CSV</a>
-    </div>
-    <div class="sa-grid kpis">
-        <article class="sa-card sa-kpi"><span class="label">Total Debt</span><strong id="total-debt"
-                class="value">—</strong><span class="hint">Outstanding toàn hệ thống</span></article>
-        <article class="sa-card sa-kpi"><span class="label">Rooms With Debt</span><strong id="room-debt-count"
-                class="value">—</strong><span class="hint">Phân bổ theo Room</span></article>
-        <article class="sa-card sa-kpi"><span class="label">Campaigns With Debt</span><strong id="campaign-debt-count"
-                class="value">—</strong><span class="hint">Phân bổ theo campaign</span></article>
-    </div>
-    <section class="sa-card sa-section">
-        <div class="sa-section-header">
-            <div>
-                <h2>Debt ledger</h2>
-                <p id="debt-count">Đang tải dữ liệu...</p>
-            </div>
-        </div>
-        <div class="sa-table-wrap">
-            <table class="sa-table">
-                <thead>
-                    <tr>
-                        <th>Room</th>
-                        <th>Campaign</th>
-                        <th>User</th>
-                        <th>Original</th>
-                        <th>Paid</th>
-                        <th>Remaining</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody id="debts-table"></tbody>
-            </table>
-        </div>
-    </section>
+<div class="superadmin-heading"><div><p class="superadmin-eyebrow">Platform Data</p><h1>Global Debt Overview</h1><p>Theo dõi công nợ toàn hệ thống.</p></div><a class="sa-button" href="{{ route('superadmin.debts.export') }}">Export CSV</a></div>
+<div class="sa-grid kpis"><article class="sa-card sa-kpi"><span class="label">Total Debt</span><strong class="value">{{ number_format($totalDebt ?? 0) }}</strong></article></div>
+<section class="sa-card sa-section"><div class="sa-section-header"><div><h2>Debt ledger</h2><p>{{ $debts->total() }} debt record</p></div><form method="GET" class="superadmin-actions"><input name="q" value="{{ $filters['search'] ?? '' }}" class="sa-input" placeholder="Search debt"><select name="status" class="sa-input"><option value="">All status</option>@foreach(['pending','unpaid','partial','paid'] as $value)<option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $value }}</option>@endforeach</select><button class="sa-button secondary" type="submit">Filter</button></form></div>
+<div class="sa-table-wrap"><table class="sa-table"><thead><tr><th>Room</th><th>Campaign</th><th>User</th><th>Original</th><th>Paid</th><th>Remaining</th><th>Status</th></tr></thead><tbody>@forelse($debts as $debt)<tr><td>{{ $debt->room?->name }}</td><td>{{ $debt->campaign?->name }}</td><td>{{ $debt->roomUser?->globalUser?->email }}</td><td>{{ number_format($debt->original_amount) }}</td><td>{{ number_format($debt->paid_amount) }}</td><td>{{ number_format($debt->remaining_amount) }}</td><td>{{ $debt->status instanceof BackedEnum ? $debt->status->value : $debt->status }}</td></tr>@empty<tr><td colspan="7" class="sa-empty">Không có công nợ.</td></tr>@endforelse</tbody></table></div><div class="mt-4">{{ $debts->links() }}</div></section>
 @endsection
-@push('scripts')
-    <script>
-        dfApi('{{ route('superadmin.debts.index') }}').then(({
-            data
-        }) => {
-            document.querySelector('#total-debt').textContent = money(data.total_debt);
-            document.querySelector('#room-debt-count').textContent = data.by_room.length;
-            document.querySelector('#campaign-debt-count').textContent = data.by_campaign.length;
-            document.querySelector('#debt-count').textContent = `${data.items.total} debt record`;
-            document.querySelector('#debts-table').innerHTML = data.items.data.length ? data.items.data.map(d =>
-                `<tr><td>${escapeHtml(d.room?.name)}</td><td>${escapeHtml(d.campaign?.name)}</td><td>${escapeHtml(d.room_user?.global_user?.email)}</td><td>${money(d.original_amount)}</td><td>${money(d.paid_amount)}</td><td><strong>${money(d.remaining_amount)}</strong></td><td>${statusPill(d.status)}</td></tr>`
-                ).join('') : '<tr><td colspan="7" class="sa-empty">Không có công nợ.</td></tr>';
-        }).catch(e => {
-            document.querySelector('#debt-count').textContent = e.message;
-        });
-    </script>
-@endpush

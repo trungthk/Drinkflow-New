@@ -101,6 +101,25 @@
     cartTotal() {
       return this.cartItems.reduce((total, item) => total + (Number(item.unit_price) * Number(item.quantity)), 0);
     },
+    itemImageUrl(item) {
+      if (!item) return '';
+
+      const menuItem = this.menuItems.find(candidate => String(candidate.id) === String(item.item_id || item.id));
+      const imageUrl = String(item.image_url || menuItem?.image_url || '').trim();
+      if (!imageUrl) return '';
+      if (imageUrl.startsWith('storage/')) return `/${imageUrl}`;
+
+      try {
+        const parsedUrl = new URL(imageUrl, window.location.origin);
+        if (parsedUrl.pathname.startsWith('/storage/')) {
+          return `${parsedUrl.pathname}${parsedUrl.search}${parsedUrl.hash}`;
+        }
+      } catch (_) {
+        return imageUrl;
+      }
+
+      return imageUrl;
+    },
     get filteredItemCount() {
       return this.menuItems.filter(item => this.filterMatch(item)).length;
     },
@@ -316,6 +335,15 @@
               <div>
                 <div class="w-full h-28 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center text-[#006948] overflow-hidden mb-2.5 relative">
                   <span class="material-symbols-outlined text-[32px]">local_cafe</span>
+                  <template x-if="itemImageUrl({{ Js::from($item) }})">
+                    <img :src="itemImageUrl({{ Js::from($item) }})"
+                         alt="{{ $item->name }}"
+                         data-menu-item-image
+                         loading="lazy"
+                         x-on:load="$el.hidden = false"
+                         x-on:error="$el.hidden = true"
+                         class="absolute inset-0 h-full w-full object-cover">
+                  </template>
                   @if($item->category)
                     <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-semibold text-slate-600 border border-slate-200/60 shadow-2xs">
                       {{ $item->category }}
@@ -363,8 +391,16 @@
           <!-- Modal Header -->
           <div class="p-5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
-              <div class="w-9 h-9 rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
+              <div class="relative w-9 h-9 overflow-hidden rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
                 <span class="material-symbols-outlined text-[20px]">local_cafe</span>
+                <template x-if="itemImageUrl(selectedItem)">
+                  <img :src="itemImageUrl(selectedItem)"
+                       :alt="selectedItem?.name || '{{ __('admin.item_image_alt') }}'"
+                       loading="lazy"
+                       x-on:load="$el.hidden = false"
+                       x-on:error="$el.hidden = true"
+                       class="absolute inset-0 h-full w-full object-cover">
+                </template>
               </div>
               <div>
                 <h3 class="text-sm sm:text-base font-bold text-slate-900" x-text="selectedItem?.name"></h3>
@@ -486,6 +522,17 @@
             </template>
             <template x-for="(item, index) in cartItems" :key="item.item_id + '-' + item.size_id + '-' + item.note + '-' + index">
               <div class="flex items-start justify-between gap-3 rounded-xl bg-slate-50 p-3">
+                <div class="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white text-[#006948]">
+                  <span class="material-symbols-outlined text-[20px]">local_cafe</span>
+                  <template x-if="itemImageUrl(item)">
+                    <img :src="itemImageUrl(item)"
+                         :alt="item.item_name || '{{ __('admin.item_image_alt') }}'"
+                         loading="lazy"
+                         x-on:load="$el.hidden = false"
+                         x-on:error="$el.hidden = true"
+                         class="absolute inset-0 h-full w-full object-cover">
+                  </template>
+                </div>
                 <div class="min-w-0">
                   <p class="truncate text-sm font-bold text-slate-900" x-text="item.item_name"></p>
                   <p class="mt-0.5 text-[11px] text-slate-500" x-text="[item.size_name, ...(item.topping_names || [])].filter(Boolean).join(' · ')"></p>

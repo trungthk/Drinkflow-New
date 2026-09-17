@@ -1,6 +1,6 @@
 <x-public.layout
     :title="__('versions.meta_title', ['version' => $currentVersion->version])"
-    :description="$currentVersion->summary ?? 'Lịch sử các bản cập nhật, tính năng mới và cải tiến của DrinkFlow.'"
+    :description="$currentVersion->summary ?? __('versions.default_description')"
     :ogTitle="__('versions.meta_title', ['version' => $currentVersion->version])"
     :ogDescription="$currentVersion->title"
     ogType="article"

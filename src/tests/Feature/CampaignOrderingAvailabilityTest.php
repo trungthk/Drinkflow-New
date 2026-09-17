@@ -34,8 +34,19 @@ class CampaignOrderingAvailabilityTest extends TestCase
         $this->actingAs($user, 'web')
             ->get(route('user.campaigns.index', $room))
             ->assertOk()
+            ->assertSee('data-menu-item-image', false)
+            ->assertSee('green-tea.webp', false)
             ->assertSee('data-add-to-cart-button', false)
             ->assertSee('data-campaign-cart-button', false);
+
+        $this->withoutMiddleware(ValidateCsrfToken::class)
+            ->actingAs($user, 'web')
+            ->postJson(route('user.campaigns.cart.store', [$room, $campaign]), [
+                'item_id' => $item->id,
+                'quantity' => 1,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.0.image_url', '/storage/uploads/campaigns/green-tea.webp');
 
         $this->withoutMiddleware(ValidateCsrfToken::class)
             ->actingAs($user, 'web')
@@ -233,6 +244,7 @@ class CampaignOrderingAvailabilityTest extends TestCase
             'name' => 'Green tea',
             'normalized_name' => 'GREEN TEA',
             'base_price' => 20000,
+            'image_url' => '/storage/uploads/campaigns/green-tea.webp',
             'status' => 'active',
         ]);
 

@@ -8,7 +8,7 @@
         <!-- Close Button -->
         <button id="close-video-modal-btn"
                 type="button"
-                aria-label="Đóng video"
+                aria-label="{{ __('public.video_modal.close_label') }}"
                 class="absolute top-4 right-4 z-10 text-slate-400 hover:text-slate-800 hover:bg-slate-100 p-2 rounded-xl transition-colors cursor-pointer">
             <span class="material-symbols-outlined text-[24px]">close</span>
         </button>

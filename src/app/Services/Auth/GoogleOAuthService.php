@@ -171,7 +171,7 @@ class GoogleOAuthService
                 ->first();
 
             if ($identity && $emailUser && $identity->global_user_id !== $emailUser->id) {
-                throw ValidationException::withMessages(['email' => 'Google identity đã liên kết với tài khoản khác.']);
+                throw ValidationException::withMessages(['email' => __('public.auth_modal.error_identity_conflict')]);
             }
 
             $user = $identity?->globalUser ?: $emailUser;

@@ -79,10 +79,12 @@
                 <span class="material-symbols-outlined text-[16px]">filter_alt</span>
                 {{ __('admin.filter_apply') }}
             </button>
-            <a href="{{ route('admin.room-users.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
-                <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
-                {{ __('admin.filter_clear') }}
-            </a>
+            @if(trim((string) ($filters['q'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all')
+                <a id="users-clear-filters" href="{{ route('admin.room-users.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
+                    <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
+                    {{ __('admin.filter_clear') }}
+                </a>
+            @endif
         </div>
     </form>
 
@@ -278,7 +280,7 @@
                     <label for="create-user-desk" class="block text-xs font-semibold text-on-surface mb-1">
                         {{ __('admin.user_desk_label') }}
                     </label>
-                    <input type="text" id="create-user-desk" name="desk_location" placeholder="Tầng 4 - Ban Kỹ Thuật" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                    <input type="text" id="create-user-desk" name="desk_location" placeholder="{{ __('admin.user_desk_placeholder') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                 </div>
 
                 <div class="pt-2 flex items-center justify-end gap-2.5 border-t border-outline-variant">

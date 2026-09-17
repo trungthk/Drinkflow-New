@@ -24,7 +24,7 @@ class VersionService
         if ($version) {
             $currentIndex = $allVersions->search(fn ($item) => $item->version === $version);
             if ($currentIndex === false) {
-                abort(404, 'Phiên bản không tồn tại');
+                abort(404, __('versions.not_found'));
             }
             $currentVersion = $allVersions->get($currentIndex);
         } else {
@@ -42,11 +42,7 @@ class VersionService
             'latestVersion' => $latestVersion,
             'nextVersion' => $nextVersion,
             'prevVersion' => $prevVersion,
-            'appVersion' => Version::getLatestVersionString(),
-            'googleAuthUrl' => route('auth.google'),
             'landingUrl' => route('landing'),
-            'termsUrl' => url('/terms'),
-            'versionsUrl' => url('/versions'),
         ];
     }
 

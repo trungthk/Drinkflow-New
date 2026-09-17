@@ -181,4 +181,15 @@ return [
         'prompt_changelog' => 'Nhật ký thay đổi', 'created' => 'Đã tạo bản phát hành.',
         'confirm_delete' => 'Xóa bản phát hành này?',
     ],
+    'actions' => [
+        'campaign_already_closed' => 'Chiến dịch đã đóng, không thể hủy.',
+        'invalid_admin_status' => 'Trạng thái quản trị viên không hợp lệ.',
+        'cannot_demote_last_superadmin' => 'Không thể tự hạ quyền siêu quản trị viên cuối cùng.',
+        'must_retain_at_least_one_superadmin' => 'Phải giữ lại ít nhất một siêu quản trị viên.',
+        'cannot_merge_self' => 'Không thể gộp tài khoản với chính nó.',
+        'merge_conflict_membership' => 'Hai tài khoản cùng có membership trong một room; cần xử lý membership trước.',
+        'merge_conflict_oauth' => 'Hai tài khoản có OAuth identity trùng nhau.',
+        'reset_password_invalid' => 'Mật khẩu xác nhận không đúng.',
+        'reset_phrase_invalid' => 'Cụm từ xác nhận không đúng.',
+    ],
 ];

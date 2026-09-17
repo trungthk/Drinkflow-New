@@ -31,11 +31,12 @@ class GlobalUserController extends Controller
     {
         $query = GlobalUser::query()->withCount('roomUsers')->with('oauthIdentities:id,global_user_id,provider,provider_user_id,provider_email,linked_at,last_login_at')->latest();
         if ($request->filled('q')) {
-            $term = '%'.$request->string('q')->toString().'%';
-            $query->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('normalized_name', 'like', strtoupper($term))->orWhere('email', 'like', $term));
+            $term = '%' . $request->string('q')->toString() . '%';
+            $query->where(fn($q) => $q->where('name', 'like', $term)->orWhere('normalized_name', 'like', strtoupper($term))->orWhere('email', 'like', $term));
         }
-        if ($request->filled('status')) $query->where('status', $request->string('status')->toString());
-        return response()->json(['data' => $query->paginate(50)]);
+        if ($request->filled('status'))
+            $query->where('status', $request->string('status')->toString());
+        return response()->json(['data' => $query->paginate(20)]);
     }
 
     /**

@@ -30,8 +30,8 @@
             <!-- Metadata Pills Group -->
             <div class="flex flex-wrap items-center gap-2.5 mb-4">
                 <span class="inline-flex items-center gap-1.5 bg-[#eff4ff] text-[#545c72] px-2.5 py-1 rounded-full text-xs font-medium border border-slate-200">
-                    <span class="material-symbols-outlined text-[14px] text-[#006948]">verified</span>
-                    <span>{{ __('terms.badge_version', ['version' => $version]) }}</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#006948]"></span>
+                    <span>{{ __('terms.badge_version', ['version' => $docVersion ?? 'v1.0']) }}</span>
                 </span>
                 <span class="inline-flex items-center gap-1.5 bg-[#eff4ff] text-[#545c72] px-2.5 py-1 rounded-full text-xs font-medium border border-slate-200">
                     <span class="material-symbols-outlined text-[14px] text-[#006948]">calendar_today</span>

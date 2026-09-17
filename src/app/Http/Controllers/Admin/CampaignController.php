@@ -338,7 +338,7 @@ class CampaignController extends Controller
     {
         $imageUrl = $imageUploadService->uploadCampaignImage($request->file('image'));
 
-        return response()->json(['data' => ['url' => url($imageUrl)]], 201);
+        return response()->json(['data' => ['url' => $imageUrl]], 201);
     }
 
     /**

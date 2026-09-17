@@ -57,7 +57,39 @@ class AdminFilterControlsTest extends TestCase
 
         $this->actingAs($admin, 'admin')->get(route('admin.room-users.page', $room->slug))
             ->assertOk()
-            ->assertSee(__('admin.filter_clear'));
+            ->assertDontSee('id="users-clear-filters"', false);
+
+        $this->actingAs($admin, 'admin')->get(route('admin.room-users.page', [
+            'room' => $room->slug,
+            'q' => 'Pending Member',
+        ]))
+            ->assertOk()
+            ->assertSee('id="users-clear-filters"', false);
+
+        $this->actingAs($admin, 'admin')->get(route('admin.room-users.page', [
+            'room' => $room->slug,
+            'status' => 'active',
+        ]))
+            ->assertOk()
+            ->assertSee('id="users-clear-filters"', false);
+
+        $this->actingAs($admin, 'admin')->get(route('admin.debts.page', $room->slug))
+            ->assertOk()
+            ->assertDontSee('id="debt-clear-filters"', false);
+
+        $this->actingAs($admin, 'admin')->get(route('admin.debts.page', [
+            'room' => $room->slug,
+            'search' => 'Pending Member',
+        ]))
+            ->assertOk()
+            ->assertSee('id="debt-clear-filters"', false);
+
+        $this->actingAs($admin, 'admin')->get(route('admin.debts.page', [
+            'room' => $room->slug,
+            'status' => DebtStatus::Pending->value,
+        ]))
+            ->assertOk()
+            ->assertSee('id="debt-clear-filters"', false);
 
         $this->actingAs($admin, 'admin')->get(route('admin.debts.page', [
             'room' => $room->slug,
@@ -66,7 +98,7 @@ class AdminFilterControlsTest extends TestCase
         ]))
             ->assertOk()
             ->assertSee('id="debt-status-filter"', false)
-            ->assertSee(__('admin.filter_clear'))
+            ->assertSee('id="debt-clear-filters"', false)
             ->assertSee('Pending Member')
             ->assertDontSee('Paid Member');
     }

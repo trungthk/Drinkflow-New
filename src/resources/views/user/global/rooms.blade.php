@@ -17,7 +17,7 @@
           </span>
           <span>{{ session('status') }}</span>
         </div>
-        <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-950 p-1 rounded-lg hover:bg-emerald-100/60 transition-colors cursor-pointer" title="Đóng">
+        <button type="button" onclick="this.parentElement.remove()" class="text-emerald-700 hover:text-emerald-950 p-1 rounded-lg hover:bg-emerald-100/60 transition-colors cursor-pointer" title="{{ __('global.common.close') }}">
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>
@@ -31,7 +31,7 @@
           </span>
           <span>{{ $errors->first() }}</span>
         </div>
-        <button type="button" onclick="this.parentElement.remove()" class="text-red-700 hover:text-red-950 p-1 rounded-lg hover:bg-red-100/60 transition-colors cursor-pointer" title="Đóng">
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-700 hover:text-red-950 p-1 rounded-lg hover:bg-red-100/60 transition-colors cursor-pointer" title="{{ __('global.common.close') }}">
           <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
       </div>

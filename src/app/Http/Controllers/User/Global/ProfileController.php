@@ -43,7 +43,7 @@ class ProfileController extends Controller
         /** @var GlobalUser $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $data = $service->getProfileData($user, $request);
+        $data = $service->getProfileData($user);
 
         return view('user.global.profile', $data);
     }

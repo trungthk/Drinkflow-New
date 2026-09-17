@@ -674,7 +674,7 @@ class AdminFeatureTest extends TestCase
 
         $response->assertOk()
             ->assertSee('class="w-full space-y-6"', false)
-            ->assertSeeInOrder([__('admin.source_previous'), __('admin.source_json'), __('admin.source_crawler'), __('admin.selected_menu_preview')])
+            ->assertSeeInOrder([__('admin.source_previous'), __('admin.source_data_gateway'), __('admin.source_crawler'), __('admin.selected_menu_preview')])
             ->assertSee(__('admin.add_manual_item_button'))
             ->assertSee('data-deadline-payment-grid', false)
             ->assertSee('data-search-debounce="300"', false)
@@ -700,7 +700,9 @@ class AdminFeatureTest extends TestCase
         ], ['Accept' => 'application/json']);
 
         $response->assertCreated();
-        $this->assertStringContainsString('/storage/uploads/campaigns/', (string) $response->json('data.url'));
+        $imageUrl = (string) $response->json('data.url');
+        $this->assertStringStartsWith('/storage/uploads/campaigns/', $imageUrl);
+        $this->assertStringNotContainsString('://', $imageUrl);
         $this->assertCount(1, Storage::disk('public')->allFiles('uploads/campaigns'));
     }
 
@@ -1080,4 +1082,3 @@ class AdminFeatureTest extends TestCase
         $response->assertCreated();
     }
 }
-

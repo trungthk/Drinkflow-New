@@ -170,4 +170,15 @@ return [
         'prompt_changelog' => '変更履歴', 'created' => 'リリースを作成しました。',
         'confirm_delete' => 'このリリースを削除しますか？',
     ],
+    'actions' => [
+        'campaign_already_closed' => 'キャンペーンは既に終了しているためキャンセルできません。',
+        'invalid_admin_status' => '管理者の状態が無効です。',
+        'cannot_demote_last_superadmin' => '最後のスーパー管理者の権限を下げることはできません。',
+        'must_retain_at_least_one_superadmin' => '少なくとも1人のスーパー管理者を維持する必要があります。',
+        'cannot_merge_self' => 'アカウントを自身と統合することはできません。',
+        'merge_conflict_membership' => '両方のアカウントが同じルームのメンバーシップを持っています。先にルームメンバーシップを解決してください。',
+        'merge_conflict_oauth' => '両方のアカウントで競合するOAuth IDが存在します。',
+        'reset_password_invalid' => '確認用パスワードが正しくありません。',
+        'reset_phrase_invalid' => '確認用フレーズが正しくありません。',
+    ],
 ];

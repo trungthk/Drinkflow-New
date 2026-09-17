@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Superadmin;
 
 use App\Actions\Superadmin\ResetSystemAction;
@@ -21,9 +23,12 @@ class SystemController extends Controller
      */
     public function index(SystemSettingsService $settings): JsonResponse
     {
-        $items = SystemSetting::query()->orderBy('key')->get()->map(fn (SystemSetting $setting) => [
-            'key' => $setting->key, 'type' => $setting->type, 'is_secret' => $setting->is_secret,
-            'value' => $setting->is_secret ? null : $settings->get($setting->key), 'configured' => $setting->value !== null,
+        $items = SystemSetting::query()->orderBy('key')->get()->map(fn(SystemSetting $setting) => [
+            'key' => $setting->key,
+            'type' => $setting->type,
+            'is_secret' => $setting->is_secret,
+            'value' => $setting->is_secret ? null : $settings->get($setting->key),
+            'configured' => $setting->value !== null,
         ]);
         return response()->json(['data' => ['settings' => $items, 'maintenance' => $this->maintenanceState($settings)]]);
     }
@@ -39,7 +44,8 @@ class SystemController extends Controller
     {
         $saved = [];
         foreach ($request->validated('settings') as $item) {
-            $key = $item['key']; $before = SystemSetting::where('key', $key)->first();
+            $key = $item['key'];
+            $before = SystemSetting::where('key', $key)->first();
             $setting = $service->set($key, $item['value'] ?? null, $item['type'] ?? 'string', (bool) ($item['is_secret'] ?? false), request()->user('admin')->id);
             $audit->record('system_setting.updated', 'system_setting', $setting->id, null, ['key' => $key, 'configured' => (bool) $before?->value], ['key' => $key, 'configured' => true]);
             $saved[] = ['key' => $key, 'type' => $setting->type, 'is_secret' => $setting->is_secret, 'configured' => true];
@@ -56,7 +62,8 @@ class SystemController extends Controller
      */
     public function maintenance(UpdateMaintenanceRequest $request, SystemSettingsService $service, AuditService $audit): JsonResponse
     {
-        if ($request->isMethod('get')) return response()->json(['data' => $this->maintenanceState($service)]);
+        if ($request->isMethod('get'))
+            return response()->json(['data' => $this->maintenanceState($service)]);
         $data = $request->validated();
         $service->set('maintenance.enabled', $data['enabled'], 'boolean', false, $request->user('admin')->id);
         $service->set('maintenance.starts_at', $data['starts_at'] ?? null, 'string', false, $request->user('admin')->id);
@@ -83,10 +90,15 @@ class SystemController extends Controller
      */
     private function maintenanceState(SystemSettingsService $service): array
     {
-        $enabled = (bool) $service->get('maintenance.enabled', false); $starts = $service->get('maintenance.starts_at'); $ends = $service->get('maintenance.ends_at');
-        $now = now(); $active = $enabled;
-        if ($starts && $now->lt($starts)) $active = false;
-        if ($ends && $now->gt($ends)) $active = false;
+        $enabled = (bool) $service->get('maintenance.enabled', false);
+        $starts = $service->get('maintenance.starts_at');
+        $ends = $service->get('maintenance.ends_at');
+        $now = now();
+        $active = $enabled;
+        if ($starts && $now->lt($starts))
+            $active = false;
+        if ($ends && $now->gt($ends))
+            $active = false;
         return ['enabled' => $enabled, 'active' => $active, 'starts_at' => $starts, 'ends_at' => $ends];
     }
 }

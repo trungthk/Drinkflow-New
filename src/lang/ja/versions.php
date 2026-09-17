@@ -37,4 +37,5 @@ return [
     'no_next_version' => 'なし (最新バージョン)',
     'empty_search' => '一致するバージョンが見つかりません。',
     'empty_changelog' => 'この項目には詳細ノートがありません。',
+    'not_found' => 'バージョンが見つかりません。',
 ];

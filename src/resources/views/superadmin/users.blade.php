@@ -14,7 +14,7 @@
                 <h2>Global users</h2>
                 <p id="user-count">Đang tải dữ liệu...</p>
             </div><input id="user-search" class="sa-input" placeholder="Tìm tên, normalized name hoặc email"
-                oninput="loadUsers()">
+                >
         </div>
         <div class="sa-table-wrap">
             <table class="sa-table">
@@ -27,8 +27,9 @@
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="users-table"></tbody>
+                <tbody>@forelse($users as $user)<tr><td><strong>{{ $user->name }}</strong><br><small>{{ $user->email }}</small></td><td>{{ $user->oauthIdentities->pluck('provider')->join(', ') ?: '—' }}</td><td>{{ $user->room_users_count }}</td><td>{{ $user->status }}</td><td><div class="superadmin-actions"><a class="sa-button secondary" href="{{ route('superadmin.global-users.detail.page', $user) }}">Detail</a><button class="sa-button danger" onclick="setUserStatus({{ $user->id }}, '{{ $user->status === 'blocked' ? 'active' : 'blocked' }}')">{{ $user->status === 'blocked' ? 'Unblock' : 'Block' }}</button><button class="sa-button danger" onclick="deleteUser({{ $user->id }})">Delete</button></div></td></tr>@empty<tr><td colspan="5" class="sa-empty">ChÆ°a cÃ³ user phÃ¹ há»£p.</td></tr>@endforelse</tbody>
             </table>
+            <div class="mt-4">{{ $users->links() }}</div>
         </div>
     </section>
 @endsection
@@ -40,6 +41,7 @@
             n.className = `sa-notice ${type} is-visible`;
         };
         async function loadUsers() {
+            return;
             const q = document.querySelector('#user-search').value;
             const {
                 data

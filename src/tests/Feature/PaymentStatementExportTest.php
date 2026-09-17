@@ -21,6 +21,10 @@ class PaymentStatementExportTest extends TestCase
      */
     public function test_xlsx_preserves_literal_text_and_numeric_amounts(): void
     {
+        if (! class_exists(\ZipArchive::class)) {
+            $this->markTestSkipped('The zip extension (ZipArchive) is required for XLSX tests.');
+        }
+
         $order = new Order(['subtotal' => 20000, 'sponsor_amount' => 5000, 'final_amount' => 15000, 'status' => 'submitted']);
         $order->id = 42;
         $order->setRelation('room', new Room(['name' => '=1+1']));

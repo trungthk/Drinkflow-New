@@ -138,6 +138,7 @@ return [
         'error_domain_unsupported' => "Account with domain ':domain' is not supported. Please use an authorized corporate email account.",
         'error_email_invalid' => 'Invalid email address.',
         'error_invalid_identity' => 'Invalid Google identity.',
+        'error_identity_conflict' => 'Google identity is already linked to another account.',
         'require_login_room' => "Please sign in with Google Workspace to access ':room'.",
     ],
     'video_modal' => [

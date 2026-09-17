@@ -52,27 +52,27 @@
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
             <button type="button" @click="applyPreset('highlands')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Highlands Coffee</div>
+                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">{{ __('admin.preset_highlands_name') }}</div>
                 <div class="text-[10px] text-outline truncate">{{ __('admin.preset_highlands_description') }}</div>
             </button>
             <button type="button" @click="applyPreset('phuclong')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Phúc Long Tea</div>
+                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">{{ __('admin.preset_phuclong_name') }}</div>
                 <div class="text-[10px] text-outline truncate">{{ __('admin.preset_phuclong_description') }}</div>
             </button>
             <button type="button" @click="applyPreset('gongcha')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Gong Cha</div>
+                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">{{ __('admin.preset_gongcha_name') }}</div>
                 <div class="text-[10px] text-outline truncate">{{ __('admin.preset_gongcha_description') }}</div>
             </button>
             <button type="button" @click="applyPreset('tocotoco')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">TocoToco Tea</div>
+                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">{{ __('admin.preset_tocotoco_name') }}</div>
                 <div class="text-[10px] text-outline truncate">{{ __('admin.preset_tocotoco_description') }}</div>
             </button>
             <button type="button" @click="applyPreset('starbucks')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Starbucks</div>
+                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">{{ __('admin.preset_starbucks_name') }}</div>
                 <div class="text-[10px] text-outline truncate">{{ __('admin.preset_starbucks_description') }}</div>
             </button>
             <button type="button" @click="applyPreset('comtam')" class="p-2.5 rounded-lg border border-outline-variant/80 hover:border-primary hover:bg-primary/5 transition-all text-left group">
-                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">Cơm Tấm Phúc Lộc</div>
+                <div class="font-bold text-xs text-on-surface group-hover:text-primary truncate">{{ __('admin.preset_comtam_name') }}</div>
                 <div class="text-[10px] text-outline truncate">{{ __('admin.preset_comtam_description') }}</div>
             </button>
         </div>
@@ -132,15 +132,18 @@
                         {{ __('admin.menu_and_items') }}
                     </h2>
                     <!-- Tab Switcher -->
-                    <div class="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg border border-outline-variant/60 text-xs">
-                        <button type="button" @click="menuTab = 'reuse'" :class="menuTab === 'reuse' ? 'bg-primary font-bold text-white shadow-sm' : 'text-outline hover:text-on-surface'" class="px-2.5 py-1 rounded transition-all">
-                            {{ __('admin.source_previous') }}
+                    <div class="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg border border-outline-variant/60 text-xs overflow-x-auto max-w-full">
+                        <button type="button" @click="menuTab = 'reuse'" :class="menuTab === 'reuse' ? 'bg-primary font-bold text-white shadow-sm' : 'text-outline hover:text-on-surface'" class="px-2.5 py-1 rounded transition-all whitespace-nowrap flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">history</span>
+                            <span>{{ __('admin.source_previous') }}</span>
                         </button>
-                        <button type="button" @click="menuTab = 'json'" :class="menuTab === 'json' ? 'bg-primary font-bold text-white shadow-sm' : 'text-outline hover:text-on-surface'" class="px-2.5 py-1 rounded transition-all">
-                            {{ __('admin.source_json') }}
+                        <button type="button" @click="menuTab = 'data_gateway'" :class="menuTab === 'data_gateway' ? 'bg-gradient-to-r from-primary to-secondary font-bold text-white shadow-sm' : 'text-outline hover:text-on-surface'" class="px-2.5 py-1 rounded transition-all whitespace-nowrap flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">auto_awesome</span>
+                            <span>{{ __('admin.source_data_gateway') }}</span>
                         </button>
-                        <button type="button" @click="menuTab = 'crawler'" :class="menuTab === 'crawler' ? 'bg-primary font-bold text-white shadow-sm' : 'text-outline hover:text-on-surface'" class="px-2.5 py-1 rounded transition-all">
-                            {{ __('admin.source_crawler') }}
+                        <button type="button" @click="menuTab = 'crawler'" :class="menuTab === 'crawler' ? 'bg-primary font-bold text-white shadow-sm' : 'text-outline hover:text-on-surface'" class="px-2.5 py-1 rounded transition-all whitespace-nowrap flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">travel_explore</span>
+                            <span>{{ __('admin.source_crawler') }}</span>
                         </button>
                     </div>
                 </div>
@@ -173,6 +176,11 @@
                     @endif
                 </div>
 
+                <!-- Tab 2: Data Gateway AI Converter -->
+                <div x-show="menuTab === 'data_gateway'" x-cloak>
+                    <x-admin.data-gateway-converter />
+                </div>
+
                 <!-- Tab 3: URL Crawler -->
                 <div x-show="menuTab === 'crawler'" x-cloak class="space-y-3">
                     <div class="text-xs text-outline">{{ __('admin.crawler_desc') }}</div>
@@ -184,18 +192,6 @@
                         </button>
                     </div>
                     <div x-show="crawlerMessage" class="text-xs p-2.5 rounded bg-surface-container-low border border-outline-variant text-on-surface" x-text="crawlerMessage"></div>
-                </div>
-
-                <!-- Tab 4: JSON Schema -->
-                <div x-show="menuTab === 'json'" x-cloak class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-outline">{{ __('admin.json_import_desc') }}</span>
-                        <button type="button" @click="loadSampleJson()" class="text-xs text-primary hover:underline font-medium">{{ __('admin.view_sample_json') }}</button>
-                    </div>
-                    <textarea x-model="rawJson" rows="6" placeholder="{{ __('admin.json_menu_placeholder') }}" class="w-full font-mono text-xs p-3 bg-surface border border-outline-variant rounded-lg text-on-surface focus:outline-none focus:border-primary"></textarea>
-                    <button type="button" @click="importJson()" class="px-4 py-1.5 bg-primary/10 text-primary border border-primary/30 rounded text-xs font-semibold hover:bg-primary/20 transition-colors">
-                        {{ __('admin.apply_json_to_menu') }}
-                    </button>
                 </div>
             </div>
         </div>
@@ -223,25 +219,30 @@
                         <button type="button" @click="addSponsor()" class="text-xs text-primary font-semibold hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">add</span><span>{{ __('admin.add_sponsor') }}</span></button>
                     </div>
                     <template x-for="(sponsor, index) in sponsors" :key="index">
-                        <div class="p-2.5 rounded-lg border border-outline-variant bg-surface space-y-2">
-                            <div class="grid grid-cols-[1fr_auto] gap-2">
-                                <div class="relative" @click.outside="sponsor.open = false">
-                                    <span class="material-symbols-outlined pointer-events-none absolute left-2.5 top-2 text-[16px] text-outline">search</span>
-                                    <input type="text" x-model="sponsor.search" @focus="sponsor.open = true" @input="sponsor.open = true; sponsor.user_id = ''" placeholder="{{ __('admin.search_sponsor_placeholder') }}" autocomplete="off" class="w-full pl-8 pr-3 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs text-on-surface focus:outline-none focus:border-primary">
-                                    <div x-show="sponsor.open" x-cloak class="absolute z-30 mt-1 max-h-52 w-full overflow-y-auto rounded-lg border border-outline-variant bg-surface-container-lowest p-1 shadow-xl">
-                                        <template x-for="user in filteredSponsorUsers(sponsor.search)" :key="user.id">
-                                            <button type="button" @click="selectSponsor(sponsor, user)" class="flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-xs hover:bg-primary/5">
-                                                <span class="truncate text-on-surface" x-text="user.name"></span>
-                                                <span class="shrink-0 font-mono text-[10px] text-primary" x-text="user.user_code"></span>
-                                            </button>
-                                        </template>
-                                        <p x-show="filteredSponsorUsers(sponsor.search).length === 0" class="px-2.5 py-3 text-center text-[11px] text-outline">{{ __('admin.no_sponsor_user_found') }}</p>
-                                    </div>
+                        <div class="flex items-center gap-2 p-2 rounded-lg border border-outline-variant bg-surface">
+                            <!-- Select sponsor search input -->
+                            <div class="relative flex-1 min-w-0" @click.outside="sponsor.open = false">
+                                <span class="material-symbols-outlined pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[16px] text-outline">search</span>
+                                <input type="text" x-model="sponsor.search" @focus="sponsor.open = true" @input="sponsor.open = true; sponsor.user_id = ''" placeholder="{{ __('admin.search_sponsor_placeholder') }}" autocomplete="off" class="w-full pl-8 pr-3 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs text-on-surface focus:outline-none focus:border-primary">
+                                <div x-show="sponsor.open" x-cloak class="absolute z-30 mt-1 max-h-52 w-full overflow-y-auto rounded-lg border border-outline-variant bg-surface-container-lowest p-1 shadow-xl">
+                                    <template x-for="user in filteredSponsorUsers(sponsor.search)" :key="user.id">
+                                        <button type="button" @click="selectSponsor(sponsor, user)" class="flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-xs hover:bg-primary/5">
+                                            <span class="truncate text-on-surface" x-text="user.name"></span>
+                                            <span class="shrink-0 font-mono text-[10px] text-primary" x-text="user.user_code"></span>
+                                        </button>
+                                    </template>
+                                    <p x-show="filteredSponsorUsers(sponsor.search).length === 0" class="px-2.5 py-3 text-center text-[11px] text-outline">{{ __('admin.no_sponsor_user_found') }}</p>
                                 </div>
-                                <button type="button" @click="removeSponsor(index)" class="p-1 text-error hover:bg-error-container/40 rounded"><span class="material-symbols-outlined text-[16px]">delete</span></button>
                             </div>
-                            <input type="number" min="0" max="100" step="0.01" x-model="sponsor.percentage" @input="clampSponsorPercentage(sponsor)" @blur="sponsor.percentage = sponsor.percentage === '' ? 0 : sponsor.percentage" placeholder="{{ __('admin.sponsor_percentage_placeholder') }}" class="w-full px-2.5 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs font-mono text-on-surface">
-                            <p class="text-[10px] text-outline">{{ __('admin.sponsor_percentage_range_hint') }}</p>
+                            <!-- Percentage input with % suffix -->
+                            <div class="relative w-24 shrink-0">
+                                <input type="number" min="0" max="100" step="0.01" x-model="sponsor.percentage" @input="clampSponsorPercentage(sponsor)" @blur="sponsor.percentage = sponsor.percentage === '' ? 0 : sponsor.percentage" placeholder="0" class="w-full pl-2.5 pr-6 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs font-mono text-on-surface focus:outline-none focus:border-primary text-right">
+                                <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-outline">%</span>
+                            </div>
+                            <!-- Delete button -->
+                            <button type="button" @click="removeSponsor(index)" class="p-1.5 text-error hover:bg-error-container/40 rounded transition-colors shrink-0 flex items-center justify-center" title="{{ __('admin.delete') }}">
+                                <span class="material-symbols-outlined text-[18px]">delete</span>
+                            </button>
                         </div>
                     </template>
                     <p x-show="sponsors.length === 0" class="text-[11px] text-outline italic">{{ __('admin.no_sponsors_added') }}</p>
@@ -250,10 +251,9 @@
                 <div>
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.max_product_budget_ceiling') }}</label>
                     <div class="relative">
-                        <input type="number" min="0" max="{{ $campaignDefaults['max_budget'] }}" x-bind:max="campaignSettings.max_budget" x-model="form.max_budget" value="{{ $campaignDefaults['max_budget'] }}" placeholder="0" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:border-primary pr-8">
+                        <input type="text" inputmode="numeric" data-format-currency="true" x-model="form.max_budget" value="{{ $campaignDefaults['max_budget'] }}" placeholder="0" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono font-bold text-primary focus:outline-none focus:border-primary pr-8">
                         <span class="absolute right-3 top-2 text-xs text-outline font-mono">đ</span>
                     </div>
-                    <p class="mt-1 text-[11px] text-outline">{{ __('admin.product_budget_limit_hint') }} <span class="font-mono font-semibold text-primary" x-text="formatVND(campaignSettings.max_budget)"></span></p>
                 </div>
                 <div x-show="form.sponsor_type !== 'none'">
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_description_label') }}</label>
@@ -277,8 +277,14 @@
             </div>
             <div class="flex flex-col sm:flex-row sm:items-center gap-2">
                 <div class="flex rounded-lg border border-outline-variant bg-surface-container-low p-1 text-xs">
-                    <button type="button" @click="setMenuView('all')" :class="menuView === 'all' ? 'bg-primary text-white shadow-sm' : 'text-outline hover:text-on-surface'" class="rounded-md px-3 py-1.5 font-semibold transition-colors">{{ __('admin.menu_view_all') }}</button>
-                    <button type="button" @click="setMenuView('category')" :class="menuView === 'category' ? 'bg-primary text-white shadow-sm' : 'text-outline hover:text-on-surface'" class="rounded-md px-3 py-1.5 font-semibold transition-colors">{{ __('admin.menu_view_category') }}</button>
+                    <button type="button" @click="setMenuView('all')" :class="menuView === 'all' ? 'bg-primary text-white shadow-sm font-semibold' : 'text-outline hover:text-on-surface'" class="rounded-md px-3 py-1.5 font-semibold transition-colors flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[15px]">grid_view</span>
+                        <span>{{ __('admin.menu_view_all') }}</span>
+                    </button>
+                    <button type="button" @click="setMenuView('category')" :class="menuView === 'category' ? 'bg-primary text-white shadow-sm font-semibold' : 'text-outline hover:text-on-surface'" class="rounded-md px-3 py-1.5 font-semibold transition-colors flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[15px]">category</span>
+                        <span>{{ __('admin.menu_view_category') }}</span>
+                    </button>
                 </div>
                 <button type="button" @click="openAddItemModal()" class="px-3 py-2 bg-primary hover:bg-primary-container text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5">
                     <span class="material-symbols-outlined text-[16px]">add</span>
@@ -293,6 +299,15 @@
             <button x-show="menuSearchInput" type="button" @click="updateMenuSearch('')" class="absolute right-2.5 top-2 text-outline hover:text-on-surface" title="{{ __('admin.clear_search') }}"><span class="material-symbols-outlined text-[18px]">close</span></button>
         </div>
 
+        <!-- Menu Expiry Notice -->
+        <div x-show="menuItems.length > 0" class="flex items-start gap-2.5 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200">
+            <span class="material-symbols-outlined text-[18px] text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">info</span>
+            <div class="leading-relaxed">
+                <strong class="font-semibold">{{ __('admin.data_gateway_menu_expiry_title') }}:</strong>
+                <span>{{ __('admin.data_gateway_menu_expiry_desc') }}</span>
+            </div>
+        </div>
+
         <div x-show="menuView === 'category'" x-cloak class="flex flex-wrap gap-2">
             <template x-for="category in menuCategories" :key="category">
                 <button type="button" @click="selectedCategory = category" :class="selectedCategory === category ? 'border-primary bg-primary/10 text-primary font-bold' : 'border-outline-variant bg-surface text-outline hover:text-on-surface'" class="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors">
@@ -305,8 +320,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             <template x-for="entry in visibleMenuItems" :key="entry.index">
                 <article class="flex items-center gap-3 rounded-xl border border-outline-variant bg-surface p-3 hover:border-primary/40 transition-colors">
-                    <img x-show="entry.item.image_url" :src="entry.item.image_url" :alt="entry.item.name || '{{ __('admin.item_image_alt') }}'" loading="lazy" onerror="this.style.display='none'" class="h-16 w-16 shrink-0 rounded-lg object-cover border border-outline-variant">
-                    <div x-show="!entry.item.image_url" class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-outline-variant bg-surface-container-low text-outline">
+                    <img x-show="entry.item.image_url && !entry.item.image_load_failed" :src="entry.item.image_url" :alt="entry.item.name || '{{ __('admin.item_image_alt') }}'" x-on:load="entry.item.image_load_failed = false" x-on:error="entry.item.image_load_failed = true" loading="lazy" class="h-16 w-16 shrink-0 rounded-lg object-cover border border-outline-variant">
+                    <div x-show="!entry.item.image_url || entry.item.image_load_failed" class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-outline-variant bg-surface-container-low text-outline">
                         <span class="material-symbols-outlined">restaurant</span>
                     </div>
                     <div class="min-w-0 flex-1">
@@ -347,16 +362,45 @@
                 <button type="button" @click="showAddItemModal = false; editingItemIndex = null" class="text-outline hover:text-on-surface"><span class="material-symbols-outlined">close</span></button>
             </div>
 
-            <div class="mb-4 flex rounded-lg border border-outline-variant bg-surface-container-low p-1 text-xs">
-                <button type="button" @click="itemModalTab = 'basic'" :class="itemModalTab === 'basic' ? 'bg-primary text-on-primary shadow-sm' : 'text-outline hover:text-on-surface'" class="flex-1 rounded-md px-3 py-2 font-semibold transition-colors">{{ __('admin.item_tab_basic') }}</button>
-                <button type="button" @click="itemModalTab = 'additional'" :class="itemModalTab === 'additional' ? 'bg-primary text-on-primary shadow-sm' : 'text-outline hover:text-on-surface'" class="flex-1 rounded-md px-3 py-2 font-semibold transition-colors">{{ __('admin.item_tab_additional') }}</button>
+            <div class="mb-4 flex justify-start">
+                <div class="inline-flex rounded-lg border border-outline-variant bg-surface-container-low p-1 text-xs gap-1">
+                    <button type="button" @click="itemModalTab = 'basic'" :class="itemModalTab === 'basic' ? 'bg-primary text-on-primary shadow-xs font-semibold' : 'text-outline hover:text-on-surface'" class="rounded-md px-3 py-1.5 font-medium transition-colors flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[15px]">tune</span>
+                        <span>{{ __('admin.item_tab_basic') }}</span>
+                    </button>
+                    <button type="button" @click="itemModalTab = 'additional'" :class="itemModalTab === 'additional' ? 'bg-primary text-on-primary shadow-xs font-semibold' : 'text-outline hover:text-on-surface'" class="rounded-md px-3 py-1.5 font-medium transition-colors flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[15px]">extension</span>
+                        <span>{{ __('admin.item_tab_additional') }}</span>
+                    </button>
+                </div>
             </div>
 
             <div x-show="itemModalTab === 'basic'" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
+                <div class="sm:col-span-2">
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.item_category_label') }}</label>
-                    <input type="text" x-model="newItem.category" list="campaign-item-categories" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface">
-                    <datalist id="campaign-item-categories"><template x-for="category in itemCategories" :key="category"><option :value="category"></option></template></datalist>
+                    <input type="text"
+                           x-model="newItem.category"
+                           list="campaign-item-categories"
+                           placeholder="{{ __('admin.item_category_placeholder') }}"
+                           class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                    <datalist id="campaign-item-categories">
+                        @foreach (['Cà phê', 'Trà', 'Trà sữa', 'Nước ép', 'Sinh tố', 'Đá xay', 'Sữa chua', 'Ăn vặt', 'Bánh ngọt', 'Đồ ăn', 'Khác'] as $cat)
+                            <option value="{{ $cat }}">{{ $cat }}</option>
+                        @endforeach
+                        <template x-for="category in availableItemCategories" :key="category">
+                            <option :value="category" x-text="category"></option>
+                        </template>
+                    </datalist>
+                    <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        <template x-for="cat in availableItemCategories" :key="cat">
+                            <button type="button"
+                                    @click="newItem.category = cat"
+                                    :class="newItem.category === cat ? 'bg-primary text-on-primary border-primary font-semibold shadow-2xs' : 'bg-surface-container-low text-outline hover:text-on-surface hover:bg-surface-container border-outline-variant'"
+                                    class="px-2 py-0.5 rounded-md text-[10px] border transition-colors"
+                                    x-text="cat">
+                            </button>
+                        </template>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.item_name_placeholder') }}</label>
@@ -364,7 +408,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.price_vnd') }}</label>
-                    <input type="number" min="0" x-model="newItem.price" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono text-on-surface">
+                    <input type="text" inputmode="numeric" data-format-currency="true" x-model="newItem.price" placeholder="0" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono font-bold text-primary text-on-surface">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.item_image_url_label') }}</label>
@@ -391,11 +435,11 @@
             <div x-show="itemModalTab === 'additional'" x-cloak class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div class="rounded-lg border border-outline-variant p-3 space-y-2">
                     <div class="flex items-center justify-between"><span class="text-xs font-semibold">{{ __('admin.toppings_and_extras') }}</span><button type="button" @click="addTopping(newItem)" class="text-xs text-primary font-semibold">{{ __('admin.add_topping') }}</button></div>
-                    <template x-for="(topping, index) in newItem.toppings" :key="index"><div class="grid grid-cols-[1fr_7rem_auto] gap-2"><input type="text" x-model="topping.name" placeholder="{{ __('admin.option_name_placeholder') }}" class="min-w-0 px-2 py-1.5 border border-outline-variant rounded text-xs"><input type="number" min="0" x-model="topping.price" placeholder="{{ __('admin.price_vnd') }}" class="min-w-0 px-2 py-1.5 border border-outline-variant rounded text-xs"><button type="button" @click="newItem.toppings.splice(index, 1)" class="text-error"><span class="material-symbols-outlined text-[16px]">close</span></button></div></template>
+                    <template x-for="(topping, index) in newItem.toppings" :key="index"><div class="grid grid-cols-[1fr_7rem_auto] gap-2"><input type="text" x-model="topping.name" placeholder="{{ __('admin.option_name_placeholder') }}" class="min-w-0 px-2 py-1.5 border border-outline-variant rounded text-xs"><input type="text" inputmode="numeric" data-format-currency="true" x-model="topping.price" placeholder="{{ __('admin.price_vnd') }}" class="min-w-0 px-2 py-1.5 border border-outline-variant rounded text-xs font-mono"><button type="button" @click="newItem.toppings.splice(index, 1)" class="text-error"><span class="material-symbols-outlined text-[16px]">close</span></button></div></template>
                 </div>
                 <div class="rounded-lg border border-outline-variant p-3 space-y-2">
                     <div class="flex items-center justify-between"><span class="text-xs font-semibold">{{ __('admin.sizes_and_options') }}</span><button type="button" @click="addOption(newItem)" class="text-xs text-primary font-semibold">{{ __('admin.add_option') }}</button></div>
-                    <template x-for="(option, index) in newItem.options" :key="index"><div class="grid grid-cols-[1fr_7rem_auto] gap-2"><input type="text" x-model="option.name" placeholder="{{ __('admin.option_name_placeholder') }}" class="min-w-0 px-2 py-1.5 border border-outline-variant rounded text-xs"><input type="number" min="0" x-model="option.price_delta" placeholder="{{ __('admin.price_delta_placeholder') }}" class="min-w-0 px-2 py-1.5 border border-outline-variant rounded text-xs"><button type="button" @click="newItem.options.splice(index, 1)" class="text-error"><span class="material-symbols-outlined text-[16px]">close</span></button></div></template>
+                    <template x-for="(option, index) in newItem.options" :key="index"><div class="grid grid-cols-[1fr_7rem_auto] gap-2"><input type="text" x-model="option.name" placeholder="{{ __('admin.option_name_placeholder') }}" class="min-w-0 px-2 py-1.5 border border-outline-variant rounded text-xs"><input type="text" inputmode="numeric" data-format-currency="true" x-model="option.price_delta" placeholder="{{ __('admin.price_delta_placeholder') }}" class="min-w-0 px-2 py-1.5 border border-outline-variant rounded text-xs font-mono"><button type="button" @click="newItem.options.splice(index, 1)" class="text-error"><span class="material-symbols-outlined text-[16px]">close</span></button></div></template>
                 </div>
             </div>
             <div class="mt-5 flex justify-end gap-2">

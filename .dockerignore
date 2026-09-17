@@ -8,3 +8,4 @@ src/storage/logs/*
 src/storage/framework/cache/data/*
 src/storage/framework/sessions/*
 src/storage/framework/views/*
+src/public/storage

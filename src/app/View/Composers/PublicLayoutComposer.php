@@ -21,8 +21,11 @@ class PublicLayoutComposer
         $locale = app()->getLocale();
         $title = $data['title'] ?? null;
         $description = $data['description'] ?? null;
+        $versionString = $data['version'] ?? Version::getLatestVersionString();
         $view->with([
-            'version' => $data['version'] ?? Version::getLatestVersionString(),
+            'version' => $versionString,
+            'appVersion' => $data['appVersion'] ?? $versionString,
+            'landingUrl' => $data['landingUrl'] ?? route('landing'),
             'termsUrl' => $data['termsUrl'] ?? url('/terms'),
             'versionsUrl' => $data['versionsUrl'] ?? url('/versions'),
             'contactUrl' => $data['contactUrl'] ?? route('contact'),

@@ -50,7 +50,7 @@
                   aria-haspopup="true"
                   aria-expanded="false"
                   class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors duration-150 border border-slate-200 shadow-2xs cursor-pointer shrink-0"
-                  title="Ngôn ngữ / Language">
+                  title="{{ __('global.header.language_select') }}">
             <span class="text-xs sm:text-sm leading-none">{{ $activeLocaleMeta['flag'] }}</span>
             <span class="font-semibold text-slate-800 text-[11px] sm:text-xs leading-none">{{ $activeLocaleMeta['code'] }}</span>
             <span class="material-symbols-outlined text-[14px] sm:text-[16px] text-slate-400">arrow_drop_down</span>
@@ -216,7 +216,7 @@
 
     <!-- Tầng 2: Navigation Links & Breadcrumb Trail -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 pt-1 sm:pt-2 border-t border-slate-100 sm:border-0">
-      <nav class="flex items-center gap-3 sm:gap-6 overflow-x-auto no-scrollbar -mx-3 px-3 sm:mx-0 sm:px-0" aria-label="Điều hướng chính">
+      <nav class="flex items-center gap-3 sm:gap-6 overflow-x-auto no-scrollbar -mx-3 px-3 sm:mx-0 sm:px-0" aria-label="{{ __('global.header.main_nav') }}">
         <!-- Luôn hiển thị Tổng quan -->
         <a class="{{ $tabClasses($activeTab === 'overview') }}" href="{{ route('user.me.dashboard') }}">
           <span class="material-symbols-outlined text-[16px] sm:text-[17px]">dashboard</span>

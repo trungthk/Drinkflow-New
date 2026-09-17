@@ -219,7 +219,7 @@
                 <button type="button" data-cancel-modal-cancel class="px-3 py-2 rounded-lg text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.cancel') }}</button>
                 <button type="button" data-cancel-modal-confirm class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-error hover:bg-error/90 text-white transition-colors flex items-center gap-1.5 disabled:opacity-60">
                     <span class="material-symbols-outlined text-[16px] hidden animate-spin" data-spinner>progress_activity</span>
-                    <span data-label>{{ __('admin.confirm_cancel_btn') }}</span>
+                    <span data-label>{{ __('admin.confirm_cancel_campaign_btn') }}</span>
                 </button>
             </div>
         </div>
