@@ -29,26 +29,59 @@ class AdminRoomUserService
     }
 
     /**
-     * Format room user detail with masked device trust indicators.
+     * Format room user detail with masked device trust indicators, financial & activity metrics.
      *
      * @param RoomUser $roomUser Room user entity.
-     * @return RoomUser Fresh loaded instance with mapped devices relation.
+     * @return array<string, mixed> Structured detail payload.
      */
-    public function formatUserDetail(RoomUser $roomUser): RoomUser
+    public function formatUserDetail(RoomUser $roomUser): array
     {
         $roomUser->load(['globalUser', 'orders.items.toppings', 'debts.campaign', 'devices']);
-        $roomUser->setRelation(
-            'devices',
-            $roomUser->devices->map(fn (RoomUserDevice $device) => [
-                'id' => $device->id,
-                'device_uuid' => substr($device->device_uuid, 0, 8) . '…',
-                'verified_at' => $device->verified_at,
-                'last_seen_at' => $device->last_seen_at,
-                'revoked_at' => $device->revoked_at,
-                'status' => $device->revoked_at ? 'revoked' : 'active',
-            ])
-        );
 
-        return $roomUser;
+        $totalDebt = (int) $roomUser->debts
+            ->whereIn('status', DebtStatus::outstandingValues())
+            ->sum('remaining_amount');
+
+        $totalSpent = (int) $roomUser->orders
+            ->whereIn('status', ['completed', 'ordered', 'ordering', 'delivering', 'submitted', 'confirmed'])
+            ->sum('final_amount');
+
+        $totalOrders = $roomUser->orders->count();
+
+        $mappedDevices = $roomUser->devices->map(fn (RoomUserDevice $device): array => [
+            'id' => $device->id,
+            'device_uuid' => substr((string) $device->device_uuid, 0, 8) . '…',
+            'device_name' => $device->device_name,
+            'verified_at' => $device->verified_at?->format('d/m/Y H:i'),
+            'last_seen_at' => $device->last_seen_at ? $device->last_seen_at->diffForHumans() : '—',
+            'revoked_at' => $device->revoked_at?->format('d/m/Y H:i'),
+            'status' => $device->revoked_at ? 'revoked' : 'active',
+        ])->values()->all();
+
+        return [
+            'id' => $roomUser->id,
+            'room_id' => $roomUser->room_id,
+            'user_code' => $roomUser->user_code,
+            'display_name' => $roomUser->display_name ?: ($roomUser->globalUser?->name ?? 'Member #' . $roomUser->id),
+            'role' => $roomUser->role instanceof \BackedEnum ? $roomUser->role->value : (string) ($roomUser->role ?? 'member'),
+            'status' => $roomUser->status instanceof \BackedEnum ? $roomUser->status->value : (string) ($roomUser->status ?? 'active'),
+            'created_at' => $roomUser->created_at?->format('d/m/Y H:i'),
+            'last_active_at' => $roomUser->last_active_at ? $roomUser->last_active_at->diffForHumans() : __('admin.never_active'),
+            'total_orders' => $totalOrders,
+            'total_spent' => $totalSpent,
+            'total_debt' => $totalDebt,
+            'global_user' => $roomUser->globalUser ? [
+                'id' => $roomUser->globalUser->id,
+                'name' => $roomUser->globalUser->name,
+                'email' => $roomUser->globalUser->email,
+                'phone' => $roomUser->globalUser->phone,
+                'desk_location' => $roomUser->globalUser->desk_location,
+                'delivery_location' => $roomUser->globalUser->delivery_location,
+                'avatar_url' => $roomUser->globalUser->avatar_url,
+                'preferences' => $roomUser->globalUser->preferences,
+                'last_login_at' => $roomUser->globalUser->last_login_at?->format('d/m/Y H:i'),
+            ] : null,
+            'devices' => $mappedDevices,
+        ];
     }
 }

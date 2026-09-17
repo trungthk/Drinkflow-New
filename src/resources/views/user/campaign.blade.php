@@ -15,13 +15,68 @@
     selectedCategory: 'all',
     menuItems: {{ Js::from($activeCampaign?->items ?? []) }},
     maxBudget: {{ (int) ($activeCampaign?->max_budget ?? 0) }},
+    hasDeclined: {{ Js::from((bool) $hasDeclined) }},
     showCustomModal: false,
     showCartModal: false,
     showConfirmModal: false,
+    showDeclineModal: false,
+    showRejoinModal: false,
     showBudgetErrors: false,
+    participationSubmitting: false,
     cartItems: {{ Js::from($cart ?? []) }},
     cartSubmitting: false,
     cartUpdating: false,
+    async submitDecline() {
+      this.participationSubmitting = true;
+      if (window.showGlobalLoading) {
+        window.showGlobalLoading('{{ __('global.common.loading') }}');
+      }
+      try {
+        const response = await fetch('{{ $activeCampaign ? route('user.campaigns.decline', [$room, $activeCampaign]) : '' }}', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message || '{{ __('room.campaign.error_generic') }}');
+        this.cartItems = [];
+        this.hasDeclined = true;
+        this.showDeclineModal = false;
+        window.location.reload();
+      } catch (error) {
+        if (window.hideGlobalLoading) window.hideGlobalLoading();
+        this.participationSubmitting = false;
+        window.alert(error.message);
+      }
+    },
+    async submitRejoin() {
+      this.participationSubmitting = true;
+      if (window.showGlobalLoading) {
+        window.showGlobalLoading('{{ __('global.common.loading') }}');
+      }
+      try {
+        const response = await fetch('{{ $activeCampaign ? route('user.campaigns.rejoin', [$room, $activeCampaign]) : '' }}', {
+          method: 'POST',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message || '{{ __('room.campaign.error_generic') }}');
+        this.hasDeclined = false;
+        this.showRejoinModal = false;
+        window.location.reload();
+      } catch (error) {
+        if (window.hideGlobalLoading) window.hideGlobalLoading();
+        this.participationSubmitting = false;
+        window.alert(error.message);
+      }
+    },
     selectedItem: null,
     selectedSize: null,
     selectedToppings: [],
@@ -312,17 +367,35 @@
             <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
           </a>
         </div>
-      @elseif($canOrderCampaign)
-        <form data-participation-form action="{{ $hasDeclined ? route('user.campaigns.rejoin', [$room, $activeCampaign]) : route('user.campaigns.decline', [$room, $activeCampaign]) }}" method="POST" class="fixed right-4 top-1/2 z-30 -translate-y-1/2">
-          @csrf
-          <button type="submit" class="group inline-flex items-center gap-2 rounded-full border {{ $hasDeclined ? 'border-emerald-200 text-emerald-700 hover:bg-emerald-600' : 'border-rose-200 text-rose-700 hover:bg-rose-600' }} bg-white px-3 py-2 text-xs font-bold shadow-lg transition-all duration-200 hover:-translate-x-1 hover:text-white hover:shadow-xl focus:outline-none focus:ring-2 {{ $hasDeclined ? 'focus:ring-emerald-300' : 'focus:ring-rose-300' }}" title="{{ $hasDeclined ? __('room.campaign.rejoin') : __('room.campaign.decline') }}">
-            <span class="material-symbols-outlined text-[17px] transition-transform duration-200 group-hover:rotate-90">{{ $hasDeclined ? 'undo' : 'close' }}</span>
-            {{ $hasDeclined ? __('room.campaign.rejoin') : __('room.campaign.decline') }}
+      @elseif($hasDeclined)
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-2xl border border-amber-200 bg-amber-50 text-amber-900 shadow-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[18px]">block</span>
+            </span>
+            <div>
+              <p class="text-xs sm:text-sm font-bold">{{ __('room.campaign.declined') }}</p>
+            </div>
+          </div>
+          @if($activeCampaign?->isOrderable())
+            <div data-participation-form>
+              <button type="button" @click="showRejoinModal = true" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#006948] text-white text-xs font-bold hover:bg-[#005137] shadow-xs cursor-pointer transition-colors shrink-0">
+                <span class="material-symbols-outlined text-[16px]">undo</span>
+                <span>{{ __('room.campaign.rejoin') }}</span>
+              </button>
+            </div>
+          @endif
+        </div>
+      @elseif($activeCampaign?->isOrderable())
+        <div data-participation-form class="fixed right-4 top-1/2 z-30 -translate-y-1/2">
+          <button type="button" @click="showDeclineModal = true" class="group inline-flex items-center gap-2 rounded-full border border-rose-200 text-rose-700 hover:bg-rose-600 bg-white px-3.5 py-2.5 text-xs font-bold shadow-lg transition-all duration-200 hover:-translate-x-1 hover:text-white hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-rose-300 cursor-pointer" title="{{ __('room.campaign.decline') }}">
+            <span class="material-symbols-outlined text-[17px] transition-transform duration-200 group-hover:rotate-90">close</span>
+            <span>{{ __('room.campaign.decline') }}</span>
           </button>
-        </form>
+        </div>
       @endif
 
-      @if(!$canOrderCampaign && !$activeUserOrder)
+      @if(!$activeCampaign?->isOrderable() && !$activeUserOrder && !$hasDeclined)
         <div class="flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           <span class="material-symbols-outlined text-[20px]">event_busy</span>
           <div>
@@ -451,121 +524,123 @@
 
       @if($canOrderCampaign && !$activeUserOrder)
       <!-- 3. Modal Tùy chỉnh món (Item Customization Modal) -->
-      <div x-show="showCustomModal" 
-           x-cloak 
-           class="fixed inset-0 z-[100] flex h-screen min-h-screen w-screen items-center justify-center overflow-y-auto bg-slate-900/60 p-0 backdrop-blur-md">
-        <div @click.outside="showCustomModal = false"
-             class="my-auto h-screen min-h-screen w-full overflow-hidden border border-slate-200 bg-white shadow-2xl sm:h-auto sm:min-h-0 sm:max-h-[calc(100dvh-2rem)] sm:max-w-lg sm:rounded-2xl animate-fadeIn">
-          <!-- Modal Header -->
-          <div class="p-5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <div class="relative w-9 h-9 overflow-hidden rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-[20px]">local_cafe</span>
-                <template x-if="itemImageUrl(selectedItem)">
-                  <img x-lazy-src="itemImageUrl(selectedItem)"
-                       :alt="selectedItem?.name || '{{ __('admin.item_image_alt') }}'"
-                       loading="lazy"
-                       x-on:load="$el.hidden = false"
-                       x-on:error="$el.hidden = true"
-                       class="absolute inset-0 h-full w-full object-cover">
-                </template>
-              </div>
-              <div>
-                <h3 class="text-sm sm:text-base font-bold text-slate-900" x-text="selectedItem?.name"></h3>
-                <span class="text-xs font-mono font-semibold text-slate-500" x-text="new Intl.NumberFormat('vi-VN').format(calculatedPrice) + 'đ'"></span>
-              </div>
-            </div>
-            <button type="button" @click="showCustomModal = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 cursor-pointer">
-              <span class="material-symbols-outlined text-[20px]">close</span>
-            </button>
-          </div>
-
-          <!-- Modal Body Form -->
-          <form @submit.prevent="addToCart()" class="p-5 sm:p-6 space-y-4 max-h-[calc(100dvh-5rem)] sm:max-h-[70vh] overflow-y-auto">
-            @csrf
-            <input type="hidden" name="campaign_item_id" :value="selectedItem?.id">
-            <input type="hidden" name="campaign_item_size_id" :value="selectedSize?.id">
-            <input type="hidden" name="quantity" value="1">
-
-            <!-- Size Options -->
-            <template x-if="selectedItem?.sizes && selectedItem.sizes.length > 0">
-              <div class="space-y-2">
-                <label class="text-xs font-bold uppercase tracking-wider text-slate-700 block">{{ __('room.campaign.size_label') }}</label>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  <template x-for="size in selectedItem.sizes" :key="size.id">
-                    <button type="button" 
-                            @click="selectedSize = size"
-                            class="p-2.5 rounded-xl border text-left transition-all cursor-pointer"
-                            :class="selectedSize?.id === size.id ? 'border-[#006948] bg-emerald-50/50 text-[#006948] font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'">
-                      <span class="text-xs block" x-text="'Size ' + size.name"></span>
-                      <span class="text-[11px] font-mono opacity-80" x-text="size.price_delta > 0 ? '+' + new Intl.NumberFormat('vi-VN').format(size.price_delta) + 'đ' : '{{ __('room.campaign.standard_size') }}'"></span>
-                    </button>
+      <template x-teleport="body">
+        <div x-show="showCustomModal" 
+             x-cloak 
+             class="fixed inset-0 z-[100] flex h-screen min-h-screen w-screen items-center justify-center overflow-y-auto bg-slate-900/60 p-0 backdrop-blur-md">
+          <div @click.outside="showCustomModal = false"
+               class="my-auto h-screen min-h-screen w-full overflow-hidden border border-slate-200 bg-white shadow-2xl sm:h-auto sm:min-h-0 sm:max-h-[calc(100dvh-2rem)] sm:max-w-lg sm:rounded-2xl animate-fadeIn">
+            <!-- Modal Header -->
+            <div class="p-5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="relative w-9 h-9 overflow-hidden rounded-xl bg-emerald-50 text-[#006948] flex items-center justify-center shrink-0">
+                  <span class="material-symbols-outlined text-[20px]">local_cafe</span>
+                  <template x-if="itemImageUrl(selectedItem)">
+                    <img x-lazy-src="itemImageUrl(selectedItem)"
+                         :alt="selectedItem?.name || '{{ __('admin.item_image_alt') }}'"
+                         loading="lazy"
+                         x-on:load="$el.hidden = false"
+                         x-on:error="$el.hidden = true"
+                         class="absolute inset-0 h-full w-full object-cover">
                   </template>
                 </div>
-              </div>
-            </template>
-
-            <!-- Topping Checkboxes -->
-            <template x-if="selectedItem?.toppings && selectedItem.toppings.length > 0">
-              <div class="space-y-2">
-                <label class="text-xs font-bold uppercase tracking-wider text-slate-700 block">{{ __('room.campaign.topping_label') }}</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  <template x-for="top in selectedItem.toppings" :key="top.id">
-                    <label class="p-2.5 rounded-xl border border-slate-200 flex items-center justify-between gap-2 hover:bg-slate-50 cursor-pointer text-xs">
-                      <div class="flex items-center gap-2">
-                        <input type="checkbox" 
-                               name="toppings[]" 
-                               :value="top.id"
-                               @change="if ($event.target.checked) { selectedToppings.push(top); } else { selectedToppings = selectedToppings.filter(t => t.id !== top.id); }"
-                               class="rounded border-slate-300 text-[#006948] focus:ring-[#006948]">
-                        <span x-text="top.name" class="font-medium text-slate-800"></span>
-                      </div>
-                      <span class="font-mono text-slate-500 text-[11px]" x-text="'+' + new Intl.NumberFormat('vi-VN').format(top.price) + 'đ'"></span>
-                    </label>
-                  </template>
+                <div>
+                  <h3 class="text-sm sm:text-base font-bold text-slate-900" x-text="selectedItem?.name"></h3>
+                  <span class="text-xs font-mono font-semibold text-slate-500" x-text="new Intl.NumberFormat('vi-VN').format(calculatedPrice) + 'đ'"></span>
                 </div>
               </div>
-            </template>
-
-            <!-- Special Note -->
-            <div class="space-y-1.5">
-              <label class="text-xs font-bold uppercase tracking-wider text-slate-700 block">{{ __('room.campaign.note_label') }}</label>
-              <div class="flex flex-wrap gap-1.5">
-                <template x-for="sample in sampleNotes" :key="sample">
-                  <button type="button" @click="note = note ? note + '; ' + sample : sample" class="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-[#006948]" x-text="sample"></button>
-                </template>
-              </div>
-              <textarea name="note" 
-                        x-model="note"
-                        rows="2" 
-                        class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] outline-none"
-                        placeholder="{{ __('room.campaign.note_placeholder') }}"></textarea>
-            </div>
-
-            <!-- Budget Limit Alert -->
-            <template x-if="isCustomItemExceeded">
-              <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 font-medium">
-                <span class="material-symbols-outlined text-[18px] text-rose-600 shrink-0">error</span>
-                <span>{{ __('room.campaign.custom_exceeds_budget_msg', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</span>
-              </div>
-            </template>
-
-            <!-- Modal Footer CTA -->
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
-              <div class="text-left">
-                <span class="text-[11px] text-slate-400 block">{{ __('room.campaign.unit_price') }}</span>
-                <span class="text-sm sm:text-base font-bold font-mono" :class="isCustomItemExceeded ? 'text-rose-600' : 'text-[#006948]'" x-text="new Intl.NumberFormat('vi-VN').format(calculatedPrice) + 'đ'"></span>
-              </div>
-              <button type="submit" :disabled="cartSubmitting || isCustomItemExceeded"
-                      class="px-5 h-10 bg-[#006948] hover:bg-[#005137] disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer">
-                <span x-show="!cartSubmitting" class="material-symbols-outlined text-[17px]">shopping_bag</span>
-                <span x-show="cartSubmitting" class="material-symbols-outlined animate-spin text-[17px]">progress_activity</span>
-                <span x-text="cartSubmitting ? '{{ __('global.common.loading') }}' : '{{ __('room.campaign.add_to_order') }}'"></span>
+              <button type="button" @click="showCustomModal = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 cursor-pointer">
+                <span class="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
-          </form>
+
+            <!-- Modal Body Form -->
+            <form @submit.prevent="addToCart()" class="p-5 sm:p-6 space-y-4 max-h-[calc(100dvh-5rem)] sm:max-h-[70vh] overflow-y-auto">
+              @csrf
+              <input type="hidden" name="campaign_item_id" :value="selectedItem?.id">
+              <input type="hidden" name="campaign_item_size_id" :value="selectedSize?.id">
+              <input type="hidden" name="quantity" value="1">
+
+              <!-- Size Options -->
+              <template x-if="selectedItem?.sizes && selectedItem.sizes.length > 0">
+                <div class="space-y-2">
+                  <label class="text-xs font-bold uppercase tracking-wider text-slate-700 block">{{ __('room.campaign.size_label') }}</label>
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <template x-for="size in selectedItem.sizes" :key="size.id">
+                      <button type="button" 
+                              @click="selectedSize = size"
+                              class="p-2.5 rounded-xl border text-left transition-all cursor-pointer"
+                              :class="selectedSize?.id === size.id ? 'border-[#006948] bg-emerald-50/50 text-[#006948] font-bold' : 'border-slate-200 hover:bg-slate-50 text-slate-700'">
+                        <span class="text-xs block" x-text="'Size ' + size.name"></span>
+                        <span class="text-[11px] font-mono opacity-80" x-text="size.price_delta > 0 ? '+' + new Intl.NumberFormat('vi-VN').format(size.price_delta) + 'đ' : '{{ __('room.campaign.standard_size') }}'"></span>
+                      </button>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Topping Checkboxes -->
+              <template x-if="selectedItem?.toppings && selectedItem.toppings.length > 0">
+                <div class="space-y-2">
+                  <label class="text-xs font-bold uppercase tracking-wider text-slate-700 block">{{ __('room.campaign.topping_label') }}</label>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <template x-for="top in selectedItem.toppings" :key="top.id">
+                      <label class="p-2.5 rounded-xl border border-slate-200 flex items-center justify-between gap-2 hover:bg-slate-50 cursor-pointer text-xs">
+                        <div class="flex items-center gap-2">
+                          <input type="checkbox" 
+                                 name="toppings[]" 
+                                 :value="top.id"
+                                 @change="if ($event.target.checked) { selectedToppings.push(top); } else { selectedToppings = selectedToppings.filter(t => t.id !== top.id); }"
+                                 class="rounded border-slate-300 text-[#006948] focus:ring-[#006948]">
+                          <span x-text="top.name" class="font-medium text-slate-800"></span>
+                        </div>
+                        <span class="font-mono text-slate-500 text-[11px]" x-text="'+' + new Intl.NumberFormat('vi-VN').format(top.price) + 'đ'"></span>
+                      </label>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Special Note -->
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-700 block">{{ __('room.campaign.note_label') }}</label>
+                <div class="flex flex-wrap gap-1.5">
+                  <template x-for="sample in sampleNotes" :key="sample">
+                    <button type="button" @click="note = note ? note + '; ' + sample : sample" class="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-[#006948]" x-text="sample"></button>
+                  </template>
+                </div>
+                <textarea name="note" 
+                          x-model="note"
+                          rows="2" 
+                          class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] outline-none"
+                          placeholder="{{ __('room.campaign.note_placeholder') }}"></textarea>
+              </div>
+
+              <!-- Budget Limit Alert -->
+              <template x-if="isCustomItemExceeded">
+                <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 font-medium">
+                  <span class="material-symbols-outlined text-[18px] text-rose-600 shrink-0">error</span>
+                  <span>{{ __('room.campaign.custom_exceeds_budget_msg', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</span>
+                </div>
+              </template>
+
+              <!-- Modal Footer CTA -->
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                <div class="text-left">
+                  <span class="text-[11px] text-slate-400 block">{{ __('room.campaign.unit_price') }}</span>
+                  <span class="text-sm sm:text-base font-bold font-mono" :class="isCustomItemExceeded ? 'text-rose-600' : 'text-[#006948]'" x-text="new Intl.NumberFormat('vi-VN').format(calculatedPrice) + 'đ'"></span>
+                </div>
+                <button type="submit" :disabled="cartSubmitting || isCustomItemExceeded"
+                        class="px-5 h-10 bg-[#006948] hover:bg-[#005137] disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer">
+                  <span x-show="!cartSubmitting" class="material-symbols-outlined text-[17px]">shopping_bag</span>
+                  <span x-show="cartSubmitting" class="material-symbols-outlined animate-spin text-[17px]">progress_activity</span>
+                  <span x-text="cartSubmitting ? '{{ __('global.common.loading') }}' : '{{ __('room.campaign.add_to_order') }}'"></span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      </template>
       @endif
 
       @if($canOrderCampaign && !$activeUserOrder)
@@ -576,114 +651,166 @@
         <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1 text-[11px]" x-text="cartItems.length"></span>
       </button>
 
-      <div x-show="showCartModal" x-cloak class="fixed inset-0 z-50 flex min-h-[100dvh] items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md" @click.self="showCartModal = false">
-        <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl" @click.stop>
-          <div class="flex items-center justify-between border-b border-slate-100 p-5">
-            <h3 class="text-base font-bold text-slate-900">{{ __('room.campaign.cart_title') }}</h3>
-            <div class="flex items-center gap-1">
-              <button type="button" @click="clearCart()" :disabled="cartItems.length === 0 || cartUpdating" class="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_clear') }}">
-                <span x-show="!cartUpdating" class="material-symbols-outlined text-[18px]">delete_sweep</span>
-                <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+      <template x-teleport="body">
+        <div x-show="showCartModal" x-cloak class="fixed inset-0 z-[100] flex min-h-[100dvh] items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md" @click.self="showCartModal = false">
+          <div class="w-full max-w-md rounded-2xl bg-white shadow-2xl" @click.stop>
+            <div class="flex items-center justify-between border-b border-slate-100 p-5">
+              <h3 class="text-base font-bold text-slate-900">{{ __('room.campaign.cart_title') }}</h3>
+              <div class="flex items-center gap-1">
+                <button type="button" @click="clearCart()" :disabled="cartItems.length === 0 || cartUpdating" class="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_clear') }}">
+                  <span x-show="!cartUpdating" class="material-symbols-outlined text-[18px]">delete_sweep</span>
+                  <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                </button>
+                <button type="button" @click="showCartModal = false" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><span class="material-symbols-outlined">close</span></button>
+              </div>
+            </div>
+            <div class="max-h-[50vh] space-y-3 overflow-y-auto p-5">
+              <!-- Exceeded items alert banner -->
+              <template x-if="hasExceededItems()">
+                <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2 shadow-2xs">
+                  <span class="material-symbols-outlined text-[18px] text-rose-600 shrink-0 mt-0.5">warning</span>
+                  <div>
+                    <p class="font-bold">{{ __('room.campaign.cart_exceeded_banner_title') }}</p>
+                    <p class="mt-0.5 text-[11px] text-rose-700 leading-relaxed">{{ __('room.campaign.cart_exceeded_banner_desc', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</p>
+                  </div>
+                </div>
+              </template>
+
+              <template x-if="cartItems.length === 0">
+                <div class="flex flex-col items-center justify-center py-10 text-center">
+                  <span class="material-symbols-outlined mb-2 text-[42px] text-slate-300">shopping_cart</span>
+                  <p class="text-sm font-semibold text-slate-700">{{ __('room.campaign.cart_empty_title') }}</p>
+                  <p class="mt-1 max-w-xs text-xs leading-relaxed text-slate-400">{{ __('room.campaign.cart_empty_desc') }}</p>
+                </div>
+              </template>
+              <template x-for="(item, index) in cartItems" :key="item.item_id + '-' + item.size_id + '-' + item.note + '-' + index">
+                <div class="flex flex-col gap-1.5 rounded-xl p-3 transition-colors"
+                     :class="isItemExceeded(item) ? 'bg-rose-50/70 border border-rose-300 shadow-2xs' : 'bg-slate-50 border border-transparent'">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white text-[#006948]">
+                      <span class="material-symbols-outlined text-[20px]">local_cafe</span>
+                      <template x-if="itemImageUrl(item)">
+                        <img x-lazy-src="itemImageUrl(item)"
+                             :alt="item.item_name || '{{ __('admin.item_image_alt') }}'"
+                             loading="lazy"
+                             x-on:load="$el.hidden = false"
+                             x-on:error="$el.hidden = true"
+                             class="absolute inset-0 h-full w-full object-cover">
+                      </template>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-sm font-bold text-slate-900" x-text="item.item_name"></p>
+                      <p class="mt-0.5 text-[11px] text-slate-500" x-text="[item.size_name, ...(item.topping_names || [])].filter(Boolean).join(' · ')"></p>
+                      <p class="mt-1 text-[11px] text-slate-500" x-show="item.note" x-text="item.note"></p>
+                    </div>
+                    <div class="flex shrink-0 items-center gap-1">
+                      <span class="text-xs font-bold font-mono" :class="isItemExceeded(item) ? 'text-rose-600 font-bold' : 'text-[#006948]'" x-text="new Intl.NumberFormat('vi-VN').format(item.unit_price * item.quantity) + 'đ'"></span>
+                      <button type="button" @click="removeCartItem(index)" :disabled="cartUpdating" class="rounded-md p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_remove_item') }}">
+                        <span x-show="!cartUpdating" class="material-symbols-outlined text-[16px]">delete</span>
+                        <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                      </button>
+                    </div>
+                  </div>
+                  <template x-if="isItemExceeded(item)">
+                    <div class="mt-1 pt-1.5 border-t border-rose-200/80 flex items-center gap-1 text-[11px] font-semibold text-rose-600">
+                      <span class="material-symbols-outlined text-[14px]">error</span>
+                      <span>{{ __('room.campaign.item_exceeded_budget_error', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</span>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+            <div class="flex items-center justify-between border-t border-slate-100 p-5">
+              <div>
+                <span class="block text-[11px] text-slate-400">{{ __('room.campaign.cart_total') }}</span>
+                <strong class="font-mono text-base text-[#006948]" x-text="new Intl.NumberFormat('vi-VN').format(cartTotal()) + 'đ'"></strong>
+              </div>
+              <button type="button" 
+                      :disabled="cartItems.length === 0 || hasExceededItems()" 
+                      @click="proceedToConfirm()" 
+                      class="rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer">
+                <span>{{ __('room.campaign.cart_confirm') }}</span>
+                <span x-show="hasExceededItems()" class="material-symbols-outlined text-[14px] text-amber-300">warning</span>
               </button>
-              <button type="button" @click="showCartModal = false" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><span class="material-symbols-outlined">close</span></button>
             </div>
           </div>
-          <div class="max-h-[50vh] space-y-3 overflow-y-auto p-5">
-            <!-- Exceeded items alert banner -->
-            <template x-if="hasExceededItems()">
-              <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2 shadow-2xs">
-                <span class="material-symbols-outlined text-[18px] text-rose-600 shrink-0 mt-0.5">warning</span>
-                <div>
-                  <p class="font-bold">{{ __('room.campaign.cart_exceeded_banner_title') }}</p>
-                  <p class="mt-0.5 text-[11px] text-rose-700 leading-relaxed">{{ __('room.campaign.cart_exceeded_banner_desc', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</p>
-                </div>
-              </div>
-            </template>
+        </div>
+      </template>
 
-            <template x-if="cartItems.length === 0">
-              <div class="flex flex-col items-center justify-center py-10 text-center">
-                <span class="material-symbols-outlined mb-2 text-[42px] text-slate-300">shopping_cart</span>
-                <p class="text-sm font-semibold text-slate-700">{{ __('room.campaign.cart_empty_title') }}</p>
-                <p class="mt-1 max-w-xs text-xs leading-relaxed text-slate-400">{{ __('room.campaign.cart_empty_desc') }}</p>
-              </div>
-            </template>
-            <template x-for="(item, index) in cartItems" :key="item.item_id + '-' + item.size_id + '-' + item.note + '-' + index">
-              <div class="flex flex-col gap-1.5 rounded-xl p-3 transition-colors"
-                   :class="isItemExceeded(item) ? 'bg-rose-50/70 border border-rose-300 shadow-2xs' : 'bg-slate-50 border border-transparent'">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white text-[#006948]">
-                    <span class="material-symbols-outlined text-[20px]">local_cafe</span>
-                    <template x-if="itemImageUrl(item)">
-                      <img x-lazy-src="itemImageUrl(item)"
-                           :alt="item.item_name || '{{ __('admin.item_image_alt') }}'"
-                           loading="lazy"
-                           x-on:load="$el.hidden = false"
-                           x-on:error="$el.hidden = true"
-                           class="absolute inset-0 h-full w-full object-cover">
-                    </template>
-                  </div>
-                  <div class="min-w-0 flex-1">
-                    <p class="truncate text-sm font-bold text-slate-900" x-text="item.item_name"></p>
-                    <p class="mt-0.5 text-[11px] text-slate-500" x-text="[item.size_name, ...(item.topping_names || [])].filter(Boolean).join(' · ')"></p>
-                    <p class="mt-1 text-[11px] text-slate-500" x-show="item.note" x-text="item.note"></p>
-                  </div>
-                  <div class="flex shrink-0 items-center gap-1">
-                    <span class="text-xs font-bold font-mono" :class="isItemExceeded(item) ? 'text-rose-600 font-bold' : 'text-[#006948]'" x-text="new Intl.NumberFormat('vi-VN').format(item.unit_price * item.quantity) + 'đ'"></span>
-                    <button type="button" @click="removeCartItem(index)" :disabled="cartUpdating" class="rounded-md p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_remove_item') }}">
-                      <span x-show="!cartUpdating" class="material-symbols-outlined text-[16px]">delete</span>
-                      <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                    </button>
-                  </div>
-                </div>
-                <template x-if="isItemExceeded(item)">
-                  <div class="mt-1 pt-1.5 border-t border-rose-200/80 flex items-center gap-1 text-[11px] font-semibold text-rose-600">
-                    <span class="material-symbols-outlined text-[14px]">error</span>
-                    <span>{{ __('room.campaign.item_exceeded_budget_error', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</span>
-                  </div>
-                </template>
-              </div>
-            </template>
-          </div>
-          <div class="flex items-center justify-between border-t border-slate-100 p-5">
-            <div>
-              <span class="block text-[11px] text-slate-400">{{ __('room.campaign.cart_total') }}</span>
-              <strong class="font-mono text-base text-[#006948]" x-text="new Intl.NumberFormat('vi-VN').format(cartTotal()) + 'đ'"></strong>
+      <template x-teleport="body">
+        <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-[110] flex min-h-[100dvh] items-center justify-center bg-slate-900/70 p-4 backdrop-blur-md" @click.self="showConfirmModal = false">
+          <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl" @click.stop>
+            <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-[#006948]"><span class="material-symbols-outlined">fact_check</span></div>
+            <h3 class="text-base font-bold text-slate-900">{{ __('room.campaign.confirm_title') }}</h3>
+            <p class="mt-1 text-sm leading-relaxed text-slate-500">{{ __('room.campaign.confirm_desc') }}</p>
+            <div class="mt-5 flex justify-end gap-2">
+              <button type="button" @click="showConfirmModal = false" class="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">{{ __('global.common.cancel') }}</button>
+              <button type="button" :disabled="cartSubmitting" @click="confirmCart()" class="inline-flex items-center gap-1.5 rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50">
+                <span x-show="!cartSubmitting" class="material-symbols-outlined text-[16px]">send</span>
+                <span x-show="cartSubmitting" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                <span x-text="cartSubmitting ? '{{ __('global.common.loading') }}' : '{{ __('room.campaign.confirm_order') }}'"></span>
+              </button>
             </div>
-            <button type="button" 
-                    :disabled="cartItems.length === 0 || hasExceededItems()" 
-                    @click="proceedToConfirm()" 
-                    class="rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer">
-              <span>{{ __('room.campaign.cart_confirm') }}</span>
-              <span x-show="hasExceededItems()" class="material-symbols-outlined text-[14px] text-amber-300">warning</span>
-            </button>
           </div>
         </div>
-      </div>
+      </template>
+      @endif
 
-      <div x-show="showConfirmModal" x-cloak class="fixed inset-0 z-[60] flex min-h-[100dvh] items-center justify-center bg-slate-900/70 p-4 backdrop-blur-md" @click.self="showConfirmModal = false">
-        <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl" @click.stop>
-          <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-[#006948]"><span class="material-symbols-outlined">fact_check</span></div>
-          <h3 class="text-base font-bold text-slate-900">{{ __('room.campaign.confirm_title') }}</h3>
-          <p class="mt-1 text-sm leading-relaxed text-slate-500">{{ __('room.campaign.confirm_desc') }}</p>
-          <div class="mt-5 flex justify-end gap-2">
-            <button type="button" @click="showConfirmModal = false" class="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">{{ __('global.common.cancel') }}</button>
-            <button type="button" :disabled="cartSubmitting" @click="confirmCart()" class="inline-flex items-center gap-1.5 rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50">
-              <span x-show="!cartSubmitting" class="material-symbols-outlined text-[16px]">send</span>
-              <span x-show="cartSubmitting" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-              <span x-text="cartSubmitting ? '{{ __('global.common.loading') }}' : '{{ __('room.campaign.confirm_order') }}'"></span>
-            </button>
+      @if($activeCampaign?->isOrderable() && !$activeUserOrder)
+      <!-- Modal Confirm Decline -->
+      <template x-teleport="body">
+        <div x-show="showDeclineModal" x-cloak class="fixed inset-0 z-[110] flex min-h-[100dvh] items-center justify-center bg-slate-900/70 p-4 backdrop-blur-md" @click.self="showDeclineModal = false">
+          <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl animate-fadeIn" @click.stop>
+            <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 text-rose-600">
+              <span class="material-symbols-outlined text-[24px]">block</span>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">{{ __('room.campaign.decline_confirm_title') }}</h3>
+            <p class="mt-1.5 text-xs sm:text-sm leading-relaxed text-slate-500">{{ __('room.campaign.decline_confirm_desc') }}</p>
+            <div class="mt-6 flex justify-end gap-2">
+              <button type="button" @click="showDeclineModal = false" :disabled="participationSubmitting" class="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer disabled:opacity-50">
+                {{ __('global.common.cancel') }}
+              </button>
+              <button type="button" :disabled="participationSubmitting" @click="submitDecline()" class="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shadow-xs">
+                <span x-show="!participationSubmitting" class="material-symbols-outlined text-[16px]">check</span>
+                <span x-show="participationSubmitting" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                <span x-text="participationSubmitting ? '{{ __('global.common.loading') }}' : '{{ __('room.campaign.decline_confirm_btn') }}'"></span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      </template>
+
+      <!-- Modal Confirm Rejoin -->
+      <template x-teleport="body">
+        <div x-show="showRejoinModal" x-cloak class="fixed inset-0 z-[110] flex min-h-[100dvh] items-center justify-center bg-slate-900/70 p-4 backdrop-blur-md" @click.self="showRejoinModal = false">
+          <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl animate-fadeIn" @click.stop>
+            <div class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-[#006948]">
+              <span class="material-symbols-outlined text-[24px]">undo</span>
+            </div>
+            <h3 class="text-base font-bold text-slate-900">{{ __('room.campaign.rejoin_confirm_title') }}</h3>
+            <p class="mt-1.5 text-xs sm:text-sm leading-relaxed text-slate-500">{{ __('room.campaign.rejoin_confirm_desc') }}</p>
+            <div class="mt-6 flex justify-end gap-2">
+              <button type="button" @click="showRejoinModal = false" :disabled="participationSubmitting" class="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer disabled:opacity-50">
+                {{ __('global.common.cancel') }}
+              </button>
+              <button type="button" :disabled="participationSubmitting" @click="submitRejoin()" class="inline-flex items-center gap-1.5 rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer shadow-xs">
+                <span x-show="!participationSubmitting" class="material-symbols-outlined text-[16px]">check</span>
+                <span x-show="participationSubmitting" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                <span x-text="participationSubmitting ? '{{ __('global.common.loading') }}' : '{{ __('room.campaign.rejoin_confirm_btn') }}'"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
       @endif
     @else
       <!-- Empty State when no campaign is open -->
-      <section class="bg-white border border-slate-200/80 rounded-2xl p-12 text-center shadow-xs">
-        <div class="w-16 h-16 rounded-2xl bg-slate-50 text-slate-400 border border-slate-200 mx-auto flex items-center justify-center mb-3">
-          <span class="material-symbols-outlined text-[36px]">bedtime</span>
+      <section class="bg-white border border-slate-200/80 rounded-2xl p-8 sm:p-10 text-center shadow-xs">
+        <div class="w-12 h-12 rounded-xl bg-slate-50 text-slate-400 border border-slate-200/80 mx-auto flex items-center justify-center mb-2.5">
+          <span class="material-symbols-outlined text-[24px]">bedtime</span>
         </div>
-        <h2 class="text-lg font-bold text-slate-900">{{ __('room.campaign.no_campaign_title') }}</h2>
-        <p class="text-xs sm:text-sm text-slate-500 max-w-md mx-auto mt-1 leading-relaxed">
+        <h2 class="text-sm font-bold text-slate-900">{{ __('room.campaign.no_campaign_title') }}</h2>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto mt-1 leading-relaxed">
           {{ __('room.campaign.no_campaign_desc') }}
         </p>
       </section>

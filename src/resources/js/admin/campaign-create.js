@@ -81,12 +81,13 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         menuSearch: '',
         menuSearchTimer: null,
         itemCategories: ['Cà phê', 'Trà', 'Trà sữa', 'Nước ép', 'Sinh tố', 'Đá xay', 'Sữa chua', 'Ăn vặt', 'Bánh ngọt', 'Đồ ăn', 'Khác'],
-        newItem: { id: null, name: '', price: 0, category: 'Khác', description: '', image_url: '', toppings: [], options: [] },
+        newItem: { id: null, name: '', price: 0, category: 'Khác', description: '', image_url: '', status: 'active', toppings: [], options: [] },
         imageUploading: false,
         selectedImageFileName: '',
         sponsors: [],
         roomUsers,
         submitting: false,
+        submittingAction: null,
         showCancelCampaignModal: false,
         cancelSubmitting: false,
         crawlerUrl: '',
@@ -228,6 +229,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 description: item.description || '',
                 image_url: normalizeImageUrl(item.image_url),
                 image_load_failed: false,
+                status: item.status || 'active',
                 toppings: (item.toppings || []).map(topping => ({
                     id: topping.id || null,
                     name: topping.name || '',
@@ -287,6 +289,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 description: '',
                 image_url: '',
                 image_load_failed: false,
+                status: 'active',
                 toppings: [],
                 options: []
             };
@@ -307,6 +310,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 description: item.description || '',
                 image_url: normalizeImageUrl(item.image_url),
                 image_load_failed: false,
+                status: item.status || 'active',
                 toppings: (item.toppings || []).map(topping => ({
                     id: topping.id || null,
                     name: topping.name || '',
@@ -557,12 +561,6 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             if (status) {
                 this.form.status = status;
             }
-            const maxBudget = parseCleanNumber(this.form.max_budget);
-            if (this.campaignSettings.max_budget > 0 && maxBudget > this.campaignSettings.max_budget) {
-                alert(budgetErrorTemplate.replace(':limit', this.formatVND(this.campaignSettings.max_budget)));
-                this.submitting = false;
-                return;
-            }
             if (this.form.sponsor_type === 'full') {
                 const percentageTotal = this.sponsors.reduce((total, sponsor) => total + (Number(sponsor.percentage) || 0), 0);
                 if (this.sponsors.length === 0 || Math.abs(percentageTotal - 100) > 0.01) {
@@ -594,6 +592,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                     description: item.description || null,
                     image_url: item.image_url || null,
                     price: parseInt(item.price, 10) || 0,
+                    status: item.status || 'active',
                     toppings: (item.toppings || []).filter(topping => topping.name && topping.name.trim()).map(topping => ({
                         id: topping.id || null,
                         name: topping.name.trim(),
@@ -625,25 +624,30 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
 
                 const json = await res.json();
                 const campaignId = json.data?.id || json.id;
+                const effectiveStatus = status || this.form.status || 'draft';
 
-                if (this.isEditMode) {
-                    window.location.href = `/admin/${getRoomSlug()}/campaigns/${campaignId}?view=detail`;
+                if (effectiveStatus === 'draft') {
+                    const indexUrl = page?.dataset.indexUrl || `/admin/${getRoomSlug()}/campaigns`;
+                    window.location.href = indexUrl;
                 } else {
-                    window.location.href = `/admin/${getRoomSlug()}/campaigns/${campaignId}`;
+                    window.location.href = `/admin/${getRoomSlug()}/campaigns/${campaignId}?view=detail`;
                 }
             } catch (e) {
                 alert('Có lỗi xảy ra: ' + e.message);
+                this.showConfirmModal = false;
             } finally {
                 this.submitting = false;
+                this.submittingAction = null;
             }
         },
 
         saveChanges() {
+            this.submittingAction = this.form.status === 'draft' ? 'draft' : 'save_changes';
             this.submitForm(this.form.status);
         },
 
         saveChangesAndPublish() {
-            this.submitForm('active');
+            this.openPublishConfirmation();
         },
 
         openPublishConfirmation() {
@@ -652,11 +656,12 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         },
 
         confirmPublish() {
-            this.showConfirmModal = false;
-            this.submitForm(this.pendingStatus);
+            this.submittingAction = 'publish';
+            this.submitForm(this.pendingStatus || 'active');
         },
 
         saveDraft() {
+            this.submittingAction = 'draft';
             this.submitForm('draft');
         },
 

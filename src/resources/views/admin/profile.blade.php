@@ -176,13 +176,33 @@
                                 class="absolute right-2 top-1/2 -translate-y-1/2 text-outline hover:text-primary"><span
                                     class="material-symbols-outlined text-[18px]">visibility</span></button></div>
                         @if (!config('captcha.disable') && extension_loaded('gd') && function_exists('captcha_img'))
-                            <div class="flex gap-2">
-                                <div
-                                    class="h-9 w-28 overflow-hidden rounded-lg border border-outline-variant bg-surface-container">
-                                    {!! captcha_img('contact') !!}</div><input name="captcha" required maxlength="6"
+                            <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-1.5 shrink-0">
+                                    <div id="captcha-img-wrapper"
+                                         data-captcha-api="{{ url('/captcha/api/contact') }}"
+                                         data-captcha-fallback="{{ captcha_src('contact') }}"
+                                         data-loading-text="{{ __('global.feedback.captcha_loading') }}"
+                                         class="w-[120px] h-9 rounded-lg border border-outline-variant bg-surface-container flex items-center justify-center overflow-hidden cursor-pointer shrink-0 shadow-2xs hover:border-primary/50 transition-colors"
+                                         title="{{ __('global.feedback.captcha_refresh') }}">
+                                        {!! captcha_img('contact') !!}
+                                    </div>
+                                    <button type="button"
+                                            id="refresh-captcha-btn"
+                                            class="w-9 h-9 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container text-on-surface-variant hover:text-primary flex items-center justify-center transition-colors cursor-pointer shrink-0 shadow-2xs"
+                                            title="{{ __('global.feedback.captcha_refresh') }}">
+                                        <span class="material-symbols-outlined text-[18px] transition-transform duration-300">sync</span>
+                                    </button>
+                                </div>
+                                <input name="captcha" required maxlength="6"
                                     placeholder="{{ __('global.feedback.captcha_placeholder') }}"
-                                    class="min-w-0 flex-1 h-9 rounded-lg border border-outline-variant bg-surface px-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary">
+                                    class="min-w-0 flex-1 h-9 rounded-lg border border-outline-variant bg-surface px-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary font-mono">
                             </div>
+                            @error('captcha')
+                                <p class="text-xs text-error mt-1 flex items-center gap-1 font-medium">
+                                    <span class="material-symbols-outlined text-[14px]">error</span>
+                                    {{ $message }}
+                                </p>
+                            @enderror
                         @endif
                         @error('current_password')
                             <p class="text-xs text-error">{{ $message }}</p>
@@ -190,7 +210,10 @@
                             <p class="text-xs text-error">{{ $message }}</p>
                         @enderror
                         <button type="submit"
-                            class="w-full h-9 rounded-lg bg-primary text-on-primary text-xs font-bold hover:bg-primary-container transition-colors">{{ __('admin.update_password') }}</button>
+                            class="w-full h-9 rounded-lg bg-primary text-on-primary text-xs font-bold hover:bg-primary-container transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">lock_reset</span>
+                            <span>{{ __('admin.update_password') }}</span>
+                        </button>
                     </form>
                     <div class="mt-4 rounded-lg border border-outline-variant bg-surface-container-low/40 p-4">
                         <div class="flex items-start justify-between gap-4">
@@ -244,9 +267,12 @@
                     @enderror
                 </div>
                 <div class="flex justify-end gap-2 pt-2"><button type="button" data-two-factor-close
-                        class="h-9 px-3 rounded-lg border border-outline-variant text-xs font-semibold hover:bg-surface-container-low">{{ __('admin.cancel') }}</button><button
+                        class="h-9 px-3 rounded-lg border border-outline-variant text-xs font-semibold hover:bg-surface-container-low cursor-pointer">{{ __('admin.cancel') }}</button><button
                         type="submit"
-                        class="h-9 px-4 rounded-lg bg-primary text-on-primary text-xs font-bold hover:bg-primary-container">{{ __('admin.confirm_two_factor') }}</button>
+                        class="h-9 px-4 rounded-lg bg-primary text-on-primary text-xs font-bold hover:bg-primary-container inline-flex items-center justify-center gap-1.5 cursor-pointer">
+                        <span class="material-symbols-outlined text-[16px]">verified_user</span>
+                        <span>{{ __('admin.confirm_two_factor') }}</span>
+                    </button>
                 </div>
             </form>
         </div>

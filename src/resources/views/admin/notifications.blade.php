@@ -2,15 +2,6 @@
     <!-- Header & Action Ribbon -->
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
-            <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
-                <span>/</span>
-                <span>{{ __('admin.breadcrumb_rooms') }}</span>
-                <span>/</span>
-                <span class="text-on-surface font-semibold">{{ $room->name }}</span>
-                <span>/</span>
-                <span class="text-primary font-bold">{{ __('admin.webhook_channel_btn') }}</span>
-            </div>
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.webhook_channels_title') }}</h1>
         </div>
         <div>
@@ -84,15 +75,18 @@
                             </div>
 
                             <div class="flex items-center gap-2 shrink-0">
-                                <button type="button" data-channel-edit="{{ $chId }}" onclick="editChannel({{ $chId }}, @js(['id' => $chId, 'name' => $chName, 'type' => $chTypeVal]))" class="p-1.5 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors cursor-pointer" title="{{ __('admin.edit') }}">
+                                <button type="button" data-channel-edit="{{ $chId }}" onclick="editChannel({{ $chId }}, @js(['id' => $chId, 'name' => $chName, 'type' => $chTypeVal]))" class="relative group p-1.5 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors cursor-pointer" title="{{ __('admin.edit_channel') }}" aria-label="{{ __('admin.edit_channel') }}">
                                     <span class="material-symbols-outlined text-[16px]">edit</span>
+                                    <span role="tooltip" class="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#0b1c30] px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-all duration-150 group-hover:opacity-100 group-hover:-translate-y-0.5">{{ __('admin.edit_channel') }}</span>
                                 </button>
-                                <button type="button" data-channel-test="{{ $chId }}" onclick="openTestModal({{ $chId }}, @js(['id' => $chId, 'name' => $chName, 'type' => $chTypeVal]))" class="px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer" title="{{ __('admin.test_notification_modal_title') }}">
+                                <button type="button" data-channel-test="{{ $chId }}" onclick="openTestModal({{ $chId }}, @js(['id' => $chId, 'name' => $chName, 'type' => $chTypeVal]))" class="relative group px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer" title="{{ __('admin.test_notification_modal_title') }}" aria-label="{{ __('admin.test_notification_modal_title') }}">
                                     <span class="material-symbols-outlined text-[15px]">science</span>
                                     <span>{{ __('admin.test_ping') }}</span>
+                                    <span role="tooltip" class="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#0b1c30] px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-all duration-150 group-hover:opacity-100 group-hover:-translate-y-0.5">{{ __('admin.test_notification_modal_title') }}</span>
                                 </button>
-                                <button type="button" data-channel-delete="{{ $chId }}" onclick="deleteChannel({{ $chId }})" class="p-1.5 text-secondary hover:text-rose-600 rounded hover:bg-surface-container transition-colors cursor-pointer" title="{{ __('admin.btn_delete_channel') }}">
+                                <button type="button" data-channel-delete="{{ $chId }}" onclick="deleteChannel({{ $chId }})" class="relative group p-1.5 text-secondary hover:text-rose-600 rounded hover:bg-surface-container transition-colors cursor-pointer" title="{{ __('admin.btn_delete_channel') }}" aria-label="{{ __('admin.btn_delete_channel') }}">
                                     <span class="material-symbols-outlined text-[16px]">delete</span>
+                                    <span role="tooltip" class="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-[#0b1c30] px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-all duration-150 group-hover:opacity-100 group-hover:-translate-y-0.5">{{ __('admin.btn_delete_channel') }}</span>
                                 </button>
                             </div>
                         </div>
@@ -178,7 +172,8 @@
                     </div>
 
                     <div class="pt-3">
-                        <button id="channel-form-submit" type="submit" class="w-full h-9 bg-primary hover:bg-primary/90 text-on-primary rounded font-bold transition-colors cursor-pointer">
+                        <button id="channel-form-submit" type="submit" class="w-full h-9 bg-primary hover:bg-primary/90 text-on-primary rounded font-bold transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5 shadow-xs">
+                            <span class="material-symbols-outlined text-[16px]">save</span>
                             <span>{{ __('admin.save_webhook') }}</span>
                         </button>
                     </div>

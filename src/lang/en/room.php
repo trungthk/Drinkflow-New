@@ -99,7 +99,13 @@ return [
     'campaign' => [
         'cart_limit_reached' => 'Your cart has reached the maximum number of items.',
         'decline' => 'Not participating',
+        'decline_confirm_title' => 'Confirm Not Participating',
+        'decline_confirm_desc' => 'Are you sure you do not want to participate in this campaign? Any existing cart items will be cleared.',
+        'decline_confirm_btn' => 'Confirm Skip',
         'rejoin' => 'Rejoin campaign',
+        'rejoin_confirm_title' => 'Confirm Rejoining',
+        'rejoin_confirm_desc' => 'Do you want to rejoin this campaign to select items and place your order?',
+        'rejoin_confirm_btn' => 'Rejoin Campaign',
         'declined' => 'Your decision not to participate has been recorded.',
         'page_title' => 'Campaign & Menu',
         'active_run_badge' => 'Active Run',

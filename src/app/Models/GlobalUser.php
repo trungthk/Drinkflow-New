@@ -40,6 +40,7 @@ class GlobalUser extends Authenticatable
             'last_login_at' => 'datetime',
             'status'        => GlobalUserStatus::class,
             'preferences'   => 'array',
+            'phone'         => 'encrypted',
         ];
     }
 

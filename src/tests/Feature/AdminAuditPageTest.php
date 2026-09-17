@@ -61,8 +61,7 @@ class AdminAuditPageTest extends TestCase
         $response->assertSee(__('admin.before_data'));
         $response->assertSee(__('admin.after_data'));
         $response->assertSee(__('admin.metadata'));
-        $response->assertSee(__('admin.raw_json_payload'));
-        $response->assertSee(__('admin.copy_json'));
+        $response->assertDontSee(__('admin.raw_json_payload'));
         $response->assertSee('class="sr-only">' . __('admin.details'), false);
 
         // Target column header should not be present in table

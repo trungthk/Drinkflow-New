@@ -518,26 +518,31 @@ export function initAdminLayoutDropdowns() {
         }
     });
 
-    const languageRoot = document.querySelector('[data-admin-language-switcher]');
-    const languageToggle = languageRoot?.querySelector('[data-language-toggle]');
-    const languageMenu = languageRoot?.querySelector('[data-language-menu]');
-    const languageChevron = languageRoot?.querySelector('[data-language-chevron]');
+    const languageRoots = document.querySelectorAll('[data-admin-language-switcher]');
+    languageRoots.forEach((languageRoot) => {
+        const languageToggle = languageRoot.querySelector('[data-language-toggle]');
+        const languageMenu = languageRoot.querySelector('[data-language-menu]');
+        const languageChevron = languageRoot.querySelector('[data-language-chevron]');
 
-    if (languageRoot && languageToggle && languageMenu) {
-        const setLanguageMenuOpen = (isOpen) => {
-            languageMenu.classList.toggle('hidden', !isOpen);
-            languageToggle.setAttribute('aria-expanded', String(isOpen));
-            languageChevron?.classList.toggle('rotate-180', isOpen);
-        };
+        if (languageToggle && languageMenu) {
+            const setLanguageMenuOpen = (isOpen) => {
+                languageMenu.classList.toggle('hidden', !isOpen);
+                languageToggle.setAttribute('aria-expanded', String(isOpen));
+                languageChevron?.classList.toggle('rotate-180', isOpen);
+            };
 
-        languageToggle.addEventListener('click', () => setLanguageMenuOpen(languageToggle.getAttribute('aria-expanded') !== 'true'));
-        document.addEventListener('click', (event) => {
-            if (!languageRoot.contains(event.target)) setLanguageMenuOpen(false);
-        });
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') setLanguageMenuOpen(false);
-        });
-    }
+            languageToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setLanguageMenuOpen(languageToggle.getAttribute('aria-expanded') !== 'true');
+            });
+            document.addEventListener('click', (event) => {
+                if (!languageRoot.contains(event.target)) setLanguageMenuOpen(false);
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') setLanguageMenuOpen(false);
+            });
+        }
+    });
 }
 
 /**

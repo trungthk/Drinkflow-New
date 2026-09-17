@@ -17,15 +17,8 @@
     pendingUsers: {{ $pendingUsersCount }},
     summaryText: {{ json_encode($summaryText) }}
 })">
-    <!-- Breadcrumb & Top Bar -->
-    <div class="flex items-center justify-between gap-4 pb-2 border-b border-outline-variant/60">
-        <div class="flex items-center gap-2 text-xs font-mono text-outline">
-            <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-on-surface">{{ __('admin.breadcrumb_admin') }}</a>
-            <span>/</span>
-            <a href="{{ route('admin.campaigns.page', $room) }}" class="hover:text-on-surface">{{ __('admin.campaigns') }}</a>
-            <span>/</span>
-            <span class="text-on-surface font-semibold">{{ $campaign->code ?? 'N/A' }} - {{ __('admin.live_control_center') }}</span>
-        </div>
+    <!-- Top Action Bar -->
+    <div class="flex items-center justify-end gap-4 pb-2 border-b border-outline-variant/60">
         <div class="flex items-center gap-2">
             <a href="{{ route('admin.campaigns.show', [$room, $campaign, 'view' => 'detail']) }}" class="px-3 py-1.5 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-1.5 no-underline">
                 <span class="material-symbols-outlined text-[16px]">receipt_long</span>

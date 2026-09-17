@@ -35,7 +35,20 @@ class ImportCampaignItemsRequest extends FormRequest
             'items.*.name' => ['required', 'string', 'max:200'],
             'items.*.category' => ['nullable', 'string', 'max:100'],
             'items.*.description' => ['nullable', 'string', 'max:2000'],
-            'items.*.image_url' => ['nullable', 'url', 'max:1000'],
+            'items.*.image_url' => [
+                'nullable',
+                'string',
+                'max:1000',
+                static function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (!is_string($value) || trim($value) === '') {
+                        return;
+                    }
+                    $val = trim($value);
+                    if (!filter_var($val, FILTER_VALIDATE_URL) && !str_starts_with($val, '/storage/') && !str_starts_with($val, 'storage/') && !str_starts_with($val, 'uploads/') && !str_starts_with($val, '/uploads/')) {
+                        $fail(__('validation.url', ['attribute' => __('validation.attributes.items.*.image_url')]));
+                    }
+                },
+            ],
             'items.*.base_price' => ['required', 'integer', 'min:0'],
             'items.*.source_item_key' => ['nullable', 'string', 'max:255'],
         ];

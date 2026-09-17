@@ -137,6 +137,21 @@ class CampaignController extends Controller
             ]);
         }
 
+        /** @var \App\Models\RoomUser|null $roomUser */
+        $roomUser = $request->attributes->get('room_user');
+        if ($roomUser) {
+            $hasDeclined = \App\Models\CampaignParticipant::query()
+                ->where('campaign_id', $campaign->id)
+                ->where('room_user_id', $roomUser->id)
+                ->where('status', \App\Models\CampaignParticipant::STATUS_DECLINED)
+                ->exists();
+            if ($hasDeclined) {
+                throw ValidationException::withMessages([
+                    'campaign' => __('room.campaign.declined'),
+                ]);
+            }
+        }
+
         $data = $request->validated();
 
         $item = $campaign->items()->with(['sizes', 'toppings'])->whereKey($data['item_id'])->where('status', 'active')->firstOrFail();
@@ -272,6 +287,8 @@ class CampaignController extends Controller
         $roomUser = $request->attributes->get('room_user');
         abort_unless($campaign->room_id === $room->id, 404);
         $this->ensureCampaignIsOrderable($campaign);
+
+        session()->forget($this->cartKey($room->id, $campaign->id));
 
         return response()->json(['data' => $action->execute($campaign, $roomUser)]);
     }

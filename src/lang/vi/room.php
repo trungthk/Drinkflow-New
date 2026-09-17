@@ -99,7 +99,13 @@ return [
     'campaign' => [
         'cart_limit_reached' => 'Giỏ hàng đã đạt số lượng món tối đa.',
         'decline' => 'Không tham gia',
+        'decline_confirm_title' => 'Xác nhận không tham gia',
+        'decline_confirm_desc' => 'Bạn có chắc chắn muốn không tham gia chiến dịch này? Giỏ hàng hiện tại (nếu có) sẽ bị xóa.',
+        'decline_confirm_btn' => 'Xác nhận không tham gia',
         'rejoin' => 'Tham gia lại',
+        'rejoin_confirm_title' => 'Xác nhận tham gia lại',
+        'rejoin_confirm_desc' => 'Bạn muốn tham gia lại chiến dịch này để chọn món và đặt hàng?',
+        'rejoin_confirm_btn' => 'Xác nhận tham gia',
         'declined' => 'Đã ghi nhận bạn không tham gia campaign này.',
         'page_title' => 'Chiến dịch & Menu',
         'active_run_badge' => 'Active Run',

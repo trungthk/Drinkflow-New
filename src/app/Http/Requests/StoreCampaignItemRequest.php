@@ -32,7 +32,20 @@ class StoreCampaignItemRequest extends FormRequest
             'name' => ['required', 'string', 'max:200'],
             'category' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'image_url' => ['nullable', 'url', 'max:1000'],
+            'image_url' => [
+                'nullable',
+                'string',
+                'max:1000',
+                static function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (!is_string($value) || trim($value) === '') {
+                        return;
+                    }
+                    $val = trim($value);
+                    if (!filter_var($val, FILTER_VALIDATE_URL) && !str_starts_with($val, '/storage/') && !str_starts_with($val, 'storage/') && !str_starts_with($val, 'uploads/') && !str_starts_with($val, '/uploads/')) {
+                        $fail(__('validation.url', ['attribute' => __('validation.attributes.items.*.image_url')]));
+                    }
+                },
+            ],
             'base_price' => ['required', 'integer', 'min:0'],
             'sponsor_amount' => ['nullable', 'integer', 'min:0'],
             'status' => ['nullable', 'in:active,hidden,sold_out,temporarily_unavailable'],

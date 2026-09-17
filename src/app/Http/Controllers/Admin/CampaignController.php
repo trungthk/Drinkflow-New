@@ -304,13 +304,20 @@ class CampaignController extends Controller
      *
      * @param Room $room Current room.
      * @param Campaign $campaign Campaign to delete.
+     * @param ImageUploadService $imageUploadService Image storage cleanup service.
      * @return JsonResponse Deletion result.
      */
-    public function destroy(Room $room, Campaign $campaign): JsonResponse
+    public function destroy(Room $room, Campaign $campaign, ImageUploadService $imageUploadService): JsonResponse
     {
         $this->assertCampaign($campaign);
         abort_unless(in_array($campaign->status, [CampaignStatus::Draft, CampaignStatus::Active, CampaignStatus::Closing, CampaignStatus::Archived], true), 422, __('admin.campaign_delete_archived_only'));
         abort_if($campaign->orders()->exists() || $campaign->debts()->exists(), 422, __('admin.campaign_delete_has_history'));
+
+        foreach ($campaign->items as $item) {
+            if (!empty($item->image_url)) {
+                $imageUploadService->deleteFile($item->image_url);
+            }
+        }
 
         $campaign->delete();
         $this->publishCampaignEvent('campaign.deleted', $campaign);

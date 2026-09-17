@@ -18,8 +18,8 @@ class SocketTokenService
     /**
      * Issue a realtime socket authentication token for a room user.
      *
-     * @param RoomUser $roomUser The room user entity requesting the token.
-     * @param int $ttlSeconds Time-to-live for the token in seconds.
+     * @param  RoomUser  $roomUser  The room user entity requesting the token.
+     * @param  int  $ttlSeconds  Time-to-live for the token in seconds.
      * @return string Signed HMAC token string.
      */
     public function issue(RoomUser $roomUser, int $ttlSeconds = 300): string
@@ -40,7 +40,7 @@ class SocketTokenService
         ];
         $encoded = $this->encode($payload);
 
-        return $encoded.'.'.hash_hmac('sha256', $encoded, (string) config('app.key'));
+        return $encoded.'.'.hash_hmac('sha256', $encoded, $this->signingSecret());
     }
 
     /** Issue a realtime token scoped to one trusted user device. */
@@ -57,15 +57,15 @@ class SocketTokenService
         ];
         $encoded = $this->encode($payload);
 
-        return $encoded.'.'.hash_hmac('sha256', $encoded, (string) config('app.key'));
+        return $encoded.'.'.hash_hmac('sha256', $encoded, $this->signingSecret());
     }
 
     /**
      * Issue a realtime socket authentication token for an admin account.
      *
-     * @param AdminAccount $admin The admin account instance.
-     * @param Room|null $room Optional specific room context.
-     * @param int $ttlSeconds Time-to-live for the token in seconds.
+     * @param  AdminAccount  $admin  The admin account instance.
+     * @param  Room|null  $room  Optional specific room context.
+     * @param  int  $ttlSeconds  Time-to-live for the token in seconds.
      * @return string Signed HMAC token string.
      */
     public function issueForAdmin(AdminAccount $admin, ?Room $room = null, int $ttlSeconds = 300): string
@@ -89,20 +89,20 @@ class SocketTokenService
         ];
         $encoded = $this->encode($payload);
 
-        return $encoded.'.'.hash_hmac('sha256', $encoded, (string) config('app.key'));
+        return $encoded.'.'.hash_hmac('sha256', $encoded, $this->signingSecret());
     }
 
     /**
      * Verify and decode a given realtime socket token.
      *
-     * @param string $token The raw token string.
+     * @param  string  $token  The raw token string.
      * @return array<string, mixed>|null Decoded payload array or null if invalid/expired.
      */
     public function verify(string $token): ?array
     {
         [$encoded, $signature] = array_pad(explode('.', $token, 2), 2, '');
 
-        if ($encoded === '' || $signature === '' || ! hash_equals(hash_hmac('sha256', $encoded, (string) config('app.key')), $signature)) {
+        if ($encoded === '' || $signature === '' || ! hash_equals(hash_hmac('sha256', $encoded, $this->signingSecret()), $signature)) {
             return null;
         }
 
@@ -114,11 +114,23 @@ class SocketTokenService
     /**
      * Encode payload data into base64url format.
      *
-     * @param array<string, mixed> $payload The data payload to encode.
+     * @param  array<string, mixed>  $payload  The data payload to encode.
      * @return string Base64url encoded string.
      */
     private function encode(array $payload): string
     {
         return rtrim(strtr(base64_encode((string) json_encode($payload, JSON_UNESCAPED_SLASHES)), '+/', '-_'), '=');
+    }
+
+    /**
+     * Resolve the shared HMAC secret used by Laravel and the realtime gateway.
+     *
+     * @return string Secret used to sign and verify socket tokens.
+     */
+    private function signingSecret(): string
+    {
+        $configured = trim((string) config('services.realtime.socket_token_secret', ''));
+
+        return $configured !== '' ? $configured : (string) config('app.key');
     }
 }

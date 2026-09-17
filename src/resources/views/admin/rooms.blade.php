@@ -1,7 +1,8 @@
 @php
     $roomsCount = $rooms->count();
     $adminUser = $adminUser ?? $admin ?? auth('admin')->user();
-    $adminInitials = strtoupper(substr($adminUser?->name ?? 'Admin', 0, 2));
+    $adminInitials = mb_strtoupper(mb_substr($adminUser?->name ?? 'Admin', 0, 2));
+    $adminAvatarUrl = $adminUser?->avatar_url ? route('admin.profile.avatar.show') : null;
 @endphp
 <!DOCTYPE html>
 <html class="h-full" lang="{{ app()->getLocale() }}">
@@ -140,17 +141,18 @@
             <!-- Right Actions: Language Switcher & User Session Chip -->
             <div class="flex items-center gap-2 sm:gap-3 self-start sm:self-auto">
                 <!-- Language Switcher Dropdown -->
-                <details class="relative group/language" data-room-language-switcher>
-                    <summary aria-controls="admin-language-menu"
-                            class="list-none [&::-webkit-details-marker]:hidden flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors bg-surface-container-lowest border border-outline-variant/60 shadow-xs cursor-pointer">
+                <div class="relative" data-admin-language-switcher>
+                    <button type="button"
+                            data-language-toggle aria-expanded="false" aria-controls="admin-language-menu"
+                            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-medium text-on-surface-variant hover:bg-surface-container-low transition-colors bg-surface-container-lowest border border-outline-variant/60 shadow-xs cursor-pointer">
                         <span>{{ $activeLocaleMeta['flag'] }}</span>
                         <span class="font-semibold text-on-surface">{{ $activeLocaleMeta['code'] }}</span>
-                        <span class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200 group-open/language:rotate-180">arrow_drop_down</span>
-                    </summary>
+                        <span data-language-chevron class="material-symbols-outlined text-[16px] text-outline transition-transform duration-200">arrow_drop_down</span>
+                    </button>
 
                     <!-- Dropdown Menu -->
-                    <div id="admin-language-menu"
-                         class="absolute right-0 top-full mt-1.5 w-36 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant/80 py-1.5 z-50">
+                    <div id="admin-language-menu" data-language-menu
+                         class="hidden absolute right-0 top-full mt-1.5 w-36 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant/80 py-1.5 z-50">
                         @foreach($locales as $code => $meta)
                             <a href="{{ route('locale.switch', $code) }}"
                                class="flex items-center justify-between px-3 py-2 text-xs text-on-surface hover:bg-primary/10 hover:text-primary transition-colors {{ $currentLocale === $code ? 'font-semibold text-primary bg-primary/5' : '' }}">
@@ -164,13 +166,16 @@
                             </a>
                         @endforeach
                     </div>
-                </details>
+                </div>
 
                 <!-- User Session & Enterprise SSO Chip -->
                 <div class="flex items-center gap-3 bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-1.5 pr-4 shadow-xs">
                     <a href="{{ route('admin.profile') }}" title="{{ __('admin.profile_security') }}" class="flex items-center gap-3 no-underline rounded-lg hover:bg-surface-container-low transition-colors">
-                    <div class="w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center font-label-md text-label-md font-bold">
-                        {{ $adminInitials }}
+                    <div class="relative w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center font-label-md text-label-md font-bold overflow-hidden">
+                        <span aria-hidden="true">{{ $adminInitials }}</span>
+                        @if($adminAvatarUrl)
+                            <img src="{{ $adminAvatarUrl }}" alt="{{ $adminUser?->name }}" loading="lazy" onerror="this.remove()" class="absolute inset-0 h-full w-full object-cover">
+                        @endif
                     </div>
                     <div class="flex flex-col text-left">
                         <div class="flex items-center gap-1.5">
@@ -466,18 +471,6 @@
                 });
             });
 
-            const languageSwitcher = document.querySelector('[data-room-language-switcher]');
-            document.addEventListener('click', (event) => {
-                if (languageSwitcher && !languageSwitcher.contains(event.target)) {
-                    languageSwitcher.open = false;
-                }
-            });
-            document.addEventListener('keydown', (event) => {
-                if (event.key === 'Escape' && languageSwitcher?.open) {
-                    languageSwitcher.open = false;
-                    languageSwitcher.querySelector('summary').focus();
-                }
-            });
 
             const searchInput = document.getElementById('roomSearchInput');
             const clearBtn = document.getElementById('clearRoomSearchBtn');

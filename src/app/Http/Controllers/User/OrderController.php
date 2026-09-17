@@ -248,7 +248,7 @@ class OrderController extends Controller
                 'payment_status' => 'pending',
                 'payment_confirmation' => [
                     'requestedAt' => $debt?->payment_requested_at?->format('d/m/Y H:i'),
-                    'content' => $debt?->note,
+                    'content' => $debt?->payment_content ?: $debt?->note,
                     'approvedBy' => null,
                     'approvedAt' => null,
                 ],

@@ -26,7 +26,7 @@ class DataGatewayConverterService
                 'id' => self::PLATFORM_SHOPEE,
                 'name' => 'ShopeeFood (Now / DeliveryNow)',
                 'instruction' => __('admin.data_gateway_shopee_instruction'),
-                'api_prefix' => 'https://gappapi.deliverynow.vn/api/dish/get_delivery_dishes',
+                'api_prefix' => 'get_delivery_dishes',
             ],
             self::PLATFORM_GRAB => [
                 'id' => self::PLATFORM_GRAB,

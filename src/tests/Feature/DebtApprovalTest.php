@@ -219,10 +219,10 @@ class DebtApprovalTest extends TestCase
             ->postJson(route('user.orders.confirm-payment', [$room, $order]))
             ->assertOk()
             ->assertJsonPath('payment_status', PaymentStatus::Pending->value)
-            ->assertJsonPath('payment_confirmation.content', 'DF'.$order->id.' '.$member->room_user_code);
+            ->assertJsonPath('payment_confirmation.content', $order->code ?: ('DF'.$order->id.' '.$member->user_code));
 
         $this->assertNotNull($debt->fresh()->payment_requested_at);
-        $this->assertSame('DF'.$order->id.' '.$member->room_user_code, $debt->fresh()->payment_content);
+        $this->assertSame($order->code ?: ('DF'.$order->id.' '.$member->user_code), $debt->fresh()->payment_content);
 
         $this->actingAs($admin, 'admin')
             ->postJson(route('admin.debts.approve', [$room->slug, $debt->id]))
@@ -242,7 +242,7 @@ class DebtApprovalTest extends TestCase
             ->assertOk()
             ->assertSeeText(__('room.orders.payment_request_details_title'))
             ->assertSeeText(__('room.orders.payment_approval_info'))
-            ->assertSee('DF'.$order->id.' '.$member->room_user_code)
+            ->assertSee($order->code ?: ('DF'.$order->id.' '.$member->user_code))
             ->assertSee($admin->name);
     }
 

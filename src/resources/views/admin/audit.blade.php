@@ -2,15 +2,6 @@
     <!-- Header & Action Ribbon -->
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
-            <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
-                <span>/</span>
-                <span>{{ __('admin.breadcrumb_rooms') }}</span>
-                <span>/</span>
-                <span class="text-on-surface font-semibold">{{ $room->name }}</span>
-                <span>/</span>
-                <span class="text-primary font-bold">{{ __('admin.audit_trail_title') }}</span>
-            </div>
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.audit_trail_title') }}</h1>
         </div>
     </div>
@@ -183,9 +174,8 @@
                     </div>
                     <div>
                         <span class="text-outline text-[11px] block">{{ __('admin.event_name') }}</span>
-                        <div class="flex items-center gap-1.5 mt-0.5">
-                            <span id="modal-audit-event" class="px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-bold text-[11px]">-</span>
-                            <span id="modal-audit-event-raw" class="font-mono text-[11px] text-outline"></span>
+                        <div class="mt-0.5">
+                            <span id="modal-audit-event" class="inline-block px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 font-bold text-[11px]">-</span>
                         </div>
                     </div>
                     <div>
@@ -263,24 +253,6 @@
                     <p id="modal-audit-metadata-empty" class="text-xs text-outline italic py-2 hidden">{{ __('admin.no_data_recorded') }}</p>
                 </div>
             </div>
-
-            <!-- Section 3: Collapsible Raw JSON -->
-            <details class="group bg-surface-container-low/60 border border-outline-variant/60 rounded-xl p-3">
-                <summary class="flex items-center justify-between cursor-pointer list-none select-none text-xs font-semibold text-on-surface">
-                    <div class="flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-[16px] text-outline group-open:rotate-90 transition-transform">chevron_right</span>
-                        <span class="material-symbols-outlined text-[16px] text-primary">data_object</span>
-                        <span>{{ __('admin.raw_json_payload') }}</span>
-                    </div>
-                    <button type="button" id="payload-copy-btn" data-copied-label="{{ __('admin.copied') }}" class="px-2.5 py-1 rounded bg-surface border border-outline-variant hover:bg-surface-container text-[11px] font-semibold text-on-surface flex items-center gap-1 transition-colors cursor-pointer shadow-2xs">
-                        <span class="material-symbols-outlined text-[14px]">content_copy</span>
-                        <span id="payload-copy-text">{{ __('admin.copy_json') }}</span>
-                    </button>
-                </summary>
-                <div class="mt-3 pt-3 border-t border-outline-variant/40">
-                    <pre id="payload-content" class="p-3 bg-surface-container-lowest rounded-lg border border-outline-variant font-mono text-[11px] overflow-x-auto text-on-surface max-h-60 leading-relaxed"></pre>
-                </div>
-            </details>
         </div>
     </div>
 </x-admin.layout>

@@ -75,15 +75,6 @@
     <!-- Header & Action Ribbon -->
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
-            <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
-                <span>/</span>
-                <span>{{ __('admin.breadcrumb_rooms') }}</span>
-                <span>/</span>
-                <span class="text-on-surface font-semibold">{{ $room->name }}</span>
-                <span>/</span>
-                <span class="text-primary font-bold">{{ __('admin.orders') }}</span>
-            </div>
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.orders_management') }}</h1>
         </div>
         <div class="flex items-center gap-2">

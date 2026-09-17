@@ -12,13 +12,6 @@
         <!-- Page Header & Actions -->
         <div class="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-outline-variant/40">
             <div>
-                <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                    <span>{{ __('admin.breadcrumb_admin') }}</span>
-                    <span>/</span>
-                    <span>{{ __('admin.breadcrumb_rooms') }}</span>
-                    <span>/</span>
-                    <span class="text-on-surface font-semibold">{{ $room->name }} {{ __('admin.operations') }}</span>
-                </div>
                 <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.dashboard') }} · {{ $room->name }}</h1>
             </div>
         </div>

@@ -36,14 +36,12 @@ export function initAdminAudit() {
         const titleEl = document.querySelector('#payload-title');
         const timeEl = document.querySelector('#modal-audit-time');
         const eventBadge = document.querySelector('#modal-audit-event');
-        const eventRaw = document.querySelector('#modal-audit-event-raw');
         const targetLabelEl = document.querySelector('#modal-audit-target-label');
         const targetIdEl = document.querySelector('#modal-audit-target-id');
         const actorEl = document.querySelector('#modal-audit-actor');
         const ipEl = document.querySelector('#modal-audit-ip');
         const deviceEl = document.querySelector('#modal-audit-device');
         const userAgentEl = document.querySelector('#modal-audit-user-agent');
-        const contentEl = document.querySelector('#payload-content');
 
         if (titleEl) {
             titleEl.textContent = `Audit #${log.id ?? 'N/A'}`;
@@ -53,9 +51,6 @@ export function initAdminAudit() {
         }
         if (eventBadge) {
             eventBadge.textContent = eventLabel || log.event || '-';
-        }
-        if (eventRaw) {
-            eventRaw.textContent = (eventLabel && eventLabel !== log.event && log.event) ? `(${log.event})` : '';
         }
         if (targetLabelEl) {
             targetLabelEl.textContent = targetLabel || log.target_type || '-';
@@ -81,10 +76,6 @@ export function initAdminAudit() {
         populateDataBlock('modal-audit-after', 'modal-audit-after-empty', log.after_data);
         populateDataBlock('modal-audit-metadata', 'modal-audit-metadata-empty', log.metadata);
 
-        if (contentEl) {
-            contentEl.textContent = JSON.stringify(log, null, 2);
-        }
-
         modal.classList.remove('hidden');
         modal.classList.add('flex');
     };
@@ -96,31 +87,6 @@ export function initAdminAudit() {
 
     modalBackdrop?.addEventListener('click', window.closePayloadModal);
     document.querySelector('[data-close-audit-payload]')?.addEventListener('click', window.closePayloadModal);
-
-    // Copy Raw JSON Button
-    const copyBtn = document.querySelector('#payload-copy-btn');
-    const copyText = document.querySelector('#payload-copy-text');
-    let copyTimer = null;
-    copyBtn?.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const content = document.querySelector('#payload-content')?.textContent;
-        if (!content) return;
-        try {
-            await navigator.clipboard.writeText(content);
-            const originalText = copyText?.textContent || 'Copy JSON';
-            const copiedLabel = copyBtn.dataset.copiedLabel || 'Đã sao chép';
-            if (copyText) copyText.textContent = copiedLabel;
-            copyBtn.classList.add('text-primary', 'border-primary/40');
-            clearTimeout(copyTimer);
-            copyTimer = setTimeout(() => {
-                if (copyText) copyText.textContent = originalText;
-                copyBtn.classList.remove('text-primary', 'border-primary/40');
-            }, 2000);
-        } catch (err) {
-            console.error('Failed to copy JSON:', err);
-        }
-    });
 
     document.querySelectorAll('[data-audit-payload]').forEach((button) => {
         button.addEventListener('click', () => {

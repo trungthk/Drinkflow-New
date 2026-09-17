@@ -164,9 +164,11 @@ class ImageUploadService
             return false;
         }
 
-        // Bóc tách đường dẫn tương đối nếu truyền vào full URL
+        // Bóc tách đường dẫn tương đối nếu truyền vào full URL hoặc /storage/ path
         $path = Str::after($urlOrPath, '/storage/');
-        if (Storage::disk('public')->exists($path)) {
+        $path = ltrim($path, '/\\');
+
+        if ($path !== '' && Storage::disk('public')->exists($path)) {
             return Storage::disk('public')->delete($path);
         }
 

@@ -157,7 +157,7 @@ class UserRoomCampaignService
 
         $userRooms  = $user ? $user->rooms()->where('rooms.status', RoomStatus::Active)->get() : collect();
         $unreadCount = $user ? DB::table('user_notifications')->where('global_user_id', $user->id)->whereNull('read_at')->count() : 0;
-        $canOrderCampaign = $activeCampaign?->isOrderable() ?? false;
+        $canOrderCampaign = ($activeCampaign?->isOrderable() ?? false) && ! $hasDeclined;
         $cart = $canOrderCampaign ? session()->get("room_campaign_cart_{$room->id}_{$activeCampaign->id}", []) : [];
 
         return [

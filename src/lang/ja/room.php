@@ -99,7 +99,13 @@ return [
     'campaign' => [
         'cart_limit_reached' => 'カートの最大商品数に達しました。',
         'decline' => '参加しない',
+        'decline_confirm_title' => '不参加の確認',
+        'decline_confirm_desc' => 'このキャンペーンへの参加を見送りますか？カート内の商品はクリアされます。',
+        'decline_confirm_btn' => '参加しない',
         'rejoin' => '再参加する',
+        'rejoin_confirm_title' => '再参加の確認',
+        'rejoin_confirm_desc' => 'キャンペーンに再参加して注文を行いますか？',
+        'rejoin_confirm_btn' => '再参加する',
         'declined' => '今回は参加しないことを記録しました。',
         'page_title' => 'キャンペーン＆メニュー',
         'active_run_badge' => 'Active Run',

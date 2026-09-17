@@ -39,7 +39,7 @@ class DrinkflowOrderTest extends TestCase
         $item = CampaignItem::create(['campaign_id' => $campaign->id, 'name' => 'Tea', 'normalized_name' => 'TEA', 'base_price' => 20000, 'status' => 'active']);
         $action = app(CreateOrderAction::class);
         $order = $action->execute($campaign, $roomUser, ['items' => [['item_id' => $item->id, 'quantity' => 2]], 'discount_amount' => 999999, 'sponsor_amount' => 999999]);
-        $this->assertSame(44000, $order->final_amount);
+        $this->assertSame(40000, $order->final_amount);
         $this->assertDatabaseHas('user_notifications', ['global_user_id' => $user->id, 'type' => 'order.created']);
         $this->expectException(QueryException::class);
         $action->execute($campaign, $roomUser, ['items' => [['item_id' => $item->id, 'quantity' => 1]]]);

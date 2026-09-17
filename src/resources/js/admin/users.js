@@ -33,7 +33,31 @@ export function initAdminUsers() {
     const createUserError = document.querySelector('#create-user-error');
     const createUserSubmit = document.querySelector('#create-user-submit');
 
-    if (!searchInput && !rows.length && !modal && !createUserModal) return;
+    // User Detail Modal Elements
+    const userDetailModal = document.querySelector('#user-detail-modal');
+    const userDetailBackdrop = document.querySelector('#user-detail-backdrop');
+    const userDetailClose = document.querySelector('#user-detail-close');
+    const userDetailCloseBtn = document.querySelector('#user-detail-close-btn');
+    const userDetailLoading = document.querySelector('#user-detail-loading');
+    const userDetailError = document.querySelector('#user-detail-error');
+    const userDetailContent = document.querySelector('#user-detail-content');
+    let currentDetailUser = null;
+
+    if (!searchInput && !rows.length && !modal && !createUserModal && !userDetailModal) return;
+
+    // Backend Form Search & Status Trigger (No client-side DOM row filtering)
+    statusSelect?.addEventListener('change', () => {
+        filterForm?.requestSubmit();
+    });
+    searchInput?.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            filterForm?.requestSubmit();
+        }
+    });
+    searchInput?.addEventListener('admin:search-cleared', () => {
+        filterForm?.requestSubmit();
+    });
 
     const closeDeviceModal = () => {
         if (!modal) return;
@@ -42,27 +66,6 @@ export function initAdminUsers() {
     };
     window.closeDeviceModal = closeDeviceModal;
     modalBackdrop?.addEventListener('click', closeDeviceModal);
-
-    function applyUserFilters() {
-        const term = searchInput?.value.trim().toLowerCase() || '';
-        const activeStatus = statusSelect?.value || 'all';
-
-        rows.forEach(row => {
-            const matchesSearch = row.dataset.search?.includes(term);
-            const matchesStatus = activeStatus === 'all' || row.dataset.status === activeStatus;
-            row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
-        });
-    }
-
-    searchInput?.addEventListener('admin:search', applyUserFilters);
-    statusSelect?.addEventListener('change', applyUserFilters);
-    searchInput?.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            filterForm?.requestSubmit();
-        }
-    });
-    searchInput?.addEventListener('admin:search-cleared', () => filterForm?.requestSubmit());
 
     const closeActionModal = () => {
         actionModal?.classList.add('hidden');
@@ -98,6 +101,9 @@ export function initAdminUsers() {
         }
     });
 
+    // -------------------------------------------------------------
+    // Device Trust Management Modal
+    // -------------------------------------------------------------
     const openTrustModalFn = async function(roomUserId, memberName) {
         if (!modal || !modalBody) return;
         const titleEl = document.querySelector('#device-modal-title');
@@ -127,7 +133,7 @@ export function initAdminUsers() {
                     <div class="flex items-center gap-2.5">
                         <span class="material-symbols-outlined text-[20px] text-primary">laptop_mac</span>
                         <div>
-                        <div class="font-mono font-bold text-on-surface">${dev.device_uuid || dev.device_name || deviceFallbackLabel}</div>
+                            <div class="font-mono font-bold text-on-surface">${dev.device_uuid || dev.device_name || deviceFallbackLabel}</div>
                             <div class="text-[11px] text-outline">${dev.last_seen_at || '—'}</div>
                         </div>
                     </div>
@@ -135,7 +141,7 @@ export function initAdminUsers() {
                         ${dev.status === 'revoked' ? `
                             <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">${deviceRevokedLabel}</span>
                         ` : `
-                            <button type="button" data-revoke-device data-room-user-id="${roomUserId}" data-device-id="${dev.id}" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold border border-rose-200 transition-colors">
+                            <button type="button" data-revoke-device data-room-user-id="${roomUserId}" data-device-id="${dev.id}" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold border border-rose-200 transition-colors cursor-pointer">
                                 ${deviceRevokeLabel}
                             </button>
                         `}
@@ -151,7 +157,150 @@ export function initAdminUsers() {
     window.openDeviceTrustModal = openTrustModalFn;
     window.openDeviceModal = openTrustModalFn;
 
+    // -------------------------------------------------------------
+    // User Detail Modal Controller
+    // -------------------------------------------------------------
+    const closeUserDetailModal = () => {
+        if (!userDetailModal) return;
+        userDetailModal.classList.add('hidden');
+        userDetailModal.classList.remove('flex');
+        currentDetailUser = null;
+    };
+    window.closeUserDetailModal = closeUserDetailModal;
+
+    userDetailClose?.addEventListener('click', closeUserDetailModal);
+    userDetailCloseBtn?.addEventListener('click', closeUserDetailModal);
+    userDetailBackdrop?.addEventListener('click', closeUserDetailModal);
+
+    const openUserDetailModal = async (roomUserId) => {
+        if (!userDetailModal) return;
+
+        // Reset state
+        userDetailLoading?.classList.remove('hidden');
+        userDetailError?.classList.add('hidden');
+        userDetailContent?.classList.add('hidden');
+        currentDetailUser = null;
+
+        userDetailModal.classList.remove('hidden');
+        userDetailModal.classList.add('flex');
+
+        try {
+            const res = await fetch(`/admin/${roomSlug}/room-users/${roomUserId}`, {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!res.ok) throw new Error('Failed to load user detail');
+
+            const { data: user } = await res.json();
+            currentDetailUser = user;
+
+            // Translation Maps from dataset
+            const statusMap = {
+                active: userDetailModal.dataset.statusActive || 'Hoạt động',
+                blocked: userDetailModal.dataset.statusBlocked || 'Đã chặn',
+                pending: userDetailModal.dataset.statusPending || 'Chờ xác nhận',
+                removed: userDetailModal.dataset.statusRemoved || 'Đã rời phòng',
+            };
+            const roleMap = {
+                owner: userDetailModal.dataset.roleOwner || 'Chủ phòng',
+                admin: userDetailModal.dataset.roleAdmin || 'Quản trị viên',
+                member: userDetailModal.dataset.roleMember || 'Thành viên',
+            };
+
+            // Populate Header
+            const name = user.display_name || user.global_user?.name || 'Member #' + user.id;
+            const email = user.global_user?.email || '—';
+            const role = user.role || 'member';
+            const status = user.status || 'active';
+            const avatarUrl = user.global_user?.avatar_url || '';
+
+            const nameEl = document.querySelector('#user-detail-name');
+            const emailEl = document.querySelector('#user-detail-email');
+            const roleBadge = document.querySelector('#user-detail-role-badge');
+            const statusBadge = document.querySelector('#user-detail-status-badge');
+            const avatarImg = document.querySelector('#user-detail-avatar-img');
+            const avatarInitial = document.querySelector('#user-detail-avatar-initial');
+
+            if (nameEl) nameEl.textContent = name;
+            if (emailEl) emailEl.textContent = email;
+
+            if (roleBadge) {
+                roleBadge.textContent = roleMap[role] || role;
+                roleBadge.className = 'text-[11px] font-semibold px-2 py-0.5 rounded border ' + (
+                    role === 'owner' ? 'bg-amber-50 text-amber-800 border-amber-300' :
+                    role === 'admin' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                    'bg-surface-container text-secondary border-outline-variant'
+                );
+            }
+
+            if (statusBadge) {
+                statusBadge.textContent = statusMap[status] || status;
+                statusBadge.className = 'text-[11px] font-semibold px-2 py-0.5 rounded border ' + (
+                    status === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    'bg-rose-50 text-rose-700 border-rose-200'
+                );
+            }
+
+            if (avatarImg && avatarInitial) {
+                if (avatarUrl && !avatarUrl.includes('default-avatar.svg')) {
+                    avatarImg.src = avatarUrl;
+                    avatarImg.alt = name;
+                    avatarImg.classList.remove('hidden');
+                    avatarInitial.classList.add('hidden');
+                } else {
+                    avatarImg.classList.add('hidden');
+                    avatarInitial.textContent = name.charAt(0).toUpperCase();
+                    avatarInitial.classList.remove('hidden');
+                }
+            }
+
+            // Populate Contact & Location
+            const phoneEl = document.querySelector('#user-detail-phone');
+            const deskEl = document.querySelector('#user-detail-desk');
+            const deliveryEl = document.querySelector('#user-detail-delivery');
+
+            if (phoneEl) phoneEl.textContent = user.global_user?.phone || '—';
+            if (deskEl) deskEl.textContent = user.global_user?.desk_location || '—';
+            if (deliveryEl) deliveryEl.textContent = user.global_user?.delivery_location || '—';
+
+            // Populate Activity & Membership
+            const joinedEl = document.querySelector('#user-detail-joined');
+            const lastActiveEl = document.querySelector('#user-detail-last-active');
+            const totalOrdersEl = document.querySelector('#user-detail-total-orders');
+            const totalDebtEl = document.querySelector('#user-detail-total-debt');
+
+            if (joinedEl) joinedEl.textContent = user.created_at || '—';
+            if (lastActiveEl) lastActiveEl.textContent = user.last_active_at || '—';
+            if (totalOrdersEl) totalOrdersEl.textContent = String(user.total_orders ?? 0);
+            if (totalDebtEl) {
+                const debt = Number(user.total_debt || 0);
+                if (debt > 0) {
+                    totalDebtEl.textContent = new Intl.NumberFormat('vi-VN').format(debt) + ' ₫';
+                    totalDebtEl.className = 'font-bold text-sm font-mono mt-0.5 text-rose-600';
+                } else {
+                    totalDebtEl.textContent = '0 ₫';
+                    totalDebtEl.className = 'font-bold text-sm font-mono mt-0.5 text-emerald-600';
+                }
+            }
+
+            // Show Content
+            userDetailLoading?.classList.add('hidden');
+            userDetailContent?.classList.remove('hidden');
+
+        } catch (err) {
+            console.error('Failed to load user detail:', err);
+            userDetailLoading?.classList.add('hidden');
+            userDetailError?.classList.remove('hidden');
+        }
+    };
+
+    // Event Delegations
     document.addEventListener('click', (event) => {
+        const userDetailBtn = event.target.closest('[data-open-user-detail]');
+        if (userDetailBtn) {
+            openUserDetailModal(userDetailBtn.dataset.roomUserId);
+            return;
+        }
+
         const devicesButton = event.target.closest('[data-open-devices]');
         if (devicesButton) {
             openTrustModalFn(devicesButton.dataset.roomUserId, devicesButton.dataset.memberName || 'Member');
@@ -177,6 +326,23 @@ export function initAdminUsers() {
         }
 
         if (event.target.closest('[data-close-device-modal]')) closeDeviceModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (userDetailModal && !userDetailModal.classList.contains('hidden')) {
+                closeUserDetailModal();
+            }
+            if (modal && !modal.classList.contains('hidden')) {
+                closeDeviceModal();
+            }
+            if (createUserModal && !createUserModal.classList.contains('hidden')) {
+                closeCreateUserModal();
+            }
+            if (actionModal && !actionModal.classList.contains('hidden')) {
+                closeActionModal();
+            }
+        }
     });
 
     window.revokeDevice = async function(roomUserId, deviceId) {
@@ -339,6 +505,4 @@ export function initAdminUsers() {
             createUserSubmit.classList.remove('opacity-60', 'cursor-not-allowed');
         }
     });
-
 }
-

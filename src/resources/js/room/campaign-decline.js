@@ -1,7 +1,7 @@
 /** Submit the room-member participation decision without leaving the campaign menu. */
 export function initCampaignDecline() {
     const form = document.querySelector('[data-participation-form]');
-    if (!form) return;
+    if (!form || !(form instanceof HTMLFormElement)) return;
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();

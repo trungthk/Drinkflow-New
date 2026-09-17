@@ -31,14 +31,27 @@ class AdminCampaignDetailService
         ]);
 
         $orders = $campaign->orders->whereNotIn('status', [OrderStatus::Cancelled->value]);
-        $totalUsersCount = $room->roomUsers()->where('status', RoomUserStatus::Active)->count() ?: 1;
-        $orderedUsersCount = $orders->pluck('room_user_id')->unique()->count();
-        $declinedUsersCount = CampaignParticipant::query()
+        $allActiveRoomUsers = $room->roomUsers()
+            ->where('status', RoomUserStatus::Active)
+            ->with('globalUser')
+            ->get();
+        $totalUsersCount = $allActiveRoomUsers->count() ?: 1;
+        $orderedUserIds = $orders->pluck('room_user_id')->unique()->filter()->all();
+        $orderedUsersCount = count($orderedUserIds);
+
+        $declinedParticipantRoomUserIds = CampaignParticipant::query()
             ->where('campaign_id', $campaign->id)
             ->where('status', CampaignParticipant::STATUS_DECLINED)
-            ->whereHas('roomUser', fn ($query) => $query->where('room_id', $room->id)->where('status', RoomUserStatus::Active->value))
-            ->count();
-        $pendingUsersCount = max(0, $totalUsersCount - $orderedUsersCount - $declinedUsersCount);
+            ->whereIn('room_user_id', $allActiveRoomUsers->pluck('id'))
+            ->pluck('room_user_id')
+            ->all();
+
+        $declinedUsers = $allActiveRoomUsers->whereIn('id', $declinedParticipantRoomUserIds)->values();
+        $declinedUsersCount = $declinedUsers->count();
+
+        $orderedAndDeclinedIds = array_unique(array_merge($orderedUserIds, $declinedParticipantRoomUserIds));
+        $unresponsiveUsers = $allActiveRoomUsers->whereNotIn('id', $orderedAndDeclinedIds)->values();
+        $pendingUsersCount = $unresponsiveUsers->count();
 
         $aggregatedItems = collect();
         foreach ($orders as $order) {
@@ -161,6 +174,8 @@ class AdminCampaignDetailService
             'orderedUsersCount' => $orderedUsersCount,
             'declinedUsersCount' => $declinedUsersCount,
             'pendingUsersCount' => $pendingUsersCount,
+            'declinedUsers' => $declinedUsers,
+            'unresponsiveUsers' => $unresponsiveUsers,
             'grossSubtotal' => $grossSubtotal,
             'sponsorSubsidy' => $sponsorSubsidy,
             'netPayables' => $netPayables,

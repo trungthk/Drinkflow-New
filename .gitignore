@@ -1,0 +1,25 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+src/.env
+realtime/.env
+
+# Dependencies and generated assets
+node_modules/
+realtime/node_modules/
+src/node_modules/
+src/vendor/
+src/public/build/
+src/public/hot
+src/public/storage
+src/storage/*.key
+src/storage/logs/*.log
+src/storage/pail/
+src/.phpunit.result.cache
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

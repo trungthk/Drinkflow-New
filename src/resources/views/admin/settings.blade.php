@@ -2,15 +2,6 @@
     {{-- ── Header & Action Ribbon ────────────────────────────────────────── --}}
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
-            <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
-                <span>/</span>
-                <span>{{ __('admin.breadcrumb_rooms') }}</span>
-                <span>/</span>
-                <span class="text-on-surface font-semibold">{{ $room->name }}</span>
-                <span>/</span>
-                <span class="text-primary font-bold">{{ __('admin.payments_settings') }}</span>
-            </div>
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.room_settings_title') }}</h1>
         </div>
         <div class="flex items-center gap-2.5">
@@ -208,14 +199,6 @@
                     <div class="py-10 text-center text-outline border border-dashed border-outline-variant rounded-xl">
                         <span class="material-symbols-outlined text-4xl text-outline-variant">account_balance_wallet</span>
                         <p class="text-xs mt-1.5 font-medium">{{ __('admin.no_payment_accounts') }}</p>
-                        <button
-                            type="button"
-                            onclick="openCreateAccountModal()"
-                            class="mt-3 inline-flex items-center gap-1 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-xs font-bold transition-colors"
-                        >
-                            <span class="material-symbols-outlined text-[15px]">add</span>
-                            <span>{{ __('admin.add_new_account') }}</span>
-                        </button>
                     </div>
                 @endforelse
             </div>

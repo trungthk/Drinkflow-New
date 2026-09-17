@@ -140,6 +140,7 @@ class GlobalProfileTest extends TestCase
 
         $user->refresh();
         $this->assertEquals('0912 345 678', $user->phone);
+        $this->assertNotEquals('0912 345 678', \Illuminate\Support\Facades\DB::table('global_users')->where('id', $user->id)->value('phone'));
         $this->assertEquals('Keangnam Tầng 20 #B12', $user->desk_location);
         $this->assertEquals('Bàn làm việc Tầng 20 Keangnam Landmark', $user->delivery_location);
         $this->assertIsArray($user->preferences);

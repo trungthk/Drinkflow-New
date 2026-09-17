@@ -62,7 +62,18 @@ class AdminFeatureTest extends TestCase
             ->assertDontSee(__('admin.metric_fund_limit'))
             ->assertSee('ROOM-ONE')
             ->assertSee('ROOM-TWO')
-            ->assertSee('Live Coffee');
+            ->assertSee('Live Coffee')
+            ->assertSee('data-admin-language-switcher', false)
+            ->assertSee(route('locale.switch', 'en'))
+            ->assertSee(route('locale.switch', 'ja'))
+            ->assertSee(route('locale.switch', 'vi'))
+            ->assertSee('RO'); // initials fallback
+
+        $admin->update(['avatar_url' => 'uploads/admin-avatars/test.jpg']);
+        $avatarResponse = $this->actingAs($admin->fresh(), 'admin')->get('/admin');
+        $avatarResponse->assertOk()
+            ->assertSee(route('admin.profile.avatar.show'))
+            ->assertSee('loading="lazy"', false);
     }
 
     public function test_admin_can_view_and_update_own_profile(): void
@@ -77,6 +88,9 @@ class AdminFeatureTest extends TestCase
             ->assertSee('/admin/profile')
             ->assertDontSee(__('admin.room_manager_role'))
             ->assertDontSee(__('admin.active_sessions'))
+            ->assertSee('refresh-captcha-btn')
+            ->assertSee('lock_reset')
+            ->assertSee('verified_user')
             ->assertSee('type="submit"', false);
 
         $this->actingAs($admin, 'admin')->patch('/admin/profile', [
@@ -93,10 +107,11 @@ class AdminFeatureTest extends TestCase
         $this->assertDatabaseHas('admin_accounts', [
             'id' => $admin->id,
             'name' => 'Updated Admin',
-            'phone' => '0900000000',
             'department' => 'Operations',
             'two_factor_enabled' => true,
         ]);
+        $this->assertSame('0900000000', $admin->fresh()->phone);
+        $this->assertNotEquals('0900000000', \Illuminate\Support\Facades\DB::table('admin_accounts')->where('id', $admin->id)->value('phone'));
         $this->assertDatabaseHas('audit_logs', ['event' => 'admin.profile_updated', 'target_id' => $admin->id]);
         $this->assertDatabaseHas('audit_logs', ['event' => 'admin.two_factor_updated', 'target_id' => $admin->id]);
     }
@@ -716,6 +731,7 @@ class AdminFeatureTest extends TestCase
             'room_id' => $room->id,
             'name' => 'Friday Coffee',
             'restaurant' => 'Highlands',
+            'sponsor_type' => 'custom',
             'status' => 'active',
         ]);
 
@@ -754,7 +770,8 @@ class AdminFeatureTest extends TestCase
         $this->assertDatabaseHas('debts', [
             'campaign_id' => $campaign->id,
             'room_user_id' => $roomUser->id,
-            'original_amount' => 50000,
+            'original_amount' => 60000,
+            'sponsor_amount' => 10000,
             'remaining_amount' => 50000,
             'status' => 'unpaid',
         ]);
@@ -940,10 +957,13 @@ class AdminFeatureTest extends TestCase
         $this->assertDatabaseHas('global_users', [
             'email' => 'brandnewmember@example.test',
             'name' => 'New Guy',
-            'phone' => '0987654321',
             'desk_location' => 'Floor 3',
             'status' => 'active',
         ]);
+        $createdUser = \App\Models\GlobalUser::where('email', 'brandnewmember@example.test')->first();
+        $this->assertNotNull($createdUser);
+        $this->assertSame('0987654321', $createdUser->phone);
+        $this->assertNotEquals('0987654321', \Illuminate\Support\Facades\DB::table('global_users')->where('id', $createdUser->id)->value('phone'));
 
         $this->assertDatabaseHas('room_users', [
             'room_id' => $room->id,
@@ -1081,5 +1101,149 @@ class AdminFeatureTest extends TestCase
         ]);
 
         $response->assertCreated();
+    }
+
+    public function test_admin_can_view_room_user_detail_and_directory_page_has_modal(): void
+    {
+        $admin = $this->admin('userdetailadmin@example.test');
+        $room = $this->roomFor($admin, 'room-detail-test');
+
+        $globalUser = \App\Models\GlobalUser::create([
+            'name' => 'Tran Thi B',
+            'normalized_name' => 'TRAN THI B',
+            'email' => 'ttb@example.test',
+            'phone' => '0912345678',
+            'desk_location' => 'Keangnam #10',
+            'delivery_location' => 'Desk #10 Floor 12',
+            'preferences' => ['sugar' => '50%', 'ice' => '70%', 'toppings' => ['Thạch phô mai']],
+            'status' => 'active',
+        ]);
+
+        $roomUser = \App\Models\RoomUser::create([
+            'room_id' => $room->id,
+            'global_user_id' => $globalUser->id,
+            'user_code' => 'DF-TTB',
+            'display_name' => 'Tran Thi B',
+            'normalized_name' => 'TRAN THI B',
+            'role' => 'member',
+            'status' => 'active',
+        ]);
+
+        $pageResponse = $this->actingAs($admin, 'admin')->get("/admin/{$room->slug}/room-users/directory");
+        $pageResponse->assertOk()
+            ->assertSee('user-detail-modal')
+            ->assertSee('data-open-user-detail', false)
+            ->assertSee('ttb@example.test')
+            ->assertSee('Tran Thi B');
+
+        $detailResponse = $this->actingAs($admin, 'admin')->getJson("/admin/{$room->slug}/room-users/{$roomUser->id}");
+        $detailResponse->assertOk()
+            ->assertJsonPath('data.id', $roomUser->id)
+            ->assertJsonPath('data.user_code', 'DF-TTB')
+            ->assertJsonPath('data.global_user.email', 'ttb@example.test')
+            ->assertJsonPath('data.global_user.phone', '0912345678')
+            ->assertJsonPath('data.global_user.desk_location', 'Keangnam #10')
+            ->assertJsonPath('data.global_user.preferences.sugar', '50%');
+    }
+
+    public function test_admin_can_update_campaign_to_active_status(): void
+    {
+        $admin = $this->admin('launchcamp@example.test');
+        $room = $this->roomFor($admin, 'launch-camp-room');
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Draft Campaign',
+            'restaurant' => 'Highlands Coffee',
+            'status' => CampaignStatus::Draft,
+            'sponsor_type' => 'none',
+            'max_budget' => 50000,
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->patchJson("/admin/{$room->slug}/campaigns/{$campaign->id}", [
+            'name' => 'Draft Campaign',
+            'restaurant' => 'Highlands Coffee',
+            'status' => 'active',
+            'sponsor_type' => 'none',
+            'max_budget' => 50000,
+        ]);
+
+        $response->assertOk();
+        $this->assertSame(CampaignStatus::Active, $campaign->fresh()->status);
+        $this->assertNotNull($campaign->fresh()->started_at);
+    }
+
+    public function test_admin_campaign_detail_view_renders_declined_and_unresponsive_tabs_with_badges(): void
+    {
+        $admin = $this->admin('detailview@example.test');
+        $room = $this->roomFor($admin, 'detail-view-room');
+
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Detail View Campaign',
+            'restaurant' => 'Phuc Long',
+            'status' => CampaignStatus::Active,
+            'sponsor_type' => 'none',
+        ]);
+
+        $gUser1 = \App\Models\GlobalUser::create([
+            'email' => 'ordered@example.test',
+            'name' => 'Ordered Member',
+            'desk_location' => 'Tech Dept Floor 3',
+        ]);
+        $roomUser1 = $room->roomUsers()->create([
+            'global_user_id' => $gUser1->id,
+            'user_code' => 'DF-ORD',
+            'display_name' => 'Ordered Member',
+            'status' => 'active',
+        ]);
+
+        $gUser2 = \App\Models\GlobalUser::create([
+            'email' => 'declined@example.test',
+            'name' => 'Declined Member',
+            'desk_location' => 'Sales Dept Floor 2',
+        ]);
+        $roomUser2 = $room->roomUsers()->create([
+            'global_user_id' => $gUser2->id,
+            'user_code' => 'DF-DEC',
+            'display_name' => 'Declined Member',
+            'status' => 'active',
+        ]);
+        \App\Models\CampaignParticipant::create([
+            'campaign_id' => $campaign->id,
+            'room_user_id' => $roomUser2->id,
+            'status' => \App\Models\CampaignParticipant::STATUS_DECLINED,
+        ]);
+
+        $gUser3 = \App\Models\GlobalUser::create([
+            'email' => 'pending@example.test',
+            'name' => 'Pending Member',
+            'desk_location' => 'HR Dept Floor 1',
+        ]);
+        $room->roomUsers()->create([
+            'global_user_id' => $gUser3->id,
+            'user_code' => 'DF-PEN',
+            'display_name' => 'Pending Member',
+            'status' => 'active',
+        ]);
+
+        \App\Models\Order::create([
+            'room_id' => $room->id,
+            'campaign_id' => $campaign->id,
+            'room_user_id' => $roomUser1->id,
+            'subtotal' => 30000,
+            'sponsor_amount' => 0,
+            'final_amount' => 30000,
+            'status' => \App\Enums\OrderStatus::Submitted,
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->get("/admin/{$room->slug}/campaigns/{$campaign->id}?view=detail");
+
+        $response->assertOk()
+            ->assertSee(__('admin.declined_users_tab'))
+            ->assertSee(__('admin.unresponsive_users_tab'))
+            ->assertSee('Declined Member')
+            ->assertSee('Sales Dept Floor 2')
+            ->assertSee('Pending Member')
+            ->assertSee('HR Dept Floor 1');
     }
 }

@@ -94,4 +94,16 @@ class Room extends Model
             ->where('remaining_amount', '>', 0)
             ->exists();
     }
+
+    /**
+     * Check if the room currently has any live active campaign.
+     *
+     * @return bool True if an active campaign exists in the room, false otherwise.
+     */
+    public function hasActiveCampaign(): bool
+    {
+        return $this->campaigns()
+            ->where('status', \App\Enums\CampaignStatus::Active)
+            ->exists();
+    }
 }

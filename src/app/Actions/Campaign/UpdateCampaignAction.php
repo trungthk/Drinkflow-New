@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Campaign;
 
 use App\Enums\CampaignItemStatus;
+use App\Enums\CampaignStatus;
 use App\Enums\PaymentAccountStatus;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
@@ -12,6 +13,7 @@ use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Models\RoomUser;
 use App\Services\Audit\AuditService;
+use App\Services\Media\ImageUploadService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -22,10 +24,12 @@ class UpdateCampaignAction
      *
      * @param CreateCampaignItemAction $createItemAction Item creation action.
      * @param AuditService $auditService Audit logger service.
+     * @param ImageUploadService $imageUploadService Image upload and storage cleanup service.
      */
     public function __construct(
         private readonly CreateCampaignItemAction $createItemAction,
-        private readonly AuditService $auditService
+        private readonly AuditService $auditService,
+        private readonly ImageUploadService $imageUploadService
     ) {
     }
 
@@ -42,17 +46,6 @@ class UpdateCampaignAction
     {
         /** @var Room $room */
         $room = $campaign->room;
-        $settings = $room->roomSettings()->whereIn('key', ['max_campaign_budget'])->get()->keyBy('key');
-        if ($settings->has('max_campaign_budget') && $settings->get('max_campaign_budget')?->value !== null) {
-            $maxCampaignBudget = (int) $settings->get('max_campaign_budget')->value;
-            if ($maxCampaignBudget > 0 && array_key_exists('max_budget', $data) && $data['max_budget'] !== null && (int) $data['max_budget'] > $maxCampaignBudget) {
-                throw ValidationException::withMessages([
-                    'max_budget' => __('admin.campaign_budget_exceeds_limit', [
-                        'limit' => number_format($maxCampaignBudget, 0, ',', '.'),
-                    ]),
-                ]);
-            }
-        }
 
         $sponsorType = (string) ($data['sponsor_type'] ?? $campaign->sponsor_type ?? 'none');
         if ($sponsorType === 'none') {
@@ -120,7 +113,14 @@ class UpdateCampaignAction
 
         return DB::transaction(function () use ($campaign, $data, $hasItems, $items): Campaign {
             $before = $campaign->toArray();
-            $campaign->update(collect($data)->except(['status'])->all());
+            $updateData = collect($data)->all();
+            if (isset($data['status'])) {
+                $statusValue = $data['status'] instanceof \BackedEnum ? $data['status']->value : (string) $data['status'];
+                if ($statusValue === CampaignStatus::Active->value && empty($campaign->started_at)) {
+                    $updateData['started_at'] = now();
+                }
+            }
+            $campaign->update($updateData);
 
             if ($hasItems) {
                 $existingItems = $campaign->items()->with(['toppings', 'sizes'])->get()->keyBy('id');
@@ -133,12 +133,19 @@ class UpdateCampaignAction
                     $price = (int) ($itemData['price'] ?? $itemData['base_price'] ?? 0);
 
                     if ($item !== null) {
+                        $oldImageUrl = $item->image_url;
+                        $newImageUrl = $itemData['image_url'] ?? null;
+                        if (!empty($oldImageUrl) && $oldImageUrl !== $newImageUrl) {
+                            $this->imageUploadService->deleteFile($oldImageUrl);
+                        }
+
                         $item->update([
                             'name' => $itemData['name'],
                             'category' => $itemData['category'] ?? null,
                             'description' => $itemData['description'] ?? null,
-                            'image_url' => $itemData['image_url'] ?? null,
+                            'image_url' => $newImageUrl,
                             'base_price' => $price,
+                            'status' => $itemData['status'] ?? $item->status ?? CampaignItemStatus::Active->value,
                             'sort_order' => $sortOrder,
                         ]);
                         $item->toppings()->delete();
@@ -150,7 +157,7 @@ class UpdateCampaignAction
                             'description' => $itemData['description'] ?? null,
                             'image_url' => $itemData['image_url'] ?? null,
                             'base_price' => $price,
-                            'status' => CampaignItemStatus::Active->value,
+                            'status' => $itemData['status'] ?? CampaignItemStatus::Active->value,
                             'sort_order' => $sortOrder,
                         ]);
                     }
@@ -177,6 +184,12 @@ class UpdateCampaignAction
 
                 $itemsToDelete = $existingItems->keys()->diff($processedItemIds);
                 if ($itemsToDelete->isNotEmpty()) {
+                    $deletedItems = $existingItems->only($itemsToDelete->all());
+                    foreach ($deletedItems as $deletedItem) {
+                        if (!empty($deletedItem->image_url)) {
+                            $this->imageUploadService->deleteFile($deletedItem->image_url);
+                        }
+                    }
                     CampaignItem::query()->whereIn('id', $itemsToDelete->all())->delete();
                 }
             }

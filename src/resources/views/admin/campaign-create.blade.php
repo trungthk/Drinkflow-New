@@ -7,6 +7,7 @@
      data-crawler-menu-category="{{ __('admin.crawler_menu_category') }}"
      data-online-restaurant-name="{{ __('admin.online_restaurant_name') }}"
      data-store-url="{{ route('admin.campaigns.store', $room) }}"
+     data-index-url="{{ route('admin.campaigns.page', $room) }}"
      data-image-upload-url="{{ route('admin.campaigns.menu-images.store', $room) }}"
      x-data="campaignCreateComponent(@js($campaignDefaults), @js($roomUsers->map(fn ($roomUser) => [
          'id' => $roomUser->id,
@@ -30,12 +31,14 @@
 
         <div class="flex items-center gap-2.5 self-end sm:self-auto">
             <button type="button" @click="saveDraft()" :disabled="submitting" class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-1.5 disabled:opacity-50">
-                <span class="material-symbols-outlined text-[16px]">save</span>
-                <span>{{ __('admin.save_draft') }}</span>
+                <span x-show="submitting && submittingAction === 'draft'" class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                <span x-show="!(submitting && submittingAction === 'draft')" class="material-symbols-outlined text-[16px]">save</span>
+                <span x-text="submitting && submittingAction === 'draft' ? '{{ __('admin.processing') }}' : '{{ __('admin.save_draft') }}'"></span>
             </button>
             <button type="button" @click="publishCampaign()" :disabled="submitting" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50">
-                <span class="material-symbols-outlined text-[16px]">rocket_launch</span>
-                <span>{{ __('admin.publish_campaign') }}</span>
+                <span x-show="submitting && submittingAction === 'publish'" class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                <span x-show="!(submitting && submittingAction === 'publish')" class="material-symbols-outlined text-[16px]">rocket_launch</span>
+                <span x-text="submitting && submittingAction === 'publish' ? '{{ __('admin.processing') }}' : '{{ __('admin.publish_campaign') }}'"></span>
             </button>
         </div>
     </div>
@@ -319,13 +322,20 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             <template x-for="entry in visibleMenuItems" :key="entry.index">
-                <article class="flex items-center gap-3 rounded-xl border border-outline-variant bg-surface p-3 hover:border-primary/40 transition-colors">
+                <article class="flex items-center gap-3 rounded-xl border border-outline-variant bg-surface p-3 hover:border-primary/40 transition-colors" :class="entry.item.status === 'inactive' ? 'opacity-65 bg-surface-container-low/50' : ''">
                     <img x-show="entry.item.image_url && !entry.item.image_load_failed" x-lazy-src="entry.item.image_url" :alt="entry.item.name || '{{ __('admin.item_image_alt') }}'" x-on:load="entry.item.image_load_failed = false" x-on:error="entry.item.image_load_failed = true" loading="lazy" class="h-16 w-16 shrink-0 rounded-lg object-cover border border-outline-variant">
                     <div x-show="!entry.item.image_url || entry.item.image_load_failed" class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg border border-outline-variant bg-surface-container-low text-outline">
                         <span class="material-symbols-outlined">restaurant</span>
                     </div>
                     <div class="min-w-0 flex-1">
-                        <h3 class="truncate text-sm font-semibold text-on-surface" x-text="entry.item.name"></h3>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <h3 class="truncate text-sm font-semibold text-on-surface" x-text="entry.item.name"></h3>
+                            <template x-if="entry.item.status === 'inactive'">
+                                <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-700">
+                                    {{ __('admin.status_inactive') }}
+                                </span>
+                            </template>
+                        </div>
                         <p class="mt-0.5 truncate text-[11px] text-outline" x-text="entry.item.category || '{{ __('admin.uncategorized') }}'"></p>
                         <p class="mt-1 font-mono text-xs font-bold text-primary" x-text="formatVND(entry.item.price)"></p>
                     </div>
@@ -430,6 +440,26 @@
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.item_description_label') }}</label>
                     <textarea x-model="newItem.description" rows="2" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface"></textarea>
                 </div>
+
+                <!-- Item Status Checkbox / Switch -->
+                <div class="sm:col-span-2 pt-3 border-t border-outline-variant/60 flex items-center justify-between">
+                    <div>
+                        <label for="create-modal-item-status" class="text-xs font-semibold text-on-surface cursor-pointer flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[16px] text-primary" x-show="newItem.status !== 'inactive'">check_circle</span>
+                            <span class="material-symbols-outlined text-[16px] text-outline" x-show="newItem.status === 'inactive'">do_not_disturb_on</span>
+                            <span>{{ __('admin.item_status_active_label') }}</span>
+                        </label>
+                        <p class="text-[11px] text-outline mt-0.5">{{ __('admin.item_status_active_desc') }}</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input id="create-modal-item-status"
+                               type="checkbox"
+                               :checked="newItem.status !== 'inactive'"
+                               @change="newItem.status = $event.target.checked ? 'active' : 'inactive'"
+                               class="sr-only peer">
+                        <div class="w-9 h-5 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
             </div>
 
             <div x-show="itemModalTab === 'additional'" x-cloak class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -444,8 +474,10 @@
             </div>
             <div class="mt-5 flex justify-end gap-2">
                 <button type="button" @click="showAddItemModal = false; editingItemIndex = null" :disabled="itemSubmitting" class="px-4 py-2 rounded-lg bg-surface-container text-on-surface text-xs font-semibold disabled:opacity-50">{{ __('admin.cancel') }}</button>
-                <button type="button" @click="confirmAddItem()" :disabled="itemSubmitting || imageUploading" class="min-w-32 px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold disabled:opacity-60 flex items-center justify-center gap-2">
-                    <span x-show="itemSubmitting" class="material-symbols-outlined animate-spin text-[17px]">progress_activity</span>
+                <button type="button" @click="confirmAddItem()" :disabled="itemSubmitting || imageUploading" class="min-w-32 px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold disabled:opacity-60 flex items-center justify-center gap-1.5 transition-colors">
+                    <span x-show="itemSubmitting" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                    <span x-show="!itemSubmitting && editingItemIndex === null" class="material-symbols-outlined text-[16px]">add</span>
+                    <span x-show="!itemSubmitting && editingItemIndex !== null" class="material-symbols-outlined text-[16px]">check</span>
                     <span x-show="!itemSubmitting && editingItemIndex === null">{{ __('admin.add_new_item_btn') }}</span>
                     <span x-show="!itemSubmitting && editingItemIndex !== null">{{ __('admin.save_item_changes') }}</span>
                     <span x-show="itemSubmitting">{{ __('admin.processing') }}</span>
@@ -468,8 +500,12 @@
             </div>
             <p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">{{ __('admin.confirm_campaign_publish_message') }}</p>
             <div class="flex justify-end gap-2 pt-4">
-                <button type="button" @click="showConfirmModal = false" class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface text-xs font-semibold">{{ __('admin.cancel') }}</button>
-                <button type="button" @click="confirmPublish()" :disabled="submitting" class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold disabled:opacity-50">{{ __('admin.confirm_publish_campaign') }}</button>
+                <button type="button" @click="showConfirmModal = false" :disabled="submitting" class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface text-xs font-semibold disabled:opacity-50">{{ __('admin.cancel') }}</button>
+                <button type="button" @click="confirmPublish()" :disabled="submitting" class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5">
+                    <span x-show="submitting && submittingAction === 'publish'" class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                    <span x-show="!(submitting && submittingAction === 'publish')" class="material-symbols-outlined text-[16px]">rocket_launch</span>
+                    <span x-text="submitting && submittingAction === 'publish' ? '{{ __('admin.processing') }}' : '{{ __('admin.confirm_publish_campaign') }}'"></span>
+                </button>
             </div>
         </div>
     </div>

@@ -2,7 +2,7 @@
 
 /**
  * DrinkFlow Unified Service Orchestrator
- * Starts Backend (Laravel), Frontend (Vite), and Realtime Gateway (Socket.IO) concurrently.
+ * Starts Backend (Laravel), Queue worker, Frontend (Vite), and Realtime Gateway concurrently.
  */
 
 const { spawn, spawnSync } = require('child_process');
@@ -32,6 +32,13 @@ const services = [
         color: colors.cyan,
         cmd: phpCmd,
         args: ['artisan', 'serve', '--port', '8080'],
+        cwd: srcDir
+    },
+    {
+        name: 'Queue',
+        color: colors.yellow,
+        cmd: phpCmd,
+        args: ['artisan', 'queue:work', '--tries=3', '--timeout=5', '--sleep=1'],
         cwd: srcDir
     },
     {
@@ -69,7 +76,7 @@ for (const command of preparationCommands) {
     }
 }
 
-console.log(`Starting all 3 DrinkFlow services concurrently...\n`);
+console.log(`Starting all 4 DrinkFlow services concurrently...\n`);
 
 const children = [];
 

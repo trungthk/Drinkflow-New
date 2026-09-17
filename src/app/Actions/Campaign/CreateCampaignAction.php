@@ -48,16 +48,6 @@ class CreateCampaignAction
             '{creator_name}' => $creatorName,
         ]);
         $data['name'] = trim((string) ($data['name'] ?? '')) !== '' ? $data['name'] : $defaultName;
-        if ($settings->has('max_campaign_budget') && $settings->get('max_campaign_budget')?->value !== null) {
-            $maxCampaignBudget = (int) $settings->get('max_campaign_budget')->value;
-            if ($maxCampaignBudget > 0 && array_key_exists('max_budget', $data) && $data['max_budget'] !== null && (int) $data['max_budget'] > $maxCampaignBudget) {
-                throw ValidationException::withMessages([
-                    'max_budget' => __('admin.campaign_budget_exceeds_limit', [
-                        'limit' => number_format($maxCampaignBudget, 0, ',', '.'),
-                    ]),
-                ]);
-            }
-        }
         if (!array_key_exists('max_budget', $data) || $data['max_budget'] === null) {
             $data['max_budget'] = (int) ($settings->get('max_campaign_budget')?->value ?? 70_000);
         }
@@ -97,10 +87,12 @@ class CreateCampaignAction
         unset($data['items']);
 
         $campaign = DB::transaction(function () use ($room, $data, $adminId, $items): Campaign {
+            $status = $data['status'] ?? 'draft';
             $campaign = Campaign::create(array_merge($data, [
                 'room_id' => $room->id,
                 'creator_admin_id' => $adminId,
-                'status' => $data['status'] ?? 'draft',
+                'status' => $status,
+                'started_at' => $status === 'active' ? ($data['started_at'] ?? now()) : null,
             ]));
 
             foreach ($items as $sortOrder => $itemData) {
@@ -110,7 +102,7 @@ class CreateCampaignAction
                     'description' => $itemData['description'] ?? null,
                     'image_url' => $itemData['image_url'] ?? null,
                     'base_price' => $itemData['price'],
-                    'status' => CampaignItemStatus::Active->value,
+                    'status' => $itemData['status'] ?? CampaignItemStatus::Active->value,
                     'sort_order' => $sortOrder,
                 ]);
 

@@ -21,6 +21,33 @@
     $initialQrUrl = $campaignAccount && $accountNumber
         ? 'https://img.vietqr.io/image/' . rawurlencode((string) $bankCode) . '-' . rawurlencode((string) $accountNumber) . '-compact2.png?amount=' . $orderFinalAmount . '&addInfo=' . rawurlencode((string) $orderCode) . '&accountName=' . rawurlencode((string) $accountName)
         : 'https://img.vietqr.io/image/MB-0388999888-compact2.png?amount=' . $orderFinalAmount . '&addInfo=' . rawurlencode((string) $orderCode);
+
+    $orderSponsorAllocations = collect($orderCampaign?->sponsor_allocations ?? []);
+    $orderSponsorUserIds = $orderSponsorAllocations->pluck('room_user_id')->filter()->map(fn($id) => (int) $id);
+    $orderSponsorRoomUsers = $orderSponsorUserIds->isNotEmpty()
+        ? $room->roomUsers()->with('globalUser')->whereIn('id', $orderSponsorUserIds)->get()->keyBy('id')
+        : collect();
+
+    $orderSponsorsList = $orderSponsorAllocations->map(function ($alloc) use ($orderSponsorRoomUsers, $activeOrder) {
+        $user = $orderSponsorRoomUsers->get((int) ($alloc['room_user_id'] ?? 0));
+        $name = $user?->display_name ?? $user?->globalUser?->name ?? __('admin.sponsor_info');
+        $percentage = (float) ($alloc['percentage'] ?? 0);
+        $orderSponsorAmt = (int) ($activeOrder?->sponsor_amount ?? 0);
+        $amount = (int) round(($orderSponsorAmt * $percentage) / 100);
+        return [
+            'name' => $name,
+            'percentage' => $percentage,
+            'amount' => $amount,
+        ];
+    });
+
+    if ($orderSponsorsList->isEmpty() && !empty($orderCampaign?->sponsor_name)) {
+        $orderSponsorsList->push([
+            'name' => $orderCampaign->sponsor_name,
+            'percentage' => (float) ($orderCampaign->sponsor_percentage ?? ($orderCampaign->sponsor_type === 'full' ? 100 : 0)),
+            'amount' => (int) ($activeOrder?->sponsor_amount ?? 0),
+        ]);
+    }
 @endphp
 
 <x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms"
@@ -458,20 +485,42 @@
                                 </div>
                                 @if((int) ($activeOrder->sponsor_amount ?? 0) > 0)
                                     <div
-                                        class="flex items-center justify-between font-body-md text-body-md text-primary font-medium bg-primary-fixed/20 p-2 rounded-lg">
-                                        <span class="flex items-center gap-1">
-                                            <span class="material-symbols-outlined text-[16px]">redeem</span>
-                                            {{ __('room.orders.sponsor_discount') }}:
-                                        </span>
-                                        <span
-                                            class="font-tabular-nums text-tabular-nums font-bold">-{{ number_format($activeOrder->sponsor_amount, 0, ',', '.') }}đ</span>
-                                    </div>
-                                    @if(($orderCampaign?->sponsor_type ?? 'none') !== 'none' && $sponsorAllocations->isNotEmpty())
-                                        <div class="flex items-center justify-between px-2 text-[11px] text-on-surface-variant">
-                                            <span>{{ $orderCampaign->sponsor_name }}</span>
-                                            @if($sponsorPercentage > 0)<span class="font-mono">{{ number_format($sponsorPercentage, 0) }}%</span>@endif
+                                        class="space-y-2 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-200/60">
+                                        <div
+                                            class="flex items-center justify-between font-body-md text-body-md text-primary font-medium">
+                                            <span class="flex items-center gap-1.5">
+                                                <span class="material-symbols-outlined text-[16px] text-emerald-600">redeem</span>
+                                                <span class="font-bold text-emerald-950">{{ __('room.orders.sponsor_discount') }}:</span>
+                                            </span>
+                                            <span
+                                                class="font-tabular-nums text-tabular-nums font-bold text-emerald-700 font-mono">-{{ number_format($activeOrder->sponsor_amount, 0, ',', '.') }}đ</span>
                                         </div>
-                                    @endif
+                                        @if($orderSponsorsList->isNotEmpty())
+                                            <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                                                @foreach ($orderSponsorsList as $sp)
+                                                    <span
+                                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs font-medium shadow-2xs">
+                                                        <span
+                                                            class="material-symbols-outlined text-[14px] text-emerald-600">volunteer_activism</span>
+                                                        <span
+                                                            class="font-bold text-emerald-950">{{ $sp['name'] }}</span>
+                                                        @if (($sp['percentage'] ?? 0) > 0)
+                                                            <span
+                                                                class="font-mono bg-emerald-600 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                                                                {{ $sp['percentage'] }}%
+                                                            </span>
+                                                        @endif
+                                                        @if (($sp['amount'] ?? 0) > 0)
+                                                            <span
+                                                                class="font-mono text-emerald-800 text-[11px] font-semibold">
+                                                                {{ number_format($sp['amount'], 0, ',', '.') }} ₫
+                                                            </span>
+                                                        @endif
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </div>
                                 @endif
                                 @if((int) ($activeOrder->discount_amount ?? 0) > 0)
                                     <div
@@ -673,254 +722,260 @@
                     }
                 }
             </style>
-            <div x-show="qrModalOpen" x-cloak
-                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-surface/50 backdrop-blur-xs transition-opacity duration-200"
-                role="dialog">
-                <div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl border border-outline-variant overflow-hidden flex flex-col"
-                    @click.outside="qrModalOpen = false">
-                    <div
-                        class="p-space-md border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
-                        <div class="flex items-center gap-space-sm">
-                            <div
-                                class="w-9 h-9 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant">
-                                <span class="material-symbols-outlined text-[20px]">qr_code_2</span>
-                            </div>
-                            <div>
-                                <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">
-                                    {{ __('room.orders.pay_now_vietqr') }}
-                                </h3>
-                                <p class="font-body-sm text-body-sm text-on-surface-variant">{{ $room->name }}</p>
-                            </div>
-                        </div>
-                        <button
-                            class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer"
-                            @click="qrModalOpen = false">
-                            <span class="material-symbols-outlined text-[20px]">close</span>
-                        </button>
-                    </div>
-                    <div class="p-space-md flex flex-col gap-space-md">
+            <template x-teleport="body">
+                <div x-show="qrModalOpen" x-cloak
+                    class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md transition-opacity duration-200"
+                    role="dialog">
+                    <div class="bg-surface-container-lowest w-full max-w-md rounded-2xl shadow-2xl border border-outline-variant overflow-hidden flex flex-col"
+                        @click.outside="qrModalOpen = false">
                         <div
-                            class="flex flex-col items-center justify-center p-space-md bg-surface-container-low rounded-xl border border-outline-variant/60">
-                            <div
-                                class="vietqr-snake-box relative bg-surface-container-lowest p-3 rounded-2xl shadow-sm border border-outline-variant flex flex-col items-center overflow-hidden">
-                                <!-- SVG Snake Border Animation -->
-                                <svg class="vietqr-snake-svg" viewBox="0 0 100 100" preserveAspectRatio="none"
-                                    aria-hidden="true">
-                                    <rect class="vietqr-snake-track" x="1.5" y="1.5" width="97" height="97" rx="8" ry="8"
-                                        pathLength="100" />
-                                    <rect class="vietqr-snake-line" x="1.5" y="1.5" width="97" height="97" rx="8" ry="8"
-                                        pathLength="100" />
-                                </svg>
-                                <img :src="qrData.qrUrl" alt="VietQR"
-                                    class="w-48 h-48 object-contain rounded-lg relative z-0" loading="lazy" />
+                            class="p-space-md border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+                            <div class="flex items-center gap-space-sm">
                                 <div
-                                    class="mt-2 flex items-center gap-1 text-[11px] font-label-sm text-secondary relative z-0">
-                                    <span class="material-symbols-outlined text-[14px]">bolt</span>
-                                    <span>{{ __('room.orders.scan_banking_app') }}</span>
+                                    class="w-9 h-9 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed-variant">
+                                    <span class="material-symbols-outlined text-[20px]">qr_code_2</span>
+                                </div>
+                                <div>
+                                    <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">
+                                        {{ __('room.orders.pay_now_vietqr') }}
+                                    </h3>
+                                    <p class="font-body-sm text-body-sm text-on-surface-variant">{{ $room->name }}</p>
                                 </div>
                             </div>
-                            <div class="mt-3 text-center">
-                                <span
-                                    class="font-body-sm text-body-sm text-on-surface-variant">{{ __('room.orders.payment_amount_label') }}:</span>
-                                <div class="font-display-lg text-display-lg font-bold text-error tracking-tight font-tabular-nums"
-                                    x-text="qrData.formattedAmount"></div>
-                            </div>
+                            <button
+                                class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer"
+                                @click="qrModalOpen = false">
+                                <span class="material-symbols-outlined text-[20px]">close</span>
+                            </button>
                         </div>
-                        <div
-                            class="flex flex-col gap-space-xs bg-surface-container-lowest border border-outline-variant rounded-xl p-space-sm">
+                        <div class="p-space-md flex flex-col gap-space-md">
                             <div
-                                class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
-                                <span class="text-on-surface-variant">{{ __('room.orders.bank_label') }}:</span>
-                                <span class="font-semibold text-on-surface flex items-center gap-1">
+                                class="flex flex-col items-center justify-center p-space-md bg-surface-container-low rounded-xl border border-outline-variant/60">
+                                <div
+                                    class="vietqr-snake-box relative bg-surface-container-lowest p-3 rounded-2xl shadow-sm border border-outline-variant flex flex-col items-center overflow-hidden">
+                                    <!-- SVG Snake Border Animation -->
+                                    <svg class="vietqr-snake-svg" viewBox="0 0 100 100" preserveAspectRatio="none"
+                                        aria-hidden="true">
+                                        <rect class="vietqr-snake-track" x="1.5" y="1.5" width="97" height="97" rx="8" ry="8"
+                                            pathLength="100" />
+                                        <rect class="vietqr-snake-line" x="1.5" y="1.5" width="97" height="97" rx="8" ry="8"
+                                            pathLength="100" />
+                                    </svg>
+                                    <img :src="qrData.qrUrl" alt="VietQR"
+                                        class="w-48 h-48 object-contain rounded-lg relative z-0" loading="lazy" />
+                                    <div
+                                        class="mt-2 flex items-center gap-1 text-[11px] font-label-sm text-secondary relative z-0">
+                                        <span class="material-symbols-outlined text-[14px]">bolt</span>
+                                        <span>{{ __('room.orders.scan_banking_app') }}</span>
+                                    </div>
+                                </div>
+                                <div class="mt-3 text-center">
                                     <span
-                                        class="px-1.5 py-0.5 rounded bg-surface-container-high text-[11px] font-bold text-primary"
-                                        x-text="qrData.bankName"></span>
-                                </span>
+                                        class="font-body-sm text-body-sm text-on-surface-variant">{{ __('room.orders.payment_amount_label') }}:</span>
+                                    <div class="font-display-lg text-display-lg font-bold text-error tracking-tight font-tabular-nums"
+                                        x-text="qrData.formattedAmount"></div>
+                                </div>
                             </div>
                             <div
-                                class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
-                                <span class="text-on-surface-variant">{{ __('room.orders.account_number_label') }}:</span>
-                                <div class="flex items-center gap-1">
-                                    <span class="font-tabular-nums font-bold text-on-surface"
-                                        x-text="qrData.accountNumber"></span>
+                                class="flex flex-col gap-space-xs bg-surface-container-lowest border border-outline-variant rounded-xl p-space-sm">
+                                <div
+                                    class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
+                                    <span class="text-on-surface-variant">{{ __('room.orders.bank_label') }}:</span>
+                                    <span class="font-semibold text-on-surface flex items-center gap-1">
+                                        <span
+                                            class="px-1.5 py-0.5 rounded bg-surface-container-high text-[11px] font-bold text-primary"
+                                            x-text="qrData.bankName"></span>
+                                    </span>
+                                </div>
+                                <div
+                                    class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
+                                    <span class="text-on-surface-variant">{{ __('room.orders.account_number_label') }}:</span>
+                                    <div class="flex items-center gap-1">
+                                        <span class="font-tabular-nums font-bold text-on-surface"
+                                            x-text="qrData.accountNumber"></span>
+                                        <button
+                                            class="p-1 rounded hover:bg-surface-container-high text-primary transition-colors flex items-center cursor-pointer"
+                                            @click="copyText(qrData.accountNumber)">
+                                            <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm"
+                                    x-show="qrData.accountName">
+                                    <span class="text-on-surface-variant">{{ __('room.orders.account_name_label') }}:</span>
+                                    <span class="font-bold text-on-surface text-xs uppercase"
+                                        x-text="qrData.accountName"></span>
+                                </div>
+                                <div
+                                    class="flex items-center justify-between py-1.5 bg-primary-fixed/20 px-2 rounded-lg mt-1 text-body-sm">
+                                    <div class="flex flex-col">
+                                        <span
+                                            class="font-label-sm text-[11px] text-on-primary-fixed-variant font-medium">{{ __('room.orders.transfer_content_label') }}:</span>
+                                        <span class="font-tabular-nums font-bold text-primary tracking-wide select-all"
+                                            x-text="qrData.transferContent"></span>
+                                    </div>
                                     <button
-                                        class="p-1 rounded hover:bg-surface-container-high text-primary transition-colors flex items-center cursor-pointer"
-                                        @click="copyText(qrData.accountNumber)">
+                                        class="p-1 rounded hover:bg-primary-fixed text-primary transition-colors flex items-center cursor-pointer"
+                                        @click="copyText(qrData.transferContent)">
                                         <span class="material-symbols-outlined text-[16px]">content_copy</span>
                                     </button>
                                 </div>
                             </div>
-                            <div class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm"
-                                x-show="qrData.accountName">
-                                <span class="text-on-surface-variant">{{ __('room.orders.account_name_label') }}:</span>
-                                <span class="font-bold text-on-surface text-xs uppercase"
-                                    x-text="qrData.accountName"></span>
-                            </div>
-                            <div
-                                class="flex items-center justify-between py-1.5 bg-primary-fixed/20 px-2 rounded-lg mt-1 text-body-sm">
-                                <div class="flex flex-col">
-                                    <span
-                                        class="font-label-sm text-[11px] text-on-primary-fixed-variant font-medium">{{ __('room.orders.transfer_content_label') }}:</span>
-                                    <span class="font-tabular-nums font-bold text-primary tracking-wide select-all"
-                                        x-text="qrData.transferContent"></span>
-                                </div>
-                                <button
-                                    class="p-1 rounded hover:bg-primary-fixed text-primary transition-colors flex items-center cursor-pointer"
-                                    @click="copyText(qrData.transferContent)">
-                                    <span class="material-symbols-outlined text-[16px]">content_copy</span>
-                                </button>
-                            </div>
-                        </div>
 
-                        <!-- Footer Actions in QR Modal -->
-                        <div class="pt-2 border-t border-outline-variant/60 flex items-center justify-between gap-2">
-                            <button type="button" @click="qrModalOpen = false"
-                                class="px-4 py-2 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface font-semibold text-xs hover:bg-surface-container-high transition-colors cursor-pointer">
-                                {{ __('Đóng') }}
-                            </button>
-                            <template x-if="paymentStatus !== 'paid' && paymentStatus !== 'pending'">
-                                <button type="button" :disabled="isSubmittingPayment"
-                                    @click="openPaymentConfirm({{ $activeOrder->id }})"
-                                    class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50">
-                                    <span class="material-symbols-outlined text-[16px] text-white"
-                                        x-show="!isSubmittingPayment">check_circle</span>
-                                    <span class="material-symbols-outlined text-[16px] text-white animate-spin"
-                                        x-show="isSubmittingPayment" x-cloak>progress_activity</span>
-                                    <span class="text-white">{{ __('room.orders.mark_as_paid') }}</span>
+                            <!-- Footer Actions in QR Modal -->
+                            <div class="pt-2 border-t border-outline-variant/60 flex items-center justify-between gap-2">
+                                <button type="button" @click="qrModalOpen = false"
+                                    class="px-4 py-2 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface font-semibold text-xs hover:bg-surface-container-high transition-colors cursor-pointer">
+                                    {{ __('Đóng') }}
                                 </button>
-                            </template>
-                            <template x-if="paymentStatus === 'pending'">
-                                <span
-                                    class="text-xs font-bold text-amber-700 flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
-                                    <span class="material-symbols-outlined text-[16px]">hourglass_top</span>
-                                    <span>{{ __('room.orders.payment_pending_badge') }}</span>
-                                </span>
-                            </template>
+                                <template x-if="paymentStatus !== 'paid' && paymentStatus !== 'pending'">
+                                    <button type="button" :disabled="isSubmittingPayment"
+                                        @click="openPaymentConfirm({{ $activeOrder->id }})"
+                                        class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50">
+                                        <span class="material-symbols-outlined text-[16px] text-white"
+                                            x-show="!isSubmittingPayment">check_circle</span>
+                                        <span class="material-symbols-outlined text-[16px] text-white animate-spin"
+                                            x-show="isSubmittingPayment" x-cloak>progress_activity</span>
+                                        <span class="text-white">{{ __('room.orders.mark_as_paid') }}</span>
+                                    </button>
+                                </template>
+                                <template x-if="paymentStatus === 'pending'">
+                                    <span
+                                        class="text-xs font-bold text-amber-700 flex items-center gap-1 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
+                                        <span class="material-symbols-outlined text-[16px]">hourglass_top</span>
+                                        <span>{{ __('room.orders.payment_pending_badge') }}</span>
+                                    </span>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </template>
 
             <!-- Payment Confirmation Modal -->
-            <div x-show="paymentConfirmModalOpen" x-cloak @keydown.escape.window="closePaymentConfirm()"
-                class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs"
-                role="dialog" aria-modal="true" aria-labelledby="payment-confirm-title">
-                <div x-show="paymentConfirmModalOpen" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95" @click.outside="closePaymentConfirm()"
-                    class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-                    <div class="p-5 sm:p-6">
-                        <div
-                            class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-[#006948]">
-                            <span class="material-symbols-outlined text-[24px]">payments</span>
-                        </div>
-                        <h3 id="payment-confirm-title" class="text-lg font-bold text-slate-900">
-                            {{ __('room.orders.confirm_modal_title') }}
-                        </h3>
-                        <p class="mt-2 text-sm leading-6 text-slate-600">
-                            {{ __('room.orders.confirm_modal_desc') }}
-                        </p>
-                        <div class="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
-                            <div class="flex items-start justify-between gap-4">
-                                <span class="text-slate-500">{{ __('room.orders.payment_request_time') }}</span>
-                                <span class="text-right font-semibold text-slate-900"
-                                    x-text="paymentDetails.requestedAt || '{{ __('room.orders.not_available') }}'"></span>
+            <template x-teleport="body">
+                <div x-show="paymentConfirmModalOpen" x-cloak @keydown.escape.window="closePaymentConfirm()"
+                    class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md"
+                    role="dialog" aria-modal="true" aria-labelledby="payment-confirm-title">
+                    <div x-show="paymentConfirmModalOpen" x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95" @click.outside="closePaymentConfirm()"
+                        class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+                        <div class="p-5 sm:p-6">
+                            <div
+                                class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-[#006948]">
+                                <span class="material-symbols-outlined text-[24px]">payments</span>
                             </div>
-                            <div class="flex items-start justify-between gap-4">
-                                <span class="text-slate-500">{{ __('room.orders.payment_request_content') }}</span>
-                                <span class="text-right font-mono font-bold text-[#006948]"
-                                    x-text="paymentDetails.content || '{{ __('room.orders.not_available') }}'"></span>
-                            </div>
-                            <div class="border-t border-slate-200 pt-3">
-                                <div class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
-                                    {{ __('room.orders.payment_approval_info') }}
+                            <h3 id="payment-confirm-title" class="text-lg font-bold text-slate-900">
+                                {{ __('room.orders.confirm_modal_title') }}
+                            </h3>
+                            <p class="mt-2 text-sm leading-6 text-slate-600">
+                                {{ __('room.orders.confirm_modal_desc') }}
+                            </p>
+                            <div class="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+                                <div class="flex items-start justify-between gap-4">
+                                    <span class="text-slate-500">{{ __('room.orders.payment_request_time') }}</span>
+                                    <span class="text-right font-semibold text-slate-900"
+                                        x-text="paymentDetails.requestedAt || '{{ __('room.orders.not_available') }}'"></span>
                                 </div>
                                 <div class="flex items-start justify-between gap-4">
-                                    <span class="text-slate-500">{{ __('room.orders.payment_approved_by') }}</span>
-                                    <span class="text-right font-semibold text-slate-900"
-                                        x-text="paymentDetails.approvedBy || '{{ __('room.orders.payment_not_approved') }}'"></span>
+                                    <span class="text-slate-500">{{ __('room.orders.payment_request_content') }}</span>
+                                    <span class="text-right font-mono font-bold text-[#006948]"
+                                        x-text="paymentDetails.content || '{{ __('room.orders.not_available') }}'"></span>
                                 </div>
-                                <div class="mt-2 flex items-start justify-between gap-4">
-                                    <span class="text-slate-500">{{ __('room.orders.payment_approved_at') }}</span>
-                                    <span class="text-right font-semibold text-slate-900"
-                                        x-text="paymentDetails.approvedAt || '{{ __('room.orders.not_available') }}'"></span>
+                                <div class="border-t border-slate-200 pt-3">
+                                    <div class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                                        {{ __('room.orders.payment_approval_info') }}
+                                    </div>
+                                    <div class="flex items-start justify-between gap-4">
+                                        <span class="text-slate-500">{{ __('room.orders.payment_approved_by') }}</span>
+                                        <span class="text-right font-semibold text-slate-900"
+                                            x-text="paymentDetails.approvedBy || '{{ __('room.orders.payment_not_approved') }}'"></span>
+                                    </div>
+                                    <div class="mt-2 flex items-start justify-between gap-4">
+                                        <span class="text-slate-500">{{ __('room.orders.payment_approved_at') }}</span>
+                                        <span class="text-right font-semibold text-slate-900"
+                                            x-text="paymentDetails.approvedAt || '{{ __('room.orders.not_available') }}'"></span>
+                                    </div>
                                 </div>
+                            </div>
+                            <div
+                                class="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+                                <span class="material-symbols-outlined mt-0.5 shrink-0 text-[17px] text-amber-700">info</span>
+                                <span>{{ __('room.orders.confirm_modal_note') }}</span>
                             </div>
                         </div>
                         <div
-                            class="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-                            <span class="material-symbols-outlined mt-0.5 shrink-0 text-[17px] text-amber-700">info</span>
-                            <span>{{ __('room.orders.confirm_modal_note') }}</span>
+                            class="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-4 sm:px-6">
+                            <button type="button" @click="closePaymentConfirm()"
+                                class="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-200/70 cursor-pointer">
+                                {{ __('room.orders.confirm_modal_cancel') }}
+                            </button>
+                            <button type="button" @click="submitPaymentConfirmation()" :disabled="isSubmittingPayment"
+                                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#006948] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                <span>{{ __('room.orders.confirm_modal_submit') }}</span>
+                            </button>
                         </div>
                     </div>
-                    <div
-                        class="flex items-center justify-end gap-2 border-t border-slate-100 bg-slate-50 px-5 py-4 sm:px-6">
-                        <button type="button" @click="closePaymentConfirm()"
-                            class="rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-200/70 cursor-pointer">
-                            {{ __('room.orders.confirm_modal_cancel') }}
-                        </button>
-                        <button type="button" @click="submitPaymentConfirmation()" :disabled="isSubmittingPayment"
-                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#006948] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer">
-                            <span class="material-symbols-outlined text-[18px]">check_circle</span>
-                            <span>{{ __('room.orders.confirm_modal_submit') }}</span>
-                        </button>
-                    </div>
                 </div>
-            </div>
+            </template>
 
             <!-- Payment Request Details Modal -->
-            <div x-show="paymentDetailsModalOpen" x-cloak @keydown.escape.window="paymentDetailsModalOpen = false"
-                class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs"
-                role="dialog" aria-modal="true" aria-labelledby="payment-details-title">
-                <div x-show="paymentDetailsModalOpen" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                    @click.outside="paymentDetailsModalOpen = false"
-                    class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
-                    <div class="p-5 sm:p-6">
-                        <div
-                            class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-[#006948]">
-                            <span class="material-symbols-outlined text-[24px]">fact_check</span>
-                        </div>
-                        <h3 id="payment-details-title" class="text-lg font-bold text-slate-900">
-                            {{ __('room.orders.payment_request_details_title') }}
-                        </h3>
-                        <div class="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
-                            <div class="flex items-start justify-between gap-4">
-                                <span class="text-slate-500">{{ __('room.orders.payment_request_time') }}</span>
-                                <span class="text-right font-semibold text-slate-900"
-                                    x-text="paymentDetails.requestedAt || '{{ __('room.orders.not_available') }}'"></span>
+            <template x-teleport="body">
+                <div x-show="paymentDetailsModalOpen" x-cloak @keydown.escape.window="paymentDetailsModalOpen = false"
+                    class="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md"
+                    role="dialog" aria-modal="true" aria-labelledby="payment-details-title">
+                    <div x-show="paymentDetailsModalOpen" x-transition:enter="transition ease-out duration-200"
+                        x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                        @click.outside="paymentDetailsModalOpen = false"
+                        class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+                        <div class="p-5 sm:p-6">
+                            <div
+                                class="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-[#006948]">
+                                <span class="material-symbols-outlined text-[24px]">fact_check</span>
                             </div>
-                            <div class="flex items-start justify-between gap-4">
-                                <span class="text-slate-500">{{ __('room.orders.payment_request_content') }}</span>
-                                <span class="text-right font-mono font-bold text-[#006948]"
-                                    x-text="paymentDetails.content || '{{ __('room.orders.not_available') }}'"></span>
-                            </div>
-                            <div class="border-t border-slate-200 pt-3">
-                                <div class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
-                                    {{ __('room.orders.payment_approval_info') }}
+                            <h3 id="payment-details-title" class="text-lg font-bold text-slate-900">
+                                {{ __('room.orders.payment_request_details_title') }}
+                            </h3>
+                            <div class="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
+                                <div class="flex items-start justify-between gap-4">
+                                    <span class="text-slate-500">{{ __('room.orders.payment_request_time') }}</span>
+                                    <span class="text-right font-semibold text-slate-900"
+                                        x-text="paymentDetails.requestedAt || '{{ __('room.orders.not_available') }}'"></span>
                                 </div>
                                 <div class="flex items-start justify-between gap-4">
-                                    <span class="text-slate-500">{{ __('room.orders.payment_approved_by') }}</span>
-                                    <span class="text-right font-semibold text-slate-900"
-                                        x-text="paymentDetails.approvedBy || '{{ __('room.orders.payment_not_approved') }}'"></span>
+                                    <span class="text-slate-500">{{ __('room.orders.payment_request_content') }}</span>
+                                    <span class="text-right font-mono font-bold text-[#006948]"
+                                        x-text="paymentDetails.content || '{{ __('room.orders.not_available') }}'"></span>
                                 </div>
-                                <div class="mt-2 flex items-start justify-between gap-4">
-                                    <span class="text-slate-500">{{ __('room.orders.payment_approved_at') }}</span>
-                                    <span class="text-right font-semibold text-slate-900"
-                                        x-text="paymentDetails.approvedAt || '{{ __('room.orders.not_available') }}'"></span>
+                                <div class="border-t border-slate-200 pt-3">
+                                    <div class="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+                                        {{ __('room.orders.payment_approval_info') }}
+                                    </div>
+                                    <div class="flex items-start justify-between gap-4">
+                                        <span class="text-slate-500">{{ __('room.orders.payment_approved_by') }}</span>
+                                        <span class="text-right font-semibold text-slate-900"
+                                            x-text="paymentDetails.approvedBy || '{{ __('room.orders.payment_not_approved') }}'"></span>
+                                    </div>
+                                    <div class="mt-2 flex items-start justify-between gap-4">
+                                        <span class="text-slate-500">{{ __('room.orders.payment_approved_at') }}</span>
+                                        <span class="text-right font-semibold text-slate-900"
+                                            x-text="paymentDetails.approvedAt || '{{ __('room.orders.not_available') }}'"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="flex justify-end border-t border-slate-100 bg-slate-50 px-5 py-4 sm:px-6">
-                        <button type="button" @click="paymentDetailsModalOpen = false"
-                            class="rounded-xl bg-[#006948] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#005137] cursor-pointer">
-                            {{ __('room.orders.close') }}
-                        </button>
+                        <div class="flex justify-end border-t border-slate-100 bg-slate-50 px-5 py-4 sm:px-6">
+                            <button type="button" @click="paymentDetailsModalOpen = false"
+                                class="rounded-xl bg-[#006948] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#005137] cursor-pointer">
+                                {{ __('room.orders.close') }}
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </template>
         @endif
     </div>
 </x-room.layout>

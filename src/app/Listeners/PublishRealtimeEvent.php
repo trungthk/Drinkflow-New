@@ -12,26 +12,30 @@ use App\Events\CampaignUpdated;
 use App\Events\OrderCreated;
 use App\Events\OrderDeleted;
 use App\Events\OrderUpdated;
-use App\Events\RoomRealtimeEvent;
 use App\Events\RoomMembershipUpdated;
+use App\Events\RoomRealtimeEvent;
 use App\Events\UserNotificationCreated;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class PublishRealtimeEvent implements ShouldQueue
 {
     use InteractsWithQueue;
 
-    public ?string $connection = 'sync';
+    public ?string $connection = 'database';
+
     public int $tries = 3;
+
     public int $timeout = 5;
+
+    public array $backoff = [1, 5, 15];
 
     /**
      * Handle the event and broadcast realtime socket message.
      *
-     * @param object $event Dispatched event instance.
-     * @return void
+     * @param  object  $event  Dispatched event instance.
      */
     public function handle(object $event): void
     {
@@ -139,16 +143,24 @@ class PublishRealtimeEvent implements ShouldQueue
                     'room_id' => (int) $roomId,
                     'user_channel' => $userChannel,
                     'payload' => $payload,
-                ]);
-        } catch (\Throwable) {
-            // Realtime delivery must not roll back a successful database transaction.
+                ])
+                ->throw();
+        } catch (\Throwable $exception) {
+            Log::warning('DrinkFlow realtime event delivery failed.', [
+                'event' => $name,
+                'room_id' => $roomId,
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
+            throw $exception;
         }
     }
 
     /**
      * Build normalized order payload for realtime broadcasting.
      *
-     * @param object $order Order instance.
+     * @param  object  $order  Order instance.
      * @return array<string, mixed>
      */
     private function orderPayload(object $order): array

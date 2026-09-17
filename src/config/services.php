@@ -46,6 +46,7 @@ return [
         'url' => env('REALTIME_URL'),
         'public_url' => env('REALTIME_PUBLIC_URL', 'http://localhost:3001'),
         'internal_secret' => env('REALTIME_INTERNAL_SECRET'),
+        'socket_token_secret' => env('SOCKET_TOKEN_SECRET', env('APP_KEY')),
     ],
 
 ];

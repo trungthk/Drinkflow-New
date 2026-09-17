@@ -30,6 +30,7 @@ class AdminAccount extends Authenticatable
             'status'        => AdminStatus::class,
             'last_login_at' => 'datetime',
             'two_factor_enabled' => 'boolean',
+            'phone'         => 'encrypted',
         ];
     }
 

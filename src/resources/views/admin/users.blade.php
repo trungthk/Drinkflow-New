@@ -2,15 +2,6 @@
     <!-- Header & Action Ribbon -->
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
-            <div class="flex items-center gap-2 text-xs font-mono text-outline mb-1">
-                <a href="{{ route('admin.dashboard.page', $room) }}" class="hover:text-primary transition-colors">{{ __('admin.breadcrumb_admin') }}</a>
-                <span>/</span>
-                <span>{{ __('admin.breadcrumb_rooms') }}</span>
-                <span>/</span>
-                <span class="text-on-surface font-semibold">{{ $room->name }}</span>
-                <span>/</span>
-                <span class="text-primary font-bold">{{ __('admin.users') }}</span>
-            </div>
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.users_directory') }}</h1>
         </div>
         <div class="flex items-center gap-2.5">
@@ -115,17 +106,27 @@
                                 default => 'bg-surface-container text-secondary border-outline-variant'
                             };
                         @endphp
-                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-user-row data-status="{{ $statusVal }}" data-search="{{ strtolower($name . ' ' . $email . ' ' . $ru->user_code) }}">
+                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-user-row data-status="{{ $statusVal }}">
                             <td class="py-3.5 px-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs">
-                                        {{ mb_substr($name, 0, 1) }}
+                                <button type="button" data-open-user-detail data-room-user-id="{{ $ru->id }}" class="flex items-center gap-3 text-left group/user cursor-pointer focus:outline-none bg-transparent border-0 p-0">
+                                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs overflow-hidden shrink-0 ring-1 ring-outline-variant/30">
+                                        @if($ru->globalUser?->avatar_url && !str_contains($ru->globalUser->avatar_url, 'default-avatar.svg'))
+                                            <img src="{{ $ru->globalUser->avatar_url }}" alt="{{ $name }}" class="w-full h-full object-cover rounded-full" loading="lazy" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');">
+                                            <span class="hidden">{{ mb_substr($name, 0, 1) }}</span>
+                                        @else
+                                            <span>{{ mb_substr($name, 0, 1) }}</span>
+                                        @endif
                                     </div>
                                     <div>
-                                        <div class="font-bold text-on-surface text-sm">{{ $name }}</div>
-                                        <div class="text-[11px] text-outline">{{ $email }}</div>
+                                        <div class="font-bold text-on-surface text-sm group-hover/user:text-primary transition-colors flex items-center gap-1.5">
+                                            <span>{{ $name }}</span>
+                                            <span class="material-symbols-outlined text-[14px] text-outline opacity-0 group-hover/user:opacity-100 transition-opacity">visibility</span>
+                                        </div>
+                                        <div class="text-[11px] text-outline">
+                                            <span>{{ $email }}</span>
+                                        </div>
                                     </div>
-                                </div>
+                                </button>
                             </td>
                             <td class="py-3.5 px-4">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] border {{ $roleClass }}">
@@ -293,6 +294,107 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- User Detail Modal -->
+    <div id="user-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="user-detail-name"
+         data-status-active="{{ __('admin.status_active') }}"
+         data-status-blocked="{{ __('admin.status_blocked') }}"
+         data-status-pending="{{ __('admin.status_pending') }}"
+         data-status-removed="{{ __('admin.status_removed') }}"
+         data-role-owner="{{ __('admin.role_owner') }}"
+         data-role-admin="{{ __('admin.role_admin') }}"
+         data-role-member="{{ __('admin.role_member') }}">
+        <div id="user-detail-backdrop" class="absolute inset-0"></div>
+        <div class="relative z-10 w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <!-- Modal Header -->
+            <div class="flex items-start justify-between pb-4 border-b border-outline-variant/60 mb-5">
+                <div class="flex items-center gap-3.5">
+                    <div id="user-detail-avatar-container" class="w-12 h-12 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center text-base font-bold overflow-hidden shrink-0 shadow-xs">
+                        <span id="user-detail-avatar-initial">?</span>
+                        <img id="user-detail-avatar-img" src="" alt="" class="w-full h-full object-cover rounded-full hidden" loading="lazy">
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h3 id="user-detail-name" class="font-bold text-base text-on-surface tracking-tight">-</h3>
+                            <span id="user-detail-role-badge" class="text-[11px] font-semibold px-2 py-0.5 rounded border">-</span>
+                            <span id="user-detail-status-badge" class="text-[11px] font-semibold px-2 py-0.5 rounded border">-</span>
+                        </div>
+                        <p id="user-detail-email" class="text-xs text-outline mt-0.5">-</p>
+                    </div>
+                </div>
+                <button type="button" id="user-detail-close" class="p-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors" aria-label="{{ __('admin.cancel') }}">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <!-- Loading State -->
+            <div id="user-detail-loading" class="py-8 text-center text-outline">
+                <span class="material-symbols-outlined animate-spin text-3xl text-primary mb-2">progress_activity</span>
+                <p class="text-xs font-medium">{{ __('admin.loading_user_detail') }}</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="user-detail-error" class="hidden py-6 text-center text-error text-xs">
+                <span class="material-symbols-outlined text-3xl mb-1">error</span>
+                <p>{{ __('admin.load_user_failed') }}</p>
+            </div>
+
+            <!-- Main Detail Content -->
+            <div id="user-detail-content" class="hidden space-y-4">
+                <!-- Contact & Workplace Info -->
+                <div class="bg-surface-container-low/70 border border-outline-variant/60 rounded-xl p-3.5 space-y-2.5 text-xs">
+                    <div class="flex items-center justify-between py-1 border-b border-outline-variant/40">
+                        <span class="text-outline flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[15px] text-secondary">call</span>
+                            {{ __('admin.user_phone') }}
+                        </span>
+                        <span id="user-detail-phone" class="font-semibold text-on-surface font-mono">-</span>
+                    </div>
+                    <div class="flex items-center justify-between py-1 border-b border-outline-variant/40">
+                        <span class="text-outline flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[15px] text-secondary">desk</span>
+                            {{ __('admin.user_desk') }}
+                        </span>
+                        <span id="user-detail-desk" class="font-medium text-on-surface text-right">-</span>
+                    </div>
+                    <div class="flex items-center justify-between py-1">
+                        <span class="text-outline flex items-center gap-1.5">
+                            <span class="material-symbols-outlined text-[15px] text-secondary">location_on</span>
+                            {{ __('admin.user_delivery_location') }}
+                        </span>
+                        <span id="user-detail-delivery" class="font-medium text-on-surface text-right">-</span>
+                    </div>
+                </div>
+
+                <!-- Membership & Activity Stats -->
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div class="bg-surface-container-low/70 border border-outline-variant/60 rounded-xl p-3">
+                        <span class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_joined_at') }}</span>
+                        <div class="text-on-surface mt-1 font-semibold text-xs" id="user-detail-joined">-</div>
+                    </div>
+                    <div class="bg-surface-container-low/70 border border-outline-variant/60 rounded-xl p-3">
+                        <span class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_last_active') }}</span>
+                        <div class="text-on-surface mt-1 font-semibold text-xs" id="user-detail-last-active">-</div>
+                    </div>
+                    <div class="bg-surface-container-low/70 border border-outline-variant/60 rounded-xl p-3">
+                        <span class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_total_orders') }}</span>
+                        <div class="text-primary font-bold text-base font-mono mt-0.5" id="user-detail-total-orders">0</div>
+                    </div>
+                    <div class="bg-surface-container-low/70 border border-outline-variant/60 rounded-xl p-3">
+                        <span class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_total_debt') }}</span>
+                        <div class="font-bold text-sm font-mono mt-0.5" id="user-detail-total-debt">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="mt-5 pt-3 border-t border-outline-variant/60 flex justify-end">
+                <button type="button" id="user-detail-close-btn" class="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors cursor-pointer">
+                    {{ __('admin.cancel') }}
+                </button>
+            </div>
         </div>
     </div>
 </x-admin.layout>
