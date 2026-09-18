@@ -230,7 +230,7 @@
       if (!item) return;
       this.cartUpdating = true;
       try {
-        const response = await fetch('{{ route('user.campaigns.cart.proxy', [$room, $activeCampaign, '__INDEX__']) }}'.replace('__INDEX__', this.proxyEditingIndex), {
+        const response = await fetch('{{ $activeCampaign ? route('user.campaigns.cart.proxy', [$room, $activeCampaign, '__INDEX__']) : '' }}'.replace('__INDEX__', this.proxyEditingIndex), {
           method: 'PATCH',
           headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -718,14 +718,19 @@
             <div class="flex items-center justify-between border-b border-slate-100 p-5">
               <h3 class="text-base font-bold text-slate-900">{{ __('room.campaign.cart_title') }}</h3>
               <div class="flex items-center gap-1">
-                <button type="button" @click="clearCart()" :disabled="cartItems.length === 0 || cartUpdating" class="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_clear') }}">
+                <button type="button" @click="clearCart()" :disabled="cartItems.length === 0 || cartUpdating" class="group relative rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_clear') }}" aria-label="{{ __('room.campaign.cart_clear') }}">
                   <span x-show="!cartUpdating" class="material-symbols-outlined text-[18px]">delete_sweep</span>
                   <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                  <span role="tooltip" class="pointer-events-none absolute right-0 top-full z-20 mt-2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ __('room.campaign.cart_clear') }}</span>
                 </button>
                 <button type="button" @click="showCartModal = false" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><span class="material-symbols-outlined">close</span></button>
               </div>
             </div>
             <div class="max-h-[50vh] space-y-3 overflow-y-auto p-5">
+              <div class="flex items-start gap-2 rounded-xl border border-violet-200 bg-violet-50/70 px-3 py-2.5 text-[11px] leading-relaxed text-violet-800">
+                <span class="material-symbols-outlined mt-0.5 shrink-0 text-[16px] text-violet-600">info</span>
+                <p>{{ __('room.campaign.cart_proxy_hint') }}</p>
+              </div>
               <!-- Exceeded items alert banner -->
               <template x-if="hasExceededItems()">
                 <div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2 shadow-2xs">
@@ -772,12 +777,14 @@
                     </div>
                     <div class="flex shrink-0 items-center gap-1">
                       <span class="text-xs font-bold font-mono" :class="isItemExceeded(item) ? 'text-rose-600 font-bold' : 'text-[#006948]'" x-text="new Intl.NumberFormat('vi-VN').format(item.unit_price * item.quantity) + 'đ'"></span>
-                      <button type="button" @click="openProxyModal(index)" :disabled="cartUpdating" class="rounded-md p-1 text-slate-400 hover:bg-violet-50 hover:text-violet-600 disabled:opacity-40" title="{{ __('room.campaign.proxy_edit') }}">
+                      <button type="button" @click="openProxyModal(index)" :disabled="cartUpdating" class="group relative rounded-md p-1 text-slate-400 hover:bg-violet-50 hover:text-violet-600 disabled:opacity-40" title="{{ __('room.campaign.proxy_edit') }}" aria-label="{{ __('room.campaign.proxy_edit') }}">
                         <span class="material-symbols-outlined text-[16px]">edit</span>
+                        <span role="tooltip" class="pointer-events-none absolute right-0 top-full z-20 mt-2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ __('room.campaign.proxy_edit') }}</span>
                       </button>
-                      <button type="button" @click="removeCartItem(index)" :disabled="cartUpdating" class="rounded-md p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_remove_item') }}">
+                      <button type="button" @click="removeCartItem(index)" :disabled="cartUpdating" class="group relative rounded-md p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_remove_item') }}" aria-label="{{ __('room.campaign.cart_remove_item') }}">
                         <span x-show="!cartUpdating" class="material-symbols-outlined text-[16px]">delete</span>
                         <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                        <span role="tooltip" class="pointer-events-none absolute right-0 top-full z-20 mt-2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ __('room.campaign.cart_remove_item') }}</span>
                       </button>
                     </div>
                   </div>
@@ -799,6 +806,7 @@
                       :disabled="cartItems.length === 0 || hasExceededItems()" 
                       @click="proceedToConfirm()" 
                       class="rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50 flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer">
+                <span class="material-symbols-outlined text-[16px]">shopping_cart_checkout</span>
                 <span>{{ __('room.campaign.cart_confirm') }}</span>
                 <span x-show="hasExceededItems()" class="material-symbols-outlined text-[14px] text-amber-300">warning</span>
               </button>
@@ -827,14 +835,17 @@
                 </button>
               </div>
               <p x-show="proxyUserLookupError" x-text="proxyUserLookupError" class="text-xs font-medium text-rose-600"></p>
-              <div x-show="proxyUserLookupResult" class="flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800">
+              <div x-show="proxyUserLookupResult" class="flex items-start gap-2 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800">
                 <span class="material-symbols-outlined text-[18px]">verified_user</span>
-                <span x-text="proxyUserLookupResult?.display_name || proxyUserLookupResult?.user_code"></span>
+                <div class="min-w-0">
+                  <p class="font-bold" x-text="proxyUserLookupResult?.display_name || proxyUserLookupResult?.user_code"></p>
+                  <p class="mt-0.5 truncate text-[11px] text-emerald-700" x-show="proxyUserLookupResult?.email" x-text="proxyUserLookupResult?.email"></p>
+                </div>
               </div>
             </div>
             <div class="mt-5 flex justify-end gap-2">
               <button type="button" @click="showProxyModal = false" class="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">{{ __('global.common.cancel') }}</button>
-              <button type="button" @click="saveProxyAssignment()" :disabled="cartUpdating || (proxyUserCode.trim() && !proxyUserLookupResult)" class="rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50">{{ __('room.campaign.proxy_save') }}</button>
+              <button type="button" @click="saveProxyAssignment()" :disabled="cartUpdating || (proxyUserCode.trim() && !proxyUserLookupResult)" class="inline-flex items-center gap-1.5 rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50"><span class="material-symbols-outlined text-[16px]">save</span>{{ __('room.campaign.proxy_save') }}</button>
             </div>
           </div>
         </div>

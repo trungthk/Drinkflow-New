@@ -171,6 +171,7 @@ return [
         'search_empty_desc' => '検索語またはカテゴリーを変更してください。',
         'cart_clear' => 'カートを空にする',
         'cart_remove_item' => 'この商品を削除',
+        'cart_proxy_hint' => '編集ボタンをクリックして有効なユーザーコードを入力すると、他のメンバーの代わりに注文できます。',
         'proxy_edit' => '受取人を選択',
         'proxy_title' => '他のメンバーの注文',
         'proxy_desc' => 'この商品を割り当てるメンバーコードを入力してください。',
@@ -214,6 +215,7 @@ return [
         'default_drink_desc' => '淹れたての美味しいこだわりドリンクです。',
     ],
     'orders' => [
+        'proxy_items_title' => '代理注文した商品', 'proxy_for' => '注文先', 'member_unknown' => '不明なメンバー', 'toppings' => 'トッピング', 'note' => 'メモ',
         'page_title' => 'マイドリンク注文',
         'subtitle' => 'ルーム「:name」での準備・配達状況を確認できます',
         'status_all' => 'すべての注文',

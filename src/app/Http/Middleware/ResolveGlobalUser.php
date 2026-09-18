@@ -56,7 +56,7 @@ class ResolveGlobalUser
 
         if (! $user) {
             if ($request->expectsJson()) {
-                abort(401, 'Unauthenticated.');
+                abort(401, __('errors.common.unauthenticated'));
             }
             $referer = $request->headers->get('referer') ?: url()->previous();
             if ($this->isSafeInternalUrl($request, $referer)
@@ -82,7 +82,7 @@ class ResolveGlobalUser
                 return $next($request);
             }
             if ($request->expectsJson()) {
-                abort(403, 'Tài khoản của bạn tạm thời bị khóa.');
+                abort(403, __('errors.common.global_account_blocked'));
             }
 
             return redirect()->route('user.blocked');

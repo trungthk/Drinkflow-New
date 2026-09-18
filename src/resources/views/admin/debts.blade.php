@@ -124,10 +124,8 @@
                             data-status="{{ $debtStatusValue }}"
                             data-search="{{ strtolower($member . ' ' . $debt->id . ' ' . $campaignName) }}">
                             <td class="py-3.5 px-4">
-                                <div class="font-bold text-on-surface text-sm flex items-center gap-1.5">
-                                    <span>{{ $member }}</span>
-                                    <span class="text-[11px] font-mono text-outline font-normal">{{ $debt->code ?? 'N/A' }}</span>
-                                </div>
+                                <div class="font-bold text-on-surface text-sm">{{ $member }}</div>
+                                <div class="text-[11px] font-mono text-outline mt-0.5">{{ $debt->code ?? 'N/A' }}</div>
                                 <div class="text-secondary text-[11px] mt-0.5">{{ $debt->roomUser?->globalUser?->email ?? '' }}</div>
                             </td>
                             <td class="py-3.5 px-4">

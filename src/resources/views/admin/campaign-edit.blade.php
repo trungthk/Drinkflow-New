@@ -299,8 +299,7 @@
                                 <div x-show="sponsor.open" x-cloak class="absolute z-30 mt-1 max-h-52 w-full overflow-y-auto rounded-lg border border-outline-variant bg-surface-container-lowest p-1 shadow-xl">
                                     <template x-for="user in filteredSponsorUsers(sponsor.search)" :key="user.id">
                                         <button type="button" @click="selectSponsor(sponsor, user)" class="flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-xs hover:bg-primary/5">
-                                            <span class="truncate text-on-surface" x-text="user.name"></span>
-                                            <span class="shrink-0 font-mono text-[10px] text-primary" x-text="user.user_code"></span>
+                                            <span class="truncate text-on-surface" x-text="user.name || user.user_code"></span>
                                         </button>
                                     </template>
                                     <p x-show="filteredSponsorUsers(sponsor.search).length === 0" class="px-2.5 py-3 text-center text-[11px] text-outline">{{ __('admin.no_sponsor_user_found') }}</p>

@@ -20,5 +20,5 @@
   </div>
 
   <!-- Centered Blocked Modal Component -->
-  <x-room.blocked-modal :room="$room" :admin-user="$adminUser" />
+  <x-room.blocked-modal :room="$room" />
 </x-room.layout>

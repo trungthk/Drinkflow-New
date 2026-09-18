@@ -40,7 +40,7 @@ class JoinRoomAction
                     'user_code'      => CodeGeneratorService::generateRoomUserCode(),
                     'display_name'   => $globalUser->name,
                     'normalized_name' => $globalUser->normalized_name,
-                    'status'         => $room->roomSettings()->where('key', 'is_public')->value('value') === '0'
+                    'status'         => $room->roomSettings()->where('key', 'is_public')->value('value') === '1'
                         ? RoomUserStatus::Blocked
                         : RoomUserStatus::Active,
                     'joined_at'      => now(),
@@ -53,7 +53,7 @@ class JoinRoomAction
 
             if ($roomUser->status === RoomUserStatus::Removed) {
                 $roomUser->update([
-                    'status' => $room->roomSettings()->where('key', 'is_public')->value('value') === '0'
+                    'status' => $room->roomSettings()->where('key', 'is_public')->value('value') === '1'
                         ? RoomUserStatus::Blocked
                         : RoomUserStatus::Active,
                     'joined_at' => now(),

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\Room;
 use App\Services\Auth\DeviceTrustService;
@@ -30,13 +29,15 @@ class ResolveRoomUser
 
         $globalUser = $request->attributes->get('global_user') ?? $request->user('web');
 
-        if (! $globalUser) {
+        if (!$globalUser) {
             if ($request->expectsJson()) {
-                abort(401, 'Unauthenticated.');
+                abort(401, __('errors.common.unauthenticated'));
             }
             $referer = $request->headers->get('referer') ?: url()->previous();
-            if ($referer && parse_url($referer, PHP_URL_HOST) === $request->getHost()
-                && $referer !== $request->fullUrl() && $referer !== $request->url() && $referer !== url('/')) {
+            if (
+                $referer && parse_url($referer, PHP_URL_HOST) === $request->getHost()
+                && $referer !== $request->fullUrl() && $referer !== $request->url() && $referer !== url('/')
+            ) {
                 return redirect()->to($referer);
             }
 
@@ -45,9 +46,9 @@ class ResolveRoomUser
 
         $roomUser = $globalUser->roomUsers()->where('room_id', $room->id)->first();
 
-        if (! $roomUser) {
+        if (!$roomUser) {
             if ($request->expectsJson()) {
-                abort(403, 'Requires room membership.');
+                abort(403, __('errors.common.room_membership_required'));
             }
 
             return redirect()->route('user.rooms.join.show', $room->slug);
@@ -60,20 +61,17 @@ class ResolveRoomUser
 
         if ($roomUserStatus === RoomUserStatus::Blocked) {
             if ($request->expectsJson()) {
-                abort(403, 'Tài khoản của bạn trong Room này đã bị khóa.');
+                abort(403, __('errors.common.room_blocked'));
             }
-            $adminUser = $room->admins()->first();
-
             return response()->view('user.blocked-room', [
-                'room'     => $room,
+                'room' => $room,
                 'roomUser' => $roomUser,
-                'adminUser' => $adminUser,
             ], 403);
         }
 
         if ($roomUserStatus === RoomUserStatus::Removed) {
             if ($request->expectsJson()) {
-                abort(403, 'Room membership has been removed.');
+                abort(403, __('errors.common.room_membership_removed'));
             }
 
             return redirect()->route('user.me.dashboard');
@@ -82,11 +80,11 @@ class ResolveRoomUser
         abort_unless($roomUserStatus === RoomUserStatus::Active, 403);
 
         $deviceUuid = (string) $request->cookie('drinkflow_device_uuid', '');
-        $token      = (string) $request->cookie('drinkflow_trusted_token', '');
+        $token = (string) $request->cookie('drinkflow_trusted_token', '');
         if ($deviceUuid !== '' || $token !== '') {
             $device = app(DeviceTrustService::class)->resolve($deviceUuid, $token, $room->id);
             if ($device && $device->room_user_id !== $roomUser->id) {
-                abort(403, 'Device binding mismatch.');
+                abort(403, __('errors.common.device_binding_mismatch'));
             }
         }
 

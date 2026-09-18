@@ -6,7 +6,7 @@
 
 @php
     $user = $user ?? request()->attributes->get('global_user') ?? auth('web')->user();
-    $suggestedCode = $suggestedCode ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $user->name ?? 'MEM'), 0, 8));
+    $suggestedCode = $suggestedCode ?? (string) ($user->code ?? strtoupper(substr(preg_replace('/[^a-zA-Z0-9]/', '', $user->name ?? 'MEM'), 0, 8)));
     $roomName = $room->name ?? __('global.common.room');
     $roomNameToken = '__ROOM_NAME__';
     $roomJoinTitleParts = explode($roomNameToken, __('room.join.title', ['name' => $roomNameToken]), 2);

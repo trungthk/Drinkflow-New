@@ -444,6 +444,20 @@
                             <span class="hidden sm:inline">{{ __('admin.dispatch_action') }}</span>
                         </a>
                     @endif
+
+                    <button type="button" id="admin-broadcast-open" class="inline-flex items-center gap-1.5 rounded-lg border border-secondary/30 bg-secondary/10 px-3 py-1.5 text-xs font-semibold text-secondary transition-colors hover:bg-secondary/20" title="{{ __('admin.broadcast_notification') }}">
+                        <span class="material-symbols-outlined text-[16px]">campaign</span>
+                        <span class="hidden sm:inline">{{ __('admin.broadcast_notification') }}</span>
+                    </button>
+
+                    @if($room->status == "active")
+                        <a href="{{ route('user.rooms.show', $room->slug) }}"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs font-semibold text-primary transition-colors hover:bg-primary/10 no-underline"
+                            title="{{ __('admin.access_room_as_user') }}">
+                            <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+                            <span class="hidden sm:inline">{{ __('admin.access_room_as_user') }}</span>
+                        </a>
+                    @endif
                 @endif
             </div>
         </header>
@@ -462,6 +476,30 @@
 
     <!-- Admin Go To Top Floating Button -->
     <x-admin.go-to-top />
+
+    @if ($room)
+        <div id="admin-broadcast-modal" class="hidden fixed inset-0 z-[70] items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-lg rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-2xl" role="dialog" aria-modal="true">
+                <div class="mb-4 flex items-center justify-between border-b border-outline-variant pb-3">
+                    <h3 class="flex items-center gap-2 text-sm font-bold text-on-surface"><span class="material-symbols-outlined text-secondary">campaign</span>{{ __('admin.broadcast_notification') }}</h3>
+                    <button type="button" id="admin-broadcast-close" class="text-outline hover:text-on-surface"><span class="material-symbols-outlined">close</span></button>
+                </div>
+                <form id="admin-broadcast-form" data-url="{{ route('admin.notifications.broadcast', $room) }}" class="space-y-3">
+                    <label class="block text-xs font-semibold text-on-surface">{{ __('admin.broadcast_type') }}
+                        <select id="admin-broadcast-type" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface">
+                            <option value="admin.broadcast" data-title="{{ __('admin.broadcast_sample_title') }}" data-body="{{ __('admin.broadcast_sample_body') }}">{{ __('admin.broadcast_general') }}</option>
+                            <option value="campaign.created" data-title="{{ __('admin.broadcast_campaign_title') }}" data-body="{{ __('admin.broadcast_campaign_body') }}">{{ __('admin.broadcast_campaign') }}</option>
+                            <option value="payment.reminder" data-title="{{ __('admin.broadcast_payment_title') }}" data-body="{{ __('admin.broadcast_payment_body') }}">{{ __('admin.broadcast_payment') }}</option>
+                        </select>
+                    </label>
+                    <label class="block text-xs font-semibold text-on-surface">{{ __('admin.broadcast_title') }}<input id="admin-broadcast-title" required maxlength="160" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface"></label>
+                    <label class="block text-xs font-semibold text-on-surface">{{ __('admin.broadcast_content') }}<textarea id="admin-broadcast-body" rows="4" maxlength="2000" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface"></textarea></label>
+                    <p id="admin-broadcast-notice" class="hidden rounded-lg px-3 py-2 text-xs"></p>
+                    <div class="flex justify-end gap-2 border-t border-outline-variant pt-3"><button type="button" id="admin-broadcast-cancel" class="rounded-lg border border-outline-variant px-4 py-2 text-xs font-semibold">{{ __('admin.cancel') }}</button><button type="submit" class="rounded-lg bg-secondary px-4 py-2 text-xs font-semibold text-on-secondary">{{ __('admin.broadcast_confirm') }}</button></div>
+                </form>
+            </div>
+        </div>
+    @endif
 
     <!-- Global Admin API Fetch Helper -->
     <script>
@@ -489,6 +527,34 @@
             return response.json();
         };
     </script>
+    @if ($room)
+        <script>
+            (() => {
+                const modal = document.getElementById('admin-broadcast-modal');
+                const form = document.getElementById('admin-broadcast-form');
+                const type = document.getElementById('admin-broadcast-type');
+                const title = document.getElementById('admin-broadcast-title');
+                const body = document.getElementById('admin-broadcast-body');
+                const notice = document.getElementById('admin-broadcast-notice');
+                const open = () => { modal?.classList.remove('hidden'); modal?.classList.add('flex'); type?.dispatchEvent(new Event('change')); };
+                const close = () => { modal?.classList.add('hidden'); modal?.classList.remove('flex'); };
+                document.getElementById('admin-broadcast-open')?.addEventListener('click', open);
+                document.getElementById('admin-broadcast-close')?.addEventListener('click', close);
+                document.getElementById('admin-broadcast-cancel')?.addEventListener('click', close);
+                type?.addEventListener('change', () => { const option = type.options[type.selectedIndex]; title.value = option.dataset.title || ''; body.value = option.dataset.body || ''; });
+                form?.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    const button = form.querySelector('button[type="submit"]');
+                    button.disabled = true;
+                    try {
+                        const response = await window.dfApi(form.dataset.url, { method: 'POST', body: { type: type.value, title: title.value.trim(), body: body.value.trim() } });
+                        notice.textContent = response.message || '{{ __('admin.broadcast_sent', ['count' => ':count']) }}'; notice.className = 'rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700'; notice.classList.remove('hidden');
+                        window.setTimeout(close, 700);
+                    } catch (error) { notice.textContent = error.message || '{{ __('admin.broadcast_failed') }}'; notice.className = 'rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700'; notice.classList.remove('hidden'); } finally { button.disabled = false; }
+                });
+            })();
+        </script>
+    @endif
 
     {{ $scripts ?? '' }}
     @stack('scripts')

@@ -6,16 +6,13 @@ namespace App\Http\Controllers\User;
 
 use App\Actions\Order\CreateOrderAction;
 use App\Actions\Order\CreateProxyOrdersAction;
-use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentAccountStatus;
 use App\Enums\PaymentStatus;
-use App\Enums\RoomStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
 use App\Models\Campaign;
 use App\Models\Debt;
-use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\PaymentAccount;
 use App\Models\Room;
@@ -26,7 +23,6 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -42,8 +38,6 @@ class OrderController extends Controller
         $room = $request->attributes->get('room');
         /** @var RoomUser $roomUser */
         $roomUser = $request->attributes->get('room_user');
-        /** @var GlobalUser|null $user */
-        $user = $request->attributes->get('global_user') ?? $request->user('web');
 
         $query = Order::query()
             ->where('room_id', $room->id)
@@ -54,17 +48,8 @@ class OrderController extends Controller
                     });
             })
             ->where('status', '!=', OrderStatus::Cancelled->value)
-            ->with(['items.toppings', 'campaign.paymentAccount'])
+            ->with(['items.toppings', 'children.roomUser.globalUser', 'children.items.toppings', 'campaign.paymentAccount'])
             ->latest();
-        if ($request->filled('status')) {
-            $query->where('status', $request->string('status')->toString());
-        }
-        if ($request->filled('from')) {
-            $query->whereDate('created_at', '>=', $request->date('from'));
-        }
-        if ($request->filled('to')) {
-            $query->whereDate('created_at', '<=', $request->date('to'));
-        }
 
         $orders = $query->paginate(20);
 
@@ -72,10 +57,7 @@ class OrderController extends Controller
             return response()->json(['data' => $orders]);
         }
 
-        $activeCampaign = $room->campaigns()->where('status', CampaignStatus::Active->value)->first();
-        $userRooms = $user ? $user->rooms()->where('rooms.status', RoomStatus::Active->value)->get() : collect();
-        $unreadCount = $user ? DB::table('user_notifications')->where('global_user_id', $user->id)->whereNull('read_at')->count() : 0;
-        $activeOrder = $orders->first();
+        $activeOrder = $orders->firstWhere('room_user_id', $roomUser->id) ?? $orders->first();
         $paymentConfirmationDetails = null;
         if ($activeOrder instanceof Order) {
             $debt = Debt::query()
@@ -96,16 +78,7 @@ class OrderController extends Controller
         }
 
         return view('user.orders', [
-            'room' => $room,
-            'roomUser' => $roomUser,
-            'user' => $user,
             'orders' => $orders,
-            'activeCampaign' => $activeCampaign ? [
-                'name' => $activeCampaign->name,
-                'time_remaining' => $activeCampaign->deadline ? ($activeCampaign->deadline->isFuture() ? $activeCampaign->deadline->diffForHumans(['parts' => 2, 'short' => true]) : '00:00') : '14:22',
-            ] : null,
-            'userRooms' => $userRooms,
-            'unreadNotificationsCount' => $unreadCount,
             'paymentConfirmationDetails' => $paymentConfirmationDetails,
         ]);
     }
@@ -126,15 +99,17 @@ class OrderController extends Controller
             $roomUser = $request->attributes->get('room_user');
             $data = $request->validated();
             $hasProxyItems = collect($data['items'] ?? [])->contains(
-                static fn (array $item): bool => ! empty($item['proxy_user_code'])
+                static fn(array $item): bool => !empty($item['proxy_user_code'])
             );
             $order = $hasProxyItems
                 ? $proxyAction->execute($campaign, $roomUser, $data)
                 : $action->execute($campaign, $roomUser, $data);
         } catch (QueryException $exception) {
             $message = $exception->getMessage();
-            if (str_contains($message, 'orders_one_active_per_user_campaign')
-                || str_contains($message, 'UNIQUE constraint failed: orders.campaign_id, orders.room_user_id')) {
+            if (
+                str_contains($message, 'orders_one_active_per_user_campaign')
+                || str_contains($message, 'UNIQUE constraint failed: orders.campaign_id, orders.room_user_id')
+            ) {
                 /** @var RoomUser|null $roomUser */
                 $roomUser = $request->attributes->get('room_user');
                 $activeOrder = $roomUser?->orders()
@@ -218,21 +193,23 @@ class OrderController extends Controller
             ?? $room->paymentAccounts()->first();
         abort_unless($account && $account->status === PaymentAccountStatus::Active, 404);
 
-        $amount  = (int) $order->final_amount;
+        $amount = (int) $order->final_amount;
         $content = $order->code;
 
         /** @var VietQrService $vietQr */
         $vietQr = app(VietQrService::class);
 
-        return response()->json(['data' => [
-            'bank_code'        => $account->bank_code,
-            'bank_name'        => $account->bank_name,
-            'account_number'   => $account->account_number,
-            'account_name'     => $account->account_name,
-            'amount'           => $amount,
-            'transfer_content' => $content,
-            'payload'          => $vietQr->generate($account, $amount, $content),
-        ]]);
+        return response()->json([
+            'data' => [
+                'bank_code' => $account->bank_code,
+                'bank_name' => $account->bank_name,
+                'account_number' => $account->account_number,
+                'account_name' => $account->account_name,
+                'amount' => $amount,
+                'transfer_content' => $content,
+                'payload' => $vietQr->generate($account, $amount, $content),
+            ]
+        ]);
     }
 
     /**

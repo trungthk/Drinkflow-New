@@ -27,4 +27,5 @@ enum NotificationType: string
     case DeviceNew = 'device.new';
     case SecurityAlert = 'security.alert';
     case RoomInvite = 'room.invite';
+    case AdminBroadcast = 'admin.broadcast';
 }

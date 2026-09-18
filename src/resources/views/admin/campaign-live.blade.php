@@ -3,7 +3,7 @@
     $summaryText = "🛒 " . $campaign->name . "\n" .
         $campaign->restaurant . "\n" .
         "-----------------------------------\n" .
-        $aggregatedItems->map(fn($agg) => "• " . $agg['quantity'] . "x " . $agg['name'] . ($agg['size'] ? " (" . $agg['size'] . ")" : "") . " - " . number_format($agg['total_amount'], 0, ',', '.') . "đ" . ($agg['notes']->isNotEmpty() ? "\n   Note: " . $agg['notes']->join(", ") : ""))->join("\n") .
+        $aggregatedItems->map(fn($agg) => "• " . $agg['quantity'] . "x " . $agg['name'] . ($agg['size'] ? " (" . $agg['size'] . ")" : "") . ($agg['toppings']->isNotEmpty() ? " + " . $agg['toppings']->join(", ") : "") . " - " . number_format($agg['total_amount'], 0, ',', '.') . "đ" . ($agg['notes']->isNotEmpty() ? "\n   Note: " . $agg['notes']->join(", ") : ""))->join("\n") .
         "\n-----------------------------------\n" .
         __('admin.gross_subtotal') . ": " . number_format($campaign->orders->sum('subtotal'), 0, ',', '.') . " ₫";
 @endphp
@@ -20,6 +20,10 @@
     <!-- Top Action Bar -->
     <div class="flex items-center justify-end gap-4 pb-2 border-b border-outline-variant/60">
         <div class="flex items-center gap-2">
+            <a href="{{ route('admin.campaigns.show', [$room, $campaign, 'view' => 'detail']) }}" class="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors flex items-center gap-1.5 no-underline">
+                <span class="material-symbols-outlined text-[16px]">restaurant_menu</span>
+                <span>{{ __('admin.campaign_menu') }}</span>
+            </a>
             <a href="{{ route('admin.campaigns.show', [$room, $campaign, 'view' => 'detail']) }}" class="px-3 py-1.5 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-1.5 no-underline">
                 <span class="material-symbols-outlined text-[16px]">receipt_long</span>
                 <span>{{ __('admin.view_settlement_page') }}</span>
@@ -154,6 +158,9 @@
                             <span class="w-5 h-5 rounded-full bg-primary/10 text-primary font-mono font-bold flex items-center justify-center text-[11px]">{{ $loop->iteration }}</span>
                             <div>
                                 <div class="font-bold text-on-surface">{{ $agg['name'] }} @if($agg['size']) <span class="text-outline font-normal">({{ $agg['size'] }})</span> @endif</div>
+                                @if($agg['toppings']->isNotEmpty())
+                                <div class="text-[10px] text-secondary">{{ __('admin.toppings_label') }}: {{ $agg['toppings']->join(', ') }}</div>
+                                @endif
                                 @if($agg['notes']->isNotEmpty())
                                 <div class="text-[10px] text-outline truncate max-w-xs italic">{{ $agg['notes']->join(', ') }}</div>
                                 @endif
@@ -273,6 +280,9 @@
                                 </div>
                                 @if($item->note)
                                 <div class="text-[10px] text-outline italic">{{ $item->note }}</div>
+                                @endif
+                                @if($item->toppings->isNotEmpty())
+                                <div class="text-[10px] text-secondary">{{ __('admin.toppings_label') }}: {{ $item->toppings->map(fn($topping) => ($topping->quantity > 1 ? $topping->quantity.'x ' : '').$topping->topping_name)->join(', ') }}</div>
                                 @endif
                                 @endforeach
                             </div>

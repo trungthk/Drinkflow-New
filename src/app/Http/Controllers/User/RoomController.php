@@ -89,7 +89,6 @@ class RoomController extends Controller
             return response()->view('user.blocked-room', [
                 'room' => $room,
                 'roomUser' => $membership,
-                'adminUser' => $room->admins()->first(),
             ], 403);
         }
 

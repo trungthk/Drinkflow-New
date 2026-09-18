@@ -171,6 +171,7 @@ return [
         'search_empty_desc' => 'Thử đổi từ khóa hoặc chọn lại danh mục.',
         'cart_clear' => 'Xóa toàn bộ giỏ hàng',
         'cart_remove_item' => 'Xóa món này',
+        'cart_proxy_hint' => 'Bạn có thể order dùm người khác bằng cách nhấn nút chỉnh sửa và nhập mã user hợp lệ.',
         'proxy_edit' => 'Chọn người nhận',
         'proxy_title' => 'Đặt món giúp thành viên khác',
         'proxy_desc' => 'Nhập mã thành viên để gán món này cho họ.',
@@ -214,6 +215,7 @@ return [
         'default_drink_desc' => 'Đồ uống thơm ngon, pha chế tươi mới.',
     ],
     'orders' => [
+        'proxy_items_title' => 'Món đã order dùm', 'proxy_for' => 'Đặt cho', 'member_unknown' => 'Thành viên không xác định', 'toppings' => 'Topping', 'note' => 'Ghi chú',
         'page_title' => 'Đơn hàng của tôi',
         'subtitle' => 'Theo dõi trạng thái chuẩn bị và giao hàng cho các đơn trong Room :name',
         'status_all' => 'Tất cả đơn',

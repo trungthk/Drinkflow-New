@@ -9,6 +9,7 @@ use App\Actions\User\SetRoomUserStatusAction;
 use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SetStatusRequest;
+use App\Http\Requests\BulkRoomUserActionRequest;
 use App\Http\Requests\StoreRoomUserRequest;
 use App\Models\Room;
 use App\Models\RoomUser;
@@ -18,6 +19,7 @@ use App\Services\Audit\AuditService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class RoomUserController extends Controller
 {
@@ -120,6 +122,35 @@ class RoomUserController extends Controller
     {
         $this->assertRoom($room, $roomUser);
         return response()->json(['data' => $action->execute($roomUser, $request->validated('status'))]);
+    }
+
+    /**
+     * Apply one status action to multiple members of the current room.
+     *
+     * @param BulkRoomUserActionRequest $request Validated bulk action request.
+     * @param Room $room Current room.
+     * @param SetRoomUserStatusAction $action Membership status action.
+     * @return JsonResponse Bulk operation result.
+     */
+    public function bulkAction(BulkRoomUserActionRequest $request, Room $room, SetRoomUserStatusAction $action): JsonResponse
+    {
+        $status = (string) $request->validated('action');
+        $roomUserIds = array_map('intval', $request->validated('room_user_ids'));
+        $roomUsers = $room->roomUsers()->whereIn('id', $roomUserIds)->get();
+
+        abort_unless($roomUsers->count() === count($roomUserIds), 422, __('admin.invalid_room_users'));
+
+        DB::transaction(function () use ($roomUsers, $status, $action): void {
+            foreach ($roomUsers as $roomUser) {
+                $action->execute($roomUser, $status);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'count' => $roomUsers->count(),
+            'message' => __('admin.bulk_users_updated', ['count' => $roomUsers->count()]),
+        ]);
     }
 
     /**

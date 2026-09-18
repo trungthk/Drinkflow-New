@@ -2,6 +2,7 @@
     $campaignStatusValue =
         $campaign->status instanceof \BackedEnum ? $campaign->status->value : (string) $campaign->status;
     $isDraft = $campaignStatusValue === 'draft';
+    $isCampaignClosed = in_array($campaignStatusValue, ['closed', 'archived', 'cancelled'], true);
 @endphp
 
 <x-admin.layout :title="__('admin.brand_title') . ' · ' . $campaign->name" active="campaigns" :room="$room">
@@ -611,6 +612,7 @@
 
                         <!-- SPONSOR, BUDGET & PAYMENT ACCOUNT TAGS -->
                         <div class="flex flex-wrap items-center gap-2 pt-1">
+                            @if(false)
                             <!-- Max Budget Tag -->
                             @if (!empty($campaign->max_budget))
                                 <div
@@ -623,6 +625,7 @@
                                 </div>
                             @endif
 
+                            @endif
                             <!-- Sponsor Tags -->
                             @if (!empty($sponsorsList) && $sponsorsList->isNotEmpty())
                                 @foreach ($sponsorsList as $sp)
@@ -886,8 +889,8 @@
                                         {{ __('admin.financial_settlement_summary') }}
                                     </h3>
                                 </div>
-                                <button type="button" @click="adjustFeeModalOpen = true"
-                                    class="px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer">
+                                <button type="button" @click="adjustFeeModalOpen = true" @disabled($isCampaignClosed)
+                                    class="px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary/10">
                                     <span class="material-symbols-outlined text-[16px]">tune</span>
                                     <span>{{ __('admin.adjust_fees_discount') }}</span>
                                 </button>
@@ -1038,8 +1041,8 @@
                         </div>
 
                         <div class="p-4 bg-surface-container-low border-t border-outline-variant/60">
-                            <button type="button" @click="confirmDeliveryModalOpen = true" :disabled="isDeliveringLoading"
-                                class="w-full py-2.5 px-4 bg-primary hover:bg-primary-container text-on-primary rounded text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button type="button" @click="confirmDeliveryModalOpen = true" :disabled="isDeliveringLoading || {{ $isCampaignClosed ? 'true' : 'false' }}"
+                                class="w-full py-2.5 px-4 bg-primary hover:bg-primary-container text-on-primary rounded text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary">
                                 <span class="material-symbols-outlined text-[18px]">delivery_dining</span>
                                 <span>{{ __('admin.mark_items_delivered_btn') }}</span>
                             </button>
@@ -1171,6 +1174,7 @@
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.aggregated_items_desc') }}</p>
                             </div>
+                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'aggregated']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
                         </div>
 
                         <div class="overflow-x-auto w-full">
@@ -1246,6 +1250,7 @@
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.orders_list_desc') }}</p>
                             </div>
+                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'orders']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
                         </div>
 
                         <div class="overflow-x-auto w-full">
@@ -1396,6 +1401,7 @@
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.department_summary') }}</p>
                             </div>
+                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'departments']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
                         </div>
 
                         <div class="space-y-4">
@@ -1514,6 +1520,7 @@
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.order_allocation_debt_desc') }}</p>
                             </div>
+                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'debts']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
                         </div>
 
                         @php
@@ -1676,6 +1683,7 @@
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.declined_users_desc') }}</p>
                             </div>
+                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'declined']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
                         </div>
 
                         <div class="overflow-x-auto w-full">
@@ -1754,6 +1762,7 @@
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.unresponsive_users_desc') }}</p>
                             </div>
+                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'unresponsive']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
                         </div>
 
                         <div class="overflow-x-auto w-full">
@@ -1873,8 +1882,6 @@
                             <div class="flex items-center justify-between">
                                 <label
                                     class="block text-xs font-semibold text-on-surface">{{ __('admin.delivery_fee_input') }}</label>
-                                <span class="text-xs font-mono font-medium text-amber-700"
-                                    x-text="formatCurrency(deliveryFee)"></span>
                             </div>
                             <div class="relative">
                                 <input type="text" inputmode="numeric" :value="formatInput(deliveryFee)"
@@ -1891,8 +1898,6 @@
                             <div class="flex items-center justify-between">
                                 <label
                                     class="block text-xs font-semibold text-on-surface">{{ __('admin.discount_input') }}</label>
-                                <span class="text-xs font-mono font-medium text-emerald-700"
-                                    x-text="formatCurrency(discount)"></span>
                             </div>
                             <div class="relative">
                                 <input type="text" inputmode="numeric" :value="formatInput(discount)"

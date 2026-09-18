@@ -50,6 +50,7 @@
         'orderDetailModalSubtitle' => __('admin.order_detail_modal_subtitle'),
         'customerInfo' => __('admin.customer_info'),
         'campaignStoreInfo' => __('admin.campaign_store_info'),
+        'campaignDetailUrl' => isset($activeCampaign) && $activeCampaign ? route('admin.campaigns.show', [$room, $activeCampaign, 'view' => 'detail']) : '',
         'orderFinancialSummary' => __('admin.order_financial_summary'),
         'orderHistoryTimestamps' => __('admin.order_history_timestamps'),
         'itemNameCol' => __('admin.item_name_col'),
@@ -66,6 +67,10 @@
         'closeModalBtn' => __('admin.close_modal_btn'),
         'adjustPriceBtn' => __('admin.adjust_price_btn'),
         'notAvailable' => __('admin.not_available'),
+        'orderedBy' => __('admin.ordered_by'),
+        'proxyOrders' => __('admin.proxy_orders'),
+        'paymentMethod' => __('admin.payment_method'),
+        'paymentStatus' => __('admin.payment_status'),
     ];
 @endphp
 
@@ -111,7 +116,7 @@
                                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                                 {{ __('admin.live_campaign_info') }}
                             </span>
-                            <h2 class="font-bold text-sm text-on-surface truncate">{{ $activeCampaign->name }}</h2>
+                            <a href="{{ route('admin.campaigns.show', [$room, $activeCampaign, 'view' => 'detail']) }}" class="font-bold text-sm text-on-surface truncate hover:text-primary transition-colors no-underline" title="{{ __('admin.view_campaign_details') }}">{{ $activeCampaign->name }}</a>
                             <span class="text-xs bg-surface-container px-2 py-0.5 rounded font-mono font-medium text-secondary">{{ $activeCampaign->code ?? 'N/A' }}</span>
                         </div>
                         <div class="text-xs text-secondary mt-1 flex items-center gap-2 flex-wrap font-medium">
@@ -128,9 +133,9 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('admin.campaigns.page', $room) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold border border-outline-variant/60 transition-colors shadow-2xs">
+                    <a href="{{ route('admin.campaigns.show', [$room, $activeCampaign, 'view' => 'detail']) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold border border-outline-variant/60 transition-colors shadow-2xs">
                         <span class="material-symbols-outlined text-[16px]">campaign</span>
-                        <span>{{ __('admin.campaigns') }}</span>
+                        <span>{{ __('admin.campaign_menu') }}</span>
                     </a>
                 </div>
             </div>
@@ -236,6 +241,9 @@
     @endif
 
     <!-- Filter & Search Toolbar -->
+    @php
+        $hasOrderFilters = trim((string) ($filters['search'] ?? '')) !== '' || ((string) ($filters['status'] ?? 'all') !== '' && (string) ($filters['status'] ?? 'all') !== 'all');
+    @endphp
     <form id="orders-filter-form" method="GET" action="{{ route('admin.orders.page', $room) }}" class="my-4 flex flex-wrap items-center justify-between gap-3 bg-surface-container-low p-3 rounded-xl border border-outline-variant/60">
         <div class="flex flex-1 min-w-[260px] items-center gap-2">
             <div class="relative flex-1">
@@ -265,10 +273,12 @@
                 <span class="material-symbols-outlined text-[16px]">filter_alt</span>
                 {{ __('admin.filter_apply') }}
             </button>
-            <a href="{{ route('admin.orders.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-secondary text-xs font-semibold hover:bg-surface-container transition-colors">
-                <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
-                {{ __('admin.filter_clear') }}
-            </a>
+            @if($hasOrderFilters)
+                <a href="{{ route('admin.orders.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-secondary text-xs font-semibold hover:bg-surface-container transition-colors">
+                    <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
+                    {{ __('admin.filter_clear') }}
+                </a>
+            @endif
         </div>
     </form>
 

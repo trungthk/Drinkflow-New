@@ -5,7 +5,8 @@
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.users_directory') }}</h1>
         </div>
         <div class="flex items-center gap-2.5">
-            <button type="button" id="btn-open-create-user-modal" class="px-3.5 py-2 bg-primary hover:bg-primary-container text-on-primary rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer">
+            <button type="button" id="btn-open-create-user-modal"
+                class="px-3.5 py-2 bg-primary hover:bg-primary-container text-on-primary rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer">
                 <span class="material-symbols-outlined text-[16px]">person_add</span>
                 <span>{{ __('admin.btn_add_user') }}</span>
             </button>
@@ -19,7 +20,8 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-xs">
             <div class="flex items-center justify-between text-outline">
-                <span class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.total_members') }}</span>
+                <span
+                    class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.total_members') }}</span>
                 <span class="material-symbols-outlined text-[20px] text-primary">group</span>
             </div>
             <div class="text-2xl font-bold font-mono text-on-surface mt-2">{{ $totalMembers ?? 0 }}</div>
@@ -28,7 +30,8 @@
 
         <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-xs">
             <div class="flex items-center justify-between text-outline">
-                <span class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.active_members') }}</span>
+                <span
+                    class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.active_members') }}</span>
                 <span class="material-symbols-outlined text-[20px] text-emerald-600">verified_user</span>
             </div>
             <div class="text-2xl font-bold font-mono text-emerald-600 mt-2">{{ $activeMembers ?? 0 }}</div>
@@ -37,7 +40,8 @@
 
         <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-xs">
             <div class="flex items-center justify-between text-outline">
-                <span class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.blocked_members') }}</span>
+                <span
+                    class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.blocked_members') }}</span>
                 <span class="material-symbols-outlined text-[20px] text-rose-600">block</span>
             </div>
             <div class="text-2xl font-bold font-mono text-rose-600 mt-2">{{ $blockedMembers ?? 0 }}</div>
@@ -46,7 +50,8 @@
 
         <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-xs">
             <div class="flex items-center justify-between text-outline">
-                <span class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.debt_members') }}</span>
+                <span
+                    class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.debt_members') }}</span>
                 <span class="material-symbols-outlined text-[20px] text-amber-600">pending_actions</span>
             </div>
             <div class="text-2xl font-bold font-mono text-amber-600 mt-2">{{ $debtMembers ?? 0 }}</div>
@@ -55,23 +60,30 @@
     </div>
 
     <!-- Search & Filter Toolbar -->
-    <form id="users-filter-form" method="GET" action="{{ route('admin.room-users.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+    <form id="users-filter-form" method="GET" action="{{ route('admin.room-users.page', $room) }}"
+        class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
-            <x-admin.search-input id="user-search" name="q" :value="$filters['q'] ?? ''" placeholder="{{ __('admin.search_users_placeholder') }}" containerClass="relative w-full max-w-md" />
+            <x-admin.search-input id="user-search" name="q" :value="$filters['q'] ?? ''"
+                placeholder="{{ __('admin.search_users_placeholder') }}" containerClass="relative w-full max-w-md" />
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            <select id="user-status-filter" name="status" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
-                <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all') }}</option>
+            <select id="user-status-filter" name="status"
+                class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>
+                    {{ __('admin.filter_all') }}
+                </option>
                 @foreach($statusFilters as $statusFilter)
                     <option value="{{ $statusFilter['value'] }}" {{ ($filters['status'] ?? '') === $statusFilter['value'] ? 'selected' : '' }}>{{ $statusFilter['label'] }}</option>
                 @endforeach
             </select>
-            <button type="submit" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary-container transition-colors">
+            <button type="submit"
+                class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary-container transition-colors">
                 <span class="material-symbols-outlined text-[16px]">filter_alt</span>
                 {{ __('admin.filter_apply') }}
             </button>
             @if(trim((string) ($filters['q'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all')
-                <a id="users-clear-filters" href="{{ route('admin.room-users.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
+                <a id="users-clear-filters" href="{{ route('admin.room-users.page', $room) }}"
+                    class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
                     <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
                     {{ __('admin.filter_clear') }}
                 </a>
@@ -79,16 +91,42 @@
         </div>
     </form>
 
+    <div id="users-bulk-toolbar"
+        class="hidden items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 shadow-xs"
+        data-confirm-message="{{ __('admin.confirm_bulk_user_action') }}">
+        <span class="text-xs font-semibold text-on-surface"><span id="users-selected-count">0</span>
+            {{ __('admin.users_selected') }}</span>
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="button" data-bulk-user-action="active"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
+                <span class="material-symbols-outlined text-[16px]">lock_open</span>{{ __('admin.bulk_approve_users') }}
+            </button>
+            <button type="button" data-bulk-user-action="blocked"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700">
+                <span class="material-symbols-outlined text-[16px]">lock</span>{{ __('admin.bulk_block_users') }}
+            </button>
+            <button type="button" data-bulk-user-action="removed"
+                class="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-700">
+                <span
+                    class="material-symbols-outlined text-[16px]">person_remove</span>{{ __('admin.bulk_remove_users') }}
+            </button>
+        </div>
+    </div>
+
     <!-- Users Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs border-collapse">
                 <thead>
-                    <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
-                        <th class="py-3 px-4">{{ __('admin.th_user_member') }}</th>
-                        <th class="py-3 px-4">{{ __('admin.th_user_role') }}</th>
+                    <tr
+                        class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
+                        <th class="w-10 py-3 px-4 text-left"><input type="checkbox" id="users-select-all"
+                                class="h-4 w-4 cursor-pointer rounded border-outline-variant text-primary focus:ring-primary"
+                                aria-label="{{ __('admin.select_all_users') }}"></th>
+                        <th class="py-3 px-4 text-left">{{ __('admin.th_user_member') }}</th>
+                        <th class="py-3 px-4 text-center">{{ __('admin.th_user_role') }}</th>
                         <th class="py-3 px-4 text-center">{{ __('admin.th_trusted_devices') }}</th>
-                        <th class="py-3 px-4 text-center">{{ __('admin.th_orders_placed_count') }}</th>
+                        <th class="py-3 px-4 text-right">{{ __('admin.th_orders_placed_count') }}</th>
                         <th class="py-3 px-4 text-center">{{ __('admin.th_status') }}</th>
                         <th class="py-3 px-4 text-center">{{ __('admin.th_actions') }}</th>
                     </tr>
@@ -100,27 +138,30 @@
                             $email = $ru->globalUser?->email ?? __('global.common.not_available');
                             $statusVal = $ru->status instanceof \BackedEnum ? $ru->status->value : (string) ($ru->status ?? 'active');
                             $roleVal = $ru->role instanceof \BackedEnum ? $ru->role->value : (string) ($ru->role ?? 'member');
-                            $roleClass = match($roleVal) {
+                            $roleClass = match ($roleVal) {
                                 'owner' => 'bg-amber-50 text-amber-800 border-amber-300 font-bold',
                                 'admin' => 'bg-purple-50 text-purple-700 border-purple-200 font-semibold',
                                 default => 'bg-surface-container text-secondary border-outline-variant'
                             };
                         @endphp
-                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-user-row data-status="{{ $statusVal }}">
-                            <td class="py-3.5 px-4">
-                                <button type="button" data-open-user-detail data-room-user-id="{{ $ru->id }}" class="flex items-center gap-3 text-left group/user cursor-pointer focus:outline-none bg-transparent border-0 p-0">
-                                    <div class="w-8 h-8 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-xs overflow-hidden shrink-0 ring-1 ring-outline-variant/30">
-                                        @if($ru->globalUser?->avatar_url && !str_contains($ru->globalUser->avatar_url, 'default-avatar.svg'))
-                                            <img src="{{ $ru->globalUser->avatar_url }}" alt="{{ $name }}" class="w-full h-full object-cover rounded-full" loading="lazy" onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.classList.remove('hidden');">
-                                            <span class="hidden">{{ mb_substr($name, 0, 1) }}</span>
-                                        @else
-                                            <span>{{ mb_substr($name, 0, 1) }}</span>
-                                        @endif
-                                    </div>
+                        <tr class="hover:bg-surface-container-low/50 transition-colors" data-user-row
+                            data-status="{{ $statusVal }}">
+                            <td class="py-3.5 px-4 text-left w-10">
+                                @if($statusVal !== 'removed')
+                                    <input type="checkbox" data-user-select data-room-user-id="{{ $ru->id }}"
+                                        class="h-4 w-4 cursor-pointer rounded border-outline-variant text-primary focus:ring-primary"
+                                        aria-label="{{ $name }}">
+                                @endif
+                            </td>
+                            <td class="py-3.5 px-4 text-left">
+                                <button type="button" data-open-user-detail data-room-user-id="{{ $ru->id }}"
+                                    class="flex items-center gap-3 text-left group/user cursor-pointer focus:outline-none bg-transparent border-0 p-0">
                                     <div>
-                                        <div class="font-bold text-on-surface text-sm group-hover/user:text-primary transition-colors flex items-center gap-1.5">
+                                        <div
+                                            class="font-bold text-on-surface text-sm group-hover/user:text-primary transition-colors flex items-center gap-1.5">
                                             <span>{{ $name }}</span>
-                                            <span class="material-symbols-outlined text-[14px] text-outline opacity-0 group-hover/user:opacity-100 transition-opacity">visibility</span>
+                                            <span
+                                                class="material-symbols-outlined text-[14px] text-outline opacity-0 group-hover/user:opacity-100 transition-opacity">visibility</span>
                                         </div>
                                         <div class="text-[11px] text-outline">
                                             <span>{{ $email }}</span>
@@ -128,37 +169,52 @@
                                     </div>
                                 </button>
                             </td>
-                            <td class="py-3.5 px-4">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] border {{ $roleClass }}">
+                            <td class="py-3.5 px-4 text-center">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-[11px] border {{ $roleClass }}">
                                     {{ __('admin.role_' . $roleVal) }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-center font-mono">
-                                <button type="button" data-open-devices data-room-user-id="{{ $ru->id }}" data-member-name="{{ $name }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-[11px] border border-outline-variant transition-colors" title="{{ __('admin.manage_devices') }}">
+                                <button type="button" data-open-devices data-room-user-id="{{ $ru->id }}"
+                                    data-member-name="{{ $name }}"
+                                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold text-[11px] border border-outline-variant transition-colors"
+                                    title="{{ __('admin.manage_devices') }}">
                                     <span class="material-symbols-outlined text-[14px] text-primary">devices</span>
                                     <span>{{ __('admin.devices_unit', ['count' => $ru->devices_count ?? 0]) }}</span>
                                 </button>
                             </td>
-                            <td class="py-3.5 px-4 text-center font-mono font-bold text-on-surface">
+                            <td class="py-3.5 px-4 text-right font-mono font-bold text-on-surface">
                                 {{ __('admin.orders_unit', ['count' => $ru->orders_count ?? 0]) }}
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border {{ $statusVal === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}">
+                                <span
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border {{ $statusVal === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}">
                                     {{ __('admin.status_' . $statusVal) }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
                                     @if($statusVal !== 'removed')
-                                            <button type="button" data-toggle-user-status data-room-user-id="{{ $ru->id }}" data-new-status="{{ $statusVal === 'active' ? 'blocked' : 'active' }}" class="group relative p-1 rounded hover:bg-surface-container transition-colors {{ $statusVal === 'active' ? 'text-secondary hover:text-rose-600' : 'text-emerald-600' }}" title="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.approve_user') }}" aria-label="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.approve_user') }}">
-                                            <span class="material-symbols-outlined text-[16px]">{{ $statusVal === 'active' ? 'lock' : 'lock_open' }}</span>
-                                            <span role="tooltip" class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.approve_user') }}</span>
+                                        <button type="button" data-toggle-user-status data-room-user-id="{{ $ru->id }}"
+                                            data-new-status="{{ $statusVal === 'active' ? 'blocked' : 'active' }}"
+                                            class="group relative p-1 rounded hover:bg-surface-container transition-colors {{ $statusVal === 'active' ? 'text-secondary hover:text-rose-600' : 'text-emerald-600' }}"
+                                            title="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.approve_user') }}"
+                                            aria-label="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.approve_user') }}">
+                                            <span
+                                                class="material-symbols-outlined text-[16px]">{{ $statusVal === 'active' ? 'lock' : 'lock_open' }}</span>
+                                            <span role="tooltip"
+                                                class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.approve_user') }}</span>
                                         </button>
                                     @endif
                                     @if($statusVal !== 'removed')
-                                            <button type="button" data-remove-room-user data-room-user-id="{{ $ru->id }}" class="group relative p-1 rounded text-secondary hover:text-rose-600 hover:bg-surface-container transition-colors" title="{{ __('admin.remove_user_from_room') }}" aria-label="{{ __('admin.remove_user_from_room') }}">
+                                        <button type="button" data-remove-room-user data-room-user-id="{{ $ru->id }}"
+                                            class="group relative p-1 rounded text-secondary hover:text-rose-600 hover:bg-surface-container transition-colors"
+                                            title="{{ __('admin.remove_user_from_room') }}"
+                                            aria-label="{{ __('admin.remove_user_from_room') }}">
                                             <span class="material-symbols-outlined text-[16px]">person_remove</span>
-                                            <span role="tooltip" class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ __('admin.remove_user_from_room') }}</span>
+                                            <span role="tooltip"
+                                                class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ __('admin.remove_user_from_room') }}</span>
                                         </button>
                                     @endif
                                 </div>
@@ -166,7 +222,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-12 text-center text-outline">
+                            <td colspan="7" class="py-12 text-center text-outline">
                                 <div class="flex flex-col items-center gap-2">
                                     <span class="material-symbols-outlined text-4xl text-outline-variant">group</span>
                                     <p class="font-medium text-sm">{{ __('admin.no_users_found') }}</p>
@@ -185,21 +241,24 @@
     </div>
 
     <!-- Device Trust Management Modal -->
-    <div id="device-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
-         data-revoke-label="{{ __('admin.revoke_device') }}"
-         data-revoked-label="{{ __('admin.revoked') }}"
-         data-no-device-label="{{ __('admin.no_device_registered') }}"
-         data-device-fallback-label="{{ __('admin.device_uuid') }}"
-         data-load-error-label="{{ __('admin.error_generic') }}">
+    <div id="device-modal"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
+        data-revoke-label="{{ __('admin.revoke_device') }}" data-revoked-label="{{ __('admin.revoked') }}"
+        data-no-device-label="{{ __('admin.no_device_registered') }}"
+        data-device-fallback-label="{{ __('admin.device_uuid') }}"
+        data-load-error-label="{{ __('admin.error_generic') }}">
         <div id="device-backdrop" class="absolute inset-0"></div>
-        <div class="relative z-10 w-full max-w-xl bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
+        <div
+            class="relative z-10 w-full max-w-xl bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between pb-3 border-b border-outline-variant mb-4">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded bg-primary text-on-primary flex items-center justify-center">
                         <span class="material-symbols-outlined text-[18px]">devices</span>
                     </div>
                     <div>
-                        <h3 class="font-bold text-base text-on-surface" id="device-modal-title">{{ __('admin.manage_devices') }}</h3>
+                        <h3 class="font-bold text-base text-on-surface" id="device-modal-title">
+                            {{ __('admin.manage_devices') }}
+                        </h3>
                         <p class="text-xs text-outline">{{ __('admin.device_fingerprint') }}</p>
                     </div>
                 </div>
@@ -214,51 +273,68 @@
     </div>
 
     <!-- User action confirmation modal -->
-    <div id="user-action-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog" aria-modal="true"
-         data-status-title="{{ __('admin.toggle_user_status') }}"
-         data-remove-title="{{ __('admin.remove_user_from_room') }}"
+    <div id="user-action-modal"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog"
+        aria-modal="true" data-status-title="{{ __('admin.toggle_user_status') }}"
+        data-remove-title="{{ __('admin.remove_user_from_room') }}"
          data-block-message="{{ __('admin.confirm_block_user') }}"
          data-unblock-message="{{ __('admin.confirm_unblock_user') }}"
          data-remove-message="{{ __('admin.confirm_remove_user') }}"
+         data-bulk-title="{{ __('admin.bulk_user_action_title') }}"
+         data-processing-label="{{ __('admin.processing') }}"
          data-confirm-label="{{ __('admin.confirm_action') }}">
-        <div class="relative z-10 w-full max-w-sm bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-2xl">
-            <h3 id="user-action-title" class="font-bold text-base text-on-surface">{{ __('admin.toggle_user_status') }}</h3>
+        <div
+            class="relative z-10 w-full max-w-sm bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-2xl">
+            <h3 id="user-action-title" class="font-bold text-base text-on-surface">{{ __('admin.toggle_user_status') }}
+            </h3>
             <p id="user-action-message" class="mt-2 text-xs text-outline leading-relaxed"></p>
             <div class="mt-5 flex justify-end gap-2">
-                <button type="button" id="user-action-cancel" class="px-4 py-2 rounded-lg bg-surface-container text-on-surface text-xs font-semibold">{{ __('admin.cancel') }}</button>
-                <button type="button" id="user-action-confirm" class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold">{{ __('admin.confirm_action') }}</button>
+                <button type="button" id="user-action-cancel"
+                    class="px-4 py-2 rounded-lg bg-surface-container text-on-surface text-xs font-semibold">{{ __('admin.cancel') }}</button>
+                <button type="button" id="user-action-confirm"
+                    class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold">{{ __('admin.confirm_action') }}</button>
             </div>
         </div>
     </div>
 
     <!-- Add / Create Member Modal -->
-    <div id="create-user-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="create-user-modal-title">
+    <div id="create-user-modal"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog"
+        aria-modal="true" aria-labelledby="create-user-modal-title">
         <div id="create-user-backdrop" class="absolute inset-0"></div>
-        <div class="relative z-10 w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div
+            class="relative z-10 w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex items-start justify-between pb-3 border-b border-outline-variant mb-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
+                    <div
+                        class="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center">
                         <span class="material-symbols-outlined text-[22px]">person_add</span>
                     </div>
                     <div>
-                        <h3 class="font-bold text-base text-on-surface" id="create-user-modal-title">{{ __('admin.add_user_modal_title') }}</h3>
+                        <h3 class="font-bold text-base text-on-surface" id="create-user-modal-title">
+                            {{ __('admin.add_user_modal_title') }}
+                        </h3>
                         <p class="text-xs text-outline mt-0.5">{{ __('admin.add_user_modal_desc') }}</p>
                     </div>
                 </div>
-                <button type="button" id="create-user-close" class="p-1 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors">
+                <button type="button" id="create-user-close"
+                    class="p-1 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors">
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
             </div>
 
             <!-- Error Banner -->
-            <div id="create-user-error" class="hidden mb-4 rounded-xl p-3 bg-error-container/60 border border-error/30 text-error text-xs leading-relaxed"></div>
+            <div id="create-user-error"
+                class="hidden mb-4 rounded-xl p-3 bg-error-container/60 border border-error/30 text-error text-xs leading-relaxed">
+            </div>
 
             <form id="create-user-form" class="space-y-4">
                 <div>
                     <label for="create-user-email" class="block text-xs font-semibold text-on-surface mb-1">
                         {{ __('admin.user_email_label') }} <span class="text-error">*</span>
                     </label>
-                    <input type="email" id="create-user-email" name="email" required placeholder="example@thk-hd.vn" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                    <input type="email" id="create-user-email" name="email" required placeholder="example@thk-hd.vn"
+                        class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                     <p class="mt-1 text-[11px] text-outline leading-relaxed">{{ __('admin.user_email_hint') }}</p>
                 </div>
 
@@ -267,13 +343,15 @@
                         <label for="create-user-name" class="block text-xs font-semibold text-on-surface mb-1">
                             {{ __('admin.user_name_label') }} <span class="text-error">*</span>
                         </label>
-                        <input type="text" id="create-user-name" name="name" required placeholder="Nguyen Van A" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                        <input type="text" id="create-user-name" name="name" required placeholder="Nguyen Van A"
+                            class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                     </div>
                     <div>
                         <label for="create-user-phone" class="block text-xs font-semibold text-on-surface mb-1">
                             {{ __('admin.user_phone_label') }}
                         </label>
-                        <input type="tel" id="create-user-phone" name="phone" placeholder="0912345678" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                        <input type="tel" id="create-user-phone" name="phone" placeholder="0912345678"
+                            class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                     </div>
                 </div>
 
@@ -281,14 +359,18 @@
                     <label for="create-user-desk" class="block text-xs font-semibold text-on-surface mb-1">
                         {{ __('admin.user_desk_label') }}
                     </label>
-                    <input type="text" id="create-user-desk" name="desk_location" placeholder="{{ __('admin.user_desk_placeholder') }}" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                    <input type="text" id="create-user-desk" name="desk_location"
+                        placeholder="{{ __('admin.user_desk_placeholder') }}"
+                        class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                 </div>
 
                 <div class="pt-2 flex items-center justify-end gap-2.5 border-t border-outline-variant">
-                    <button type="button" id="create-user-cancel" class="px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors">
+                    <button type="button" id="create-user-cancel"
+                        class="px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors">
                         {{ __('admin.cancel') }}
                     </button>
-                    <button type="submit" id="create-user-submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer">
+                    <button type="submit" id="create-user-submit"
+                        class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer">
                         <span class="material-symbols-outlined text-[16px]">person_add</span>
                         <span>{{ __('admin.btn_submit_add_user') }}</span>
                     </button>
@@ -298,33 +380,38 @@
     </div>
 
     <!-- User Detail Modal -->
-    <div id="user-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog" aria-modal="true" aria-labelledby="user-detail-name"
-         data-status-active="{{ __('admin.status_active') }}"
-         data-status-blocked="{{ __('admin.status_blocked') }}"
-         data-status-pending="{{ __('admin.status_pending') }}"
-         data-status-removed="{{ __('admin.status_removed') }}"
-         data-role-owner="{{ __('admin.role_owner') }}"
-         data-role-admin="{{ __('admin.role_admin') }}"
-         data-role-member="{{ __('admin.role_member') }}">
+    <div id="user-detail-modal"
+        class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog"
+        aria-modal="true" aria-labelledby="user-detail-name" data-status-active="{{ __('admin.status_active') }}"
+        data-status-blocked="{{ __('admin.status_blocked') }}" data-status-pending="{{ __('admin.status_pending') }}"
+        data-status-removed="{{ __('admin.status_removed') }}" data-role-owner="{{ __('admin.role_owner') }}"
+        data-role-admin="{{ __('admin.role_admin') }}" data-role-member="{{ __('admin.role_member') }}">
         <div id="user-detail-backdrop" class="absolute inset-0"></div>
-        <div class="relative z-10 w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div
+            class="relative z-10 w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-2xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <!-- Modal Header -->
             <div class="flex items-start justify-between pb-4 border-b border-outline-variant/60 mb-5">
                 <div class="flex items-center gap-3.5">
-                    <div id="user-detail-avatar-container" class="w-12 h-12 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center text-base font-bold overflow-hidden shrink-0 shadow-xs">
+                    <div id="user-detail-avatar-container"
+                        class="w-12 h-12 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center text-base font-bold overflow-hidden shrink-0 shadow-xs">
                         <span id="user-detail-avatar-initial">?</span>
-                        <img id="user-detail-avatar-img" src="" alt="" class="w-full h-full object-cover rounded-full hidden" loading="lazy">
+                        <img id="user-detail-avatar-img" src="" alt=""
+                            class="w-full h-full object-cover rounded-full hidden" loading="lazy">
                     </div>
                     <div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <h3 id="user-detail-name" class="font-bold text-base text-on-surface tracking-tight">-</h3>
-                            <span id="user-detail-role-badge" class="text-[11px] font-semibold px-2 py-0.5 rounded border">-</span>
-                            <span id="user-detail-status-badge" class="text-[11px] font-semibold px-2 py-0.5 rounded border">-</span>
+                            <span id="user-detail-role-badge"
+                                class="text-[11px] font-semibold px-2 py-0.5 rounded border">-</span>
+                            <span id="user-detail-status-badge"
+                                class="text-[11px] font-semibold px-2 py-0.5 rounded border">-</span>
                         </div>
                         <p id="user-detail-email" class="text-xs text-outline mt-0.5">-</p>
                     </div>
                 </div>
-                <button type="button" id="user-detail-close" class="p-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors" aria-label="{{ __('admin.cancel') }}">
+                <button type="button" id="user-detail-close"
+                    class="p-1.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors"
+                    aria-label="{{ __('admin.cancel') }}">
                     <span class="material-symbols-outlined text-[20px]">close</span>
                 </button>
             </div>
@@ -344,7 +431,8 @@
             <!-- Main Detail Content -->
             <div id="user-detail-content" class="hidden space-y-4">
                 <!-- Contact & Workplace Info -->
-                <div class="bg-surface-container-low/70 border border-outline-variant/60 rounded-xl p-3.5 space-y-2.5 text-xs">
+                <div
+                    class="bg-surface-container-low/70 border border-outline-variant/60 rounded-xl p-3.5 space-y-2.5 text-xs">
                     <div class="flex items-center justify-between py-1 border-b border-outline-variant/40">
                         <span class="text-outline flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-[15px] text-secondary">call</span>
@@ -371,19 +459,24 @@
                 <!-- Membership & Activity Stats -->
                 <div class="grid grid-cols-2 gap-2.5">
                     <div class="bg-surface-container-low/70 border border-outline-variant/60 rounded-xl p-3">
-                        <span class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_joined_at') }}</span>
+                        <span
+                            class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_joined_at') }}</span>
                         <div class="text-on-surface mt-1 font-semibold text-xs" id="user-detail-joined">-</div>
                     </div>
                     <div class="bg-surface-container-low/70 border border-outline-variant/60 rounded-xl p-3">
-                        <span class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_last_active') }}</span>
+                        <span
+                            class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_last_active') }}</span>
                         <div class="text-on-surface mt-1 font-semibold text-xs" id="user-detail-last-active">-</div>
                     </div>
                     <div class="bg-surface-container-low/70 border border-outline-variant/60 rounded-xl p-3">
-                        <span class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_total_orders') }}</span>
-                        <div class="text-primary font-bold text-base font-mono mt-0.5" id="user-detail-total-orders">0</div>
+                        <span
+                            class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_total_orders') }}</span>
+                        <div class="text-primary font-bold text-base font-mono mt-0.5" id="user-detail-total-orders">0
+                        </div>
                     </div>
                     <div class="bg-surface-container-low/70 border border-outline-variant/60 rounded-xl p-3">
-                        <span class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_total_debt') }}</span>
+                        <span
+                            class="text-outline text-[10px] uppercase font-mono block">{{ __('admin.user_total_debt') }}</span>
                         <div class="font-bold text-sm font-mono mt-0.5" id="user-detail-total-debt">-</div>
                     </div>
                 </div>
@@ -391,7 +484,8 @@
 
             <!-- Modal Footer -->
             <div class="mt-5 pt-3 border-t border-outline-variant/60 flex justify-end">
-                <button type="button" id="user-detail-close-btn" class="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors cursor-pointer">
+                <button type="button" id="user-detail-close-btn"
+                    class="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors cursor-pointer">
                     {{ __('admin.cancel') }}
                 </button>
             </div>

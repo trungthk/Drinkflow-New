@@ -7,6 +7,7 @@ namespace App\Http\Controllers\User;
 use App\Actions\Campaign\DeclineCampaignAction;
 use App\Actions\Campaign\RejoinCampaignAction;
 use App\Enums\CampaignStatus;
+use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCampaignCartRequest;
@@ -17,6 +18,7 @@ use App\Models\Room;
 use App\Models\RoomUser;
 use App\Enums\RoomUserStatus;
 use App\Services\Campaign\UserRoomCampaignService;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -260,8 +262,15 @@ class CampaignController extends Controller
             ->where('user_code', $code)
             ->firstOrFail();
 
+        $settings = $room->roomSettings()->whereIn('key', ['auto_lock_on_debt_limit', 'personal_debt_ceiling'])->get()->keyBy('key');
+        $autoLock = filter_var($settings->get('auto_lock_on_debt_limit')?->value ?? true, FILTER_VALIDATE_BOOLEAN);
+        $ceiling = (int) ($settings->get('personal_debt_ceiling')?->value ?? 150000);
+        $outstanding = (int) $roomUser->debts()->whereIn('status', DebtStatus::outstandingValues())->sum('remaining_amount');
+        abort_if($autoLock && $outstanding >= $ceiling, 422, __('admin.debt_limit_reached', ['limit' => FormatHelper::formatCurrency($ceiling)]));
+
         return response()->json([
             'display_name' => $roomUser->display_name ?: $roomUser->globalUser?->name,
+            'email' => $roomUser->globalUser?->email,
             'user_code' => $roomUser->user_code,
             'avatar_url' => $roomUser->globalUser?->avatar_url,
         ]);

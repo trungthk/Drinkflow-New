@@ -38,7 +38,7 @@ class UserOrdersService
         // Base query for user orders
         $query = Order::query()
             ->whereIn('room_user_id', $roomUserIds)
-            ->with(['room', 'campaign.paymentAccount', 'items.toppings'])
+            ->with(['room', 'campaign.paymentAccount', 'roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'children.items.toppings', 'items.toppings'])
             ->latest();
 
         // Filter: Room
@@ -145,7 +145,7 @@ class UserOrdersService
 
         $query = Order::query()
             ->whereIn('room_user_id', $roomUserIds)
-            ->with(['items.toppings', 'campaign', 'room'])
+            ->with(['items.toppings', 'campaign', 'room', 'roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'children.items.toppings'])
             ->latest();
 
         if ($request->filled('room_id')) {

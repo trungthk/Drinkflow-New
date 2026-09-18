@@ -17,6 +17,7 @@ use App\Enums\PaymentAccountStatus;
 use App\Enums\CampaignStatus;
 use App\Enums\RoomUserStatus;
 use App\Events\RoomRealtimeEvent;
+use App\Exports\CampaignDetailExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CloseCampaignRequest;
 use App\Http\Requests\SplitBillRequest;
@@ -36,6 +37,7 @@ use App\Services\Media\ImageUploadService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Validation\Rule;
 
 class CampaignController extends Controller
@@ -224,6 +226,24 @@ class CampaignController extends Controller
             : 'admin.campaign-detail';
 
         return view($viewName, $data);
+    }
+
+    /**
+     * Download one dataset from the campaign detail tabs as an Excel workbook.
+     *
+     * @param Room $room Current room.
+     * @param Campaign $campaign Campaign being exported.
+     * @param string $dataset Export dataset key.
+     * @param \App\Services\Admin\AdminCampaignDetailService $detailService Campaign detail data service.
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse Excel download response.
+     */
+    public function exportDetail(Room $room, Campaign $campaign, string $dataset, \App\Services\Admin\AdminCampaignDetailService $detailService): \Symfony\Component\HttpFoundation\BinaryFileResponse
+    {
+        $this->assertCampaign($campaign);
+        abort_unless(in_array($dataset, ['aggregated', 'orders', 'departments', 'debts', 'declined', 'unresponsive'], true), 404);
+        $data = $detailService->getCampaignViewData($room, $campaign);
+
+        return Excel::download(new CampaignDetailExport($dataset, $data), 'campaign-'.$campaign->code.'-'.$dataset.'.xlsx');
     }
 
     /**

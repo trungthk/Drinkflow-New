@@ -2,6 +2,12 @@
 
 return [
     'common' => [
+        'unauthenticated' => 'Bạn chưa đăng nhập.',
+        'room_membership_required' => 'Bạn cần tham gia phòng này để tiếp tục.',
+        'room_blocked' => 'Tài khoản của bạn trong phòng này đã bị khóa.',
+        'room_membership_removed' => 'Bạn đã bị xóa khỏi phòng này.',
+        'device_binding_mismatch' => 'Thiết bị không khớp với tài khoản phòng hiện tại.',
+        'global_account_blocked' => 'Tài khoản của bạn hiện đang bị khóa.',
         'back_home' => 'Quay về Trang chủ',
         'back_previous' => 'Trang trước đó',
         'contact_support' => 'Hỗ trợ kỹ thuật',

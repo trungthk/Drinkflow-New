@@ -11,6 +11,12 @@ export function initAdminDebts() {
     const modalBody = document.querySelector('#debt-modal-body');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
+    const formatMoneyInput = (input) => {
+        if (!input) return;
+        const digits = String(input.value || '').replace(/[^0-9]/g, '');
+        input.value = digits ? Number(digits).toLocaleString('vi-VN') : '';
+    };
+    const numericValue = (selector) => Number(String(document.querySelector(selector)?.value || '').replace(/[^0-9]/g, '')) || 0;
 
     if (!filterForm && !modal) return;
 
@@ -36,12 +42,12 @@ export function initAdminDebts() {
             modalBody.innerHTML = `
                 <form id="record-pay-form" class="space-y-3 text-xs">
                     <div>
-                        <label class="block font-semibold text-on-surface mb-1">Payment Amount:</label>
-                        <input type="number" id="pay-amount" value="${remaining}" max="${remaining}" min="1000" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono font-bold text-base text-primary" required>
+                        <label class="block font-semibold text-on-surface mb-1">Payment Amount <span class="text-error">*</span>:</label>
+                        <input type="text" inputmode="numeric" id="pay-amount" value="${Number(remaining).toLocaleString('vi-VN')}" data-max="${remaining}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono font-bold text-base text-primary" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-on-surface mb-1">Payment Method:</label>
-                        <select id="pay-method" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface">
+                        <label class="block font-semibold text-on-surface mb-1">Payment Method <span class="text-error">*</span>:</label>
+                        <select id="pay-method" required class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface">
                             <option value="vietqr">VietQR</option>
                             <option value="cash">Cash</option>
                             <option value="room_fund">Room Fund</option>
@@ -53,13 +59,15 @@ export function initAdminDebts() {
                     </div>
                     <div class="pt-3 border-t border-outline-variant flex items-center justify-end gap-2">
                         <button type="button" onclick="closeDebtModal()" class="px-4 py-2 bg-surface-container text-on-surface rounded font-semibold">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-semibold">Confirm Payment</button>
+                        <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-semibold inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">payments</span>Confirm Payment</button>
                     </div>
                 </form>
             `;
         }
         modal?.classList.remove('hidden');
         modal?.classList.add('flex');
+
+        document.querySelector('#pay-amount')?.addEventListener('input', (event) => formatMoneyInput(event.target));
 
         document.querySelector('#record-pay-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -70,9 +78,17 @@ export function initAdminDebts() {
                 renderSubmitLoading(submitBtn);
             }
 
-            const amount = document.querySelector('#pay-amount')?.value;
+            const amount = numericValue('#pay-amount');
             const method = document.querySelector('#pay-method')?.value;
             const ref = document.querySelector('#pay-ref')?.value;
+            if (amount > Number(remaining)) {
+                alert(`Payment amount cannot exceed ${Number(remaining).toLocaleString('vi-VN')} ₫.`);
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = origBtnHtml;
+                }
+                return;
+            }
 
             try {
                 const res = await fetch(`/admin/${roomSlug}/debts/${debtId}/payments`, {
@@ -83,7 +99,8 @@ export function initAdminDebts() {
                 if (res.ok) {
                     window.location.reload();
                 } else {
-                    alert('Error recording payment.');
+                    const errorPayload = await res.json().catch(() => ({}));
+                    alert(errorPayload.message || errorPayload.errors?.amount?.[0] || 'Error recording payment.');
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = origBtnHtml;
@@ -107,30 +124,33 @@ export function initAdminDebts() {
             modalBody.innerHTML = `
                 <form id="adjust-debt-form" class="space-y-3 text-xs">
                     <div>
-                        <label class="block font-semibold text-on-surface mb-1">Adjustment Type:</label>
-                        <select id="adj-type" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface">
-                            <option value="discount">Giảm nợ (Discount / Waiver)</option>
-                            <option value="surcharge">Tăng nợ (Surcharge)</option>
-                            <option value="forgive">Miễn nợ (Forgive)</option>
+                        <label class="block font-semibold text-on-surface mb-1">Adjustment Type <span class="text-error">*</span>:</label>
+                        <select id="adj-type" required class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface">
+                            <option value="decrease">Giảm nợ (Discount)</option>
+                            <option value="increase">Tăng nợ (Surcharge)</option>
+                            <option value="waive">Miễn nợ (Forgive)</option>
+                            <option value="correction">Điều chỉnh về số tiền này</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-on-surface mb-1">Amount:</label>
-                        <input type="number" id="adj-amount" value="${remaining}" min="1000" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono font-bold text-on-surface" required>
+                        <label class="block font-semibold text-on-surface mb-1">Amount <span class="text-error">*</span>:</label>
+                        <input type="text" inputmode="numeric" id="adj-amount" value="${Number(remaining).toLocaleString('vi-VN')}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono font-bold text-on-surface" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-on-surface mb-1">Reason:</label>
+                        <label class="block font-semibold text-on-surface mb-1">Reason <span class="text-error">*</span>:</label>
                         <textarea id="adj-reason" rows="2" placeholder="..." class="w-full p-2.5 bg-surface border border-outline-variant rounded text-on-surface" required></textarea>
                     </div>
                     <div class="pt-3 border-t border-outline-variant flex items-center justify-end gap-2">
                         <button type="button" onclick="closeDebtModal()" class="px-4 py-2 bg-surface-container text-on-surface rounded font-semibold">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded font-semibold">Save Adjustment</button>
+                        <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded font-semibold inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">save</span>Save Adjustment</button>
                     </div>
                 </form>
             `;
         }
         modal?.classList.remove('hidden');
         modal?.classList.add('flex');
+
+        document.querySelector('#adj-amount')?.addEventListener('input', (event) => formatMoneyInput(event.target));
 
         document.querySelector('#adjust-debt-form')?.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -142,7 +162,7 @@ export function initAdminDebts() {
             }
 
             const type = document.querySelector('#adj-type')?.value;
-            const amount = document.querySelector('#adj-amount')?.value;
+            const amount = numericValue('#adj-amount');
             const reason = document.querySelector('#adj-reason')?.value;
 
             try {
@@ -154,7 +174,8 @@ export function initAdminDebts() {
                 if (res.ok) {
                     window.location.reload();
                 } else {
-                    alert('Error adjusting debt.');
+                    const errorPayload = await res.json().catch(() => ({}));
+                    alert(errorPayload.message || Object.values(errorPayload.errors || {}).flat()[0] || 'Error adjusting debt.');
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = origBtnHtml;

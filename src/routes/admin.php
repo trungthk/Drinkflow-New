@@ -48,6 +48,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/dashboard/data', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/socket-token', \App\Http\Controllers\Admin\SocketTokenController::class)->name('admin.socket-token');
     Route::post('/notifications/read-all', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllRead'])->name('admin.notifications.read-all');
+    Route::post('/notifications/broadcast', [\App\Http\Controllers\Admin\NotificationController::class, 'broadcast'])->name('admin.notifications.broadcast');
 
     // Dedicated Standalone Page Views
     Route::get('/campaigns/list', [\App\Http\Controllers\Admin\CampaignController::class, 'page'])->name('admin.campaigns.page');
@@ -64,6 +65,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/campaigns/create', [\App\Http\Controllers\Admin\CampaignController::class, 'create'])->name('admin.campaigns.create');
     Route::get('/campaigns/previous-menus', [\App\Http\Controllers\Admin\CampaignController::class, 'previousMenus'])->name('admin.campaigns.previous-menus');
     Route::get('/campaigns/{campaign}/edit', [\App\Http\Controllers\Admin\CampaignController::class, 'edit'])->name('admin.campaigns.edit');
+    Route::get('/campaigns/{campaign}/export/{dataset}', [\App\Http\Controllers\Admin\CampaignController::class, 'exportDetail'])->name('admin.campaigns.export-detail');
     Route::get('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'show'])->name('admin.campaigns.show');
     Route::get('/orders', [\App\Http\Controllers\Admin\OrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/orders/aggregate', [\App\Http\Controllers\Admin\CampaignController::class, 'aggregate'])->name('admin.orders.aggregate');
@@ -121,6 +123,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::post('/room-users', [\App\Http\Controllers\Admin\RoomUserController::class, 'store'])->name('admin.room-users.store');
     Route::get('/room-users/{roomUser}', [\App\Http\Controllers\Admin\RoomUserController::class, 'show'])->name('admin.room-users.show');
     Route::patch('/room-users/{roomUser}/status', [\App\Http\Controllers\Admin\RoomUserController::class, 'status'])->name('admin.room-users.status');
+    Route::post('/room-users/bulk-action', [\App\Http\Controllers\Admin\RoomUserController::class, 'bulkAction'])->name('admin.room-users.bulk-action');
     Route::delete('/room-users/{roomUser}', [\App\Http\Controllers\Admin\RoomUserController::class, 'destroy'])->name('admin.room-users.destroy');
     Route::post('/room-users/{roomUser}/devices/{device}/revoke', [\App\Http\Controllers\Admin\RoomUserController::class, 'revokeDevice'])->name('admin.room-user-devices.revoke');
     Route::get('/payment-accounts', [\App\Http\Controllers\Admin\PaymentAccountController::class, 'index'])->name('admin.payment-accounts.index');

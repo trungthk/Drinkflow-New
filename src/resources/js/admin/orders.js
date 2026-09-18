@@ -169,11 +169,19 @@ export function initAdminOrders() {
 
             const paymentMethodBadge = order.payment_method ? '<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-surface-container text-secondary border border-outline-variant">' + escape(order.payment_method) + '</span>' : '<span class="text-outline italic">—</span>';
             const paymentStatusKey = order.payment_status?.value || order.payment_status || 'pending';
+            const parentHtml = order.parent
+                ? `<div class="rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900"><div class="flex items-center gap-1.5 font-bold"><span class="material-symbols-outlined text-[16px]">account_tree</span>${escape(i18n.orderedBy || 'Ordered by')}</div><div class="mt-1">${escape(order.parent.room_user?.display_name || order.parent.room_user?.global_user?.name || '—')} ${order.parent.room_user?.global_user?.email ? `<span class="text-sky-700">· ${escape(order.parent.room_user.global_user.email)}</span>` : ''} <span class="font-mono">(${escape(order.parent.code || '')})</span></div></div>`
+                : '';
+            const childrenHtml = (order.children || []).length > 0
+                ? `<div class="rounded-xl border border-violet-200 bg-violet-50 p-3 text-xs text-violet-900"><div class="flex items-center gap-1.5 font-bold"><span class="material-symbols-outlined text-[16px]">group</span>${escape(i18n.proxyOrders || 'Proxy orders')}</div><div class="mt-2 space-y-1.5">${order.children.map((child) => `<div class="flex items-center justify-between gap-2"><span>${escape(child.room_user?.display_name || child.room_user?.global_user?.name || '—')}</span><span class="text-violet-700">${escape(child.room_user?.global_user?.email || '')}</span></div>`).join('')}</div></div>`
+                : '';
             const paymentStatusBadge = paymentStatusKey === 'paid'
                 ? '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300">Đã thanh toán</span>'
                 : '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/50 dark:text-amber-300">Chưa thanh toán</span>';
 
             detailBody.innerHTML = `
+                ${parentHtml}${childrenHtml}
+
                 <!-- Member & Campaign Info Card -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div class="bg-surface-container-low rounded-xl p-3.5 border border-outline-variant/60">
@@ -195,7 +203,7 @@ export function initAdminOrders() {
                             <span class="material-symbols-outlined text-[14px]">storefront</span>
                             <span>${escape(i18n.campaignStoreInfo || 'Chiến dịch & Quán')}</span>
                         </div>
-                        <div class="font-semibold text-on-surface text-xs truncate">${escape(campaignName)}</div>
+                        ${i18n.campaignDetailUrl ? `<a href="${escape(i18n.campaignDetailUrl)}" class="font-semibold text-on-surface text-xs truncate hover:text-primary transition-colors no-underline">${escape(campaignName)}</a>` : `<div class="font-semibold text-on-surface text-xs truncate">${escape(campaignName)}</div>`}
                         <div class="text-secondary text-[11px] flex items-center gap-1 mt-1">
                             <span class="material-symbols-outlined text-[13px] text-outline">restaurant</span>
                             <span class="truncate">${escape(restaurant)}</span>
@@ -275,6 +283,10 @@ export function initAdminOrders() {
                     </div>
                 </div>
             `;
+
+            const paymentRows = detailBody.querySelectorAll('div.bg-surface-container-low.rounded-xl > div.flex.items-center.justify-between.text-xs');
+            if (paymentRows[0]?.querySelector('.text-secondary')) paymentRows[0].querySelector('.text-secondary').textContent = (i18n.paymentMethod || 'Payment method') + ':';
+            if (paymentRows[1]?.querySelector('.text-secondary')) paymentRows[1].querySelector('.text-secondary').textContent = (i18n.paymentStatus || 'Payment status') + ':';
 
             if (detailQuickActions && statusKey !== 'cancelled') {
                 detailQuickActions.innerHTML = `

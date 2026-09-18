@@ -34,7 +34,7 @@ class OrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         $room = $request->attributes->get('room');
-        $query = Order::where('room_id', $room->id)->with(['roomUser.globalUser', 'items.toppings', 'campaign'])->latest();
+        $query = Order::where('room_id', $room->id)->whereNull('parent_id')->with(['roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'items.toppings', 'campaign'])->latest();
         if ($request->filled('status')) $query->where('status', $request->string('status')->toString());
         if ($request->filled('campaign_id')) $query->where('campaign_id', $request->integer('campaign_id'));
         if ($request->filled('room_user_id')) $query->where('room_user_id', $request->integer('room_user_id'));
@@ -63,8 +63,9 @@ class OrderController extends Controller
             ?? $room->paymentAccounts()->first();
 
         $query = Order::where('room_id', $room->id)
+            ->whereNull('parent_id')
             ->whereHas('campaign', static fn (Builder $campaignQuery): Builder => $campaignQuery->where('status', CampaignStatus::Active->value))
-            ->with(['roomUser.globalUser', 'items.toppings', 'campaign'])
+            ->with(['roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'items.toppings', 'campaign'])
             ->latest();
 
         $search = trim($request->string('search')->toString());
@@ -139,7 +140,7 @@ class OrderController extends Controller
     public function show(Room $room, Order $order): JsonResponse
     {
         $this->assertRoom($order);
-        return response()->json(['data' => $order->loadMissing(['roomUser.globalUser', 'items.toppings', 'campaign'])]);
+        return response()->json(['data' => $order->loadMissing(['roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'items.toppings', 'campaign'])]);
     }
 
     /**

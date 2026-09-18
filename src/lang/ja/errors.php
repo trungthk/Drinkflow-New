@@ -2,6 +2,12 @@
 
 return [
     'common' => [
+        'unauthenticated' => '認証されていません。',
+        'room_membership_required' => '続行するにはこのルームに参加してください。',
+        'room_blocked' => 'このルームではアカウントがブロックされています。',
+        'room_membership_removed' => 'このルームから削除されました。',
+        'device_binding_mismatch' => 'デバイスが現在のルームアカウントと一致しません。',
+        'global_account_blocked' => 'アカウントは現在ブロックされています。',
         'back_home' => 'ホームに戻る',
         'back_previous' => '前のページへ戻る',
         'contact_support' => '技術サポート',

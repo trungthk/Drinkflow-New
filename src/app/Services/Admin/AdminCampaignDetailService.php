@@ -66,6 +66,7 @@ class AdminCampaignDetailService
                         'quantity' => 0,
                         'total_amount' => 0,
                         'notes' => collect(),
+                        'toppings' => collect(),
                     ]);
                 }
                 $curr = $aggregatedItems->get($key);
@@ -73,6 +74,12 @@ class AdminCampaignDetailService
                 $curr['total_amount'] += $item->line_subtotal;
                 if (! empty($item->note)) {
                     $curr['notes']->push($item->note);
+                }
+                foreach ($item->toppings as $topping) {
+                    $label = trim((string) $topping->topping_name);
+                    if ($label !== '') {
+                        $curr['toppings']->push(($topping->quantity > 1 ? $topping->quantity.'x ' : '').$label);
+                    }
                 }
                 $aggregatedItems->put($key, $curr);
             }

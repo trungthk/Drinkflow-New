@@ -1,17 +1,18 @@
 @php
-    $activeOrder = $orders->first();
+    $activeOrder = $orders->where('room_user_id', $roomUser->id)->first();
     $campaignAccount = $activeOrder?->campaign?->paymentAccount
         ?? $room->paymentAccounts->firstWhere('is_default', true)
         ?? $room->paymentAccounts->first();
     $orderCode = $activeOrder?->code ?? '';
+    $proxyOrders = $activeOrder?->children ?? collect();
     $orderDisplayCode = $activeOrder?->code ? ('#' . $activeOrder->code) : '';
     $orderCampaign = $activeOrder?->campaign;
     $sponsorAllocations = collect($orderCampaign?->sponsor_allocations ?? []);
-    $sponsorPercentage = (float) $sponsorAllocations->sum(static fn (array $allocation): float => (float) ($allocation['percentage'] ?? 0));
-    $bankCode = $campaignAccount?->bank_code ?? 'MB';
-    $bankName = $campaignAccount?->bank_name ?? 'MB Bank';
+    $sponsorPercentage = (float) $sponsorAllocations->sum(static fn(array $allocation): float => (float) ($allocation['percentage'] ?? 0));
+    $bankCode = $campaignAccount?->bank_code ?? '';
+    $bankName = $campaignAccount?->bank_name ?? '';
     $accountNumber = $campaignAccount?->account_number ?? '';
-    $accountName = $campaignAccount?->account_name ?? 'DRINKFLOW ADMIN';
+    $accountName = $campaignAccount?->account_name ?? '';
     $isFullSponsor = $activeOrder?->campaign?->sponsor_type === 'full' || ((int) ($activeOrder?->sponsor_amount ?? 0) >= (int) ($activeOrder?->subtotal ?? 0) && (int) ($activeOrder?->subtotal ?? 0) > 0);
     $orderFinalAmount = (int) ($activeOrder?->final_amount ?? 0);
     if ($orderFinalAmount <= 0 && !$isFullSponsor && (int) ($activeOrder?->subtotal ?? 0) > 0) {
@@ -448,6 +449,51 @@
                                     </div>
                                 @endforelse
                             </div>
+
+                            @if($proxyOrders->isNotEmpty())
+                                <div class="mt-2 border-t border-outline-variant/20 pt-3 space-y-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-secondary text-[18px]">group</span>
+                                        <h5 class="text-xs font-semibold text-on-surface">{{ __('room.orders.proxy_items_title') }}
+                                        </h5>
+                                    </div>
+                                    <div class="space-y-2">
+                                        @foreach($proxyOrders as $proxyOrder)
+                                            <div class="rounded-lg border border-secondary/20 bg-secondary/5 p-2.5">
+                                                <div class="mb-1.5 flex items-center justify-between gap-2 text-[11px]">
+                                                    <span class="font-semibold text-secondary">{{ __('room.orders.proxy_for') }}:
+                                                        {{ $proxyOrder->roomUser?->display_name ?? $proxyOrder->roomUser?->globalUser?->name ?? __('room.orders.member_unknown') }}@if($proxyOrder->roomUser?->globalUser?->email)
+                                                        ({{ $proxyOrder->roomUser->globalUser->email }})@endif</span>
+                                                    <span class="font-mono text-outline">{{ $proxyOrder->code }}</span>
+                                                </div>
+                                                <div class="space-y-1.5">
+                                                    @foreach($proxyOrder->items as $proxyItem)
+                                                        <div class="text-xs text-on-surface">
+                                                            <div class="font-semibold">{{ $proxyItem->item_name }}@if($proxyItem->size_name)
+                                                                <span
+                                                            class="font-normal text-outline">({{ $proxyItem->size_name }})</span>@endif
+                                                            </div>
+                                                            <div class="text-[10px] text-on-surface-variant font-mono">
+                                                                {{ $proxyItem->quantity }} ×
+                                                                {{ number_format((int) $proxyItem->unit_price, 0, ',', '.') }}đ = <span
+                                                                    class="font-semibold">{{ number_format((int) $proxyItem->line_subtotal, 0, ',', '.') }}đ</span>
+                                                            </div>
+                                                            @if($proxyItem->toppings->isNotEmpty())
+                                                                <div class="text-[10px] text-secondary">{{ __('room.orders.toppings') }}:
+                                                                    {{ $proxyItem->toppings->pluck('topping_name')->join(', ') }}</div>
+                                                            @endif
+                                                            @if($proxyItem->note)
+                                                                <div class="text-[10px] italic text-on-surface-variant">
+                                                                    {{ __('room.orders.note') }}: {{ $proxyItem->note }}</div>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -483,13 +529,13 @@
                                         class="font-tabular-nums text-tabular-nums text-on-surface font-medium">{{ number_format($activeOrder->subtotal, 0, ',', '.') }}đ</span>
                                 </div>
                                 @if((int) ($activeOrder->sponsor_amount ?? 0) > 0)
-                                    <div
-                                        class="space-y-2 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-200/60">
+                                    <div class="space-y-2 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-200/60">
                                         <div
                                             class="flex items-center justify-between font-body-md text-body-md text-primary font-medium">
                                             <span class="flex items-center gap-1.5">
                                                 <span class="material-symbols-outlined text-[16px] text-emerald-600">redeem</span>
-                                                <span class="font-bold text-emerald-950">{{ __('room.orders.sponsor_discount') }}:</span>
+                                                <span
+                                                    class="font-bold text-emerald-950">{{ __('room.orders.sponsor_discount') }}:</span>
                                             </span>
                                             <span
                                                 class="font-tabular-nums text-tabular-nums font-bold text-emerald-700 font-mono">-{{ number_format($activeOrder->sponsor_amount, 0, ',', '.') }}đ</span>
@@ -501,8 +547,7 @@
                                                         class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-900 text-xs font-medium shadow-2xs">
                                                         <span
                                                             class="material-symbols-outlined text-[14px] text-emerald-600">volunteer_activism</span>
-                                                        <span
-                                                            class="font-bold text-emerald-950">{{ $sp['name'] }}</span>
+                                                        <span class="font-bold text-emerald-950">{{ $sp['name'] }}</span>
                                                         @if (($sp['percentage'] ?? 0) > 0)
                                                             <span
                                                                 class="font-mono bg-emerald-600 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
@@ -510,8 +555,7 @@
                                                             </span>
                                                         @endif
                                                         @if (($sp['amount'] ?? 0) > 0)
-                                                            <span
-                                                                class="font-mono text-emerald-800 text-[11px] font-semibold">
+                                                            <span class="font-mono text-emerald-800 text-[11px] font-semibold">
                                                                 {{ number_format($sp['amount'], 0, ',', '.') }} ₫
                                                             </span>
                                                         @endif
@@ -607,15 +651,15 @@
                                         <button
                                             class="w-full flex-1 py-2.5 px-space-md rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-label-md text-label-md font-bold shadow-sm transition-all flex items-center justify-center gap-space-sm active:scale-[0.99] cursor-pointer"
                                             @click="openQr(
-                                                                                                                                        {{ $activeOrder->id }},
-                                                                                                                                        {{ (int) $orderFinalAmount }},
-                                                                                                                                        '{{ $formattedOrderAmount }}',
-                                                                                                                                        {{ Js::from($orderCode) }},
-                                                                                                                                        {{ Js::from($bankCode) }},
-                                                                                                                                        {{ Js::from($bankName) }},
-                                                                                                                                        {{ Js::from($accountNumber) }},
-                                                                                                                                        {{ Js::from($accountName) }}
-                                                                                                                                    )"
+                                                                                                                                                                            {{ $activeOrder->id }},
+                                                                                                                                                                            {{ (int) $orderFinalAmount }},
+                                                                                                                                                                            '{{ $formattedOrderAmount }}',
+                                                                                                                                                                            {{ Js::from($orderCode) }},
+                                                                                                                                                                            {{ Js::from($bankCode) }},
+                                                                                                                                                                            {{ Js::from($bankName) }},
+                                                                                                                                                                            {{ Js::from($accountNumber) }},
+                                                                                                                                                                            {{ Js::from($accountName) }}
+                                                                                                                                                                        )"
                                             type="button">
                                             <span class="material-symbols-outlined text-[20px] text-white">qr_code_2</span>
                                             <span class="text-white font-bold">{{ __('room.orders.pay_now_vietqr') }}</span>
@@ -755,8 +799,8 @@
                                     <!-- SVG Snake Border Animation -->
                                     <svg class="vietqr-snake-svg" viewBox="0 0 100 100" preserveAspectRatio="none"
                                         aria-hidden="true">
-                                        <rect class="vietqr-snake-track" x="1.5" y="1.5" width="97" height="97" rx="8" ry="8"
-                                            pathLength="100" />
+                                        <rect class="vietqr-snake-track" x="1.5" y="1.5" width="97" height="97" rx="8"
+                                            ry="8" pathLength="100" />
                                         <rect class="vietqr-snake-line" x="1.5" y="1.5" width="97" height="97" rx="8" ry="8"
                                             pathLength="100" />
                                     </svg>
@@ -788,7 +832,8 @@
                                 </div>
                                 <div
                                     class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
-                                    <span class="text-on-surface-variant">{{ __('room.orders.account_number_label') }}:</span>
+                                    <span
+                                        class="text-on-surface-variant">{{ __('room.orders.account_number_label') }}:</span>
                                     <div class="flex items-center gap-1">
                                         <span class="font-tabular-nums font-bold text-on-surface"
                                             x-text="qrData.accountNumber"></span>
@@ -858,8 +903,9 @@
                     role="dialog" aria-modal="true" aria-labelledby="payment-confirm-title">
                     <div x-show="paymentConfirmModalOpen" x-transition:enter="transition ease-out duration-200"
                         x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100"
-                        x-transition:leave-end="opacity-0 scale-95" @click.outside="closePaymentConfirm()"
+                        x-transition:leave="transition ease-in duration-150"
+                        x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                        @click.outside="closePaymentConfirm()"
                         class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
                         <div class="p-5 sm:p-6">
                             <div
@@ -901,7 +947,8 @@
                             </div>
                             <div
                                 class="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-                                <span class="material-symbols-outlined mt-0.5 shrink-0 text-[17px] text-amber-700">info</span>
+                                <span
+                                    class="material-symbols-outlined mt-0.5 shrink-0 text-[17px] text-amber-700">info</span>
                                 <span>{{ __('room.orders.confirm_modal_note') }}</span>
                             </div>
                         </div>

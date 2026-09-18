@@ -279,6 +279,21 @@
                       'is_paid' => $isPaid,
                       'is_unpaid' => $isUnpaid,
                       'items' => $itemsList,
+                      'parent' => $order->parent ? [
+                          'code' => $order->parent->code,
+                          'member' => $order->parent->roomUser?->display_name ?: $order->parent->roomUser?->globalUser?->name,
+                          'email' => $order->parent->roomUser?->globalUser?->email,
+                      ] : null,
+                      'children' => $order->children->map(static fn ($child): array => [
+                          'code' => $child->code,
+                          'member' => $child->roomUser?->display_name ?: $child->roomUser?->globalUser?->name,
+                          'email' => $child->roomUser?->globalUser?->email,
+                          'items' => $child->items->map(static fn ($item): array => [
+                              'name' => $item->item_name,
+                              'size' => $item->size_name,
+                              'quantity' => (int) $item->quantity,
+                          ])->values()->all(),
+                      ])->values()->all(),
                   ];
                 @endphp
 
@@ -451,6 +466,32 @@
 
         <!-- Modal Body -->
         <div class="p-6 overflow-y-auto space-y-6 max-h-[calc(85vh-160px)]">
+          <template x-if="activeOrder?.parent">
+            <div class="rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900">
+              <div class="flex items-center gap-1.5 font-bold"><span class="material-symbols-outlined text-[16px]">account_tree</span>{{ __('global.orders.ordered_by') }}</div>
+              <p class="mt-1"><span x-text="activeOrder.parent.member"></span><span x-show="activeOrder.parent.email" class="text-sky-700"> · <span x-text="activeOrder.parent.email"></span></span> <span class="font-mono" x-text="'(' + activeOrder.parent.code + ')' "></span></p>
+            </div>
+          </template>
+          <template x-if="activeOrder?.children?.length">
+            <div class="rounded-xl border border-violet-200 bg-violet-50 p-3 text-xs text-violet-900">
+              <div class="flex items-center gap-1.5 font-bold"><span class="material-symbols-outlined text-[16px]">group</span>{{ __('global.orders.proxy_orders') }}</div>
+              <div class="mt-2 space-y-1.5">
+                <template x-for="child in activeOrder.children" :key="child.code">
+                  <div class="rounded-lg bg-white/70 px-2.5 py-2">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="font-semibold" x-text="child.member"></span>
+                      <span class="text-violet-700" x-show="child.email" x-text="child.email"></span>
+                    </div>
+                    <div class="mt-1 space-y-0.5 text-[11px] text-violet-800">
+                      <template x-for="item in child.items" :key="item.name + '-' + item.size">
+                        <div class="flex items-center justify-between gap-2"><span x-text="item.name + (item.size ? ' (' + item.size + ')' : '')"></span><span class="font-mono" x-text="'x' + item.quantity"></span></div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
           <!-- Itemized Breakdown Table -->
           <div>
             <div class="flex items-center justify-between mb-2.5">

@@ -56,7 +56,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
     const roomUsers = availableRoomUsers.map(user => ({
         ...user,
         id: String(user.id),
-        label: `${user.name || ''} (${user.user_code || ''})`,
+        label: user.name || user.user_code || '',
         search: normalizeSearch(`${user.name || ''} ${user.user_code || ''}`)
     }));
     const campaignSettings = {

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Notification;
 
 use App\Enums\NotificationType;
+use App\Enums\GlobalUserStatus;
 use App\Enums\RoomUserStatus;
 use App\Events\UserNotificationCreated;
 use App\Models\GlobalUser;
@@ -28,9 +29,12 @@ class UserNotificationService
      */
     public function toRoom(Room $room, string $type, string $title, ?string $body = null, array $data = []): void
     {
-        $room->roomUsers()->where('status', RoomUserStatus::Active->value)->each(function (RoomUser $roomUser) use ($type, $title, $body, $data): void {
+        $room->roomUsers()
+            ->where('status', RoomUserStatus::Active->value)
+            ->whereHas('globalUser', static fn ($query) => $query->where('status', GlobalUserStatus::Active->value))
+            ->each(function (RoomUser $roomUser) use ($type, $title, $body, $data): void {
             $this->toRoomUser($roomUser, $type, $title, $body, $data);
-        });
+            });
     }
 
     /**

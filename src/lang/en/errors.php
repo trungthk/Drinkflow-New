@@ -2,6 +2,12 @@
 
 return [
     'common' => [
+        'unauthenticated' => 'You are not authenticated.',
+        'room_membership_required' => 'You must join this room to continue.',
+        'room_blocked' => 'Your account is blocked in this room.',
+        'room_membership_removed' => 'You have been removed from this room.',
+        'device_binding_mismatch' => 'The device does not match the current room account.',
+        'global_account_blocked' => 'Your account is currently blocked.',
         'back_home' => 'Back to Home',
         'back_previous' => 'Go Back',
         'contact_support' => 'Technical Support',

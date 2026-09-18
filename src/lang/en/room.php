@@ -171,6 +171,7 @@ return [
         'search_empty_desc' => 'Try another search term or category.',
         'cart_clear' => 'Clear cart',
         'cart_remove_item' => 'Remove this item',
+        'cart_proxy_hint' => 'You can order for someone else by clicking the edit button and entering a valid user code.',
         'proxy_edit' => 'Choose recipient',
         'proxy_title' => 'Order for another member',
         'proxy_desc' => 'Enter the member code to assign this item to them.',
@@ -214,6 +215,7 @@ return [
         'default_drink_desc' => 'Delicious, freshly handcrafted beverage.',
     ],
     'orders' => [
+        'proxy_items_title' => 'Items ordered for others', 'proxy_for' => 'Ordered for', 'member_unknown' => 'Unknown member', 'toppings' => 'Toppings', 'note' => 'Note',
         'page_title' => 'My Orders',
         'subtitle' => 'Track preparation and delivery status for orders in Room :name',
         'status_all' => 'All Orders',

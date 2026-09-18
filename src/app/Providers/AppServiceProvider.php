@@ -46,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(BrowserTransportInterface::class, PuppeteerBrowserTransport::class);
         $this->app->singleton(ProviderResolver::class, function (): ProviderResolver {
             $providers = array_map(
-                fn (string $provider): FoodCrawlerProviderInterface => $this->app->make($provider),
+                fn(string $provider): FoodCrawlerProviderInterface => $this->app->make($provider),
                 config('food-crawler.providers', []),
             );
 
@@ -85,12 +85,12 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \Illuminate\Support\Facades\RateLimiter::for('feedback-submission', function (\Illuminate\Http\Request $request) {
-            $userKey = $request->user('web')?->id ? 'user:'.$request->user('web')->id : ($request->ip() ?: '127.0.0.1');
+            $userKey = $request->user('web')?->id ? 'user:' . $request->user('web')->id : ($request->ip() ?: '127.0.0.1');
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($userKey);
         });
 
         \Illuminate\Support\Facades\RateLimiter::for('crawler-preview', function (\Illuminate\Http\Request $request) {
-            $adminKey = $request->user('admin')?->id ? 'admin:'.$request->user('admin')->id : ($request->ip() ?: '127.0.0.1');
+            $adminKey = $request->user('admin')?->id ? 'admin:' . $request->user('admin')->id : ($request->ip() ?: '127.0.0.1');
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(10)->by($adminKey);
         });
 
@@ -155,7 +155,7 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer(['components.admin.*', 'admin.*'], AdminLayoutComposer::class);
         View::composer(['components.global.*', 'user.global.*'], UserGlobalLayoutComposer::class);
-        View::composer(['components.room.*', 'user.room.*'], UserRoomLayoutComposer::class);
+        View::composer(['components.room.*', 'user.room.*', 'user.orders'], UserRoomLayoutComposer::class);
         View::composer(['components.public.*', 'public.*'], PublicLayoutComposer::class);
         View::share('locales', \App\Constants\AppLocale::SUPPORTED);
 

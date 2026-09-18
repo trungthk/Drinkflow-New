@@ -21,6 +21,9 @@ export function initAdminUsers() {
     const actionMessage = document.querySelector('#user-action-message');
     const actionConfirm = document.querySelector('#user-action-confirm');
     const actionCancel = document.querySelector('#user-action-cancel');
+    const bulkToolbar = document.querySelector('#users-bulk-toolbar');
+    const selectAllUsers = document.querySelector('#users-select-all');
+    const bulkSelectedCount = document.querySelector('#users-selected-count');
     let pendingAction = null;
 
     // Create / Add User Modal Elements
@@ -44,6 +47,66 @@ export function initAdminUsers() {
     let currentDetailUser = null;
 
     if (!searchInput && !rows.length && !modal && !createUserModal && !userDetailModal) return;
+
+    const selectedUserCheckboxes = () => Array.from(document.querySelectorAll('[data-user-select]:checked'));
+    const updateBulkSelection = () => {
+        const checkboxes = Array.from(document.querySelectorAll('[data-user-select]'));
+        const selected = selectedUserCheckboxes();
+        if (bulkSelectedCount) bulkSelectedCount.textContent = String(selected.length);
+        if (bulkToolbar) {
+            bulkToolbar.classList.toggle('hidden', selected.length === 0);
+            bulkToolbar.classList.toggle('flex', selected.length > 0);
+        }
+        if (selectAllUsers) {
+            selectAllUsers.checked = checkboxes.length > 0 && selected.length === checkboxes.length;
+            selectAllUsers.indeterminate = selected.length > 0 && selected.length < checkboxes.length;
+        }
+    };
+
+    selectAllUsers?.addEventListener('change', () => {
+        document.querySelectorAll('[data-user-select]').forEach((checkbox) => {
+            checkbox.checked = selectAllUsers.checked;
+        });
+        updateBulkSelection();
+    });
+    document.addEventListener('change', (event) => {
+        if (event.target.matches('[data-user-select]')) updateBulkSelection();
+    });
+
+    document.addEventListener('click', async (event) => {
+        const bulkButton = event.target.closest('[data-bulk-user-action]');
+        if (!bulkButton) return;
+        const selected = selectedUserCheckboxes();
+        if (!selected.length) return;
+        openActionModal(
+            actionModal?.dataset.bulkTitle || 'Confirm bulk action',
+            bulkToolbar?.dataset.confirmMessage || 'Confirm bulk action?',
+            async () => {
+                try {
+                    const response = await fetch(`/admin/${roomSlug}/room-users/bulk-action`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: bulkButton.dataset.bulkUserAction,
+                            room_user_ids: selected.map((checkbox) => Number(checkbox.dataset.roomUserId)),
+                        }),
+                    });
+                    if (!response.ok) {
+                        const error = await response.json().catch(() => ({}));
+                        throw new Error(error.message || 'Bulk action failed.');
+                    }
+                    window.location.reload();
+                } catch (error) {
+                    console.error(error);
+                    window.alert(error.message || 'Bulk action failed.');
+                }
+            },
+        );
+    });
 
     // Backend Form Search & Status Trigger (No client-side DOM row filtering)
     statusSelect?.addEventListener('change', () => {
@@ -93,11 +156,13 @@ export function initAdminUsers() {
         const action = pendingAction;
         actionConfirm.disabled = true;
         actionConfirm.classList.add('opacity-60', 'cursor-not-allowed');
+        actionConfirm.textContent = actionModal.dataset.processingLabel || 'Processing...';
         try {
             await action();
         } finally {
             actionConfirm.disabled = false;
             actionConfirm.classList.remove('opacity-60', 'cursor-not-allowed');
+            actionConfirm.textContent = actionModal.dataset.confirmLabel || 'Confirm';
         }
     });
 
