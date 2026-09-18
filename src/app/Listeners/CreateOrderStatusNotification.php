@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
+use App\Enums\NotificationType;
 use App\Events\OrderUpdated;
 use App\Services\Notification\UserNotificationService;
 
@@ -40,7 +41,7 @@ class CreateOrderStatusNotification
 
         // Prevent duplicate notification within 5 seconds for the same order status
         $alreadyCreated = \App\Models\UserNotification::where('room_user_id', $roomUser->id)
-            ->where('type', 'order.status')
+            ->where('type', NotificationType::OrderStatus->value)
             ->where('created_at', '>=', now()->subSeconds(5))
             ->where('data->order_id', $order->id)
             ->where('data->status', $order->status->value)
@@ -58,7 +59,7 @@ class CreateOrderStatusNotification
 
         $this->notificationService->toRoomUser(
             $roomUser,
-            'order.status',
+            NotificationType::OrderStatus->value,
             __('messages.order_status_updated'),
             __('messages.order_status_updated_body', [
                 'order_id' => $order->id,
@@ -72,4 +73,3 @@ class CreateOrderStatusNotification
         );
     }
 }
-

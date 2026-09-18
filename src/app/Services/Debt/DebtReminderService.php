@@ -25,7 +25,7 @@ class DebtReminderService
         $debts->loadMissing(['roomUser', 'campaign']);
         $notifications = app(UserNotificationService::class);
         foreach ($debts as $debt) {
-            $notifications->toRoomUser($debt->roomUser, 'debt.reminder', __('admin.debt_reminder_title'), __('admin.debt_reminder_body', ['campaign' => $debt->campaign?->name ?? '#'.$debt->campaign_id, 'amount' => FormatHelper::formatCurrency((int) $debt->remaining_amount)]), ['debt_id' => $debt->id, 'campaign_id' => $debt->campaign_id, 'remaining_amount' => $debt->remaining_amount]);
+            $notifications->toRoomUser($debt->roomUser, 'debt.reminder', __('admin.debt_reminder_title'), __('admin.debt_reminder_body', ['campaign' => $debt->campaign?->name ?? $debt->campaign?->code ?? '', 'amount' => FormatHelper::formatCurrency((int) $debt->remaining_amount)]), ['debt_id' => $debt->id, 'debt_code' => $debt->code, 'campaign_id' => $debt->campaign_id, 'campaign_code' => $debt->campaign?->code, 'remaining_amount' => $debt->remaining_amount]);
         }
         if ($debts->isNotEmpty()) {
             app(RoomNotificationChannelDispatcher::class)->dispatch($room, ['event' => 'debt.reminder', 'title' => __('admin.debt_reminder_title'), 'message' => __('admin.debt_channel_reminder_body', ['count' => $debts->count(), 'amount' => FormatHelper::formatCurrency((int) $debts->sum('remaining_amount'))]), 'room_id' => $room->id]);

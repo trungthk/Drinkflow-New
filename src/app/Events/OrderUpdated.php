@@ -10,5 +10,7 @@ class OrderUpdated
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public readonly Order $order, public readonly string $previousStatus) {}
+    public function __construct(public readonly Order $order, public readonly string $previousStatus)
+    {
+    }
 }

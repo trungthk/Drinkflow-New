@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace App\Actions\Order;
 
+use App\Enums\CampaignItemStatus;
+use App\Enums\DebtStatus;
+use App\Enums\GlobalUserStatus;
+use App\Enums\OrderStatus;
+use App\Enums\RoomUserStatus;
 use App\Events\OrderCreated;
 use App\Models\Campaign;
 use App\Models\Order;
@@ -20,10 +25,12 @@ class CreateOrderAction
      * @param Campaign $campaign Campaign entity.
      * @param RoomUser $roomUser Room user placing the order.
      * @param array<string, mixed> $data Order items and options payload.
+     * @param int|null $parentId Parent order ID when creating a child (proxy) order.
+     * @param bool $allowEmpty Whether an empty placeholder parent order is allowed.
      * @return Order Created order entity with items and toppings loaded.
      * @throws ValidationException If campaign is unavailable, user inactive, or items invalid.
      */
-    public function execute(Campaign $campaign, RoomUser $roomUser, array $data): Order
+    public function execute(Campaign $campaign, RoomUser $roomUser, array $data, ?int $parentId = null, bool $allowEmpty = false): Order
     {
         $campaign->refresh();
         $roomUser->refresh();
@@ -34,17 +41,19 @@ class CreateOrderAction
             ]);
         }
         $this->ensureCampaignIsOrderable($campaign);
-        if ($roomUser->status->value !== 'active' || $roomUser->globalUser->status->value !== 'active') {
+        if ($roomUser->status !== RoomUserStatus::Active || $roomUser->globalUser->status !== GlobalUserStatus::Active) {
             throw ValidationException::withMessages([
                 'user' => __('admin.account_inactive'),
             ]);
         }
 
-        $order = DB::transaction(function () use ($campaign, $roomUser, $data): Order {
+        $order = DB::transaction(function () use ($campaign, $roomUser, $data, $parentId): Order {
             $campaign = Campaign::query()->lockForUpdate()->findOrFail($campaign->id);
+            // Serialize daily order numbering across campaigns in the same room.
+            \App\Models\Room::query()->whereKey($campaign->room_id)->lockForUpdate()->firstOrFail();
             $this->ensureCampaignIsOrderable($campaign);
             $items = $data['items'] ?? [];
-            if ($items === []) {
+            if ($items === [] && ! $allowEmpty) {
                 throw ValidationException::withMessages([
                     'items' => __('admin.order_must_have_items'),
                 ]);
@@ -55,14 +64,14 @@ class CreateOrderAction
                 $item = $campaign->items()->with(['sizes', 'toppings'])->whereKey($input['item_id'] ?? 0)->first();
                 $quantity = (int) ($input['quantity'] ?? 0);
                 $itemStatus = $item?->status instanceof \BackedEnum ? $item->status->value : (string) ($item?->status ?? '');
-                if (! $item || $itemStatus !== 'active' || $quantity < 1) {
+                if (! $item || $itemStatus !== CampaignItemStatus::Active->value || $quantity < 1) {
                     throw ValidationException::withMessages([
                         'items' => __('admin.item_invalid_or_sold_out'),
                     ]);
                 }
                 $size = ! empty($input['size_id']) ? $item->sizes->firstWhere('id', (int) $input['size_id']) : null;
                 $sizeStatus = $size?->status instanceof \BackedEnum ? $size->status->value : (string) ($size?->status ?? '');
-                if (! empty($input['size_id']) && (! $size || $sizeStatus !== 'active')) {
+                if (! empty($input['size_id']) && (! $size || $sizeStatus !== CampaignItemStatus::Active->value)) {
                     throw ValidationException::withMessages([
                         'items' => __('admin.invalid_size'),
                     ]);
@@ -71,7 +80,7 @@ class CreateOrderAction
                 if ($toppings->contains(function ($t) {
                     if (! $t) return true;
                     $tStatus = $t->status instanceof \BackedEnum ? $t->status->value : (string) $t->status;
-                    return $tStatus !== 'active';
+                    return $tStatus !== CampaignItemStatus::Active->value;
                 })) {
                     throw ValidationException::withMessages([
                         'items' => __('admin.invalid_topping'),
@@ -96,18 +105,19 @@ class CreateOrderAction
             $final = max(0, $subtotal + $delivery - $discount - $sponsor);
             $this->enforceDebtPolicy($roomUser, $final);
             $order = Order::create([
-                'room_id' => $campaign->room_id,
-                'campaign_id' => $campaign->id,
-                'room_user_id' => $roomUser->id,
-                'payment_method' => $data['payment_method'] ?? null,
-                'subtotal' => $subtotal,
+                'parent_id'       => $parentId,
+                'room_id'         => $campaign->room_id,
+                'campaign_id'     => $campaign->id,
+                'room_user_id'    => $roomUser->id,
+                'payment_method'  => $data['payment_method'] ?? null,
+                'subtotal'        => $subtotal,
                 'delivery_amount' => $delivery,
                 'discount_amount' => $discount,
-                'sponsor_amount' => $sponsor,
-                'final_amount' => $final,
-                'status' => 'submitted',
-                'note' => $data['note'] ?? null,
-                'submitted_at' => now(),
+                'sponsor_amount'  => $sponsor,
+                'final_amount'    => $final,
+                'status'          => OrderStatus::Submitted,
+                'note'            => $data['note'] ?? null,
+                'submitted_at'    => now(),
             ]);
             foreach ($snapshots as $snapshot) {
                 $orderItem = $order->items()->create([
@@ -177,7 +187,7 @@ class CreateOrderAction
             return;
         }
         $ceiling = (int) ($settings->get('personal_debt_ceiling')?->value ?? 150000);
-        $outstanding = (int) $roomUser->debts()->whereIn('status', ['unpaid', 'partial'])->sum('remaining_amount');
+        $outstanding = (int) $roomUser->debts()->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])->sum('remaining_amount');
         if ($outstanding + $orderAmount > $ceiling) {
             throw ValidationException::withMessages([
                 'order' => __('admin.debt_limit_reached', ['limit' => FormatHelper::formatCurrency($ceiling)]),
@@ -203,9 +213,9 @@ class CreateOrderAction
         );
 
         return match ($campaign->sponsor_type) {
-            'full' => $charge,
-            'per_item' => min($charge, $configuredPerItem),
-            'budget' => min($charge, max(0, (int) $campaign->max_budget - (int) $campaign->orders()->sum('sponsor_amount'))),
+            Campaign::SPONSOR_TYPE_FULL => $charge,
+            Campaign::SPONSOR_TYPE_PER_ITEM => min($charge, $configuredPerItem),
+            Campaign::SPONSOR_TYPE_BUDGET => min($charge, max(0, (int) $campaign->max_budget - (int) $campaign->orders()->sum('sponsor_amount'))),
             default => 0,
         };
     }

@@ -47,10 +47,10 @@ class UpdateCampaignAction
         /** @var Room $room */
         $room = $campaign->room;
 
-        $sponsorType = (string) ($data['sponsor_type'] ?? $campaign->sponsor_type ?? 'none');
-        if ($sponsorType === 'none') {
+        $sponsorType = (string) ($data['sponsor_type'] ?? $campaign->sponsor_type ?? Campaign::SPONSOR_TYPE_NONE);
+        if ($sponsorType === Campaign::SPONSOR_TYPE_NONE) {
             $data['sponsor_allocations'] = [];
-        } elseif (array_key_exists('sponsor_allocations', $data) && $sponsorType === 'full') {
+        } elseif (array_key_exists('sponsor_allocations', $data) && $sponsorType === Campaign::SPONSOR_TYPE_FULL) {
             /** @var array<int, array<string, mixed>> $allocationsList */
             $allocationsList = $data['sponsor_allocations'] ?? [];
             $allocations = collect($allocationsList);
@@ -199,7 +199,7 @@ class UpdateCampaignAction
             $this->auditService->record('campaign.updated', 'campaign', $campaign->id, $campaign->room_id, $before, $freshCampaign->toArray());
 
             $statusValue = $freshCampaign->status instanceof \BackedEnum ? $freshCampaign->status->value : (string) $freshCampaign->status;
-            if (in_array($statusValue, ['active', 'scheduled', 'closing'], true)) {
+            if (in_array($statusValue, [CampaignStatus::Active->value, CampaignStatus::Scheduled->value, CampaignStatus::Closing->value], true)) {
                 \App\Events\CampaignUpdated::dispatch($freshCampaign);
             }
 

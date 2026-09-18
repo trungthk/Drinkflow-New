@@ -195,6 +195,7 @@ return [
         'items.*.ice_percent' => 'Lượng đá (%)',
         'items.*.sugar_percent' => 'Lượng đường (%)',
         'items.*.note' => 'Ghi chú món',
+        'items.*.proxy_user_code' => 'Mã người nhận đặt giúp',
         'items.*.unit_price' => 'Đơn giá',
         'source_id' => 'Tài khoản nguồn',
         'target_id' => 'Tài khoản đích',

@@ -17,7 +17,7 @@ class UserBlockedService
      */
     public function getBlockedNoticeData(GlobalUser $user): array
     {
-        $incidentCode = '#BLK-' . date('Y') . '-' . str_pad((string) $user->id, 5, '0', STR_PAD_LEFT);
+        $incidentCode = '#' . $user->code;
         $recordedAt = \App\Support\Helpers\FormatHelper::formatDateTime(now()) . ' (GMT+7)';
 
         $roomUserIds = $user->roomUsers()->pluck('id');

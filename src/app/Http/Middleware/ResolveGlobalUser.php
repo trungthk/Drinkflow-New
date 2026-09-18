@@ -24,6 +24,7 @@ class ResolveGlobalUser
         $user = $request->user('web');
         $deviceUuid = (string) $request->cookie('drinkflow_device_uuid', '');
         $token = (string) $request->cookie('drinkflow_trusted_token', '');
+        $clearTrustedDeviceCookies = false;
 
         // A revoked trusted-device token must also invalidate an otherwise
         // still-present Laravel session. Without this check, a revoked device
@@ -35,6 +36,7 @@ class ResolveGlobalUser
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
                 $user = null;
+                $clearTrustedDeviceCookies = true;
             }
         }
 
@@ -42,6 +44,7 @@ class ResolveGlobalUser
         // token is always checked against its hash; device_uuid alone is not
         // treated as an authentication credential.
         if (! $user) {
+            $clearTrustedDeviceCookies = $deviceUuid !== '' || $token !== '';
             $room       = $request->route('room');
             $roomId     = is_object($room) ? $room->id : (is_numeric($room) ? (int) $room : null);
             $device     = app(DeviceTrustService::class)->resolve($deviceUuid, $token, $roomId);
@@ -60,10 +63,12 @@ class ResolveGlobalUser
                 && $referer !== $request->fullUrl()
                 && $referer !== $request->url()
                 && $referer !== url('/')) {
-                return redirect()->to($referer);
+                $response = redirect()->to($referer);
+                return $clearTrustedDeviceCookies ? $this->forgetTrustedDeviceCookies($response) : $response;
             }
 
-            return redirect()->to('/');
+            $response = redirect()->to('/');
+            return $clearTrustedDeviceCookies ? $this->forgetTrustedDeviceCookies($response) : $response;
         }
 
         // Status is cast to GlobalUserStatus enum via model casts.
@@ -116,5 +121,18 @@ class ResolveGlobalUser
         return $host === $requestHost
             || ($host === 'localhost' && $requestHost === '127.0.0.1')
             || ($host === '127.0.0.1' && $requestHost === 'localhost');
+    }
+
+    /**
+     * Remove revoked trusted-device cookies so a subsequent OAuth login can establish a fresh session.
+     *
+     * @param Response $response Redirect response to decorate.
+     * @return Response Response without stale trusted-device cookies.
+     */
+    private function forgetTrustedDeviceCookies(Response $response): Response
+    {
+        return $response
+            ->withoutCookie('drinkflow_device_uuid')
+            ->withoutCookie('drinkflow_trusted_token');
     }
 }

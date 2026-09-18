@@ -1,6 +1,29 @@
 <?php
 
 return [
+    'release_v2_3_0' => [
+        'title' => 'Multi-room Ordering, Proxy Orders & VietQR Settlement',
+        'summary' => 'The official v2.3.0 release completes multi-room ordering, proxy orders, debt management and VietQR payment confirmation for production use.',
+        'status' => 'Stable (Production)',
+        'changelog' => 'Completed Google OAuth and trusted-device authentication; standardized ORD{room_id}-YYYYMMDD-sequence order codes; added parent/child proxy orders, debt tracking, realtime notifications and consolidated migrations.',
+        'features' => [
+            ['title' => 'Multi-room ordering', 'description' => 'One account can join and follow multiple ordering rooms at the same time.'],
+            ['title' => 'Proxy orders', 'description' => 'Create parent/child orders, identify the recipient correctly and send realtime notifications.'],
+            ['title' => 'NAPAS VietQR payments', 'description' => 'Generate a transaction-specific QR payload with the exact amount and transfer reference.'],
+        ],
+        'improvements' => [
+            ['title' => 'Trusted devices', 'description' => 'Remember trusted devices and reduce repeated verification prompts.'],
+            ['title' => 'Debt reconciliation', 'description' => 'Add payment-request, approval and settlement status workflows.'],
+        ],
+        'bugfixes' => [
+            ['title' => 'Duplicate-order protection', 'description' => 'Protect order submission from repeated clicks and unstable connections.'],
+            ['title' => 'Standardized order codes', 'description' => 'Use a fixed room, date and daily sequence format for every order.'],
+        ],
+        'security' => [
+            ['title' => 'Cross-room authorization', 'description' => 'Enforce strict checks to prevent data access between rooms.'],
+            ['title' => 'Unified production migrations', 'description' => 'Ship complete foreign keys and unique indexes for safe deployment.'],
+        ],
+    ],
     'meta_title' => 'DrinkFlow :version - Release History',
     'breadcrumb_root' => 'DrinkFlow System',
     'breadcrumb_history' => 'Release Notes',

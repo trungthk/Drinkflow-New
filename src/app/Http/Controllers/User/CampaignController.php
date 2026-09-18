@@ -15,6 +15,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Enums\RoomUserStatus;
 use App\Services\Campaign\UserRoomCampaignService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -164,16 +165,17 @@ class CampaignController extends Controller
         $cart = session()->get($cartKey, []);
         abort_if(count($cart) >= 50, 422, __('room.campaign.cart_limit_reached'));
         $cart[] = [
-            'item_id' => (int) $item->id,
-            'item_name' => $item->name,
-            'image_url' => $item->image_url,
-            'size_id' => $size?->id,
-            'size_name' => $size?->name,
-            'topping_ids' => $toppings->pluck('id')->values()->all(),
-            'topping_names' => $toppings->pluck('name')->values()->all(),
-            'quantity' => (int) $data['quantity'],
-            'note' => $data['note'] ?? null,
-            'unit_price' => (int) $item->base_price + (int) ($size?->price_delta ?? 0) + (int) $toppings->sum('price'),
+            'item_id'         => (int) $item->id,
+            'item_name'       => $item->name,
+            'image_url'       => $item->image_url,
+            'size_id'         => $size?->id,
+            'size_name'       => $size?->name,
+            'topping_ids'     => $toppings->pluck('id')->values()->all(),
+            'topping_names'   => $toppings->pluck('name')->values()->all(),
+            'quantity'        => (int) $data['quantity'],
+            'note'            => $data['note'] ?? null,
+            'unit_price'      => (int) $item->base_price + (int) ($size?->price_delta ?? 0) + (int) $toppings->sum('price'),
+            'proxy_user_code' => isset($data['proxy_user_code']) && $data['proxy_user_code'] !== '' ? (string) $data['proxy_user_code'] : null,
         ];
         session()->put($cartKey, $cart);
 
@@ -212,6 +214,57 @@ class CampaignController extends Controller
         session()->put($cartKey, $cart);
 
         return response()->json(['data' => $cart]);
+    }
+
+    /**
+     * Update the proxy recipient attached to one cart item.
+     *
+     * @param Request $request Incoming request.
+     * @param Room $room Current room.
+     * @param Campaign $campaign Target campaign.
+     * @param int $index Zero-based cart item index.
+     * @return JsonResponse Updated cart payload.
+     */
+    public function updateCartProxy(Request $request, Room $room, Campaign $campaign, int $index): JsonResponse
+    {
+        abort_unless($campaign->room_id === $room->id, 404);
+        $data = $request->validate([
+            'proxy_user_code' => ['nullable', 'string', 'max:50'],
+            'proxy_user_name' => ['nullable', 'string', 'max:255'],
+        ]);
+        $cartKey = $this->cartKey($room->id, $campaign->id);
+        $cart = session()->get($cartKey, []);
+        abort_if(! array_key_exists($index, $cart), 404);
+        $cart[$index]['proxy_user_code'] = trim((string) ($data['proxy_user_code'] ?? '')) ?: null;
+        $cart[$index]['proxy_user_name'] = trim((string) ($data['proxy_user_name'] ?? '')) ?: null;
+        session()->put($cartKey, array_values($cart));
+
+        return response()->json(['data' => array_values($cart)]);
+    }
+
+    /**
+     * Look up an active room member by their room user code.
+     *
+     * @param Request $request Incoming request.
+     * @param Room $room Current room.
+     * @return JsonResponse Member summary.
+     */
+    public function lookupMember(Request $request, Room $room): JsonResponse
+    {
+        $code = trim((string) $request->query('code', ''));
+        abort_if($code === '', 404);
+        $roomUser = RoomUser::query()
+            ->with('globalUser')
+            ->where('room_id', $room->id)
+            ->where('status', RoomUserStatus::Active->value)
+            ->where('user_code', $code)
+            ->firstOrFail();
+
+        return response()->json([
+            'display_name' => $roomUser->display_name ?: $roomUser->globalUser?->name,
+            'user_code' => $roomUser->user_code,
+            'avatar_url' => $roomUser->globalUser?->avatar_url,
+        ]);
     }
 
     /**

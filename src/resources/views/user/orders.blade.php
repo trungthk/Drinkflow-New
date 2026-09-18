@@ -3,8 +3,8 @@
     $campaignAccount = $activeOrder?->campaign?->paymentAccount
         ?? $room->paymentAccounts->firstWhere('is_default', true)
         ?? $room->paymentAccounts->first();
-    $orderCode = $activeOrder?->code ?: ($activeOrder ? ('DF' . $activeOrder->id . ' ' . $roomUser->room_user_code) : '');
-    $orderDisplayCode = $activeOrder?->code ? ('#' . $activeOrder->code) : ($activeOrder ? ('#DF-' . $activeOrder->id) : '');
+    $orderCode = $activeOrder?->code ?? '';
+    $orderDisplayCode = $activeOrder?->code ? ('#' . $activeOrder->code) : '';
     $orderCampaign = $activeOrder?->campaign;
     $sponsorAllocations = collect($orderCampaign?->sponsor_allocations ?? []);
     $sponsorPercentage = (float) $sponsorAllocations->sum(static fn (array $allocation): float => (float) ($allocation['percentage'] ?? 0));
@@ -18,9 +18,9 @@
         $orderFinalAmount = max(0, (int) $activeOrder->subtotal - (int) ($activeOrder->sponsor_amount ?? 0));
     }
     $formattedOrderAmount = number_format($orderFinalAmount, 0, ',', '.') . 'đ';
-    $initialQrUrl = $campaignAccount && $accountNumber
-        ? 'https://img.vietqr.io/image/' . rawurlencode((string) $bankCode) . '-' . rawurlencode((string) $accountNumber) . '-compact2.png?amount=' . $orderFinalAmount . '&addInfo=' . rawurlencode((string) $orderCode) . '&accountName=' . rawurlencode((string) $accountName)
-        : 'https://img.vietqr.io/image/MB-0388999888-compact2.png?amount=' . $orderFinalAmount . '&addInfo=' . rawurlencode((string) $orderCode);
+    $initialQrPayload = $campaignAccount && $accountNumber
+        ? app(\App\Services\Payment\VietQrService::class)->generate($campaignAccount, $orderFinalAmount, (string) $orderCode)
+        : '';
 
     $orderSponsorAllocations = collect($orderCampaign?->sponsor_allocations ?? []);
     $orderSponsorUserIds = $orderSponsorAllocations->pluck('room_user_id')->filter()->map(fn($id) => (int) $id);
@@ -70,9 +70,10 @@
             amount: {{ $orderFinalAmount }},
             formattedAmount: {{ Js::from($formattedOrderAmount) }},
             transferContent: {{ Js::from($orderCode) }},
-            qrUrl: {{ Js::from($initialQrUrl) }}
+            qrPayload: {{ Js::from($initialQrPayload) }},
+            qrDataUrl: ''
         },
-        openQr(orderId, amount, formattedAmount, code, bankCode, bankName, accNum, accName) {
+        async openQr(orderId, amount, formattedAmount, code, bankCode, bankName, accNum, accName) {
             this.qrData.amount = amount;
             this.qrData.formattedAmount = formattedAmount;
             if (code) this.qrData.transferContent = code;
@@ -81,11 +82,9 @@
             if (accNum !== undefined && accNum !== null) this.qrData.accountNumber = accNum;
             if (accName) this.qrData.accountName = accName;
 
-            const bCode = this.qrData.bankCode || 'MB';
-            const num = this.qrData.accountNumber || '';
-            const name = this.qrData.accountName || '';
-            const info = this.qrData.transferContent || '';
-            this.qrData.qrUrl = 'https://img.vietqr.io/image/' + encodeURIComponent(bCode) + '-' + encodeURIComponent(num) + '-compact2.png?amount=' + amount + '&addInfo=' + encodeURIComponent(info) + '&accountName=' + encodeURIComponent(name);
+            this.qrData.qrDataUrl = this.qrData.qrPayload && window.QRCode
+                ? await QRCode.toDataURL(this.qrData.qrPayload, { width: 220, margin: 1, errorCorrectionLevel: 'M' })
+                : '';
             this.qrModalOpen = true;
         },
         copyText(text) {
@@ -761,7 +760,7 @@
                                         <rect class="vietqr-snake-line" x="1.5" y="1.5" width="97" height="97" rx="8" ry="8"
                                             pathLength="100" />
                                     </svg>
-                                    <img :src="qrData.qrUrl" alt="VietQR"
+                                    <img :src="qrData.qrDataUrl" alt="VietQR"
                                         class="w-48 h-48 object-contain rounded-lg relative z-0" loading="lazy" />
                                     <div
                                         class="mt-2 flex items-center gap-1 text-[11px] font-label-sm text-secondary relative z-0">

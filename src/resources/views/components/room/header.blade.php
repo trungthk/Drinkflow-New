@@ -259,9 +259,12 @@
 
         <!-- Tab 2: Chiến dịch & Menu -->
         <a href="{{ $room ? route('user.campaigns.index', $room->slug) : '#' }}" 
-           class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'campaigns' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-          <span class="material-symbols-outlined text-[16px]">restaurant_menu</span>
+           class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'campaigns' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }} {{ $hasActiveCampaign ? 'bg-amber-50 text-amber-700' : '' }}">
+          <span class="material-symbols-outlined text-[16px] {{ $hasActiveCampaign ? 'text-amber-600 animate-pulse' : '' }}">restaurant_menu</span>
           <span>{{ __('room.nav.campaign_menu') }}</span>
+          @if($hasActiveCampaign)
+            <span class="inline-flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" title="{{ __('room.header.active_campaign') }}" aria-label="{{ __('room.header.active_campaign') }}"></span>
+          @endif
         </a>
 
         <!-- Tab 3: Đơn hàng của tôi -->
@@ -276,6 +279,9 @@
            class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'debts' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
           <span class="material-symbols-outlined text-[16px]">account_balance_wallet</span>
           <span>{{ __('room.nav.payment_debts') }}</span>
+          @if($unpaidDebtCount > 0)
+            <span class="inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-red-600 px-1.5 text-[10px] font-bold text-white">{{ $unpaidDebtCount }}</span>
+          @endif
         </a>
 
         <!-- Tab 5: Thống kê Room -->

@@ -36,7 +36,7 @@ class RejoinCampaignAction
         RoomRealtimeEvent::dispatch('campaign.participant.rejoined', $campaign->room_id, [
             'campaign_id' => $campaign->id,
             'room_user_id' => $roomUser->id,
-            'status' => 'pending',
+            'status' => CampaignParticipant::STATUS_PENDING,
         ]);
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions\Campaign;
 
+use App\Enums\CampaignItemStatus;
+use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +23,7 @@ class CreateCampaignItemAction
      */
     public function execute(Campaign $campaign, array $data): CampaignItem
     {
-        if ($campaign->status?->value === 'closed' || $campaign->status?->value === 'cancelled') {
+        if (in_array($campaign->status, [CampaignStatus::Closed, CampaignStatus::Cancelled], true)) {
             throw ValidationException::withMessages([
                 'campaign' => __('admin.campaign_closed'),
             ]);
@@ -29,7 +31,7 @@ class CreateCampaignItemAction
 
         return DB::transaction(fn (): CampaignItem => $campaign->items()->create(array_merge($data, [
             'normalized_name' => $this->normalize($data['name']),
-            'status' => $data['status'] ?? 'active',
+            'status' => $data['status'] ?? CampaignItemStatus::Active,
         ])));
     }
 
@@ -44,4 +46,3 @@ class CreateCampaignItemAction
         return strtoupper(trim((string) preg_replace('/\s+/', ' ', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) ?: $value)));
     }
 }
-

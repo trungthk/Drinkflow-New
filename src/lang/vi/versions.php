@@ -1,6 +1,29 @@
 <?php
 
 return [
+    'release_v2_3_0' => [
+        'title' => 'Đặt món đa phòng, đặt hộ và đối soát VietQR',
+        'summary' => 'Bản phát hành chính thức v2.3.0 hoàn thiện đặt món đa phòng, đặt món giúp thành viên khác, quản lý công nợ và xác nhận thanh toán VietQR cho môi trường production.',
+        'status' => 'Ổn định (Production)',
+        'changelog' => 'Hoàn thiện xác thực Google OAuth và thiết bị tin cậy; chuẩn hóa mã đơn ORD{room_id}-YYYYMMDD-sequence; hỗ trợ đơn cha/con, công nợ, thông báo realtime và migration schema hợp nhất.',
+        'features' => [
+            ['title' => 'Đặt món đa phòng', 'description' => 'Một tài khoản có thể tham gia và theo dõi nhiều phòng đặt món đồng thời.'],
+            ['title' => 'Đặt món giúp thành viên khác', 'description' => 'Tạo đơn cha/con, ghi nhận đúng người nhận và gửi thông báo realtime.'],
+            ['title' => 'Thanh toán VietQR chuẩn NAPAS', 'description' => 'Sinh payload QR theo từng giao dịch, kèm số tiền và nội dung chuyển khoản chính xác.'],
+        ],
+        'improvements' => [
+            ['title' => 'Thiết bị tin cậy', 'description' => 'Ghi nhớ thiết bị an toàn và giảm yêu cầu xác minh lặp lại.'],
+            ['title' => 'Đối soát công nợ', 'description' => 'Bổ sung quy trình gửi yêu cầu, phê duyệt và cập nhật trạng thái thanh toán.'],
+        ],
+        'bugfixes' => [
+            ['title' => 'Ngăn gửi đơn trùng lặp', 'description' => 'Bảo vệ thao tác đặt món trước các lần gửi liên tiếp do kết nối không ổn định.'],
+            ['title' => 'Chuẩn hóa mã đơn', 'description' => 'Mã đơn có định dạng cố định theo phòng, ngày và số thứ tự trong ngày.'],
+        ],
+        'security' => [
+            ['title' => 'Phân quyền liên phòng', 'description' => 'Kiểm tra quyền nghiêm ngặt, ngăn truy cập dữ liệu giữa các phòng.'],
+            ['title' => 'Migration production hợp nhất', 'description' => 'Schema mới có đầy đủ khóa ngoại và unique index để triển khai an toàn.'],
+        ],
+    ],
     'meta_title' => 'DrinkFlow :version - Lịch sử phiên bản',
     'breadcrumb_root' => 'Hệ thống DrinkFlow',
     'breadcrumb_history' => 'Lịch sử cập nhật',

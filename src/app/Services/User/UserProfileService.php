@@ -10,9 +10,7 @@ use App\Enums\RoomUserStatus;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\PaymentAccount;
 use App\Services\Media\ImageUploadService;
-use App\Support\Helpers\FormatHelper;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
@@ -22,7 +20,8 @@ class UserProfileService
 {
     public function __construct(
         protected ImageUploadService $imageUploadService
-    ) {}
+    ) {
+    }
     /**
      * Thu thập toàn bộ dữ liệu hồ sơ cá nhân toàn hệ thống, cấp bậc thành viên (tier gamification), tùy chọn ăn uống và tài khoản ngân hàng.
      *
@@ -39,9 +38,11 @@ class UserProfileService
         $roomUsers = $user->roomUsers()
             ->with([
                 'room' => function ($q) {
-                    $q->with(['paymentAccounts' => function ($pa) {
-                        $pa->where('status', RoomUserStatus::Active->value);
-                    }]);
+                    $q->with([
+                        'paymentAccounts' => function ($pa) {
+                            $pa->where('status', RoomUserStatus::Active->value);
+                        }
+                    ]);
                 },
             ])
             ->where('status', RoomUserStatus::Active->value)
@@ -52,11 +53,11 @@ class UserProfileService
         $primaryRoomUser = $roomUsers->first();
         $primaryRoom = $primaryRoomUser?->room;
         $department = $primaryRoom?->name ?? __('global.profile.default_dept');
-        $userCode = $primaryRoomUser?->user_code ?? ('DF-EMP-' . str_pad((string) $user->id, 4, '0', STR_PAD_LEFT));
+        $userCode = $primaryRoomUser?->user_code ?? $user->code;
         $role = $primaryRoomUser ? __('global.profile.role_member', ['name' => $primaryRoom->name]) : __('global.profile.default_role');
 
         // Order metrics across all user memberships
-        $roomUserIds = $user->roomUsers()->pluck('id');
+        $roomUserIds = $roomUsers->pluck('id');
         $ordersQuery = Order::query()->whereIn('room_user_id', $roomUserIds);
         $totalOrdersCount = (clone $ordersQuery)->count();
 

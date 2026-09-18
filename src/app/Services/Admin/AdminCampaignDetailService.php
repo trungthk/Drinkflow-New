@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Admin;
 
+use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\Campaign;
@@ -81,7 +82,7 @@ class AdminCampaignDetailService
         $sponsorSubsidy = (int) $orders->sum('sponsor_amount');
         $netPayables = (int) $orders->sum('final_amount');
         $paidViaQr = (int) $campaign->debts->sum('paid_amount');
-        $memberDebt = (int) $campaign->debts->whereIn('status', ['unpaid', 'partial'])->sum('remaining_amount');
+        $memberDebt = (int) $campaign->debts->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])->sum('remaining_amount');
 
         $sponsorAllocationsData = collect($campaign->sponsor_allocations ?? []);
         $sponsorUserIds = $sponsorAllocationsData->pluck('room_user_id')->filter()->map(fn($id) => (int) $id);

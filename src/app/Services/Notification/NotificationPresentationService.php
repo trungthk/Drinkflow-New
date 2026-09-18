@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Notification;
 
+use App\Enums\NotificationType;
 use App\Models\AdminNotification;
 use App\Models\UserNotification;
 
@@ -50,13 +51,14 @@ class NotificationPresentationService
         }
 
         return match ($type) {
-            'campaign.created' => 'messages.campaign_created_title',
-            'campaign.closed' => 'messages.campaign_closed_title',
-            'campaign.cancelled' => 'messages.campaign_cancelled_title',
-            'order.created' => 'messages.order_created',
-            'order.updated', 'order.status' => 'messages.order_status_updated',
-            'order.deleted' => 'messages.order_deleted_title',
-            'payment.reminder', 'payment.due', 'debt.reminder' => 'messages.payment_reminder',
+            NotificationType::CampaignCreated->value => 'messages.campaign_created_title',
+            NotificationType::CampaignClosed->value => 'messages.campaign_closed_title',
+            NotificationType::CampaignCancelled->value => 'messages.campaign_cancelled_title',
+            NotificationType::OrderCreated->value => 'messages.order_created',
+            NotificationType::OrderProxyReceived->value => 'messages.order_proxy_received_title',
+            NotificationType::OrderUpdated->value, NotificationType::OrderStatus->value => 'messages.order_status_updated',
+            NotificationType::OrderDeleted->value => 'messages.order_deleted_title',
+            NotificationType::PaymentReminder->value, NotificationType::PaymentDue->value, NotificationType::DebtReminder->value => 'messages.payment_reminder',
             default => null,
         };
     }
@@ -86,18 +88,18 @@ class NotificationPresentationService
         }
 
         $orderId = $data['order_id'] ?? null;
-        $orderCode = $data['order_code'] ?? ($orderId ? ('#' . $orderId) : '');
+        $orderCode = $data['order_code'] ?? '';
 
-        if ($type === 'order.created' && $orderId !== null) {
+        if ($type === NotificationType::OrderCreated->value && $orderId !== null) {
             return __('messages.order_created_body', ['order_id' => $orderId]);
         }
-        if (in_array($type, ['order.updated', 'order.status'], true) && $orderId !== null) {
+        if (in_array($type, [NotificationType::OrderUpdated->value, NotificationType::OrderStatus->value], true) && $orderId !== null) {
             return __('messages.order_status_updated_body', [
                 'order_id' => $orderId,
                 'status' => (string) ($data['status'] ?? ''),
             ]);
         }
-        if ($type === 'order.deleted') {
+        if ($type === NotificationType::OrderDeleted->value) {
             return __('messages.order_deleted_body');
         }
 
@@ -116,7 +118,7 @@ class NotificationPresentationService
             str_starts_with($type, 'campaign.') => 'local_fire_department',
             str_starts_with($type, 'order.') => 'check_circle',
             str_starts_with($type, 'payment.'), str_starts_with($type, 'debt.') => 'payments',
-            str_starts_with($type, 'security.'), $type === 'device.new' => 'security',
+            str_starts_with($type, 'security.'), $type === NotificationType::DeviceNew->value => 'security',
             default => 'notifications',
         };
     }

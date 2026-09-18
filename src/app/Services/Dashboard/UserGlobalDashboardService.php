@@ -6,6 +6,7 @@ namespace App\Services\Dashboard;
 
 use App\Support\Helpers\FormatHelper;
 use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 use App\Enums\CampaignStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
@@ -41,7 +42,7 @@ class UserGlobalDashboardService
             ->get();
 
         $roomsCount = $roomUsers->count();
-        $roomUserIds = $user->roomUsers()->pluck('id');
+        $roomUserIds = $roomUsers->pluck('id');
 
         // Order metrics across all user memberships
         $ordersQuery = Order::query()->whereIn('room_user_id', $roomUserIds);
@@ -51,10 +52,7 @@ class UserGlobalDashboardService
             OrderStatus::Submitted->value,
             OrderStatus::Confirmed->value,
             OrderStatus::Completed->value,
-            'submitted',
-            'confirmed',
-            'paid',
-            'completed',
+            PaymentStatus::Paid->value,
         ];
 
         $totalSpent = (int) (clone $ordersQuery)->whereIn('status', $completedStatuses)->sum('final_amount');
@@ -90,8 +88,8 @@ class UserGlobalDashboardService
             ->get()
             ->map(function ($order) {
                 $statusVal = $order->status instanceof OrderStatus ? $order->status->value : (string) $order->status;
-                $isPaid = in_array($statusVal, ['paid', 'completed']);
-                $isPending = in_array($statusVal, ['submitted', 'confirmed']);
+                $isPaid = in_array($statusVal, [PaymentStatus::Paid->value, OrderStatus::Completed->value], true);
+                $isPending = in_array($statusVal, [OrderStatus::Submitted->value, OrderStatus::Confirmed->value], true);
 
                 $itemsText = $order->items->map(function ($item) {
                     $txt = $item->item_name;
@@ -118,7 +116,7 @@ class UserGlobalDashboardService
 
                 return [
                     'id' => $order->id,
-                    'code' => '#ORD-' . str_pad((string) $order->id, 4, '0', STR_PAD_LEFT),
+                    'code' => '#' . $order->code,
                     'time_formatted' => $timeText,
                     'room_name' => $order->room?->name ?? 'DrinkFlow Room',
                     'restaurant' => $order->campaign?->restaurant ?: 'Cửa hàng',

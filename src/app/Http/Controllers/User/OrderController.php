@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\User;
 
 use App\Actions\Order\CreateOrderAction;
+use App\Actions\Order\CreateProxyOrdersAction;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentAccountStatus;
@@ -44,8 +45,14 @@ class OrderController extends Controller
         /** @var GlobalUser|null $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
 
-        $query = $roomUser->orders()
+        $query = Order::query()
             ->where('room_id', $room->id)
+            ->where(static function (\Illuminate\Database\Eloquent\Builder $orderQuery) use ($roomUser): void {
+                $orderQuery->where('room_user_id', $roomUser->id)
+                    ->orWhereHas('parent', static function (\Illuminate\Database\Eloquent\Builder $parentQuery) use ($roomUser): void {
+                        $parentQuery->where('room_user_id', $roomUser->id);
+                    });
+            })
             ->where('status', '!=', OrderStatus::Cancelled->value)
             ->with(['items.toppings', 'campaign.paymentAccount'])
             ->latest();
@@ -82,7 +89,7 @@ class OrderController extends Controller
 
             $paymentConfirmationDetails = [
                 'requestedAt' => $debt?->payment_requested_at?->format('d/m/Y H:i'),
-                'content' => $debt?->note ?: ($activeOrder->code ?: ('DF'.$activeOrder->id.' '.$roomUser->room_user_code)),
+                'content' => $debt?->note ?: $activeOrder->code,
                 'approvedBy' => $approvalPayment?->createdByAdmin?->name,
                 'approvedAt' => $approvalPayment?->paid_at?->format('d/m/Y H:i'),
             ];
@@ -112,12 +119,18 @@ class OrderController extends Controller
      * @param CreateOrderAction $action Domain action to create order.
      * @return JsonResponse|RedirectResponse Redirect to orders list or JSON response.
      */
-    public function store(StoreOrderRequest $request, Room $room, Campaign $campaign, CreateOrderAction $action): JsonResponse|RedirectResponse
+    public function store(StoreOrderRequest $request, Room $room, Campaign $campaign, CreateOrderAction $action, CreateProxyOrdersAction $proxyAction): JsonResponse|RedirectResponse
     {
         try {
             /** @var RoomUser $roomUser */
             $roomUser = $request->attributes->get('room_user');
-            $order = $action->execute($campaign, $roomUser, $request->validated());
+            $data = $request->validated();
+            $hasProxyItems = collect($data['items'] ?? [])->contains(
+                static fn (array $item): bool => ! empty($item['proxy_user_code'])
+            );
+            $order = $hasProxyItems
+                ? $proxyAction->execute($campaign, $roomUser, $data)
+                : $action->execute($campaign, $roomUser, $data);
         } catch (QueryException $exception) {
             $message = $exception->getMessage();
             if (str_contains($message, 'orders_one_active_per_user_campaign')
@@ -174,7 +187,9 @@ class OrderController extends Controller
     {
         /** @var RoomUser $roomUser */
         $roomUser = $request->attributes->get('room_user');
-        abort_unless($order->room_id === $room->id && $order->room_user_id === $roomUser->id, 404);
+        $canViewOrder = $order->room_user_id === $roomUser->id
+            || $order->parent()->where('room_user_id', $roomUser->id)->exists();
+        abort_unless($order->room_id === $room->id && $canViewOrder, 404);
 
         if ($request->expectsJson()) {
             return response()->json(['data' => $order->load(['items.toppings', 'campaign', 'room'])]);
@@ -204,7 +219,7 @@ class OrderController extends Controller
         abort_unless($account && $account->status === PaymentAccountStatus::Active, 404);
 
         $amount  = (int) $order->final_amount;
-        $content = $order->code ?: ('DRINKFLOW-'.$order->id);
+        $content = $order->code;
 
         /** @var VietQrService $vietQr */
         $vietQr = app(VietQrService::class);
@@ -216,7 +231,7 @@ class OrderController extends Controller
             'account_name'     => $account->account_name,
             'amount'           => $amount,
             'transfer_content' => $content,
-            'qr_url'           => $vietQr->imageUrl($account, $amount, $content),
+            'payload'          => $vietQr->generate($account, $amount, $content),
         ]]);
     }
 

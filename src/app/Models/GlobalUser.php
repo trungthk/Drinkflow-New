@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 class GlobalUser extends Authenticatable
 {
@@ -20,6 +21,7 @@ class GlobalUser extends Authenticatable
     protected $table = 'global_users';
 
     protected $fillable = [
+        'code',
         'name',
         'normalized_name',
         'email',
@@ -34,13 +36,25 @@ class GlobalUser extends Authenticatable
 
     protected $hidden = ['remember_token'];
 
+    /**
+     * Bootstrap the model and its traits.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (GlobalUser $globalUser): void {
+            if (empty($globalUser->code)) {
+                $globalUser->code = (string) Str::uuid();
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [
             'last_login_at' => 'datetime',
-            'status'        => GlobalUserStatus::class,
-            'preferences'   => 'array',
-            'phone'         => 'encrypted',
+            'status' => GlobalUserStatus::class,
+            'preferences' => 'array',
+            'phone' => 'encrypted',
         ];
     }
 
@@ -91,7 +105,7 @@ class GlobalUser extends Authenticatable
     public function hasOutstandingDebts(?int $roomId = null): bool
     {
         $roomUserIds = $this->roomUsers()
-            ->when($roomId !== null, fn ($q) => $q->where('room_id', $roomId))
+            ->when($roomId !== null, fn($q) => $q->where('room_id', $roomId))
             ->pluck('id');
 
         if ($roomUserIds->isEmpty()) {

@@ -40,6 +40,7 @@ class UpdateRoomSettingsRequest extends FormRequest
             'max_campaign_budget' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'personal_debt_ceiling' => ['sometimes', 'nullable', 'integer', 'min:0'],
             'auto_lock_on_debt_limit' => ['sometimes', 'nullable', 'boolean'],
+            'is_public' => ['sometimes', 'boolean'],
         ];
     }
 

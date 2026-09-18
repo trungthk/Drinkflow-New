@@ -109,8 +109,8 @@ class UserOrdersService
         $ordersDiff = $totalOrdersCount - $prevMonthOrdersCount;
         $totalSpent = (int) (clone $thisMonthOrders)->sum('final_amount');
         $totalSponsor = (int) (clone $thisMonthOrders)->sum('sponsor_amount');
-        $pendingPaymentAmount = (int) (clone $allUserOrders)->whereIn('status', ['submitted', 'confirmed'])->sum('final_amount');
-        $pendingPaymentCount = (clone $allUserOrders)->whereIn('status', ['submitted', 'confirmed'])->count();
+        $pendingPaymentAmount = (int) (clone $allUserOrders)->whereIn('status', [OrderStatus::Submitted->value, OrderStatus::Confirmed->value])->sum('final_amount');
+        $pendingPaymentCount = (clone $allUserOrders)->whereIn('status', [OrderStatus::Submitted->value, OrderStatus::Confirmed->value])->count();
 
         return [
             'user' => $user,

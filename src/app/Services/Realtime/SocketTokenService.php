@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Realtime;
 
+use App\Enums\AdminRole;
 use App\Enums\GlobalUserStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
@@ -40,7 +41,7 @@ class SocketTokenService
         ];
         $encoded = $this->encode($payload);
 
-        return $encoded.'.'.hash_hmac('sha256', $encoded, $this->signingSecret());
+        return $encoded . '.' . hash_hmac('sha256', $encoded, $this->signingSecret());
     }
 
     /** Issue a realtime token scoped to one trusted user device. */
@@ -57,7 +58,7 @@ class SocketTokenService
         ];
         $encoded = $this->encode($payload);
 
-        return $encoded.'.'.hash_hmac('sha256', $encoded, $this->signingSecret());
+        return $encoded . '.' . hash_hmac('sha256', $encoded, $this->signingSecret());
     }
 
     /**
@@ -76,12 +77,12 @@ class SocketTokenService
             ? Room::query()->where('status', RoomStatus::Active->value)->pluck('id')->all()
             : ($room ? [$room->id] : []);
 
-        if (! $admin->isSuperadmin() && (! $room || ! $admin->rooms()->whereKey($room->id)->exists())) {
+        if (!$admin->isSuperadmin() && (!$room || !$admin->rooms()->whereKey($room->id)->exists())) {
             abort(403);
         }
 
         $payload = [
-            'actor_type' => $admin->isSuperadmin() ? 'superadmin' : 'admin',
+            'actor_type' => $admin->isSuperadmin() ? AdminRole::SuperAdmin->value : AdminRole::Admin->value,
             'admin_id' => $admin->id,
             'room_ids' => $roomIds,
             'exp' => now()->addSeconds($ttlSeconds)->timestamp,
@@ -89,7 +90,7 @@ class SocketTokenService
         ];
         $encoded = $this->encode($payload);
 
-        return $encoded.'.'.hash_hmac('sha256', $encoded, $this->signingSecret());
+        return $encoded . '.' . hash_hmac('sha256', $encoded, $this->signingSecret());
     }
 
     /**
@@ -102,7 +103,7 @@ class SocketTokenService
     {
         [$encoded, $signature] = array_pad(explode('.', $token, 2), 2, '');
 
-        if ($encoded === '' || $signature === '' || ! hash_equals(hash_hmac('sha256', $encoded, $this->signingSecret()), $signature)) {
+        if ($encoded === '' || $signature === '' || !hash_equals(hash_hmac('sha256', $encoded, $this->signingSecret()), $signature)) {
             return null;
         }
 

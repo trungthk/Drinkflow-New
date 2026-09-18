@@ -95,7 +95,7 @@ class RoomAnalyticsPeriodTest extends TestCase
     {
         return RoomUser::create([
             'room_id' => $room->id, 'global_user_id' => $user->id,
-            'user_code' => 'MEM'.$user->id, 'display_name' => $user->name,
+            'display_name' => $user->name,
             'normalized_name' => strtoupper($user->name), 'status' => RoomUserStatus::Active, 'joined_at' => now(),
         ]);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Enums\CampaignStatus;
 use App\Events\CampaignCreated;
 use App\Services\Notification\UserNotificationService;
 use App\Services\Notification\CampaignNotificationPayloadService;
@@ -18,7 +19,7 @@ class NotifyCampaignCreated implements ShouldQueue
     public function handle(CampaignCreated $event): void
     {
         $campaign = $event->campaign;
-        if (! in_array($campaign->status?->value, ['active', 'scheduled'], true)) {
+        if (! in_array($campaign->status, [CampaignStatus::Active, CampaignStatus::Scheduled], true)) {
             return;
         }
         $payload = app(CampaignNotificationPayloadService::class)->make($campaign, 'campaign.created');

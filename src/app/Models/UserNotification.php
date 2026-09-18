@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\NotificationType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -26,10 +27,11 @@ class UserNotification extends Model
                 $type = (string) $notification->type;
                 $data = is_array($notification->data) ? $notification->data : [];
                 $orderId = $data['order_id'] ?? null;
-                $orderCode = $data['order_code'] ?? ($orderId ? ('#' . $orderId) : '');
+                $orderCode = $data['order_code'] ?? '';
 
                 $notification->body = match (true) {
                     $type === 'order.created' => 'Đơn hàng ' . $orderCode . ' đã được ghi nhận thành công.',
+                    $type === NotificationType::OrderProxyReceived->value => 'Đơn hàng ' . $orderCode . ' đã được ' . ($data['orderer_name'] ?? 'ai đó') . ' đặt giúp bạn.',
                     in_array($type, ['order.status', 'order.updated'], true) => 'Trạng thái đơn hàng ' . $orderCode . ' đã được cập nhật thành ' . ($data['status'] ?? 'mới') . '.',
                     $type === 'order.price_adjusted' => 'Đơn hàng ' . $orderCode . ' đã được điều chỉnh giá' . (!empty($data['reason']) ? (': ' . $data['reason']) : '.'),
                     $type === 'order.deleted' => 'Đơn hàng ' . $orderCode . ' đã bị hủy/xóa.',

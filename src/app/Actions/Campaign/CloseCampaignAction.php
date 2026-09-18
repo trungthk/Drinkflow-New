@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Campaign;
 
 use App\Enums\CampaignStatus;
+use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Events\CampaignClosed;
 use App\Models\Campaign;
@@ -39,7 +40,7 @@ class CloseCampaignAction
 
             if ($allowDebt) {
                 $orders = $campaign->orders()
-                    ->whereIn('status', ['submitted', 'confirmed', 'ordering', 'ordered', 'delivering', 'completed'])
+                    ->whereIn('status', [...OrderStatus::activeValues(), OrderStatus::Completed->value])
                     ->with(['roomUser.globalUser'])
                     ->get();
 
@@ -49,7 +50,7 @@ class CloseCampaignAction
                 $netCampaignTotal = max(0, $grossSubtotal + $deliveryFee - $discount);
 
                 $sponsorAllocations = collect($campaign->sponsor_allocations ?? []);
-                $isFullSponsor = $campaign->sponsor_type === 'full'
+                $isFullSponsor = $campaign->sponsor_type === Campaign::SPONSOR_TYPE_FULL
                     || ($sponsorAllocations->isNotEmpty() && abs((float) $sponsorAllocations->sum('percentage') - 100.0) < 0.01);
 
                 if ($isFullSponsor && $sponsorAllocations->isNotEmpty()) {
@@ -108,7 +109,7 @@ class CloseCampaignAction
                         $note = sprintf(
                             "Tài trợ %s%% chiến dịch #%s (%s) - Thực trả: %s ₫ [Món: %s ₫, Phí ship: +%s ₫, Giảm giá: -%s ₫]",
                             (string) $sp['percentage'],
-                            (string) ($campaign->code ?? $campaign->id),
+                            (string) $campaign->code,
                             (string) ($campaign->restaurant ?: $campaign->name),
                             number_format($sp['amount'], 0, ',', '.'),
                             number_format($sp['gross_part'], 0, ',', '.'),
@@ -130,7 +131,7 @@ class CloseCampaignAction
                                 'adjustment_amount' => $sp['fee_part'] - $sp['disc_part'],
                                 'paid_amount' => 0,
                                 'remaining_amount' => $sp['amount'],
-                                'status' => $sp['amount'] === 0 ? 'paid' : 'unpaid',
+                                'status' => $sp['amount'] === 0 ? DebtStatus::Paid : DebtStatus::Unpaid,
                                 'note' => $note,
                             ]
                         );
@@ -174,7 +175,7 @@ class CloseCampaignAction
                     }
 
                     // Bù trừ sai số làm tròn nếu không tài trợ
-                    if (($campaign->sponsor_type === 'none' || empty($campaign->sponsor_type)) && count($userCalculations) > 0) {
+                    if (($campaign->sponsor_type === Campaign::SPONSOR_TYPE_NONE || empty($campaign->sponsor_type)) && count($userCalculations) > 0) {
                         $diff = $netCampaignTotal - $totalUserPayables;
                         if ($diff !== 0) {
                             $userCalculations[0]['final_amount'] = max(0, $userCalculations[0]['final_amount'] + $diff);
@@ -221,7 +222,7 @@ class CloseCampaignAction
                             $note = sprintf(
                                 "Đơn %s chiến dịch #%s (%s) - Thực trả: %s ₫ [%s]",
                                 $orderCodes,
-                                (string) ($campaign->code ?? $campaign->id),
+                                (string) $campaign->code,
                                 (string) ($campaign->restaurant ?: $campaign->name),
                                 number_format($calc['final_amount'], 0, ',', '.'),
                                 implode(', ', $noteParts)
@@ -241,7 +242,7 @@ class CloseCampaignAction
                                     'adjustment_amount' => $calc['delivery_fee'] - $calc['discount'],
                                     'paid_amount' => 0,
                                     'remaining_amount' => $calc['final_amount'],
-                                    'status' => $calc['final_amount'] === 0 ? 'paid' : 'unpaid',
+                                    'status' => $calc['final_amount'] === 0 ? DebtStatus::Paid : DebtStatus::Unpaid,
                                     'note' => $note,
                                 ]
                             );
@@ -277,4 +278,3 @@ class CloseCampaignAction
         return $closed;
     }
 }
-

@@ -48,6 +48,7 @@
     }
   </script>
   <script src="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   @if (file_exists(public_path('build/manifest.json')) || app()->isLocal())
     @vite(['resources/css/room.css', 'resources/js/room.js'])
   @endif

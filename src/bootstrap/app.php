@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'superadmin' => \App\Http\Middleware\EnsureSuperadmin::class,
             'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
             'user.has_rooms' => \App\Http\Middleware\EnsureUserHasRooms::class,
+            'user.active_room' => \App\Http\Middleware\EnsureUserHasActiveRoom::class,
         ]);
         $middleware->redirectGuestsTo(function (Request $request): string {
             return $request->is('admin', 'admin/*', 'superadmin/*')

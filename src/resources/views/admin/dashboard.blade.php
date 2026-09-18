@@ -269,7 +269,7 @@
                             @if(isset($liveOrders) && $liveOrders instanceof \Illuminate\Support\Collection)
                                 @foreach($liveOrders as $order)
                                     <tr class="hover:bg-surface-container-low/50 transition-colors">
-                                        <td class="py-2.5 px-3 font-mono text-outline">#{{ $order->id }}</td>
+                                        <td class="py-2.5 px-3 font-mono text-outline">#{{ $order->code }}</td>
                                         <td class="py-2.5 px-3 font-semibold text-on-surface">{{ $order->roomUser?->globalUser?->name ?? $order->roomUser?->display_name ?? __('global.common.member') }}</td>
                                         <td class="py-2.5 px-3 text-outline">{{ $order->campaign?->name ?? __('global.common.campaign') }}</td>
                                         <td class="py-2.5 px-3 text-right font-mono font-bold text-on-surface">{{ number_format($order->final_amount ?? 0, 0, ',', '.') }} ₫</td>

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Campaign;
 
 use App\Events\CampaignCreated;
+use App\Enums\CampaignStatus;
 use App\Models\AdminAccount;
 use App\Models\Campaign;
 use App\Models\PaymentAccount;
@@ -39,7 +40,6 @@ class CreateCampaignAction
     {
         $settings = $room->roomSettings()->whereIn('key', ['campaign_title_template', 'max_campaign_budget'])->get()->keyBy('key');
         $titleTemplate = (string) ($settings->get('campaign_title_template')?->value ?? ('[' . $room->name . '] Trà chiều & Cafe {date}'));
-        $maxCampaignBudget = (int) ($settings->get('max_campaign_budget')?->value ?? 70_000);
         $creatorName = $adminId !== null ? (string) (AdminAccount::query()->whereKey($adminId)->value('name') ?? '') : '';
         $defaultName = strtr($titleTemplate, [
             '{date}' => now()->format('d/m/Y'),
@@ -51,7 +51,7 @@ class CreateCampaignAction
         if (!array_key_exists('max_budget', $data) || $data['max_budget'] === null) {
             $data['max_budget'] = (int) ($settings->get('max_campaign_budget')?->value ?? 70_000);
         }
-        if (($data['sponsor_type'] ?? 'none') === 'none') {
+        if (($data['sponsor_type'] ?? Campaign::SPONSOR_TYPE_NONE) === Campaign::SPONSOR_TYPE_NONE) {
             $data['sponsor_allocations'] = [];
         } else {
             $allocations = collect($data['sponsor_allocations'] ?? []);
@@ -87,12 +87,13 @@ class CreateCampaignAction
         unset($data['items']);
 
         $campaign = DB::transaction(function () use ($room, $data, $adminId, $items): Campaign {
-            $status = $data['status'] ?? 'draft';
+            $status = $data['status'] ?? CampaignStatus::Draft;
+            $statusValue = $status instanceof CampaignStatus ? $status->value : (string) $status;
             $campaign = Campaign::create(array_merge($data, [
                 'room_id' => $room->id,
                 'creator_admin_id' => $adminId,
                 'status' => $status,
-                'started_at' => $status === 'active' ? ($data['started_at'] ?? now()) : null,
+                'started_at' => $statusValue === CampaignStatus::Active->value ? ($data['started_at'] ?? now()) : null,
             ]));
 
             foreach ($items as $sortOrder => $itemData) {

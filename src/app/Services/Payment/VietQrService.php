@@ -140,7 +140,7 @@ class VietQrService
     }
 
     /**
-     * Generate a VietQR image URL via the img.vietqr.io CDN (for server-side embedding).
+     * Generate a VietQR payload for client-side QR rendering.
      *
      * Use this when you need a pre-rendered PNG (e.g., email, PDF) and an internet
      * connection is available. For offline / privacy-sensitive scenarios prefer
@@ -152,30 +152,6 @@ class VietQrService
      * @param  string          $template         VietQR image template ("compact2", "qr_only", "print", …).
      * @return string                            CDN PNG URL.
      */
-    public function imageUrl(
-        PaymentAccount $account,
-        int $amount = 0,
-        string $transferContent = '',
-        string $template = 'compact2',
-    ): string {
-        $base = sprintf(
-            'https://img.vietqr.io/image/%s-%s-%s.png',
-            rawurlencode((string) $account->bank_code),
-            rawurlencode((string) $account->account_number),
-            rawurlencode($template),
-        );
-
-        $params = array_filter([
-            'amount'      => $amount > 0 ? $amount : null,
-            'addInfo'     => $transferContent !== '' ? $this->sanitizeReference($transferContent) : null,
-            'accountName' => Str::upper($this->truncate((string) $account->account_name, 25)),
-        ], fn ($v) => $v !== null && $v !== '');
-
-        $query = http_build_query($params);
-
-        return $query !== '' ? $base . '?' . $query : $base;
-    }
-
     // =========================================================================
     // Payload-building helpers
     // =========================================================================

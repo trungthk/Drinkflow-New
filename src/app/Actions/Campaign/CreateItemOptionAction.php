@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Campaign;
 
+use App\Enums\CampaignItemStatus;
 use App\Models\CampaignItem;
 use App\Models\CampaignItemSize;
 use App\Models\CampaignItemTopping;
@@ -22,7 +23,7 @@ class CreateItemOptionAction
      */
     public function topping(CampaignItem $item, array $data): CampaignItemTopping
     {
-        if ($item->status !== 'active') {
+        if ($item->status !== CampaignItemStatus::Active) {
             throw ValidationException::withMessages([
                 'item' => __('admin.item_not_available'),
             ]);
@@ -31,7 +32,7 @@ class CreateItemOptionAction
         return DB::transaction(fn (): CampaignItemTopping => $item->toppings()->create([
             'name' => $data['name'],
             'price' => $data['price'] ?? 0,
-            'status' => $data['status'] ?? 'active',
+            'status' => $data['status'] ?? CampaignItemStatus::Active->value,
             'sort_order' => $data['sort_order'] ?? 0,
         ]));
     }
@@ -46,7 +47,7 @@ class CreateItemOptionAction
      */
     public function size(CampaignItem $item, array $data): CampaignItemSize
     {
-        if ($item->status !== 'active') {
+        if ($item->status !== CampaignItemStatus::Active) {
             throw ValidationException::withMessages([
                 'item' => __('admin.item_not_available'),
             ]);
@@ -55,9 +56,8 @@ class CreateItemOptionAction
         return DB::transaction(fn (): CampaignItemSize => $item->sizes()->create([
             'name' => $data['name'],
             'price_delta' => $data['price_delta'] ?? 0,
-            'status' => $data['status'] ?? 'active',
+            'status' => $data['status'] ?? CampaignItemStatus::Active->value,
             'sort_order' => $data['sort_order'] ?? 0,
         ]));
     }
 }
-

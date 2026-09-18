@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Campaign;
 
+use App\Enums\CampaignStatus;
 use App\Models\Campaign;
 use Illuminate\Support\Facades\DB;
 
@@ -18,7 +21,7 @@ class DuplicateCampaignAction
         return DB::transaction(function () use ($campaign, $adminId): Campaign {
             $campaign->load(['items.sizes', 'items.toppings']);
             $copy = $campaign->replicate(['status', 'started_at', 'closed_at']);
-            $copy->status = 'draft';
+            $copy->status = CampaignStatus::Draft;
             $copy->started_at = null;
             $copy->closed_at = null;
             $copy->name = $campaign->name.' (copy)';

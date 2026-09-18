@@ -9,6 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RoomSetting extends Model
 {
+    public const TYPE_STRING = 'string';
+
+    public const TYPE_INTEGER = 'integer';
+
+    public const TYPE_BOOLEAN = 'boolean';
+
     protected $fillable = ['room_id', 'key', 'value', 'type', 'is_secret'];
 
     protected function casts(): array

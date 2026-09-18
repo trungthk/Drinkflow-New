@@ -195,6 +195,7 @@ return [
         'items.*.ice_percent' => 'Ice percentage',
         'items.*.sugar_percent' => 'Sugar percentage',
         'items.*.note' => 'Item note',
+        'items.*.proxy_user_code' => 'Proxy recipient code',
         'items.*.unit_price' => 'Unit price',
         'source_id' => 'Source account',
         'target_id' => 'Target account',

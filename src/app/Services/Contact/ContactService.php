@@ -43,7 +43,7 @@ class ContactService
     protected function generateUniqueTicketCode(): string
     {
         do {
-            $code = '#DF-' . random_int(10000, 99999);
+            $code = '#TK-' . random_int(10000, 99999);
         } while (ContactInquiry::where('ticket_code', $code)->exists());
 
         return $code;

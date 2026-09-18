@@ -6,6 +6,7 @@ namespace App\Http\Controllers\User;
 
 use App\Enums\RoomStatus;
 use App\Enums\GlobalUserStatus;
+use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
 use App\Models\GlobalUser;
 use App\Models\Room;
@@ -34,7 +35,8 @@ class JoinPageController extends Controller
         $roomStatus = $room->status instanceof \BackedEnum ? $room->status->value : (string) $room->status;
         abort_unless($roomStatus === RoomStatus::Active->value, 404);
 
-        if ($user->roomUsers()->where('room_id', $room->id)->exists()) {
+        $membership = $user->roomUsers()->where('room_id', $room->id)->first();
+        if ($membership?->status === RoomUserStatus::Active || $membership?->status === RoomUserStatus::Blocked) {
             return redirect()->route('user.rooms.show', $room->slug);
         }
 

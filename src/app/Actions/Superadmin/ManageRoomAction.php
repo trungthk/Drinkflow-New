@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Superadmin;
 
+use App\Enums\RoomStatus;
 use App\Models\Room;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\DB;
@@ -50,7 +51,7 @@ class ManageRoomAction
      */
     public function setStatus(Room $room, string $status): Room
     {
-        if ($status === 'archived' && $room->hasOutstandingDebts()) {
+        if ($status === RoomStatus::Archived->value && $room->hasOutstandingDebts()) {
             throw ValidationException::withMessages([
                 'room' => __('admin.cannot_delete_room_with_outstanding_debt'),
             ]);

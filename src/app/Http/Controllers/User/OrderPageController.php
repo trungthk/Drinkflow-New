@@ -23,7 +23,9 @@ class OrderPageController extends Controller
     public function __invoke(Request $request, Room $room, Order $order): View
     {
         $roomUser = $request->attributes->get('room_user');
-        abort_unless($order->room_id === $room->id && $order->room_user_id === $roomUser->id, 404);
+        $canViewOrder = $order->room_user_id === $roomUser->id
+            || $order->parent()->where('room_user_id', $roomUser->id)->exists();
+        abort_unless($order->room_id === $room->id && $canViewOrder, 404);
 
         return view('user.order', ['room' => $room, 'order' => $order->load(['items.toppings', 'campaign'])]);
     }

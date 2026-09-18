@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Notification;
 
+use App\Enums\NotificationType;
 use App\Models\Campaign;
 use App\Support\Helpers\FormatHelper;
 
@@ -20,13 +21,13 @@ class CampaignNotificationPayloadService
     {
         $room = $campaign->room;
         $title = match ($event) {
-            'campaign.created' => __('messages.campaign_created_title'),
-            'campaign.cancelled' => __('messages.campaign_cancelled_title'),
-            'campaign.updated' => __('messages.campaign_updated_title'),
-            'campaign.delivering' => __('messages.campaign_delivering_title'),
+            NotificationType::CampaignCreated->value => __('messages.campaign_created_title'),
+            NotificationType::CampaignCancelled->value => __('messages.campaign_cancelled_title'),
+            NotificationType::CampaignUpdated->value => __('messages.campaign_updated_title'),
+            NotificationType::CampaignDelivering->value => __('messages.campaign_delivering_title'),
             default => __('messages.campaign_closed_title'),
         };
-        $orderUrl = in_array($event, ['campaign.created', 'campaign.updated'], true) && $room !== null
+        $orderUrl = in_array($event, [NotificationType::CampaignCreated->value, NotificationType::CampaignUpdated->value], true) && $room !== null
             ? route('user.campaigns.index', $room)
             : null;
 
@@ -64,7 +65,7 @@ class CampaignNotificationPayloadService
             $lines[] = __('messages.campaign_restaurant', ['restaurant' => $campaign->restaurant]);
         }
 
-        if ($event === 'campaign.created') {
+        if ($event === NotificationType::CampaignCreated->value) {
             $lines[] = __('messages.campaign_deadline', [
                 'date' => $campaign->deadline
                     ? FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i')
@@ -86,7 +87,7 @@ class CampaignNotificationPayloadService
             if ($orderUrl !== null) {
                 $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
             }
-        } elseif ($event === 'campaign.updated') {
+        } elseif ($event === NotificationType::CampaignUpdated->value) {
             $lines[] = __('messages.campaign_updated_body');
             if ($campaign->deadline) {
                 $lines[] = __('messages.campaign_deadline', [
@@ -96,11 +97,11 @@ class CampaignNotificationPayloadService
             if ($orderUrl !== null) {
                 $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
             }
-        } elseif ($event === 'campaign.closed') {
+        } elseif ($event === NotificationType::CampaignClosed->value) {
             $lines[] = __('messages.campaign_closed_body');
-        } elseif ($event === 'campaign.cancelled') {
+        } elseif ($event === NotificationType::CampaignCancelled->value) {
             $lines[] = __('messages.campaign_cancelled_body');
-        } elseif ($event === 'campaign.delivering') {
+        } elseif ($event === NotificationType::CampaignDelivering->value) {
             $lines[] = __('messages.campaign_delivering_body', [
                 'restaurant' => $campaign->restaurant,
                 'code' => $campaign->code,
@@ -110,4 +111,3 @@ class CampaignNotificationPayloadService
         return implode("\n", $lines);
     }
 }
-

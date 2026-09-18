@@ -195,10 +195,15 @@
                         </a>
 
                         <!-- Users -->
-                        <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'users' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        <a class="sidebar-nav-link relative group flex items-center justify-between gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'users' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                             href="{{ route('admin.room-users.page', $room) }}" title="{{ __('admin.users') }}">
-                            <span class="material-symbols-outlined text-[18px] shrink-0">group</span>
-                            <span class="sidebar-text truncate">{{ __('admin.users') }}</span>
+                            <span class="flex min-w-0 items-center gap-3">
+                                <span class="material-symbols-outlined text-[18px] shrink-0">group</span>
+                                <span class="sidebar-text truncate">{{ __('admin.users') }}</span>
+                            </span>
+                            @if(($blockedUsersCount ?? 0) > 0)
+                                <span class="sidebar-text inline-flex min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1.5 py-0.5 text-[10px] font-bold text-white" title="{{ __('admin.pending_approval_users', ['count' => $blockedUsersCount]) }}">{{ $blockedUsersCount }}</span>
+                            @endif
                             <div
                                 class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
                                 {{ __('admin.users') }}

@@ -7,6 +7,7 @@ namespace App\Services\Analytics;
 use App\Enums\OrderStatus;
 use App\Models\GlobalUser;
 use App\Models\Order;
+use App\Enums\RoomUserStatus;
 use App\Support\Helpers\FormatHelper;
 
 class UserGlobalAnalyticsService
@@ -19,7 +20,7 @@ class UserGlobalAnalyticsService
      */
     public function getAnalyticsViewData(GlobalUser $user): array
     {
-        $roomUsers = $user->roomUsers()->with('room')->get();
+        $roomUsers = $user->roomUsers()->with('room')->where('status', RoomUserStatus::Active->value)->get();
         $roomUserIds = $roomUsers->pluck('id');
         $orders = Order::query()->whereIn('room_user_id', $roomUserIds)
             ->with(['campaign', 'items'])
@@ -169,7 +170,7 @@ class UserGlobalAnalyticsService
      */
     public function getAnalyticsApiData(GlobalUser $user): array
     {
-        $orders = $user->roomUsers()->with('orders.items')->get()->pluck('orders')->flatten()
+        $orders = $user->roomUsers()->where('status', RoomUserStatus::Active->value)->with('orders.items')->get()->pluck('orders')->flatten()
             ->filter(fn (Order $order): bool => $order->status === OrderStatus::Completed)
             ->values();
         $items = $orders->pluck('items')->flatten();

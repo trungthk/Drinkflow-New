@@ -38,6 +38,10 @@ class UserRoomDebtService
             ->whereIn('status', DebtStatus::outstandingValues())
             ->get();
         $totalUnpaidAmount = (int) $unpaidDebts->sum('remaining_amount');
+        $payableDebts = $unpaidDebts->filter(
+            static fn (Debt $debt): bool => in_array($debt->status, [DebtStatus::Unpaid, DebtStatus::Partial], true)
+        );
+        $totalPayableAmount = (int) $payableDebts->sum('remaining_amount');
 
         $paidThisMonth = (clone $baseDebtsQuery)
             ->where('status', DebtStatus::Paid->value)
@@ -50,20 +54,37 @@ class UserRoomDebtService
         // Default Payment Account in this room for VietQR
         $paymentAccount = $room->paymentAccounts()->where('status', PaymentAccountStatus::Active)->first();
         $vietqrData = null;
-        if ($paymentAccount && $totalUnpaidAmount > 0) {
-            $transferContent = $roomUser->user_code ?: ('USER-'.$roomUser->id);
+        if ($paymentAccount && $totalPayableAmount > 0) {
+            $transferContent = $roomUser->user_code;
             $vietqrData = [
                 'bank_code'       => $paymentAccount->bank_code,
                 'bank_name'       => $paymentAccount->bank_name,
                 'account_number'  => $paymentAccount->account_number,
                 'account_name'    => $paymentAccount->account_name,
-                'amount'          => $totalUnpaidAmount,
+                'amount'          => $totalPayableAmount,
                 'transfer_content' => $transferContent,
-                'qr_url'          => $this->vietQr->imageUrl($paymentAccount, $totalUnpaidAmount, $transferContent),
+                'payload'         => $this->vietQr->generate($paymentAccount, $totalPayableAmount, $transferContent),
             ];
         }
 
-        $activeCampaign = $room->campaigns()->where('status', CampaignStatus::Active)->first();
+        $qrPayloads = [];
+        foreach ($debts->getCollection() as $debt) {
+            $account = $debt->campaign?->paymentAccount ?? $paymentAccount;
+            if ($account && (int) $debt->remaining_amount > 0) {
+                $qrPayloads[$debt->id] = $this->vietQr->generate(
+                    $account,
+                    (int) $debt->remaining_amount,
+                    (string) $debt->code,
+                );
+            }
+        }
+
+        $activeCampaign = $room->campaigns()
+            ->where('status', CampaignStatus::Active->value)
+            ->where(static function (Builder $query): void {
+                $query->whereNull('deadline')->orWhere('deadline', '>', now());
+            })
+            ->first();
         $userRooms = $user ? $user->rooms()->where('rooms.status', RoomStatus::Active)->get() : collect();
         $unreadCount = $user ? DB::table('user_notifications')->where('global_user_id', $user->id)->whereNull('read_at')->count() : 0;
 
@@ -74,10 +95,12 @@ class UserRoomDebtService
             'debts' => $debts,
             'unpaidDebts' => $unpaidDebts,
             'totalUnpaidAmount' => $totalUnpaidAmount,
+            'totalPayableAmount' => $totalPayableAmount,
             'totalPaidMonthAmount' => $totalPaidMonthAmount,
             'totalPaidMonthCount' => $totalPaidMonthCount,
             'totalSponsorAmount' => (int) (clone $baseDebtsQuery)->sum('sponsor_amount'),
             'vietqrData' => $vietqrData,
+            'qrPayloads' => $qrPayloads,
             'activeCampaign' => $activeCampaign ? [
                 'name' => $activeCampaign->name,
                 'time_remaining' => $activeCampaign->deadline ? ($activeCampaign->deadline->isFuture() ? $activeCampaign->deadline->diffForHumans(['parts' => 2, 'short' => true]) : '00:00') : '14:22',

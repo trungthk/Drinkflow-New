@@ -32,7 +32,7 @@ class DataGatewayConverterService
                 'id' => self::PLATFORM_GRAB,
                 'name' => 'GrabFood',
                 'instruction' => __('admin.data_gateway_grab_instruction'),
-                'api_prefix' => 'https://portal.grab.com/foodweb/guest/v2/merchants/',
+                'api_prefix' => 'v2/merchants/',
             ],
         ];
     }

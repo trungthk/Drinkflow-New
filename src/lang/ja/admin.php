@@ -572,6 +572,14 @@ return [
     'vnd_unit' => '₫',
     'settings_saved_success' => 'ルーム設定が正常に更新されました！',
     'settings_saved_ok' => 'システム設定を正常に保存しました。',
+    'room_join_link' => 'ルーム参加リンク',
+    'copy_room_join_link' => 'リンクをコピー',
+    'room_join_link_copied' => 'ルーム参加リンクをコピーしました。',
+    'room_public_mode' => '公開参加を許可',
+    'room_public_mode_hint' => '新しいメンバーはすぐに有効になり、注文、メニュー、債務、統計を利用できます。',
+    'room_private_mode_hint' => '新しいメンバーは管理者が承認するまで保留になります。',
+    'pending_approval_users' => ':count 名が承認待ち',
+    'approve_user' => 'メンバーを承認',
     'debt_limit_reached' => '注文金額が個人債務上限（:limit）を超えています。',
 
     // Notification Channels & Webhook

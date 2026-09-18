@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Debt;
 
+use App\Enums\DebtStatus;
 use App\Models\Debt;
 use App\Models\DebtPayment;
 use App\Services\Audit\AuditService;
@@ -48,7 +49,7 @@ class RecordDebtPaymentAction
             ]);
             $debt->paid_amount += $amount;
             $debt->remaining_amount -= $amount;
-            $debt->status = $debt->remaining_amount === 0 ? 'paid' : 'partial';
+            $debt->status = $debt->remaining_amount === 0 ? DebtStatus::Paid : DebtStatus::Partial;
             $debt->save();
             app(AuditService::class)->record(
                 'debt.payment_recorded',

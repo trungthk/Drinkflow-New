@@ -7,7 +7,6 @@ namespace App\Services\Dashboard;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\RoomStatus;
-use App\Enums\RoomUserStatus;
 use App\Enums\OrderStatus;
 use App\Models\Debt;
 use App\Models\GlobalUser;
@@ -49,7 +48,7 @@ class UserRoomDashboardService
                 ->orderBy('order_items.item_name')
                 ->limit(5)
                 ->get()
-                ->map(static fn (object $item): object => (object) [
+                ->map(static fn(object $item): object => (object) [
                     'name' => (string) $item->item_name,
                     'quantity' => (int) $item->total_quantity,
                 ]);

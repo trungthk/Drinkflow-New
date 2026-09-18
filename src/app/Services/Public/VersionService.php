@@ -56,15 +56,16 @@ class VersionService
         $versionsQuery = Version::query()->orderByDesc('release_date')->orderByDesc('id')->get();
 
         if ($versionsQuery->isEmpty()) {
-            return collect($this->getDefaultVersions());
+            return collect($this->getDefaultVersions())->map(fn (object $version): object => $this->localizeDefault($version));
         }
 
         $defaultVersions = collect($this->getDefaultVersions())->keyBy('version');
 
         return $versionsQuery->map(function ($item) use ($defaultVersions) {
             $fallback = $defaultVersions->get($item->version);
+            $localized = $this->localizedRelease($item->version);
 
-            return (object) [
+            $data = (object) [
                 'version' => $item->version,
                 'release_date' => $item->release_date ? FormatHelper::formatDate($item->release_date) : ($fallback->release_date ?? '10/09/2026'),
                 'title' => $item->title ?? ($fallback->title ?? 'Bản cập nhật DrinkFlow'),
@@ -81,7 +82,57 @@ class VersionService
                 'security' => $fallback->security ?? [],
                 'changelog' => $item->changelog ?? ($fallback->changelog ?? ''),
             ];
+
+            if ($localized !== []) {
+                foreach (['title', 'summary', 'status', 'features', 'improvements', 'bugfixes', 'security', 'changelog'] as $field) {
+                    if (array_key_exists($field, $localized)) {
+                        $data->{$field} = $localized[$field];
+                    }
+                }
+            }
+
+            return $data;
         });
+    }
+
+    /**
+     * Resolve localized release content from the active application locale.
+     *
+     * @param string $version Version identifier.
+     * @return array<string, mixed> Localized release fields.
+     */
+    private function localizedRelease(string $version): array
+    {
+        $key = 'versions.release_' . str_replace('.', '_', $version);
+        $release = __($key);
+
+        if (!is_array($release)) {
+            return [];
+        }
+
+        foreach (['features', 'improvements', 'bugfixes', 'security'] as $field) {
+            if (isset($release[$field]) && is_array($release[$field])) {
+                $release[$field] = array_map(static fn (array $item): object => (object) $item, $release[$field]);
+            }
+        }
+
+        return $release;
+    }
+
+    /**
+     * Apply localized content to a fallback release object.
+     *
+     * @param object $version Fallback release object.
+     * @return object Localized release object.
+     */
+    private function localizeDefault(object $version): object
+    {
+        $localized = $this->localizedRelease((string) ($version->version ?? ''));
+        foreach ($localized as $field => $value) {
+            $version->{$field} = $value;
+        }
+
+        return $version;
     }
 
     /**

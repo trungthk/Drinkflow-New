@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services\System;
 
 use App\Models\SystemSetting;
@@ -31,10 +33,10 @@ class SystemSettingsService
                 $value = Crypt::decryptString($value);
             }
             $result = match ($setting->type) {
-                'boolean' => filter_var($value, FILTER_VALIDATE_BOOLEAN),
-                'integer' => (int)$value,
-                'json' => json_decode($value, true),
-                'string' => (string)$value,
+                SystemSetting::TYPE_BOOLEAN => filter_var($value, FILTER_VALIDATE_BOOLEAN),
+                SystemSetting::TYPE_INTEGER => (int) $value,
+                SystemSetting::TYPE_JSON => json_decode($value, true),
+                SystemSetting::TYPE_STRING => (string) $value,
                 default => $value
             };
             return self::$cache[$key] = $result;
@@ -52,10 +54,10 @@ class SystemSettingsService
      * @param ?int $adminId Parameter value.
      * @return SystemSetting Result of the operation.
      */
-    public function set(string $key, mixed $value, string $type = 'string', bool $secret = false, ?int $adminId = null): SystemSetting
+    public function set(string $key, mixed $value, string $type = SystemSetting::TYPE_STRING, bool $secret = false, ?int $adminId = null): SystemSetting
     {
         unset(self::$cache[$key]);
-        $stored = $type === 'json' ? json_encode($value, JSON_THROW_ON_ERROR) : ((string)$value);
+        $stored = $type === SystemSetting::TYPE_JSON ? json_encode($value, JSON_THROW_ON_ERROR) : ((string) $value);
         if ($secret) $stored = Crypt::encryptString($stored);
         return SystemSetting::updateOrCreate(['key' => $key], ['value' => $stored, 'type' => $type, 'is_secret' => $secret, 'updated_by_admin_id' => $adminId]);
     }

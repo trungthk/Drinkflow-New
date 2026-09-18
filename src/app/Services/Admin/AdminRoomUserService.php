@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Admin;
 
 use App\Enums\DebtStatus;
+use App\Enums\OrderStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\Room;
 use App\Models\RoomUser;
@@ -43,7 +44,7 @@ class AdminRoomUserService
             ->sum('remaining_amount');
 
         $totalSpent = (int) $roomUser->orders
-            ->whereIn('status', ['completed', 'ordered', 'ordering', 'delivering', 'submitted', 'confirmed'])
+            ->whereIn('status', [...OrderStatus::activeValues(), OrderStatus::Completed->value])
             ->sum('final_amount');
 
         $totalOrders = $roomUser->orders->count();

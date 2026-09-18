@@ -43,7 +43,7 @@ class ConfirmOrderPaymentAction
             $lockedOrder = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
             $lockedOrder->payment_status = PaymentStatus::Pending;
             $lockedOrder->save();
-            $paymentContent = $lockedOrder->code ?: ('DF'.$lockedOrder->id.' '.$roomUser->room_user_code);
+            $paymentContent = $lockedOrder->code ?: $roomUser->room_user_code;
             $paymentRequestedAt = now();
 
             // Synchronize or create pending debt record for room ledger
@@ -67,7 +67,7 @@ class ConfirmOrderPaymentAction
                     'room_user_id' => $roomUser->id,
                     'original_amount' => (int) $lockedOrder->final_amount,
                     'sponsor_amount' => (int) $lockedOrder->sponsor_amount,
-                    'sponsor_type' => $lockedOrder->campaign?->sponsor_type ?? 'none',
+                    'sponsor_type' => $lockedOrder->campaign?->sponsor_type ?? \App\Models\Campaign::SPONSOR_TYPE_NONE,
                     'sponsor_description' => $lockedOrder->campaign?->sponsor_description,
                     'adjustment_amount' => 0,
                     'paid_amount' => 0,
@@ -85,7 +85,7 @@ class ConfirmOrderPaymentAction
         $room = $updatedOrder->room;
         $userName = $roomUser->globalUser?->name ?? $roomUser->display_name ?? 'User #' . $roomUser->id;
         $amountFmt = number_format((int) $updatedOrder->final_amount, 0, ',', '.') . ' ₫';
-        $orderIdentifier = $updatedOrder->code ?: ('DF' . $updatedOrder->id);
+        $orderIdentifier = $updatedOrder->code;
 
         // Notify room admins via AdminNotification table
         $room->admins()->each(function (AdminAccount $admin) use ($room, $updatedOrder, $userName, $amountFmt, $orderIdentifier): void {
@@ -117,7 +117,7 @@ class ConfirmOrderPaymentAction
             'user_name' => $userName,
             'user_code' => $roomUser->room_user_code,
             'amount' => (int) $updatedOrder->final_amount,
-            'status' => 'pending',
+            'status' => PaymentStatus::Pending->value,
             'message' => __('room.orders.payment_pending_socket_message', [
                 'user' => $userName,
                 'amount' => $amountFmt,

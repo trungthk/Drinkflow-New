@@ -1,6 +1,29 @@
 <?php
 
 return [
+    'release_v2_3_0' => [
+        'title' => 'マルチルーム注文・代理注文・VietQR決済照合',
+        'summary' => '正式版 v2.3.0 では、複数ルーム注文、代理注文、債務管理、VietQR決済確認を本番環境向けに完成させました。',
+        'status' => '安定版 (Production)',
+        'changelog' => 'Google OAuthと信頼済み端末認証、ORD{room_id}-YYYYMMDD-sequence形式の注文コード、親子代理注文、債務管理、リアルタイム通知、統合マイグレーションを追加しました。',
+        'features' => [
+            ['title' => 'マルチルーム注文', 'description' => '1つのアカウントで複数の注文ルームに参加し、同時に確認できます。'],
+            ['title' => '代理注文', 'description' => '親子注文で受取人を正しく記録し、リアルタイム通知を送信します。'],
+            ['title' => 'NAPAS VietQR決済', 'description' => '金額と振込内容を含む取引別QRペイロードを生成します。'],
+        ],
+        'improvements' => [
+            ['title' => '信頼済み端末', 'description' => '安全な端末を記憶し、繰り返しの認証要求を減らします。'],
+            ['title' => '債務照合', 'description' => '支払依頼、承認、決済済み状態のワークフローを追加しました。'],
+        ],
+        'bugfixes' => [
+            ['title' => '重複注文の防止', 'description' => '連続クリックや不安定な接続による重複送信を防止します。'],
+            ['title' => '注文コードの統一', 'description' => 'ルーム、日付、当日連番による固定形式を使用します。'],
+        ],
+        'security' => [
+            ['title' => 'ルーム間認可', 'description' => 'ルーム間のデータアクセスを防ぐ厳格な権限チェックを行います。'],
+            ['title' => '本番マイグレーション統合', 'description' => '安全なデプロイのため外部キーと一意制約を完全に定義します。'],
+        ],
+    ],
     'meta_title' => 'DrinkFlow :version - リリース履歴',
     'breadcrumb_root' => 'DrinkFlow システム',
     'breadcrumb_history' => 'リリースノート',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Order;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\Campaign;
 use App\Events\OrderUpdated;
@@ -27,7 +28,7 @@ class UpdateOrderAction
     {
         return DB::transaction(function () use ($order, $data): Order {
             $order = Order::query()->lockForUpdate()->findOrFail($order->id);
-            if (! $order->status->isActive() || $order->status->value === 'cancelled') {
+            if (! $order->status->isActive() || $order->status === OrderStatus::Cancelled) {
                 throw ValidationException::withMessages([
                     'order' => __('admin.order_cannot_edit_cancelled'),
                 ]);
@@ -132,7 +133,7 @@ class UpdateOrderAction
         $charge = max(0, $subtotal + (int) $order->delivery_amount - (int) $order->discount_amount);
 
         return match ($campaign->sponsor_type) {
-            'full' => $charge,
+            Campaign::SPONSOR_TYPE_FULL => $charge,
             default => 0,
         };
     }

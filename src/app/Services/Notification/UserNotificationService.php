@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Notification;
 
+use App\Enums\NotificationType;
 use App\Enums\RoomUserStatus;
 use App\Events\UserNotificationCreated;
 use App\Models\GlobalUser;
@@ -96,20 +97,23 @@ class UserNotificationService
         // Calculate counts for filter tabs
         $allCount = (clone $baseQuery)->count();
         $unreadCount = (clone $baseQuery)->whereNull('read_at')->count();
-        $roomOrderCount = (clone $baseQuery)->whereIn('type', ['campaign.created', 'order.status', 'room.invite'])->count();
-        $paymentCount = (clone $baseQuery)->whereIn('type', ['payment.due', 'payment.confirmed', 'debt.reminder'])->count();
-        $securityCount = (clone $baseQuery)->whereIn('type', ['security.alert', 'device.new'])->count();
+        $roomOrderTypes = [NotificationType::CampaignCreated->value, NotificationType::OrderStatus->value, NotificationType::OrderProxyReceived->value, NotificationType::RoomInvite->value];
+        $paymentTypes = [NotificationType::PaymentDue->value, NotificationType::PaymentConfirmed->value, NotificationType::DebtReminder->value];
+        $securityTypes = [NotificationType::SecurityAlert->value, NotificationType::DeviceNew->value];
+        $roomOrderCount = (clone $baseQuery)->whereIn('type', $roomOrderTypes)->count();
+        $paymentCount = (clone $baseQuery)->whereIn('type', $paymentTypes)->count();
+        $securityCount = (clone $baseQuery)->whereIn('type', $securityTypes)->count();
 
         // Query by active tab
         $query = (clone $baseQuery)->latest();
         if ($tab === 'unread') {
             $query->whereNull('read_at');
         } elseif ($tab === 'room_order') {
-            $query->whereIn('type', ['campaign.created', 'order.status', 'room.invite']);
+            $query->whereIn('type', $roomOrderTypes);
         } elseif ($tab === 'payment') {
-            $query->whereIn('type', ['payment.due', 'payment.confirmed', 'debt.reminder']);
+            $query->whereIn('type', $paymentTypes);
         } elseif ($tab === 'security') {
-            $query->whereIn('type', ['security.alert', 'device.new']);
+            $query->whereIn('type', $securityTypes);
         }
 
         $notifications = $query->paginate(15)->appends(['tab' => $tab]);

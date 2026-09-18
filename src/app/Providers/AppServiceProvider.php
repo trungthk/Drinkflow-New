@@ -12,12 +12,14 @@ use App\Events\CampaignCreated;
 use App\Events\CampaignDelivering;
 use App\Events\CampaignUpdated;
 use App\Events\OrderCreated;
+use App\Events\ProxyOrdersCreated;
 use App\Events\OrderUpdated;
 use App\Events\OrderDeleted;
 use App\Events\RoomRealtimeEvent;
 use App\Events\RoomMembershipUpdated;
 use App\Events\UserNotificationCreated;
 use App\Listeners\CreateOrderNotification;
+use App\Listeners\NotifyProxyOrderRecipients;
 use App\Listeners\CreateOrderStatusNotification;
 use App\Listeners\NotifyCampaignClosed;
 use App\Listeners\NotifyCampaignCancelled;
@@ -58,6 +60,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Event::listen(OrderCreated::class, CreateOrderNotification::class);
+        Event::listen(ProxyOrdersCreated::class, NotifyProxyOrderRecipients::class);
         Event::listen(OrderUpdated::class, CreateOrderStatusNotification::class);
         Event::listen(OrderDeleted::class, NotifyOrderDeleted::class);
         Event::listen(OrderCreated::class, PublishRealtimeEvent::class);

@@ -563,7 +563,7 @@
             <div class="bg-surface-container-low rounded-xl p-3.5 border border-outline-variant/60 mb-5 space-y-1.5 text-xs">
                 <div class="flex items-center justify-between">
                     <span class="text-outline">{{ __('admin.th_order_code') }}:</span>
-                    <span class="font-bold text-on-surface font-mono" id="cancel-modal-order-code">#ORD-0</span>
+                    <span class="font-bold text-on-surface font-mono" id="cancel-modal-order-code">—</span>
                 </div>
                 <div class="flex items-center justify-between">
                     <span class="text-outline">{{ __('admin.th_customer') }}:</span>

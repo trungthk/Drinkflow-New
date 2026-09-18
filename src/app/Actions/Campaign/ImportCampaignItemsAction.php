@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Actions\Campaign;
 
+use App\Enums\CampaignItemStatus;
 use App\Models\Campaign;
 use Illuminate\Support\Facades\DB;
 
@@ -26,7 +29,7 @@ class ImportCampaignItemsAction
                     'description' => $item['description'] ?? null,
                     'image_url' => $item['image_url'] ?? null,
                     'base_price' => (int) $item['base_price'],
-                    'status' => 'active',
+                    'status' => CampaignItemStatus::Active,
                     'sort_order' => (int) ($item['sort_order'] ?? 0),
                     'source_url' => $sourceUrl,
                     'source_item_key' => $item['source_item_key'] ?? null,

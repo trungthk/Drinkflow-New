@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Order;
 
+use App\Enums\OrderStatus;
 use App\Events\OrderDeleted;
 use App\Models\Order;
 use App\Services\Audit\AuditService;
@@ -23,7 +24,7 @@ class DeleteOrderAction
     {
         $payload = DB::transaction(function () use ($order): array {
             $order = Order::query()->with('roomUser')->lockForUpdate()->findOrFail($order->id);
-            if ($order->status->value === 'completed') {
+            if ($order->status === OrderStatus::Completed) {
                 throw ValidationException::withMessages([
                     'order' => __('admin.cannot_delete_completed_order'),
                 ]);
@@ -38,4 +39,3 @@ class DeleteOrderAction
         OrderDeleted::dispatch($payload);
     }
 }
-

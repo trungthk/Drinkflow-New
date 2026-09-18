@@ -10,5 +10,7 @@ class CampaignCreated
 {
     use Dispatchable, SerializesModels;
 
-    public function __construct(public readonly Campaign $campaign) {}
+    public function __construct(public readonly Campaign $campaign)
+    {
+    }
 }

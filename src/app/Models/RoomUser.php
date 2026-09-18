@@ -11,6 +11,7 @@ use App\Models\Concerns\HasStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class RoomUser extends Model
 {
@@ -26,6 +27,18 @@ class RoomUser extends Model
         'joined_at',
         'last_active_at',
     ];
+
+    /**
+     * Bootstrap the model and its traits.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (RoomUser $roomUser): void {
+            if (empty($roomUser->user_code)) {
+                $roomUser->user_code = (string) Str::uuid();
+            }
+        });
+    }
 
     protected function casts(): array
     {

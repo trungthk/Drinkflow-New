@@ -32,6 +32,12 @@ class DebtApprovalTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     /**
@@ -219,10 +225,10 @@ class DebtApprovalTest extends TestCase
             ->postJson(route('user.orders.confirm-payment', [$room, $order]))
             ->assertOk()
             ->assertJsonPath('payment_status', PaymentStatus::Pending->value)
-            ->assertJsonPath('payment_confirmation.content', $order->code ?: ('DF'.$order->id.' '.$member->user_code));
+            ->assertJsonPath('payment_confirmation.content', $order->fresh()->code ?: ('DF'.$order->id.' '.$member->user_code));
 
         $this->assertNotNull($debt->fresh()->payment_requested_at);
-        $this->assertSame($order->code ?: ('DF'.$order->id.' '.$member->user_code), $debt->fresh()->payment_content);
+        $this->assertSame($order->fresh()->code ?: ('DF'.$order->id.' '.$member->user_code), $debt->fresh()->payment_content);
 
         $this->actingAs($admin, 'admin')
             ->postJson(route('admin.debts.approve', [$room->slug, $debt->id]))
@@ -242,7 +248,7 @@ class DebtApprovalTest extends TestCase
             ->assertOk()
             ->assertSeeText(__('room.orders.payment_request_details_title'))
             ->assertSeeText(__('room.orders.payment_approval_info'))
-            ->assertSee($order->code ?: ('DF'.$order->id.' '.$member->user_code))
+            ->assertSee($order->fresh()->code ?: ('DF'.$order->id.' '.$member->user_code))
             ->assertSee($admin->name);
     }
 

@@ -5,6 +5,7 @@
         paymentConfirmModalOpen: false,
         isSubmittingPayment: false,
         currentDebtId: null,
+        currentDebtPending: false,
         campaignModalOpen: false,
         campaignLoading: false,
         campaignData: null,
@@ -44,20 +45,22 @@
             bankName: '{{ $vietqrData['bank_name'] ?? '' }}',
             accountNumber: '{{ $vietqrData['account_number'] ?? '' }}',
             accountName: '{{ $vietqrData['account_name'] ?? '' }}',
-            amount: {{ $totalUnpaidAmount }},
-            formattedAmount: '{{ number_format($totalUnpaidAmount, 0, ',', '.') }}đ',
-            transferContent: '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? ('USER-' . $roomUser->id)) }}',
-            qrUrl: '{{ $vietqrData['qr_url'] ?? ('https://img.vietqr.io/image/MB-0388999888-compact2.png?amount=' . $totalUnpaidAmount . '&addInfo=' . urlencode($roomUser->user_code ?: ('USER-' . $roomUser->id))) }}'
+            amount: {{ $totalPayableAmount }},
+            formattedAmount: '{{ number_format($totalPayableAmount, 0, ',', '.') }}đ',
+            transferContent: '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}',
+            qrPayload: {{ Js::from($vietqrData['payload'] ?? '') }},
+            qrDataUrl: ''
         },
-        openQr(amount, formattedAmount, content, customQrUrl, debtId = null) {
+        async openQr(amount, formattedAmount, content, customQrUrl, debtId = null, isPending = false, payload = '') {
             this.currentDebtId = debtId || null;
+            this.currentDebtPending = Boolean(isPending);
             this.qrData.amount = amount;
             this.qrData.formattedAmount = formattedAmount;
             this.qrData.transferContent = content;
-            const bank = '{{ $vietqrData['bank_code'] ?? 'MB' }}';
-            const acc = '{{ $vietqrData['account_number'] ?? '' }}';
-            const name = encodeURIComponent('{{ $vietqrData['account_name'] ?? '' }}');
-            this.qrData.qrUrl = customQrUrl || `https://img.vietqr.io/image/${bank}-${acc}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(content)}&accountName=${name}`;
+            this.qrData.qrPayload = payload || this.qrData.qrPayload;
+            this.qrData.qrDataUrl = this.qrData.qrPayload && window.QRCode
+                ? await QRCode.toDataURL(this.qrData.qrPayload, { width: 220, margin: 1, errorCorrectionLevel: 'M' })
+                : '';
             this.qrModalOpen = true;
         },
         copyText(text) {
@@ -65,6 +68,7 @@
             alert('{{ __('room.debts.copied_alert', ['text' => '']) }}' + text);
         },
         openPaymentConfirm() {
+            if (this.currentDebtPending) return;
             this.paymentDetails.requestedAt = new Intl.DateTimeFormat(document.documentElement.lang || 'vi-VN', {
                 day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
             }).format(new Date());
@@ -141,13 +145,13 @@
                     <p class="text-xs text-on-surface-variant mt-0.5">{{ __('room.debts.subtitle') }}</p>
                 </div>
             </div>
-            @if($totalUnpaidAmount > 0)
+            @if($totalPayableAmount > 0)
                 <button
                     class="px-3.5 py-1.5 rounded-lg bg-[#006948] hover:bg-[#005137] text-white text-xs font-semibold shadow-2xs transition-all inline-flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
-                    @click="openQr({{ $totalUnpaidAmount }}, '{{ number_format($totalUnpaidAmount, 0, ',', '.') }}đ', '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? ('USER-' . $roomUser->id)) }}', '', null)">
+                    @click="openQr({{ $totalPayableAmount }}, '{{ number_format($totalPayableAmount, 0, ',', '.') }}đ', '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}', '', null, false)">
                     <span class="material-symbols-outlined text-[17px] text-white">qr_code_2</span>
                     <span
-                        class="text-white">{{ __('room.debts.pay_all', ['amount' => number_format($totalUnpaidAmount, 0, ',', '.') . 'đ']) }}</span>
+                        class="text-white">{{ __('room.debts.pay_all', ['amount' => number_format($totalPayableAmount, 0, ',', '.') . 'đ']) }}</span>
                 </button>
             @endif
         </div>
@@ -353,7 +357,7 @@
                                         @if(!$isPaid && $debt->remaining_amount > 0)
                                             <button
                                                 class="px-2.5 py-1 rounded bg-[#006948] text-white hover:bg-[#005137] transition-all inline-flex items-center gap-1 shadow-2xs cursor-pointer font-medium text-xs"
-                                                @click="openQr({{ (int) $debt->remaining_amount }}, '{{ number_format($debt->remaining_amount, 0, ',', '.') }}đ', '{{ $debt->code }}', '', {{ $debt->id }})">
+                                                @click="openQr({{ (int) $debt->remaining_amount }}, '{{ number_format($debt->remaining_amount, 0, ',', '.') }}đ', '{{ $debt->code }}', '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }})">
                                                 <span class="material-symbols-outlined text-[14px] text-white">qr_code</span>
                                                 <span class="text-white">{{ __('room.debts.btn_view_qr') }}</span>
                                             </button>
@@ -481,7 +485,7 @@
                                     <rect class="vietqr-snake-line" x="1.5" y="1.5" width="97" height="97" rx="8" ry="8"
                                         pathLength="100" />
                                 </svg>
-                                <img :src="qrData.qrUrl" alt="VietQR"
+                                <img :src="qrData.qrDataUrl" alt="VietQR"
                                     class="w-48 h-48 object-contain rounded-lg relative z-0" loading="lazy" />
                                 <div
                                     class="mt-2 flex items-center gap-1 text-[11px] text-secondary font-medium relative z-0">
@@ -548,7 +552,7 @@
                                 class="px-4 py-2 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface font-semibold text-xs hover:bg-surface-container-high transition-colors cursor-pointer">
                                 {{ __('global.common.close') }}
                             </button>
-                            <button type="button" :disabled="isSubmittingPayment" @click="openPaymentConfirm()"
+                            <button type="button" x-show="!currentDebtPending" :disabled="isSubmittingPayment" @click="openPaymentConfirm()"
                                 class="px-4 py-2 rounded-xl bg-[#006948] hover:bg-[#005137] text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50">
                                 <span class="material-symbols-outlined text-[16px] text-white"
                                     x-show="!isSubmittingPayment">check_circle</span>

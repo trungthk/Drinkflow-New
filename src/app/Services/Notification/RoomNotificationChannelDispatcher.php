@@ -23,7 +23,7 @@ class RoomNotificationChannelDispatcher
     public function dispatch(Room $room, array $payload): int
     {
         $attempts = 0;
-        $room->notificationChannels()->where('status', 'enabled')->each(function (NotificationChannel $channel) use ($payload, &$attempts): void {
+        $room->notificationChannels()->where('status', NotificationChannel::STATUS_ENABLED)->each(function (NotificationChannel $channel) use ($payload, &$attempts): void {
             try {
                 $config = $this->config($channel);
                 if ($config === []) {

@@ -14,9 +14,15 @@ return new class extends Migration
             $table->string('name');
             $table->string('normalized_name')->index();
             $table->string('email')->unique();
+            $table->uuid('code')->nullable()->unique();
+            $table->text('phone')->nullable();
+            $table->string('desk_location')->nullable();
+            $table->string('delivery_location')->nullable();
+            $table->json('preferences')->nullable();
             $table->string('avatar_url')->nullable();
             $table->string('status')->default('active')->index();
             $table->timestamp('last_login_at')->nullable();
+            $table->rememberToken();
             $table->timestamps();
         });
 
@@ -26,6 +32,8 @@ return new class extends Migration
             $table->string('provider');
             $table->string('provider_user_id');
             $table->string('provider_email');
+            $table->timestamp('linked_at')->nullable();
+            $table->timestamp('last_login_at')->nullable();
             $table->timestamps();
             $table->unique(['provider', 'provider_user_id']);
             $table->index('global_user_id');
@@ -57,6 +65,7 @@ return new class extends Migration
             $table->timestamps();
             $table->unique(['room_id', 'global_user_id']);
             $table->unique(['room_id', 'user_code']);
+            $table->unique('user_code');
             $table->index(['room_id', 'status']);
         });
 
@@ -77,9 +86,13 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
+            $table->text('phone')->nullable();
+            $table->string('avatar_url')->nullable();
+            $table->string('department')->nullable();
             $table->string('password');
             $table->string('role')->default('admin')->index();
             $table->string('status')->default('active')->index();
+            $table->boolean('two_factor_enabled')->default(false);
             $table->timestamp('last_login_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
@@ -110,9 +123,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('room_id')->constrained()->restrictOnDelete();
             $table->string('name');
+            $table->string('code', 64)->nullable()->unique();
             $table->string('restaurant');
             $table->foreignId('creator_admin_id')->nullable()->constrained('admin_accounts')->nullOnDelete();
             $table->string('sponsor_name')->nullable();
+            $table->string('sponsor_type')->default('none');
+            $table->text('sponsor_description')->nullable();
+            $table->json('sponsor_allocations')->nullable();
             $table->timestamp('deadline')->nullable();
             $table->unsignedBigInteger('max_budget')->nullable();
             $table->unsignedBigInteger('flat_price')->nullable();
@@ -136,6 +153,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('image_url')->nullable();
             $table->unsignedBigInteger('base_price');
+            $table->unsignedBigInteger('sponsor_amount')->default(0);
             $table->string('status')->default('active')->index();
             $table->unsignedInteger('sort_order')->default(0);
             $table->string('source_url')->nullable();
@@ -159,6 +177,8 @@ return new class extends Migration
             $table->foreignId('room_id')->constrained()->restrictOnDelete();
             $table->foreignId('campaign_id')->constrained()->restrictOnDelete();
             $table->foreignId('room_user_id')->constrained()->restrictOnDelete();
+            $table->foreignId('parent_id')->nullable()->constrained('orders')->nullOnDelete();
+            $table->string('code', 64)->nullable()->unique();
             $table->string('payment_method')->nullable();
             $table->unsignedBigInteger('subtotal');
             $table->unsignedBigInteger('delivery_amount')->default(0);
@@ -166,10 +186,12 @@ return new class extends Migration
             $table->unsignedBigInteger('sponsor_amount')->default(0);
             $table->unsignedBigInteger('final_amount');
             $table->string('status')->default('submitted')->index();
+            $table->string('payment_status')->default('unpaid')->index();
             $table->text('note')->nullable();
             $table->timestamp('submitted_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('cancelled_at')->nullable();
+            $table->timestamp('paid_at')->nullable();
             $table->timestamps();
             $table->index(['campaign_id', 'status']);
             $table->index(['room_user_id', 'created_at']);
@@ -217,11 +239,21 @@ return new class extends Migration
             $table->unsignedBigInteger('paid_amount')->default(0);
             $table->unsignedBigInteger('remaining_amount');
             $table->string('status')->default('unpaid')->index();
+            $table->string('sponsor_type')->default('none');
+            $table->text('sponsor_description')->nullable();
+            $table->timestamp('payment_requested_at')->nullable();
+            $table->string('payment_content')->nullable();
+            $table->string('code', 64)->nullable()->unique();
             $table->text('note')->nullable();
             $table->timestamps();
             $table->unique(['campaign_id', 'room_user_id']);
             $table->index(['room_id', 'status']);
+            $table->index(['room_user_id', 'created_at']);
         });
+
+        if (in_array(DB::getDriverName(), ['pgsql', 'sqlite'], true)) {
+            DB::statement('CREATE UNIQUE INDEX payment_accounts_one_default_per_room ON payment_accounts (room_id) WHERE is_default = true');
+        }
     }
 
     public function down(): void

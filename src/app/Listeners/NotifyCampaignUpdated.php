@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
+use App\Enums\CampaignStatus;
 use App\Events\CampaignUpdated;
 use App\Services\Notification\CampaignNotificationPayloadService;
 use App\Services\Notification\RoomNotificationChannelDispatcher;
@@ -27,10 +28,8 @@ class NotifyCampaignUpdated implements ShouldQueue
     public function handle(CampaignUpdated $event): void
     {
         $campaign = $event->campaign;
-        $status = $campaign->status?->value ?? (string) $campaign->status;
-
         // Chỉ gửi thông báo khi campaign đang live (active, scheduled, closing)
-        if (! in_array($status, ['active', 'scheduled', 'closing'], true)) {
+        if (! in_array($campaign->status, [CampaignStatus::Active, CampaignStatus::Scheduled, CampaignStatus::Closing], true)) {
             return;
         }
 

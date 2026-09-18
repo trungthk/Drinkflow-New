@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Admin;
 
+use App\Enums\DebtStatus;
+use App\Enums\OrderStatus;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\Order;
@@ -28,7 +30,7 @@ class AdminReportService
         $orders = Order::query()
             ->where('orders.room_id', $room->id)
             ->whereBetween('orders.created_at', [$from, $to])
-            ->whereNotIn('orders.status', ['cancelled']);
+            ->whereNotIn('orders.status', [OrderStatus::Cancelled->value]);
 
         $campaigns = Campaign::query()
             ->where('campaigns.room_id', $room->id)
@@ -45,7 +47,7 @@ class AdminReportService
             'order_count' => (clone $orders)->count(),
             'spending' => (int) (clone $orders)->sum('final_amount'),
             'sponsor_amount' => (int) (clone $orders)->sum('sponsor_amount'),
-            'debt' => (int) (clone $debts)->whereIn('status', ['unpaid', 'partial'])->sum('remaining_amount'),
+            'debt' => (int) (clone $debts)->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])->sum('remaining_amount'),
             'debt_total' => (int) (clone $debts)->sum('original_amount'),
             'debt_paid' => (int) (clone $debts)->sum('paid_amount'),
             'user_participation' => (int) (clone $orders)->distinct('room_user_id')->count('room_user_id'),
@@ -72,7 +74,7 @@ class AdminReportService
             $orders = Order::query()
                 ->where('orders.room_id', $room->id)
                 ->whereBetween('orders.created_at', [$from, $to])
-                ->whereNotIn('orders.status', ['cancelled']);
+                ->whereNotIn('orders.status', [OrderStatus::Cancelled->value]);
 
             $orderIds = (clone $orders)->pluck('id');
 
@@ -109,8 +111,8 @@ class AdminReportService
                     SUM(debts.original_amount) as total_original,
                     SUM(debts.paid_amount) as total_paid,
                     SUM(debts.remaining_amount) as total_remaining,
-                    SUM(CASE WHEN debts.status IN (\'unpaid\', \'partial\') THEN debts.remaining_amount ELSE 0 END) as outstanding_debt
-                ')
+                    SUM(CASE WHEN debts.status IN (?, ?) THEN debts.remaining_amount ELSE 0 END) as outstanding_debt
+                ', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])
                 ->groupBy('debts.room_user_id', 'global_users.name', 'room_users.display_name', 'room_users.user_code')
                 ->orderByDesc('outstanding_debt')
                 ->orderByDesc('total_original')
@@ -121,7 +123,7 @@ class AdminReportService
             $payload['sponsors_leaderboard'] = Order::query()
                 ->where('orders.room_id', $room->id)
                 ->whereBetween('orders.created_at', [$from, $to])
-                ->whereNotIn('orders.status', ['cancelled'])
+                ->whereNotIn('orders.status', [OrderStatus::Cancelled->value])
                 ->where('orders.sponsor_amount', '>', 0)
                 ->join('room_users', 'room_users.id', '=', 'orders.room_user_id')
                 ->leftJoin('global_users', 'global_users.id', '=', 'room_users.global_user_id')
@@ -141,7 +143,7 @@ class AdminReportService
             $payload['top_users'] = Order::query()
                 ->where('orders.room_id', $room->id)
                 ->whereBetween('orders.created_at', [$from, $to])
-                ->whereNotIn('orders.status', ['cancelled'])
+                ->whereNotIn('orders.status', [OrderStatus::Cancelled->value])
                 ->join('room_users', 'room_users.id', '=', 'orders.room_user_id')
                 ->leftJoin('global_users', 'global_users.id', '=', 'room_users.global_user_id')
                 ->selectRaw('

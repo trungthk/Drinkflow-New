@@ -7,6 +7,7 @@ namespace App\Services\User;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
+use App\Enums\RoomStatus;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
@@ -67,7 +68,7 @@ class UserRoomProfileService
         }
 
         $activeCampaign = $room->campaigns()->where('status', CampaignStatus::Active->value)->first();
-        $userRooms = $user ? $user->rooms()->where('rooms.status', 'active')->get() : collect();
+        $userRooms = $user ? $user->rooms()->where('rooms.status', RoomStatus::Active->value)->get() : collect();
 
         return [
             'is_json' => false,

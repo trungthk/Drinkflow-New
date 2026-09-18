@@ -54,7 +54,7 @@ class AdminNotification extends Model
 
             if (empty($notification->body)) {
                 $orderId = $data['order_id'] ?? null;
-                $orderCode = $data['order_code'] ?? ($orderId ? ('#' . $orderId) : '');
+                $orderCode = $data['order_code'] ?? '';
                 $userName = $data['user_name'] ?? 'Thành viên';
 
                 $notification->body = match (true) {

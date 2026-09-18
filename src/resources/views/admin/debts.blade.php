@@ -99,7 +99,7 @@
                             $campaignName  = $debt->campaign?->name ?? 'N/A';
                             $updatedAt     = $debt->payment_requested_at ? $debt->payment_requested_at->format('H:i d/m/Y') : ($debt->updated_at ? $debt->updated_at->format('H:i d/m/Y') : '');
                             $createdAt     = $debt->created_at ? $debt->created_at->format('H:i d/m/Y') : '';
-                            $transferContent = $debt->payment_content ?: ($debt->roomUser?->user_code ?: ('DRINKFLOW-DEBT-' . ($debt->roomUser?->id ?? $debt->room_user_id)));
+                            $transferContent = $debt->payment_content ?: $debt->code;
                             $debtStatusValue = $debt->status instanceof \BackedEnum ? $debt->status->value : (string) $debt->status;
                             $isPayAll      = !empty($debt->payment_content) && $debt->roomUser && $debt->payment_content === $debt->roomUser->user_code;
                             $userPendingDebts = ($isPayAll && $debt->roomUser) ? $debt->roomUser->debts->map(fn($d) => [

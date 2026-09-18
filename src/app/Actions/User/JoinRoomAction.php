@@ -11,6 +11,7 @@ use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
 use App\Models\RoomUserDevice;
+use App\Services\Code\CodeGeneratorService;
 use Illuminate\Support\Facades\DB;
 
 class JoinRoomAction
@@ -36,15 +37,29 @@ class JoinRoomAction
             $roomUser = RoomUser::query()->firstOrCreate(
                 ['room_id' => $room->id, 'global_user_id' => $globalUser->id],
                 [
-                    'user_code'      => $this->uniqueCode($room, $globalUser->normalized_name),
+                    'user_code'      => CodeGeneratorService::generateRoomUserCode(),
                     'display_name'   => $globalUser->name,
                     'normalized_name' => $globalUser->normalized_name,
-                    'status'         => RoomUserStatus::Active,
+                    'status'         => $room->roomSettings()->where('key', 'is_public')->value('value') === '0'
+                        ? RoomUserStatus::Blocked
+                        : RoomUserStatus::Active,
                     'joined_at'      => now(),
                 ],
             );
 
-            abort_unless($roomUser->status === RoomUserStatus::Active, 403);
+            if ($roomUser->status === RoomUserStatus::Blocked && ! $roomUser->wasRecentlyCreated) {
+                abort(403);
+            }
+
+            if ($roomUser->status === RoomUserStatus::Removed) {
+                $roomUser->update([
+                    'status' => $room->roomSettings()->where('key', 'is_public')->value('value') === '0'
+                        ? RoomUserStatus::Blocked
+                        : RoomUserStatus::Active,
+                    'joined_at' => now(),
+                    'last_active_at' => now(),
+                ]);
+            }
 
             RoomUserDevice::updateOrCreate(
                 ['room_user_id' => $roomUser->id, 'device_uuid' => $deviceUuid],
@@ -54,24 +69,5 @@ class JoinRoomAction
 
             return $roomUser->fresh();
         });
-    }
-
-    /**
-     * Tạo mã người dùng duy nhất trong phòng.
-     *
-     * @param  Room    $room           Phòng mục tiêu.
-     * @param  string  $normalizedName Tên chuẩn hóa của người dùng.
-     * @return string Mã người dùng duy nhất.
-     */
-    private function uniqueCode(Room $room, string $normalizedName): string
-    {
-        $base   = preg_replace('/[^A-Z0-9]/', '', strtoupper($normalizedName)) ?: 'USER';
-        $code   = $base;
-        $suffix = 1;
-        while ($room->roomUsers()->where('user_code', $code)->exists()) {
-            $code = $base . (++$suffix);
-        }
-
-        return $code;
     }
 }

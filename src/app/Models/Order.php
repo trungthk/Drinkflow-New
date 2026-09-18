@@ -17,6 +17,7 @@ class Order extends Model
     use HasStatus, BelongsToRoom;
 
     protected $fillable = [
+        'parent_id',
         'room_id',
         'code',
         'campaign_id',
@@ -43,7 +44,7 @@ class Order extends Model
     {
         static::creating(function (Order $order): void {
             if (empty($order->code)) {
-                $order->code = \App\Services\Code\CodeGeneratorService::generateOrderCode();
+                $order->code = \App\Services\Code\CodeGeneratorService::generateOrderCode((int) $order->room_id);
             }
         });
     }
@@ -73,5 +74,45 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * The parent order (null if this is already a parent order).
+     *
+     * @return BelongsTo<Order, Order>
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'parent_id');
+    }
+
+    /**
+     * Child orders placed on behalf of other users.
+     *
+     * @return HasMany<Order>
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(Order::class, 'parent_id');
+    }
+
+    /**
+     * Whether this order is a parent (top-level) order.
+     *
+     * @return bool
+     */
+    public function isParent(): bool
+    {
+        return $this->parent_id === null;
+    }
+
+    /**
+     * Whether this order is a child (proxy) order created on behalf of another user.
+     *
+     * @return bool
+     */
+    public function isChild(): bool
+    {
+        return $this->parent_id !== null;
     }
 }

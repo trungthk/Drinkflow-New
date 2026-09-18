@@ -11,6 +11,7 @@ use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
 use App\Services\Audit\AuditService;
+use App\Services\Code\CodeGeneratorService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -96,7 +97,7 @@ class AdminAddRoomUserAction
 
                 $roomUser = $existingRoomUser->fresh();
             } else {
-                $finalUserCode = $this->generateUniqueCode($room, $name);
+                $finalUserCode = CodeGeneratorService::generateRoomUserCode();
 
                 $roomUser = RoomUser::create([
                     'room_id' => $room->id,
@@ -127,26 +128,5 @@ class AdminAddRoomUserAction
 
             return $roomUser->load('globalUser');
         });
-    }
-
-    /**
-     * Tự động sinh mã người dùng duy nhất trong phòng.
-     *
-     * @param Room $room Phòng mục tiêu.
-     * @param string $name Tên người dùng.
-     * @return string Mã người dùng duy nhất.
-     */
-    private function generateUniqueCode(Room $room, string $name): string
-    {
-        $normalized = HasNormalizedName::normalizeString($name);
-        $base = preg_replace('/[^A-Z0-9]/', '', $normalized) ?: 'USER';
-        $code = $base;
-        $suffix = 1;
-
-        while ($room->roomUsers()->where('user_code', $code)->exists()) {
-            $code = $base . (++$suffix);
-        }
-
-        return $code;
     }
 }

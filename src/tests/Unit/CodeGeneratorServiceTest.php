@@ -50,4 +50,26 @@ class CodeGeneratorServiceTest extends TestCase
         $this->assertNotEmpty($code);
         $this->assertMatchesRegularExpression('/^DEB-\d{8}-[A-Z0-9]{4}$/', $code);
     }
+
+    /**
+     * Test global user code format and uniqueness generation.
+     */
+    public function test_generate_global_user_code_format(): void
+    {
+        $code = CodeGeneratorService::generateGlobalUserCode();
+
+        $this->assertNotEmpty($code);
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $code);
+    }
+
+    /**
+     * Test room user code format and uniqueness generation.
+     */
+    public function test_generate_room_user_code_format(): void
+    {
+        $code = CodeGeneratorService::generateRoomUserCode();
+
+        $this->assertNotEmpty($code);
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $code);
+    }
 }

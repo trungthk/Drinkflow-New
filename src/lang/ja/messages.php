@@ -2,6 +2,9 @@
 
 return [
     'order_created' => '注文を受け付けました',
+    'order_proxy_received_title' => '代理で注文されました',
+    'order_proxy_received_body' => '注文 :order_code は :orderer さんがあなたのために注文しました。',
+    'someone' => 'メンバー',
     'order_status_updated' => '注文ステータスが更新されました',
     'order_created_body' => '注文 #:order_id を受け付けました。',
     'order_status_updated_body' => '注文 #:order_id のステータスが :status に変更されました。',

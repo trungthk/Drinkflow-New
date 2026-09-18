@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Room;
 
+use App\Enums\PaymentAccountStatus;
 use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Models\RoomSetting;
@@ -23,19 +24,20 @@ class UpdateRoomSettingsAction
     {
         if (array_key_exists('default_payment_account_id', $data) && $data['default_payment_account_id'] !== null) {
             abort_unless(
-                PaymentAccount::query()->whereKey($data['default_payment_account_id'])->where('room_id', $room->id)->where('status', 'active')->exists(),
+                PaymentAccount::query()->whereKey($data['default_payment_account_id'])->where('room_id', $room->id)->where('status', PaymentAccountStatus::Active)->exists(),
                 422,
                 __('admin.invalid_payment_account')
             );
         }
 
         $dynamicKeys = [
-            'default_sponsor' => 'string',
-            'default_payment_account_id' => 'integer',
-            'campaign_title_template' => 'string',
-            'max_campaign_budget' => 'integer',
-            'personal_debt_ceiling' => 'integer',
-            'auto_lock_on_debt_limit' => 'boolean',
+            'default_sponsor' => RoomSetting::TYPE_STRING,
+            'default_payment_account_id' => RoomSetting::TYPE_INTEGER,
+            'campaign_title_template' => RoomSetting::TYPE_STRING,
+            'max_campaign_budget' => RoomSetting::TYPE_INTEGER,
+            'personal_debt_ceiling' => RoomSetting::TYPE_INTEGER,
+            'auto_lock_on_debt_limit' => RoomSetting::TYPE_BOOLEAN,
+            'is_public' => RoomSetting::TYPE_BOOLEAN,
         ];
 
         $updated = DB::transaction(function () use ($room, $data, $dynamicKeys): Room {
@@ -45,7 +47,7 @@ class UpdateRoomSettingsAction
                 if (array_key_exists($key, $data)) {
                     $rawVal = $data[$key];
                     $val = $rawVal === null ? null : (string) $rawVal;
-                    if ($type === 'boolean' && $rawVal !== null) {
+                    if ($type === RoomSetting::TYPE_BOOLEAN && $rawVal !== null) {
                         $val = $rawVal ? '1' : '0';
                     }
                     RoomSetting::updateOrCreate(
@@ -74,9 +76,9 @@ class UpdateRoomSettingsAction
         $extra = [];
         foreach ($settings as $key => $setting) {
             $val = $setting->value;
-            if ($setting->type === 'integer') {
+            if ($setting->type === RoomSetting::TYPE_INTEGER) {
                 $val = $val !== null ? (int) $val : null;
-            } elseif ($setting->type === 'boolean') {
+            } elseif ($setting->type === RoomSetting::TYPE_BOOLEAN) {
                 $val = filter_var($val, FILTER_VALIDATE_BOOLEAN);
             }
             $extra[$key] = $val;
@@ -89,6 +91,7 @@ class UpdateRoomSettingsAction
             'max_campaign_budget' => $settings->get('max_campaign_budget')?->value !== null ? (int) $settings->get('max_campaign_budget')->value : 70000,
             'personal_debt_ceiling' => $settings->get('personal_debt_ceiling')?->value !== null ? (int) $settings->get('personal_debt_ceiling')->value : 150000,
             'auto_lock_on_debt_limit' => $settings->get('auto_lock_on_debt_limit')?->value !== null ? filter_var($settings->get('auto_lock_on_debt_limit')->value, FILTER_VALIDATE_BOOLEAN) : true,
+            'is_public' => $settings->get('is_public')?->value !== null ? filter_var($settings->get('is_public')->value, FILTER_VALIDATE_BOOLEAN) : true,
         ]);
     }
 }

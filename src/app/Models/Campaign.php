@@ -15,6 +15,14 @@ class Campaign extends Model
 {
     use HasStatus, BelongsToRoom;
 
+    public const SPONSOR_TYPE_NONE = 'none';
+
+    public const SPONSOR_TYPE_FULL = 'full';
+
+    public const SPONSOR_TYPE_PER_ITEM = 'per_item';
+
+    public const SPONSOR_TYPE_BUDGET = 'budget';
+
     protected $fillable = ['room_id', 'code', 'name', 'restaurant', 'creator_admin_id', 'sponsor_name', 'sponsor_type', 'sponsor_description', 'sponsor_allocations', 'deadline', 'max_budget', 'flat_price', 'delivery_fee', 'discount', 'payment_account_id', 'description', 'status', 'started_at', 'closed_at'];
 
     /**

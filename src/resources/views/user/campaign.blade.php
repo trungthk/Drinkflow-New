@@ -26,6 +26,12 @@
     cartItems: {{ Js::from($cart ?? []) }},
     cartSubmitting: false,
     cartUpdating: false,
+    showProxyModal: false,
+    proxyEditingIndex: null,
+    proxyUserCode: '',
+    proxyUserLookupResult: null,
+    proxyUserLookupLoading: false,
+    proxyUserLookupError: null,
     async submitDecline() {
       this.participationSubmitting = true;
       if (window.showGlobalLoading) {
@@ -137,7 +143,8 @@
             size_id: this.selectedSize?.id || null,
             topping_ids: this.selectedToppings.map(top => top.id),
             quantity: 1,
-            note: this.note
+            note: this.note,
+            proxy_user_code: null
           })
         });
         const payload = await response.json();
@@ -173,7 +180,10 @@
             'Accept': 'application/json',
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ items: this.cartItems, payment_method: 'transfer' })
+          body: JSON.stringify({
+            items: this.cartItems.map(item => ({ ...item, proxy_user_code: item.proxy_user_code || null })),
+            payment_method: 'transfer'
+          })
         });
         const payload = await response.json();
         if (!response.ok) throw new Error(payload.message || '{{ __('room.campaign.error_generic') }}');
@@ -186,6 +196,57 @@
     },
     cartTotal() {
       return this.cartItems.reduce((total, item) => total + (Number(item.unit_price) * Number(item.quantity)), 0);
+    },
+    openProxyModal(index) {
+      const item = this.cartItems[index];
+      if (!item) return;
+      this.proxyEditingIndex = index;
+      this.proxyUserCode = item.proxy_user_code || '';
+      this.proxyUserLookupResult = item.proxy_user_code ? { display_name: item.proxy_user_name || '', user_code: item.proxy_user_code } : null;
+      this.proxyUserLookupError = null;
+      this.showProxyModal = true;
+    },
+    async lookupProxyUser() {
+      const code = this.proxyUserCode.trim();
+      this.proxyUserLookupError = null;
+      this.proxyUserLookupResult = null;
+      if (!code) return;
+      this.proxyUserLookupLoading = true;
+      try {
+        const url = '{{ route('user.room-members.lookup', $room) }}' + '?code=' + encodeURIComponent(code);
+        const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        const payload = await response.json();
+        if (!response.ok) throw new Error('{{ __('room.campaign.proxy_user_not_found', ['code' => '']) }}' + code);
+        this.proxyUserLookupResult = payload;
+      } catch (error) {
+        this.proxyUserLookupError = error.message;
+      } finally {
+        this.proxyUserLookupLoading = false;
+      }
+    },
+    async saveProxyAssignment() {
+      if (this.proxyEditingIndex === null) return;
+      const item = this.cartItems[this.proxyEditingIndex];
+      if (!item) return;
+      this.cartUpdating = true;
+      try {
+        const response = await fetch('{{ route('user.campaigns.cart.proxy', [$room, $activeCampaign, '__INDEX__']) }}'.replace('__INDEX__', this.proxyEditingIndex), {
+          method: 'PATCH',
+          headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            proxy_user_code: this.proxyUserLookupResult?.user_code || null,
+            proxy_user_name: this.proxyUserLookupResult?.display_name || null
+          })
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.message || '{{ __('room.campaign.error_generic') }}');
+        this.cartItems = payload.data || [];
+        this.showProxyModal = false;
+      } catch (error) {
+        window.alert(error.message);
+      } finally {
+        this.cartUpdating = false;
+      }
     },
     itemImageUrl(item) {
       if (!item) return '';
@@ -702,9 +763,18 @@
                       <p class="truncate text-sm font-bold text-slate-900" x-text="item.item_name"></p>
                       <p class="mt-0.5 text-[11px] text-slate-500" x-text="[item.size_name, ...(item.topping_names || [])].filter(Boolean).join(' · ')"></p>
                       <p class="mt-1 text-[11px] text-slate-500" x-show="item.note" x-text="item.note"></p>
+                      <template x-if="item.proxy_user_code">
+                        <span class="mt-1 inline-flex max-w-full items-center gap-1 rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-700">
+                          <span class="material-symbols-outlined text-[12px]">person_add</span>
+                          <span class="truncate" x-text="'{{ __('room.campaign.proxy_for') }} ' + (item.proxy_user_name || item.proxy_user_code)"></span>
+                        </span>
+                      </template>
                     </div>
                     <div class="flex shrink-0 items-center gap-1">
                       <span class="text-xs font-bold font-mono" :class="isItemExceeded(item) ? 'text-rose-600 font-bold' : 'text-[#006948]'" x-text="new Intl.NumberFormat('vi-VN').format(item.unit_price * item.quantity) + 'đ'"></span>
+                      <button type="button" @click="openProxyModal(index)" :disabled="cartUpdating" class="rounded-md p-1 text-slate-400 hover:bg-violet-50 hover:text-violet-600 disabled:opacity-40" title="{{ __('room.campaign.proxy_edit') }}">
+                        <span class="material-symbols-outlined text-[16px]">edit</span>
+                      </button>
                       <button type="button" @click="removeCartItem(index)" :disabled="cartUpdating" class="rounded-md p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-40" title="{{ __('room.campaign.cart_remove_item') }}">
                         <span x-show="!cartUpdating" class="material-symbols-outlined text-[16px]">delete</span>
                         <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
@@ -732,6 +802,39 @@
                 <span>{{ __('room.campaign.cart_confirm') }}</span>
                 <span x-show="hasExceededItems()" class="material-symbols-outlined text-[14px] text-amber-300">warning</span>
               </button>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template x-teleport="body">
+        <div x-show="showProxyModal" x-cloak class="fixed inset-0 z-[115] flex min-h-[100dvh] items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md" @click.self="showProxyModal = false">
+          <div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl" @click.stop>
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">{{ __('room.campaign.proxy_title') }}</h3>
+                <p class="mt-1 text-xs text-slate-500">{{ __('room.campaign.proxy_desc') }}</p>
+              </div>
+              <button type="button" @click="showProxyModal = false" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="mt-4 space-y-3">
+              <label class="block text-xs font-bold text-slate-700">{{ __('room.campaign.proxy_code_label') }}</label>
+              <div class="flex gap-2">
+                <input x-model="proxyUserCode" @input="proxyUserLookupResult = null; proxyUserLookupError = null" type="text" maxlength="50" class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-[#006948] focus:bg-white" placeholder="{{ __('room.campaign.proxy_code_placeholder') }}">
+                <button type="button" @click="lookupProxyUser()" :disabled="proxyUserLookupLoading || !proxyUserCode.trim()" class="rounded-xl bg-[#006948] px-3 text-xs font-bold text-white disabled:opacity-50">
+                  <span x-show="!proxyUserLookupLoading">{{ __('room.campaign.proxy_lookup') }}</span>
+                  <span x-show="proxyUserLookupLoading" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                </button>
+              </div>
+              <p x-show="proxyUserLookupError" x-text="proxyUserLookupError" class="text-xs font-medium text-rose-600"></p>
+              <div x-show="proxyUserLookupResult" class="flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-xs text-emerald-800">
+                <span class="material-symbols-outlined text-[18px]">verified_user</span>
+                <span x-text="proxyUserLookupResult?.display_name || proxyUserLookupResult?.user_code"></span>
+              </div>
+            </div>
+            <div class="mt-5 flex justify-end gap-2">
+              <button type="button" @click="showProxyModal = false" class="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">{{ __('global.common.cancel') }}</button>
+              <button type="button" @click="saveProxyAssignment()" :disabled="cartUpdating || (proxyUserCode.trim() && !proxyUserLookupResult)" class="rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50">{{ __('room.campaign.proxy_save') }}</button>
             </div>
           </div>
         </div>

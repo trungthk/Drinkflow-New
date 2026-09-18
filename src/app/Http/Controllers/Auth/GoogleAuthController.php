@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Enums\AdminStatus;
 use App\Enums\GlobalUserStatus;
-use App\Enums\RoomUserStatus;
 use App\Models\AdminAccount;
 use App\Services\Audit\AuditService;
 use App\Services\Auth\GoogleOAuthService;
@@ -91,10 +90,7 @@ class GoogleAuthController extends Controller
             $globalStatus = $user->status instanceof GlobalUserStatus
                 ? $user->status
                 : GlobalUserStatus::tryFrom((string) $user->status);
-            $hasMemberships = $user->roomUsers()->exists();
-            $hasActiveMembership = $user->roomUsers()->where('status', RoomUserStatus::Active->value)->exists();
-
-            if ($globalStatus !== GlobalUserStatus::Active || ($hasMemberships && ! $hasActiveMembership)) {
+            if ($globalStatus !== GlobalUserStatus::Active) {
                 throw ValidationException::withMessages([
                     'email' => __('global.auth.google_account_access_revoked'),
                 ]);
@@ -108,10 +104,14 @@ class GoogleAuthController extends Controller
 
             $intended = $request->session()->pull('url.intended');
             if ($this->isSafeInternalUrl($request, $intended)) {
-                return redirect()->to($intended);
+                return redirect()->to($intended)
+                    ->withoutCookie('drinkflow_device_uuid')
+                    ->withoutCookie('drinkflow_trusted_token');
             }
 
-            return redirect()->route('user.me.dashboard');
+            return redirect()->route('user.me.dashboard')
+                ->withoutCookie('drinkflow_device_uuid')
+                ->withoutCookie('drinkflow_trusted_token');
         } catch (ValidationException $e) {
             $errorMessage = $e->errors()['email'][0] ?? $e->getMessage() ?? __('global.auth.google_unsupported_account');
             return redirect()->to($loginSource)

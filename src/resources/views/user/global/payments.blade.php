@@ -20,13 +20,18 @@
         account_number: '{{ $defaultBank['account_number'] ?? '' }}',
         account_name: '{{ $defaultBank['account_name'] ?? '' }}',
         has_bank: {{ !empty($defaultBank['account_number']) ? 'true' : 'false' }},
-        transfer_content: 'DF{{ $user->id }} {{ strtoupper(Str::slug($user->name, '')) }}',
+        transfer_content: '{{ $user->code }}',
+        payload: '',
+        qrDataUrl: '',
         room_name: 'DrinkFlow Room',
       },
-      openQr(customData) {
+      async openQr(customData) {
         if (customData) {
           this.qrData = Object.assign({}, this.qrData, customData);
         }
+        this.qrData.qrDataUrl = this.qrData.payload && window.QRCode
+          ? await QRCode.toDataURL(this.qrData.payload, { width: 200, margin: 1, errorCorrectionLevel: 'M' })
+          : '';
         this.showQrModal = true;
       },
       closeQr() {
@@ -47,14 +52,6 @@
       formatMoney(amount) {
         return new Intl.NumberFormat('vi-VN').format(amount || 0) + '{{ __('global.common.money_suffix') }}';
       },
-      getQrUrl() {
-        const bank = this.qrData.bank_code || 'MB';
-        const acc = this.qrData.account_number || '0987654321';
-        const amt = this.qrData.amount || 0;
-        const note = encodeURIComponent(this.qrData.transfer_content || '');
-        const name = encodeURIComponent(this.qrData.account_name || '');
-        return `https://img.vietqr.io/image/${bank}-${acc}-compact2.png?amount=${amt}&addInfo=${note}&accountName=${name}`;
-      }
     }"
     @keydown.escape.window="closeQr()"
   >
@@ -225,7 +222,7 @@
           $hostName = $order->campaign?->sponsor_name ?? __('global.payments.host_room', ['name' => $order->room?->name ?? '']);
 
             // Transfer note syntax
-            $transferSyntax = 'DF' . $order->id . ' ' . strtoupper(Str::slug($user->name ?: 'USER', ''));
+            $transferSyntax = $order->code;
 
             // Items summary
             $itemsSummary = $order->items->map(function ($item) {
@@ -282,7 +279,7 @@
                     <div class="text-xs text-slate-400 mt-2 flex flex-wrap items-center gap-2">
                       <span>{{ __('global.payments.transfer_syntax') }} <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono text-[11px]">{{ $transferSyntax }}</code></span>
                       <span>•</span>
-                      <span>{{ __('global.payments.reconcile_code') }} <span class="font-mono text-slate-700">NP{{ $order->created_at ? $order->created_at->format('Ymd') : '2026' }}{{ $order->id }}</span></span>
+                      <span>{{ __('global.payments.reconcile_code') }} <span class="font-mono text-slate-700">{{ $order->code }}</span></span>
                     </div>
                   </div>
                 </div>
@@ -302,7 +299,7 @@
                   <div class="flex items-center gap-2">
                     <button
                       type="button"
-                      @click="openQrModal({{ json_encode($orderQrData) }})"
+                      @click="openQr({{ json_encode(array_merge($orderQrData, ['payload' => $qrPayloads[$order->id] ?? ''])) }})"
                       class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#006948] hover:bg-[#005137] text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
                     >
                       <span class="material-symbols-outlined text-[16px]">qr_code_scanner</span>
@@ -346,7 +343,7 @@
                     <div class="text-xs text-slate-400 mt-2 flex flex-wrap items-center gap-2">
                       <span>{{ __('global.payments.transfer_syntax') }} <code class="bg-slate-100 px-1.5 py-0.5 rounded text-slate-800 font-mono text-[11px]">{{ $transferSyntax }}</code></span>
                       <span>•</span>
-                      <span>{{ __('global.payments.reconcile_code') }} <span class="font-mono text-slate-700">NP{{ $order->created_at ? $order->created_at->format('Ymd') : '2026' }}{{ $order->id }}</span></span>
+                      <span>{{ __('global.payments.reconcile_code') }} <span class="font-mono text-slate-700">{{ $order->code }}</span></span>
                     </div>
                   </div>
                 </div>
@@ -458,11 +455,10 @@
                 <!-- Real VietQR image with dynamic params & fallback -->
                 <div class="relative p-2 bg-white rounded-xl border border-slate-200 shadow-inner flex items-center justify-center">
                   <img
-                    :src="getQrUrl()"
+                    :src="qrData.qrDataUrl"
                     alt="VietQR Code"
                     class="w-48 h-48 object-contain rounded-lg"
                     loading="lazy"
-                    onerror="this.onerror=null; this.src='https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=vietqr';"
                   />
                 </div>
 

@@ -38,7 +38,7 @@ class ConfirmDebtPaymentAction
         }
 
         $paymentRequestedAt = now();
-        $fallbackContent = $transferContent ?: ('DRINKFLOW-DEBT-' . $roomUser->id);
+        $fallbackContent = $transferContent ?: $roomUser->user_code;
 
         /** @var Collection<int, Debt> $updatedDebts */
         $updatedDebts = DB::transaction(function () use ($room, $roomUser, $debtId, $fallbackContent, $paymentRequestedAt): Collection {
@@ -49,7 +49,8 @@ class ConfirmDebtPaymentAction
             if ($debtId !== null && $debtId > 0) {
                 $query->whereKey($debtId);
             } else {
-                $query->where('status', '!=', DebtStatus::Paid)
+                // Pay-all only includes debts for which no confirmation request exists.
+                $query->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])
                     ->where('remaining_amount', '>', 0);
             }
 
@@ -59,6 +60,12 @@ class ConfirmDebtPaymentAction
             if ($debts->isEmpty()) {
                 throw ValidationException::withMessages([
                     'debt' => __('room.debts.no_debts_to_confirm', ['default' => 'No active debts found to confirm payment.']),
+                ]);
+            }
+
+            if ($debts->contains(static fn (Debt $debt): bool => $debt->status === DebtStatus::Pending)) {
+                throw ValidationException::withMessages([
+                    'debt' => __('room.debts.payment_already_pending', ['default' => 'Payment confirmation is already awaiting approval.']),
                 ]);
             }
 
@@ -122,7 +129,7 @@ class ConfirmDebtPaymentAction
             'user_name' => $userName,
             'user_code' => $roomUser->room_user_code ?? $roomUser->user_code,
             'amount' => $totalConfirmedAmount,
-            'status' => 'pending',
+            'status' => DebtStatus::Pending->value,
             'message' => sprintf(
                 'Thành viên %s đã gửi xác nhận thanh toán %s.',
                 $userName,

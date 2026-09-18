@@ -127,7 +127,7 @@ class ApproveDebtPaymentAction
             'debt_id' => $updated->id,
             'campaign_id' => $updated->campaign_id,
             'room_user_id' => $updated->room_user_id,
-            'status' => 'paid',
+            'status' => DebtStatus::Paid->value,
             'remaining_amount' => 0,
             'approved_by' => $approvingAdmin?->name,
             'approved_at' => $approvedAt->format('d/m/Y H:i'),

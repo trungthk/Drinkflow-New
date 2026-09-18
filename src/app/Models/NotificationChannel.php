@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class NotificationChannel extends Model
 {
+    public const STATUS_ENABLED = 'enabled';
+    public const STATUS_DISABLED = 'disabled';
+
     protected $fillable = ['room_id', 'type', 'name', 'config_encrypted', 'status'];
     protected $hidden = ['config_encrypted'];
     protected function configEncrypted(): Attribute

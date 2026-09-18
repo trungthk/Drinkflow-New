@@ -2,6 +2,9 @@
 
 return [
     'order_created' => 'Đặt món thành công',
+    'order_proxy_received_title' => 'Có người đặt món giúp bạn',
+    'order_proxy_received_body' => 'Đơn hàng :order_code đã được :orderer đặt giúp bạn.',
+    'someone' => 'Một thành viên',
     'order_status_updated' => 'Trạng thái đơn hàng đã thay đổi',
     'order_created_body' => 'Đơn hàng #:order_id đã được ghi nhận.',
     'order_status_updated_body' => 'Đơn hàng #:order_id đã chuyển sang :status.',
@@ -34,4 +37,3 @@ return [
     'campaign_delivering_title' => 'Món đã được giao đến! 🧋',
     'campaign_delivering_body' => 'Đơn hàng của :restaurant (#:code) đã được giao đến phòng. Mời bạn đến nhận món!',
 ];
-

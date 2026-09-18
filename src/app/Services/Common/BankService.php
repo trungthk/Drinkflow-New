@@ -113,13 +113,6 @@ class BankService
      */
     protected function getDefaultFallbackBanks(): array
     {
-        return [
-            ['id' => 43, 'name' => 'Ngân hàng TMCP Ngoại Thương Việt Nam', 'code' => 'VCB', 'bin' => '970436', 'short_name' => 'Vietcombank', 'logo' => 'https://cdn.vietqr.io/img/VCB.png', 'transfer_supported' => true],
-            ['id' => 21, 'name' => 'Ngân hàng TMCP Quân đội', 'code' => 'MB', 'bin' => '970422', 'short_name' => 'MBBank', 'logo' => 'https://cdn.vietqr.io/img/MB.png', 'transfer_supported' => true],
-            ['id' => 38, 'name' => 'Ngân hàng TMCP Kỹ thương Việt Nam', 'code' => 'TCB', 'bin' => '970407', 'short_name' => 'Techcombank', 'logo' => 'https://cdn.vietqr.io/img/TCB.png', 'transfer_supported' => true],
-            ['id' => 17, 'name' => 'Ngân hàng TMCP Công thương Việt Nam', 'code' => 'ICB', 'bin' => '970415', 'short_name' => 'VietinBank', 'logo' => 'https://cdn.vietqr.io/img/ICB.png', 'transfer_supported' => true],
-            ['id' => 4, 'name' => 'Ngân hàng TMCP Đầu tư và Phát triển Việt Nam', 'code' => 'BIDV', 'bin' => '970418', 'short_name' => 'BIDV', 'logo' => 'https://cdn.vietqr.io/img/BIDV.png', 'transfer_supported' => true],
-            ['id' => 42, 'name' => 'Ngân hàng Nông nghiệp và Phát triển Nông thôn Việt Nam', 'code' => 'VBA', 'bin' => '970405', 'short_name' => 'Agribank', 'logo' => 'https://cdn.vietqr.io/img/VBA.png', 'transfer_supported' => true],
-        ];
+        return [];
     }
 }

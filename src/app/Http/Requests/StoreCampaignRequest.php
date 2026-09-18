@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\AuthorizesUserAndAdmin;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
 
 class StoreCampaignRequest extends FormRequest
 {
@@ -111,5 +112,36 @@ class StoreCampaignRequest extends FormRequest
             'delivery_fee.min' => __('validation.min.numeric', ['attribute' => __('validation.attributes.delivery_fee'), 'min' => 0]),
             'discount.min' => __('validation.min.numeric', ['attribute' => __('validation.attributes.discount'), 'min' => 0]),
         ];
+    }
+
+    /**
+     * Validate sponsorship invariants after the primitive rules have passed.
+     *
+     * @param Validator $validator Validator instance.
+     * @return void
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            if ((string) $this->input('sponsor_type') !== 'full') {
+                return;
+            }
+
+            $allocations = $this->input('sponsor_allocations', []);
+            if (!is_array($allocations) || $allocations === []) {
+                $validator->errors()->add('sponsor_allocations', __('admin.sponsor_percentage_total_invalid'));
+                return;
+            }
+
+            $total = collect($allocations)->sum(
+                static fn (mixed $allocation): float => is_array($allocation)
+                    ? (float) ($allocation['percentage'] ?? 0)
+                    : 0.0,
+            );
+
+            if (abs($total - 100.0) > 0.01) {
+                $validator->errors()->add('sponsor_allocations', __('admin.sponsor_percentage_total_invalid'));
+            }
+        });
     }
 }

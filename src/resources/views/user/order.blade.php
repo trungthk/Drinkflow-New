@@ -1,12 +1,12 @@
 <x-room.layout
-  :title="'DrinkFlow - ' . __('room.orders.order_details') . ' #' . $order->id . ' - ' . ($room->name ?? __('global.common.room'))"
+  :title="'DrinkFlow - ' . __('room.orders.order_details') . ' #' . $order->code . ' - ' . ($room->name ?? __('global.common.room'))"
   :room="$room"
   :room-user="request()->attributes->get('room_user')"
   :user="request()->attributes->get('global_user') ?? auth('web')->user()"
   :active-tab="'orders'"
   :breadcrumbs="[
       ['title' => __('room.orders.page_title'), 'url' => route('user.orders.index', $room->slug)],
-      ['title' => '#' . $order->id, 'url' => '']
+      ['title' => '#' . $order->code, 'url' => '']
   ]"
 >
   <main class="w-full max-w-3xl mx-auto space-y-6"
@@ -36,7 +36,7 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3.5 border-b border-slate-100">
         <div>
           <span class="text-[11px] font-bold text-[#006948] uppercase tracking-wider">{{ $order->campaign->name ?? __('global.common.campaign') }}</span>
-          <h1 class="text-sm sm:text-base font-bold text-slate-900 mt-0.5">{{ __('room.orders.order_details') }} #{{ $order->id }}</h1>
+      <h1 class="text-sm sm:text-base font-bold text-slate-900 mt-0.5">{{ __('room.orders.order_details') }} #{{ $order->code }}</h1>
         </div>
         <div>
           <span id="status-badge"

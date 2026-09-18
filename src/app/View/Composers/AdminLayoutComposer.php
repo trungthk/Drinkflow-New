@@ -8,6 +8,7 @@ use App\Constants\AppLocale;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Enums\RoomStatus;
+use App\Enums\RoomUserStatus;
 use App\Models\AdminAccount;
 use App\Models\Room;
 use App\Models\Order;
@@ -57,6 +58,9 @@ class AdminLayoutComposer
                 ->exists(),
             'realtimeOrderCount' => $room instanceof Room
                 ? Order::query()->where('room_id', $room->id)->where('status', '!=', OrderStatus::Cancelled->value)->count()
+                : 0,
+            'blockedUsersCount' => $room instanceof Room
+                ? $room->roomUsers()->where('status', RoomUserStatus::Blocked->value)->count()
                 : 0,
             'unreadNotifications' => $unreadNotifications,
             'unreadCount' => $unreadNotifications->count(),

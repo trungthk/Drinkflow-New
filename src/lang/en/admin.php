@@ -572,6 +572,14 @@ return [
     'vnd_unit' => '₫',
     'settings_saved_success' => 'Room settings updated successfully!',
     'settings_saved_ok' => 'System configuration saved successfully.',
+    'room_join_link' => 'Room join link',
+    'copy_room_join_link' => 'Copy link',
+    'room_join_link_copied' => 'Room join link copied.',
+    'room_public_mode' => 'Allow public joining',
+    'room_public_mode_hint' => 'New members become active immediately and can order, view menus, debts and statistics.',
+    'room_private_mode_hint' => 'New members remain pending until an administrator approves them.',
+    'pending_approval_users' => ':count pending approval',
+    'approve_user' => 'Approve member',
     'debt_limit_reached' => 'The order exceeds the personal debt limit (:limit).',
 
     // Notification Channels & Webhook

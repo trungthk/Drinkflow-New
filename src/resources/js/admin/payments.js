@@ -17,8 +17,12 @@ export function initAdminPayments() {
         const qrDetails = document.querySelector('#qr-details');
         if (!qrCard || !qrImg || !qrDetails) return;
 
-        const qrUrl = `https://img.vietqr.io/image/${bankCode}-${accNumber}-compact2.png?accountName=${encodeURIComponent(accName)}&amount=50000&addInfo=DRINKFLOW`;
-        qrImg.src = qrUrl;
+        const payload = `DRINKFLOW-PAYMENT|BANK:${bankCode}|ACCOUNT:${accNumber}|ACCOUNT_NAME:${accName}|AMOUNT:50000|DESCRIPTION:DRINKFLOW`;
+        if (window.QRCode?.toDataURL) {
+            window.QRCode.toDataURL(payload, { width: 220, margin: 1 }, (error, dataUrl) => {
+                if (!error) qrImg.src = dataUrl;
+            });
+        }
         qrDetails.textContent = `${bankCode} · ${accNumber} · ${accName}`;
         qrCard.classList.remove('hidden');
         qrCard.classList.add('flex');

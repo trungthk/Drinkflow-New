@@ -573,6 +573,14 @@ return [
     'vnd_unit' => '₫',
     'settings_saved_success' => 'Cấu hình phòng đã được cập nhật thành công!',
     'settings_saved_ok' => 'Cập nhật cấu hình hệ thống thành công.',
+    'room_join_link' => 'Liên kết tham gia phòng',
+    'copy_room_join_link' => 'Sao chép liên kết',
+    'room_join_link_copied' => 'Đã sao chép liên kết tham gia phòng.',
+    'room_public_mode' => 'Cho phép tham gia công khai',
+    'room_public_mode_hint' => 'Thành viên mới được kích hoạt ngay và có thể đặt món, xem menu, công nợ và thống kê.',
+    'room_private_mode_hint' => 'Thành viên mới sẽ ở trạng thái chờ duyệt cho đến khi quản trị viên phê duyệt.',
+    'pending_approval_users' => ':count chờ duyệt',
+    'approve_user' => 'Duyệt thành viên',
     'debt_limit_reached' => 'Đơn hàng vượt quá hạn mức nợ cá nhân (:limit).',
 
     // Notification Channels & Webhook

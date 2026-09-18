@@ -60,7 +60,7 @@ class MarkCampaignDeliveringAction
                 $campaign->id,
                 $campaign->room_id,
                 [],
-                ['status' => 'delivering', 'orders_count' => $orders->count()]
+                ['status' => OrderStatus::Delivering->value, 'orders_count' => $orders->count()]
             );
         });
 

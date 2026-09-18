@@ -195,6 +195,7 @@ return [
         'items.*.ice_percent' => '氷の量（%）',
         'items.*.sugar_percent' => '甘さ（%）',
         'items.*.note' => '備考・特記事項',
+        'items.*.proxy_user_code' => '代理注文の受取人コード',
         'items.*.unit_price' => '単価',
         'source_id' => '移行元アカウント',
         'target_id' => '移行先アカウント',

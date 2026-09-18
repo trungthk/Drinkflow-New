@@ -2,6 +2,9 @@
 
 return [
     'order_created' => 'Order submitted successfully',
+    'order_proxy_received_title' => 'Order placed for you',
+    'order_proxy_received_body' => 'Order :order_code was placed for you by :orderer.',
+    'someone' => 'Someone',
     'order_status_updated' => 'Order status updated',
     'order_created_body' => 'Order #:order_id has been recorded.',
     'order_status_updated_body' => 'Order #:order_id changed to :status.',

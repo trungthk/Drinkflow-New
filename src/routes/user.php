@@ -31,9 +31,11 @@ Route::middleware(['global.user', 'room.user'])->group(function () {
     Route::post('/rooms/{room}/campaigns/{campaign}/rejoin', [\App\Http\Controllers\User\CampaignController::class, 'rejoin'])->name('user.campaigns.rejoin');
     Route::get('/rooms/{room}/campaigns/{campaign}/order', \App\Http\Controllers\User\CampaignOrderPageController::class)->name('user.campaigns.order-page');
     Route::post('/rooms/{room}/campaigns/{campaign}/cart', [\App\Http\Controllers\User\CampaignController::class, 'addToCart'])->middleware('throttle:60,1')->name('user.campaigns.cart.store');
+    Route::patch('/rooms/{room}/campaigns/{campaign}/cart/{index}', [\App\Http\Controllers\User\CampaignController::class, 'updateCartProxy'])->name('user.campaigns.cart.proxy');
     Route::delete('/rooms/{room}/campaigns/{campaign}/cart', [\App\Http\Controllers\User\CampaignController::class, 'clearCart'])->name('user.campaigns.cart.clear');
     Route::delete('/rooms/{room}/campaigns/{campaign}/cart/{index}', [\App\Http\Controllers\User\CampaignController::class, 'removeFromCart'])->name('user.campaigns.cart.remove');
     Route::post('/rooms/{room}/campaigns/{campaign}/orders', [\App\Http\Controllers\User\OrderController::class, 'store'])->name('user.orders.store');
+    Route::get('/rooms/{room}/members/lookup', [\App\Http\Controllers\User\CampaignController::class, 'lookupMember'])->name('user.room-members.lookup');
     Route::get('/rooms/{room}/orders/{order}', [\App\Http\Controllers\User\OrderController::class, 'show'])->name('user.orders.show');
     Route::get('/rooms/{room}/orders/{order}/view', \App\Http\Controllers\User\OrderPageController::class)->name('user.orders.page');
     Route::get('/rooms/{room}/orders/{order}/payment', [\App\Http\Controllers\User\OrderController::class, 'payment'])->name('user.orders.payment');
@@ -77,18 +79,18 @@ Route::middleware(['global.user'])->group(function () {
     // Room-Dependent Pages and Endpoints (Requires user to have joined at least 1 active room)
     Route::middleware(['user.has_rooms'])->group(function () {
         Route::get('/me/rooms', \App\Http\Controllers\User\Global\RoomsController::class)->name('user.me.rooms');
-        Route::get('/me/orders', \App\Http\Controllers\User\Global\OrdersController::class)->name('user.me.orders');
-        Route::get('/me/statistics', \App\Http\Controllers\User\Global\AnalyticsController::class)->name('user.me.statistics');
+        Route::get('/me/orders', \App\Http\Controllers\User\Global\OrdersController::class)->middleware('user.active_room')->name('user.me.orders');
+        Route::get('/me/statistics', \App\Http\Controllers\User\Global\AnalyticsController::class)->middleware('user.active_room')->name('user.me.statistics');
         Route::get('/me/statistics/export', [\App\Http\Controllers\User\Global\AnalyticsController::class, 'export'])
             ->middleware('throttle:10,1')
-            ->name('user.me.statistics.export');
-        Route::get('/me/payments', [\App\Http\Controllers\User\Global\PaymentsController::class, 'index'])->name('user.me.payments');
+            ->middleware('user.active_room')->name('user.me.statistics.export');
+        Route::get('/me/payments', [\App\Http\Controllers\User\Global\PaymentsController::class, 'index'])->middleware('user.active_room')->name('user.me.payments');
         Route::get('/me/payments/export', [\App\Http\Controllers\User\Global\PaymentsController::class, 'export'])
             ->middleware('throttle:10,1')
-            ->name('user.me.payments.export');
+            ->middleware('user.active_room')->name('user.me.payments.export');
 
         Route::get('/rooms', [\App\Http\Controllers\User\Global\RoomsController::class, 'index'])->name('user.rooms.index');
-        Route::get('/history', [\App\Http\Controllers\User\Global\OrdersController::class, 'api'])->name('user.history.index');
-        Route::get('/analytics', [\App\Http\Controllers\User\Global\AnalyticsController::class, 'global'])->name('user.analytics.global');
+        Route::get('/history', [\App\Http\Controllers\User\Global\OrdersController::class, 'api'])->middleware('user.active_room')->name('user.history.index');
+        Route::get('/analytics', [\App\Http\Controllers\User\Global\AnalyticsController::class, 'global'])->middleware('user.active_room')->name('user.analytics.global');
     });
 });

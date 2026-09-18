@@ -6,9 +6,12 @@ namespace App\View\Composers;
 
 use App\Constants\AppLocale;
 use App\Enums\CampaignStatus;
+use App\Enums\DebtStatus;
+use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Services\Notification\NotificationPresentationService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
@@ -54,6 +57,9 @@ class UserRoomLayoutComposer
         if ($activeCampaign === null && $room instanceof Room) {
             $campaign = $room->campaigns()
                 ->where('status', CampaignStatus::Active->value)
+                ->where(static function (Builder $query): void {
+                    $query->whereNull('deadline')->orWhere('deadline', '>', now());
+                })
                 ->latest('started_at')
                 ->first();
 
@@ -64,6 +70,16 @@ class UserRoomLayoutComposer
                     ? ($campaign->deadline->isFuture() ? $campaign->deadline->diffForHumans(['parts' => 2, 'short' => true]) : '00:00')
                     : '14:22',
             ] : null;
+        }
+
+        $unpaidDebtCount = (int) ($data['unpaidDebtCount'] ?? 0);
+        if (! array_key_exists('unpaidDebtCount', $data) && $room instanceof Room && $roomUser !== null) {
+            $unpaidDebtCount = Debt::query()
+                ->where('room_id', $room->id)
+                ->where('room_user_id', $roomUser->id)
+                ->whereIn('status', DebtStatus::outstandingValues())
+                ->where('remaining_amount', '>', 0)
+                ->count();
         }
 
         $userRooms = $data['userRooms'] ?? collect();
@@ -85,6 +101,8 @@ class UserRoomLayoutComposer
             'notifications' => $notifications,
             'unreadNotificationsCount' => (int) ($unreadCount ?? 0),
             'activeCampaign' => $activeCampaign,
+            'hasActiveCampaign' => $activeCampaign !== null,
+            'unpaidDebtCount' => $unpaidDebtCount,
             'userRooms' => $userRooms,
             'currentLocale' => $currentLocale,
             'locales' => AppLocale::SUPPORTED,

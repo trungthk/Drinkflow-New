@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CampaignParticipant extends Model
 {
+    public const STATUS_PENDING = 'pending';
+
     public const STATUS_DECLINED = 'declined';
 
     protected $fillable = ['campaign_id', 'room_user_id', 'status', 'declined_at'];

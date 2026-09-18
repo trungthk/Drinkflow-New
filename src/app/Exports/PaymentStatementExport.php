@@ -36,7 +36,7 @@ class PaymentStatementExport extends DefaultValueBinder implements FromArray, Wi
     public function array(): array
     {
         return $this->orders->map(static fn (Order $order): array => [
-            '#ORD-' . $order->id,
+            '#' . $order->code,
             $order->created_at ? FormatHelper::formatDateTime($order->created_at, 'd/m/Y H:i') : '',
             $order->room?->name ?? '',
             $order->campaign?->restaurant ?: ($order->campaign?->name ?? ''),

@@ -24,7 +24,7 @@
             $orders->map(
                 fn($o) => [
                     'id' => $o->id,
-                    'code' => $o->code ?? '#' . $o->id,
+                    'code' => $o->code,
                     'status' => $o->status->value,
                     'created_at' => $o->created_at?->format('d/m/Y H:i') ?? '',
                     'user_name' => $o->roomUser?->display_name ?? __('admin.member'),
@@ -79,7 +79,7 @@
                     'paid_amount' => (int) ($d->paid_amount ?? 0),
                     'remaining_amount' => (int) ($d->remaining_amount ?? 0),
                     'status' => $d->status instanceof \BackedEnum ? $d->status->value : (string) $d->status,
-                    'note' => $d->note ?: 'DRINKFLOW-DEBT-' . ($d->room_user_id ?? $d->id),
+                    'note' => $d->note ?: $d->code,
                     'created_at' => $d->created_at?->format('d/m/Y H:i') ?? '',
                     'updated_at' => $d->updated_at?->format('d/m/Y H:i') ?? '',
                 ],
@@ -133,7 +133,7 @@
                 if (targetOrder) {
                     targetOrder.status = nextStatus;
                 }
-                const orderCode = targetOrder ? targetOrder.code : ('#' + orderId);
+                const orderCode = targetOrder?.code || '';
                 const msg = nextStatus === 'confirmed' ?
                     '{{ addslashes(__('admin.order_confirmed_success_toast', ['code' => ':code'])) }}'.replace(':code', orderCode) :
                     '{{ addslashes(__('admin.order_unconfirmed_success_toast', ['code' => ':code'])) }}'.replace(':code', orderCode);
@@ -1548,7 +1548,7 @@
                                                 $location = $globalUser?->desk_location;
                                                 $transferContent =
                                                     $debt->note ?:
-                                                    'DRINKFLOW-DEBT-' . ($debt->room_user_id ?? $debt->id);
+                                                    $debt->code;
                                             @endphp
                                             <tr class="hover:bg-surface-container-low/50 transition-colors align-top">
                                                 <td class="px-4 py-3 w-14 text-left font-mono text-outline">

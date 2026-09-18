@@ -27,7 +27,7 @@ class UserSessionService
         $domain = Str::after((string) $user->email, '@') ?: 'company.com';
         $primaryRoomUser = $user->roomUsers()->with('room')->where('status', RoomUserStatus::Active->value)->orderByDesc('last_active_at')->first();
         $department = $primaryRoomUser?->room?->name ?? __('global.profile.default_dept');
-        $userCode = $primaryRoomUser?->user_code ?? ('DF-EMP-' . str_pad((string) $user->id, 4, '0', STR_PAD_LEFT));
+        $userCode = $primaryRoomUser?->user_code ?? $user->code;
 
         // Current session & device details
         $currentSessionId = $request->session()->getId();

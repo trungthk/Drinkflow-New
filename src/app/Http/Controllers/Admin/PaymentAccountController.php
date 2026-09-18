@@ -121,22 +121,12 @@ class PaymentAccountController extends Controller
 
         $payload = $this->buildLocalQrPayload($account, $amount, $description);
 
-        $bankCode = (string) $account->bank_code;
         $accNumber = (string) $account->getRawOriginal('account_number');
         $accName = (string) $account->account_name;
-        $qrUrl = sprintf(
-            'https://img.vietqr.io/image/%s-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s',
-            urlencode($bankCode),
-            urlencode($accNumber),
-            $amount,
-            urlencode($description),
-            urlencode($accName)
-        );
 
         return response()->json([
             'data' => [
                 'payload' => $payload,
-                'qr_url' => $qrUrl,
                 'bank_code' => $account->bank_code,
                 'bank_name' => $account->bank_name ?: $account->bank_code,
                 'account_number' => $accNumber,

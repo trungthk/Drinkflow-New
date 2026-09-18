@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Dashboard;
 
 use App\Enums\CampaignStatus;
+use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentAccountStatus;
-use App\Enums\RoomUserStatus;
 use App\Models\AdminAccount;
 use App\Models\Debt;
 use App\Models\Order;
@@ -17,7 +17,6 @@ use App\Support\Helpers\FormatHelper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Collection;
 
 class AdminDashboardService
 {
@@ -86,17 +85,17 @@ class AdminDashboardService
         $orders = Order::query()->where('room_id', $room->id);
         $debts = Debt::query()->where('room_id', $room->id);
 
-        $campaignMetrics = static fn (HasMany $query): HasMany => $query
+        $campaignMetrics = static fn(HasMany $query): HasMany => $query
             ->withCount([
-                'orders' => static fn (Builder $orderQuery): Builder => $orderQuery
+                'orders' => static fn(Builder $orderQuery): Builder => $orderQuery
                     ->where('status', '!=', OrderStatus::Cancelled->value),
             ])
             ->withSum([
-                'orders as total_amount' => static fn (Builder $orderQuery): Builder => $orderQuery
+                'orders as total_amount' => static fn(Builder $orderQuery): Builder => $orderQuery
                     ->where('status', '!=', OrderStatus::Cancelled->value),
             ], 'final_amount')
             ->withSum([
-                'orders as sponsor_total' => static fn (Builder $orderQuery): Builder => $orderQuery
+                'orders as sponsor_total' => static fn(Builder $orderQuery): Builder => $orderQuery
                     ->where('status', '!=', OrderStatus::Cancelled->value),
             ], 'sponsor_amount');
 
@@ -117,7 +116,7 @@ class AdminDashboardService
         $todayTotalValue = (int) (clone $orders)->whereDate('created_at', $today)->where('status', $completedStatus)->sum('final_amount');
         $todaySponsorValue = (int) (clone $orders)->whereDate('created_at', $today)->where('status', $completedStatus)->sum('sponsor_amount');
 
-        $pendingDebtUsersCount = (clone $debts)->whereIn('status', ['unpaid', 'partial'])->distinct('room_user_id')->count('room_user_id');
+        $pendingDebtUsersCount = (clone $debts)->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])->distinct('room_user_id')->count('room_user_id');
 
         // Weekly trend for 7 days
         $weeklyTrend = [];
@@ -187,8 +186,8 @@ class AdminDashboardService
             'orders_growth' => $ordersGrowth,
             'today_total_value' => $todayTotalValue,
             'today_sponsor_value' => $todaySponsorValue,
-            'outstanding_debts' => (int) (clone $debts)->whereIn('status', ['unpaid', 'partial'])->sum('remaining_amount'),
-            'outstanding_debts_count' => (clone $debts)->whereIn('status', ['unpaid', 'partial'])->count(),
+            'outstanding_debts' => (int) (clone $debts)->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])->sum('remaining_amount'),
+            'outstanding_debts_count' => (clone $debts)->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])->count(),
             'pending_debt_users_count' => $pendingDebtUsersCount,
             'active_campaigns' => $activeCampaigns->count(),
             'active_campaigns_count' => $activeCampaigns->count(),
@@ -249,9 +248,9 @@ class AdminDashboardService
         $roomSettings = $room->roomSettings()->pluck('value', 'key')->all();
 
         $totalDebtsAmount = (int) $debts->sum('original_amount');
-        $unpaidDebtsAmount = (int) $debts->whereIn('status', ['unpaid', 'partial'])->sum('remaining_amount');
+        $unpaidDebtsAmount = (int) $debts->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])->sum('remaining_amount');
         $paidDebtsAmount = (int) $debts->sum('paid_amount');
-        $debtUsersCount = $debts->whereIn('status', ['unpaid', 'partial'])->pluck('room_user_id')->unique()->count();
+        $debtUsersCount = $debts->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])->pluck('room_user_id')->unique()->count();
 
         return [
             'room' => $room,
