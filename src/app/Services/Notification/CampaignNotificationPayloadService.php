@@ -7,6 +7,8 @@ namespace App\Services\Notification;
 use App\Enums\NotificationType;
 use App\Models\Campaign;
 use App\Support\Helpers\FormatHelper;
+use App\Services\Order\PublicOrderCheckService;
+use Illuminate\Support\Facades\URL;
 
 class CampaignNotificationPayloadService
 {
@@ -30,6 +32,13 @@ class CampaignNotificationPayloadService
         $orderUrl = in_array($event, [NotificationType::CampaignCreated->value, NotificationType::CampaignUpdated->value], true) && $room !== null
             ? route('user.campaigns.index', $room)
             : null;
+        $orderCheckUrl = $event === NotificationType::CampaignClosed->value
+            ? URL::temporarySignedRoute(
+                'public.order-check',
+                now()->addDays(30),
+                ['campaign' => $campaign->id, 'hash' => app(PublicOrderCheckService::class)->hash($campaign)]
+            )
+            : null;
 
         return [
             'event' => $event,
@@ -44,8 +53,9 @@ class CampaignNotificationPayloadService
                 'sponsorship_amount' => $campaign->max_budget,
                 'max_product_budget' => $campaign->max_budget,
                 'order_url' => $orderUrl,
+                'order_check_url' => $orderCheckUrl,
             ],
-            'message' => $this->message($title, $campaign, $orderUrl, $event),
+            'message' => $this->message($title, $campaign, $event === NotificationType::CampaignClosed->value ? $orderCheckUrl : $orderUrl, $event),
         ];
     }
 
@@ -99,6 +109,9 @@ class CampaignNotificationPayloadService
             }
         } elseif ($event === NotificationType::CampaignClosed->value) {
             $lines[] = __('messages.campaign_closed_body');
+            if ($orderUrl !== null) {
+                $lines[] = __('messages.campaign_order_check', ['url' => $orderUrl]);
+            }
         } elseif ($event === NotificationType::CampaignCancelled->value) {
             $lines[] = __('messages.campaign_cancelled_body');
         } elseif ($event === NotificationType::CampaignDelivering->value) {

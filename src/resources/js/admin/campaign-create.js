@@ -7,6 +7,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
     const getRoomSlug = () => document.body?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
     const budgetErrorTemplate = page?.dataset.budgetError || 'Campaign budget exceeds :limit.';
     const sponsorPercentageError = page?.dataset.sponsorPercentageError || 'The total sponsorship percentage must equal 100%.';
+    const itemDeletedSuccess = page?.dataset.itemDeletedSuccess || 'Item ":name" was deleted successfully.';
     const storeUrl = page?.dataset.storeUrl || page?.dataset.submitUrl || '';
     const submitMethod = page?.dataset.submitMethod || (initialCampaign ? 'PATCH' : 'POST');
     const isEditMode = Boolean(initialCampaign || page?.dataset.isEdit === 'true');
@@ -75,7 +76,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         editingItemIndex: null,
         itemModalTab: 'basic',
         itemSubmitting: false,
-        menuView: 'all',
+        menuView: 'category',
         selectedCategory: '',
         menuSearchInput: '',
         menuSearch: '',
@@ -244,7 +245,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         },
 
         addSponsor() {
-            this.sponsors.push({ user_id: '', percentage: 0, search: '', open: false });
+            this.sponsors.push({ user_id: '', percentage: 100, search: '', open: false });
         },
 
         removeSponsor(index) {
@@ -435,8 +436,12 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         },
 
         removeMenuItem(index) {
+            const item = this.menuItems[index];
             this.menuItems.splice(index, 1);
             this.syncSelectedCategory();
+            if (item && window.notify) {
+                window.notify(itemDeletedSuccess.replace(':name', item.name || ''), 'success');
+            }
         },
 
         loadPreviousCampaign(campaign) {

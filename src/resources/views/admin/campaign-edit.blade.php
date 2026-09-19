@@ -42,6 +42,7 @@
      data-submit-method="PATCH"
      data-budget-error="{{ __('admin.campaign_budget_exceeds_limit', ['limit' => ':limit']) }}"
      data-sponsor-percentage-error="{{ __('admin.sponsor_percentage_total_invalid') }}"
+     data-item-deleted-success="{{ __('admin.item_deleted_success') }}"
      data-submit-url="{{ route('admin.campaigns.update', [$room, $campaign]) }}"
      data-delete-url="{{ route('admin.campaigns.destroy', [$room, $campaign]) }}"
      data-index-url="{{ route('admin.campaigns.page', $room) }}"
@@ -402,7 +403,15 @@
                                 </span>
                             </template>
                         </div>
-                        <p class="mt-0.5 truncate text-[11px] text-outline" x-text="entry.item.category || '{{ __('admin.uncategorized') }}'"></p>
+                        <div class="mt-1 flex flex-wrap items-center gap-1">
+                            <span class="inline-flex items-center rounded bg-surface-container px-1.5 py-0.5 text-[10px] font-medium text-outline" x-text="entry.item.category || '{{ __('admin.uncategorized') }}'"></span>
+                            <span x-show="entry.item.toppings?.length" class="inline-flex items-center rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                                {{ __('admin.toppings_label') }} <span class="ml-0.5" x-text="entry.item.toppings.length"></span>
+                            </span>
+                            <span x-show="entry.item.options?.length" class="inline-flex items-center rounded bg-secondary/10 px-1.5 py-0.5 text-[10px] font-medium text-secondary">
+                                {{ __('admin.options_label') }} <span class="ml-0.5" x-text="entry.item.options.length"></span>
+                            </span>
+                        </div>
                         <p class="mt-1 font-mono text-xs font-bold text-primary" x-text="formatVND(entry.item.price)"></p>
                     </div>
                     <div class="flex shrink-0 flex-col gap-1">

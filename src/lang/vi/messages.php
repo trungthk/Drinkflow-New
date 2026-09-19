@@ -26,6 +26,7 @@ return [
     'campaign_order' => 'Đặt món: :url',
     'campaign_order_now' => 'Bấm vào đây để đặt món ngay',
     'campaign_closed_body' => 'Chiến dịch đã đóng đặt món. Admin đang tổng hợp đơn để tiến hành order.',
+    'campaign_order_check' => 'Tra cứu đơn hàng: :url',
     'campaign_cancelled_body' => 'Chiến dịch đã bị hủy. Hẹn gặp lại bạn ở các kèo nước tiếp theo!',
     'test_ping_title' => 'Kiểm tra kết nối kênh thông báo',
     'test_ping_body' => 'Kênh thông báo đã được kết nối thành công và sẵn sàng nhận thông báo tự động từ DrinkFlow.',

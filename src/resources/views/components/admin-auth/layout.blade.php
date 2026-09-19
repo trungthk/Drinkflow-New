@@ -21,7 +21,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&display=swap"
         rel="stylesheet">
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
@@ -31,7 +31,7 @@
 </head>
 
 <body data-submit-loading-text="{{ __('global.common.loading') }}"
-    class="h-full bg-surface text-on-surface font-sans antialiased overflow-hidden selection:bg-primary/20">
+    class="admin-shell h-full bg-surface text-on-surface font-sans antialiased overflow-hidden selection:bg-primary/20">
     <div class="h-screen overflow-hidden flex flex-col lg:flex-row">
         <!-- LEFT COLUMN: Brand & Operations Engine (~46% width) -->
         <aside

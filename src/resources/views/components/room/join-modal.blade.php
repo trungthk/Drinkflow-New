@@ -52,9 +52,9 @@
           <p class="truncate text-sm font-bold text-slate-900">{{ $user->name ?? __('global.common.user') }}</p>
           <p class="truncate text-xs text-slate-500">{{ $user->email ?? '' }}</p>
         </div>
-        <div class="shrink-0 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-right shadow-sm">
+        <div class="min-w-0 max-w-[45%] shrink-0 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-right shadow-sm">
           <span class="block text-[9px] font-bold uppercase tracking-wider text-slate-400">{{ __('room.header.user_code') }}</span>
-          <strong class="mt-0.5 block font-mono text-xs tracking-wide text-[#006948]">{{ $suggestedCode }}</strong>
+          <strong class="mt-0.5 block max-w-full truncate font-mono text-xs tracking-wide text-[#006948]" title="{{ $suggestedCode }}">{{ $suggestedCode }}</strong>
         </div>
       </div>
 

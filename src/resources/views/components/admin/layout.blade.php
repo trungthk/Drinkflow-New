@@ -28,7 +28,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap"
         rel="stylesheet">
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
@@ -53,7 +53,7 @@
 
 <body data-submit-loading-text="{{ __('global.common.loading') }}" data-room-slug="{{ $room?->slug }}"
     data-processing-text="{{ __('admin.processing') }}"
-    class="bg-surface text-on-surface font-sans min-h-screen flex antialiased">
+    class="admin-shell bg-surface text-on-surface font-sans min-h-screen flex antialiased selection:bg-emerald-100 selection:text-emerald-900">
     <!-- ================= LEFT SIDEBAR ================= -->
     <aside id="admin-sidebar"
         class="fixed top-0 left-0 h-screen w-64 flex flex-col z-30 bg-surface-container-lowest border-r border-outline-variant -translate-x-full lg:translate-x-0">
@@ -463,7 +463,7 @@
         </header>
 
         <!-- Main Scrollable Canvas -->
-        <main class="flex-1 min-w-0 w-full p-4 sm:p-6 space-y-6">
+        <main class="flex-1 min-w-0 w-full max-w-[1440px] mx-auto p-4 sm:p-6 space-y-6">
             {{ $slot }}
         </main>
     </div>

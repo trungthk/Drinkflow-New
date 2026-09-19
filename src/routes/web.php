@@ -13,6 +13,13 @@ Route::post('/contact', [\App\Http\Controllers\Public\ContactController::class, 
     ->middleware('throttle:contact-submission')
     ->name('contact.store');
 
+Route::get('/check-order/{campaign}/{hash}', [\App\Http\Controllers\Public\OrderCheckController::class, 'page'])
+    ->middleware('signed')
+    ->name('public.order-check');
+Route::post('/check-order/{campaign}/{hash}', [\App\Http\Controllers\Public\OrderCheckController::class, 'lookup'])
+    ->middleware(['signed', 'throttle:public-order-check'])
+    ->name('public.order-check.lookup');
+
 Route::get('/lang/{locale}', function (string $locale) {
     if (\App\Constants\AppLocale::isValid($locale)) {
         session(['locale' => $locale]);

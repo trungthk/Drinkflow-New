@@ -98,6 +98,15 @@ class AppServiceProvider extends ServiceProvider
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(15)->by($request->ip() ?: '127.0.0.1');
         });
 
+        \Illuminate\Support\Facades\RateLimiter::for('public-order-check', function (\Illuminate\Http\Request $request) {
+            $ip = $request->ip() ?: '127.0.0.1';
+            $identifier = mb_strtolower(trim((string) $request->input('identifier', '')));
+            return [
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(10)->by('ip:'.$ip),
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(3)->by('lookup:'.$ip.'|'.hash('sha256', $identifier)),
+            ];
+        });
+
         \Illuminate\Support\Facades\RateLimiter::for('admin-login', function (\Illuminate\Http\Request $request) {
             $email = \Illuminate\Support\Str::lower((string) $request->input('email', ''));
             $ip = $request->ip() ?: '127.0.0.1';

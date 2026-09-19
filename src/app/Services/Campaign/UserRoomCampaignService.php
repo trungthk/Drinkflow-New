@@ -13,6 +13,7 @@ use App\Models\Campaign;
 use App\Models\CampaignParticipant;
 use App\Models\GlobalUser;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Room;
 use App\Models\RoomUser;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -79,6 +80,7 @@ class UserRoomCampaignService
         $hasDeclined = false;
         $campaignStats  = null;
         $campaignSponsors = collect();
+        $favoriteItems = collect();
 
         /** @var array<int, \App\Enums\OrderStatus> $activeOrderStatuses */
         $activeOrderStatuses = [
@@ -90,6 +92,18 @@ class UserRoomCampaignService
         ];
 
         if ($activeCampaign) {
+            $favoriteItems = OrderItem::query()
+                ->whereHas('order', static function ($query) use ($activeCampaign): void {
+                    $query->where('campaign_id', $activeCampaign->id)
+                        ->where('status', '!=', OrderStatus::Cancelled->value);
+                })
+                ->selectRaw('item_name, SUM(quantity) as quantity')
+                ->groupBy('item_name')
+                ->orderByDesc('quantity')
+                ->orderBy('item_name')
+                ->limit(5)
+                ->get();
+
             $sponsorAllocations = collect($activeCampaign->sponsor_allocations ?? []);
             $sponsorRoomUsers = RoomUser::query()
                 ->where('room_id', $room->id)
@@ -168,6 +182,7 @@ class UserRoomCampaignService
             'canOrderCampaign'           => $canOrderCampaign,
             'campaignStats'              => $campaignStats,
             'campaignSponsors'           => $campaignSponsors,
+            'favoriteItems'              => $favoriteItems,
             'categories'                 => $categories,
             'activeUserOrder'            => $activeUserOrder,
             'hasDeclined'                => $hasDeclined,

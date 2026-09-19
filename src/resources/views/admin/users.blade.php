@@ -407,6 +407,9 @@
                                 class="text-[11px] font-semibold px-2 py-0.5 rounded border">-</span>
                         </div>
                         <p id="user-detail-email" class="text-xs text-outline mt-0.5">-</p>
+                        <p class="mt-0.5 text-[11px] text-outline">
+                            {{ __('admin.member_code') }}: <span id="user-detail-code" class="font-mono font-semibold text-primary">-</span>
+                        </p>
                     </div>
                 </div>
                 <button type="button" id="user-detail-close"
@@ -482,13 +485,6 @@
                 </div>
             </div>
 
-            <!-- Modal Footer -->
-            <div class="mt-5 pt-3 border-t border-outline-variant/60 flex justify-end">
-                <button type="button" id="user-detail-close-btn"
-                    class="px-4 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors cursor-pointer">
-                    {{ __('admin.cancel') }}
-                </button>
-            </div>
         </div>
     </div>
 </x-admin.layout>

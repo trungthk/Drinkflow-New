@@ -460,20 +460,23 @@
                                     <div class="space-y-2">
                                         @foreach($proxyOrders as $proxyOrder)
                                             <div class="rounded-lg border border-secondary/20 bg-secondary/5 p-2.5">
-                                                <div class="mb-1.5 flex items-center justify-between gap-2 text-[11px]">
-                                                    <span class="font-semibold text-secondary">{{ __('room.orders.proxy_for') }}:
-                                                        {{ $proxyOrder->roomUser?->display_name ?? $proxyOrder->roomUser?->globalUser?->name ?? __('room.orders.member_unknown') }}@if($proxyOrder->roomUser?->globalUser?->email)
-                                                        ({{ $proxyOrder->roomUser->globalUser->email }})@endif</span>
-                                                    <span class="font-mono text-outline">{{ $proxyOrder->code }}</span>
-                                                </div>
                                                 <div class="space-y-1.5">
                                                     @foreach($proxyOrder->items as $proxyItem)
-                                                        <div class="text-xs text-on-surface">
-                                                            <div class="font-semibold">{{ $proxyItem->item_name }}@if($proxyItem->size_name)
+                                                        <div class="bg-surface-container-low rounded-lg p-2.5 flex items-start gap-2.5 text-xs text-on-surface">
+                                                            <div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shrink-0">
+                                                                <span class="material-symbols-outlined text-[18px]">emoji_food_beverage</span>
+                                                            </div>
+                                                            <div class="min-w-0 flex-1">
+                                                            <div class="flex items-start justify-between gap-2">
+                                                            <div class="min-w-0">
+                                                            <div class="truncate text-sm leading-5 text-on-surface font-bold">{{ $proxyItem->item_name }}@if($proxyItem->size_name)
                                                                 <span
                                                             class="font-normal text-outline">({{ $proxyItem->size_name }})</span>@endif
                                                             </div>
-                                                            <div class="text-[10px] text-on-surface-variant font-mono">
+                                                            </div>
+                                                            <span class="min-w-0 shrink truncate text-right text-[11px] leading-4 font-semibold text-secondary">{{ $proxyOrder->roomUser?->display_name ?? $proxyOrder->roomUser?->globalUser?->name ?? __('room.orders.member_unknown') }}@if($proxyOrder->roomUser?->globalUser?->email) ({{ $proxyOrder->roomUser->globalUser->email }})@endif</span>
+                                                            </div>
+<div class="flex items-center justify-between gap-2 text-[11px] leading-4 text-on-surface-variant font-mono"><span class="order-last shrink-0 text-outline">{{ $proxyOrder->code }}</span>
                                                                 {{ $proxyItem->quantity }} ×
                                                                 {{ number_format((int) $proxyItem->unit_price, 0, ',', '.') }}đ = <span
                                                                     class="font-semibold">{{ number_format((int) $proxyItem->line_subtotal, 0, ',', '.') }}đ</span>
@@ -486,6 +489,7 @@
                                                                 <div class="text-[10px] italic text-on-surface-variant">
                                                                     {{ __('room.orders.note') }}: {{ $proxyItem->note }}</div>
                                                             @endif
+                                                            </div>
                                                         </div>
                                                     @endforeach
                                                 </div>

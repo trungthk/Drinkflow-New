@@ -280,6 +280,7 @@ export function initAdminUsers() {
 
             const nameEl = document.querySelector('#user-detail-name');
             const emailEl = document.querySelector('#user-detail-email');
+            const codeEl = document.querySelector('#user-detail-code');
             const roleBadge = document.querySelector('#user-detail-role-badge');
             const statusBadge = document.querySelector('#user-detail-status-badge');
             const avatarImg = document.querySelector('#user-detail-avatar-img');
@@ -287,6 +288,7 @@ export function initAdminUsers() {
 
             if (nameEl) nameEl.textContent = name;
             if (emailEl) emailEl.textContent = email;
+            if (codeEl) codeEl.textContent = user.user_code || '—';
 
             if (roleBadge) {
                 roleBadge.textContent = roleMap[role] || role;

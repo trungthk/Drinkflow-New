@@ -33,9 +33,11 @@ use App\Models\CampaignItemSize;
 use App\Models\CampaignItemTopping;
 use App\Models\Room;
 use App\Services\Audit\AuditService;
+use App\Services\Order\PublicOrderCheckService;
 use App\Services\Media\ImageUploadService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Validation\Rule;
@@ -105,6 +107,7 @@ class CampaignController extends Controller
         return view('admin.campaigns', [
             'room' => $room,
             'campaigns' => $campaigns,
+            'hasLiveCampaign' => $room->hasActiveCampaign(),
             'statusFilters' => collect(CampaignStatus::cases())
                 ->filter(static fn(CampaignStatus $status): bool => in_array($status, [
                     CampaignStatus::Active,
@@ -211,7 +214,7 @@ class CampaignController extends Controller
      * @param \App\Services\Admin\AdminCampaignDetailService $detailService Campaign detail service.
      * @return JsonResponse|View Response payload or Blade view.
      */
-    public function show(Request $request, Room $room, Campaign $campaign, \App\Services\Admin\AdminCampaignDetailService $detailService): JsonResponse|View
+    public function show(Request $request, Room $room, Campaign $campaign, \App\Services\Admin\AdminCampaignDetailService $detailService, PublicOrderCheckService $orderCheckService): JsonResponse|View
     {
         $this->assertCampaign($campaign);
 
@@ -221,6 +224,13 @@ class CampaignController extends Controller
         }
 
         $data = $detailService->getCampaignViewData($room, $campaign);
+        $data['orderCheckUrl'] = in_array($campaign->status?->value, ['closed', 'archived'], true)
+            ? URL::temporarySignedRoute(
+                'public.order-check',
+                now()->addDays(30),
+                ['campaign' => $campaign->id, 'hash' => $orderCheckService->hash($campaign)]
+            )
+            : null;
         $viewName = ($request->query('view') === 'live' || (in_array($campaign->status, ['active', 'closing', 'scheduled']) && $request->query('view') !== 'detail'))
             ? 'admin.campaign-live'
             : 'admin.campaign-detail';

@@ -9,6 +9,7 @@ use App\Actions\Campaign\RejoinCampaignAction;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
+use App\Enums\GlobalUserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCampaignCartRequest;
 use App\Models\Campaign;
@@ -24,6 +25,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 
 class CampaignController extends Controller
 {
@@ -245,7 +247,7 @@ class CampaignController extends Controller
     }
 
     /**
-     * Look up an active room member by their room user code.
+     * Look up an active room member by code, email, or phone number.
      *
      * @param Request $request Incoming request.
      * @param Room $room Current room.
@@ -253,14 +255,26 @@ class CampaignController extends Controller
      */
     public function lookupMember(Request $request, Room $room): JsonResponse
     {
-        $code = trim((string) $request->query('code', ''));
-        abort_if($code === '', 404);
-        $roomUser = RoomUser::query()
+        $search = trim((string) $request->query('q', $request->query('code', '')));
+        abort_if($search === '' || mb_strlen($search) > 255, 404);
+        $normalizedSearch = Str::lower($search);
+        $normalizedPhone = preg_replace('/[^0-9+]/', '', $search) ?: '';
+        $roomUsers = RoomUser::query()
             ->with('globalUser')
             ->where('room_id', $room->id)
             ->where('status', RoomUserStatus::Active->value)
-            ->where('user_code', $code)
-            ->firstOrFail();
+            ->whereHas('globalUser', static fn ($query) => $query->where('status', GlobalUserStatus::Active->value))
+            ->get();
+        $roomUser = $roomUsers->first(static function (RoomUser $candidate) use ($normalizedSearch, $normalizedPhone): bool {
+            $email = Str::lower((string) ($candidate->globalUser?->email ?? ''));
+            $userCode = Str::lower((string) $candidate->user_code);
+            $phone = preg_replace('/[^0-9+]/', '', (string) ($candidate->globalUser?->phone ?? '')) ?: '';
+
+            return $userCode === $normalizedSearch
+                || $email === $normalizedSearch
+                || ($normalizedPhone !== '' && $phone === $normalizedPhone);
+        });
+        abort_if($roomUser === null, 404);
 
         $settings = $room->roomSettings()->whereIn('key', ['auto_lock_on_debt_limit', 'personal_debt_ceiling'])->get()->keyBy('key');
         $autoLock = filter_var($settings->get('auto_lock_on_debt_limit')?->value ?? true, FILTER_VALIDATE_BOOLEAN);
@@ -271,6 +285,7 @@ class CampaignController extends Controller
         return response()->json([
             'display_name' => $roomUser->display_name ?: $roomUser->globalUser?->name,
             'email' => $roomUser->globalUser?->email,
+            'phone' => $roomUser->globalUser?->phone,
             'user_code' => $roomUser->user_code,
             'avatar_url' => $roomUser->globalUser?->avatar_url,
         ]);

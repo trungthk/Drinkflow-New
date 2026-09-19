@@ -1133,6 +1133,8 @@ class AdminFeatureTest extends TestCase
         $pageResponse->assertOk()
             ->assertSee('user-detail-modal')
             ->assertSee('data-open-user-detail', false)
+            ->assertSee('id="user-detail-code"', false)
+            ->assertDontSee('id="user-detail-close-btn"', false)
             ->assertSee('ttb@example.test')
             ->assertSee('Tran Thi B');
 

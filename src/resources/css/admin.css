@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -8,34 +8,34 @@
 @source '../js/**/*.js';
 
 @theme {
-    --font-sans: 'Hanken Grotesk', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
     --color-primary: #006948;
-    --color-primary-container: #00855d;
+    --color-primary-container: #005137;
     --color-primary-fixed: #85f8c4;
     --color-primary-fixed-dim: #68dba9;
     --color-on-primary: #ffffff;
-    --color-secondary: #565e74;
-    --color-secondary-container: #dae2fd;
-    --color-secondary-fixed: #dae2fd;
-    --color-on-secondary-container: #5c647a;
+    --color-secondary: #475569;
+    --color-secondary-container: #ecfdf5;
+    --color-secondary-fixed: #d1fae5;
+    --color-on-secondary-container: #065f46;
     --color-tertiary: #006947;
     --color-tertiary-container: #00855b;
     --color-tertiary-fixed: #6ffbbe;
     --color-tertiary-fixed-dim: #4edea3;
-    --color-background: #f8f9ff;
-    --color-surface: #f8f9ff;
-    --color-surface-dim: #cbdbf5;
-    --color-surface-bright: #f8f9ff;
-    --color-on-surface: #0b1c30;
-    --color-on-surface-variant: #3d4a42;
-    --color-surface-container: #e5eeff;
-    --color-surface-container-low: #eff4ff;
-    --color-surface-container-high: #dce9ff;
-    --color-surface-container-highest: #d3e4fe;
+    --color-background: #f8fafc;
+    --color-surface: #f8fafc;
+    --color-surface-dim: #e2e8f0;
+    --color-surface-bright: #ffffff;
+    --color-on-surface: #0f172a;
+    --color-on-surface-variant: #475569;
+    --color-surface-container: #f1f5f9;
+    --color-surface-container-low: #f8fafc;
+    --color-surface-container-high: #e2e8f0;
+    --color-surface-container-highest: #cbd5e1;
     --color-surface-container-lowest: #ffffff;
-    --color-outline: #6d7a72;
-    --color-outline-variant: #bccac0;
+    --color-outline: #64748b;
+    --color-outline-variant: #e2e8f0;
     --color-error: #ba1a1a;
     --color-error-container: #ffdad6;
     --color-on-error: #ffffff;
@@ -289,4 +289,75 @@ button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: poi
     display: table;
     width: 100%;
     table-layout: fixed;
+}
+
+/* Keep the room administration UI on the same visual system as the user portal. */
+.admin-shell #admin-sidebar {
+    box-shadow: 1px 0 8px rgba(15, 23, 42, 0.04);
+}
+
+.admin-shell {
+    min-height: 100vh;
+    background: #f8fafc;
+    color: #0f172a;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'tnum' 1, 'cv05' 1;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.admin-shell #admin-main-wrapper > header {
+    background-color: rgba(255, 255, 255, 0.94);
+    border-color: #e2e8f0;
+    backdrop-filter: blur(12px);
+}
+
+.admin-shell :where(input, select, textarea):focus {
+    border-color: #006948;
+    box-shadow: 0 0 0 3px rgba(0, 105, 72, 0.1);
+    outline: none;
+}
+
+.admin-shell :where(.campaign-create-button, .campaign-submit) {
+    background: #006948;
+}
+
+.admin-shell :where(.campaign-create-button, .campaign-submit):hover {
+    background: #005137;
+}
+
+.admin-shell :where(.campaign-filter, .member-filter).is-active {
+    border-color: #006948;
+    background: #006948;
+}
+
+.admin-shell :where(
+    .campaign-metric,
+    .campaign-list-card,
+    .campaign-form-section,
+    .campaign-rules,
+    .member-metric,
+    .member-list-card
+) {
+    border-color: #e2e8f0;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.admin-shell :where(.campaign-metric-icon.is-sky, .member-metric-icon.is-sky) {
+    background: #ecfdf5;
+    color: #006948;
+}
+
+.admin-shell :where(.campaign-avatar, .member-avatar, .member-code, .campaign-status.is-draft, .member-status.is-pending) {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.admin-shell :where(.campaign-launch-option, .campaign-filter:hover, .campaign-secondary:hover, .member-filter:hover) {
+    background: #f8fafc;
+}
+
+.admin-shell :where(.campaign-table th, .member-table th) {
+    background: #f8fafc;
 }

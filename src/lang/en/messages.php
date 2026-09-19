@@ -26,6 +26,7 @@ return [
     'campaign_order' => 'Order: :url',
     'campaign_order_now' => 'Click here to place your order now',
     'campaign_closed_body' => 'Campaign has closed for ordering. Admin is aggregating orders to proceed.',
+    'campaign_order_check' => 'Check your order: :url',
     'campaign_cancelled_body' => 'Campaign has been cancelled. See you in the next drink campaign!',
     'test_ping_title' => 'Notification Channel Connection Test',
     'test_ping_body' => 'The notification channel is successfully connected and ready to receive automated updates from DrinkFlow.',

@@ -27,6 +27,7 @@ class AdminCampaignDetailService
             'items.toppings',
             'paymentAccount',
             'orders.roomUser.globalUser',
+            'orders.parent.roomUser.globalUser',
             'orders.items.toppings',
             'debts.roomUser.globalUser',
         ]);

@@ -20,26 +20,6 @@ use Illuminate\Validation\ValidationException;
 class AdminAuthService
 {
     /**
-     * Generate a new captcha question and store its answer in the session.
-     *
-     * @param Request $request Incoming HTTP request.
-     * @return string Generated captcha question string.
-     */
-    public function generateCaptcha(Request $request): string
-    {
-        $a = random_int(1, 9);
-        $b = random_int(1, 9);
-        $question = "{$a} + {$b} = ?";
-
-        $request->session()->put([
-            'admin_captcha_question' => $question,
-            'admin_captcha_answer' => (string) ($a + $b),
-        ]);
-
-        return $question;
-    }
-
-    /**
      * Authenticate an admin account with credentials and captcha validation.
      *
      * @param AdminLoginRequest $request Validated login request.

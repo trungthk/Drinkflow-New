@@ -4,12 +4,14 @@
         <div>
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.campaigns_management_title') }}</h1>
         </div>
-        <div class="flex items-center gap-2.5">
-            <a href="{{ route('admin.campaigns.create', $room) }}" class="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded text-xs font-bold flex items-center gap-2 shadow-sm transition-all no-underline">
-                <span class="material-symbols-outlined text-[18px]">add_circle</span>
-                <span>{{ __('admin.fast_create_campaign') }}</span>
-            </a>
-        </div>
+        @if (!($hasLiveCampaign ?? false))
+            <div class="flex items-center gap-2.5">
+                <a href="{{ route('admin.campaigns.create', $room) }}" class="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded text-xs font-bold flex items-center gap-2 shadow-sm transition-all no-underline">
+                    <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                    <span>{{ __('admin.fast_create_campaign') }}</span>
+                </a>
+            </div>
+        @endif
     </div>
 
     <!-- Notice Notification Banner -->
@@ -84,7 +86,9 @@
                         @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors">
                             <td class="py-3.5 px-4">
-                                <div class="font-bold text-on-surface text-sm">{{ $camp->name }}</div>
+                                <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}?view=detail" class="font-bold text-on-surface text-sm hover:text-primary hover:underline transition-colors no-underline">
+                                    {{ $camp->name }}
+                                </a>
                                 <div class="text-secondary flex items-center gap-1.5 mt-0.5">
                                     <span class="material-symbols-outlined text-[14px]">storefront</span>
                                     <span>{{ $camp->restaurant }}</span>

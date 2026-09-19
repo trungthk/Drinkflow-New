@@ -36,4 +36,5 @@ return [
     'campaign_updated_body' => 'キャンペーンのメニュー情報または注文締切日時が更新されました。',
     'campaign_delivering_title' => '商品が届きました！ 🧋',
     'campaign_delivering_body' => ':restaurant（#:code）の注文が部屋に届きました。商品をお受け取りください！',
+    'campaign_order_check' => '注文を確認: :url',
 ];

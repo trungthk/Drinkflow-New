@@ -21,6 +21,7 @@
     showConfirmModal: false,
     showDeclineModal: false,
     showRejoinModal: false,
+    showFavoriteModal: false,
     showBudgetErrors: false,
     participationSubmitting: false,
     cartItems: {{ Js::from($cart ?? []) }},
@@ -213,7 +214,7 @@
       if (!code) return;
       this.proxyUserLookupLoading = true;
       try {
-        const url = '{{ route('user.room-members.lookup', $room) }}' + '?code=' + encodeURIComponent(code);
+        const url = '{{ route('user.room-members.lookup', $room) }}' + '?q=' + encodeURIComponent(code);
         const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
         const payload = await response.json();
         if (!response.ok) throw new Error('{{ __('room.campaign.proxy_user_not_found', ['code' => '']) }}' + code);
@@ -519,6 +520,11 @@
           </div>
 
           <!-- Search Bar with Clear Button -->
+          <div class="flex w-full sm:w-auto items-center gap-2">
+          <button type="button" @click="showFavoriteModal = true" class="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100">
+            <span class="material-symbols-outlined text-[17px]">favorite</span>
+            <span>{{ __('room.campaign.favorite_items_button') }}</span>
+          </button>
           <div class="relative w-full sm:w-72">
             <span class="absolute left-0 top-0 bottom-0 flex w-10 items-center justify-center text-slate-400 pointer-events-none">
               <span class="material-symbols-outlined text-[18px]">search</span>
@@ -527,6 +533,7 @@
             <button x-show="searchInput.length > 0" x-cloak type="button" @click="searchInput = ''; searchQuery = ''" class="absolute right-0 top-0 bottom-0 flex w-9 items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer">
               <span class="material-symbols-outlined text-[16px]">close</span>
             </button>
+          </div>
           </div>
         </div>
         <!-- Menu Items Grid -->
@@ -582,6 +589,32 @@
           <p class="mt-1 text-xs text-slate-400">{{ __('room.campaign.search_empty_desc') }}</p>
         </div>
       </section>
+
+      <template x-teleport="body">
+        <div x-show="showFavoriteModal" x-cloak class="fixed inset-0 z-[115] flex min-h-[100dvh] items-center justify-center bg-slate-900/60 p-4 backdrop-blur-md" @click.self="showFavoriteModal = false">
+          <div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl" @click.stop>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[20px] text-amber-600">favorite</span>
+                <h3 class="text-base font-bold text-slate-900">{{ __('room.campaign.favorite_items_title') }}</h3>
+              </div>
+              <button type="button" @click="showFavoriteModal = false" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <div class="mt-4 space-y-2">
+              @forelse($favoriteItems as $favoriteItem)
+                <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
+                  <span class="truncate text-sm font-semibold text-slate-800">{{ $favoriteItem->item_name }}</span>
+                  <span class="shrink-0 text-sm font-bold text-[#006948]">({{ (int) $favoriteItem->quantity }})</span>
+                </div>
+              @empty
+                <p class="py-5 text-center text-xs text-slate-500">{{ __('room.campaign.favorite_items_empty') }}</p>
+              @endforelse
+            </div>
+          </div>
+        </div>
+      </template>
 
       @if($canOrderCampaign && !$activeUserOrder)
       <!-- 3. Modal Tùy chỉnh món (Item Customization Modal) -->
@@ -828,7 +861,7 @@
             <div class="mt-4 space-y-3">
               <label class="block text-xs font-bold text-slate-700">{{ __('room.campaign.proxy_code_label') }}</label>
               <div class="flex gap-2">
-                <input x-model="proxyUserCode" @input="proxyUserLookupResult = null; proxyUserLookupError = null" type="text" maxlength="50" class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-[#006948] focus:bg-white" placeholder="{{ __('room.campaign.proxy_code_placeholder') }}">
+                <input x-model="proxyUserCode" @input="proxyUserLookupResult = null; proxyUserLookupError = null" type="text" maxlength="255" class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-[#006948] focus:bg-white" placeholder="{{ __('room.campaign.proxy_code_placeholder') }}">
                 <button type="button" @click="lookupProxyUser()" :disabled="proxyUserLookupLoading || !proxyUserCode.trim()" class="rounded-xl bg-[#006948] px-3 text-xs font-bold text-white disabled:opacity-50">
                   <span x-show="!proxyUserLookupLoading">{{ __('room.campaign.proxy_lookup') }}</span>
                   <span x-show="proxyUserLookupLoading" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
@@ -840,6 +873,7 @@
                 <div class="min-w-0">
                   <p class="font-bold" x-text="proxyUserLookupResult?.display_name || proxyUserLookupResult?.user_code"></p>
                   <p class="mt-0.5 truncate text-[11px] text-emerald-700" x-show="proxyUserLookupResult?.email" x-text="proxyUserLookupResult?.email"></p>
+                  <p class="mt-0.5 truncate text-[11px] text-emerald-700" x-show="proxyUserLookupResult?.phone && !proxyUserLookupResult?.email" x-text="proxyUserLookupResult?.phone"></p>
                 </div>
               </div>
             </div>
