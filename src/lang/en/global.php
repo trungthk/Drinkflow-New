@@ -44,6 +44,7 @@ return [
     'auth' => [
         'google_cancelled' => 'You cancelled the Google login process.',
         'google_session_expired' => 'Google session has expired or is invalid. Please try again.',
+        'google_not_configured' => 'Google sign-in is not configured yet. Please contact the administrator.',
         'google_token_failed' => 'Could not authenticate authorization code with Google. Please try again.',
         'google_profile_failed' => 'Could not retrieve user profile from Google.',
         'google_unsupported_account' => 'This account is not supported for login.',

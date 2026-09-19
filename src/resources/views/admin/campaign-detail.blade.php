@@ -2,26 +2,19 @@
     $campaignStatusValue =
         $campaign->status instanceof \BackedEnum ? $campaign->status->value : (string) $campaign->status;
     $isDraft = $campaignStatusValue === 'draft';
-    $isCampaignClosed = in_array($campaignStatusValue, ['closed', 'archived', 'cancelled'], true);
+    $isCampaignClosed = $campaignStatusValue === 'closed';
+    $isCampaignLive = $campaignStatusValue === 'active';
 @endphp
 
 <x-admin.layout :title="__('admin.brand_title') . ' · ' . $campaign->name" active="campaigns" :room="$room">
-    <div x-data="{
-        actionOpen: false,
-        adjustFeeModalOpen: false,
-        confirmCancelModalOpen: false,
-        closeConfirmModalOpen: false,
-        confirmDeliveryModalOpen: false,
-        allowDebt: true,
-        isSubmitting: false,
-        isClosing: false,
-        isDeliveringLoading: false,
-        isReloading: false,
-        grossSubtotal: {{ (int) ($grossSubtotal ?? 0) }},
-        deliveryFee: {{ (int) ($campaign->delivery_fee ?? 0) }},
-        discount: {{ (int) ($campaign->discount ?? 0) }},
-        orderStatus: {{ Js::from($orders->mapWithKeys(fn($order) => [(string) $order->id => $order->status->value])) }},
-        ordersData: {{ Js::from(
+    <div id="campaign-app" class="space-y-6">
+        <script>
+        window.__campaignOrderCheckUrl = {{ Js::from($orderCheckUrl) }};
+        window.__campaignGrossSubtotal = {{ (int) ($grossSubtotal ?? 0) }};
+        window.__campaignDeliveryFee = {{ (int) ($campaign->delivery_fee ?? 0) }};
+        window.__campaignDiscount = {{ (int) ($campaign->discount ?? 0) }};
+        window.__campaignOrderStatus = {{ Js::from($orders->mapWithKeys(fn($order) => [(string) $order->id => $order->status->value])) }};
+        window.__campaignOrdersData = {{ Js::from(
             $orders->map(
                 fn($o) => [
                     'id' => $o->id,
@@ -58,15 +51,9 @@
                     ),
                 ],
             ),
-        ) }},
-        selectedOrder: null,
-        orderDetailModalOpen: false,
-        openOrderDetail(orderId) {
-            this.selectedOrder = this.ordersData.find(o => o.id === orderId) || null;
-            this.orderDetailModalOpen = true;
-        },
-        debtsStatus: {{ Js::from($campaign->debts->mapWithKeys(fn($debt) => [(string) $debt->id => $debt->status instanceof \BackedEnum ? $debt->status->value : (string) $debt->status])) }},
-        debtsData: {{ Js::from(
+        ) }};
+        window.__campaignDebtsStatus = {{ Js::from($campaign->debts->mapWithKeys(fn($debt) => [(string) $debt->id => $debt->status instanceof \BackedEnum ? $debt->status->value : (string) $debt->status])) }};
+        window.__campaignDebtsData = {{ Js::from(
             $campaign->debts->map(
                 fn($d) => [
                     'id' => $d->id,
@@ -85,181 +72,599 @@
                     'updated_at' => $d->updated_at?->format('d/m/Y H:i') ?? '',
                 ],
             ),
-        ) }},
-        selectedDebt: null,
-        debtDetailModalOpen: false,
-        openDebtDetail(debtId) {
-            this.selectedDebt = this.debtsData.find(d => d.id === debtId) || null;
-            this.debtDetailModalOpen = true;
-        },
-        isUpdatingDebt: {},
-        async updateDebtStatus(debtId, newStatus) {
-            this.isUpdatingDebt[debtId] = true;
-            try {
-                const url = '{{ route('admin.debts.status', [$room, ':debtId']) }}'.replace(':debtId', debtId);
-                await dfApi(url, {
-                    method: 'PATCH',
-                    body: { status: newStatus }
-                });
-                this.debtsStatus[debtId] = newStatus;
-                const targetDebt = this.debtsData.find(d => d.id === debtId);
-                if (targetDebt) {
-                    targetDebt.status = newStatus;
-                    if (newStatus === 'paid') {
-                        targetDebt.paid_amount += targetDebt.remaining_amount;
-                        targetDebt.remaining_amount = 0;
-                    } else if (newStatus === 'waived') {
-                        targetDebt.remaining_amount = 0;
+        ) }};
+        window.__campaignRestaurant = {{ Js::from($campaign->restaurant) }};
+        window.__campaignAggregatedItems = {{ Js::from($aggregatedItems) }};
+        window.__campaignCode = {{ Js::from($campaign->code) }};
+
+        (function () {
+            const orderCheckUrl = window.__campaignOrderCheckUrl;
+            const grossSubtotal = window.__campaignGrossSubtotal;
+            let deliveryFee = window.__campaignDeliveryFee;
+            let discount = window.__campaignDiscount;
+            const orderStatus = window.__campaignOrderStatus;
+            const ordersData = window.__campaignOrdersData;
+            const debtsStatus = window.__campaignDebtsStatus;
+            const debtsData = window.__campaignDebtsData;
+            const downloadStates = {};
+            const isUpdatingDebt = {};
+            const isUpdatingOrder = {};
+            let selectedOrder = null;
+            let selectedDebt = null;
+
+            function formatCurrency(val) {
+                const num = Number(val) || 0;
+                return new Intl.NumberFormat('vi-VN').format(num) + ' ₫';
+            }
+            function formatInput(val) {
+                if (val === null || val === undefined || val === '') return '';
+                const num = Number(val);
+                if (isNaN(num)) return '';
+                return new Intl.NumberFormat('vi-VN').format(num);
+            }
+            function parseInput(val) {
+                const raw = String(val).replace(/[^\d]/g, '');
+                return raw ? parseInt(raw, 10) : 0;
+            }
+            function filterNumberInput(e) {
+                if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'].includes(e.key)) {
+                    return;
+                }
+                if (e.ctrlKey || e.metaKey) {
+                    return;
+                }
+                if (!/^[0-9.,]$/.test(e.key)) {
+                    e.preventDefault();
+                }
+            }
+            window.filterNumberInput = filterNumberInput;
+
+            // ----- Generic modal open/close helpers -----
+            function openModal(id) {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'flex';
+            }
+            function closeModal(id) {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            }
+            window.openModal = openModal;
+            window.closeModal = closeModal;
+            window.closeModalOnBackdrop = function (event, id, canClose) {
+                if (event.target !== event.currentTarget) return;
+                if (typeof canClose === 'function' && !canClose()) return;
+                closeModal(id);
+            };
+
+            // ----- Action menu dropdown -----
+            window.toggleActionMenu = function () {
+                const menu = document.getElementById('action-menu-dropdown');
+                const chevron = document.getElementById('action-menu-chevron');
+                if (!menu) return;
+                const isOpen = menu.style.display === 'block';
+                menu.style.display = isOpen ? 'none' : 'block';
+                if (chevron) chevron.classList.toggle('rotate-180', !isOpen);
+            };
+            window.closeActionMenu = function () {
+                const menu = document.getElementById('action-menu-dropdown');
+                const chevron = document.getElementById('action-menu-chevron');
+                if (menu) menu.style.display = 'none';
+                if (chevron) chevron.classList.remove('rotate-180');
+            };
+            document.addEventListener('click', function (e) {
+                const wrapper = document.getElementById('action-menu-wrapper');
+                if (wrapper && !wrapper.contains(e.target)) window.closeActionMenu();
+            });
+
+            // ----- Download export buttons -----
+            window.downloadExport = async function (event, dataset) {
+                event.preventDefault();
+                const button = event.currentTarget;
+                if (downloadStates[dataset]) return;
+
+                const icon = button.querySelector('[data-download-icon]');
+                const label = button.querySelector('[data-download-label]');
+                const originalIcon = icon?.textContent ?? 'download';
+                const originalLabel = label?.textContent ?? '';
+                downloadStates[dataset] = true;
+                if (icon) {
+                    icon.textContent = 'progress_activity';
+                    icon.classList.add('animate-spin');
+                }
+                if (label) label.textContent = '{{ __('admin.processing') }}...';
+                button.classList.add('opacity-60', 'pointer-events-none');
+                button.setAttribute('aria-busy', 'true');
+
+                try {
+                    const response = await fetch(button.href, {
+                        headers: { 'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }
+                    });
+                    if (!response.ok) throw new Error('{{ __('admin.download_failed') }}');
+
+                    const blob = await response.blob();
+                    const contentDisposition = response.headers.get('Content-Disposition') || '';
+                    const filenameMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)|filename=([^;]+)/i);
+                    const filenameValue = filenameMatch?.[1] || filenameMatch?.[2] || '';
+                    const filename = filenameValue ?
+                        decodeURIComponent(filenameValue).replaceAll(String.fromCharCode(34), '') :
+                        `campaign-${dataset}.xlsx`;
+                    const objectUrl = URL.createObjectURL(blob);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = objectUrl;
+                    downloadLink.download = filename;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    downloadLink.remove();
+                    URL.revokeObjectURL(objectUrl);
+                } catch (error) {
+                    alert(error.message || '{{ __('admin.download_failed') }}');
+                } finally {
+                    downloadStates[dataset] = false;
+                    if (icon) {
+                        icon.textContent = originalIcon;
+                        icon.classList.remove('animate-spin');
+                    }
+                    if (label) label.textContent = originalLabel;
+                    button.classList.remove('opacity-60', 'pointer-events-none');
+                    button.removeAttribute('aria-busy');
+                }
+            };
+
+            // ----- Order detail modal -----
+            function escapeHtml(str) {
+                if (str === null || str === undefined) return '';
+                return String(str)
+                    .replaceAll('&', '&amp;')
+                    .replaceAll('<', '&lt;')
+                    .replaceAll('>', '&gt;')
+                    .replaceAll('"', '&quot;')
+                    .replaceAll("'", '&#39;');
+            }
+
+            function renderOrderDetail(order) {
+                const setText = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = val ?? '';
+                };
+                const setShow = (id, show) => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = show ? '' : 'none';
+                };
+                setText('order-detail-code', order.code);
+                setShow('order-detail-created-at-wrap', !!order.created_at);
+                setText('order-detail-created-at', order.created_at);
+                setText('order-detail-user-name', order.user_name);
+                setShow('order-detail-user-code-wrap', !!order.user_code);
+                setText('order-detail-user-code', order.user_code ? ('#' + order.user_code) : '');
+                setShow('order-detail-email-wrap', !!order.email);
+                setText('order-detail-email', order.email);
+                setShow('order-detail-desk-wrap', !!order.desk_location);
+                setText('order-detail-desk', order.desk_location);
+                setShow('order-detail-note-wrap', !!order.note);
+                setText('order-detail-note', order.note);
+                setText('order-detail-subtotal', formatCurrency(order.subtotal));
+                setShow('order-detail-sponsor-wrap', order.sponsor_amount > 0);
+                setText('order-detail-sponsor', '-' + formatCurrency(order.sponsor_amount));
+                setText('order-detail-final', formatCurrency(order.final_amount));
+
+                const itemsContainer = document.getElementById('order-detail-items');
+                if (itemsContainer) {
+                    itemsContainer.innerHTML = (order.items || []).map(item => {
+                        const toppingsHtml = (item.toppings && item.toppings.length) ? `
+                            <div class="flex flex-wrap gap-1 pt-1">
+                                ${item.toppings.map(top => `
+                                    <span class="inline-block px-1.5 py-0.5 rounded bg-surface-container text-[10px] text-outline border border-outline-variant/50">
+                                        + ${escapeHtml(top.name)}${top.price > 0 ? ' (' + formatCurrency(top.price) + ')' : ''}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        ` : '';
+                        const noteHtml = item.note ? `
+                            <div class="text-[11px] text-amber-800 bg-amber-50/80 px-2 py-0.5 rounded border border-amber-200/60 mt-1 italic">
+                                📝 ${escapeHtml(item.note)}
+                            </div>
+                        ` : '';
+                        return `
+                            <div class="p-3 flex items-start justify-between gap-3">
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-semibold text-on-surface text-sm">
+                                        ${escapeHtml(item.name)}${item.size ? ' <span class="text-outline font-normal">(' + escapeHtml(item.size) + ')</span>' : ''}
+                                    </div>
+                                    ${toppingsHtml}
+                                    ${noteHtml}
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <div class="font-bold text-on-surface font-mono">${formatCurrency(item.line_subtotal || item.total_amount)}</div>
+                                    <div class="text-[11px] text-outline font-mono">${item.quantity} x ${formatCurrency(item.unit_price)}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            window.openOrderDetail = function (orderId) {
+                selectedOrder = ordersData.find(o => o.id === orderId) || null;
+                if (!selectedOrder) return;
+                renderOrderDetail(selectedOrder);
+                openModal('modal-order-detail');
+            };
+            window.closeOrderDetail = function () {
+                closeModal('modal-order-detail');
+            };
+
+            window.copyOrderCode = async function (code, event) {
+                const button = event.currentTarget;
+                const icon = button.querySelector('.material-symbols-outlined');
+                try {
+                    await navigator.clipboard.writeText(code);
+                    if (icon) icon.textContent = 'check';
+                    button.classList.add('text-primary');
+                    window.setTimeout(() => {
+                        if (icon) icon.textContent = 'content_copy';
+                        button.classList.remove('text-primary');
+                    }, 2000);
+                } catch (error) {
+                    if (window.notify) window.notify('{{ addslashes(__('admin.copy_failed')) }}', 'error');
+                }
+            };
+
+            // ----- Debt detail modal -----
+            const debtStatusClassMap = {
+                paid: 'bg-emerald-100 text-emerald-700 border-emerald-300',
+                waived: 'bg-blue-100 text-blue-700 border-blue-300',
+                pending: 'bg-amber-100 text-amber-700 border-amber-300',
+            };
+
+            function renderDebtDetail(debt) {
+                const setText = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (el) el.textContent = val ?? '';
+                };
+                const setShow = (id, show) => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = show ? '' : 'none';
+                };
+                setText('debt-detail-code', debt.code);
+                setText('debt-detail-user-name', debt.user_name);
+                setShow('debt-detail-user-code-wrap', !!debt.user_code);
+                setText('debt-detail-user-code', debt.user_code ? ('#' + debt.user_code) : '');
+                setShow('debt-detail-email-wrap', !!debt.email);
+                setText('debt-detail-email', debt.email);
+                setShow('debt-detail-desk-wrap', !!debt.desk_location);
+                setText('debt-detail-desk', debt.desk_location);
+                setShow('debt-detail-note-wrap', !!debt.note);
+                setText('debt-detail-note', debt.note);
+                setText('debt-detail-original', formatCurrency(debt.original_amount));
+                setShow('debt-detail-sponsor-wrap', debt.sponsor_amount > 0);
+                setText('debt-detail-sponsor', '-' + formatCurrency(debt.sponsor_amount));
+                setText('debt-detail-paid', formatCurrency(debt.paid_amount));
+                setText('debt-detail-remaining', formatCurrency(debt.remaining_amount));
+                setText('debt-detail-created-at', debt.created_at);
+                setText('debt-detail-updated-at', debt.updated_at);
+
+                const remainingCard = document.getElementById('debt-detail-remaining-card');
+                if (remainingCard) {
+                    remainingCard.classList.remove('bg-amber-50', 'border-amber-200', 'bg-emerald-50', 'border-emerald-200');
+                    if (debt.remaining_amount > 0) {
+                        remainingCard.classList.add('bg-amber-50', 'border-amber-200');
+                    } else {
+                        remainingCard.classList.add('bg-emerald-50', 'border-emerald-200');
                     }
                 }
-            } catch (err) {
-                alert(err.message || 'Lỗi khi cập nhật trạng thái nợ');
-            } finally {
-                this.isUpdatingDebt[debtId] = false;
+                const select = document.getElementById('debt-detail-status-select');
+                if (select) select.value = debt.status;
             }
-        },
-        isUpdatingOrder: {},
-        async toggleOrderConfirmation(orderId) {
-            const currentStatus = this.orderStatus[orderId];
-            const nextStatus = currentStatus === 'confirmed' ? 'submitted' : 'confirmed';
-            this.isUpdatingOrder[orderId] = true;
-            try {
-                const url = '{{ route('admin.orders.status', [$room, ':orderId']) }}'.replace(':orderId', orderId);
-                await dfApi(url, {
-                    method: 'PATCH',
-                    body: { status: nextStatus }
+
+            window.openDebtDetail = function (debtId) {
+                selectedDebt = debtsData.find(d => d.id === debtId) || null;
+                if (!selectedDebt) return;
+                renderDebtDetail(selectedDebt);
+                openModal('modal-debt-detail');
+            };
+            window.closeDebtDetail = function () {
+                closeModal('modal-debt-detail');
+            };
+
+            function applyDebtRowStatusClasses(selectEl, status) {
+                if (!selectEl) return;
+                Object.values(debtStatusClassMap).forEach(cls => {
+                    cls.split(' ').forEach(c => selectEl.classList.remove(c));
                 });
-                this.orderStatus[orderId] = nextStatus;
-                const targetOrder = this.ordersData.find(o => o.id === orderId);
-                if (targetOrder) {
-                    targetOrder.status = nextStatus;
+                const classes = debtStatusClassMap[status] || debtStatusClassMap.pending;
+                classes.split(' ').forEach(c => selectEl.classList.add(c));
+            }
+
+            async function updateDebtStatus(debtId, newStatus, selectEl) {
+                isUpdatingDebt[debtId] = true;
+                if (selectEl) selectEl.disabled = true;
+                const rowSpinner = document.getElementById('debt-row-spinner-' + debtId);
+                if (rowSpinner) rowSpinner.style.display = '';
+                try {
+                    const url = '{{ route('admin.debts.status', [$room, ':debtId']) }}'.replace(':debtId', debtId);
+                    await dfApi(url, {
+                        method: 'PATCH',
+                        body: { status: newStatus }
+                    });
+                    debtsStatus[debtId] = newStatus;
+                    const targetDebt = debtsData.find(d => d.id === debtId);
+                    if (targetDebt) {
+                        targetDebt.status = newStatus;
+                        if (newStatus === 'paid') {
+                            targetDebt.paid_amount += targetDebt.remaining_amount;
+                            targetDebt.remaining_amount = 0;
+                        } else if (newStatus === 'waived') {
+                            targetDebt.remaining_amount = 0;
+                        }
+                        if (selectedDebt && selectedDebt.id === debtId) {
+                            renderDebtDetail(targetDebt);
+                        }
+                    }
+                    if (selectEl) applyDebtRowStatusClasses(selectEl, newStatus);
+                } catch (err) {
+                    alert(err.message || 'Lỗi khi cập nhật trạng thái nợ');
+                    if (selectEl) selectEl.value = debtsStatus[debtId];
+                } finally {
+                    isUpdatingDebt[debtId] = false;
+                    if (selectEl) selectEl.disabled = false;
+                    if (rowSpinner) rowSpinner.style.display = 'none';
                 }
-                const orderCode = targetOrder?.code || '';
-                const msg = nextStatus === 'confirmed' ?
-                    '{{ addslashes(__('admin.order_confirmed_success_toast', ['code' => ':code'])) }}'.replace(':code', orderCode) :
-                    '{{ addslashes(__('admin.order_unconfirmed_success_toast', ['code' => ':code'])) }}'.replace(':code', orderCode);
-                if (window.notify) {
-                    window.notify(msg, 'success');
+            }
+            window.updateDebtStatusFromRow = function (debtId, selectEl) {
+                updateDebtStatus(debtId, selectEl.value, selectEl);
+            };
+            window.updateDebtStatusFromDetail = function (debtId, selectEl) {
+                updateDebtStatus(debtId, selectEl.value, document.getElementById('debt-row-select-' + debtId));
+            };
+
+            // ----- Order confirmation toggle -----
+            window.toggleOrderConfirmation = async function (orderId) {
+                const currentStatus = orderStatus[orderId];
+                const nextStatus = currentStatus === 'confirmed' ? 'submitted' : 'confirmed';
+                isUpdatingOrder[orderId] = true;
+                const spinner = document.getElementById('order-switch-spinner-' + orderId);
+                const switchLabel = document.getElementById('order-switch-label-' + orderId);
+                if (spinner) spinner.style.display = '';
+                if (switchLabel) switchLabel.style.display = 'none';
+                try {
+                    const url = '{{ route('admin.orders.status', [$room, ':orderId']) }}'.replace(':orderId', orderId);
+                    await dfApi(url, {
+                        method: 'PATCH',
+                        body: { status: nextStatus }
+                    });
+                    orderStatus[orderId] = nextStatus;
+                    const targetOrder = ordersData.find(o => o.id === orderId);
+                    if (targetOrder) {
+                        targetOrder.status = nextStatus;
+                    }
+                    const orderCode = targetOrder?.code || '';
+                    const msg = nextStatus === 'confirmed' ?
+                        '{{ addslashes(__('admin.order_confirmed_success_toast', ['code' => ':code'])) }}'.replace(':code', orderCode) :
+                        '{{ addslashes(__('admin.order_unconfirmed_success_toast', ['code' => ':code'])) }}'.replace(':code', orderCode);
+                    if (window.notify) {
+                        window.notify(msg, 'success');
+                    }
+                    const checkbox = document.getElementById('order-switch-checkbox-' + orderId);
+                    if (checkbox) checkbox.checked = nextStatus === 'confirmed';
+                } catch (err) {
+                    if (window.notify) {
+                        window.notify(err.message || '{{ addslashes(__('admin.order_status_update_failed')) }}', 'error');
+                    } else {
+                        alert(err.message || 'Lỗi khi cập nhật trạng thái đơn');
+                    }
+                    const checkbox = document.getElementById('order-switch-checkbox-' + orderId);
+                    if (checkbox) checkbox.checked = currentStatus === 'confirmed';
+                } finally {
+                    isUpdatingOrder[orderId] = false;
+                    if (spinner) spinner.style.display = 'none';
+                    if (switchLabel) switchLabel.style.display = '';
                 }
-            } catch (err) {
-                if (window.notify) {
-                    window.notify(err.message || '{{ addslashes(__('admin.order_status_update_failed')) }}', 'error');
-                } else {
-                    alert(err.message || 'Lỗi khi cập nhật trạng thái đơn');
+            };
+
+            // ----- Adjust delivery fee / discount modal -----
+            function setLoadingButton(idPrefix, loading) {
+                const btn = document.getElementById(idPrefix + '-btn');
+                const normal = document.getElementById(idPrefix + '-normal');
+                const loadingEl = document.getElementById(idPrefix + '-loading');
+                if (btn) btn.disabled = loading;
+                if (normal) normal.style.display = loading ? 'none' : '';
+                if (loadingEl) loadingEl.style.display = loading ? '' : 'none';
+            }
+
+            window.openAdjustFeeModal = function () {
+                const feeInput = document.getElementById('adjust-fee-input');
+                const discountInput = document.getElementById('adjust-discount-input');
+                if (feeInput) feeInput.value = formatInput(deliveryFee);
+                if (discountInput) discountInput.value = formatInput(discount);
+                updateDiscountHint();
+                openModal('modal-adjust-fee');
+            };
+            window.closeAdjustFeeModal = function () {
+                closeModal('modal-adjust-fee');
+            };
+            window.onAdjustFeeInput = function (input) {
+                deliveryFee = parseInput(input.value);
+                updateDiscountHint();
+            };
+            window.onAdjustDiscountInput = function (input) {
+                discount = parseInput(input.value);
+                updateDiscountHint();
+            };
+            function updateDiscountHint() {
+                const maxDiscount = grossSubtotal + Number(deliveryFee);
+                const hintEl = document.getElementById('adjust-discount-hint');
+                const discountInput = document.getElementById('adjust-discount-input');
+                const overLimit = grossSubtotal > 0 && Number(discount) > maxDiscount;
+                if (hintEl) {
+                    hintEl.textContent = '{{ __('admin.max_discount_hint') }}'.replace(':amount', formatCurrency(maxDiscount)) || ('Tối đa: ' + formatCurrency(maxDiscount));
                 }
-            } finally {
-                this.isUpdatingOrder[orderId] = false;
+                if (discountInput) {
+                    discountInput.classList.toggle('border-red-500', overLimit);
+                    discountInput.classList.toggle('border-outline-variant', !overLimit);
+                }
             }
-        },
-        formatCurrency(val) {
-            const num = Number(val) || 0;
-            return new Intl.NumberFormat('vi-VN').format(num) + ' ₫';
-        },
-        formatInput(val) {
-            if (val === null || val === undefined || val === '') return '';
-            const num = Number(val);
-            if (isNaN(num)) return '';
-            return new Intl.NumberFormat('vi-VN').format(num);
-        },
-        parseInput(val) {
-            const raw = String(val).replace(/[^\d]/g, '');
-            return raw ? parseInt(raw, 10) : 0;
-        },
-        filterNumberInput(e) {
-            if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'].includes(e.key)) {
-                return;
-            }
-            if (e.ctrlKey || e.metaKey) {
-                return;
-            }
-            if (!/^[0-9.,]$/.test(e.key)) {
-                e.preventDefault();
-            }
-        },
-        async executeCloseCampaign() {
-            this.isClosing = true;
-            try {
-                await dfApi('{{ route('admin.campaigns.close', [$room, $campaign]) }}', {
-                    method: 'POST',
-                    body: { allow_debt: this.allowDebt }
-                });
+            window.saveAdjustments = async function () {
+                const maxDiscount = grossSubtotal + Number(deliveryFee);
+                if (grossSubtotal > 0 && Number(discount) > maxDiscount) {
+                    alert('{{ addslashes(__('admin.discount_cannot_exceed_subtotal_plus_fee_prompt')) }}' + formatCurrency(maxDiscount));
+                    return;
+                }
+                setLoadingButton('adjust-fee-save', true);
+                try {
+                    await dfApi('{{ route('admin.campaigns.update', [$room, $campaign]) }}', {
+                        method: 'PATCH',
+                        body: {
+                            delivery_fee: Number(deliveryFee) || 0,
+                            discount: Number(discount) || 0
+                        }
+                    });
+                    window.location.reload();
+                } catch (err) {
+                    alert(err.message || 'Lỗi khi cập nhật phụ phí và giảm giá');
+                    setLoadingButton('adjust-fee-save', false);
+                }
+            };
+
+            // ----- Cancel campaign modal -----
+            window.openConfirmCancelModal = function () {
+                openModal('modal-confirm-cancel');
+            };
+            window.closeConfirmCancelModal = function () {
+                closeModal('modal-confirm-cancel');
+            };
+            window.cancelCampaign = async function () {
+                setLoadingButton('confirm-cancel-save', true);
+                try {
+                    await dfApi('{{ route('admin.campaigns.cancel', [$room, $campaign]) }}', {
+                        method: 'POST'
+                    });
+                    window.location.href = '{{ route('admin.manage.page', [$room, 'tab' => 'campaigns']) }}';
+                } catch (err) {
+                    alert(err.message || 'Lỗi khi hủy chiến dịch');
+                    setLoadingButton('confirm-cancel-save', false);
+                }
+            };
+
+            // ----- Close campaign modal -----
+            window.openCloseConfirmModal = function () {
+                openModal('modal-close-confirm');
+            };
+            window.closeCloseConfirmModal = function () {
+                const btn = document.getElementById('close-confirm-save-btn');
+                if (btn && btn.disabled) return;
+                closeModal('modal-close-confirm');
+            };
+            window.executeCloseCampaign = async function () {
+                setLoadingButton('close-confirm-save', true);
+                const allowDebtCheckbox = document.getElementById('allow-debt-checkbox');
+                try {
+                    await dfApi('{{ route('admin.campaigns.close', [$room, $campaign]) }}', {
+                        method: 'POST',
+                        body: { allow_debt: allowDebtCheckbox ? allowDebtCheckbox.checked : true }
+                    });
+                    window.location.reload();
+                } catch (err) {
+                    alert(err.message || 'Lỗi khi đóng chiến dịch');
+                    setLoadingButton('close-confirm-save', false);
+                }
+            };
+
+            // ----- Confirm delivery modal -----
+            window.openConfirmDeliveryModal = function () {
+                openModal('modal-confirm-delivery');
+            };
+            window.closeConfirmDeliveryModal = function () {
+                closeModal('modal-confirm-delivery');
+            };
+            window.executeMarkDelivering = async function () {
+                setLoadingButton('confirm-delivery-save', true);
+                try {
+                    await dfApi('{{ route('admin.campaigns.mark-delivering', [$room, $campaign]) }}', {
+                        method: 'POST'
+                    });
+                    window.location.reload();
+                } catch (err) {
+                    alert(err.message || 'Lỗi khi cập nhật trạng thái giao hàng');
+                    setLoadingButton('confirm-delivery-save', false);
+                }
+            };
+
+            // ----- Misc actions tied to root scope -----
+            window.reloadData = function (event) {
+                const btn = event ? event.currentTarget : document.getElementById('reload-data-btn');
+                if (btn) btn.disabled = true;
                 window.location.reload();
-            } catch (err) {
-                alert(err.message || 'Lỗi khi đóng chiến dịch');
-                this.isClosing = false;
-            }
-        },
-        async cancelCampaign() {
-            this.isSubmitting = true;
-            try {
-                await dfApi('{{ route('admin.campaigns.cancel', [$room, $campaign]) }}', {
-                    method: 'POST'
-                });
-                window.location.href = '{{ route('admin.manage.page', [$room, 'tab' => 'campaigns']) }}';
-            } catch (err) {
-                alert(err.message || 'Lỗi khi hủy chiến dịch');
-                this.isSubmitting = false;
-            }
-        },
-        async saveAdjustments() {
-            const maxDiscount = this.grossSubtotal + Number(this.deliveryFee);
-            if (this.grossSubtotal > 0 && Number(this.discount) > maxDiscount) {
-                alert('{{ addslashes(__('admin.discount_cannot_exceed_subtotal_plus_fee_prompt')) }}' + this.formatCurrency(maxDiscount));
-                return;
-            }
-            this.isSubmitting = true;
-            try {
-                await dfApi('{{ route('admin.campaigns.update', [$room, $campaign]) }}', {
-                    method: 'PATCH',
-                    body: {
-                        delivery_fee: Number(this.deliveryFee) || 0,
-                        discount: Number(this.discount) || 0
+            };
+            window.copyOrderCheckLink = async function (event) {
+                if (!orderCheckUrl) {
+                    alert('{{ addslashes(__('admin.order_check_link_unavailable')) }}');
+                    return;
+                }
+                const btn = event ? event.currentTarget : null;
+                if (btn) btn.disabled = true;
+                try {
+                    await navigator.clipboard.writeText(orderCheckUrl);
+                } catch (error) {
+                    alert('{{ addslashes(__('admin.order_check_link_unavailable')) }}');
+                } finally {
+                    if (btn) btn.disabled = false;
+                }
+            };
+            window.confirmAllOrders = async function (event) {
+                const orderIds = ordersData
+                    .filter(order => order.status === 'submitted')
+                    .map(order => order.id);
+                if (!orderIds.length) {
+                    if (window.notify) window.notify('{{ addslashes(__('admin.no_orders_to_confirm')) }}', 'info');
+                    return;
+                }
+                if (!window.confirm('{{ addslashes(__('admin.confirm_all_orders_prompt')) }}')) return;
+
+                const btn = event ? event.currentTarget : null;
+                if (btn) btn.disabled = true;
+                try {
+                    await dfApi('{{ route('admin.orders.bulk-status', [$room]) }}', {
+                        method: 'POST',
+                        body: { order_ids: orderIds, status: 'confirmed' }
+                    });
+                    orderIds.forEach(orderId => {
+                        orderStatus[orderId] = 'confirmed';
+                        const order = ordersData.find(item => item.id === orderId);
+                        if (order) order.status = 'confirmed';
+                        const checkbox = document.getElementById('order-switch-checkbox-' + orderId);
+                        if (checkbox) checkbox.checked = true;
+                    });
+                    if (window.notify) window.notify('{{ addslashes(__('admin.bulk_orders_confirmed_success')) }}', 'success');
+                } catch (error) {
+                    if (window.notify) window.notify(error.message || '{{ addslashes(__('admin.order_status_update_failed')) }}', 'error');
+                    else alert(error.message || '{{ addslashes(__('admin.order_status_update_failed')) }}');
+                } finally {
+                    if (btn) btn.disabled = false;
+                }
+            };
+            window.copySummary = function () {
+                const restaurant = window.__campaignRestaurant;
+                const items = window.__campaignAggregatedItems;
+                let text = `📦 ĐƠN ĐẶT HÀNG: ${restaurant}\n`;
+                text += `Mã chiến dịch: #${window.__campaignCode}\n`;
+                text += `--------------------------------\n`;
+                items.forEach((item, idx) => {
+                    text += `${idx + 1}. ${item.name}${item.size ? ' (' + item.size + ')' : ''} x ${item.quantity} phần (${new Intl.NumberFormat('vi-VN').format(item.unit_price)}đ)\n`;
+                    if (item.notes && item.notes.length) {
+                        text += `   📝 Ghi chú: ${item.notes.join(', ')}\n`;
                     }
                 });
-                window.location.reload();
-            } catch (err) {
-                alert(err.message || 'Lỗi khi cập nhật phụ phí và giảm giá');
-                this.isSubmitting = false;
-            }
-        },
-        reloadData() {
-            this.isReloading = true;
-            window.location.reload();
-        },
-        async executeMarkDelivering() {
-            this.isDeliveringLoading = true;
-            try {
-                await dfApi('{{ route('admin.campaigns.mark-delivering', [$room, $campaign]) }}', {
-                    method: 'POST'
+                text += `--------------------------------\n`;
+                text += `Tổng số lượng: ${items.reduce((acc, it) => acc + it.quantity, 0)} phần\n`;
+                text += `Tổng tiền hàng: ${new Intl.NumberFormat('vi-VN').format(grossSubtotal)}đ\n`;
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('{{ addslashes(__('admin.copied_to_clipboard')) }}');
+                }).catch(() => {
+                    alert('Không thể sao chép tự động vào clipboard');
                 });
-                window.location.reload();
-            } catch (err) {
-                alert(err.message || 'Lỗi khi cập nhật trạng thái giao hàng');
-                this.isDeliveringLoading = false;
-            }
-        },
-        copySummary() {
-            const restaurant = {{ Js::from($campaign->restaurant) }};
-            const items = {{ Js::from($aggregatedItems) }};
-            let text = `📦 ĐƠN ĐẶT HÀNG: ${restaurant}\n`;
-            text += `Mã chiến dịch: #{{ $campaign->code }}\n`;
-            text += `--------------------------------\n`;
-            items.forEach((item, idx) => {
-                text += `${idx + 1}. ${item.name}${item.size ? ' (' + item.size + ')' : ''} x ${item.quantity} phần (${new Intl.NumberFormat('vi-VN').format(item.unit_price)}đ)\n`;
-                if (item.notes && item.notes.length) {
-                    text += `   📝 Ghi chú: ${item.notes.join(', ')}\n`;
-                }
-            });
-            text += `--------------------------------\n`;
-            text += `Tổng số lượng: ${items.reduce((acc, it) => acc + it.quantity, 0)} phần\n`;
-            text += `Tổng tiền hàng: ${new Intl.NumberFormat('vi-VN').format({{ $grossSubtotal ?? 0 }})}đ\n`;
-            navigator.clipboard.writeText(text).then(() => {
-                alert('{{ addslashes(__('admin.copied_to_clipboard')) }}');
-            }).catch(() => {
-                alert('Không thể sao chép tự động vào clipboard');
-            });
-        }
-    }" class="space-y-6">
+            };
+        })();
+        </script>
 
         <div class="flex items-center gap-2 border-b border-outline-variant/40 pb-2">
             <a href="{{ request()->fullUrlWithQuery(['tab' => 'overview']) }}"
@@ -283,73 +688,7 @@
                     ],
                 );
             @endphp
-            <section x-data="{
-                selectedCategory: 'all',
-                searchQuery: '',
-                isSaving: false,
-                confirmModalOpen: false,
-                items: {{ Js::from($itemsJson) }},
-                get filteredItems() {
-                    return this.items.filter(item => {
-                        const matchCat = this.selectedCategory === 'all' || item.category === this.selectedCategory;
-                        const matchSearch = !this.searchQuery || item.name.toLowerCase().includes(this.searchQuery.toLowerCase());
-                        return matchCat && matchSearch;
-                    });
-                },
-                get changedCount() {
-                    return this.items.filter(item => item.status !== item.initial_status).length;
-                },
-                toggleItem(id) {
-                    const item = this.items.find(it => it.id === id);
-                    if (item) {
-                        item.status = item.status === 'active' ? 'inactive' : 'active';
-                    }
-                },
-                resetChanges() {
-                    this.items.forEach(item => {
-                        item.status = item.initial_status;
-                    });
-                },
-                openConfirmModal() {
-                    if (this.changedCount === 0) {
-                        if (window.notify) window.notify('{{ addslashes(__('admin.no_changes_to_save')) }}', 'info');
-                        return;
-                    }
-                    this.confirmModalOpen = true;
-                },
-                async executeSaveBatchStatus() {
-                    const changed = this.items.filter(item => item.status !== item.initial_status);
-                    if (changed.length === 0) {
-                        this.confirmModalOpen = false;
-                        return;
-                    }
-                    this.isSaving = true;
-                    try {
-                        const endpoint = '{{ route('admin.campaign-items.batch-status', [$room, $campaign]) }}';
-                        const res = await dfApi(endpoint, {
-                            method: 'PATCH',
-                            body: {
-                                items: changed.map(it => ({ id: it.id, status: it.status }))
-                            }
-                        });
-                        this.items.forEach(item => {
-                            item.initial_status = item.status;
-                        });
-                        this.confirmModalOpen = false;
-                        if (window.notify) {
-                            window.notify(res.message || '{{ addslashes(__('admin.campaign_items_batch_updated_success', ['count' => ':count'])) }}'.replace(':count', changed.length), 'success');
-                        }
-                    } catch (err) {
-                        if (window.notify) {
-                            window.notify(err.message || '{{ addslashes(__('admin.order_status_update_failed')) }}', 'error');
-                        } else {
-                            alert(err.message || 'Lỗi khi cập nhật trạng thái món');
-                        }
-                    } finally {
-                        this.isSaving = false;
-                    }
-                }
-            }"
+            <section id="campaign-items-section"
                 class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-xs space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-outline-variant/40">
                     <div>
@@ -357,7 +696,7 @@
                             <h2 class="text-lg font-bold text-on-surface">{{ __('admin.campaign_items_tab') }}</h2>
                             <span
                                 class="px-2 py-0.5 rounded-full text-xs font-semibold bg-surface-container text-outline font-mono"
-                                x-text="items.length + ' {{ __('admin.portions') }}'"></span>
+                                id="items-count-badge">{{ $itemsJson->count() }} {{ __('admin.portions') }}</span>
                         </div>
                         <p class="text-xs text-outline mt-0.5">{{ __('admin.campaign_items_manage_description') }}</p>
                     </div>
@@ -367,7 +706,7 @@
                         <div class="flex items-center gap-1.5">
                             <label
                                 class="text-xs font-semibold text-outline">{{ __('admin.source_category') }}:</label>
-                            <select x-model="selectedCategory"
+                            <select id="category-filter-select" onchange="onCategoryFilterChange(this.value)"
                                 class="h-9 px-3 bg-surface border border-outline-variant rounded-lg text-xs font-semibold focus:border-primary outline-hidden transition-colors cursor-pointer">
                                 <option value="all">{{ __('admin.filter_all') }}</option>
                                 @foreach ($categories as $category)
@@ -377,7 +716,7 @@
                         </div>
 
                         <!-- Reset Changes Button (if any changes) -->
-                        <button type="button" x-show="changedCount > 0" @click="resetChanges()"
+                        <button type="button" id="reset-changes-btn" onclick="resetItemChanges()"
                             class="h-9 px-3 rounded-lg border border-outline-variant hover:bg-surface-container text-outline hover:text-on-surface text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
                             style="display: none;">
                             <span class="material-symbols-outlined text-[16px]">undo</span>
@@ -385,77 +724,68 @@
                         </button>
 
                         <!-- Batch Update Button -> Open Confirm Modal -->
-                        <button type="button" @click="openConfirmModal()" :disabled="changedCount === 0"
+                        <button type="button" id="items-save-btn" onclick="openItemsConfirmModal()" disabled
                             class="h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-on-primary text-xs font-semibold flex items-center gap-2 transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                             <span class="material-symbols-outlined text-[16px]">save</span>
                             <span>{{ __('admin.save_items_status_btn') }}</span>
-                            <span x-show="changedCount > 0"
+                            <span id="items-changed-badge"
                                 class="px-1.5 py-0.2 rounded-full bg-white text-primary text-[10px] font-bold"
-                                x-text="changedCount"></span>
+                                style="display: none;"></span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Items Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                    <template x-for="item in filteredItems" :key="item.id">
-                        <div class="border rounded-lg p-3 flex items-center gap-3 transition-colors"
-                            :class="item.status !== item.initial_status ? 'border-primary/50 bg-primary/5 shadow-2xs' :
-                                'border-outline-variant bg-surface'">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3" id="items-grid">
+                    @foreach ($itemsJson as $it)
+                        <div class="border rounded-lg p-3 flex items-center gap-3 transition-colors border-outline-variant bg-surface"
+                            id="item-card-{{ $it['id'] }}" data-item-id="{{ $it['id'] }}"
+                            data-item-category="{{ $it['category'] }}">
                             <div
                                 class="w-12 h-12 rounded bg-surface-container overflow-hidden shrink-0 relative flex items-center justify-center">
                                 <span
                                     class="material-symbols-outlined text-outline-variant text-[20px]">restaurant</span>
-                                <template x-if="item.image_url">
-                                    <img x-lazy-src="item.image_url" :alt="item.name" loading="lazy"
-                                        x-on:load="$el.hidden = false" x-on:error="$el.hidden = true"
+                                @if ($it['image_url'])
+                                    <img src="{{ $it['image_url'] }}" alt="{{ $it['name'] }}" loading="lazy"
+                                        onload="this.hidden = false" onerror="this.hidden = true"
                                         class="absolute inset-0 w-full h-full object-cover">
-                                </template>
+                                @endif
                             </div>
                             <div class="min-w-0 flex-1">
-                                <div class="font-semibold text-sm truncate text-on-surface" x-text="item.name"></div>
+                                <div class="font-semibold text-sm truncate text-on-surface">{{ $it['name'] }}</div>
                                 <div class="text-xs text-outline">
-                                    <span x-text="item.category || '{{ __('admin.filter_all') }}'"></span> ·
-                                    <span class="font-mono font-medium text-on-surface"
-                                        x-text="formatCurrency(item.base_price)"></span>
+                                    <span>{{ $it['category'] ?: __('admin.filter_all') }}</span> ·
+                                    <span class="font-mono font-medium text-on-surface">{{ number_format($it['base_price'], 0, ',', '.') }} ₫</span>
                                 </div>
-                                <div x-show="item.status !== item.initial_status"
-                                    class="text-[10px] font-semibold mt-0.5 flex items-center gap-1"
-                                    :class="item.status === 'active' ? 'text-primary' : 'text-amber-700'">
-                                    <span class="w-1.5 h-1.5 rounded-full"
-                                        :class="item.status === 'active' ? 'bg-primary' : 'bg-amber-600'"></span>
-                                    <span
-                                        x-text="item.status === 'active' ? '{{ __('admin.will_be_activated') }}' : '{{ __('admin.will_be_hidden') }}'"></span>
+                                <div id="item-changed-indicator-{{ $it['id'] }}"
+                                    class="text-[10px] font-semibold mt-0.5 flex items-center gap-1" style="display: none;">
+                                    <span class="w-1.5 h-1.5 rounded-full" id="item-changed-dot-{{ $it['id'] }}"></span>
+                                    <span id="item-changed-label-{{ $it['id'] }}"></span>
                                 </div>
                             </div>
-                            <button type="button" role="switch" :aria-checked="item.status === 'active'"
-                                @click="toggleItem(item.id)"
-                                :class="item.status === 'active' ? 'bg-primary' : 'bg-outline-variant'"
-                                class="relative inline-flex h-6 w-11 rounded-full transition-colors cursor-pointer shrink-0">
-                                <span :class="item.status === 'active' ? 'translate-x-5' : 'translate-x-0.5'"
-                                    class="inline-block h-5 w-5 mt-0.5 rounded-full bg-white shadow transition-transform"></span>
+                            <button type="button" role="switch" id="item-toggle-{{ $it['id'] }}"
+                                aria-checked="{{ $it['status'] === 'active' ? 'true' : 'false' }}"
+                                onclick="toggleItemStatus({{ $it['id'] }})"
+                                data-item-status="{{ $it['status'] }}" data-item-initial-status="{{ $it['status'] }}"
+                                class="relative inline-flex h-6 w-11 rounded-full transition-colors cursor-pointer shrink-0 {{ $it['status'] === 'active' ? 'bg-primary' : 'bg-outline-variant' }}">
+                                <span id="item-toggle-dot-{{ $it['id'] }}"
+                                    class="inline-block h-5 w-5 mt-0.5 rounded-full bg-white shadow transition-transform {{ $it['status'] === 'active' ? 'translate-x-5' : 'translate-x-0.5' }}"></span>
                             </button>
                         </div>
-                    </template>
+                    @endforeach
 
-                    <template x-if="filteredItems.length === 0">
-                        <div class="col-span-full py-12 text-center space-y-2">
-                            <span
-                                class="material-symbols-outlined text-[36px] text-outline-variant">restaurant_menu</span>
-                            <p class="text-sm text-outline">{{ __('admin.no_campaign_items') }}</p>
-                        </div>
-                    </template>
+                    <div id="items-empty-state" class="col-span-full py-12 text-center space-y-2" style="display: none;">
+                        <span
+                            class="material-symbols-outlined text-[36px] text-outline-variant">restaurant_menu</span>
+                        <p class="text-sm text-outline">{{ __('admin.no_campaign_items') }}</p>
+                    </div>
                 </div>
 
                 <!-- MODAL: CONFIRM BATCH UPDATE ITEMS STATUS -->
-                <div x-show="confirmModalOpen" x-transition:enter="transition ease-out duration-200"
-                    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                    x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
-                    x-transition:leave-end="opacity-0"
+                <div id="modal-items-confirm"
                     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
-                    style="display: none;">
-                    <div @click.outside="if (!isSaving) confirmModalOpen = false"
-                        class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
+                    style="display: none;" onclick="closeModalOnBackdrop(event, 'modal-items-confirm', () => !window.__itemsIsSaving)">
+                    <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col" onclick="event.stopPropagation()">
                         <div
                             class="p-5 border-b border-outline-variant/60 flex items-center justify-between bg-surface-container-low">
                             <div class="flex items-center gap-2.5">
@@ -471,15 +801,14 @@
                                         {{ $campaign->name }}</p>
                                 </div>
                             </div>
-                            <button type="button" @click="confirmModalOpen = false" :disabled="isSaving"
+                            <button type="button" id="items-confirm-close-btn" onclick="closeItemsConfirmModal()"
                                 class="text-outline hover:text-on-surface disabled:opacity-40 cursor-pointer">
                                 <span class="material-symbols-outlined text-[20px]">close</span>
                             </button>
                         </div>
 
                         <div class="p-5 space-y-4 text-xs">
-                            <p class="text-on-surface leading-relaxed"
-                                x-text="'{{ addslashes(__('admin.confirm_update_items_status_desc', ['count' => ':count'])) }}'.replace(':count', changedCount)">
+                            <p class="text-on-surface leading-relaxed" id="items-confirm-desc">
                             </p>
 
                             <!-- Breakdown stats -->
@@ -488,52 +817,221 @@
                                     <span
                                         class="text-[11px] text-emerald-800 font-medium block">{{ __('admin.will_be_activated') }}</span>
                                     <span class="text-lg font-bold font-mono mt-0.5 block text-emerald-700"
-                                        x-text="items.filter(i => i.status !== i.initial_status && i.status === 'active').length + ' {{ __('admin.portions') }}'">
+                                        id="items-confirm-activated-count">
                                     </span>
                                 </div>
                                 <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-950">
                                     <span
                                         class="text-[11px] text-amber-800 font-medium block">{{ __('admin.will_be_hidden') }}</span>
                                     <span class="text-lg font-bold font-mono mt-0.5 block text-amber-700"
-                                        x-text="items.filter(i => i.status !== i.initial_status && i.status === 'inactive').length + ' {{ __('admin.portions') }}'">
+                                        id="items-confirm-hidden-count">
                                     </span>
                                 </div>
                             </div>
 
                             <!-- Modal Actions -->
                             <div class="pt-3 border-t border-outline-variant/60 flex items-center justify-end gap-2">
-                                <button type="button" @click="confirmModalOpen = false" :disabled="isSaving"
+                                <button type="button" id="items-confirm-cancel-btn" onclick="closeItemsConfirmModal()"
                                     class="px-4 py-2.5 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50">
                                     {{ __('admin.cancel') }}
                                 </button>
-                                <button type="button" @click="executeSaveBatchStatus()" :disabled="isSaving"
+                                <button type="button" id="items-confirm-save-btn" onclick="executeSaveBatchStatus()"
                                     class="px-4 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-on-primary text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-xs disabled:opacity-50">
-                                    <template x-if="isSaving">
-                                        <span class="flex items-center gap-1.5">
-                                            <svg class="animate-spin h-4 w-4 text-white"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none"
-                                                viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                    stroke="currentColor" stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor"
-                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                </path>
-                                            </svg>
-                                            <span>{{ __('admin.processing') }}</span>
-                                        </span>
-                                    </template>
-                                    <template x-if="!isSaving">
-                                        <span class="flex items-center gap-1.5">
-                                            <span class="material-symbols-outlined text-[18px]">check_circle</span>
-                                            <span>{{ __('admin.confirm_update_btn') }}</span>
-                                        </span>
-                                    </template>
+                                    <span id="items-confirm-save-loading" class="flex items-center gap-1.5" style="display: none;">
+                                        <svg class="animate-spin h-4 w-4 text-white"
+                                            xmlns="http://www.w3.org/2000/svg" fill="none"
+                                            viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                            </path>
+                                        </svg>
+                                        <span>{{ __('admin.processing') }}</span>
+                                    </span>
+                                    <span id="items-confirm-save-normal" class="flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                                        <span>{{ __('admin.confirm_update_btn') }}</span>
+                                    </span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
+
+            <script>
+                (function () {
+                    'use strict';
+                    const itemsData = {{ Js::from($itemsJson) }};
+                    let selectedCategory = 'all';
+                    window.__itemsIsSaving = false;
+
+                    function changedCount() {
+                        return itemsData.filter(item => item.status !== item.initial_status).length;
+                    }
+
+                    function updateItemCardVisualState(item) {
+                        const card = document.getElementById('item-card-' + item.id);
+                        const toggle = document.getElementById('item-toggle-' + item.id);
+                        const dot = document.getElementById('item-toggle-dot-' + item.id);
+                        const indicator = document.getElementById('item-changed-indicator-' + item.id);
+                        const dotIndicator = document.getElementById('item-changed-dot-' + item.id);
+                        const label = document.getElementById('item-changed-label-' + item.id);
+                        const changed = item.status !== item.initial_status;
+
+                        if (card) {
+                            card.classList.toggle('border-primary/50', changed);
+                            card.classList.toggle('bg-primary/5', changed);
+                            card.classList.toggle('shadow-2xs', changed);
+                            card.classList.toggle('border-outline-variant', !changed);
+                            card.classList.toggle('bg-surface', !changed);
+                        }
+                        if (toggle) {
+                            toggle.setAttribute('aria-checked', item.status === 'active' ? 'true' : 'false');
+                            toggle.classList.toggle('bg-primary', item.status === 'active');
+                            toggle.classList.toggle('bg-outline-variant', item.status !== 'active');
+                        }
+                        if (dot) {
+                            dot.classList.toggle('translate-x-5', item.status === 'active');
+                            dot.classList.toggle('translate-x-0.5', item.status !== 'active');
+                        }
+                        if (indicator) {
+                            indicator.style.display = changed ? '' : 'none';
+                            if (label) label.textContent = item.status === 'active' ? '{{ addslashes(__('admin.will_be_activated')) }}' : '{{ addslashes(__('admin.will_be_hidden')) }}';
+                            if (dotIndicator) {
+                                dotIndicator.classList.toggle('bg-primary', item.status === 'active');
+                                dotIndicator.classList.toggle('bg-amber-600', item.status !== 'active');
+                            }
+                            if (label) {
+                                label.classList.toggle('text-primary', false);
+                            }
+                            if (indicator) {
+                                indicator.classList.toggle('text-primary', item.status === 'active');
+                                indicator.classList.toggle('text-amber-700', item.status !== 'active');
+                            }
+                        }
+                    }
+
+                    function refreshSaveControls() {
+                        const count = changedCount();
+                        const resetBtn = document.getElementById('reset-changes-btn');
+                        const saveBtn = document.getElementById('items-save-btn');
+                        const badge = document.getElementById('items-changed-badge');
+                        if (resetBtn) resetBtn.style.display = count > 0 ? '' : 'none';
+                        if (saveBtn) saveBtn.disabled = count === 0;
+                        if (badge) {
+                            badge.style.display = count > 0 ? '' : 'none';
+                            badge.textContent = count;
+                        }
+                    }
+
+                    function refreshItemsGrid() {
+                        let visibleCount = 0;
+                        itemsData.forEach(item => {
+                            const card = document.getElementById('item-card-' + item.id);
+                            if (!card) return;
+                            const matchCat = selectedCategory === 'all' || item.category === selectedCategory;
+                            card.style.display = matchCat ? '' : 'none';
+                            if (matchCat) visibleCount++;
+                        });
+                        const emptyState = document.getElementById('items-empty-state');
+                        if (emptyState) emptyState.style.display = visibleCount === 0 ? '' : 'none';
+                    }
+
+                    window.onCategoryFilterChange = function (value) {
+                        selectedCategory = value;
+                        refreshItemsGrid();
+                    };
+
+                    window.toggleItemStatus = function (id) {
+                        const item = itemsData.find(it => it.id === id);
+                        if (!item) return;
+                        item.status = item.status === 'active' ? 'inactive' : 'active';
+                        updateItemCardVisualState(item);
+                        refreshSaveControls();
+                    };
+
+                    window.resetItemChanges = function () {
+                        itemsData.forEach(item => {
+                            item.status = item.initial_status;
+                            updateItemCardVisualState(item);
+                        });
+                        refreshSaveControls();
+                    };
+
+                    window.openItemsConfirmModal = function () {
+                        if (changedCount() === 0) {
+                            if (window.notify) window.notify('{{ addslashes(__('admin.no_changes_to_save')) }}', 'info');
+                            return;
+                        }
+                        const desc = document.getElementById('items-confirm-desc');
+                        if (desc) {
+                            desc.textContent = '{{ addslashes(__('admin.confirm_update_items_status_desc', ['count' => ':count'])) }}'.replace(':count', changedCount());
+                        }
+                        const activatedCount = itemsData.filter(i => i.status !== i.initial_status && i.status === 'active').length;
+                        const hiddenCount = itemsData.filter(i => i.status !== i.initial_status && i.status === 'inactive').length;
+                        const activatedEl = document.getElementById('items-confirm-activated-count');
+                        const hiddenEl = document.getElementById('items-confirm-hidden-count');
+                        if (activatedEl) activatedEl.textContent = activatedCount + ' {{ __('admin.portions') }}';
+                        if (hiddenEl) hiddenEl.textContent = hiddenCount + ' {{ __('admin.portions') }}';
+                        window.openModal('modal-items-confirm');
+                    };
+
+                    window.closeItemsConfirmModal = function () {
+                        if (window.__itemsIsSaving) return;
+                        window.closeModal('modal-items-confirm');
+                    };
+
+                    function setItemsSavingState(saving) {
+                        window.__itemsIsSaving = saving;
+                        const saveBtn = document.getElementById('items-confirm-save-btn');
+                        const cancelBtn = document.getElementById('items-confirm-cancel-btn');
+                        const closeBtn = document.getElementById('items-confirm-close-btn');
+                        const loadingEl = document.getElementById('items-confirm-save-loading');
+                        const normalEl = document.getElementById('items-confirm-save-normal');
+                        if (saveBtn) saveBtn.disabled = saving;
+                        if (cancelBtn) cancelBtn.disabled = saving;
+                        if (closeBtn) closeBtn.disabled = saving;
+                        if (loadingEl) loadingEl.style.display = saving ? '' : 'none';
+                        if (normalEl) normalEl.style.display = saving ? 'none' : '';
+                    }
+
+                    window.executeSaveBatchStatus = async function () {
+                        const changed = itemsData.filter(item => item.status !== item.initial_status);
+                        if (changed.length === 0) {
+                            window.closeModal('modal-items-confirm');
+                            return;
+                        }
+                        setItemsSavingState(true);
+                        try {
+                            const endpoint = '{{ route('admin.campaign-items.batch-status', [$room, $campaign]) }}';
+                            const res = await dfApi(endpoint, {
+                                method: 'PATCH',
+                                body: {
+                                    items: changed.map(it => ({ id: it.id, status: it.status }))
+                                }
+                            });
+                            itemsData.forEach(item => {
+                                item.initial_status = item.status;
+                            });
+                            window.closeModal('modal-items-confirm');
+                            refreshSaveControls();
+                            if (window.notify) {
+                                window.notify(res.message || '{{ addslashes(__('admin.campaign_items_batch_updated_success', ['count' => ':count'])) }}'.replace(':count', changed.length), 'success');
+                            }
+                        } catch (err) {
+                            if (window.notify) {
+                                window.notify(err.message || '{{ addslashes(__('admin.order_status_update_failed')) }}', 'error');
+                            } else {
+                                alert(err.message || 'Lỗi khi cập nhật trạng thái món');
+                            }
+                        } finally {
+                            setItemsSavingState(false);
+                        }
+                    };
+                })();
+            </script>
         @else
             <!-- SECTION 1: STORE & CAMPAIGN BANNER (2/3 & 1/3 SPLIT LAYOUT) -->
             <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-xs">
@@ -612,18 +1110,18 @@
 
                         <!-- SPONSOR, BUDGET & PAYMENT ACCOUNT TAGS -->
                         <div class="flex flex-wrap items-center gap-2 pt-1">
-                            @if(false)
-                            <!-- Max Budget Tag -->
-                            @if (!empty($campaign->max_budget))
-                                <div
-                                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-surface-container-low border border-outline-variant/60 text-xs text-on-surface shadow-2xs">
-                                    <span class="material-symbols-outlined text-[16px] text-primary">payments</span>
-                                    <span class="text-outline">{{ __('admin.max_product_budget_ceiling') }}:</span>
-                                    <span
-                                        class="font-mono font-bold text-primary">{{ number_format((int) $campaign->max_budget, 0, ',', '.') }}
-                                        ₫</span>
-                                </div>
-                            @endif
+                            @if (false)
+                                <!-- Max Budget Tag -->
+                                @if (!empty($campaign->max_budget))
+                                    <div
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-surface-container-low border border-outline-variant/60 text-xs text-on-surface shadow-2xs">
+                                        <span class="material-symbols-outlined text-[16px] text-primary">payments</span>
+                                        <span class="text-outline">{{ __('admin.max_product_budget_ceiling') }}:</span>
+                                        <span
+                                            class="font-mono font-bold text-primary">{{ number_format((int) $campaign->max_budget, 0, ',', '.') }}
+                                            ₫</span>
+                                    </div>
+                                @endif
 
                             @endif
                             <!-- Sponsor Tags -->
@@ -867,9 +1365,20 @@
                         <button type="button" @click="reloadData()" :disabled="isReloading"
                             class="w-full h-10 px-4 bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low text-outline hover:text-on-surface rounded text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             <span x-show="!isReloading" class="material-symbols-outlined text-[18px] text-primary">refresh</span>
-                            <span x-show="isReloading" class="material-symbols-outlined animate-spin text-[18px] text-primary" style="display: none;">progress_activity</span>
+                            <span x-show="isReloading" class="material-symbols-outlined animate-spin text-[18px] text-primary"
+                                style="display: none;">progress_activity</span>
                             <span x-text="isReloading ? '{{ __('admin.processing') }}...' : '{{ __('admin.reload_data') }}'">{{ __('admin.reload_data') }}</span>
                         </button>
+
+                        @if ($orderCheckUrl)
+                            <button type="button" @click="copyOrderCheckLink()" :disabled="isCopyingOrderCheckLink"
+                                class="w-full h-10 px-4 bg-surface-container-lowest border border-outline-variant hover:bg-surface-container-low text-outline hover:text-on-surface rounded text-xs font-semibold flex items-center justify-center gap-2 transition-colors shadow-xs cursor-pointer disabled:cursor-not-allowed disabled:opacity-60">
+                                <span class="material-symbols-outlined text-[18px] text-primary"
+                                 :class="{ 'animate-spin': isCopyingOrderCheckLink }"
+                                 x-text="isCopyingOrderCheckLink ? 'progress_activity' : 'link'">link</span>
+                                <span x-text="isCopyingOrderCheckLink ? '{{ __('admin.processing') }}...' : '{{ __('admin.copy_order_check_link') }}'">{{ __('admin.copy_order_check_link') }}</span>
+                            </button>
+                        @endif
                     </div>
                 </div>
             </section>
@@ -1041,7 +1550,8 @@
                         </div>
 
                         <div class="p-4 bg-surface-container-low border-t border-outline-variant/60">
-                            <button type="button" @click="confirmDeliveryModalOpen = true" :disabled="isDeliveringLoading || {{ $isCampaignClosed ? 'true' : 'false' }}"
+                            <button type="button" @click="confirmDeliveryModalOpen = true"
+                                :disabled="isDeliveringLoading || {{ $isCampaignClosed ? 'true' : 'false' }}"
                                 class="w-full py-2.5 px-4 bg-primary hover:bg-primary-container text-on-primary rounded text-xs font-semibold flex items-center justify-center gap-2 shadow-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary">
                                 <span class="material-symbols-outlined text-[18px]">delivery_dining</span>
                                 <span>{{ __('admin.mark_items_delivered_btn') }}</span>
@@ -1174,7 +1684,16 @@
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.aggregated_items_desc') }}</p>
                             </div>
-                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'aggregated']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
+                            @if ($aggregatedCount > 0)
+                                <a download data-download-button
+                                    href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'aggregated']) }}"
+                                    @click="downloadExport($event, 'aggregated')"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span
+                                        data-download-icon
+                                        class="material-symbols-outlined text-[16px]">download</span><span
+                                        data-download-label>{{ __('admin.download') }}</span></a>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="overflow-x-auto w-full">
@@ -1250,7 +1769,25 @@
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.orders_list_desc') }}</p>
                             </div>
-                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'orders']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
+                            @if ($ordersCount > 0)
+                                <div class="flex items-center gap-2">
+                                    @if ($isCampaignLive)
+                                        <button type="button" @click="confirmAllOrders()" :disabled="isConfirmingAllOrders"
+                                            class="inline-flex items-center gap-1.5 rounded-lg border border-primary bg-primary px-3 py-2 text-xs font-semibold text-on-primary hover:opacity-90 transition-colors disabled:cursor-not-allowed disabled:opacity-60">
+                                            <span class="material-symbols-outlined text-[16px]"
+                                                :class="{ 'animate-spin': isConfirmingAllOrders }"
+                                                x-text="isConfirmingAllOrders ? 'progress_activity' : 'done_all'">done_all</span>
+                                            <span x-text="isConfirmingAllOrders ? '{{ __('admin.processing') }}...' : '{{ __('admin.confirm_all_orders') }}'">{{ __('admin.confirm_all_orders') }}</span>
+                                        </button>
+                                    @endif
+                                <a download data-download-button
+                                    href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'orders']) }}"
+                                    @click="downloadExport($event, 'orders')"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span
+                                        data-download-icon
+                                        class="material-symbols-outlined text-[16px]">download</span><span
+                                        data-download-label>{{ __('admin.download') }}</span></a>
+                            @endif
                         </div>
 
                         <div class="overflow-x-auto w-full">
@@ -1281,12 +1818,27 @@
                                                 <div>
                                                     <div class="font-semibold text-on-surface">
                                                         {{ $roomUser?->display_name ?? __('admin.member') }}
+                                                        @if ($order->parent?->roomUser)
+                                                            <span class="group/proxy relative inline-flex align-middle ml-1" aria-describedby="proxy-order-info-tooltip-{{ $order->id }}">
+                                                                <span class="material-symbols-outlined text-[15px] text-primary cursor-help">info</span>
+                                                                <span id="proxy-order-info-tooltip-{{ $order->id }}" role="tooltip"
+                                                                    class="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover/proxy:opacity-100">{{ __('admin.proxy_order_info', ['name' => $order->parent->roomUser?->display_name ?? __('admin.member'), 'email' => $order->parent->roomUser?->globalUser?->email ?? '']) }}</span>
+                                                            </span>
+                                                        @endif
                                                     </div>
                                                     <div
                                                         class="text-[10px] font-mono text-outline flex items-center gap-1.5 flex-wrap mt-0.5">
-                                                        @if ($roomUser?->user_code)
-                                                            <span>#{{ $roomUser->user_code }}</span>
-                                                        @endif
+                                                        <span class="inline-flex items-center gap-1">
+                                                            <span>{{ $order->code }}</span>
+                                                            <button type="button" @click="copyOrderCode('{{ addslashes($order->code) }}', $event)" data-copy-order-code="{{ $order->code }}"
+                                                                class="group/copy relative inline-flex items-center justify-center text-outline hover:text-primary transition-colors"
+                                                                aria-describedby="copy-order-code-tooltip-{{ $order->id }}"
+                                                                aria-label="{{ __('admin.copy_order_code') }}">
+                                                                <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                                                                <span id="copy-order-code-tooltip-{{ $order->id }}" role="tooltip"
+                                                                    class="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover/copy:opacity-100 group-focus-visible/copy:opacity-100">{{ __('admin.copy_order_code') }}</span>
+                                                            </button>
+                                                        </span>
                                                         @if ($location)
                                                             <span
                                                                 class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-surface-container text-on-surface-variant text-[9px] font-medium border border-outline-variant/60">
@@ -1361,13 +1913,16 @@
                                                 </div>
                                             </td>
                                             <td class="px-4 py-3 w-28 text-center">
-                                                <button type="button" @click="openOrderDetail({{ $order->id }})"
+                                                <span class="group/detail relative inline-flex">
+                                                    <button type="button" @click="openOrderDetail({{ $order->id }})"
                                                     class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary border border-outline-variant/60 transition-colors cursor-pointer"
-                                                    title="{{ __('admin.view_order_detail') }}"
                                                     aria-label="{{ __('admin.view_order_detail') }}">
                                                     <span
                                                         class="material-symbols-outlined text-[18px]">visibility</span>
-                                                </button>
+                                                    </button>
+                                                    <span role="tooltip"
+                                                        class="pointer-events-none absolute bottom-full left-1/2 z-30 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover/detail:opacity-100 group-focus-within/detail:opacity-100">{{ __('admin.view_order_detail') }}</span>
+                                                </span>
                                             </td>
                                         </tr>
                                     @empty
@@ -1388,7 +1943,7 @@
                     </div>
 
                     <!-- TAB 3: ITEMS GROUPED BY DEPARTMENT -->
-                    <div x-show="activeTab === 'departments'" class="p-4 space-y-4" style="display: none;">
+                    <div x-show="$store.campaignTabs.activeTab === 'departments'" class="p-4 space-y-4">
                         <div class="flex flex-wrap items-center justify-between gap-3 pb-2">
                             <div class="space-y-1">
                                 <div class="flex items-center gap-2.5 flex-wrap">
@@ -1401,7 +1956,15 @@
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.department_summary') }}</p>
                             </div>
-                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'departments']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
+                            @if ($departmentsCount > 0)
+                                <a download data-download-button
+                                    href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'departments']) }}"
+                                    @click="downloadExport($event, 'departments')"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span
+                                        data-download-icon
+                                        class="material-symbols-outlined text-[16px]">download</span><span
+                                        data-download-label>{{ __('admin.download') }}</span></a>
+                            @endif
                         </div>
 
                         <div class="space-y-4">
@@ -1520,18 +2083,16 @@
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.order_allocation_debt_desc') }}</p>
                             </div>
-                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'debts']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
+                            @if ($debtsCount > 0)
+                                <a download data-download-button
+                                    href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'debts']) }}"
+                                    @click="downloadExport($event, 'debts')"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span
+                                        data-download-icon
+                                        class="material-symbols-outlined text-[16px]">download</span><span
+                                        data-download-label>{{ __('admin.download') }}</span></a>
+                            @endif
                         </div>
-
-                        @php
-                            $isCampaignClosed = in_array(
-                                $campaign->status instanceof \BackedEnum
-                                    ? $campaign->status->value
-                                    : (string) $campaign->status,
-                                ['closed', 'archived'],
-                                true,
-                            );
-                        @endphp
 
                         @if ($isCampaignClosed || $campaign->debts->isNotEmpty())
                             <div class="overflow-x-auto w-full">
@@ -1553,9 +2114,7 @@
                                                 $roomUser = $debt->roomUser;
                                                 $globalUser = $roomUser?->globalUser;
                                                 $location = $globalUser?->desk_location;
-                                                $transferContent =
-                                                    $debt->note ?:
-                                                    $debt->code;
+                                                $transferContent = $debt->note ?: $debt->code;
                                             @endphp
                                             <tr class="hover:bg-surface-container-low/50 transition-colors align-top">
                                                 <td class="px-4 py-3 w-14 text-left font-mono text-outline">
@@ -1678,12 +2237,21 @@
                                     </h3>
                                     <span
                                         class="px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-mono text-xs font-semibold">
-                                        {{ $declinedUsersCount ?? count($declinedUsers ?? []) }} {{ __('admin.member') }}
+                                        {{ $declinedUsersCount ?? count($declinedUsers ?? []) }}
+                                        {{ __('admin.member') }}
                                     </span>
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.declined_users_desc') }}</p>
                             </div>
-                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'declined']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
+                            @if ($declinedCount > 0)
+                                <a download data-download-button
+                                    href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'declined']) }}"
+                                    @click="downloadExport($event, 'declined')"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span
+                                        data-download-icon
+                                        class="material-symbols-outlined text-[16px]">download</span><span
+                                        data-download-label>{{ __('admin.download') }}</span></a>
+                            @endif
                         </div>
 
                         <div class="overflow-x-auto w-full">
@@ -1700,7 +2268,9 @@
                                     @forelse($declinedUsers as $index => $u)
                                         @php
                                             $globalUser = $u->globalUser;
-                                            $dept = trim((string) ($globalUser?->desk_location ?? '')) ?: __('admin.unassigned_department');
+                                            $dept =
+                                                trim((string) ($globalUser?->desk_location ?? '')) ?:
+                                                __('admin.unassigned_department');
                                             $name = $globalUser?->name ?? $u->display_name;
                                         @endphp
                                         <tr class="hover:bg-surface-container-low/50 transition-colors">
@@ -1709,18 +2279,16 @@
                                             </td>
                                             <td class="px-4 py-3 text-left">
                                                 <div class="flex items-center gap-2.5">
-                                                    <div class="w-8 h-8 rounded-full bg-rose-50 text-rose-700 flex items-center justify-center font-bold text-xs shrink-0 border border-rose-200">
+                                                    <div
+                                                        class="w-8 h-8 rounded-full bg-rose-50 text-rose-700 flex items-center justify-center font-bold text-xs shrink-0 border border-rose-200">
                                                         {{ mb_substr($name, 0, 1) }}
                                                     </div>
                                                     <div>
-                                                        <div class="font-semibold text-on-surface">{{ $name }}</div>
-                                                        <div class="text-[10px] font-mono text-outline flex items-center gap-1.5 mt-0.5">
-                                                            @if($u->user_code)
-                                                                <span>#{{ $u->user_code }}</span>
-                                                            @endif
-                                                            @if($globalUser?->email)
-                                                                <span>• {{ $globalUser->email }}</span>
-                                                            @endif
+                                                        <div class="font-semibold text-on-surface">
+                                                            {{ $name }}</div>
+                                                        <div
+                                                            class="text-[10px] font-mono text-outline flex items-center gap-1.5 mt-0.5">
+                                                            <span>{{ $globalUser->email }}</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1757,12 +2325,21 @@
                                     </h3>
                                     <span
                                         class="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-mono text-xs font-semibold">
-                                        {{ $pendingUsersCount ?? count($unresponsiveUsers ?? []) }} {{ __('admin.member') }}
+                                        {{ $pendingUsersCount ?? count($unresponsiveUsers ?? []) }}
+                                        {{ __('admin.member') }}
                                     </span>
                                 </div>
                                 <p class="text-xs text-outline">{{ __('admin.unresponsive_users_desc') }}</p>
                             </div>
-                            <a download href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'unresponsive']) }}" class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span class="material-symbols-outlined text-[16px]">download</span>{{ __('admin.download') }}</a>
+                            @if ($unresponsiveCount > 0)
+                                <a download data-download-button
+                                    href="{{ route('admin.campaigns.export-detail', [$room, $campaign, 'unresponsive']) }}"
+                                    @click="downloadExport($event, 'unresponsive')"
+                                    class="inline-flex items-center gap-1.5 rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors no-underline"><span
+                                        data-download-icon
+                                        class="material-symbols-outlined text-[16px]">download</span><span
+                                        data-download-label>{{ __('admin.download') }}</span></a>
+                            @endif
                         </div>
 
                         <div class="overflow-x-auto w-full">
@@ -1779,7 +2356,9 @@
                                     @forelse($unresponsiveUsers as $index => $u)
                                         @php
                                             $globalUser = $u->globalUser;
-                                            $dept = trim((string) ($globalUser?->desk_location ?? '')) ?: __('admin.unassigned_department');
+                                            $dept =
+                                                trim((string) ($globalUser?->desk_location ?? '')) ?:
+                                                __('admin.unassigned_department');
                                             $name = $globalUser?->name ?? $u->display_name;
                                         @endphp
                                         <tr class="hover:bg-surface-container-low/50 transition-colors">
@@ -1788,18 +2367,16 @@
                                             </td>
                                             <td class="px-4 py-3 text-left">
                                                 <div class="flex items-center gap-2.5">
-                                                    <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-200">
+                                                    <div
+                                                        class="w-8 h-8 rounded-full bg-amber-50 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-200">
                                                         {{ mb_substr($name, 0, 1) }}
                                                     </div>
                                                     <div>
-                                                        <div class="font-semibold text-on-surface">{{ $name }}</div>
-                                                        <div class="text-[10px] font-mono text-outline flex items-center gap-1.5 mt-0.5">
-                                                            @if($u->user_code)
-                                                                <span>#{{ $u->user_code }}</span>
-                                                            @endif
-                                                            @if($globalUser?->email)
-                                                                <span>• {{ $globalUser->email }}</span>
-                                                            @endif
+                                                        <div class="font-semibold text-on-surface">
+                                                            {{ $name }}</div>
+                                                        <div
+                                                            class="text-[10px] font-mono text-outline flex items-center gap-1.5 mt-0.5">
+                                                            <span>{{ $globalUser->email }}</span>
                                                         </div>
                                                     </div>
                                                 </div>

@@ -44,6 +44,7 @@ return [
     'auth' => [
         'google_cancelled' => 'Bạn đã hủy quá trình đăng nhập Google.',
         'google_session_expired' => 'Phiên đăng nhập Google đã hết hạn hoặc không hợp lệ. Vui lòng thử lại.',
+        'google_not_configured' => 'Đăng nhập Google hiện chưa được cấu hình. Vui lòng liên hệ quản trị viên.',
         'google_token_failed' => 'Không thể xác thực mã với Google. Vui lòng thử lại.',
         'google_profile_failed' => 'Không thể lấy thông tin người dùng từ Google.',
         'google_unsupported_account' => 'Tài khoản không được hỗ trợ đăng nhập.',

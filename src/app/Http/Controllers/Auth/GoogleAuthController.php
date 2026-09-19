@@ -25,7 +25,7 @@ class GoogleAuthController extends Controller
      */
     public function redirect(Request $request, GoogleOAuthService $service): RedirectResponse
     {
-        abort_unless(config('services.google.client_id'), 503, 'Google authentication is not configured.');
+        $service->ensureConfigured();
 
         return redirect()->away($service->getAuthorizationUrl($request));
     }
@@ -39,9 +39,11 @@ class GoogleAuthController extends Controller
      */
     public function callback(Request $request, GoogleOAuthService $service, AuditService $audit): RedirectResponse
     {
+        $service->ensureConfigured();
+
         $storedLoginSource = $request->session()->pull('google_oauth_login_source');
         $storedLoginSource = is_string($storedLoginSource) ? $storedLoginSource : null;
-        $loginSource = $this->isSafeInternalUrl($request, $storedLoginSource) ? $storedLoginSource : url('/');
+        $loginSource = $service->isSafeInternalUrl($request, $storedLoginSource) ? $storedLoginSource : url('/');
 
         // 1. Handle error returned by Google (e.g. user canceled)
         if ($request->has('error')) {
@@ -103,7 +105,7 @@ class GoogleAuthController extends Controller
             ]);
 
             $intended = $request->session()->pull('url.intended');
-            if ($this->isSafeInternalUrl($request, $intended)) {
+            if ($service->isSafeInternalUrl($request, $intended)) {
                 return redirect()->to($intended)
                     ->withoutCookie('drinkflow_device_uuid')
                     ->withoutCookie('drinkflow_trusted_token');
@@ -121,34 +123,5 @@ class GoogleAuthController extends Controller
             return redirect()->to($loginSource)
                 ->with('login_error', __('global.auth.google_login_failed', ['error' => $e->getMessage()]));
         }
-    }
-
-    /**
-     * Determine whether an OAuth return URL belongs to the current application.
-     *
-     * @param Request $request Current HTTP request.
-     * @param string|null $url Candidate return URL.
-     * @return bool True when the URL is relative or matches the current host.
-     */
-    private function isSafeInternalUrl(Request $request, ?string $url): bool
-    {
-        if ($url === null || $url === '' || str_starts_with($url, '//')) {
-            return false;
-        }
-
-        $parts = parse_url($url);
-        if ($parts === false) {
-            return false;
-        }
-
-        if (! isset($parts['host'])) {
-            return str_starts_with($url, '/');
-        }
-
-        $host = strtolower((string) $parts['host']);
-        $requestHost = strtolower($request->getHost());
-        return $host === $requestHost
-            || ($host === 'localhost' && $requestHost === '127.0.0.1')
-            || ($host === '127.0.0.1' && $requestHost === 'localhost');
     }
 }

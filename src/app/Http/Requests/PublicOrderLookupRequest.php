@@ -39,4 +39,32 @@ class PublicOrderLookupRequest extends FormRequest
             'identifier' => ['required', 'string', 'min:2', 'max:255', 'regex:/^[\pL\pN@+().,_\-\s]+$/u'],
         ];
     }
+
+    /**
+     * Custom attributes for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return [
+            'identifier' => __('public.order_check_placeholder'),
+        ];
+    }
+
+    /**
+     * Custom validation messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'identifier.required' => __('validation.required', ['attribute' => __('public.order_check_placeholder')]),
+            'identifier.string' => __('validation.string', ['attribute' => __('public.order_check_placeholder')]),
+            'identifier.min' => __('validation.min.string', ['attribute' => __('public.order_check_placeholder'), 'min' => 2]),
+            'identifier.max' => __('validation.max.string', ['attribute' => __('public.order_check_placeholder'), 'max' => 255]),
+            'identifier.regex' => __('public.order_check_invalid'),
+        ];
+    }
 }

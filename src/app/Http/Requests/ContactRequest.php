@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\ContactTopic;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -29,7 +30,7 @@ class ContactRequest extends FormRequest
             'work_email' => ['required', 'email', 'max:150'],
             'phone' => ['required', 'string', 'max:20'],
             'company' => ['required', 'string', 'max:150'],
-            'topic' => ['required', 'string', Rule::in(['vietqr', 'deploy', 'feedback', 'merchant', 'other'])],
+            'topic' => ['required', 'string', Rule::enum(ContactTopic::class)],
             'message' => ['required', 'string', 'min:10', 'max:3000'],
         ];
 

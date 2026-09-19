@@ -209,6 +209,30 @@ class GoogleOAuthService
     }
 
     /**
+     * Ensure Google OAuth is fully configured (client_id and client_secret).
+     *
+     * Logs warning if any required config is missing and aborts with 503.
+     *
+     * @throws \Symfony\Component\HttpKernel\Exception\HttpException When config is incomplete.
+     */
+    public function ensureConfigured(): void
+    {
+        $clientId = config('services.google.client_id');
+        $clientSecret = config('services.google.client_secret');
+
+        if (! empty($clientId) && ! empty($clientSecret)) {
+            return;
+        }
+
+        \Illuminate\Support\Facades\Log::warning('Google OAuth is not fully configured.', [
+            'has_client_id' => ! empty($clientId),
+            'has_client_secret' => ! empty($clientSecret),
+        ]);
+
+        abort(503, __('global.auth.google_not_configured'));
+    }
+
+    /**
      * Chuẩn hóa chuỗi họ tên người dùng thành không dấu để hỗ trợ tìm kiếm nhanh.
      *
      * @param  string  $name  Họ tên người dùng
@@ -226,7 +250,7 @@ class GoogleOAuthService
      * @param string|null $url Candidate return URL.
      * @return bool True when the URL is relative or matches the current host.
      */
-    private function isSafeInternalUrl(Request $request, ?string $url): bool
+    public function isSafeInternalUrl(Request $request, ?string $url): bool
     {
         if ($url === null || $url === '' || str_starts_with($url, '//')) {
             return false;

@@ -44,6 +44,7 @@ return [
     'auth' => [
         'google_cancelled' => 'Googleログインをキャンセルしました。',
         'google_session_expired' => 'Googleセッションの有効期限が切れたか無効です。再試行してください。',
+        'google_not_configured' => 'Googleログインはまだ設定されていません。管理者にお問い合わせください。',
         'google_token_failed' => 'Googleで認証コードを確認できませんでした。再試行してください。',
         'google_profile_failed' => 'Googleからユーザー情報を取得できませんでした。',
         'google_unsupported_account' => 'このアカウントはログインに対応していません。',

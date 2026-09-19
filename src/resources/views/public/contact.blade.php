@@ -140,11 +140,9 @@
                                 name="topic"
                                 required>
                             <option disabled {{ old('topic') ? '' : 'selected' }} value="">{{ __('contact.form.topic_select') }}</option>
-                            <option value="vietqr" {{ old('topic') === 'vietqr' ? 'selected' : '' }}>{{ __('contact.form.topics.vietqr') }}</option>
-                            <option value="deploy" {{ old('topic') === 'deploy' ? 'selected' : '' }}>{{ __('contact.form.topics.deploy') }}</option>
-                            <option value="feedback" {{ old('topic') === 'feedback' ? 'selected' : '' }}>{{ __('contact.form.topics.feedback') }}</option>
-                            <option value="merchant" {{ old('topic') === 'merchant' ? 'selected' : '' }}>{{ __('contact.form.topics.merchant') }}</option>
-                            <option value="other" {{ old('topic') === 'other' ? 'selected' : '' }}>{{ __('contact.form.topics.other') }}</option>
+                            @foreach (\App\Enums\ContactTopic::cases() as $topic)
+                                <option value="{{ $topic->value }}" {{ old('topic') === $topic->value ? 'selected' : '' }}>{{ $topic->label() }}</option>
+                            @endforeach
                         </select>
                         @error('topic')
                             <p class="text-xs text-red-600 mt-1 font-medium">{{ $message }}</p>
