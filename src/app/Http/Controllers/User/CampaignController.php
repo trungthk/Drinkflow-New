@@ -12,6 +12,7 @@ use App\Enums\OrderStatus;
 use App\Enums\GlobalUserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCampaignCartRequest;
+use App\Http\Requests\UpdateCartProxyRequest;
 use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -229,13 +230,19 @@ class CampaignController extends Controller
      * @param int $index Zero-based cart item index.
      * @return JsonResponse Updated cart payload.
      */
-    public function updateCartProxy(Request $request, Room $room, Campaign $campaign, int $index): JsonResponse
+    /**
+     * Update cart item proxy information (person ordering for someone else).
+     *
+     * @param UpdateCartProxyRequest $request Incoming request with validated data.
+     * @param Room $room Current room.
+     * @param Campaign $campaign Target campaign.
+     * @param int $index Zero-based cart item index.
+     * @return JsonResponse Updated cart payload.
+     */
+    public function updateCartProxy(UpdateCartProxyRequest $request, Room $room, Campaign $campaign, int $index): JsonResponse
     {
         abort_unless($campaign->room_id === $room->id, 404);
-        $data = $request->validate([
-            'proxy_user_code' => ['nullable', 'string', 'max:50'],
-            'proxy_user_name' => ['nullable', 'string', 'max:255'],
-        ]);
+        $data = $request->validated();
         $cartKey = $this->cartKey($room->id, $campaign->id);
         $cart = session()->get($cartKey, []);
         abort_if(! array_key_exists($index, $cart), 404);
