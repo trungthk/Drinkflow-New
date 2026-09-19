@@ -171,10 +171,7 @@
             id="global-user-menu-btn" title="{{ __('global.header.profile_menu') }}"
             aria-label="{{ __('global.header.profile_menu') }}" aria-haspopup="true" aria-expanded="false">
             <div class="relative shrink-0">
-              <img alt="Avatar {{ $user->name }}"
-                class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-white ring-2 ring-[#006948]/30 shadow-xs"
-                src="{{ $user->avatar_url }}"
-                onerror="this.onerror=null;this.src='{{ asset('images/default-avatar.svg') }}'" loading="lazy">
+              <x-avatar :user="$user" size="sm" class="border-2 border-white ring-2 ring-[#006948]/30 shadow-xs" :alt="'Avatar ' . $user->name" />
               <span
                 class="absolute bottom-0 right-0 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-emerald-500 rounded-full ring-2 ring-white"
                 title="Google Workspace Verified"></span>
@@ -198,10 +195,7 @@
             id="global-user-dropdown">
             <div class="p-3.5 sm:p-4 bg-slate-50/70 border-b border-slate-100">
               <div class="flex items-center gap-2.5 sm:gap-3">
-                <img alt="Avatar {{ $user->name }}"
-                  class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-white ring-2 ring-[#006948]/30 shrink-0 shadow-xs"
-                  src="{{ $user->avatar_url }}"
-                  onerror="this.onerror=null;this.src='{{ asset('images/default-avatar.svg') }}'" loading="lazy">
+                <x-avatar :user="$user" size="md" class="border-2 border-white ring-2 ring-[#006948]/30 shrink-0 shadow-xs" :alt="'Avatar ' . $user->name" />
                 <div class="min-w-0 flex-1">
                   <div class="flex items-center gap-1.5">
                     <p class="text-xs sm:text-sm font-bold text-slate-900 truncate">{{ $user->name }}</p>

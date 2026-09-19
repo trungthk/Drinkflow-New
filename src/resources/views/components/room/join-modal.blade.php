@@ -40,11 +40,7 @@
     <div class="space-y-4 p-5 sm:p-6">
       <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
         <div class="relative shrink-0">
-          <img class="h-11 w-11 rounded-xl border border-white object-cover shadow-sm ring-1 ring-slate-200"
-            src="{{ $user->avatar_url ?: asset('images/default-avatar.svg') }}"
-            alt="{{ __('room.join.account_avatar_alt', ['name' => $user->name ?? __('global.common.user')]) }}"
-            loading="lazy"
-            onerror="this.onerror=null;this.src='{{ asset('images/default-avatar.svg') }}';">
+          <x-avatar :user="$user" size="sm" class="rounded-xl border border-white shadow-sm ring-1 ring-slate-200" :alt="__('room.join.account_avatar_alt', ['name' => $user->name ?? __('global.common.user')])" />
           <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500"
             title="{{ __('room.join.ready_badge') }}"></span>
         </div>

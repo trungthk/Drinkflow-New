@@ -1,5 +1,4 @@
 @php
-    $activeOrder = $orders->where('room_user_id', $roomUser->id)->first();
     $campaignAccount = $activeOrder?->campaign?->paymentAccount
         ?? $room->paymentAccounts->firstWhere('is_default', true)
         ?? $room->paymentAccounts->first();
@@ -255,9 +254,7 @@
                         </div>
                         <div
                             class="flex items-center gap-space-md bg-surface-container-low p-space-sm rounded-xl lg:self-auto self-start">
-                            <img class="w-10 h-10 rounded-full object-cover flex-shrink-0 border-2 border-white ring-2 ring-[#006948]/30 shadow-xs"
-                                src="{{ $user->avatar_url ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDABv8Oe8xyc5YFfx-Urh180Ei9oWDlXncJYYMhGsQyXKi9hH-Ozqz3OugY2_1YBVNW7gx3_8lQ0e663-MZrk9sfuwQNx_hfyyQtK2Zhj_zZGIVtA4PdjFBpNhgR9tn9snH3UYWVQ68_CKNQt5duVHzjZFHBqTbF8GWsCP5QSCLqXnCkE_RM9NLeqxpc7hKb0xusaVGpsBgdlLGILxnD3Fq8gdCU6OgF-qluxXmwytHivLwPF5jc5JUug' }}"
-                                alt="{{ $user->name }}" loading="lazy" />
+                            <x-avatar :user="$user" size="sm" class="flex-shrink-0 border-2 border-white ring-2 ring-[#006948]/30 shadow-xs" :alt="$user->name" />
                             <div class="flex flex-col pr-space-sm min-w-0">
                                 <span
                                     class="font-label-sm text-label-sm text-on-surface-variant">{{ __('room.orders.orderer_label') }}</span>
@@ -560,7 +557,7 @@
                                                         @endif
                                                         @if (($sp['amount'] ?? 0) > 0)
                                                             <span class="font-mono text-emerald-800 text-[11px] font-semibold">
-                                                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($sp['amount']) }} ₫
+                                                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($sp['amount']) }}
                                                             </span>
                                                         @endif
                                                     </span>

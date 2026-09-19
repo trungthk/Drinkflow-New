@@ -182,10 +182,7 @@
         <a href="{{ $room ? route('user.rooms.profile', $room->slug) : '#' }}"
           class="relative flex items-center gap-1 sm:gap-2 pl-1 sm:pl-2 shrink-0 rounded-xl hover:bg-slate-100/60 transition-colors"
           title="{{ __('global.header.profile_menu') }}" aria-label="{{ __('global.header.profile_menu') }}">
-          <img
-            class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-white ring-2 ring-[#006948]/30 shadow-xs"
-            src="{{ $user->avatar_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($user->name ?? 'User') . '&background=006948&color=ffffff&bold=true' }}"
-            alt="{{ $user->name ?? __('global.common.user') }}" loading="lazy">
+          <x-avatar :user="$user" size="sm" class="border-2 border-white ring-2 ring-[#006948]/30 shadow-xs" :alt="$user->name ?? __('global.common.user')" />
           <span class="hidden lg:flex flex-col text-left">
             <span class="text-xs font-semibold text-slate-800 truncate max-w-[130px]">
               {{ $user->name ?? __('global.common.user') }}

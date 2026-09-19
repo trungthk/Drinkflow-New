@@ -13,10 +13,7 @@
                 <!-- User Info & Avatar -->
                 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
                     <div class="relative shrink-0">
-                        <img class="w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover shadow-2xs border-2 border-[#006948]/30 ring-2 ring-emerald-500/10"
-                             src="{{ $user->avatar_url ?? 'https://lh3.googleusercontent.com/aida-public/AB6AXuDABv8Oe8xyc5YFfx-Urh180Ei9oWDlXncJYYMhGsQyXKi9hH-Ozqz3OugY2_1YBVNW7gx3_8lQ0e663-MZrk9sfuwQNx_hfyyQtK2Zhj_zZGIVtA4PdjFBpNhgR9tn9snH3UYWVQ68_CKNQt5duVHzjZFHBqTbF8GWsCP5QSCLqXnCkE_RM9NLeqxpc7hKb0xusaVGpsBgdlLGILxnD3Fq8gdCU6OgF-qluxXmwytHivLwPF5jc5JUug' }}"
-                             alt="{{ $user->name }}"
-                             loading="lazy" onerror="this.onerror=null;this.src='{{ asset('images/default-avatar.svg') }}';"/>
+                        <x-avatar :user="$user" size="lg" class="rounded-xl border-2 border-[#006948]/30 ring-2 ring-emerald-500/10 shadow-2xs" :alt="$user->name" />
                     </div>
                     <div class="flex flex-col gap-1">
                         <div class="flex flex-wrap items-center gap-1.5">

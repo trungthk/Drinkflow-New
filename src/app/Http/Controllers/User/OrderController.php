@@ -79,6 +79,7 @@ class OrderController extends Controller
 
         return view('user.orders', [
             'orders' => $orders,
+            'activeOrder' => $activeOrder,
             'paymentConfirmationDetails' => $paymentConfirmationDetails,
         ]);
     }

@@ -70,7 +70,7 @@
             <!-- Profile Identity Top Block -->
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5 pb-6 border-b border-slate-100">
               <div class="relative shrink-0">
-                <img class="w-20 h-20 rounded-2xl border-2 border-[#006948]/30 ring-4 ring-emerald-500/10 object-cover shadow-sm" src="{{ $user->avatar_url }}" alt="Avatar {{ $user->name }}" onerror="this.onerror=null;this.src='{{ asset('images/default-avatar.svg') }}'" loading="lazy">
+                <x-avatar :user="$user" size="2xl" class="border-2 border-[#006948]/30 ring-4 ring-emerald-500/10 shadow-sm" />
                 <div class="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-emerald-700 text-white font-mono text-[10px] uppercase font-bold tracking-wider shadow-2xs">
                   SSO
                 </div>
