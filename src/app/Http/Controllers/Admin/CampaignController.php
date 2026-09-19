@@ -19,6 +19,7 @@ use App\Enums\RoomUserStatus;
 use App\Events\RoomRealtimeEvent;
 use App\Exports\CampaignDetailExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\BatchUpdateCampaignItemStatusRequest;
 use App\Http\Requests\CampaignPageRequest;
 use App\Http\Requests\CloseCampaignRequest;
 use App\Http\Requests\SplitBillRequest;
@@ -536,20 +537,16 @@ class CampaignController extends Controller
     /**
      * Batch update campaign items availability statuses.
      *
-     * @param Request $request Incoming HTTP request containing items array.
+     * @param BatchUpdateCampaignItemStatusRequest $request Incoming validated batch update request.
      * @param Room $room Room entity.
      * @param Campaign $campaign Campaign entity.
      * @param AuditService $audit Audit service.
      * @return JsonResponse Result of the batch update operation.
      */
-    public function batchUpdateItemStatus(Request $request, Room $room, Campaign $campaign, AuditService $audit): JsonResponse
+    public function batchUpdateItemStatus(BatchUpdateCampaignItemStatusRequest $request, Room $room, Campaign $campaign, AuditService $audit): JsonResponse
     {
         $this->assertCampaign($campaign);
-        $validated = $request->validate([
-            'items' => ['required', 'array'],
-            'items.*.id' => ['required', 'integer'],
-            'items.*.status' => ['required', 'in:active,inactive'],
-        ]);
+        $validated = $request->validated();
 
         $itemIds = collect($validated['items'])->pluck('id')->all();
         $existingItems = $campaign->items()->whereIn('id', $itemIds)->get()->keyBy('id');
