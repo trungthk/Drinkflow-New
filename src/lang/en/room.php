@@ -109,6 +109,7 @@ return [
         'rejoin_confirm_btn' => 'Rejoin Campaign',
         'declined' => 'Your decision not to participate has been recorded.',
         'page_title' => 'Campaign & Menu',
+        'restaurant' => 'Restaurant',
         'active_run_badge' => 'Active Run',
         'reviews_count' => '(:count+ reviews)',
         'deadline_info' => 'Locks at :time',

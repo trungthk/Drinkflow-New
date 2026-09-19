@@ -14,12 +14,12 @@
         data-detail-url="{{ route('user.campaigns.show', [$room, $campaign]) }}"
         data-order-url="{{ route('user.orders.store', [$room, $campaign]) }}"
         data-room-slug="{{ $room->slug }}"
-        data-msg-load-error="{{ __('room.campaign.menu_load_error', ['default' => 'Không thể tải menu.']) }}"
-        data-msg-empty-menu="{{ __('room.campaign.menu_empty', ['default' => 'Menu đang trống.']) }}"
-        data-msg-select-required="{{ __('room.campaign.select_item_required', ['default' => 'Hãy chọn ít nhất một món.']) }}"
-        data-msg-order-success="{{ __('room.campaign.order_success', ['default' => 'Đặt món thành công!']) }}"
-        data-msg-view-order="{{ __('room.orders.order_details', ['default' => 'Xem chi tiết đơn']) }}"
-        data-msg-error-generic="{{ __('room.campaign.error_generic', ['default' => 'Không thể tạo đơn. Vui lòng thử lại.']) }}"
+        data-msg-load-error="{{ __('room.campaign.menu_load_error') }}"
+        data-msg-empty-menu="{{ __('room.campaign.menu_empty') }}"
+        data-msg-select-required="{{ __('room.campaign.select_item_required') }}"
+        data-msg-order-success="{{ __('room.campaign.order_success') }}"
+        data-msg-view-order="{{ __('room.orders.order_details') }}"
+        data-msg-error-generic="{{ __('room.campaign.error_generic') }}"
   >
     <!-- Back to Campaigns -->
     <div>
@@ -33,9 +33,9 @@
     <header class="bg-white border border-slate-200/80 rounded-xl p-3.5 sm:p-4 shadow-2xs">
       <div class="flex items-start justify-between gap-3">
         <div>
-          <span class="text-[11px] font-bold text-[#006948] uppercase tracking-wider">{{ $campaign->restaurant ?? 'Restaurant' }}</span>
+          <span class="text-[11px] font-bold text-[#006948] uppercase tracking-wider">{{ $campaign->restaurant ?? __('room.campaign.restaurant') }}</span>
           <h1 class="text-sm sm:text-base font-bold text-slate-900 mt-0.5">{{ $campaign->name }}</h1>
-          <p class="mt-0.5 text-xs text-slate-500">{{ __('room.campaign.order_instruction', ['default' => 'Chọn món và gửi đơn. Giá sẽ được kiểm tra lại trên máy chủ.']) }}</p>
+          <p class="mt-0.5 text-xs text-slate-500">{{ __('room.campaign.order_instruction') }}</p>
         </div>
       </div>
     </header>
@@ -46,7 +46,7 @@
       <div class="space-y-3">
         <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ __('room.campaign.filter_all') }}</h2>
         <div id="items" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <p class="text-xs text-slate-400 py-4">{{ __('room.campaign.loading_menu', ['default' => 'Đang tải menu…']) }}</p>
+          <p class="text-xs text-slate-400 py-4">{{ __('room.campaign.loading_menu') }}</p>
         </div>
       </div>
 

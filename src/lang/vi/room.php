@@ -109,6 +109,7 @@ return [
         'rejoin_confirm_btn' => 'Xác nhận tham gia',
         'declined' => 'Đã ghi nhận bạn không tham gia campaign này.',
         'page_title' => 'Chiến dịch & Menu',
+        'restaurant' => 'Nhà hàng',
         'active_run_badge' => 'Active Run',
         'reviews_count' => '(:count+ đánh giá)',
         'deadline_info' => 'Chốt đơn lúc :time',

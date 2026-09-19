@@ -109,6 +109,7 @@ return [
         'rejoin_confirm_btn' => '再参加する',
         'declined' => '今回は参加しないことを記録しました。',
         'page_title' => 'キャンペーン＆メニュー',
+        'restaurant' => 'レストラン',
         'active_run_badge' => 'Active Run',
         'reviews_count' => '(:count+ 件の評価)',
         'deadline_info' => ':time に締切',
