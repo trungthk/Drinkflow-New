@@ -17,6 +17,7 @@ use App\Enums\PaymentAccountStatus;
 use App\Enums\CampaignStatus;
 use App\Enums\RoomUserStatus;
 use App\Events\RoomRealtimeEvent;
+use App\Exports\CampaignAggregateExport;
 use App\Exports\CampaignDetailExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BatchUpdateCampaignItemStatusRequest;
@@ -692,20 +693,18 @@ class CampaignController extends Controller
 
     /**
      * Handle the export aggregate operation.
-     * @param Request $request Parameter value.
-     * @param \App\Services\Admin\OrderAggregationService $aggregator Parameter value.
-     * @return mixed Result of the operation.
+     *
+     * @param Request $request HTTP request containing campaign_id parameter.
+     * @param \App\Services\Admin\OrderAggregationService $aggregator Order aggregation service.
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse Excel download response.
      */
     public function exportAggregate(Request $request, \App\Services\Admin\OrderAggregationService $aggregator)
     {
         $rows = $aggregator->forRoom(request()->attributes->get('room')->id, $request->integer('campaign_id'));
-        return response()->streamDownload(function () use ($rows): void {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Item', 'Size', 'Toppings', 'Quantity']);
-            foreach ($rows as $row)
-                fputcsv($handle, [$row['name'], $row['size'], $row['toppings'], $row['quantity']]);
-            fclose($handle);
-        }, 'drinkflow-aggregator.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+        return Excel::download(
+            new CampaignAggregateExport($rows),
+            'drinkflow-aggregator.csv'
+        );
     }
 
     /**
