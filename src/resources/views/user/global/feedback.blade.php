@@ -172,6 +172,7 @@
                 </div>
 
                 <!-- Anti-Spam Captcha Section -->
+                @if(\App\Support\Helpers\CaptchaHelper::isCaptchaEnabled())
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="feedback-captcha">
                         {{ __('global.feedback.captcha_label') }} <span class="text-rose-500">*</span>
@@ -208,6 +209,7 @@
                         </p>
                     @enderror
                 </div>
+                @endif
 
                 <!-- Action buttons -->
                 <div class="flex items-center justify-end gap-3 pt-2">
