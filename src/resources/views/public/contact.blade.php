@@ -166,7 +166,7 @@
                     </div>
 
                     <!-- Anti-Spam Captcha Section (mews/captcha with graceful GD check) -->
-                    @if(extension_loaded('gd') && function_exists('gd_info'))
+                    @if(\App\Support\Helpers\CaptchaHelper::isCaptchaEnabled())
                         <div>
                             <label class="block text-xs font-semibold text-slate-700 mb-1.5" for="captcha">
                                 {{ __('contact.form.captcha') }} <span class="text-[#ba1a1a]">*</span>

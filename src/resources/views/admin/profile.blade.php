@@ -175,7 +175,7 @@
                                 type="button" data-password-toggle="profile-confirm-password"
                                 class="absolute right-2 top-1/2 -translate-y-1/2 text-outline hover:text-primary"><span
                                     class="material-symbols-outlined text-[18px]">visibility</span></button></div>
-                        @if (!config('captcha.disable') && extension_loaded('gd') && function_exists('captcha_img'))
+                        @if (\App\Support\Helpers\CaptchaHelper::isCaptchaEnabled())
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center gap-1.5 shrink-0">
                                     <div id="captcha-img-wrapper"

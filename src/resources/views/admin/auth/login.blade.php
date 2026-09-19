@@ -77,7 +77,7 @@
         </div>
 
         <!-- Captcha Challenge (Bypassed in Local Environment) -->
-        @if(!app()->isLocal() && extension_loaded('gd') && function_exists('captcha_img'))
+        @if(\App\Support\Helpers\CaptchaHelper::isCaptchaEnabled())
             <div class="rounded-xl bg-surface-container-low border border-outline-variant/60 p-3.5 space-y-2">
                 <div class="flex items-center justify-between text-xs font-semibold text-on-surface">
                     <div class="flex items-center gap-1.5">
