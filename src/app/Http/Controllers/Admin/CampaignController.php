@@ -19,12 +19,14 @@ use App\Enums\RoomUserStatus;
 use App\Events\RoomRealtimeEvent;
 use App\Exports\CampaignDetailExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CampaignPageRequest;
 use App\Http\Requests\CloseCampaignRequest;
 use App\Http\Requests\SplitBillRequest;
 use App\Http\Requests\StoreCampaignItemRequest;
 use App\Http\Requests\StoreCampaignImageRequest;
 use App\Http\Requests\StoreCampaignRequest;
 use App\Http\Requests\StoreItemOptionRequest;
+use App\Http\Requests\UpdateCampaignItemStatusRequest;
 use App\Http\Requests\UpdateCampaignRequest;
 use App\Http\Requests\UpdateItemOptionRequest;
 use App\Models\Campaign;
@@ -40,7 +42,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
-use Illuminate\Validation\Rule;
 
 class CampaignController extends Controller
 {
@@ -65,23 +66,13 @@ class CampaignController extends Controller
     /**
      * Display the standalone Campaigns management view.
      *
-     * @param Request $request Incoming HTTP request.
+     * @param CampaignPageRequest $request Incoming HTTP request.
      * @param Room $room Room entity.
      * @return View Blade view.
-     * @throws \Illuminate\Validation\ValidationException When filter input is invalid.
      */
-    public function page(Request $request, Room $room): View
+    public function page(CampaignPageRequest $request, Room $room): View
     {
-        $validated = $request->validate([
-            'search' => ['nullable', 'string', 'max:255'],
-            'status' => [
-                'nullable',
-                Rule::in(array_merge(
-                    ['all'],
-                    array_map(static fn(CampaignStatus $status): string => $status->value, CampaignStatus::cases())
-                ))
-            ],
-        ]);
+        $validated = $request->validated();
         $query = Campaign::query()
             ->where('room_id', $room->id)
             ->withCount('orders')
@@ -188,11 +179,10 @@ class CampaignController extends Controller
     /**
      * Retrieve previous campaigns with menu items for fast reuse.
      *
-     * @param Request $request Incoming HTTP request.
      * @param Room $room Room entity.
      * @return JsonResponse List of previous campaigns and their menu items.
      */
-    public function previousMenus(Request $request, Room $room): JsonResponse
+    public function previousMenus(Room $room): JsonResponse
     {
         $campaigns = Campaign::query()
             ->where('room_id', $room->id)
@@ -589,10 +579,10 @@ class CampaignController extends Controller
     }
 
     /** Toggle a campaign item's availability status. */
-    public function toggleItemStatus(Request $request, Room $room, Campaign $campaign, CampaignItem $item, AuditService $audit): JsonResponse
+    public function toggleItemStatus(UpdateCampaignItemStatusRequest $request, Room $room, Campaign $campaign, CampaignItem $item, AuditService $audit): JsonResponse
     {
         $this->assertItem($campaign, $item);
-        $status = $request->validate(['status' => ['required', 'in:active,inactive']])['status'];
+        $status = $request->validated()['status'];
         $before = $item->status?->value ?? (string) $item->status;
         $item->update(['status' => \App\Enums\CampaignItemStatus::from($status)]);
         $audit->record('campaign_item.status_updated', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before], ['status' => $status]);

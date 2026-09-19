@@ -161,6 +161,7 @@ return [
         'password_confirmation' => 'Xác nhận mật khẩu',
         'captcha' => 'Mã bảo vệ Captcha',
         'remember' => 'Ghi nhớ đăng nhập',
+        'search' => 'Từ khóa tìm kiếm',
         'name' => 'Họ và tên / Tên',
         'full_name' => 'Họ và tên đầy đủ',
         'work_email' => 'Email công việc',

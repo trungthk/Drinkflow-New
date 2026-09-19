@@ -161,6 +161,7 @@ return [
         'password_confirmation' => 'Password confirmation',
         'captcha' => 'Captcha code',
         'remember' => 'Remember me',
+        'search' => 'Search keyword',
         'name' => 'Name',
         'full_name' => 'Full name',
         'work_email' => 'Work email',

@@ -161,6 +161,7 @@ return [
         'password_confirmation' => 'パスワード（確認用）',
         'captcha' => '認証コード（Captcha）',
         'remember' => 'ログイン状態を保持する',
+        'search' => '検索キーワード',
         'name' => '氏名 / 名前',
         'full_name' => '氏名（フルネーム）',
         'work_email' => '勤務先メールアドレス',
