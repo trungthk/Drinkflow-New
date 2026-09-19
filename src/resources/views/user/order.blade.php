@@ -13,14 +13,14 @@
         data-order-status-container
         data-status-url="{{ route('user.orders.show', [$room, $order]) }}"
         data-initial-status="{{ $order->status->value }}"
-        data-label-submitted="{{ __('room.orders.status_submitted', ['default' => 'Đã gửi']) }}"
-        data-label-confirmed="{{ __('room.orders.status_confirmed', ['default' => 'Đã nhận']) }}"
-        data-label-ordering="{{ __('room.orders.status_ordering', ['default' => 'Đang làm']) }}"
-        data-label-ordered="{{ __('room.orders.status_ordered', ['default' => 'Đã xong']) }}"
-        data-label-delivering="{{ __('room.orders.status_delivering', ['default' => 'Đang giao']) }}"
-        data-label-completed="{{ __('room.orders.status_completed', ['default' => 'Hoàn tất']) }}"
-        data-label-cancelled="{{ __('room.orders.status_cancelled', ['default' => 'Đã hủy']) }}"
-        data-label-updated-prefix="{{ __('room.orders.updated_prefix', ['default' => 'Cập nhật lúc']) }}"
+        data-label-submitted="{{ __('room.orders.status_submitted') }}"
+        data-label-confirmed="{{ __('room.orders.status_confirmed') }}"
+        data-label-ordering="{{ __('room.orders.status_ordering') }}"
+        data-label-ordered="{{ __('room.orders.status_ordered') }}"
+        data-label-delivering="{{ __('room.orders.status_delivering') }}"
+        data-label-completed="{{ __('room.orders.status_completed') }}"
+        data-label-cancelled="{{ __('room.orders.status_cancelled') }}"
+        data-label-updated-prefix="{{ __('room.orders.updated_prefix') }}"
   >
     <!-- Back to Room Orders link -->
     <div>
@@ -46,17 +46,17 @@
         </div>
       </div>
 
-      <p id="status-updated" class="mt-3 text-xs text-slate-400 font-medium">{{ __('room.orders.auto_updating_status', ['default' => 'Đang cập nhật trạng thái tự động.']) }}</p>
+      <p id="status-updated" class="mt-3 text-xs text-slate-400 font-medium">{{ __('room.orders.auto_updating_status') }}</p>
 
       <!-- Status Progress Timeline -->
       <ol id="status-timeline" class="mt-5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-xs">
         @foreach ([
-            'submitted' => __('room.orders.status_submitted', ['default' => 'Đã gửi']),
-            'confirmed' => __('room.orders.status_confirmed', ['default' => 'Đã nhận']),
-            'ordering' => __('room.orders.status_ordering', ['default' => 'Đang làm']),
-            'ordered' => __('room.orders.status_ordered', ['default' => 'Đã xong']),
-            'delivering' => __('room.orders.status_delivering', ['default' => 'Đang giao']),
-            'completed' => __('room.orders.status_completed', ['default' => 'Hoàn tất'])
+            'submitted' => __('room.orders.status_submitted'),
+            'confirmed' => __('room.orders.status_confirmed'),
+            'ordering' => __('room.orders.status_ordering'),
+            'ordered' => __('room.orders.status_ordered'),
+            'delivering' => __('room.orders.status_delivering'),
+            'completed' => __('room.orders.status_completed')
         ] as $value => $label)
           <li data-status="{{ $value }}" class="rounded-xl border border-slate-200/80 bg-slate-50/50 p-2.5 text-slate-500 transition-all text-center">
             <span class="block font-bold text-slate-900 text-xs truncate">{{ $label }}</span>
