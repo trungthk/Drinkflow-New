@@ -85,7 +85,7 @@
             <div>
               <span class="text-xs font-medium text-slate-500 block">{{ __('global.dashboard.stat_spent') }}</span>
               <div class="flex items-baseline gap-1 mt-0.5">
-                <span class="text-2xl font-bold text-slate-900 tracking-tight">{{ number_format($totalSpent, 0, ',', '.') }}<span class="text-xs font-normal text-slate-400">{{ __('global.common.money_suffix') }}</span></span>
+                <span class="text-2xl font-bold text-slate-900 tracking-tight">{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSpent) }}</span>
               </div>
             </div>
           </div>
@@ -98,7 +98,7 @@
             <div>
               <span class="text-xs font-medium text-slate-500 block">{{ __('global.dashboard.stat_sponsor') }}</span>
               <div class="flex items-baseline gap-1 mt-0.5">
-                <span class="text-2xl font-bold text-slate-900 tracking-tight">{{ number_format($sponsorReceived, 0, ',', '.') }}<span class="text-xs font-normal text-slate-400">{{ __('global.common.money_suffix') }}</span></span>
+                <span class="text-2xl font-bold text-slate-900 tracking-tight">{{ \App\Support\Helpers\FormatHelper::formatCurrency($sponsorReceived) }}</span>
               </div>
               <span class="text-[11px] text-emerald-700 font-medium block mt-0.5">{{ __('global.dashboard.stat_sponsor_hint', ['percent' => $savingsPercent]) }}</span>
             </div>

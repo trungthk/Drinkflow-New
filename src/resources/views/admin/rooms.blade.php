@@ -312,7 +312,7 @@
                                     <div>
                                         <span class="font-label-sm text-label-sm text-[#D97706] block">{{ __('admin.metric_unpaid_debt') }}</span>
                                         <div class="flex items-baseline gap-1 mt-0.5">
-                                            <span class="font-headline-sm text-[18px] font-bold text-[#D97706]">{{ number_format($r->unpaid_debts_sum) }}₫</span>
+                                            <span class="font-headline-sm text-[18px] font-bold text-[#D97706]">{{ \App\Support\Helpers\FormatHelper::formatCurrency($r->unpaid_debts_sum) }}</span>
                                         </div>
                                     </div>
                                 @endif

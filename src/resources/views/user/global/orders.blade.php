@@ -131,7 +131,7 @@
       <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('global.orders.metric_total_spent') }}</p>
         <div class="flex items-baseline gap-2 mt-1.5">
-          <span class="text-2xl font-bold text-slate-900 tracking-tight">{{ number_format($totalSpent, 0, ',', '.') }}{{ __('global.common.money_suffix') }}</span>
+          <span class="text-2xl font-bold text-slate-900 tracking-tight">{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSpent) }}</span>
           <span class="text-xs text-slate-400">{{ __('global.orders.metric_this_month') }}</span>
         </div>
       </div>
@@ -141,7 +141,7 @@
         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('global.orders.metric_company_sponsor') }}</p>
         <div class="flex items-baseline gap-2 mt-1.5">
           <span class="text-2xl font-bold text-[#006948] tracking-tight">
-            {{ $totalSponsor > 0 ? '-' : '' }}{{ number_format($totalSponsor, 0, ',', '.') }}{{ __('global.common.money_suffix') }}
+            {{ $totalSponsor > 0 ? '-' : '' }}{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSponsor) }}
           </span>
           <span class="text-xs text-emerald-600 font-medium bg-emerald-50 px-1.5 py-0.5 rounded">{{ __('global.orders.metric_benefit') }}</span>
         </div>
@@ -152,7 +152,7 @@
         <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('global.orders.metric_pending_payments') }}</p>
         <div class="flex items-baseline gap-2 mt-1.5">
           <span class="text-2xl font-bold {{ $pendingPaymentAmount > 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight">
-            {{ number_format($pendingPaymentAmount, 0, ',', '.') }}{{ __('global.common.money_suffix') }}
+            {{ \App\Support\Helpers\FormatHelper::formatCurrency($pendingPaymentAmount) }}
           </span>
           @if($pendingPaymentCount > 0)
             <span class="text-xs bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.5 rounded font-medium">
@@ -329,17 +329,17 @@
 
                   <!-- Subtotal -->
                   <td class="py-3 px-4 text-right font-mono text-slate-700">
-                    {{ number_format($order->subtotal ?: $order->final_amount, 0, ',', '.') }}{{ __('global.common.money_suffix') }}
+                    {{ \App\Support\Helpers\FormatHelper::formatCurrency($order->subtotal ?: $order->final_amount) }}
                   </td>
 
                   <!-- Sponsor -->
                   <td class="py-3 px-4 text-right font-mono text-[#006948] font-medium">
-                    {{ $order->sponsor_amount ? '-' . number_format($order->sponsor_amount, 0, ',', '.') . __('global.common.money_suffix') : '0' . __('global.common.money_suffix') }}
+                    {{ $order->sponsor_amount ? '-' . \App\Support\Helpers\FormatHelper::formatCurrency($order->sponsor_amount) : '0' . __('global.common.money_suffix') }}
                   </td>
 
                   <!-- Final Amount -->
                   <td class="py-3 px-4 text-right font-mono font-bold {{ $isUnpaid ? 'text-rose-600' : 'text-slate-900' }}">
-                    {{ number_format($order->final_amount, 0, ',', '.') }}{{ __('global.common.money_suffix') }}
+                    {{ \App\Support\Helpers\FormatHelper::formatCurrency($order->final_amount) }}
                   </td>
 
                   <!-- Status Badge -->

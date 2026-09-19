@@ -82,11 +82,11 @@
             </div>
             <div class="mt-3">
                 <div class="text-3xl font-bold text-slate-900 tabular-nums">
-                    {{ number_format($totalSpent) }}<span class="text-lg font-semibold">{{ __('global.common.money_suffix') }}</span>
+                    {{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSpent) }}
                 </div>
                 <div class="mt-2 text-xs text-slate-400 flex items-center gap-1">
                     <span class="material-symbols-outlined text-[14px]">calculate</span>
-                    <span>{{ __('global.statistics.avg_per_order', ['amount' => number_format($avgSpent)]) }}</span>
+                    <span>{{ __('global.statistics.avg_per_order', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($avgSpent)]) }}</span>
                 </div>
             </div>
         </div>
@@ -101,7 +101,7 @@
             </div>
             <div class="mt-3">
                 <div class="text-3xl font-bold text-[#006948] tabular-nums">
-                    {{ number_format($totalSponsor) }}<span class="text-lg font-semibold">{{ __('global.common.money_suffix') }}</span>
+                    {{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSponsor) }}
                 </div>
                 <div class="mt-2 flex items-center gap-1.5">
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200">
@@ -173,7 +173,7 @@
                         @foreach($weeklyStats as $w)
                             <div class="flex-1 flex flex-col items-center gap-2 z-10 group">
                                 <div class="opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white px-2.5 py-1 rounded-lg text-[10px] whitespace-nowrap shadow-md">
-                                    {{ __('global.statistics.spent_tooltip', ['spent' => number_format($w['spent'], 0, ',', '.'), 'sponsor' => number_format($w['sponsor'], 0, ',', '.')]) }}
+                                    {{ __('global.statistics.spent_tooltip', ['spent' => \App\Support\Helpers\FormatHelper::formatCurrency($w['spent']), 'sponsor' => \App\Support\Helpers\FormatHelper::formatCurrency($w['sponsor'])]) }}
                                 </div>
                                 <div class="w-full flex items-end justify-center gap-2 h-40">
                                     <div class="w-7 sm:w-10 bg-[#006948] rounded-t-md transition-all hover:brightness-110 shadow-xs" style="height: {{ $w['height_spent'] }}%;"></div>
@@ -234,7 +234,7 @@
 
             <div class="pt-4 border-t border-slate-100 -mx-6 -mb-6 p-4 bg-slate-50 rounded-b-2xl flex items-center justify-between text-xs">
                 <span class="text-slate-500 font-medium">{{ __('global.statistics.net_spent_total') }}</span>
-                <span class="text-base font-bold text-slate-900 tabular-nums">{{ number_format($totalSpent) }}{{ __('global.common.money_suffix') }}</span>
+                <span class="text-base font-bold text-slate-900 tabular-nums">{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSpent) }}</span>
             </div>
         </div>
     </div>
@@ -273,7 +273,7 @@
                                     </div>
                                 </td>
                                 <td class="py-2 text-center font-medium tabular-nums text-slate-600">{{ __('global.statistics.orders_count', ['count' => $res['order_count']]) }}</td>
-                                <td class="py-2 text-right pr-2 font-semibold text-slate-900 tabular-nums">{{ number_format($res['spent']) }}{{ __('global.common.money_suffix') }}</td>
+                                <td class="py-2 text-right pr-2 font-semibold text-slate-900 tabular-nums">{{ \App\Support\Helpers\FormatHelper::formatCurrency($res['spent']) }}</td>
                             </tr>
                         @empty
                             <tr>
@@ -319,10 +319,10 @@
                                 </td>
                                 <td class="py-2 text-center font-medium tabular-nums text-slate-600">{{ __('global.statistics.orders_count', ['count' => $rStat['order_count']]) }}</td>
                                 <td class="py-2 text-right pr-2">
-                                    <span class="font-semibold text-slate-900 block tabular-nums">{{ number_format($rStat['spent']) }}{{ __('global.common.money_suffix') }}</span>
+                                    <span class="font-semibold text-slate-900 block tabular-nums">{{ \App\Support\Helpers\FormatHelper::formatCurrency($rStat['spent']) }}</span>
                                     @if($rStat['sponsor'] > 0)
                                         <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200">
-                                            Sponsor: {{ number_format($rStat['sponsor']) }}{{ __('global.common.money_suffix') }}
+                                            Sponsor: {{ \App\Support\Helpers\FormatHelper::formatCurrency($rStat['sponsor']) }}
                                         </span>
                                     @else
                                         <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] bg-slate-100 text-slate-500 font-medium">

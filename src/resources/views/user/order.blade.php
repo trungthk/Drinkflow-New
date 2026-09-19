@@ -77,7 +77,7 @@
                   <span class="text-xs text-slate-500 block sm:inline sm:ml-1">({{ $item->size_name }})</span>
                 @endif
               </div>
-              <span class="font-mono font-bold text-slate-900 shrink-0">{{ number_format($item->line_subtotal, 0, ',', '.') }} ₫</span>
+              <span class="font-mono font-bold text-slate-900 shrink-0">{{ \App\Support\Helpers\FormatHelper::formatCurrency($item->line_subtotal) }}</span>
             </li>
           @endforeach
         </ul>
@@ -86,7 +86,7 @@
       <!-- Total Amount -->
       <div class="mt-6 flex items-center justify-between border-t border-slate-200/80 pt-4">
         <span class="text-sm sm:text-base font-bold text-slate-900">{{ __('room.orders.final_amount') }}</span>
-        <span class="text-lg sm:text-xl font-bold font-mono text-[#006948]">{{ number_format($order->final_amount, 0, ',', '.') }} ₫</span>
+        <span class="text-lg sm:text-xl font-bold font-mono text-[#006948]">{{ \App\Support\Helpers\FormatHelper::formatCurrency($order->final_amount) }}</span>
       </div>
 
       <!-- Actions (Payment QR) -->

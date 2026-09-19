@@ -240,7 +240,7 @@
               <div class="flex-1">
                 <h3 class="text-xs font-semibold text-slate-800">{{ __('global.blocked.step_1_title') }}</h3>
                 <p class="text-xs text-slate-500 mt-0.5">
-                  {{ __('global.blocked.step_1_desc', ['debt' => number_format($totalDebt)]) }}
+                  {{ __('global.blocked.step_1_desc', ['debt' => \App\Support\Helpers\FormatHelper::formatCurrency($totalDebt)]) }}
                 </p>
               </div>
             </li>
@@ -310,7 +310,7 @@
                   <p class="font-medium text-slate-800 truncate">{{ $item['title'] }}</p>
                   <p class="text-[11px] text-slate-400 mt-0.5 truncate">{{ $item['subtitle'] }}</p>
                 </div>
-                <span class="font-semibold text-rose-600 text-right tabular-nums whitespace-nowrap">{{ number_format($item['amount']) }}{{ __('global.common.money_suffix') }}</span>
+                <span class="font-semibold text-rose-600 text-right tabular-nums whitespace-nowrap">{{ \App\Support\Helpers\FormatHelper::formatCurrency($item['amount']) }}</span>
               </div>
             @empty
               <div class="py-6 text-center text-slate-400">
@@ -322,7 +322,7 @@
 
           <div class="mt-2 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-semibold">
             <span class="text-slate-800">{{ __('global.blocked.total_pending') }}</span>
-            <span class="text-rose-600 font-mono text-sm">{{ number_format($totalDebt) }}{{ __('global.common.money_suffix') }}</span>
+            <span class="text-rose-600 font-mono text-sm">{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalDebt) }}</span>
           </div>
           <p class="mt-3 text-[11px] text-slate-500 leading-relaxed">
             {{ __('global.blocked.auto_unlock_note', ['status' => __('global.blocked.status_active')]) }}

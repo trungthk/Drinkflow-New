@@ -127,7 +127,7 @@
     },
     async addToCart() {
       if (this.isCustomItemExceeded) {
-        window.alert('{{ __('room.campaign.custom_exceeds_budget_msg', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}');
+        window.alert('{{ __('room.campaign.custom_exceeds_budget_msg', ['limit' => \App\Support\Helpers\FormatHelper::formatCurrency((int) ($activeCampaign?->max_budget ?? 0))]) }}');
         return;
       }
       this.cartSubmitting = true;
@@ -169,7 +169,7 @@
     },
     async confirmCart() {
       if (this.hasExceededItems()) {
-        window.alert('{{ __('room.campaign.cart_exceeded_banner_desc', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}');
+        window.alert('{{ __('room.campaign.cart_exceeded_banner_desc', ['limit' => \App\Support\Helpers\FormatHelper::formatCurrency((int) ($activeCampaign?->max_budget ?? 0))]) }}');
         return;
       }
       this.cartSubmitting = true;
@@ -377,7 +377,7 @@
                     @foreach ($campaignSponsors as $sponsor)
                       <span class="inline-flex items-center rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800"
                         title="{{ $sponsor['user_code'] }}">
-                        {{ $sponsor['name'] }} · {{ __('room.campaign.sponsor_percentage', ['percentage' => number_format($sponsor['percentage'], 0, ',', '.')]) }}
+                        {{ $sponsor['name'] }} · {{ __('room.campaign.sponsor_percentage', ['percentage' => (int) $sponsor['percentage']]) }}
                       </span>
                     @endforeach
                   </div>
@@ -395,7 +395,7 @@
                 <span class="text-[10px] text-slate-400 block font-medium">{{ __('room.campaign.max_product_budget_title') }}</span>
                 <span class="text-xs font-bold text-slate-900">
                   {{ $activeCampaign->max_budget
-                    ? __('room.campaign.max_product_budget_value', ['amount' => number_format((int) $activeCampaign->max_budget, 0, ',', '.') . 'đ'])
+                    ? __('room.campaign.max_product_budget_value', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency((int) $activeCampaign->max_budget)])
                     : __('room.campaign.unlimited_budget') }}
                 </span>
               </div>
@@ -421,7 +421,7 @@
               <span class="material-symbols-outlined text-[18px]">check_circle</span>
             </span>
             <span>
-              {{ __('room.campaign.cart_summary_title') }}: <strong class="text-[#006948]">{{ $activeUserOrder->items->pluck('item_name')->join(', ') }}</strong> ({{ number_format($activeUserOrder->final_amount, 0, ',', '.') }}đ)
+              {{ __('room.campaign.cart_summary_title') }}: <strong class="text-[#006948]">{{ $activeUserOrder->items->pluck('item_name')->join(', ') }}</strong> ({{ \App\Support\Helpers\FormatHelper::formatCurrency($activeUserOrder->final_amount) }})
             </span>
           </div>
           <a href="{{ route('user.orders.index', $room->slug) }}" class="inline-flex items-center gap-1 font-bold text-[#006948] hover:underline shrink-0">
@@ -564,7 +564,7 @@
               </div>
 
               <div class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                <span class="text-xs sm:text-sm font-bold font-mono text-slate-900">{{ number_format($item->base_price, 0, ',', '.') }}đ</span>
+                <span class="text-xs sm:text-sm font-bold font-mono text-slate-900">{{ \App\Support\Helpers\FormatHelper::formatCurrency($item->base_price) }}</span>
                 @if($canOrderCampaign && !$activeUserOrder)
                   <button type="button"
                           @click="openCustomize({{ json_encode($item) }})"
@@ -714,7 +714,7 @@
               <template x-if="isCustomItemExceeded">
                 <div class="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 font-medium">
                   <span class="material-symbols-outlined text-[18px] text-rose-600 shrink-0">error</span>
-                  <span>{{ __('room.campaign.custom_exceeds_budget_msg', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</span>
+                  <span>{{ __('room.campaign.custom_exceeds_budget_msg', ['limit' => \App\Support\Helpers\FormatHelper::formatCurrency((int) ($activeCampaign?->max_budget ?? 0))]) }}</span>
                 </div>
               </template>
 
@@ -770,7 +770,7 @@
                   <span class="material-symbols-outlined text-[18px] text-rose-600 shrink-0 mt-0.5">warning</span>
                   <div>
                     <p class="font-bold">{{ __('room.campaign.cart_exceeded_banner_title') }}</p>
-                    <p class="mt-0.5 text-[11px] text-rose-700 leading-relaxed">{{ __('room.campaign.cart_exceeded_banner_desc', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</p>
+                    <p class="mt-0.5 text-[11px] text-rose-700 leading-relaxed">{{ __('room.campaign.cart_exceeded_banner_desc', ['limit' => \App\Support\Helpers\FormatHelper::formatCurrency((int) ($activeCampaign?->max_budget ?? 0))]) }}</p>
                   </div>
                 </div>
               </template>
@@ -824,7 +824,7 @@
                   <template x-if="isItemExceeded(item)">
                     <div class="mt-1 pt-1.5 border-t border-rose-200/80 flex items-center gap-1 text-[11px] font-semibold text-rose-600">
                       <span class="material-symbols-outlined text-[14px]">error</span>
-                      <span>{{ __('room.campaign.item_exceeded_budget_error', ['limit' => number_format((int) ($activeCampaign?->max_budget ?? 0), 0, ',', '.') . 'đ']) }}</span>
+                      <span>{{ __('room.campaign.item_exceeded_budget_error', ['limit' => \App\Support\Helpers\FormatHelper::formatCurrency((int) ($activeCampaign?->max_budget ?? 0))]) }}</span>
                     </div>
                   </template>
                 </div>

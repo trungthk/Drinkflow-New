@@ -114,21 +114,21 @@
       <div class="bg-white border {{ $totalUnpaidAmount > 0 ? 'border-rose-200' : 'border-slate-200/80' }} rounded-xl p-5 shadow-xs">
         <p class="text-xs font-medium text-slate-500">{{ __('global.payments.total_unpaid') }}</p>
         <p class="mt-2 text-2xl font-bold {{ $totalUnpaidAmount > 0 ? 'text-rose-600' : 'text-slate-900' }} tracking-tight">
-          {{ number_format($totalUnpaidAmount, 0, ',', '.') }}<span class="ml-1 text-sm font-medium">{{ __('global.common.money_suffix') }}</span>
+          {{ \App\Support\Helpers\FormatHelper::formatCurrency($totalUnpaidAmount) }}
         </p>
         <p class="mt-1 text-xs text-slate-400">{{ __('global.payments.unpaid_orders_count', ['count' => $unpaidCount]) }}</p>
       </div>
       <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs">
         <p class="text-xs font-medium text-slate-500">{{ __('global.payments.paid_this_month') }}</p>
         <p class="mt-2 text-2xl font-bold text-[#006948] tracking-tight">
-          {{ number_format($paidThisMonthAmount, 0, ',', '.') }}<span class="ml-1 text-sm font-medium">{{ __('global.common.money_suffix') }}</span>
+          {{ \App\Support\Helpers\FormatHelper::formatCurrency($paidThisMonthAmount) }}
         </p>
         <p class="mt-1 text-xs text-slate-400">{{ __('global.payments.transactions_count', ['count' => $paidThisMonthCount]) }}</p>
       </div>
       <div class="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs">
         <p class="text-xs font-medium text-slate-500">{{ __('global.payments.total_sponsor_received') }}</p>
         <p class="mt-2 text-2xl font-bold text-slate-900 tracking-tight">
-          {{ number_format($totalSponsorReceived, 0, ',', '.') }}<span class="ml-1 text-sm font-medium">{{ __('global.common.money_suffix') }}</span>
+          {{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSponsorReceived) }}
         </p>
       </div>
     </div>
@@ -288,10 +288,10 @@
                 <div class="flex flex-col sm:flex-row lg:flex-col sm:items-end justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100 gap-3 shrink-0">
                   <div class="text-left sm:text-right">
                     <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('global.payments.col_total_amount') }}</div>
-                    <div class="text-2xl font-bold text-rose-600 font-mono">{{ number_format($order->final_amount, 0, ',', '.') }} {{ __('global.common.money_suffix') }}</div>
+                    <div class="text-2xl font-bold text-rose-600 font-mono">{{ \App\Support\Helpers\FormatHelper::formatCurrency($order->final_amount) }}</div>
                     @if($order->sponsor_amount > 0)
                       <div class="text-xs text-emerald-700 font-semibold mt-0.5">
-                        {{ __('global.payments.sponsored_amount', ['amount' => number_format($order->sponsor_amount, 0, ',', '.') . ' ' . __('global.common.money_suffix')]) }}
+                        {{ __('global.payments.sponsored_amount', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($order->sponsor_amount)]) }}
                       </div>
                     @endif
                   </div>
@@ -352,7 +352,7 @@
                 <div class="flex flex-col sm:flex-row lg:flex-col sm:items-end justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100 gap-3 shrink-0">
                   <div class="text-left sm:text-right">
                     <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{{ __('global.payments.amount_paid') }}</div>
-                    <div class="text-2xl font-bold text-slate-900 font-mono">{{ number_format($order->final_amount, 0, ',', '.') }} {{ __('global.common.money_suffix') }}</div>
+                    <div class="text-2xl font-bold text-slate-900 font-mono">{{ \App\Support\Helpers\FormatHelper::formatCurrency($order->final_amount) }}</div>
                     <div class="text-xs text-emerald-700 flex items-center sm:justify-end gap-1 font-semibold mt-0.5">
                       <span class="material-symbols-outlined text-[14px]">check</span>
                       {{ __('global.payments.debt_cleared_auto') }}

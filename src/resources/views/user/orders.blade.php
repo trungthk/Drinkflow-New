@@ -18,7 +18,7 @@
     if ($orderFinalAmount <= 0 && !$isFullSponsor && (int) ($activeOrder?->subtotal ?? 0) > 0) {
         $orderFinalAmount = max(0, (int) $activeOrder->subtotal - (int) ($activeOrder->sponsor_amount ?? 0));
     }
-    $formattedOrderAmount = number_format($orderFinalAmount, 0, ',', '.') . 'đ';
+    $formattedOrderAmount = \App\Support\Helpers\FormatHelper::formatCurrency($orderFinalAmount);
     $initialQrPayload = $campaignAccount && $accountNumber
         ? app(\App\Services\Payment\VietQrService::class)->generate($campaignAccount, $orderFinalAmount, (string) $orderCode)
         : '';
@@ -391,12 +391,12 @@
                                                     </h5>
                                                     <p class="text-[11px] leading-4 text-on-surface-variant">
                                                         {{ __('room.orders.qty_prefix') }}: {{ $item->quantity }} ×
-                                                        {{ number_format($item->unit_price, 0, ',', '.') }}đ
+                                                        {{ \App\Support\Helpers\FormatHelper::formatCurrency($item->unit_price) }}
                                                     </p>
                                                 </div>
                                                 <span
                                                     class="font-tabular-nums text-tabular-nums text-sm leading-5 font-bold text-on-surface shrink-0">
-                                                    {{ number_format($item->line_subtotal, 0, ',', '.') }}đ
+                                                    {{ \App\Support\Helpers\FormatHelper::formatCurrency($item->line_subtotal) }}
                                                 </span>
                                             </div>
 
@@ -427,7 +427,7 @@
                                                     <span
                                                         class="px-1.5 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant text-[10px] leading-4 flex items-center gap-0.5 font-medium">
                                                         <span class="material-symbols-outlined text-[12px]">add_circle</span>
-                                                        {{ $top->topping_name }} (+{{ number_format($top->price, 0, ',', '.') }}đ)
+                                                        {{ $top->topping_name }} (+{{ \App\Support\Helpers\FormatHelper::formatCurrency($top->price) }})
                                                     </span>
                                                 @endforeach
                                             </div>
@@ -478,8 +478,8 @@
                                                             </div>
 <div class="flex items-center justify-between gap-2 text-[11px] leading-4 text-on-surface-variant font-mono"><span class="order-last shrink-0 text-outline">{{ $proxyOrder->code }}</span>
                                                                 {{ $proxyItem->quantity }} ×
-                                                                {{ number_format((int) $proxyItem->unit_price, 0, ',', '.') }}đ = <span
-                                                                    class="font-semibold">{{ number_format((int) $proxyItem->line_subtotal, 0, ',', '.') }}đ</span>
+                                                                {{ \App\Support\Helpers\FormatHelper::formatCurrency((int) $proxyItem->unit_price) }} = <span
+                                                                    class="font-semibold">{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) $proxyItem->line_subtotal) }}</span>
                                                             </div>
                                                             @if($proxyItem->toppings->isNotEmpty())
                                                                 <div class="text-[10px] text-secondary">{{ __('room.orders.toppings') }}:
@@ -530,7 +530,7 @@
                                     class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
                                     <span>{{ __('room.orders.subtotal') }}:</span>
                                     <span
-                                        class="font-tabular-nums text-tabular-nums text-on-surface font-medium">{{ number_format($activeOrder->subtotal, 0, ',', '.') }}đ</span>
+                                        class="font-tabular-nums text-tabular-nums text-on-surface font-medium">{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeOrder->subtotal) }}</span>
                                 </div>
                                 @if((int) ($activeOrder->sponsor_amount ?? 0) > 0)
                                     <div class="space-y-2 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-200/60">
@@ -542,7 +542,7 @@
                                                     class="font-bold text-emerald-950">{{ __('room.orders.sponsor_discount') }}:</span>
                                             </span>
                                             <span
-                                                class="font-tabular-nums text-tabular-nums font-bold text-emerald-700 font-mono">-{{ number_format($activeOrder->sponsor_amount, 0, ',', '.') }}đ</span>
+                                                class="font-tabular-nums text-tabular-nums font-bold text-emerald-700 font-mono">-{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeOrder->sponsor_amount) }}</span>
                                         </div>
                                         @if($orderSponsorsList->isNotEmpty())
                                             <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
@@ -560,7 +560,7 @@
                                                         @endif
                                                         @if (($sp['amount'] ?? 0) > 0)
                                                             <span class="font-mono text-emerald-800 text-[11px] font-semibold">
-                                                                {{ number_format($sp['amount'], 0, ',', '.') }} ₫
+                                                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($sp['amount']) }} ₫
                                                             </span>
                                                         @endif
                                                     </span>
@@ -577,7 +577,7 @@
                                             {{ __('room.orders.discount_label') }}:
                                         </span>
                                         <span
-                                            class="font-tabular-nums text-tabular-nums font-bold">-{{ number_format($activeOrder->discount_amount, 0, ',', '.') }}đ</span>
+                                            class="font-tabular-nums text-tabular-nums font-bold">-{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeOrder->discount_amount) }}</span>
                                     </div>
                                 @endif
                                 @if((int) ($activeOrder->delivery_amount ?? 0) > 0)
@@ -585,7 +585,7 @@
                                         class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
                                         <span>{{ __('room.orders.delivery_share') }}:</span>
                                         <span
-                                            class="font-tabular-nums text-tabular-nums text-on-surface font-medium">+{{ number_format($activeOrder->delivery_amount, 0, ',', '.') }}đ</span>
+                                            class="font-tabular-nums text-tabular-nums text-on-surface font-medium">+{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeOrder->delivery_amount) }}</span>
                                     </div>
                                 @endif
 
@@ -602,7 +602,7 @@
                                     <div class="flex items-baseline gap-0.5">
                                         <span
                                             class="font-display-lg text-display-lg font-bold text-error tracking-tight font-tabular-nums">
-                                            {{ number_format($orderFinalAmount, 0, ',', '.') }}
+                                            {{ \App\Support\Helpers\FormatHelper::formatCurrency($orderFinalAmount) }}
                                         </span>
                                         <span class="font-label-md text-label-md font-bold text-error">đ</span>
                                     </div>

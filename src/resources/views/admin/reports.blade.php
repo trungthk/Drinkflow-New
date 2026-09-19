@@ -62,7 +62,7 @@
                 <span class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.kpi_total_store_spending') }}</span>
                 <span class="material-symbols-outlined text-[20px] text-primary">receipt_long</span>
             </div>
-            <div class="text-2xl font-bold font-mono text-primary mt-2" id="kpi-spending">{{ number_format((float) ($stats['spending'] ?? 0), 0, ',', '.') }} ₫</div>
+            <div class="text-2xl font-bold font-mono text-primary mt-2" id="kpi-spending">{{ \App\Support\Helpers\FormatHelper::formatCurrency((float) ($stats['spending'] ?? 0)) }}</div>
             <div class="text-[11px] text-outline mt-1">{{ __('admin.actual_invoice_desc') }}</div>
         </div>
 
@@ -71,7 +71,7 @@
                 <span class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.kpi_sponsor_fund_subsidies') }}</span>
                 <span class="material-symbols-outlined text-[20px] text-emerald-600">savings</span>
             </div>
-            <div class="text-2xl font-bold font-mono text-emerald-600 mt-2" id="kpi-sponsor">{{ number_format((float) ($stats['sponsor_amount'] ?? 0), 0, ',', '.') }} ₫</div>
+            <div class="text-2xl font-bold font-mono text-emerald-600 mt-2" id="kpi-sponsor">{{ \App\Support\Helpers\FormatHelper::formatCurrency((float) ($stats['sponsor_amount'] ?? 0)) }}</div>
             <div class="text-[11px] text-emerald-700 mt-1">{{ __('admin.sponsor_for_members_desc') }}</div>
         </div>
     </div>
@@ -155,7 +155,7 @@
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-low rounded-lg border border-outline-variant text-xs">
                         <span class="text-outline">{{ __('admin.total_debt_remaining') }}:</span>
-                        <span class="font-mono font-bold text-error" id="debt-summary-remaining">{{ number_format((float) ($stats['debt'] ?? 0), 0, ',', '.') }} ₫</span>
+                        <span class="font-mono font-bold text-error" id="debt-summary-remaining">{{ \App\Support\Helpers\FormatHelper::formatCurrency((float) ($stats['debt'] ?? 0)) }}</span>
                     </div>
                 </div>
             </div>
@@ -178,7 +178,7 @@
                     <p class="text-[11px] text-outline mt-0.5">{{ __('admin.multi_sponsor_title') }}</p>
                 </div>
                 <div class="px-3 py-1 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-mono font-bold" id="sponsor-subtotal-text">
-                    {{ number_format((float) ($stats['sponsor_amount'] ?? 0), 0, ',', '.') }} ₫
+                    {{ \App\Support\Helpers\FormatHelper::formatCurrency((float) ($stats['sponsor_amount'] ?? 0)) }}
                 </div>
             </div>
             

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Controllers\User\Global;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\BlockedAccountAppealRequest;
 use App\Models\GlobalUser;
 use App\Services\User\UserBlockedService;
 use Illuminate\Contracts\View\View;
@@ -34,10 +33,9 @@ class BlockedAccountController extends Controller
     /**
      * Tiếp nhận yêu cầu khiếu nại hoặc giải trình mở khóa tài khoản từ người dùng.
      *
-     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request chứa lý do khiếu nại
      * @return \Illuminate\Http\RedirectResponse  Phản hồi chuyển hướng kèm thông báo tiếp nhận
      */
-    public function appeal(BlockedAccountAppealRequest $request): RedirectResponse
+    public function appeal(): RedirectResponse
     {
         return back()->with('status', __('global.blocked.appeal_submitted_status'));
     }

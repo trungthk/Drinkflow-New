@@ -82,7 +82,7 @@
                     <div class="flex flex-col min-w-0">
                         <span class="text-[10px] sm:text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">{{ __('room.profile.total_spent') }}</span>
                         <div class="flex items-baseline gap-1">
-                            <span class="text-sm sm:text-base font-tabular-nums text-on-surface font-bold font-mono">{{ number_format($totalSpent, 0, ',', '.') }}₫</span>
+                            <span class="text-sm sm:text-base font-tabular-nums text-on-surface font-bold font-mono">{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSpent) }}</span>
                             <span class="text-[10px] text-secondary font-semibold ml-1">{{ __('room.profile.accumulated') }}</span>
                         </div>
                     </div>

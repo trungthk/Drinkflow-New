@@ -40,7 +40,7 @@
           <div>
             <div class="flex flex-wrap items-baseline gap-2">
               <span class="font-bold text-xs text-rose-950">{{ __('room.dashboard.debt_warning_title') }}</span>
-              <span class="font-bold font-mono text-sm sm:text-base text-rose-700">{{ number_format($unpaidDebts, 0, ',', '.') }}đ</span>
+              <span class="font-bold font-mono text-sm sm:text-base text-rose-700">{{ \App\Support\Helpers\FormatHelper::formatCurrency($unpaidDebts) }}</span>
             </div>
             <span class="text-[11px] text-rose-700">{{ __('room.dashboard.debt_warning_hint') }}</span>
           </div>
@@ -129,10 +129,10 @@
                   <div class="flex items-center gap-1.5 text-slate-600">
                     <span class="material-symbols-outlined text-[15px] text-[#006948]">savings</span>
                     <span class="font-medium">{{ __('room.dashboard.sponsor_budget_title') }}</span>
-                    <span class="font-bold font-mono text-slate-900">{{ number_format($activeCampaign['sponsor_budget'], 0, ',', '.') }}đ</span>
+                    <span class="font-bold font-mono text-slate-900">{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeCampaign['sponsor_budget']) }}</span>
                   </div>
                   <div class="text-[11px] font-semibold text-[#006948]">
-                    {{ __('room.dashboard.sponsor_remaining', ['amount' => number_format($activeCampaign['sponsor_remaining'], 0, ',', '.') . 'đ']) }}
+                    {{ __('room.dashboard.sponsor_remaining', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($activeCampaign['sponsor_remaining'])]) }}
                   </div>
                 </div>
                 <!-- Progress Bar -->
@@ -140,7 +140,7 @@
                   <div class="bg-[#006948] h-full rounded-full transition-all duration-300" style="width: {{ $activeCampaign['sponsor_percent'] }}%"></div>
                 </div>
                 <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>{{ __('room.dashboard.sponsor_used', ['amount' => number_format($activeCampaign['sponsor_used'], 0, ',', '.') . 'đ', 'percent' => $activeCampaign['sponsor_percent']]) }}</span>
+                  <span>{{ __('room.dashboard.sponsor_used', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($activeCampaign['sponsor_used']), 'percent' => $activeCampaign['sponsor_percent']]) }}</span>
                   <span>{{ __('room.dashboard.sponsor_limit', ['amount' => '20.000đ']) }}</span>
                 </div>
               </div>

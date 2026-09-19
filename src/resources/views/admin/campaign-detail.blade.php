@@ -755,7 +755,7 @@
                                 <div class="font-semibold text-sm truncate text-on-surface">{{ $it['name'] }}</div>
                                 <div class="text-xs text-outline">
                                     <span>{{ $it['category'] ?: __('admin.filter_all') }}</span> ·
-                                    <span class="font-mono font-medium text-on-surface">{{ number_format($it['base_price'], 0, ',', '.') }} ₫</span>
+                                    <span class="font-mono font-medium text-on-surface">{{ \App\Support\Helpers\FormatHelper::formatCurrency($it['base_price']) }}</span>
                                 </div>
                                 <div id="item-changed-indicator-{{ $it['id'] }}"
                                     class="text-[10px] font-semibold mt-0.5 flex items-center gap-1" style="display: none;">
@@ -1095,9 +1095,8 @@
                                 <span class="text-outline-variant">•</span>
                                 <span class="flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[16px] text-primary">payments</span>
-                                    {{ __('admin.max_product_budget_ceiling') }}: <strong
-                                        class="text-primary font-mono font-semibold">{{ number_format((int) $campaign->max_budget, 0, ',', '.') }}
-                                        ₫</strong>
+                                    {{ __('admin.max_product_budget_ceiling') }}:                                     <strong
+                                        class="text-primary font-mono font-semibold">{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) $campaign->max_budget) }}</strong>
                                 </span>
                             @endif
                             <span class="text-outline-variant">•</span>
@@ -1118,8 +1117,7 @@
                                         <span class="material-symbols-outlined text-[16px] text-primary">payments</span>
                                         <span class="text-outline">{{ __('admin.max_product_budget_ceiling') }}:</span>
                                         <span
-                                            class="font-mono font-bold text-primary">{{ number_format((int) $campaign->max_budget, 0, ',', '.') }}
-                                            ₫</span>
+                                            class="font-mono font-bold text-primary">{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) $campaign->max_budget) }}</span>
                                     </div>
                                 @endif
 
@@ -1411,16 +1409,14 @@
                                     <div class="flex justify-between items-center text-outline">
                                         <span>{{ __('admin.original_subtotal') }}:</span>
                                         <span
-                                            class="font-mono text-on-surface font-semibold text-sm">{{ number_format($grossSubtotal ?? 0, 0, ',', '.') }}
-                                            ₫</span>
+                                            class="font-mono text-on-surface font-semibold text-sm">{{ \App\Support\Helpers\FormatHelper::formatCurrency($grossSubtotal ?? 0) }}</span>
                                     </div>
                                     <div class="flex justify-between items-center text-outline">
                                         <span class="flex items-center gap-1">
                                             <span>{{ __('admin.delivery_fee_extra') }}:</span>
                                         </span>
                                         <span
-                                            class="font-mono text-amber-700 font-semibold">+{{ number_format($campaign->delivery_fee ?? 0, 0, ',', '.') }}
-                                            ₫</span>
+                                            class="font-mono text-amber-700 font-semibold">+{{ \App\Support\Helpers\FormatHelper::formatCurrency($campaign->delivery_fee ?? 0) }}</span>
                                     </div>
                                     @if ((int) ($campaign->discount ?? 0) > 0)
                                         <div class="flex justify-between items-center text-outline">
@@ -1428,16 +1424,14 @@
                                                 <span>{{ __('admin.discount_input') }}:</span>
                                             </span>
                                             <span
-                                                class="font-mono text-emerald-700 font-semibold">-{{ number_format($campaign->discount ?? 0, 0, ',', '.') }}
-                                                ₫</span>
+                                                class="font-mono text-emerald-700 font-semibold">-{{ \App\Support\Helpers\FormatHelper::formatCurrency($campaign->discount ?? 0) }}</span>
                                         </div>
                                     @endif
                                     <div
                                         class="flex justify-between items-center pt-2 font-bold text-on-surface border-t border-outline-variant/40">
                                         <span class="text-sm">{{ __('admin.gross_total') }}:</span>
                                         <span class="font-mono text-base text-primary font-bold">
-                                            {{ number_format(max(0, ($grossSubtotal ?? 0) + ($campaign->delivery_fee ?? 0) - ($campaign->discount ?? 0)), 0, ',', '.') }}
-                                            ₫
+                                            {{ \App\Support\Helpers\FormatHelper::formatCurrency(max(0, ($grossSubtotal ?? 0) + ($campaign->delivery_fee ?? 0) - ($campaign->discount ?? 0))) }}
                                         </span>
                                     </div>
                                 </div>
@@ -1456,8 +1450,7 @@
                                                 <span>{{ __('admin.multi_sponsor_subsidy') }}</span>
                                             </span>
                                             <span
-                                                class="font-mono text-emerald-700">-{{ number_format($sponsorSubsidy ?? 0, 0, ',', '.') }}
-                                                ₫</span>
+                                                class="font-mono text-emerald-700">-{{ \App\Support\Helpers\FormatHelper::formatCurrency($sponsorSubsidy ?? 0) }}</span>
                                         </div>
                                         @if (!empty($sponsorsList) && $sponsorsList->isNotEmpty())
                                             <div class="flex flex-wrap items-center gap-1.5 pt-1">
@@ -1477,7 +1470,7 @@
                                                         @if (($sp['amount'] ?? 0) > 0)
                                                             <span
                                                                 class="font-mono text-emerald-800 text-[11px] font-semibold">
-                                                                {{ number_format($sp['amount'], 0, ',', '.') }} ₫
+                                                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($sp['amount']) }}
                                                             </span>
                                                         @endif
                                                     </span>
@@ -1492,7 +1485,7 @@
                                                     <span
                                                         class="font-bold text-emerald-950">{{ $campaign->sponsor_name }}</span>
                                                     <span class="font-mono text-emerald-800 text-[11px] font-semibold">
-                                                        {{ number_format($sponsorSubsidy ?? 0, 0, ',', '.') }} ₫
+                                                        {{ \App\Support\Helpers\FormatHelper::formatCurrency($sponsorSubsidy ?? 0) }}
                                                     </span>
                                                 </span>
                                             </div>
@@ -1732,10 +1725,10 @@
                                                 </span>
                                             </td>
                                             <td class="px-4 py-3 w-36 text-right font-mono text-outline">
-                                                {{ number_format($item['unit_price'], 0, ',', '.') }} ₫
+                                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($item['unit_price']) }}
                                             </td>
                                             <td class="px-4 py-3 w-36 text-right font-mono font-bold text-on-surface">
-                                                {{ number_format($item['total_amount'], 0, ',', '.') }} ₫
+                                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($item['total_amount']) }}
                                             </td>
                                         </tr>
                                     @empty
@@ -1863,7 +1856,7 @@
                                                             <span
                                                                 class="text-primary font-mono font-bold">x{{ $item->quantity }}</span>
                                                             <span
-                                                                class="text-outline font-mono text-[11px]">({{ number_format($item->unit_price, 0, ',', '.') }}₫)</span>
+                                                                class="text-outline font-mono text-[11px]">({{ \App\Support\Helpers\FormatHelper::formatCurrency($item->unit_price) }})</span>
                                                             @if (!empty($item->note))
                                                                 <div
                                                                     class="text-[11px] text-outline italic pl-2 border-l-2 border-outline-variant/60 mt-0.5">
@@ -1883,7 +1876,7 @@
                                                 </div>
                                             </td>
                                             <td class="px-4 py-3 w-32 text-right font-mono font-bold text-on-surface">
-                                                {{ number_format($order->final_amount, 0, ',', '.') }} ₫
+                                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($order->final_amount) }}
                                             </td>
                                             <td class="px-4 py-3 w-36 text-center">
                                                 <div class="flex items-center justify-center min-h-[24px]">
@@ -1990,7 +1983,7 @@
                                             </span>
                                             <span
                                                 class="px-2.5 py-0.5 rounded bg-surface-container-high text-on-surface font-bold">
-                                                {{ number_format($dept['total_amount'], 0, ',', '.') }} ₫
+                                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($dept['total_amount']) }}
                                             </span>
                                         </div>
                                     </div>
@@ -2048,7 +2041,7 @@
                                                         </td>
                                                         <td
                                                             class="px-4 py-2.5 w-32 text-right font-mono font-bold text-on-surface">
-                                                            {{ number_format($item['total_amount'], 0, ',', '.') }} ₫
+                                                            {{ \App\Support\Helpers\FormatHelper::formatCurrency($item['total_amount']) }}
                                                         </td>
                                                     </tr>
                                                 @endforeach
@@ -2142,13 +2135,13 @@
                                                 </td>
                                                 <td class="px-4 py-3 w-32 text-right">
                                                     <div class="font-bold font-mono text-on-surface text-xs">
-                                                        {{ number_format($debt->original_amount, 0, ',', '.') }} ₫
+                                                        {{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->original_amount) }}
                                                     </div>
                                                     <div class="text-[10px] font-mono mt-0.5"
                                                         :class="debtsStatus['{{ $debt->id }}'] === 'paid' ?
                                                             'text-emerald-700' : 'text-amber-700'"
                                                         x-text="debtsStatus['{{ $debt->id }}'] === 'paid' ? '{{ __('admin.filter_debt_paid') }}' : ('{{ __('admin.remaining_debt') }}: ' + formatCurrency({{ (int) $debt->remaining_amount }}))">
-                                                        {{ $debt->status?->value === 'paid' ? __('admin.filter_debt_paid') : __('admin.remaining_debt') . ': ' . number_format($debt->remaining_amount, 0, ',', '.') . ' ₫' }}
+                                                        {{ $debt->status?->value === 'paid' ? __('admin.filter_debt_paid') : __('admin.remaining_debt') . ': ' . \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount) }}
                                                     </div>
                                                 </td>
                                                 <td class="px-4 py-3 text-left">
@@ -2618,29 +2611,26 @@
                             <div class="pt-2 border-t border-outline-variant/40 space-y-1.5">
                                 <div class="flex items-center justify-between text-outline">
                                     <span>{{ __('admin.gross_subtotal') }}</span>
-                                    <span class="font-mono text-on-surface">{{ number_format($grossSubtotal) }}
-                                        ₫</span>
+                                    <span class="font-mono text-on-surface">{{ \App\Support\Helpers\FormatHelper::formatCurrency($grossSubtotal) }}</span>
                                 </div>
                                 @if (($campaign->delivery_fee ?? 0) > 0)
                                     <div class="flex items-center justify-between text-outline">
                                         <span>{{ __('admin.delivery_fee_input') }}</span>
                                         <span
-                                            class="font-mono text-on-surface">+{{ number_format($campaign->delivery_fee) }}
-                                            ₫</span>
+                                            class="font-mono text-on-surface">+{{ \App\Support\Helpers\FormatHelper::formatCurrency($campaign->delivery_fee) }}</span>
                                     </div>
                                 @endif
                                 @if (($campaign->discount ?? 0) > 0)
                                     <div class="flex items-center justify-between text-emerald-600">
                                         <span>{{ __('admin.discount_input') }}</span>
-                                        <span class="font-mono">-{{ number_format($campaign->discount) }} ₫</span>
+                                        <span class="font-mono">-{{ \App\Support\Helpers\FormatHelper::formatCurrency($campaign->discount) }}</span>
                                     </div>
                                 @endif
                                 <div
                                     class="flex items-center justify-between font-bold text-sm text-on-surface pt-2 border-t border-outline-variant/40">
                                     <span>{{ __('admin.net_payable') }}</span>
                                     <span
-                                        class="font-mono text-primary text-base">{{ number_format(max(0, $grossSubtotal + ($campaign->delivery_fee ?? 0) - ($campaign->discount ?? 0))) }}
-                                        ₫</span>
+                                        class="font-mono text-primary text-base">{{ \App\Support\Helpers\FormatHelper::formatCurrency(max(0, $grossSubtotal + ($campaign->delivery_fee ?? 0) - ($campaign->discount ?? 0))) }}</span>
                                 </div>
                             </div>
                         </div>

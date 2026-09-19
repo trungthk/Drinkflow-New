@@ -170,7 +170,7 @@
                     </div>
                     <div>
                         @if($activeCampaign->max_budget && $activeCampaign->max_budget > 0)
-                            <div class="font-bold text-primary font-mono text-sm">{{ number_format($activeCampaign->max_budget) }} ₫</div>
+                            <div class="font-bold text-primary font-mono text-sm">{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeCampaign->max_budget) }}</div>
                         @else
                             <div class="font-semibold text-secondary">{{ __('admin.campaign_budget_unlimited') }}</div>
                         @endif
@@ -394,10 +394,10 @@
                                 @endif
                             </td>
                             <td class="py-3.5 px-4 text-right font-mono">
-                                <div class="text-xs text-outline line-through">{{ number_format($ord->subtotal_amount ?? 0) }} ₫</div>
-                                <div class="font-bold text-sm text-primary" data-order-final-amount="{{ $ord->id }}">{{ number_format($ord->final_amount ?? $ord->subtotal_amount ?? 0) }} ₫</div>
+                                <div class="text-xs text-outline line-through">{{ \App\Support\Helpers\FormatHelper::formatCurrency($ord->subtotal_amount ?? 0) }}</div>
+                                <div class="font-bold text-sm text-primary" data-order-final-amount="{{ $ord->id }}">{{ \App\Support\Helpers\FormatHelper::formatCurrency($ord->final_amount ?? $ord->subtotal_amount ?? 0) }}</div>
                                 @if($ord->sponsor_amount > 0)
-                                    <div class="text-[10px] text-emerald-600">-{{ number_format($ord->sponsor_amount) }} ₫</div>
+                                    <div class="text-[10px] text-emerald-600">-{{ \App\Support\Helpers\FormatHelper::formatCurrency($ord->sponsor_amount) }}</div>
                                 @endif
                             </td>
                             <td class="py-3.5 px-4 text-center">
@@ -423,7 +423,7 @@
                                                         <span class="material-symbols-outlined text-[16px] text-amber-600">lock_open</span>{{ __('admin.unlock_order_btn') }}
                                                     </button>
                                                 @endif
-                                                <button type="button" onclick="openCancelOrderModal({{ $ord->id }}, '{{ addslashes($ord->code ?? 'N/A') }}', '{{ addslashes($member) }}', '{{ number_format($ord->final_amount ?? $ord->subtotal_amount ?? 0) }} ₫'); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-left">
+                                                <button type="button" onclick="openCancelOrderModal({{ $ord->id }}, '{{ addslashes($ord->code ?? 'N/A') }}', '{{ addslashes($member) }}', '{{ \App\Support\Helpers\FormatHelper::formatCurrency($ord->final_amount ?? $ord->subtotal_amount ?? 0) }}'); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-left">
                                                     <span class="material-symbols-outlined text-[16px] text-rose-600">cancel</span>{{ __('admin.cancel_order_btn') }}
                                                 </button>
                                             </div>

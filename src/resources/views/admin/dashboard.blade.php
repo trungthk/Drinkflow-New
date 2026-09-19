@@ -63,8 +63,8 @@
                     <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.total_value_today') }}</span>
                     <span class="material-symbols-outlined text-[18px]">attach_money</span>
                 </div>
-                <div id="metric-total-value" class="text-2xl font-bold text-on-surface truncate">{{ number_format($todayTotalValue ?? 0, 0, ',', '.') }} ₫</div>
-                <div id="metric-sponsors-val" class="text-[11px] text-outline mt-1 font-mono">{{ __('admin.sponsors_today', ['amount' => number_format($todaySponsorValue ?? 0, 0, ',', '.') . ' ₫']) }}</div>
+                <div id="metric-total-value" class="text-2xl font-bold text-on-surface truncate">{{ \App\Support\Helpers\FormatHelper::formatCurrency($todayTotalValue ?? 0) }}</div>
+                <div id="metric-sponsors-val" class="text-[11px] text-outline mt-1 font-mono">{{ __('admin.sponsors_today', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($todaySponsorValue ?? 0)]) }}</div>
             </div>
 
             <!-- Metric 5: Unpaid Debt -->
@@ -73,7 +73,7 @@
                     <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.unpaid_debt') }}</span>
                     <span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-amber-100 text-amber-800 font-bold border border-amber-200">{{ __('admin.needs_settlement') }}</span>
                 </div>
-                <div id="metric-unpaid-debt" class="text-2xl font-bold text-amber-700 truncate">{{ number_format($outstandingDebtsTotal ?? 0, 0, ',', '.') }} ₫</div>
+                <div id="metric-unpaid-debt" class="text-2xl font-bold text-amber-700 truncate">{{ \App\Support\Helpers\FormatHelper::formatCurrency($outstandingDebtsTotal ?? 0) }}</div>
                 <div id="metric-debt-users" class="text-[11px] text-amber-700 mt-1 font-semibold font-mono">{{ __('admin.pending_users', ['count' => $pendingDebtUsersCount ?? 0]) }}</div>
             </div>
         </section>
@@ -91,7 +91,7 @@
                 <div class="flex flex-wrap items-center gap-4">
                     <div class="px-2.5 py-1 bg-surface-container-low rounded border border-outline-variant/60 text-xs font-mono font-semibold text-primary flex items-center gap-1.5">
                         <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                        <span id="chart-summary-badge">{{ __('admin.weekly_total_summary', ['campaigns' => $totalWeekCampaigns ?? 0, 'amount' => number_format($totalWeekSpending ?? 0, 0, ',', '.') . ' ₫']) }}</span>
+                        <span id="chart-summary-badge">{{ __('admin.weekly_total_summary', ['campaigns' => $totalWeekCampaigns ?? 0, 'amount' => \App\Support\Helpers\FormatHelper::formatCurrency($totalWeekSpending ?? 0)]) }}</span>
                     </div>
                 </div>
             </div>
@@ -272,7 +272,7 @@
                                         <td class="py-2.5 px-3 font-mono text-outline">#{{ $order->code }}</td>
                                         <td class="py-2.5 px-3 font-semibold text-on-surface">{{ $order->roomUser?->globalUser?->name ?? $order->roomUser?->display_name ?? __('global.common.member') }}</td>
                                         <td class="py-2.5 px-3 text-outline">{{ $order->campaign?->name ?? __('global.common.campaign') }}</td>
-                                        <td class="py-2.5 px-3 text-right font-mono font-bold text-on-surface">{{ number_format($order->final_amount ?? 0, 0, ',', '.') }} ₫</td>
+                                        <td class="py-2.5 px-3 text-right font-mono font-bold text-on-surface">{{ \App\Support\Helpers\FormatHelper::formatCurrency($order->final_amount ?? 0) }}</td>
                                         <td class="py-2.5 px-3 text-center">
                                             <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold {{ ($order->status instanceof \BackedEnum ? $order->status->value : $order->status) === 'confirmed' ? 'bg-emerald-50 text-emerald-700' : (($order->status instanceof \BackedEnum ? $order->status->value : $order->status) === 'cancelled' ? 'bg-rose-50 text-rose-700' : 'bg-blue-50 text-blue-700') }}">
                                                 {{ $order->status instanceof \BackedEnum ? $order->status->value : ($order->status ?? 'pending') }}

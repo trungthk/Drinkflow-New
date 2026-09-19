@@ -110,7 +110,7 @@
                                 {{ __('admin.orders_unit', ['count' => $camp->orders_count ?? 0]) }}
                             </td>
                             <td class="py-3.5 px-4 text-right font-mono font-bold text-primary">
-                                {{ number_format($camp->subtotal_amount ?? 0) }} ₫
+                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($camp->subtotal_amount ?? 0) }}
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <details class="relative inline-block text-left">

@@ -105,7 +105,7 @@
                             class="block font-semibold text-[11px] text-outline mb-1">{{ __('admin.product_budget_limit_hint') }}</label>
                         <div class="relative">
                             <input type="text" inputmode="numeric" id="set-max-budget" data-format-currency="true"
-                                value="{{ number_format((int) ($settings['max_campaign_budget'] ?? 70000), 0, ',', '.') }}"
+                                value="{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) ($settings['max_campaign_budget'] ?? 70000)) }}"
                                 class="w-full h-9 pl-3 pr-16 bg-surface border border-outline-variant rounded-lg font-mono font-bold text-xs text-primary focus:border-primary focus:ring-1 focus:ring-primary">
                             <span
                                 class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-outline">{{ __('admin.vnd_unit') }}</span>
@@ -125,7 +125,7 @@
                             class="block font-semibold text-[11px] text-outline mb-1">{{ __('admin.personal_debt_ceiling') }}:</label>
                         <div class="relative">
                             <input type="text" inputmode="numeric" id="set-debt-ceiling" data-format-currency="true"
-                                value="{{ number_format((int) ($settings['personal_debt_ceiling'] ?? 150000), 0, ',', '.') }}"
+                                value="{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) ($settings['personal_debt_ceiling'] ?? 150000)) }}"
                                 class="w-full h-9 pl-3 pr-16 bg-surface border border-outline-variant rounded-lg font-mono font-bold text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary">
                             <span
                                 class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-outline">{{ __('admin.vnd_unit') }}</span>

@@ -3,9 +3,9 @@
     $summaryText = "🛒 " . $campaign->name . "\n" .
         $campaign->restaurant . "\n" .
         "-----------------------------------\n" .
-        $aggregatedItems->map(fn($agg) => "• " . $agg['quantity'] . "x " . $agg['name'] . ($agg['size'] ? " (" . $agg['size'] . ")" : "") . ($agg['toppings']->isNotEmpty() ? " + " . $agg['toppings']->join(", ") : "") . " - " . number_format($agg['total_amount'], 0, ',', '.') . "đ" . ($agg['notes']->isNotEmpty() ? "\n   Note: " . $agg['notes']->join(", ") : ""))->join("\n") .
+        $aggregatedItems->map(fn($agg) => "• " . $agg['quantity'] . "x " . $agg['name'] . ($agg['size'] ? " (" . $agg['size'] . ")" : "") . ($agg['toppings']->isNotEmpty() ? " + " . $agg['toppings']->join(", ") : "") . " - " . \App\Support\Helpers\FormatHelper::formatCurrency($agg['total_amount']) . ($agg['notes']->isNotEmpty() ? "\n   Note: " . $agg['notes']->join(", ") : ""))->join("\n") .
         "\n-----------------------------------\n" .
-        __('admin.gross_subtotal') . ": " . number_format($campaign->orders->sum('subtotal'), 0, ',', '.') . " ₫";
+        __('admin.gross_subtotal') . ": " . \App\Support\Helpers\FormatHelper::formatCurrency($campaign->orders->sum('subtotal'));
 @endphp
 <div class="max-w-[1600px] mx-auto space-y-6" x-data="liveCampaignComponent({
     roomSlug: '{{ $room->slug }}',
@@ -168,7 +168,7 @@
                         </div>
                         <div class="text-right font-mono">
                             <span class="font-bold text-primary block">SL: {{ $agg['quantity'] }}</span>
-                            <span class="text-[11px] text-outline">{{ number_format($agg['total_amount'], 0, ',', '.') }} ₫</span>
+                            <span class="text-[11px] text-outline">{{ \App\Support\Helpers\FormatHelper::formatCurrency($agg['total_amount']) }}</span>
                         </div>
                     </div>
                     @empty
@@ -196,27 +196,27 @@
                 <div class="space-y-2 text-xs">
                     <div class="flex justify-between items-center text-outline">
                         <span>{{ __('admin.gross_subtotal') }}:</span>
-                        <span class="font-mono font-bold text-on-surface">{{ number_format($campaign->orders->sum('subtotal'), 0, ',', '.') }} ₫</span>
+                        <span class="font-mono font-bold text-on-surface">{{ \App\Support\Helpers\FormatHelper::formatCurrency($campaign->orders->sum('subtotal')) }}</span>
                     </div>
                     <div class="flex justify-between items-center text-outline">
                         <span class="flex items-center gap-1">{{ __('admin.share_shipping_fee') }}:</span>
-                        <span class="font-mono font-bold text-error">+{{ number_format($campaign->delivery_fee ?? 0, 0, ',', '.') }} ₫</span>
+                        <span class="font-mono font-bold text-error">+{{ \App\Support\Helpers\FormatHelper::formatCurrency($campaign->delivery_fee ?? 0) }}</span>
                     </div>
                     <div class="flex justify-between items-center text-outline">
                         <span>{{ __('admin.voucher_discount') }}:</span>
-                        <span class="font-mono font-bold text-emerald-600">-{{ number_format($campaign->discount ?? 0, 0, ',', '.') }} ₫</span>
+                        <span class="font-mono font-bold text-emerald-600">-{{ \App\Support\Helpers\FormatHelper::formatCurrency($campaign->discount ?? 0) }}</span>
                     </div>
                     @if($campaign->sponsor_name)
                     <div class="bg-surface-container-low p-2.5 rounded-lg border border-outline-variant space-y-1">
                         <div class="flex justify-between items-center text-primary font-bold">
                             <span>{{ $campaign->sponsor_name }}:</span>
-                            <span class="font-mono">-{{ number_format(min($campaign->max_budget ?? 99999999, $campaign->orders->sum('total_amount')), 0, ',', '.') }} ₫</span>
+                            <span class="font-mono">-{{ \App\Support\Helpers\FormatHelper::formatCurrency(min($campaign->max_budget ?? 99999999, $campaign->orders->sum('total_amount'))) }}</span>
                         </div>
                     </div>
                     @endif
                     <div class="flex justify-between items-center pt-2 border-t border-outline-variant font-bold text-sm">
                         <span class="text-on-surface">{{ __('admin.net_payable') }}:</span>
-                        <span class="font-mono text-primary text-base">{{ number_format($campaign->orders->sum('total_amount'), 0, ',', '.') }} ₫</span>
+                        <span class="font-mono text-primary text-base">{{ \App\Support\Helpers\FormatHelper::formatCurrency($campaign->orders->sum('total_amount')) }}</span>
                     </div>
                 </div>
             </div>
@@ -224,11 +224,11 @@
             <div class="grid grid-cols-2 gap-3 pt-3 border-t border-outline-variant text-xs">
                 <div class="p-3 rounded-lg bg-surface-container border border-outline-variant">
                     <span class="text-outline block">{{ __('admin.total_member_collected') }}:</span>
-                    <span class="font-mono font-bold text-primary text-sm block mt-0.5">{{ number_format($campaign->orders->where('status', 'paid')->sum('total_amount'), 0, ',', '.') }} ₫</span>
+                    <span class="font-mono font-bold text-primary text-sm block mt-0.5">{{ \App\Support\Helpers\FormatHelper::formatCurrency($campaign->orders->where('status', 'paid')->sum('total_amount')) }}</span>
                 </div>
                 <div class="p-3 rounded-lg bg-surface-container border border-outline-variant">
                     <span class="text-outline block">{{ __('admin.member_debt_remaining') }}:</span>
-                    <span class="font-mono font-bold text-error text-sm block mt-0.5">{{ number_format($campaign->orders->whereNotIn('status', ['paid', 'cancelled'])->sum('total_amount'), 0, ',', '.') }} ₫</span>
+                    <span class="font-mono font-bold text-error text-sm block mt-0.5">{{ \App\Support\Helpers\FormatHelper::formatCurrency($campaign->orders->whereNotIn('status', ['paid', 'cancelled'])->sum('total_amount')) }}</span>
                 </div>
             </div>
         </div>
@@ -288,10 +288,10 @@
                             </div>
                         </td>
                         <td class="py-2.5 px-3 text-right font-mono text-outline">
-                            {{ number_format($order->subtotal, 0, ',', '.') }} ₫
+                            {{ \App\Support\Helpers\FormatHelper::formatCurrency($order->subtotal) }}
                         </td>
                         <td class="py-2.5 px-3 text-right font-mono font-bold text-on-surface">
-                            {{ number_format($order->total_amount, 0, ',', '.') }} ₫
+                            {{ \App\Support\Helpers\FormatHelper::formatCurrency($order->total_amount) }}
                         </td>
                         <td class="py-2.5 px-3 text-center whitespace-nowrap">
                             @if($order->status === 'paid')

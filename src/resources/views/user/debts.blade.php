@@ -46,7 +46,7 @@
             accountNumber: '{{ $vietqrData['account_number'] ?? '' }}',
             accountName: '{{ $vietqrData['account_name'] ?? '' }}',
             amount: {{ $totalPayableAmount }},
-            formattedAmount: '{{ number_format($totalPayableAmount, 0, ',', '.') }}đ',
+            formattedAmount: '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}',
             transferContent: '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}',
             qrPayload: {{ Js::from($vietqrData['payload'] ?? '') }},
             qrDataUrl: ''
@@ -148,10 +148,10 @@
             @if($totalPayableAmount > 0)
                 <button
                     class="px-3.5 py-1.5 rounded-lg bg-[#006948] hover:bg-[#005137] text-white text-xs font-semibold shadow-2xs transition-all inline-flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
-                    @click="openQr({{ $totalPayableAmount }}, '{{ number_format($totalPayableAmount, 0, ',', '.') }}đ', '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}', '', null, false)">
+                    @click="openQr({{ $totalPayableAmount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}', '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}', '', null, false)">
                     <span class="material-symbols-outlined text-[17px] text-white">qr_code_2</span>
                     <span
-                        class="text-white">{{ __('room.debts.pay_all', ['amount' => number_format($totalPayableAmount, 0, ',', '.') . 'đ']) }}</span>
+                        class="text-white">{{ __('room.debts.pay_all', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount)]) }}</span>
                 </button>
             @endif
         </div>
@@ -172,7 +172,7 @@
                 <div class="mt-2.5">
                     <div class="flex items-baseline gap-2">
                         <span class="text-lg sm:text-xl text-error tracking-tight font-bold font-tabular-nums">
-                            {{ number_format($totalUnpaidAmount, 0, ',', '.') }}đ
+                            {{ \App\Support\Helpers\FormatHelper::formatCurrency($totalUnpaidAmount) }}
                         </span>
                         <span class="text-[11px] text-error bg-error-container px-1.5 py-0.5 rounded font-medium">
                             {{ __('room.debts.unpaid_count', ['count' => $unpaidDebts->count()]) }}
@@ -207,7 +207,7 @@
                 <div class="mt-2.5">
                     <div class="flex items-baseline gap-2">
                         <span class="text-lg sm:text-xl text-primary tracking-tight font-bold font-tabular-nums">
-                            {{ number_format($totalPaidMonthAmount, 0, ',', '.') }}đ
+                            {{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPaidMonthAmount) }}
                         </span>
                         <span class="text-[11px] text-primary bg-primary-fixed px-1.5 py-0.5 rounded font-medium">
                             {{ __('room.debts.paid_count', ['count' => $totalPaidMonthCount]) }}
@@ -241,7 +241,7 @@
                 <div class="mt-2.5">
                     <div class="flex items-baseline gap-2">
                         <span class="text-lg sm:text-xl text-secondary tracking-tight font-bold font-tabular-nums">
-                            {{ number_format($totalSponsorAmount ?? 0, 0, ',', '.') }}đ
+                            {{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSponsorAmount ?? 0) }}
                         </span>
                         <span
                             class="text-[11px] text-secondary bg-secondary-container px-1.5 py-0.5 rounded font-medium">{{ __('room.debts.sponsored_label') }}</span>
@@ -330,7 +330,7 @@
                                     </td>
                                     <td
                                         class="py-2.5 px-2.5 text-right font-tabular-nums font-bold text-xs {{ $debt->remaining_amount > 0 ? 'text-error' : 'text-on-surface' }}">
-                                        {{ number_format($debt->remaining_amount > 0 ? $debt->remaining_amount : $debt->original_amount, 0, ',', '.') }}đ
+                                        {{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount > 0 ? $debt->remaining_amount : $debt->original_amount) }}
                                     </td>
                                     <td class="py-2.5 px-2.5 text-center">
                                         @if($isPaid)
@@ -357,7 +357,7 @@
                                         @if(!$isPaid && $debt->remaining_amount > 0)
                                             <button
                                                 class="px-2.5 py-1 rounded bg-[#006948] text-white hover:bg-[#005137] transition-all inline-flex items-center gap-1 shadow-2xs cursor-pointer font-medium text-xs"
-                                                @click="openQr({{ (int) $debt->remaining_amount }}, '{{ number_format($debt->remaining_amount, 0, ',', '.') }}đ', '{{ $debt->code }}', '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }})">
+                                                @click="openQr({{ (int) $debt->remaining_amount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount) }}', '{{ $debt->code }}', '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }})">
                                                 <span class="material-symbols-outlined text-[14px] text-white">qr_code</span>
                                                 <span class="text-white">{{ __('room.debts.btn_view_qr') }}</span>
                                             </button>

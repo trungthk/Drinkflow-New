@@ -19,7 +19,7 @@
                 <span class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.total_store_spending') }}</span>
                 <span class="material-symbols-outlined text-[20px] text-secondary">receipt_long</span>
             </div>
-            <div class="text-2xl font-bold font-mono text-on-surface mt-2">{{ number_format($totalSpent ?? 0) }} ₫</div>
+            <div class="text-2xl font-bold font-mono text-on-surface mt-2">{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSpent ?? 0) }}</div>
             <div class="text-[11px] text-outline mt-1">{{ __('admin.kpi_total_spent_desc') }}</div>
         </div>
 
@@ -28,7 +28,7 @@
                 <span class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.total_member_collected') }}</span>
                 <span class="material-symbols-outlined text-[20px] text-emerald-600">check_circle</span>
             </div>
-            <div class="text-2xl font-bold font-mono text-emerald-600 mt-2">{{ number_format($totalCollected ?? 0) }} ₫</div>
+            <div class="text-2xl font-bold font-mono text-emerald-600 mt-2">{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalCollected ?? 0) }}</div>
             <div class="text-[11px] text-emerald-700 mt-1">{{ __('admin.kpi_collected_desc') }}</div>
         </div>
 
@@ -37,7 +37,7 @@
                 <span class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.store_debt_pending') }}</span>
                 <span class="material-symbols-outlined text-[20px] text-blue-600">storefront</span>
             </div>
-            <div class="text-2xl font-bold font-mono text-blue-600 mt-2">{{ number_format($storeDebtPending ?? 0) }} ₫</div>
+            <div class="text-2xl font-bold font-mono text-blue-600 mt-2">{{ \App\Support\Helpers\FormatHelper::formatCurrency($storeDebtPending ?? 0) }}</div>
             <div class="text-[11px] text-outline mt-1">{{ __('admin.kpi_store_debt_desc') }}</div>
         </div>
 
@@ -46,7 +46,7 @@
                 <span class="text-[11px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.member_debt_remaining') }}</span>
                 <span class="material-symbols-outlined text-[20px] text-amber-600">pending_actions</span>
             </div>
-            <div class="text-2xl font-bold font-mono text-amber-600 mt-2">{{ number_format($memberDebtRemaining ?? 0) }} ₫</div>
+            <div class="text-2xl font-bold font-mono text-amber-600 mt-2">{{ \App\Support\Helpers\FormatHelper::formatCurrency($memberDebtRemaining ?? 0) }}</div>
             <div class="text-[11px] text-amber-700 mt-1">{{ __('admin.kpi_member_debt_desc') }}</div>
         </div>
     </div>
@@ -138,10 +138,10 @@
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-right font-mono text-secondary">
-                                {{ number_format($debt->original_amount ?? 0) }} ₫
+                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->original_amount ?? 0) }}
                             </td>
                             <td class="py-3.5 px-4 text-right font-mono font-bold text-sm {{ $debt->remaining_amount > 0 ? 'text-amber-600' : 'text-emerald-600' }}">
-                                {{ number_format($debt->remaining_amount ?? 0) }} ₫
+                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount ?? 0) }}
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
