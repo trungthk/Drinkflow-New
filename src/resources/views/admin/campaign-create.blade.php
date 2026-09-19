@@ -10,6 +10,8 @@
      data-store-url="{{ route('admin.campaigns.store', $room) }}"
      data-index-url="{{ route('admin.campaigns.page', $room) }}"
      data-image-upload-url="{{ route('admin.campaigns.menu-images.store', $room) }}"
+     data-sponsor-type-full="{{ \App\Models\Campaign::SPONSOR_TYPE_FULL }}"
+     data-sponsor-type-none="{{ \App\Models\Campaign::SPONSOR_TYPE_NONE }}"
      x-data="campaignCreateComponent(@js($campaignDefaults), @js($roomUsers->map(fn ($roomUser) => [
          'id' => $roomUser->id,
          'name' => $roomUser->globalUser?->name ?? $roomUser->display_name,
@@ -217,7 +219,7 @@
                     </select>
                 </div>
 
-                <div x-show="form.sponsor_type === 'full'" x-cloak class="space-y-2">
+                <div x-show="form.sponsor_type === document.getElementById('campaign-create-page').getAttribute('data-sponsor-type-full')" x-cloak class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-semibold text-on-surface">{{ __('admin.sponsor_users_label') }}</span>
                         <button type="button" @click="addSponsor()" class="text-xs text-primary font-semibold hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">add</span><span>{{ __('admin.add_sponsor') }}</span></button>
@@ -258,7 +260,7 @@
                         <span class="absolute right-3 top-2 text-xs text-outline font-mono">đ</span>
                     </div>
                 </div>
-                <div x-show="form.sponsor_type !== 'none'">
+                <div x-show="form.sponsor_type !== document.getElementById('campaign-create-page').getAttribute('data-sponsor-type-none')">
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_description_label') }}</label>
                     <textarea x-model="form.sponsor_description" rows="2" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface"></textarea>
                 </div>

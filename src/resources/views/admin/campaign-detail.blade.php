@@ -1138,7 +1138,7 @@
                                         @endif
                                     </div>
                                 @endforeach
-                            @elseif($campaign->sponsor_type === 'full' || !empty($campaign->sponsor_name))
+                            @elseif($campaign->sponsor_type === \App\Models\Campaign::SPONSOR_TYPE_FULL || !empty($campaign->sponsor_name))
                                 <div
                                     class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-medium shadow-2xs">
                                     <span class="material-symbols-outlined text-[16px] text-emerald-700">redeem</span>
@@ -1146,7 +1146,7 @@
                                         class="font-bold text-emerald-950">{{ $campaign->sponsor_name ?: __('admin.sponsor_info') }}</span>
                                     <span
                                         class="text-[11px] px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 font-semibold">
-                                        {{ $campaign->sponsor_type === 'full' ? __('admin.sponsor_type_full') : __('admin.sponsor_type_custom') }}
+                                        {{ $campaign->sponsor_type === \App\Models\Campaign::SPONSOR_TYPE_FULL ? __('admin.sponsor_type_full') : __('admin.sponsor_type_custom') }}
                                     </span>
                                 </div>
                             @endif
@@ -1440,7 +1440,7 @@
                                 @if (
                                     $sponsorSubsidy > 0 ||
                                         !empty($campaign->sponsor_name) ||
-                                        $campaign->sponsor_type === 'full' ||
+                                        $campaign->sponsor_type === \App\Models\Campaign::SPONSOR_TYPE_FULL ||
                                         (!empty($campaign->sponsor_allocations) && count($campaign->sponsor_allocations) > 0))
                                     <div
                                         class="space-y-2.5 bg-surface-container-low p-3.5 rounded-lg border border-outline-variant/60">

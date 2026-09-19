@@ -45,7 +45,7 @@ class CampaignController extends Controller
 
         /** @var RoomUser|null $roomUser */
         $roomUser = $request->attributes->get('room_user');
-        $isFullSponsor = $campaign->sponsor_type === 'full';
+        $isFullSponsor = $campaign->sponsor_type === Campaign::SPONSOR_TYPE_FULL;
 
         $ordersQuery = $campaign->orders()
             ->with([

@@ -13,7 +13,7 @@
     $bankName = $campaignAccount?->bank_name ?? '';
     $accountNumber = $campaignAccount?->account_number ?? '';
     $accountName = $campaignAccount?->account_name ?? '';
-    $isFullSponsor = $activeOrder?->campaign?->sponsor_type === 'full' || ((int) ($activeOrder?->sponsor_amount ?? 0) >= (int) ($activeOrder?->subtotal ?? 0) && (int) ($activeOrder?->subtotal ?? 0) > 0);
+    $isFullSponsor = $activeOrder?->campaign?->sponsor_type === \App\Models\Campaign::SPONSOR_TYPE_FULL || ((int) ($activeOrder?->sponsor_amount ?? 0) >= (int) ($activeOrder?->subtotal ?? 0) && (int) ($activeOrder?->subtotal ?? 0) > 0);
     $orderFinalAmount = (int) ($activeOrder?->final_amount ?? 0);
     if ($orderFinalAmount <= 0 && !$isFullSponsor && (int) ($activeOrder?->subtotal ?? 0) > 0) {
         $orderFinalAmount = max(0, (int) $activeOrder->subtotal - (int) ($activeOrder->sponsor_amount ?? 0));
@@ -45,7 +45,7 @@
     if ($orderSponsorsList->isEmpty() && !empty($orderCampaign?->sponsor_name)) {
         $orderSponsorsList->push([
             'name' => $orderCampaign->sponsor_name,
-            'percentage' => (float) ($orderCampaign->sponsor_percentage ?? ($orderCampaign->sponsor_type === 'full' ? 100 : 0)),
+            'percentage' => (float) ($orderCampaign->sponsor_percentage ?? ($orderCampaign->sponsor_type === \App\Models\Campaign::SPONSOR_TYPE_FULL ? 100 : 0)),
             'amount' => (int) ($activeOrder?->sponsor_amount ?? 0),
         ]);
     }

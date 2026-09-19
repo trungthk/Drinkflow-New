@@ -7,7 +7,7 @@
         'deadline' => $campaign->deadline?->format('Y-m-d\TH:i') ?? '',
         'payment_account_id' => $campaign->payment_account_id ? (string) $campaign->payment_account_id : '',
         'description' => $campaign->description ?? '',
-        'sponsor_type' => $campaign->sponsor_type ?? 'none',
+        'sponsor_type' => $campaign->sponsor_type ?? \App\Models\Campaign::SPONSOR_TYPE_NONE,
         'sponsor_description' => $campaign->sponsor_description ?? '',
         'max_budget' => $campaign->max_budget ?? $maxBudget,
         'flat_price' => $campaign->flat_price ?? '',
@@ -47,6 +47,8 @@
      data-delete-url="{{ route('admin.campaigns.destroy', [$room, $campaign]) }}"
      data-index-url="{{ route('admin.campaigns.page', $room) }}"
      data-image-upload-url="{{ route('admin.campaigns.menu-images.store', $room) }}"
+     data-sponsor-type-full="{{ \App\Models\Campaign::SPONSOR_TYPE_FULL }}"
+     data-sponsor-type-none="{{ \App\Models\Campaign::SPONSOR_TYPE_NONE }}"
      x-data="campaignCreateComponent(
         { max_budget: {{ (int) $maxBudget }} },
         @js($roomUsers->map(fn ($roomUser) => [
@@ -286,7 +288,7 @@
                     </select>
                 </div>
 
-                <div x-show="form.sponsor_type === 'full'" x-cloak class="space-y-2">
+                <div x-show="form.sponsor_type === document.getElementById('campaign-edit-page').getAttribute('data-sponsor-type-full')" x-cloak class="space-y-2">
                     <div class="flex items-center justify-between">
                         <span class="text-xs font-semibold text-on-surface">{{ __('admin.sponsor_users_label') }}</span>
                         <button type="button" @click="addSponsor()" class="text-xs text-primary font-semibold hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">add</span><span>{{ __('admin.add_sponsor') }}</span></button>
