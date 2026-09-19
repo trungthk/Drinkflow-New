@@ -1432,4 +1432,10 @@ return [
     'confirm_update_items_status_desc' => ':count 件のメニュー項目のステータス変更を保存しますか？',
     'confirm_update_btn' => '更新を確定',
     'campaign_menu' => 'キャンペーンとメニュー', 'toppings_label' => 'トッピング', 'broadcast_notification' => '通知を送信', 'broadcast_type' => '通知タイプ', 'broadcast_general' => '一般通知', 'broadcast_campaign' => '新しいキャンペーン', 'broadcast_payment' => '支払いリマインダー', 'broadcast_title' => 'タイトル', 'broadcast_content' => '内容', 'broadcast_confirm' => 'アクティブなメンバーへ送信', 'broadcast_sample_title' => 'ルーム管理者からのお知らせ', 'broadcast_sample_body' => 'ルームの最新情報をご確認ください。', 'broadcast_campaign_title' => '新しいキャンペーンが開始されました', 'broadcast_campaign_body' => 'メニューを開き、締切前に注文してください。', 'broadcast_payment_title' => '支払いリマインダー', 'broadcast_payment_body' => '未払いの債務をご確認ください。', 'broadcast_sent' => ':count人に通知を送信しました。', 'broadcast_failed' => '通知を送信できませんでした。',
+
+    // Auth Response Messages
+    'logged_out' => 'ログアウトしました。',
+    'otp_dispatched_success' => 'OTP確認コードがメールに送信されました。',
+    'otp_verified_success' => 'OTP確認コードが有効です。',
+    'password_reset_successfully' => 'パスワードが正常にリセットされました。',
 ];

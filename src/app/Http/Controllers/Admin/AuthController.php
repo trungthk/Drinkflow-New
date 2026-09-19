@@ -213,7 +213,7 @@ class AuthController extends Controller
         $authService->logout($request);
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'logged_out']);
+            return response()->json(['message' => __('admin.logged_out')]);
         }
 
         return redirect()->route('admin.login.page');
@@ -243,7 +243,7 @@ class AuthController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'OTP dispatched successfully',
+                'message' => __('admin.otp_dispatched_success'),
                 'email' => $email,
             ]);
         }
@@ -287,7 +287,7 @@ class AuthController extends Controller
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'OTP verified',
+                'message' => __('admin.otp_verified_success'),
                 'redirect_url' => $signedUrl,
             ]);
         }
@@ -332,7 +332,7 @@ class AuthController extends Controller
         $authService->resetPassword((string) $request->input('password'), $request->ip() ?? '127.0.0.1');
 
         if ($request->expectsJson()) {
-            return response()->json(['message' => 'Password reset successfully']);
+            return response()->json(['message' => __('admin.password_reset_successfully')]);
         }
 
         return redirect()->route('admin.login.page')->with('status', __('admin.password_reset_success'));
