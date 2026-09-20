@@ -1,10 +1,12 @@
+import { formatMoney } from '../shared/money';
+
 /**
  * Admin Reports & Financial Analytics Controller
  */
 export function initAdminReports() {
     const dateRangePicker = document.querySelector('#report-date-range');
     const roomSlug = document.querySelector('[data-room-slug]')?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
-    const money = v => new Intl.NumberFormat('vi-VN').format(Number(v || 0)) + ' ₫';
+    const money = formatMoney;
 
     let currentActiveTab = 'campaigns';
     const loadedTabCache = new Set();
@@ -17,6 +19,52 @@ export function initAdminReports() {
                 </div>
                 ${title ? `<h4 class="text-xs font-bold text-on-surface mb-0.5">${title}</h4>` : ''}
                 <p class="text-xs text-outline font-medium max-w-sm leading-relaxed">${description}</p>
+            </div>
+        `;
+    }
+
+    const i18n = JSON.parse(document.querySelector('#report-tabs')?.dataset.i18n || '{}');
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    })[char]);
+    const ALIGN_CLASS = { left: 'text-left', center: 'text-center', right: 'text-right' };
+
+    /**
+     * Render the member identity cell: display name with the account email underneath.
+     */
+    function memberCellHtml(name, email) {
+        return `
+            <div class="font-semibold text-on-surface truncate">${escapeHtml(name || i18n.member)}</div>
+            ${email ? `<div class="text-[11px] text-outline truncate">${escapeHtml(email)}</div>` : ''}
+        `;
+    }
+
+    /**
+     * Render a report table whose header and body share one column definition,
+     * so widths, alignment and typography always match.
+     *
+     * @param {Array<{label: string, align?: string, width?: string}>} columns Column definitions.
+     * @param {Array<Array<string>>} rows Pre-rendered cell HTML per row, in column order.
+     */
+    function reportTableHtml(columns, rows) {
+        const cellClass = (column) => `py-3 px-4 align-middle ${ALIGN_CLASS[column.align || 'left']}`;
+        return `
+            <div class="overflow-x-auto border border-outline-variant/60 rounded-xl">
+                <table class="report-table table-colgroup w-full table-fixed text-left text-xs border-collapse">
+                    <colgroup>${columns.map((column) => `<col${column.width ? ` style="width:${column.width}"` : ''}>`).join('')}</colgroup>
+                    <thead>
+                        <tr class="bg-surface-container-low text-outline uppercase text-[11px] tracking-wide font-semibold border-b border-outline-variant/60">
+                            ${columns.map((column) => `<th class="${cellClass(column)}">${escapeHtml(column.label)}</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/40">
+                        ${rows.map((cells) => `
+                            <tr class="hover:bg-surface-container-low/50 transition-colors">
+                                ${cells.map((cell, index) => `<td class="${cellClass(columns[index])}">${cell}</td>`).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
             </div>
         `;
     }
@@ -120,7 +168,7 @@ export function initAdminReports() {
                             </div>
                         `).join('');
                     } else {
-                        drinksList.innerHTML = emptyStateHtml('local_cafe', 'Chưa có dữ liệu món ăn', 'Chưa ghi nhận đồ uống nào trong khoảng thời gian đã chọn.');
+                        drinksList.innerHTML = emptyStateHtml('local_cafe', escapeHtml(i18n.noDrinksTitle), escapeHtml(i18n.noDrinksDesc));
                     }
                 }
 
@@ -136,7 +184,7 @@ export function initAdminReports() {
                             </div>
                         `).join('');
                     } else {
-                        storesList.innerHTML = emptyStateHtml('storefront', 'Chưa có dữ liệu quán ăn', 'Chưa ghi nhận quán ăn nào trong khoảng thời gian đã chọn.');
+                        storesList.innerHTML = emptyStateHtml('storefront', escapeHtml(i18n.noStoresTitle), escapeHtml(i18n.noStoresDesc));
                     }
                 }
             }
@@ -145,56 +193,31 @@ export function initAdminReports() {
             if (tabId === 'debts' || tabId === 'all') {
                 if (debtsList) {
                     if (data.debts_by_user && data.debts_by_user.length > 0) {
-                        debtsList.innerHTML = `
-                            <div class="overflow-x-auto border border-outline-variant/60 rounded-xl">
-                                <table class="w-full text-left text-xs border-collapse">
-                                <thead>
-                                    <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant/60">
-                                        <th class="py-3 px-4">Thành viên</th>
-                                        <th class="py-3 px-4 text-center">Số đợt nợ</th>
-                                        <th class="py-3 px-4 text-right">Tổng nợ ban đầu</th>
-                                        <th class="py-3 px-4 text-right">Đã thanh toán</th>
-                                        <th class="py-3 px-4 text-right">Còn nợ lại</th>
-                                        <th class="py-3 px-4 text-center">Trạng thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-outline-variant/40">
-                                    ${data.debts_by_user.map(u => {
-                                        const remaining = Number(u.outstanding_debt || 0);
-                                        const isCleared = remaining <= 0;
-                                        return `
-                                            <tr class="hover:bg-surface-container-low/50 transition-colors">
-                                                <td class="py-3 px-4">
-                                                    <div class="font-bold text-on-surface">${u.user_name || 'Thành viên'}</div>
-                                                    ${u.user_code ? `<div class="text-[10px] font-mono text-outline">${u.user_code}</div>` : ''}
-                                                </td>
-                                                <td class="py-3 px-4 text-center font-mono font-semibold text-on-surface">
-                                                    ${u.debt_count}
-                                                </td>
-                                                <td class="py-3 px-4 text-right font-mono font-semibold text-outline">
-                                                    ${money(u.total_original)}
-                                                </td>
-                                                <td class="py-3 px-4 text-right font-mono font-semibold text-emerald-600">
-                                                    ${money(u.total_paid)}
-                                                </td>
-                                                <td class="py-3 px-4 text-right font-mono font-bold ${isCleared ? 'text-outline' : 'text-error'}">
-                                                    ${money(remaining)}
-                                                </td>
-                                                <td class="py-3 px-4 text-center">
-                                                    ${isCleared 
-                                                        ? '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"><span class="material-symbols-outlined text-[12px]">check_circle</span>Đã trả hết</span>'
-                                                        : '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"><span class="material-symbols-outlined text-[12px]">schedule</span>Còn nợ</span>'
-                                                    }
-                                                </td>
-                                            </tr>
-                                        `;
-                                    }).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `;
+                        const columns = [
+                            { label: i18n.member, width: '26%' },
+                            { label: i18n.debtCount, align: 'center', width: '11%' },
+                            { label: i18n.totalOriginal, align: 'right', width: '16%' },
+                            { label: i18n.totalPaid, align: 'right', width: '16%' },
+                            { label: i18n.totalRemaining, align: 'right', width: '16%' },
+                            { label: i18n.status, align: 'center', width: '15%' },
+                        ];
+                        const rows = data.debts_by_user.map((u) => {
+                            const remaining = Number(u.outstanding_debt || 0);
+                            const isCleared = remaining <= 0;
+                            return [
+                                memberCellHtml(u.user_name, u.user_email),
+                                `<span class="font-mono font-semibold text-on-surface">${u.debt_count}</span>`,
+                                `<span class="font-mono font-semibold text-outline">${money(u.total_original)}</span>`,
+                                `<span class="font-mono font-semibold text-emerald-600">${money(u.total_paid)}</span>`,
+                                `<span class="font-mono font-bold ${isCleared ? 'text-outline' : 'text-error'}">${money(remaining)}</span>`,
+                                isCleared
+                                    ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20"><span class="material-symbols-outlined text-[12px]">check_circle</span>${escapeHtml(i18n.statusCleared)}</span>`
+                                    : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"><span class="material-symbols-outlined text-[12px]">schedule</span>${escapeHtml(i18n.statusOwing)}</span>`,
+                            ];
+                        });
+                        debtsList.innerHTML = reportTableHtml(columns, rows);
                     } else {
-                        debtsList.innerHTML = emptyStateHtml('check_circle', 'Không có công nợ phát sinh', 'Tất cả các khoản nợ trong chu kỳ này đã được thanh toán hoặc chưa có phát sinh nợ mới.');
+                        debtsList.innerHTML = emptyStateHtml('check_circle', escapeHtml(i18n.noDebtsTitle), escapeHtml(i18n.noDebtsDesc));
                     }
                 }
             }
@@ -203,41 +226,25 @@ export function initAdminReports() {
             if (tabId === 'sponsors' || tabId === 'all') {
                 if (sponsorsList) {
                     if (data.sponsors_leaderboard && data.sponsors_leaderboard.length > 0) {
-                        sponsorsList.innerHTML = `
-                            <div class="overflow-x-auto border border-outline-variant/60 rounded-xl">
-                                <table class="w-full text-left text-xs border-collapse">
-                                <thead>
-                                    <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant/60">
-                                        <th class="py-3 px-4 text-center w-12">Hạng</th>
-                                        <th class="py-3 px-4">Nhà tài trợ</th>
-                                        <th class="py-3 px-4 text-center">Số đơn tài trợ</th>
-                                        <th class="py-3 px-4 text-right">Tổng tài trợ</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-outline-variant/40">
-                                    ${data.sponsors_leaderboard.map((s, idx) => `
-                                        <tr class="hover:bg-surface-container-low/50 transition-colors">
-                                            <td class="py-3 px-4 text-center">
-                                                <span class="w-6 h-6 rounded-full inline-flex items-center justify-center font-bold text-xs ${idx === 0 ? 'bg-amber-400 text-amber-950 shadow-xs' : idx === 1 ? 'bg-slate-300 text-slate-800' : idx === 2 ? 'bg-amber-700/20 text-amber-800' : 'bg-surface-container text-outline'}">${idx + 1}</span>
-                                            </td>
-                                            <td class="py-3 px-4">
-                                                <div class="font-bold text-on-surface">${s.user_name || 'Thành viên'}</div>
-                                                ${s.user_code ? `<div class="text-[10px] font-mono text-outline">${s.user_code}</div>` : ''}
-                                            </td>
-                                            <td class="py-3 px-4 text-center font-mono font-semibold text-on-surface">
-                                                ${s.sponsored_orders}
-                                            </td>
-                                            <td class="py-3 px-4 text-right font-mono font-bold text-emerald-600">
-                                                ${money(s.total_sponsored)}
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `;
+                        const columns = [
+                            { label: i18n.rank, align: 'center', width: '10%' },
+                            { label: i18n.sponsor, width: '42%' },
+                            { label: i18n.sponsoredOrders, align: 'center', width: '20%' },
+                            { label: i18n.totalSponsored, align: 'right', width: '28%' },
+                        ];
+                        const rankClass = (idx) => idx === 0 ? 'bg-amber-400 text-amber-950 shadow-xs'
+                            : idx === 1 ? 'bg-slate-300 text-slate-800'
+                            : idx === 2 ? 'bg-amber-700/20 text-amber-800'
+                            : 'bg-surface-container text-outline';
+                        const rows = data.sponsors_leaderboard.map((s, idx) => [
+                            `<span class="w-6 h-6 rounded-full inline-flex items-center justify-center font-bold text-xs ${rankClass(idx)}">${idx + 1}</span>`,
+                            memberCellHtml(s.user_name, s.user_email),
+                            `<span class="font-mono font-semibold text-on-surface">${s.sponsored_orders}</span>`,
+                            `<span class="font-mono font-bold text-emerald-600">${money(s.total_sponsored)}</span>`,
+                        ]);
+                        sponsorsList.innerHTML = reportTableHtml(columns, rows);
                     } else {
-                        sponsorsList.innerHTML = emptyStateHtml('volunteer_activism', 'Chưa có dữ liệu tài trợ', 'Chưa có khoản tài trợ hoặc đóng góp quỹ nào phát sinh trong khoảng thời gian này.');
+                        sponsorsList.innerHTML = emptyStateHtml('volunteer_activism', escapeHtml(i18n.noSponsorsTitle), escapeHtml(i18n.noSponsorsDesc));
                     }
                 }
             }
@@ -246,41 +253,21 @@ export function initAdminReports() {
             if (tabId === 'users' || tabId === 'all') {
                 if (usersList) {
                     if (data.top_users && data.top_users.length > 0) {
-                        usersList.innerHTML = `
-                            <div class="overflow-x-auto border border-outline-variant/60 rounded-xl">
-                                <table class="w-full text-left text-xs border-collapse">
-                                <thead>
-                                    <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant/60">
-                                        <th class="py-3 px-4 text-center w-12">#</th>
-                                        <th class="py-3 px-4">Thành viên</th>
-                                        <th class="py-3 px-4 text-center">Số đơn đã đặt</th>
-                                        <th class="py-3 px-4 text-right">Tổng chi tiêu cá nhân</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-outline-variant/40">
-                                    ${data.top_users.map((u, idx) => `
-                                        <tr class="hover:bg-surface-container-low/50 transition-colors">
-                                            <td class="py-3 px-4 text-center font-mono font-bold text-outline">
-                                                ${idx + 1}
-                                            </td>
-                                            <td class="py-3 px-4">
-                                                <div class="font-bold text-on-surface">${u.user_name || 'Thành viên'}</div>
-                                                ${u.user_code ? `<div class="text-[10px] font-mono text-outline">${u.user_code}</div>` : ''}
-                                            </td>
-                                            <td class="py-3 px-4 text-center font-mono font-semibold text-on-surface">
-                                                ${u.order_count}
-                                            </td>
-                                            <td class="py-3 px-4 text-right font-mono font-bold text-primary">
-                                                ${money(u.total_spent)}
-                                            </td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                    `;
+                        const columns = [
+                            { label: '#', align: 'center', width: '10%' },
+                            { label: i18n.member, width: '42%' },
+                            { label: i18n.ordersPlaced, align: 'center', width: '20%' },
+                            { label: i18n.totalSpent, align: 'right', width: '28%' },
+                        ];
+                        const rows = data.top_users.map((u, idx) => [
+                            `<span class="font-mono font-bold text-outline">${idx + 1}</span>`,
+                            memberCellHtml(u.user_name, u.user_email),
+                            `<span class="font-mono font-semibold text-on-surface">${u.order_count}</span>`,
+                            `<span class="font-mono font-bold text-primary">${money(u.total_spent)}</span>`,
+                        ]);
+                        usersList.innerHTML = reportTableHtml(columns, rows);
                     } else {
-                        usersList.innerHTML = emptyStateHtml('group', 'Chưa có dữ liệu thành viên', 'Chưa ghi nhận hoạt động đặt món nào từ thành viên trong khoảng thời gian này.');
+                        usersList.innerHTML = emptyStateHtml('group', escapeHtml(i18n.noUsersTitle), escapeHtml(i18n.noUsersDesc));
                     }
                 }
             }
@@ -298,7 +285,14 @@ export function initAdminReports() {
     };
 
     window.exportReportCSV = function() {
-        alert('Exporting report statement...');
+        const queryParams = new URLSearchParams();
+        const dateFrom = dateRangePicker?.querySelector('.date-from-hidden')?.value || '';
+        const dateTo = dateRangePicker?.querySelector('.date-to-hidden')?.value || '';
+        if (dateFrom) queryParams.set('date_from', dateFrom);
+        if (dateTo) queryParams.set('date_to', dateTo);
+        const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+
+        window.location.assign(`/admin/${roomSlug}/reports/export${queryString}`);
     };
 
     document.addEventListener('admin:daterange-change', () => {

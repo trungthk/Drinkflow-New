@@ -55,7 +55,7 @@ class AdminFilterControlsTest extends TestCase
             ->assertOk()
             ->assertDontSee('id="campaign-clear-filters"', false)
             ->assertDontSee(__('admin.fast_create_campaign'))
-            ->assertSee('view=detail');
+            ->assertSee(route('admin.campaigns.info', [$room->slug, $campaign]), false);
 
         $this->actingAs($admin, 'admin')->get(route('admin.campaigns.page', [
             'room' => $room->slug,

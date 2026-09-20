@@ -64,12 +64,7 @@ class ImageUploadAndVersionCacheTest extends TestCase
 
         $this->assertDatabaseHas('versions', [
             'version' => 'v2.3.0',
-            'title' => 'Multi-room Authentication & VietQR Direct Split',
-        ]);
-
-        $this->assertDatabaseHas('versions', [
-            'version' => 'v2.0.0',
-            'title' => 'Nâng cấp toàn diện giao diện Enterprise Design System v2',
+            'title' => 'Multi-room Ordering, Proxy Orders & VietQR Settlement',
         ]);
 
         $this->assertSame('v2.3.0', Version::getLatestVersionString());

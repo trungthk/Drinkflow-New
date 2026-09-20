@@ -13,6 +13,7 @@ use App\Models\Debt;
 use App\Models\Order;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -98,7 +99,7 @@ class ConfirmDebtPaymentAction
         }
 
         $userName = $roomUser->globalUser?->name ?? $roomUser->display_name ?? ('User #' . $roomUser->id);
-        $amountFmt = number_format($totalConfirmedAmount, 0, ',', '.') . ' ₫';
+        $amountFmt = FormatHelper::formatCurrency($totalConfirmedAmount);
 
         // Notify room admins via AdminNotification table
         $room->admins()->each(function (AdminAccount $admin) use ($room, $userName, $amountFmt, $totalConfirmedAmount, $updatedDebts): void {

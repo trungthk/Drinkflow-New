@@ -142,6 +142,7 @@ return [
         'require_login_room' => "「:room」に参加するにはGoogle Workspaceでログインしてください。",
     ],
     'video_modal' => [
+        'close_label' => '動画を閉じる',
         'badge' => '紹介動画',
         'title' => 'DrinkFlowがオフィスのティータイムをどのように効率化するかご覧ください',
         'close' => '閉じる (Esc)',

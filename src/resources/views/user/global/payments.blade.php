@@ -29,9 +29,14 @@
         if (customData) {
           this.qrData = Object.assign({}, this.qrData, customData);
         }
-        this.qrData.qrDataUrl = this.qrData.payload && window.QRCode
-          ? await QRCode.toDataURL(this.qrData.payload, { width: 200, margin: 1, errorCorrectionLevel: 'M' })
-          : '';
+        try {
+          this.qrData.qrDataUrl = this.qrData.payload && window.QRCode
+            ? await QRCode.toDataURL(this.qrData.payload, { width: 200, margin: 1, errorCorrectionLevel: 'M' })
+            : '';
+        } catch (error) {
+          console.error('QR render error:', error);
+          this.qrData.qrDataUrl = '';
+        }
         this.showQrModal = true;
       },
       closeQr() {

@@ -6,6 +6,7 @@
 @source '../views/admin/**/*.blade.php';
 @source '../views/components/**/*.blade.php';
 @source '../js/**/*.js';
+@source '../../app/Enums/CampaignStatus.php';
 
 @theme {
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -278,17 +279,31 @@ html {
 }
 button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: pointer; }
 
-/* Keep admin data tables visually stable when a page has few or no records. */
-#admin-main-wrapper table tbody {
+/*
+ * Keep admin data tables visually stable when a page has few or no records.
+ * Tables that size their columns through <colgroup> add .table-colgroup to opt out:
+ * splitting thead/tr into separate table boxes would ignore the shared <col> widths.
+ */
+#admin-main-wrapper table:not(.table-colgroup) tbody {
     display: block;
     min-height: 200px;
 }
 
-#admin-main-wrapper table thead,
-#admin-main-wrapper table tbody tr {
+#admin-main-wrapper table:not(.table-colgroup) thead,
+#admin-main-wrapper table:not(.table-colgroup) tbody tr {
     display: table;
     width: 100%;
     table-layout: fixed;
+}
+
+/* Tables inside modals size to their content: the minimum table height only applies to page-level tables. */
+#admin-main-wrapper :is([role="dialog"], [aria-modal="true"], .fixed.inset-0) table tbody {
+    min-height: 0;
+}
+
+/* Report tables scroll horizontally inside their wrapper on narrow screens instead of squeezing columns. */
+#admin-main-wrapper .report-table {
+    min-width: 36rem;
 }
 
 /* Keep the room administration UI on the same visual system as the user portal. */
@@ -361,3 +376,46 @@ button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: poi
 .admin-shell :where(.campaign-table th, .member-table th) {
     background: #f8fafc;
 }
+
+/* VietQR Modal Snake Animation */
+@keyframes qr-snake-grow {
+    0% {
+        stroke-dasharray: 5 95;
+    }
+    20% {
+        stroke-dasharray: 20 80;
+    }
+    45% {
+        stroke-dasharray: 50 50;
+    }
+    70% {
+        stroke-dasharray: 80 20;
+    }
+    90%,
+    100% {
+        stroke-dasharray: 100 0;
+    }
+}
+
+@keyframes qr-snake-travel {
+    from {
+        stroke-dashoffset: 0;
+    }
+    to {
+        stroke-dashoffset: -100;
+    }
+}
+
+#qr-snake-rect.running {
+    animation:
+        qr-snake-grow 4.8s ease-in-out infinite,
+        qr-snake-travel 4.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #qr-snake-rect.running {
+        animation: none;
+        stroke-dasharray: 100 0;
+    }
+}
+

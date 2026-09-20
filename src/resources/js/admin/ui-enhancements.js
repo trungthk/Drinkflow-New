@@ -22,6 +22,22 @@ export function debounce(func, wait = 300) {
 }
 
 /**
+ * Normalize text for keyword matching: case-insensitive and diacritic-insensitive.
+ *
+ * @param {*} value Raw text to normalize.
+ * @returns {string} Lower-cased text without diacritics (đ/Đ folded to d).
+ */
+export function normalizeSearchText(value) {
+    return String(value ?? '')
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .toLowerCase()
+        .trim();
+}
+
+/**
  * 1. Debounce Search & Clear Button
  */
 export function initSearchDebounceAndClear() {
@@ -111,7 +127,7 @@ export function initSearchableSelects() {
         const selectedOption = select.options[select.selectedIndex] || select.options[0];
         const triggerText = document.createElement('span');
         triggerText.className = 'truncate font-medium';
-        triggerText.textContent = selectedOption ? selectedOption.text : 'Select...';
+        triggerText.textContent = selectedOption ? selectedOption.text : '';
 
         const triggerIcon = document.createElement('span');
         triggerIcon.className = 'material-symbols-outlined text-[18px] text-outline transition-transform duration-200';
@@ -130,8 +146,10 @@ export function initSearchableSelects() {
         searchBox.className = 'relative flex items-center mb-1';
         searchBox.innerHTML = `
             <span class="material-symbols-outlined absolute left-2.5 text-[16px] text-outline">search</span>
-            <input type="text" placeholder="${select.dataset.placeholder || 'Tìm kiếm...'}" class="w-full h-8 pl-8 pr-3 bg-surface border border-outline-variant rounded text-xs text-on-surface outline-none focus:border-primary">
+            <input type="text" autocomplete="off" class="w-full h-8 pl-8 pr-3 bg-surface border border-outline-variant rounded text-xs text-on-surface outline-none focus:border-primary">
         `;
+        // Placeholder/empty text come from Blade (data-placeholder / data-empty-text) so they stay translated.
+        searchBox.querySelector('input').placeholder = select.dataset.placeholder || '';
         dropdown.appendChild(searchBox);
 
         // Options List Container
@@ -141,11 +159,11 @@ export function initSearchableSelects() {
 
         const renderOptions = (filter = '') => {
             listContainer.innerHTML = '';
-            const lowerFilter = filter.toLowerCase();
+            const normalizedFilter = normalizeSearchText(filter);
             let count = 0;
 
             Array.from(select.options).forEach(opt => {
-                if (filter && !opt.text.toLowerCase().includes(lowerFilter)) return;
+                if (normalizedFilter && !normalizeSearchText(opt.text).includes(normalizedFilter)) return;
                 count++;
 
                 const optBtn = document.createElement('button');
@@ -168,7 +186,10 @@ export function initSearchableSelects() {
             });
 
             if (count === 0) {
-                listContainer.innerHTML = '<div class="p-3 text-center text-outline text-xs">Không tìm thấy lựa chọn</div>';
+                const emptyEl = document.createElement('div');
+                emptyEl.className = 'p-3 text-center text-outline text-xs';
+                emptyEl.textContent = select.dataset.emptyText || '';
+                listContainer.appendChild(emptyEl);
             }
         };
 
@@ -262,7 +283,7 @@ export function initDateRangePickers() {
             if (labelEl) {
                 if (start && end) {
                     if (start === end) {
-                        labelEl.textContent = start === formatDate(new Date()) ? (labelText || 'Hôm nay') : `${formatDisplay(start)}`;
+                        labelEl.textContent = start === formatDate(new Date()) ? (labelText || container.dataset.labelToday || '') : `${formatDisplay(start)}`;
                     } else {
                         labelEl.textContent = `${labelText || presetName}: ${formatDisplay(start)} ~ ${formatDisplay(end)}`;
                     }
@@ -271,7 +292,7 @@ export function initDateRangePickers() {
                 } else if (end) {
                     labelEl.textContent = `<= ${formatDisplay(end)}`;
                 } else {
-                    labelEl.textContent = labelText || 'Toàn thời gian';
+                    labelEl.textContent = labelText || container.dataset.labelAll || '';
                 }
             }
 
@@ -336,7 +357,7 @@ export function initDateRangePickers() {
         btnApply?.addEventListener('click', () => {
             const start = dateFromInput?.value || startInput?.value || '';
             const end = dateToInput?.value || endInput?.value || '';
-            setRange(start, end, 'custom', 'Tùy chỉnh');
+            setRange(start, end, 'custom', container.dataset.labelCustom || '');
         });
 
         triggerBtn.addEventListener('click', (e) => {
@@ -583,6 +604,91 @@ export function initCurrencyFormatters() {
 }
 
 /**
+ * 8. Tooltip ([data-tooltip]) and copy-to-clipboard ([data-copy]) helpers.
+ *
+ * The tooltip is a single fixed-position element, so it is never clipped by scrollable tables.
+ * Copy buttons read the value from data-copy and the messages from data-copied-message / data-copy-failed-message.
+ */
+export function initTooltipsAndCopy() {
+    if (window.__dfTooltipsReady) return;
+    window.__dfTooltipsReady = true;
+
+    let tipEl = null;
+    const ensureTip = () => {
+        if (tipEl) return tipEl;
+        tipEl = document.createElement('div');
+        tipEl.setAttribute('role', 'tooltip');
+        tipEl.className = 'pointer-events-none fixed z-[70] hidden w-max max-w-[220px] whitespace-normal break-words rounded-md bg-slate-900 px-2.5 py-1.5 text-left text-[10px] font-medium leading-snug text-white shadow-lg';
+        document.body.appendChild(tipEl);
+        return tipEl;
+    };
+
+    const showTip = (target) => {
+        const text = target.dataset.tooltip;
+        if (!text) return;
+        const tip = ensureTip();
+        tip.textContent = text;
+        tip.classList.remove('hidden');
+        const rect = target.getBoundingClientRect();
+        const w = tip.offsetWidth;
+        const h = tip.offsetHeight;
+        let left = rect.left + rect.width / 2 - w / 2;
+        left = Math.max(8, Math.min(left, window.innerWidth - w - 8));
+        let top = rect.top - h - 8;
+        if (top < 8) top = rect.bottom + 8;
+        tip.style.left = `${left}px`;
+        tip.style.top = `${top}px`;
+    };
+
+    const hideTip = () => tipEl?.classList.add('hidden');
+
+    document.addEventListener('mouseover', (event) => {
+        const target = event.target instanceof Element ? event.target.closest('[data-tooltip]') : null;
+        if (target) showTip(target);
+    });
+    document.addEventListener('mouseout', (event) => {
+        const target = event.target instanceof Element ? event.target.closest('[data-tooltip]') : null;
+        if (target && !target.contains(event.relatedTarget)) hideTip();
+    });
+    document.addEventListener('focusin', (event) => {
+        const target = event.target instanceof Element ? event.target.closest('[data-tooltip]') : null;
+        if (target) showTip(target);
+    });
+    document.addEventListener('focusout', hideTip);
+    window.addEventListener('scroll', hideTip, true);
+
+    const writeClipboard = async (text) => {
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(text);
+            return;
+        }
+        const area = document.createElement('textarea');
+        area.value = text;
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        const ok = document.execCommand('copy');
+        area.remove();
+        if (!ok) throw new Error('copy failed');
+    };
+
+    document.addEventListener('click', async (event) => {
+        const button = event.target instanceof Element ? event.target.closest('[data-copy]') : null;
+        if (!button) return;
+        event.preventDefault();
+        const value = button.dataset.copy || '';
+        try {
+            await writeClipboard(value);
+            window.notify?.(`${button.dataset.copiedMessage || 'Copied'}: ${value}`, 'success');
+        } catch (error) {
+            window.notify?.(button.dataset.copyFailedMessage || 'Copy failed', 'error');
+        }
+    });
+}
+
+/**
  * Master Initialize all UI Enhancements
  */
 export function initUiEnhancements() {
@@ -593,4 +699,5 @@ export function initUiEnhancements() {
     initAdminSidebar();
     initAdminLayoutDropdowns();
     initCurrencyFormatters();
+    initTooltipsAndCopy();
 }

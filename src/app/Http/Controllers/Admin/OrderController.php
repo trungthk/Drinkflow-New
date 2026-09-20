@@ -35,7 +35,12 @@ class OrderController extends Controller
     {
         $room = $request->attributes->get('room');
         $query = Order::where('room_id', $room->id)->whereNull('parent_id')->with(['roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'items.toppings', 'campaign'])->latest();
-        if ($request->filled('status')) $query->where('status', $request->string('status')->toString());
+        if ($request->filled('status')) {
+            $filterStatus = OrderStatus::tryFrom($request->string('status')->toString());
+            if ($filterStatus !== null) {
+                $query->where('status', $filterStatus->value);
+            }
+        }
         if ($request->filled('campaign_id')) $query->where('campaign_id', $request->integer('campaign_id'));
         if ($request->filled('room_user_id')) $query->where('room_user_id', $request->integer('room_user_id'));
         if ($request->filled('from')) $query->whereDate('created_at', '>=', $request->date('from'));
@@ -63,8 +68,7 @@ class OrderController extends Controller
             ?? $room->paymentAccounts()->first();
 
         $query = Order::where('room_id', $room->id)
-            ->whereNull('parent_id')
-            ->whereHas('campaign', static fn (Builder $campaignQuery): Builder => $campaignQuery->where('status', CampaignStatus::Active->value))
+            ->inLiveCampaign()
             ->with(['roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'items.toppings', 'campaign'])
             ->latest();
 
@@ -193,7 +197,7 @@ class OrderController extends Controller
         $updatedCount = 0;
         foreach ($orders as $order) {
             $statusValue = $order->status instanceof \BackedEnum ? $order->status->value : (string) $order->status;
-            if ($statusValue === 'cancelled' || $order->cancelled_at !== null || $statusValue === $targetStatus) {
+            if ($statusValue === OrderStatus::Cancelled->value || $order->cancelled_at !== null || $statusValue === $targetStatus) {
                 continue;
             }
             try {
@@ -237,7 +241,7 @@ class OrderController extends Controller
         $cancelledCount = 0;
         foreach ($orders as $order) {
             $statusValue = $order->status instanceof \BackedEnum ? $order->status->value : (string) $order->status;
-            if ($statusValue === 'cancelled' || $order->cancelled_at !== null) {
+            if ($statusValue === OrderStatus::Cancelled->value || $order->cancelled_at !== null) {
                 continue;
             }
             try {
@@ -270,8 +274,10 @@ class OrderController extends Controller
     public function cancel(Room $room, Order $order, UpdateOrderStatusAction $action): JsonResponse
     {
         $this->assertRoom($order);
-        if ($order->status->value === 'cancelled') return response()->json(['data' => $order]);
-        return response()->json(['data' => $action->execute($order, 'cancelled')]);
+        if ($order->status === OrderStatus::Cancelled || $order->status?->value === OrderStatus::Cancelled->value) {
+            return response()->json(['data' => $order]);
+        }
+        return response()->json(['data' => $action->execute($order, OrderStatus::Cancelled->value)]);
     }
 
     /**
@@ -284,7 +290,9 @@ class OrderController extends Controller
     public function unlock(Room $room, Order $order, UpdateOrderStatusAction $action): JsonResponse
     {
         $this->assertRoom($order);
-        if ($order->status->isActive()) $order = $action->execute($order, 'cancelled');
+        if ($order->status->isActive()) {
+            $order = $action->execute($order, OrderStatus::Cancelled->value);
+        }
         return response()->json(['data' => ['unlocked' => true, 'order' => $order]]);
     }
 

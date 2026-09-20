@@ -82,9 +82,14 @@
             if (accNum !== undefined && accNum !== null) this.qrData.accountNumber = accNum;
             if (accName) this.qrData.accountName = accName;
 
-            this.qrData.qrDataUrl = this.qrData.qrPayload && window.QRCode
-                ? await QRCode.toDataURL(this.qrData.qrPayload, { width: 220, margin: 1, errorCorrectionLevel: 'M' })
-                : '';
+            try {
+                this.qrData.qrDataUrl = this.qrData.qrPayload && window.QRCode
+                    ? await QRCode.toDataURL(this.qrData.qrPayload, { width: 220, margin: 1, errorCorrectionLevel: 'M' })
+                    : '';
+            } catch (error) {
+                console.error('QR render error:', error);
+                this.qrData.qrDataUrl = '';
+            }
             this.qrModalOpen = true;
         },
         copyText(text) {

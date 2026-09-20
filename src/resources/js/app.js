@@ -18,6 +18,8 @@ import { initLogoutModal } from './global/logout-modal';
 import { initGlobalLoading } from './global/loading';
 import { initGlobalGoToTop } from './global/go-to-top';
 
+import { initSuperadminRooms } from './superadmin/rooms';
+
 document.addEventListener('DOMContentLoaded', () => {
     // Public Components & Pages
     initPublicHeader();
@@ -33,4 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initLogoutModal();
     initGlobalLoading();
     initGlobalGoToTop();
+
+    // Superadmin Components & Pages
+    initSuperadminRooms();
 });

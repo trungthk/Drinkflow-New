@@ -1,7 +1,9 @@
 <?php
 
 return [
+    'portal_title' => 'Cổng thông tin',
     'common' => [
+        'error' => 'Đã xảy ra lỗi. Vui lòng thử lại.',
         'room' => 'Room',
         'campaign' => 'Chiến dịch',
         'user' => 'Người dùng',
@@ -52,6 +54,8 @@ return [
         'google_login_failed' => 'Đăng nhập Google thất bại: :error',
     ],
     'header' => [
+        'language_select' => 'Chọn ngôn ngữ',
+        'main_nav' => 'Điều hướng chính',
         'overview' => 'Tổng quan',
         'rooms' => 'Danh sách Room',
         'my_rooms' => 'Room của tôi',
@@ -302,6 +306,8 @@ return [
         'active_order_exists' => 'Bạn đã có một đơn đang hoạt động cho campaign này.',
     ],
     'payments' => [
+        'col_total_amount' => 'Tổng tiền',
+        'sponsored_amount' => 'Đã được tài trợ :amount',
         'host_room' => 'Chủ trì Room :name',
         'page_title' => 'Quản lý Thanh toán & Nợ đọng',
         'breadcrumb_portal' => 'DrinkFlow Portal',
@@ -616,6 +622,7 @@ return [
         'captcha_refresh' => 'Làm mới mã bảo vệ',
         'captcha_loading' => 'Đang tải...',
         'load_more_btn' => 'Tải thêm đánh giá',
+        'retry_btn' => 'Thử lại',
         'loading_more' => 'Đang tải thêm...',
         'all_loaded' => 'Đã hiển thị toàn bộ đánh giá',
     ],
@@ -650,6 +657,7 @@ return [
         'understood_close' => 'Đã hiểu & Đóng',
     ],
     'blocked' => [
+        'account_blocked' => 'Tài khoản của bạn đã bị khóa.',
         'page_title' => 'Tài khoản bị tạm khóa | DrinkFlow Enterprise',
         'security_compliance' => 'BẢO MẬT & TUÂN THỦ',
         'suspended_tooltip' => 'Tài khoản tạm ngưng',
@@ -671,7 +679,7 @@ return [
         'scope_desc' => 'Không thể tạo room đặt nước, không thể đặt món lẻ hoặc nhận tài trợ (Sponsor) từ đồng nghiệp. Toàn bộ dữ liệu sao kê, điểm thành viên và lịch sử đơn hàng vẫn được lưu trữ bảo mật toàn vẹn.',
         'protocol_title' => 'Quy trình giải quyết & Các bước mở khóa',
         'step_1_title' => 'Kiểm tra lại các khoản thanh toán VietQR còn tồn đọng',
-        'step_1_desc' => 'Đối chiếu lịch sử chuyển khoản ứng dụng ngân hàng của bạn đối với các đơn hàng gần nhất (Tổng dư nợ tạm tính: :debtđ).',
+        'step_1_desc' => 'Đối chiếu lịch sử chuyển khoản ứng dụng ngân hàng của bạn đối với các đơn hàng gần nhất (Tổng dư nợ tạm tính: :debt).',
         'step_2_title' => 'Liên hệ Host phòng hoặc Quản trị viên phòng Kế toán',
         'step_2_desc' => 'Xác nhận lại với Host đơn nhóm để họ duyệt trạng thái "Đã thanh toán" trên hệ thống DrinkFlow hoặc nhờ Kế toán xác minh mã giao dịch.',
         'step_3_title' => 'Gửi yêu cầu khiếu nại hoặc đối soát nhanh trực tiếp',

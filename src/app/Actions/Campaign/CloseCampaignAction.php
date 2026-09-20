@@ -11,6 +11,7 @@ use App\Events\CampaignClosed;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Services\Audit\AuditService;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -107,14 +108,14 @@ class CloseCampaignAction
 
                     foreach ($sponsorDebts as $sp) {
                         $note = sprintf(
-                            "Tài trợ %s%% chiến dịch #%s (%s) - Thực trả: %s ₫ [Món: %s ₫, Phí ship: +%s ₫, Giảm giá: -%s ₫]",
+                            "Tài trợ %s%% chiến dịch #%s (%s) - Thực trả: %s [Món: %s, Phí ship: +%s, Giảm giá: -%s]",
                             (string) $sp['percentage'],
                             (string) $campaign->code,
                             (string) ($campaign->restaurant ?: $campaign->name),
-                            number_format($sp['amount'], 0, ',', '.'),
-                            number_format($sp['gross_part'], 0, ',', '.'),
-                            number_format($sp['fee_part'], 0, ',', '.'),
-                            number_format($sp['disc_part'], 0, ',', '.')
+                            FormatHelper::formatCurrency($sp['amount']),
+                            FormatHelper::formatCurrency($sp['gross_part']),
+                            FormatHelper::formatCurrency($sp['fee_part']),
+                            FormatHelper::formatCurrency($sp['disc_part'])
                         );
 
                         Debt::updateOrCreate(
@@ -208,23 +209,23 @@ class CloseCampaignAction
 
                         if ($calc['final_amount'] > 0 || $calc['subtotal'] > 0) {
                             $noteParts = [];
-                            $noteParts[] = "Món: " . number_format($calc['subtotal'], 0, ',', '.') . " ₫";
+                            $noteParts[] = "Món: " . FormatHelper::formatCurrency($calc['subtotal']);
                             if ($calc['delivery_fee'] > 0) {
-                                $noteParts[] = "Ship: +" . number_format($calc['delivery_fee'], 0, ',', '.') . " ₫";
+                                $noteParts[] = "Ship: +" . FormatHelper::formatCurrency($calc['delivery_fee']);
                             }
                             if ($calc['discount'] > 0) {
-                                $noteParts[] = "Giảm: -" . number_format($calc['discount'], 0, ',', '.') . " ₫";
+                                $noteParts[] = "Giảm: -" . FormatHelper::formatCurrency($calc['discount']);
                             }
                             if ($calc['sponsor_amount'] > 0) {
-                                $noteParts[] = "Tài trợ: -" . number_format($calc['sponsor_amount'], 0, ',', '.') . " ₫";
+                                $noteParts[] = "Tài trợ: -" . FormatHelper::formatCurrency($calc['sponsor_amount']);
                             }
 
                             $note = sprintf(
-                                "Đơn %s chiến dịch #%s (%s) - Thực trả: %s ₫ [%s]",
+                                "Đơn %s chiến dịch #%s (%s) - Thực trả: %s [%s]",
                                 $orderCodes,
                                 (string) $campaign->code,
                                 (string) ($campaign->restaurant ?: $campaign->name),
-                                number_format($calc['final_amount'], 0, ',', '.'),
+                                FormatHelper::formatCurrency($calc['final_amount']),
                                 implode(', ', $noteParts)
                             );
 

@@ -85,4 +85,25 @@ class FormatHelper
     {
         return (string) config('app.datetime_format', 'd/m/Y H:i:s');
     }
+
+    /**
+     * Mask chuỗi ký tự (như số tài khoản, mã bảo mật, token...), chỉ giữ lại các ký tự cuối cùng hiển thị.
+     *
+     * @param string $value Chuỗi cần che giấu.
+     * @param int $visibleCount Số ký tự cuối muốn giữ lại hiển thị (mặc định: 4).
+     * @param string $maskChar Ký tự dùng để che giấu (mặc định: '•').
+     * @return string Chuỗi đã được mask (ví dụ: "••••4382").
+     */
+    public static function mask(string $value, int $visibleCount = 4, string $maskChar = '•'): string
+    {
+        $length = mb_strlen($value);
+        if ($length <= $visibleCount) {
+            return str_repeat($maskChar, $length);
+        }
+
+        $maskedPart = str_repeat($maskChar, max(0, $length - $visibleCount));
+        $visiblePart = mb_substr($value, -$visibleCount);
+
+        return $maskedPart . $visiblePart;
+    }
 }

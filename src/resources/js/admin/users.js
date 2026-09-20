@@ -1,3 +1,5 @@
+import { formatMoney } from '../shared/money';
+
 /**
  * Admin Room Users & Devices Controller
  */
@@ -21,6 +23,63 @@ export function initAdminUsers() {
     const actionMessage = document.querySelector('#user-action-message');
     const actionConfirm = document.querySelector('#user-action-confirm');
     const actionCancel = document.querySelector('#user-action-cancel');
+    const actionIconWrap = document.querySelector('#user-action-icon-wrap');
+    const actionIcon = document.querySelector('#user-action-icon');
+    const actionConfirmIcon = document.querySelector('#user-action-confirm-icon');
+    const actionConfirmLabel = document.querySelector('#user-action-confirm-label');
+
+    // Icon and colour of the shared confirmation modal for each kind of action.
+    const ACTION_VARIANTS = {
+        default: {
+            icon: 'manage_accounts', confirmIcon: 'check',
+            wrap: 'bg-primary/10 text-primary',
+            confirm: 'bg-primary text-on-primary hover:bg-primary/90',
+        },
+        block: {
+            icon: 'block', confirmIcon: 'block',
+            wrap: 'bg-amber-100 text-amber-600',
+            confirm: 'bg-amber-600 text-white hover:bg-amber-700',
+        },
+        unblock: {
+            icon: 'lock_open', confirmIcon: 'lock_open',
+            wrap: 'bg-emerald-100 text-emerald-700',
+            confirm: 'bg-primary text-on-primary hover:bg-primary/90',
+        },
+        remove: {
+            icon: 'person_remove', confirmIcon: 'delete',
+            wrap: 'bg-red-100 text-red-600',
+            confirm: 'bg-red-600 text-white hover:bg-red-700',
+        },
+    };
+    const BULK_ACTION_VARIANT = { active: 'unblock', blocked: 'block', removed: 'remove' };
+    let activeVariant = ACTION_VARIANTS.default;
+
+    const applyActionVariant = (name) => {
+        const next = ACTION_VARIANTS[name] || ACTION_VARIANTS.default;
+        if (actionIconWrap) {
+            actionIconWrap.classList.remove(...activeVariant.wrap.split(' '));
+            actionIconWrap.classList.add(...next.wrap.split(' '));
+        }
+        if (actionConfirm) {
+            actionConfirm.classList.remove(...activeVariant.confirm.split(' '));
+            actionConfirm.classList.add(...next.confirm.split(' '));
+        }
+        if (actionIcon) actionIcon.textContent = next.icon;
+        if (actionConfirmIcon) actionConfirmIcon.textContent = next.confirmIcon;
+        activeVariant = next;
+    };
+
+    const setConfirmProcessing = (processing) => {
+        if (actionConfirmLabel) {
+            actionConfirmLabel.textContent = processing
+                ? (actionModal.dataset.processingLabel || 'Processing...')
+                : (actionModal.dataset.confirmLabel || 'Confirm');
+        }
+        if (actionConfirmIcon) {
+            actionConfirmIcon.textContent = processing ? 'progress_activity' : activeVariant.confirmIcon;
+            actionConfirmIcon.classList.toggle('animate-spin', processing);
+        }
+    };
     const bulkToolbar = document.querySelector('#users-bulk-toolbar');
     const selectAllUsers = document.querySelector('#users-select-all');
     const bulkSelectedCount = document.querySelector('#users-selected-count');
@@ -105,6 +164,7 @@ export function initAdminUsers() {
                     window.alert(error.message || 'Bulk action failed.');
                 }
             },
+            BULK_ACTION_VARIANT[bulkButton.dataset.bulkUserAction] || 'default',
         );
     });
 
@@ -141,11 +201,12 @@ export function initAdminUsers() {
         if (event.target === actionModal) closeActionModal();
     });
 
-    const openActionModal = (title, message, action) => {
+    const openActionModal = (title, message, action, variant = 'default') => {
         if (!actionModal || !actionConfirm) return;
         actionTitle.textContent = title;
         actionMessage.textContent = message;
-        actionConfirm.textContent = actionModal.dataset.confirmLabel || 'Confirm';
+        applyActionVariant(variant);
+        setConfirmProcessing(false);
         pendingAction = action;
         actionModal.classList.remove('hidden');
         actionModal.classList.add('flex');
@@ -156,13 +217,13 @@ export function initAdminUsers() {
         const action = pendingAction;
         actionConfirm.disabled = true;
         actionConfirm.classList.add('opacity-60', 'cursor-not-allowed');
-        actionConfirm.textContent = actionModal.dataset.processingLabel || 'Processing...';
+        setConfirmProcessing(true);
         try {
             await action();
         } finally {
             actionConfirm.disabled = false;
             actionConfirm.classList.remove('opacity-60', 'cursor-not-allowed');
-            actionConfirm.textContent = actionModal.dataset.confirmLabel || 'Confirm';
+            setConfirmProcessing(false);
         }
     });
 
@@ -260,15 +321,15 @@ export function initAdminUsers() {
 
             // Translation Maps from dataset
             const statusMap = {
-                active: userDetailModal.dataset.statusActive || 'Hoạt động',
-                blocked: userDetailModal.dataset.statusBlocked || 'Đã chặn',
-                pending: userDetailModal.dataset.statusPending || 'Chờ xác nhận',
-                removed: userDetailModal.dataset.statusRemoved || 'Đã rời phòng',
+                active: userDetailModal.dataset.statusActive || '',
+                blocked: userDetailModal.dataset.statusBlocked || '',
+                pending: userDetailModal.dataset.statusPending || '',
+                removed: userDetailModal.dataset.statusRemoved || '',
             };
             const roleMap = {
-                owner: userDetailModal.dataset.roleOwner || 'Chủ phòng',
-                admin: userDetailModal.dataset.roleAdmin || 'Quản trị viên',
-                member: userDetailModal.dataset.roleMember || 'Thành viên',
+                owner: userDetailModal.dataset.roleOwner || '',
+                admin: userDetailModal.dataset.roleAdmin || '',
+                member: userDetailModal.dataset.roleMember || '',
             };
 
             // Populate Header
@@ -341,10 +402,10 @@ export function initAdminUsers() {
             if (totalDebtEl) {
                 const debt = Number(user.total_debt || 0);
                 if (debt > 0) {
-                    totalDebtEl.textContent = new Intl.NumberFormat('vi-VN').format(debt) + ' ₫';
+                    totalDebtEl.textContent = formatMoney(debt);
                     totalDebtEl.className = 'font-bold text-sm font-mono mt-0.5 text-rose-600';
                 } else {
-                    totalDebtEl.textContent = '0 ₫';
+                    totalDebtEl.textContent = formatMoney(0);
                     totalDebtEl.className = 'font-bold text-sm font-mono mt-0.5 text-emerald-600';
                 }
             }
@@ -453,7 +514,8 @@ export function initAdminUsers() {
                     console.error(e);
                     alert('An error occurred.');
                 }
-            }
+            },
+            isBlocking ? 'block' : 'unblock'
         );
     };
 
@@ -478,7 +540,8 @@ export function initAdminUsers() {
                     console.error(e);
                     alert('An error occurred.');
                 }
-            }
+            },
+            'remove'
         );
     };
 

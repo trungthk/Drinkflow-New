@@ -45,7 +45,7 @@ export function initAdminAuth() {
         const syncIcon = btn ? btn.querySelector('span.material-symbols-outlined') : null;
         if (syncIcon) syncIcon.classList.add('animate-spin');
 
-        const loadingText = wrapper.dataset.loadingText || 'Đang tải...';
+        const loadingText = wrapper.dataset.loadingText || '';
         const captchaApiUrl = wrapper.dataset.captchaApi || '/captcha/api/contact';
         const captchaFallbackUrl = wrapper.dataset.captchaFallback || '/captcha/contact';
 

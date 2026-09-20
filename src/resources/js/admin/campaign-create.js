@@ -1,3 +1,5 @@
+import { formatMoney } from '../shared/money';
+
 /**
  * Admin Campaign Creator & Editor (Alpine Component)
  */
@@ -5,9 +7,15 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
     const page = document.querySelector('#campaign-create-page, #campaign-edit-page');
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
     const getRoomSlug = () => document.body?.dataset.roomSlug || window.__DF_ROOM_SLUG__ || '';
+    const messages = JSON.parse(page?.dataset.messages || '{}');
+    const msg = (key, replacements = {}) => Object.entries(replacements).reduce(
+        (text, [name, value]) => text.replaceAll(`:${name}`, value),
+        messages[key] || '',
+    );
     const budgetErrorTemplate = page?.dataset.budgetError || 'Campaign budget exceeds :limit.';
     const sponsorPercentageError = page?.dataset.sponsorPercentageError || 'The total sponsorship percentage must equal 100%.';
     const itemDeletedSuccess = page?.dataset.itemDeletedSuccess || 'Item ":name" was deleted successfully.';
+    const categoryDeletedSuccess = page?.dataset.categoryDeletedSuccess || 'Category ":category" and :count item(s) were deleted.';
     const storeUrl = page?.dataset.storeUrl || page?.dataset.submitUrl || '';
     const submitMethod = page?.dataset.submitMethod || (initialCampaign ? 'PATCH' : 'POST');
     const isEditMode = Boolean(initialCampaign || page?.dataset.isEdit === 'true');
@@ -70,6 +78,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         campaignSettings,
         isEditMode,
         menuTab: initialCampaign ? 'reuse' : 'reuse',
+        selectedPreviousCampaignId: null,
         showConfirmModal: false,
         pendingStatus: 'active',
         showAddItemModal: false,
@@ -424,7 +433,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 });
                 const payload = await response.json();
                 if (!response.ok) {
-                    throw new Error(payload.message || Object.values(payload.errors || {})[0] || 'Không thể tải ảnh lên.');
+                    throw new Error(payload.message || Object.values(payload.errors || {})[0] || msg('imageUploadFailed'));
                 }
                 this.newItem.image_url = payload.data?.url || '';
             } catch (error) {
@@ -444,8 +453,19 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             }
         },
 
+        /** Remove a whole category together with every menu item that belongs to it. */
+        removeMenuCategory(category) {
+            const count = this.categoryItemCount(category);
+            this.menuItems = this.menuItems.filter(item => (item.category || 'Khác') !== category);
+            this.syncSelectedCategory();
+            if (window.notify) {
+                window.notify(categoryDeletedSuccess.replace(':category', category).replace(':count', String(count)), 'success');
+            }
+        },
+
         loadPreviousCampaign(campaign) {
-            this.form.name = campaign.name + ' (Đợt mới)';
+            this.selectedPreviousCampaignId = campaign.id ?? null;
+            this.form.name = campaign.name + msg('copySuffix');
             this.form.restaurant = campaign.restaurant;
             this.form.description = campaign.description || '';
             const previousMaxBudget = Number(campaign.max_budget) || 0;
@@ -500,24 +520,24 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 if (Array.isArray(parsed) && parsed.length > 0) {
                     this.menuItems = parsed.map(item => this.normalizeMenuItem(item));
                     this.menuTab = 'json';
-                    alert(`Đã nạp thành công ${this.menuItems.length} món từ JSON!`);
+                    alert(msg('jsonLoaded', { count: this.menuItems.length }));
                 } else {
-                    alert('JSON phải là một mảng danh sách các món ăn.');
+                    alert(msg('jsonNotArray'));
                 }
             } catch (e) {
-                alert('Lỗi định dạng JSON: ' + e.message);
+                alert(msg('jsonInvalid', { message: e.message }));
             }
         },
 
         async previewCrawler() {
             if (!this.crawlerUrl) return;
             this.crawlerLoading = true;
-            this.crawlerMessage = 'Đang kết nối crawler tới ' + this.crawlerUrl + '...';
+            this.crawlerMessage = msg('crawlerConnecting', { url: this.crawlerUrl });
 
             try {
                 const roomSlug = getRoomSlug();
                 if (!roomSlug) {
-                    throw new Error('Không xác định được phòng hiện tại.');
+                    throw new Error(msg('roomUnknown'));
                 }
 
                 const res = await fetch(`/admin/${roomSlug}/crawler/preview`, {
@@ -531,7 +551,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 });
                 const response = await res.json();
                 if (!res.ok) {
-                    throw new Error(response.message || 'Không thể bóc tách menu từ liên kết này.');
+                    throw new Error(response.message || msg('crawlerFailed'));
                 }
                 const data = response.data || response;
                 if (data.items && data.items.length > 0) {
@@ -541,24 +561,28 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                     }));
                     this.form.restaurant = data.restaurant_name || this.form.restaurant || onlineRestaurantName;
                     this.menuTab = 'crawler';
-                    this.crawlerMessage = `Bóc tách thành công ${data.items.length} món từ quán!`;
+                    this.crawlerMessage = msg('crawlerSuccess', { count: data.items.length });
                 } else {
-                    this.crawlerMessage = 'Không tìm thấy món hoặc link không được hỗ trợ trực tiếp. Hệ thống đã nạp mẫu giả lập.';
+                    this.crawlerMessage = msg('crawlerFallback');
                 }
             } catch (e) {
-                this.crawlerMessage = 'Lỗi kết nối bóc tách: ' + e.message;
+                this.crawlerMessage = msg('crawlerError', { message: e.message });
             } finally {
                 this.crawlerLoading = false;
             }
         },
 
+        formatCurrencyDisplay(value) {
+            return formatCurrencyDisplay(value);
+        },
+
         formatVND(num) {
-            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num || 0);
+            return formatMoney(num);
         },
 
         async submitForm(status) {
             if (!this.form.name || !this.form.restaurant) {
-                alert('Vui lòng nhập Tên Chiến Dịch và Nhà Hàng.');
+                alert(msg('nameRequired'));
                 return;
             }
 
@@ -624,7 +648,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
 
                 if (!res.ok) {
                     const err = await res.json();
-                    throw new Error(err.message || Object.values(err.errors || {})[0] || (this.isEditMode ? 'Lỗi cập nhật chiến dịch' : 'Lỗi tạo chiến dịch'));
+                    throw new Error(err.message || Object.values(err.errors || {})[0] || (this.isEditMode ? msg('updateFailed') : msg('createFailed')));
                 }
 
                 const json = await res.json();
@@ -635,10 +659,10 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                     const indexUrl = page?.dataset.indexUrl || `/admin/${getRoomSlug()}/campaigns`;
                     window.location.href = indexUrl;
                 } else {
-                    window.location.href = `/admin/${getRoomSlug()}/campaigns/${campaignId}?view=detail`;
+                    window.location.href = `/admin/${getRoomSlug()}/campaigns/${campaignId}/info`;
                 }
             } catch (e) {
-                alert('Có lỗi xảy ra: ' + e.message);
+                alert(msg('genericError', { message: e.message }));
                 this.showConfirmModal = false;
             } finally {
                 this.submitting = false;
@@ -678,7 +702,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             const deleteUrl = page?.dataset.deleteUrl || '';
             const indexUrl = page?.dataset.indexUrl || `/admin/${getRoomSlug()}/campaigns`;
             if (!deleteUrl) {
-                alert('Không tìm thấy đường dẫn hủy chiến dịch.');
+                alert(msg('cancelUrlMissing'));
                 return;
             }
 
@@ -695,12 +719,12 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
 
                 if (!res.ok) {
                     const err = await res.json();
-                    throw new Error(err.message || Object.values(err.errors || {})[0] || 'Lỗi khi hủy chiến dịch.');
+                    throw new Error(err.message || Object.values(err.errors || {})[0] || msg('cancelFailed'));
                 }
 
                 window.location.href = indexUrl;
             } catch (e) {
-                alert('Có lỗi xảy ra: ' + e.message);
+                alert(msg('genericError', { message: e.message }));
             } finally {
                 this.cancelSubmitting = false;
                 this.showCancelCampaignModal = false;

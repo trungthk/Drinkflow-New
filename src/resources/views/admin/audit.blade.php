@@ -66,14 +66,22 @@
     <!-- Audit Logs Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
+            {{-- Compact fixed-width columns; the event column has no width so it takes all remaining space. --}}
+            <table class="table-colgroup w-full min-w-[50rem] table-fixed text-left text-xs border-collapse">
+                <colgroup>
+                    <col class="w-24">
+                    <col>
+                    <col class="w-28">
+                    <col class="w-28">
+                    <col class="w-20">
+                </colgroup>
                 <thead>
                     <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
-                        <th class="py-3 px-4 whitespace-nowrap">{{ __('admin.timestamp') }}</th>
-                        <th class="py-3 px-4">{{ __('admin.event_name') }}</th>
-                        <th class="py-3 px-4">{{ __('admin.actor') }}</th>
-                        <th class="py-3 px-4 whitespace-nowrap">{{ __('admin.ip_address') }}</th>
-                        <th class="py-3 px-4 text-center whitespace-nowrap">{{ __('admin.details') }}</th>
+                        <th class="py-3 px-3 whitespace-nowrap">{{ __('admin.timestamp') }}</th>
+                        <th class="py-3 px-3">{{ __('admin.event_name') }}</th>
+                        <th class="py-3 px-3">{{ __('admin.actor') }}</th>
+                        <th class="py-3 px-3 whitespace-nowrap">{{ __('admin.ip_address') }}</th>
+                        <th class="py-3 px-3 text-center whitespace-nowrap">{{ __('admin.details') }}</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-outline-variant/50">
@@ -87,7 +95,7 @@
                             if ($auditTargetLabel === $auditTargetKey) $auditTargetLabel = $log->target_type;
                         @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors">
-                            <td class="py-3.5 px-4 text-secondary whitespace-nowrap font-mono">
+                            <td class="py-3.5 px-3 text-secondary whitespace-nowrap font-mono">
                                 @if($log->created_at)
                                     <span class="block font-semibold text-on-surface">{{ $log->created_at->format('H:i') }}</span>
                                     <span class="block text-[10px] text-outline">{{ $log->created_at->format('d/m/Y') }}</span>
@@ -95,19 +103,19 @@
                                     N/A
                                 @endif
                             </td>
-                            <td class="py-3.5 px-4">
+                            <td class="py-3.5 px-3">
                                 <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-surface-container text-on-surface font-bold text-xs border border-outline-variant font-mono">
                                     {{ $auditEventLabel }}
                                 </span>
                             </td>
-                            <td class="py-3.5 px-4 font-semibold text-on-surface">
+                            <td class="py-3.5 px-3 font-semibold text-on-surface truncate" title="{{ $log->actor_type }} #{{ $log->actor_id }}">
                                 {{ $log->actor_type }} #{{ $log->actor_id }}
                             </td>
-                            <td class="py-3.5 px-4 font-mono text-outline text-[11px] whitespace-nowrap" title="{{ $log->ip_address ?: '127.0.0.1' }}">
+                            <td class="py-3.5 px-3 font-mono text-outline text-[11px] whitespace-nowrap truncate" title="{{ $log->ip_address ?: '127.0.0.1' }}">
                                 {{ $log->ip_address ?: '127.0.0.1' }}
                             </td>
-                            <td class="py-3.5 px-4 text-center">
-                                <button type="button" 
+                            <td class="py-3.5 px-3 text-center">
+                                <button type="button"
                                     data-audit-payload="{{ json_encode($log, JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) }}" 
                                     data-audit-event-label="{{ $auditEventLabel }}" 
                                     data-audit-target-label="{{ $auditTargetLabel }}"

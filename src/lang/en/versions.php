@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'default_description' => 'DrinkFlow release history and the latest updates.',
     'release_v2_3_0' => [
         'title' => 'Multi-room Ordering, Proxy Orders & VietQR Settlement',
         'summary' => 'The official v2.3.0 release completes multi-room ordering, proxy orders, debt management and VietQR payment confirmation for production use.',

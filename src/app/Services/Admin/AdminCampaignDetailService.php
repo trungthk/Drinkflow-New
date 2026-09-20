@@ -124,11 +124,13 @@ class AdminCampaignDetailService
         foreach ($orders as $order) {
             $user = $order->roomUser;
             $globalUser = $user?->globalUser;
-            $department = trim((string) ($globalUser?->desk_location ?? '')) ?: __('admin.unassigned_department');
+            $deskLocation = self::normalizeDeskLocation($globalUser?->desk_location);
+            $department = $deskLocation !== '' ? mb_strtolower($deskLocation) : '';
 
             if (! $departmentGroups->has($department)) {
                 $departmentGroups->put($department, [
-                    'department' => $department,
+                    'department' => $deskLocation !== '' ? $deskLocation : __('admin.unassigned_department'),
+                    'is_unassigned' => $deskLocation === '',
                     'orders' => collect(),
                     'members' => collect(),
                     'items' => collect(),
@@ -178,7 +180,9 @@ class AdminCampaignDetailService
             'campaign' => $campaign,
             'orders' => $orders,
             'aggregatedItems' => $aggregatedItems->values(),
-            'departmentGroups' => $departmentGroups->values(),
+            'departmentGroups' => $departmentGroups
+                ->sort(static fn (array $a, array $b): int => [$a['is_unassigned'], mb_strtolower($a['department'])] <=> [$b['is_unassigned'], mb_strtolower($b['department'])])
+                ->values(),
             'totalUsersCount' => $totalUsersCount,
             'orderedUsersCount' => $orderedUsersCount,
             'declinedUsersCount' => $declinedUsersCount,
@@ -192,5 +196,16 @@ class AdminCampaignDetailService
             'memberDebt' => $memberDebt,
             'sponsorsList' => $sponsorsList,
         ];
+    }
+
+    /**
+     * Normalize a desk location so that spacing and letter case differences fall into one group.
+     *
+     * @param string|null $deskLocation Raw desk_location value from the member's global profile.
+     * @return string Trimmed value with collapsed whitespace, or an empty string when no location is set.
+     */
+    public static function normalizeDeskLocation(?string $deskLocation): string
+    {
+        return trim((string) preg_replace('/\s+/u', ' ', (string) $deskLocation));
     }
 }

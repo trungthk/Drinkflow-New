@@ -116,7 +116,17 @@
     <!-- Users Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
+            {{-- Fixed-width side columns; the member column takes the remaining space. --}}
+            <table class="table-colgroup w-full min-w-[60rem] table-fixed text-left text-xs border-collapse">
+                <colgroup>
+                    <col class="w-12">
+                    <col>
+                    <col class="w-32">
+                    <col class="w-40">
+                    <col class="w-28">
+                    <col class="w-32">
+                    <col class="w-24">
+                </colgroup>
                 <thead>
                     <tr
                         class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
@@ -214,7 +224,7 @@
                                             aria-label="{{ __('admin.remove_user_from_room') }}">
                                             <span class="material-symbols-outlined text-[16px]">person_remove</span>
                                             <span role="tooltip"
-                                                class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ __('admin.remove_user_from_room') }}</span>
+                                                class="pointer-events-none absolute bottom-full right-0 z-20 mb-2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ __('admin.remove_user_from_room') }}</span>
                                         </button>
                                     @endif
                                 </div>
@@ -285,14 +295,25 @@
          data-confirm-label="{{ __('admin.confirm_action') }}">
         <div
             class="relative z-10 w-full max-w-sm bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-2xl">
-            <h3 id="user-action-title" class="font-bold text-base text-on-surface">{{ __('admin.toggle_user_status') }}
-            </h3>
-            <p id="user-action-message" class="mt-2 text-xs text-outline leading-relaxed"></p>
+            <div class="flex items-start gap-3">
+                <span id="user-action-icon-wrap"
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <span id="user-action-icon" class="material-symbols-outlined text-[22px]">manage_accounts</span>
+                </span>
+                <div class="min-w-0">
+                    <h3 id="user-action-title" class="font-bold text-base text-on-surface">{{ __('admin.toggle_user_status') }}
+                    </h3>
+                    <p id="user-action-message" class="mt-1.5 text-xs text-outline leading-relaxed"></p>
+                </div>
+            </div>
             <div class="mt-5 flex justify-end gap-2">
                 <button type="button" id="user-action-cancel"
                     class="px-4 py-2 rounded-lg bg-surface-container text-on-surface text-xs font-semibold">{{ __('admin.cancel') }}</button>
                 <button type="button" id="user-action-confirm"
-                    class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold">{{ __('admin.confirm_action') }}</button>
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold transition-colors">
+                    <span id="user-action-confirm-icon" class="material-symbols-outlined text-[16px]">check</span>
+                    <span id="user-action-confirm-label">{{ __('admin.confirm_action') }}</span>
+                </button>
             </div>
         </div>
     </div>

@@ -194,13 +194,29 @@ class RoomsPageTest extends TestCase
             'status' => 'active',
         ]);
 
-        RoomUser::create([
+        $roomUser = RoomUser::create([
             'room_id' => $room->id,
             'global_user_id' => $user->id,
             'user_code' => 'GEN1',
             'display_name' => 'User With Rooms',
             'normalized_name' => 'USER WITH ROOMS',
             'status' => 'active',
+        ]);
+
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Trà sữa chiều',
+            'restaurant' => 'Phúc Long',
+            'status' => CampaignStatus::Closed->value,
+        ]);
+
+        Order::create([
+            'room_id' => $room->id,
+            'campaign_id' => $campaign->id,
+            'room_user_id' => $roomUser->id,
+            'status' => OrderStatus::Completed->value,
+            'subtotal' => 50000,
+            'final_amount' => 50000,
         ]);
 
         $response = $this->actingAs($user, 'web')->get('/me');

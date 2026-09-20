@@ -29,7 +29,7 @@ export function initRoomHeader() {
                     b.textContent = '0';
                 });
 
-                const allReadText = markAllReadBtn.dataset.readText || 'Đã đọc tất cả';
+                const allReadText = markAllReadBtn.dataset.readText || '';
                 markAllReadBtn.textContent = allReadText;
                 markAllReadBtn.classList.add('opacity-50', 'pointer-events-none');
             } catch (error) {

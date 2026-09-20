@@ -353,7 +353,7 @@ class AdminFeatureTest extends TestCase
 
         $this->actingAs($admin, 'admin')->getJson("/admin/{$room->slug}/payment-accounts/{$secondId}/qr")
             ->assertOk()
-            ->assertJsonPath('data.payload', "DRINKFLOW-PAYMENT\nBANK:MBBank\nBANK_CODE:MB\nACCOUNT:0987654321\nACCOUNT_NAME:DRINKFLOW TWO");
+            ->assertJsonPath('data.payload', app(\App\Services\Payment\VietQrService::class)->generate(\App\Models\PaymentAccount::findOrFail($secondId)));
     }
 
     public function test_admin_cannot_delete_payment_account_used_by_live_campaign(): void
@@ -446,6 +446,34 @@ class AdminFeatureTest extends TestCase
             ->assertJsonPath('data.popular_stores', []);
     }
 
+    /**
+     * Member-based report tabs identify members by account email instead of user code.
+     *
+     * @return void
+     */
+    public function test_room_report_member_tabs_expose_email_instead_of_user_code(): void
+    {
+        $admin = $this->admin('report-email@example.test');
+        $room = $this->roomFor($admin, 'report-email-room');
+        $campaign = Campaign::create(['room_id' => $room->id, 'name' => 'Lunch', 'restaurant' => 'Cafe', 'status' => 'active']);
+        $user = \App\Models\GlobalUser::create(['email' => 'member-report@example.test', 'name' => 'Report Member', 'normalized_name' => 'REPORT MEMBER', 'status' => 'active']);
+        $roomUser = \App\Models\RoomUser::create([
+            'room_id' => $room->id, 'global_user_id' => $user->id, 'user_code' => 'RPT01',
+            'display_name' => 'Report Member', 'normalized_name' => 'REPORT MEMBER', 'status' => 'active',
+        ]);
+        \App\Models\Order::create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id, 'room_user_id' => $roomUser->id,
+            'subtotal' => 50000, 'sponsor_amount' => 10000, 'final_amount' => 40000, 'status' => 'submitted',
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')->getJson("/admin/{$room->id}/reports?period=month&tab=all");
+        $response->assertOk()
+            ->assertJsonPath('data.sponsors_leaderboard.0.user_email', 'member-report@example.test')
+            ->assertJsonPath('data.top_users.0.user_email', 'member-report@example.test')
+            ->assertJsonMissingPath('data.top_users.0.user_code')
+            ->assertJsonMissingPath('data.sponsors_leaderboard.0.user_code');
+    }
+
     public function test_admin_dashboard_returns_weekly_trend_and_metrics(): void
     {
         $admin = $this->admin('trend@example.test');
@@ -492,7 +520,7 @@ class AdminFeatureTest extends TestCase
             ->assertSee(__('admin.time_expired'))
             ->assertSee('data-adjust-campaign-link', false)
             ->assertSee(__('admin.adjust_campaign'))
-            ->assertSee(route('admin.campaigns.show', [$room, $room->campaigns()->first()]))
+            ->assertSee(route('admin.campaigns.info', [$room, $room->campaigns()->first()]))
             ->assertDontSee('id="chart-date-range"', false)
             ->assertSeeInOrder([
                 'id="chart-day-labels"',
@@ -500,6 +528,44 @@ class AdminFeatureTest extends TestCase
                 __('admin.campaign_count_bar'),
                 __('admin.spending_vnd_line'),
             ], false);
+    }
+
+    /**
+     * Sidebar orders badge counts only top-level orders of the live campaign.
+     *
+     * @return void
+     */
+    public function test_sidebar_orders_badge_counts_only_live_campaign_orders(): void
+    {
+        $admin = $this->admin('badge@example.test');
+        $room = $this->roomFor($admin, 'badge-room');
+        $live = Campaign::create(['room_id' => $room->id, 'name' => 'Live', 'restaurant' => 'Cafe', 'status' => 'active']);
+        $closed = Campaign::create(['room_id' => $room->id, 'name' => 'Closed', 'restaurant' => 'Cafe', 'status' => 'closed']);
+        $seq = 0;
+        $make = function (Campaign $campaign, ?int $parentId = null) use ($room, &$seq) {
+            $seq++;
+            $user = \App\Models\GlobalUser::create(['email' => "badge-member{$seq}@example.test", 'name' => "Badge Member {$seq}", 'normalized_name' => "BADGE MEMBER {$seq}", 'status' => 'active']);
+            $roomUser = \App\Models\RoomUser::create([
+                'room_id' => $room->id, 'global_user_id' => $user->id, 'user_code' => "BDG{$seq}",
+                'display_name' => "Badge {$seq}", 'normalized_name' => "BADGE {$seq}", 'status' => 'active',
+            ]);
+
+            return \App\Models\Order::create([
+                'room_id' => $room->id, 'campaign_id' => $campaign->id, 'room_user_id' => $roomUser->id,
+                'parent_id' => $parentId, 'subtotal' => 10000, 'final_amount' => 10000, 'status' => 'submitted',
+            ]);
+        };
+        $parent = $make($live);
+        $make($live);
+        $make($live, $parent->id);
+        $make($closed);
+        $make($closed);
+        $make($closed);
+
+        $this->assertSame(3, \App\Models\Order::query()->where('room_id', $room->id)->inLiveCampaign()->count());
+        $this->actingAs($admin, 'admin')->get(route('admin.orders.page', $room->slug))
+            ->assertOk()
+            ->assertViewHas('realtimeOrderCount', 3);
     }
 
     public function test_admin_can_adjust_order_item_price_and_recalculate(): void
@@ -1238,7 +1304,7 @@ class AdminFeatureTest extends TestCase
             'status' => \App\Enums\OrderStatus::Submitted,
         ]);
 
-        $response = $this->actingAs($admin, 'admin')->get("/admin/{$room->slug}/campaigns/{$campaign->id}?view=detail");
+        $response = $this->actingAs($admin, 'admin')->get("/admin/{$room->slug}/campaigns/{$campaign->id}/orders");
 
         $response->assertOk()
             ->assertSee(__('admin.declined_users_tab'))

@@ -63,6 +63,16 @@
                             <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-outline"><span
                                     class="inline-flex items-center gap-1.5"><span
                                         class="material-symbols-outlined text-[16px]">mail</span>{{ $admin->email }}</span>
+                                <span class="inline-flex items-center gap-1.5" data-admin-created-at>
+                                    <span class="material-symbols-outlined text-[16px]">event</span>
+                                    <span>{{ __('admin.profile_created_at') }}:</span>
+                                    <span class="font-mono font-semibold text-on-surface-variant">{{ $admin->created_at?->format(\App\Support\Helpers\FormatHelper::getDateTimeFormat()) ?? '—' }}</span>
+                                </span>
+                                <span class="inline-flex items-center gap-1.5" data-admin-last-login>
+                                    <span class="material-symbols-outlined text-[16px]">login</span>
+                                    <span>{{ __('admin.profile_last_login') }}:</span>
+                                    <span class="font-mono font-semibold text-on-surface-variant">{{ $admin->last_login_at?->format(\App\Support\Helpers\FormatHelper::getDateTimeFormat()) ?? __('admin.profile_never_logged_in') }}</span>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -246,10 +256,15 @@
                 <input type="hidden" name="two_factor_enabled"
                     value="{{ $admin->two_factor_enabled ? '0' : '1' }}">
                 <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <h2 id="two-factor-title" class="text-lg font-bold text-on-surface">
-                            {{ __('admin.confirm_two_factor') }}</h2>
-                        <p class="mt-1 text-xs text-outline">{{ __('admin.two_factor_description') }}</p>
+                    <div class="flex items-start gap-3">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                            <span class="material-symbols-outlined text-[22px]">shield_lock</span>
+                        </span>
+                        <div>
+                            <h2 id="two-factor-title" class="text-lg font-bold text-on-surface">
+                                {{ __('admin.confirm_two_factor') }}</h2>
+                            <p class="mt-1 text-xs text-outline">{{ __('admin.two_factor_description') }}</p>
+                        </div>
                     </div><button type="button" data-two-factor-close
                         class="text-outline hover:text-on-surface"><span
                             class="material-symbols-outlined">close</span></button>

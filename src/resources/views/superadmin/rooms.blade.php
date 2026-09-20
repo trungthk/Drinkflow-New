@@ -1,3 +1,56 @@
 @extends('superadmin.layout', ['title' => 'Room Management', 'active' => 'rooms'])
-@section('content')<div class="superadmin-heading"><div><p class="superadmin-eyebrow">Core System</p><h1>Room Management</h1></div><button class="sa-button" onclick="createRoom()">Create Room</button></div><div id="notice" class="sa-notice"></div><section class="sa-card sa-section"><div class="sa-section-header"><div><h2>All rooms</h2><p>{{ $rooms->total() }} rooms</p></div><form method="GET" class="superadmin-actions"><input name="q" value="{{ $filters['search'] ?? '' }}" class="sa-input" placeholder="Search room"><select name="status" class="sa-input"><option value="">All status</option>@foreach(['active','disabled','archived'] as $value)<option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $value }}</option>@endforeach</select><button class="sa-button secondary" type="submit">Filter</button></form></div><div class="sa-table-wrap"><table class="sa-table"><thead><tr><th>Room</th><th>Status</th><th>Members</th><th>Campaigns</th><th>Actions</th></tr></thead><tbody>@forelse($rooms as $room)<tr><td><strong>{{ $room->name }}</strong><br><small>{{ $room->slug }}</small></td><td>{{ $room->status }}</td><td>{{ $room->room_users_count }}</td><td>{{ $room->campaigns_count }}</td><td><a class="sa-button secondary" href="{{ route('superadmin.rooms.detail.page', $room) }}">Detail</a><button class="sa-button danger" onclick="deleteRoom({{ $room->id }})">Delete</button></td></tr>@empty<tr><td colspan="5" class="sa-empty">No rooms.</td></tr>@endforelse</tbody></table></div><div class="mt-4">{{ $rooms->links() }}</div></section>@endsection
-@push('scripts')<script>async function deleteRoom(id){if(confirm('Delete room?')){await dfApi(`/superadmin/rooms/${id}`,{method:'DELETE'});window.location.reload();}}async function createRoom(){const name=prompt('Room name');if(!name)return;const slug=prompt('Slug');if(!slug)return;await dfApi('{{ route('superadmin.rooms.store') }}',{method:'POST',body:{name,slug}});window.location.reload();}</script>@endpush
+@section('content')
+    <div class="superadmin-heading">
+        <div>
+            <p class="superadmin-eyebrow">Core System</p>
+            <h1>Room Management</h1>
+        </div><button class="sa-button" data-action="create-room" data-endpoint="{{ route('superadmin.rooms.store') }}" onclick="createRoom('{{ route('superadmin.rooms.store') }}')">Create Room</button>
+    </div>
+    <div id="notice" class="sa-notice"></div>
+    <section class="sa-card sa-section">
+        <div class="sa-section-header">
+            <div>
+                <h2>All rooms</h2>
+                <p>{{ $rooms->total() }} rooms</p>
+            </div>
+            <form method="GET" class="superadmin-actions"><input name="q" value="{{ $filters['search'] ?? '' }}"
+                    class="sa-input" placeholder="Search room"><select name="status" class="sa-input">
+                    <option value="">All status</option>
+                    @foreach (['active', 'disabled', 'archived'] as $value)
+                        <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ $value }}</option>
+                    @endforeach
+                </select>
+                <button class="sa-button secondary" type="submit">Filter</button>
+            </form>
+        </div>
+        <div class="sa-table-wrap">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th>Room</th>
+                        <th>Status</th>
+                        <th>Members</th>
+                        <th>Campaigns</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($rooms as $room)
+                        <tr>
+                            <td><strong>{{ $room->name }}</strong><br><small>{{ $room->slug }}</small></td>
+                            <td>{{ $room->status }}</td>
+                            <td>{{ $room->room_users_count }}</td>
+                            <td>{{ $room->campaigns_count }}</td>
+                            <td><a class="sa-button secondary"
+                                    href="{{ route('superadmin.rooms.detail.page', $room) }}">Detail</a><button
+                                    class="sa-button danger" data-action="delete-room" data-room-id="{{ $room->id }}" onclick="deleteRoom({{ $room->id }})">Delete</button></td>
+                    </tr>@empty<tr>
+                            <td colspan="5" class="sa-empty">No rooms.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4">{{ $rooms->links() }}</div>
+    </section>
+@endsection

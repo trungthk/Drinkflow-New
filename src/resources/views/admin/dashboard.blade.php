@@ -7,6 +7,18 @@
         data-close-url-template="{{ url('admin/' . $room->id . '/campaigns/:id/close') }}"
         data-time-expired-text="{{ __('admin.time_expired') }}"
         data-no-deadline-text="{{ __('admin.no_deadline_set') }}"
+        data-opened-at-text="{{ __('admin.dashboard_opened_at') }}"
+        data-today-text="{{ __('admin.dashboard_today') }}"
+        data-store-label-text="{{ __('admin.dashboard_store_label') }}"
+        data-room-fund-text="{{ __('admin.dashboard_room_fund') }}"
+        data-live-campaign-text="{{ __('admin.live_campaign_info') }}"
+        data-secondary-campaign-text="{{ __('admin.dashboard_secondary_campaign') }}"
+        data-chart-label-campaigns="{{ __('admin.chart_tooltip_campaigns') }}"
+        data-chart-label-spending="{{ __('admin.chart_tooltip_spending') }}"
+        data-chart-label-orders="{{ __('admin.chart_tooltip_orders') }}"
+        data-chart-peak-label="{{ __('admin.chart_peak_label') }}"
+        data-chart-no-data-text="{{ __('admin.no_weekly_data') }}"
+        data-chart-summary-template="{{ __('admin.weekly_total_summary', ['campaigns' => ':campaigns', 'amount' => ':amount']) }}"
         class="space-y-6"
     >
         <!-- Page Header & Actions -->
@@ -132,10 +144,14 @@
                     <!-- Header Row -->
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
                         <div class="flex items-center gap-2">
-                            <span class="flex items-center gap-1.5 px-2 py-0.5 bg-error-container text-on-error-container rounded text-[11px] font-mono font-bold border border-error/30">
-                                <span class="w-2 h-2 rounded-full bg-error status-dot-pulse"></span>
-                                {{ __('admin.live_now') }}
-                            </span>
+                            @if ($activeCampaign ?? null)
+                                <x-admin.campaign-status-badge :campaign="$activeCampaign" />
+                            @else
+                                <span class="flex items-center gap-1.5 px-2.5 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[11px] font-mono font-bold border border-emerald-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 status-dot-pulse"></span>
+                                    {{ __('admin.live_now') }}
+                                </span>
+                            @endif
                             <h3 id="hero-campaign-title" class="text-lg font-bold text-on-surface">{{ $activeCampaign?->name ?? __('admin.loading_campaign') }}</h3>
                             <span id="hero-campaign-code" class="text-xs font-mono text-outline">{{ $activeCampaign?->code ?? 'N/A' }}</span>
                         </div>
@@ -164,8 +180,8 @@
                         <!-- Net Summary -->
                         <div class="flex flex-col justify-center pl-1">
                             <span class="text-[10px] font-mono text-outline uppercase font-semibold">{{ __('admin.net_payable') }}</span>
-                            <span id="hero-net-payable" class="text-lg font-bold text-primary">0 ₫</span>
-                            <span id="hero-gross-subtotal" class="text-[10px] font-mono text-outline">{{ __('admin.gross_subtotal') }}: 0 ₫</span>
+                            <span id="hero-net-payable" class="text-lg font-bold text-primary">0đ</span>
+                            <span id="hero-gross-subtotal" class="text-[10px] font-mono text-outline">{{ __('admin.gross_subtotal') }}: 0đ</span>
                         </div>
                     </div>
 
@@ -174,7 +190,7 @@
                         <div class="flex items-center gap-2">
                             <span class="material-symbols-outlined text-[16px] text-tertiary">volunteer_activism</span>
                             <span class="text-on-surface-variant font-medium">{{ __('admin.multi_sponsor_title') }}</span>
-                            <strong id="hero-sponsor-total" class="font-bold text-tertiary font-mono">-0 ₫</strong>
+                            <strong id="hero-sponsor-total" class="font-bold text-tertiary font-mono">-0đ</strong>
                         </div>
                         <div id="hero-sponsor-names" class="flex items-center gap-3 text-outline text-[11px] font-mono">
                             <span>{{ __('admin.loading_sponsors') }}</span>
@@ -190,7 +206,7 @@
                             <span>{{ __('admin.view_orders_adjust') }}</span>
                         </a>
                         <a data-adjust-campaign-link
-                            href="{{ ($activeCampaign ?? null) ? route('admin.campaigns.show', [$room, $activeCampaign]) : route('admin.campaigns.page', $room) }}"
+                            href="{{ ($activeCampaign ?? null) ? route('admin.campaigns.info', [$room, $activeCampaign]) : route('admin.campaigns.page', $room) }}"
                             class="bg-surface-container-low hover:bg-surface-container border border-outline-variant text-on-surface px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs no-underline">
                             <span class="material-symbols-outlined text-[16px]">tune</span>
                             <span>{{ __('admin.adjust_campaign') }}</span>
@@ -226,7 +242,7 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-outline">{{ __('admin.subtotal_label') }}</span>
-                            <span id="sec-campaign-subtotal" class="text-primary font-bold">0 ₫</span>
+                            <span id="sec-campaign-subtotal" class="text-primary font-bold">0đ</span>
                         </div>
                     </div>
                 </div>
@@ -255,7 +271,14 @@
                     </a>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-left">
+                    <table class="table-colgroup w-full min-w-[36rem] table-fixed text-xs text-left">
+                        <colgroup>
+                            <col class="w-28">
+                            <col class="w-40">
+                            <col>
+                            <col class="w-32">
+                            <col class="w-32">
+                        </colgroup>
                         <thead>
                             <tr class="border-b border-outline-variant/60 text-outline uppercase font-mono text-[10px]">
                                 <th class="py-2.5 px-3">{{ __('admin.order_code') }}</th>
@@ -356,7 +379,7 @@
                         <span class="material-symbols-outlined text-[16px] text-primary">check_circle</span>
                         <span id="modal-members-count">{{ __('admin.members_ordered_unit', ['count' => 0]) }}</span>
                     </div>
-                    <strong id="modal-subtotal-val" class="font-bold text-primary">{{ __('admin.subtotal_label') }} 0 ₫</strong>
+                    <strong id="modal-subtotal-val" class="font-bold text-primary">{{ __('admin.subtotal_label') }} 0đ</strong>
                 </div>
                 <div class="pt-1">
                     <label class="flex items-center gap-2.5 cursor-pointer text-xs text-on-surface-variant select-none">

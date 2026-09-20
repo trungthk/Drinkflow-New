@@ -20,7 +20,7 @@ class DuplicateCampaignAction
     {
         return DB::transaction(function () use ($campaign, $adminId): Campaign {
             $campaign->load(['items.sizes', 'items.toppings']);
-            $copy = $campaign->replicate(['status', 'started_at', 'closed_at']);
+            $copy = $campaign->replicate(['code', 'status', 'started_at', 'closed_at']);
             $copy->status = CampaignStatus::Draft;
             $copy->started_at = null;
             $copy->closed_at = null;

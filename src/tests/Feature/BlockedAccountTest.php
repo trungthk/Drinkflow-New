@@ -75,7 +75,7 @@ class BlockedAccountTest extends TestCase
         $response->assertSee('trung.lt@company.com');
         $response->assertSee('Thông tin hồ sơ sự cố');
         $response->assertSee('Khoản chờ đối soát');
-        $response->assertSee('60,000đ');
+        $response->assertSee(\App\Support\Helpers\FormatHelper::formatCurrency(60000));
         $response->assertSee('Gửi yêu cầu mở khóa &amp; Khiếu nại', false);
     }
 

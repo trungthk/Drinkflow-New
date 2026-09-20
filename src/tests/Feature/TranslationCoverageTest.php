@@ -1,0 +1,75 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature;
+
+use FilesystemIterator;
+use Illuminate\Support\Facades\Lang;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use Tests\TestCase;
+
+class TranslationCoverageTest extends TestCase
+{
+    /** @var array<int, string> Locales every UI string must be translated into. */
+    private const LOCALES = ['vi', 'en', 'ja'];
+
+    /**
+     * Every literal translation key used in code must exist in vi, en and ja.
+     *
+     * Keys built by concatenation (ending in "_" or ".") are skipped because their suffix is only known at runtime.
+     */
+    public function test_literal_translation_keys_exist_in_every_locale(): void
+    {
+        $missing = [];
+
+        foreach ($this->literalKeys() as $key => $file) {
+            foreach (self::LOCALES as $locale) {
+                if (! Lang::has($key, $locale, false)) {
+                    $missing[] = sprintf('%s [%s] (%s)', $key, $locale, $file);
+                }
+            }
+        }
+
+        $this->assertSame([], $missing, "Missing translations:\n".implode("\n", $missing));
+    }
+
+    /**
+     * Collect literal keys passed to __(), trans(), @lang() or Lang::get().
+     *
+     * @return array<string, string> Map of translation key to the first file that uses it.
+     */
+    private function literalKeys(): array
+    {
+        $keys = [];
+
+        foreach (['app', 'resources/views', 'resources/js', 'routes'] as $root) {
+            $iterator = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(base_path($root), FilesystemIterator::SKIP_DOTS)
+            );
+
+            foreach ($iterator as $file) {
+                if (! preg_match('/\.(php|js)$/', $file->getFilename())) {
+                    continue;
+                }
+
+                $source = (string) file_get_contents($file->getPathname());
+                if (! preg_match_all('/(?:__|trans|@lang|Lang::get)\(\s*[\'"]([a-z_]+(?:\.[A-Za-z0-9_\-]+)+)[\'"]/', $source, $matches)) {
+                    continue;
+                }
+
+                foreach ($matches[1] as $key) {
+                    if (str_ends_with($key, '_') || str_ends_with($key, '.')) {
+                        continue;
+                    }
+                    $keys[$key] ??= str_replace(base_path().DIRECTORY_SEPARATOR, '', $file->getPathname());
+                }
+            }
+        }
+
+        ksort($keys);
+
+        return $keys;
+    }
+}

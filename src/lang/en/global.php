@@ -1,7 +1,9 @@
 <?php
 
 return [
+    'portal_title' => 'Portal',
     'common' => [
+        'error' => 'Something went wrong. Please try again.',
         'room' => 'Room',
         'campaign' => 'Campaign',
         'user' => 'User',
@@ -52,6 +54,8 @@ return [
         'google_login_failed' => 'Google login failed: :error',
     ],
     'header' => [
+        'language_select' => 'Select language',
+        'main_nav' => 'Main navigation',
         'overview' => 'Overview',
         'rooms' => 'Room List',
         'my_rooms' => 'My Rooms',
@@ -302,6 +306,8 @@ return [
         'active_order_exists' => 'You already have an active order for this campaign.',
     ],
     'payments' => [
+        'col_total_amount' => 'Total amount',
+        'sponsored_amount' => 'Sponsored :amount',
         'host_room' => 'Host Room :name',
         'page_title' => 'Payment & Outstanding Debt Management',
         'breadcrumb_portal' => 'DrinkFlow Portal',
@@ -616,6 +622,7 @@ return [
         'captcha_refresh' => 'Refresh security code',
         'captcha_loading' => 'Loading...',
         'load_more_btn' => 'Load More Reviews',
+        'retry_btn' => 'Try again',
         'loading_more' => 'Loading more...',
         'all_loaded' => 'All reviews loaded',
     ],
@@ -650,6 +657,7 @@ return [
         'understood_close' => 'Understood & Close',
     ],
     'blocked' => [
+        'account_blocked' => 'Your account has been blocked.',
         'page_title' => 'Account Suspended | DrinkFlow Enterprise',
         'security_compliance' => 'SECURITY & COMPLIANCE',
         'suspended_tooltip' => 'Account suspended',
@@ -671,7 +679,7 @@ return [
         'scope_desc' => 'Cannot create drink rooms, place individual orders or receive sponsorships from colleagues. All audit logs, membership points and order histories remain securely preserved.',
         'protocol_title' => 'Resolution Protocol & Recovery Steps',
         'step_1_title' => 'Review outstanding VietQR payment obligations',
-        'step_1_desc' => 'Compare your banking transfer history against recent orders (Estimated debt: :debtđ).',
+        'step_1_desc' => 'Compare your banking transfer history against recent orders (Estimated debt: :debt).',
         'step_2_title' => 'Contact Room Host or Finance Department Admin',
         'step_2_desc' => 'Confirm with group Host to mark your order as "Paid" or have Finance verify your transaction reference.',
         'step_3_title' => 'Submit appeal or direct fast-track reconciliation',

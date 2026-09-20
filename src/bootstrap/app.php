@@ -31,6 +31,12 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\EnsureActiveAdmin::class,
         ]);
+        // Apply the session locale right after the session starts and before route model binding,
+        // so a 404 thrown by a missing {room}/{campaign} model is rendered in the user's language.
+        $middleware->prependToPriorityList(
+            before: \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            prepend: \App\Http\Middleware\SetLocale::class,
+        );
         $middleware->append(\App\Http\Middleware\SanitizeInputStrings::class);
         $middleware->append(\App\Http\Middleware\CheckMaintenanceMode::class);
     })

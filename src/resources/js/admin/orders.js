@@ -1,4 +1,5 @@
 import { debounce } from './ui-enhancements';
+import { formatMoney } from '../shared/money';
 
 /**
  * Initialize order search, filtering, deletion, and price adjustment.
@@ -33,7 +34,7 @@ export function initAdminOrders() {
             return String(dateStr);
         }
     };
-    const formatVND = (num) => new Intl.NumberFormat(document.documentElement.lang || 'vi-VN').format(num || 0) + ' ₫';
+    const formatVND = formatMoney;
 
     search?.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
@@ -103,16 +104,16 @@ export function initAdminOrders() {
             const order = (await response.json()).data;
 
             if (detailTitle) {
-                detailTitle.textContent = (i18n.orderDetailModalTitle || 'Chi tiết đơn hàng :id').replace(':id', order.code || ('#ORD-' + order.id));
+                detailTitle.textContent = (i18n.orderDetailModalTitle || '').replace(':id', order.code || ('#ORD-' + order.id));
             }
 
             const statusKey = order.status?.value || order.status || '';
             const statusLabel = {
-                submitted: i18n.statusSubmitted || 'Chờ xác nhận',
-                confirmed: i18n.statusConfirmed || 'Đã xác nhận',
-                completed: i18n.statusCompleted || 'Món đã được giao đến',
-                delivering: i18n.statusDelivering || 'Đang giao',
-                cancelled: i18n.statusCancelled || 'Đã huỷ',
+                submitted: i18n.statusSubmitted || '',
+                confirmed: i18n.statusConfirmed || '',
+                completed: i18n.statusCompleted || '',
+                delivering: i18n.statusDelivering || '',
+                cancelled: i18n.statusCancelled || '',
             }[statusKey] || statusKey;
 
             if (detailBadge) {
@@ -121,29 +122,29 @@ export function initAdminOrders() {
                 detailBadge.classList.remove('hidden');
             }
 
-            const member = order.room_user?.global_user?.name || order.room_user?.display_name || ('Member #' + order.room_user_id);
+            const member = order.room_user?.global_user?.name || order.room_user?.display_name || ('#' + order.room_user_id);
             const userCode = order.room_user?.user_code || '';
             const email = order.room_user?.global_user?.email || '';
             const avatarUrl = order.room_user?.global_user?.avatar_url || '';
             const restaurant = order.campaign?.restaurant || '—';
-            const campaignName = order.campaign?.name || (i18n.notAvailable || '—');
+            const campaignName = order.campaign?.name || (i18n.notAvailable || '');
 
             const itemsHtml = (order.items || []).map((item) => {
                 const toppingsHtml = (item.toppings && item.toppings.length > 0)
                     ? '<div class="flex flex-wrap gap-1 mt-1">' + item.toppings.map((t) => '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-container text-secondary border border-outline-variant/60">+ ' + escape(t.name || t.topping_name) + ' (' + formatVND(t.price || t.unit_price) + ')</span>').join('') + '</div>'
-                    : '<div class="text-[10px] text-outline mt-0.5 italic">' + escape(i18n.noToppings || 'Không kèm topping') + '</div>';
+                    : '';
 
                 const itemNoteHtml = item.note ? '<div class="text-[11px] text-amber-700 dark:text-amber-400 italic mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">edit_note</span> ' + escape(item.note) + '</div>' : '';
 
                 return '<tr class="border-b border-outline-variant/40 hover:bg-surface-container-low/50 transition-colors">'
-                    + '<td class="py-2.5 px-3 text-on-surface">'
+                    + '<td class="py-2 px-3 text-on-surface">'
                     +   '<div class="font-bold text-xs">' + escape(item.item_name) + (item.size ? ' <span class="text-primary font-normal">(' + escape(item.size) + ')</span>' : '') + '</div>'
                     +   toppingsHtml
                     +   itemNoteHtml
                     + '</td>'
-                    + '<td class="py-2.5 px-3 text-center font-mono font-bold text-on-surface">' + escape(item.quantity) + '</td>'
-                    + '<td class="py-2.5 px-3 text-right font-mono text-outline">' + formatVND(item.unit_price) + '</td>'
-                    + '<td class="py-2.5 px-3 text-right font-mono font-bold text-primary">' + formatVND(item.line_subtotal || item.total_price || (item.unit_price * item.quantity)) + '</td>'
+                    + '<td class="py-2 px-3 text-center font-mono font-bold text-on-surface">' + escape(item.quantity) + '</td>'
+                    + '<td class="py-2 px-3 text-right font-mono text-outline">' + formatVND(item.unit_price) + '</td>'
+                    + '<td class="py-2 px-3 text-right font-mono font-bold text-primary">' + formatVND(item.line_subtotal || item.total_price || (item.unit_price * item.quantity)) + '</td>'
                     + '</tr>';
             }).join('');
 
@@ -154,40 +155,37 @@ export function initAdminOrders() {
             const finalAmount = Number(order.final_amount || 0);
 
             let breakdownHtml = '<div class="space-y-1.5">';
-            breakdownHtml += '<div class="flex justify-between text-secondary"><span>' + escape(i18n.subtotal || 'Tổng tiền món') + ':</span><span class="font-mono font-semibold text-on-surface">' + formatVND(subtotal) + '</span></div>';
+            breakdownHtml += '<div class="flex justify-between text-secondary"><span>' + escape(i18n.subtotal || '') + ':</span><span class="font-mono font-semibold text-on-surface">' + formatVND(subtotal) + '</span></div>';
             if (deliveryAmount > 0) {
-                breakdownHtml += '<div class="flex justify-between text-secondary"><span>' + escape(i18n.deliveryFeeOrder || 'Phí giao hàng') + ':</span><span class="font-mono font-semibold text-on-surface">+' + formatVND(deliveryAmount) + '</span></div>';
+                breakdownHtml += '<div class="flex justify-between text-secondary"><span>' + escape(i18n.deliveryFeeOrder || '') + ':</span><span class="font-mono font-semibold text-on-surface">+' + formatVND(deliveryAmount) + '</span></div>';
             }
             if (discountAmount > 0) {
-                breakdownHtml += '<div class="flex justify-between text-emerald-600"><span>' + escape(i18n.discountVoucher || 'Giảm giá / Voucher') + ':</span><span class="font-mono font-semibold">-' + formatVND(discountAmount) + '</span></div>';
+                breakdownHtml += '<div class="flex justify-between text-emerald-600"><span>' + escape(i18n.discountVoucher || '') + ':</span><span class="font-mono font-semibold">-' + formatVND(discountAmount) + '</span></div>';
             }
             if (sponsorAmount > 0) {
-                breakdownHtml += '<div class="flex justify-between text-emerald-600"><span>' + escape(i18n.roomSubsidy || 'Trợ giá phòng') + ':</span><span class="font-mono font-semibold">-' + formatVND(sponsorAmount) + '</span></div>';
+                breakdownHtml += '<div class="flex justify-between text-emerald-600"><span>' + escape(i18n.roomSubsidy || '') + ':</span><span class="font-mono font-semibold">-' + formatVND(sponsorAmount) + '</span></div>';
             }
-            breakdownHtml += '<div class="pt-2 mt-2 border-t border-outline-variant flex justify-between items-baseline"><span class="font-bold text-sm text-on-surface">' + escape(i18n.finalPayable || 'Tổng thanh toán') + ':</span><span class="font-mono font-bold text-base text-primary">' + formatVND(finalAmount) + '</span></div>';
+            breakdownHtml += '<div class="pt-2 mt-2 border-t border-outline-variant flex justify-between items-baseline"><span class="font-bold text-sm text-on-surface">' + escape(i18n.finalPayable || '') + ':</span><span class="font-mono font-bold text-base text-primary">' + formatVND(finalAmount) + '</span></div>';
             breakdownHtml += '</div>';
 
-            const paymentMethodBadge = order.payment_method ? '<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-surface-container text-secondary border border-outline-variant">' + escape(order.payment_method) + '</span>' : '<span class="text-outline italic">—</span>';
+            const paymentMethodBadge = order.payment_method ? '<span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-surface-container text-secondary border border-outline-variant">' + escape(i18n.paymentMethodNames?.[order.payment_method] || order.payment_method) + '</span>' : '<span class="text-outline italic">—</span>';
             const paymentStatusKey = order.payment_status?.value || order.payment_status || 'pending';
             const parentHtml = order.parent
-                ? `<div class="rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900"><div class="flex items-center gap-1.5 font-bold"><span class="material-symbols-outlined text-[16px]">account_tree</span>${escape(i18n.orderedBy || 'Ordered by')}</div><div class="mt-1">${escape(order.parent.room_user?.display_name || order.parent.room_user?.global_user?.name || '—')} ${order.parent.room_user?.global_user?.email ? `<span class="text-sky-700">· ${escape(order.parent.room_user.global_user.email)}</span>` : ''} <span class="font-mono">(${escape(order.parent.code || '')})</span></div></div>`
-                : '';
-            const childrenHtml = (order.children || []).length > 0
-                ? `<div class="rounded-xl border border-violet-200 bg-violet-50 p-3 text-xs text-violet-900"><div class="flex items-center gap-1.5 font-bold"><span class="material-symbols-outlined text-[16px]">group</span>${escape(i18n.proxyOrders || 'Proxy orders')}</div><div class="mt-2 space-y-1.5">${order.children.map((child) => `<div class="flex items-center justify-between gap-2"><span>${escape(child.room_user?.display_name || child.room_user?.global_user?.name || '—')}</span><span class="text-violet-700">${escape(child.room_user?.global_user?.email || '')}</span></div>`).join('')}</div></div>`
+                ? `<div class="rounded-xl border border-sky-200 bg-sky-50 p-3 text-xs text-sky-900"><div class="flex items-center gap-1.5 font-bold"><span class="material-symbols-outlined text-[16px]">account_tree</span>${escape(i18n.orderedBy || '')}</div><div class="mt-1">${escape(order.parent.room_user?.display_name || order.parent.room_user?.global_user?.name || '—')} ${order.parent.room_user?.global_user?.email ? `<span class="text-sky-700">· ${escape(order.parent.room_user.global_user.email)}</span>` : ''} <span class="font-mono">(${escape(order.parent.code || '')})</span></div></div>`
                 : '';
             const paymentStatusBadge = paymentStatusKey === 'paid'
-                ? '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300">Đã thanh toán</span>'
-                : '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/50 dark:text-amber-300">Chưa thanh toán</span>';
+                ? '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300">' + escape(i18n.statusPaid || '') + '</span>'
+                : '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-300 dark:bg-amber-950/50 dark:text-amber-300">' + escape(i18n.statusUnpaid || '') + '</span>';
 
             detailBody.innerHTML = `
-                ${parentHtml}${childrenHtml}
+                ${parentHtml}
 
                 <!-- Member & Campaign Info Card -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 items-start gap-3">
                     <div class="bg-surface-container-low rounded-xl p-3.5 border border-outline-variant/60">
                         <div class="text-[10px] font-mono uppercase text-outline tracking-wider mb-2 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">person</span>
-                            <span>${escape(i18n.customerInfo || 'Thông tin người đặt')}</span>
+                            <span>${escape(i18n.customerInfo || '')}</span>
                         </div>
                         <div class="flex items-start gap-2.5">
                             ${avatarUrl ? `<img src="${escape(avatarUrl)}" alt="${escape(member)}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-outline-variant" loading="lazy" onerror="this.src='/images/default-avatar.svg'">` : `<div class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">${escape(member.charAt(0))}</div>`}
@@ -198,18 +196,18 @@ export function initAdminOrders() {
                         </div>
                     </div>
 
-                    <div class="bg-surface-container-low rounded-xl p-3.5 border border-outline-variant/60">
+                    <div class="min-w-0 bg-surface-container-low rounded-xl p-3.5 border border-outline-variant/60">
                         <div class="text-[10px] font-mono uppercase text-outline tracking-wider mb-2 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">storefront</span>
-                            <span>${escape(i18n.campaignStoreInfo || 'Chiến dịch & Quán')}</span>
+                            <span>${escape(i18n.campaignStoreInfo || '')}</span>
                         </div>
-                        ${i18n.campaignDetailUrl ? `<a href="${escape(i18n.campaignDetailUrl)}" class="font-semibold text-on-surface text-xs truncate hover:text-primary transition-colors no-underline">${escape(campaignName)}</a>` : `<div class="font-semibold text-on-surface text-xs truncate">${escape(campaignName)}</div>`}
+                        ${i18n.campaignDetailUrl ? `<a href="${escape(i18n.campaignDetailUrl)}" title="${escape(campaignName)}" class="block max-w-full truncate whitespace-nowrap font-semibold text-on-surface text-xs hover:text-primary transition-colors no-underline">${escape(campaignName)}</a>` : `<div title="${escape(campaignName)}" class="max-w-full truncate whitespace-nowrap font-semibold text-on-surface text-xs">${escape(campaignName)}</div>`}
                         <div class="text-secondary text-[11px] flex items-center gap-1 mt-1">
                             <span class="material-symbols-outlined text-[13px] text-outline">restaurant</span>
                             <span class="truncate">${escape(restaurant)}</span>
                         </div>
                         <div class="text-[10px] font-mono text-outline mt-1">
-                            ${escape(i18n.orderCreatedTime || 'Tạo lúc')}: ${formatDate(order.created_at)}
+                            ${escape(i18n.orderCreatedTime || '')}: ${formatDate(order.created_at)}
                         </div>
                     </div>
                 </div>
@@ -219,17 +217,17 @@ export function initAdminOrders() {
                     <div class="bg-surface-container px-3.5 py-2 border-b border-outline-variant font-semibold text-on-surface flex items-center justify-between">
                         <span class="flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-[16px] text-primary">lunch_dining</span>
-                            <span>${escape(i18n.orderedItems || 'Danh sách món')} (${(order.items || []).length})</span>
+                            <span>${escape(i18n.orderedItems || '')} (${(order.items || []).length})</span>
                         </span>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-surface-container-lowest text-outline font-mono uppercase text-[10px] border-b border-outline-variant">
                                 <tr>
-                                    <th class="py-2 px-3">${escape(i18n.itemNameCol || 'Món & Tuỳ chọn')}</th>
-                                    <th class="py-2 px-3 text-center">${escape(i18n.itemQtyCol || 'SL')}</th>
-                                    <th class="py-2 px-3 text-right">${escape(i18n.itemUnitPriceCol || 'Đơn giá')}</th>
-                                    <th class="py-2 px-3 text-right">${escape(i18n.itemTotalCol || 'Thành tiền')}</th>
+                                    <th class="py-2 px-3">${escape(i18n.itemNameCol || '')}</th>
+                                    <th class="py-2 px-3 text-center">${escape(i18n.itemQtyCol || '')}</th>
+                                    <th class="py-2 px-3 text-right">${escape(i18n.itemUnitPriceCol || '')}</th>
+                                    <th class="py-2 px-3 text-right">${escape(i18n.itemTotalCol || '')}</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-outline-variant/40 bg-surface-container-lowest">
@@ -240,11 +238,11 @@ export function initAdminOrders() {
                 </div>
 
                 <!-- Financial Summary & Payment Details -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 md:grid-cols-2 items-start gap-3">
                     <div class="bg-surface-container-low rounded-xl p-3.5 border border-outline-variant/60">
                         <div class="text-[10px] font-mono uppercase text-outline tracking-wider mb-2 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">payments</span>
-                            <span>${escape(i18n.orderFinancialSummary || 'Tổng kết tài chính')}</span>
+                            <span>${escape(i18n.orderFinancialSummary || '')}</span>
                         </div>
                         ${breakdownHtml}
                     </div>
@@ -252,31 +250,31 @@ export function initAdminOrders() {
                     <div class="bg-surface-container-low rounded-xl p-3.5 border border-outline-variant/60 space-y-2.5">
                         <div class="text-[10px] font-mono uppercase text-outline tracking-wider flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">history</span>
-                            <span>${escape(i18n.orderHistoryTimestamps || 'Lịch sử & Thanh toán')}</span>
+                            <span>${escape(i18n.orderHistoryTimestamps || '')}</span>
                         </div>
                         <div class="flex items-center justify-between text-xs">
-                            <span class="text-secondary">Phương thức:</span>
+                            <span class="text-secondary">${escape(i18n.paymentMethod || '')}:</span>
                             <div>${paymentMethodBadge}</div>
                         </div>
                         <div class="flex items-center justify-between text-xs">
-                            <span class="text-secondary">Thanh toán:</span>
+                            <span class="text-secondary">${escape(i18n.paymentStatus || '')}:</span>
                             <div>${paymentStatusBadge}</div>
                         </div>
                         ${order.completed_at ? `
                             <div class="flex items-center justify-between text-xs">
-                                <span class="text-secondary">${escape(i18n.orderCompletedTime || 'Hoàn thành lúc')}:</span>
+                                <span class="text-secondary">${escape(i18n.orderCompletedTime || '')}:</span>
                                 <span class="font-mono text-outline">${formatDate(order.completed_at)}</span>
                             </div>
                         ` : ''}
                         ${order.cancelled_at ? `
                             <div class="flex items-center justify-between text-xs text-rose-600">
-                                <span>${escape(i18n.orderCancelledTime || 'Đã hủy lúc')}:</span>
+                                <span>${escape(i18n.orderCancelledTime || '')}:</span>
                                 <span class="font-mono font-bold">${formatDate(order.cancelled_at)}</span>
                             </div>
                         ` : ''}
                         ${order.note ? `
                             <div class="pt-2 border-t border-outline-variant/60">
-                                <div class="text-[10px] text-outline font-semibold mb-0.5">📝 ${escape(i18n.orderNoteLabel || 'Ghi chú đơn')}:</div>
+                                <div class="text-[10px] text-outline font-semibold mb-0.5">📝 ${escape(i18n.orderNoteLabel || '')}:</div>
                                 <div class="text-xs text-amber-800 dark:text-amber-300 italic bg-amber-50 dark:bg-amber-950/30 p-2 rounded-lg border border-amber-200 dark:border-amber-800">${escape(order.note)}</div>
                             </div>
                         ` : ''}
@@ -285,14 +283,14 @@ export function initAdminOrders() {
             `;
 
             const paymentRows = detailBody.querySelectorAll('div.bg-surface-container-low.rounded-xl > div.flex.items-center.justify-between.text-xs');
-            if (paymentRows[0]?.querySelector('.text-secondary')) paymentRows[0].querySelector('.text-secondary').textContent = (i18n.paymentMethod || 'Payment method') + ':';
-            if (paymentRows[1]?.querySelector('.text-secondary')) paymentRows[1].querySelector('.text-secondary').textContent = (i18n.paymentStatus || 'Payment status') + ':';
+            if (paymentRows[0]?.querySelector('.text-secondary')) paymentRows[0].querySelector('.text-secondary').textContent = (i18n.paymentMethod || '') + ':';
+            if (paymentRows[1]?.querySelector('.text-secondary')) paymentRows[1].querySelector('.text-secondary').textContent = (i18n.paymentStatus || '') + ':';
 
             if (detailQuickActions && statusKey !== 'cancelled') {
                 detailQuickActions.innerHTML = `
                     <button type="button" onclick="closeOrderDetailModal(); openPriceAdjustmentModal(${order.id})" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/40 text-primary hover:bg-primary/10 text-xs font-semibold transition-colors">
                         <span class="material-symbols-outlined text-[16px]">tune</span>
-                        <span>${escape(i18n.adjustPriceBtn || 'Điều chỉnh giá')}</span>
+                        <span>${escape(i18n.adjustPriceBtn || '')}</span>
                     </button>
                 `;
             }
@@ -322,7 +320,7 @@ export function initAdminOrders() {
             body.innerHTML = '<form id="price-adjust-form" class="space-y-4"><div class="space-y-2"><h4 class="font-semibold text-on-surface">' + escape(i18n.orderedItems) + '</h4>' + items + '</div><div class="flex justify-between rounded-lg bg-surface-container-low p-3 text-sm"><span class="font-semibold">' + escape(i18n.subtotal) + '</span><span id="adjusted-subtotal" class="font-mono font-bold text-primary"></span></div><div><label class="block font-semibold text-on-surface mb-1" for="adj-reason">' + escape(i18n.adjustmentReason) + '</label><textarea id="adj-reason" rows="2" required class="w-full p-2.5 bg-surface border border-outline-variant rounded text-xs"></textarea></div><div class="pt-3 border-t border-outline-variant flex justify-end gap-2"><button type="button" data-close class="px-4 py-2 bg-surface-container rounded font-semibold text-xs">' + escape(i18n.cancel) + '</button><button type="submit" class="px-4 py-2 bg-primary text-on-primary rounded font-semibold text-xs inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">save</span><span>' + escape(i18n.save) + '</span></button></div></form>';
             const refreshTotal = () => {
                 const total = [...body.querySelectorAll('[data-price]')].reduce((sum, input) => sum + (Number(input.value) || 0) * (Number(input.dataset.quantity) || 0), 0);
-                body.querySelector('#adjusted-subtotal').textContent = new Intl.NumberFormat(document.documentElement.lang || 'vi-VN').format(total) + ' ₫';
+                body.querySelector('#adjusted-subtotal').textContent = formatMoney(total);
             };
             body.querySelectorAll('[data-price]').forEach((input) => input.addEventListener('input', debounce(refreshTotal, 150)));
             body.querySelector('[data-close]')?.addEventListener('click', closeModal);
@@ -335,7 +333,7 @@ export function initAdminOrders() {
                 submit.disabled = true;
                 if (cancelBtn) cancelBtn.disabled = true;
                 const origHtml = submit.innerHTML;
-                submit.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> <span>' + escape(i18n.savingPriceAdjustment || 'Đang lưu...') + '</span>';
+                submit.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> <span>' + escape(i18n.savingPriceAdjustment || '') + '</span>';
 
                 const payload = { items: [...body.querySelectorAll('[data-price]')].map((input) => ({ id: Number(input.dataset.id), unit_price: Number(input.value) })), reason: reason };
                 try {
@@ -344,7 +342,7 @@ export function initAdminOrders() {
                     if (!update.ok) throw new Error(updateData.message || i18n.updateFailed);
                     closeModal();
 
-                    const successTemplate = i18n.priceAdjustSuccess || 'Đã điều chỉnh giá đơn hàng #:id thành công. Lý do: :reason';
+                    const successTemplate = i18n.priceAdjustSuccess || '';
                     const successMsg = successTemplate.replace(':id', order.id).replace(':reason', reason);
                     showNotice(successMsg, false);
 
@@ -438,14 +436,14 @@ export function initAdminOrders() {
                 updateSelectClass(select, newStatus);
 
                 const statusLabels = {
-                    submitted: i18n.statusSubmitted || 'Chờ xác nhận',
-                    confirmed: i18n.statusConfirmed || 'Đã xác nhận',
-                    completed: i18n.statusCompleted || 'Món đã được giao đến',
-                    delivering: i18n.statusDelivering || 'Đang giao',
-                    cancelled: i18n.statusCancelled || 'Đã huỷ',
+                    submitted: i18n.statusSubmitted || '',
+                    confirmed: i18n.statusConfirmed || '',
+                    completed: i18n.statusCompleted || '',
+                    delivering: i18n.statusDelivering || '',
+                    cancelled: i18n.statusCancelled || '',
                 };
                 const label = statusLabels[newStatus] || newStatus;
-                const successTemplate = i18n.statusChangeSuccess || 'Đã cập nhật trạng thái đơn hàng #:id thành :status.';
+                const successTemplate = i18n.statusChangeSuccess || '';
                 const successMsg = successTemplate.replace(':id', orderId).replace(':status', label);
 
                 showNotice(successMsg, false);
@@ -520,7 +518,7 @@ export function initAdminOrders() {
             confirmCancelIcon.classList.add('animate-spin');
         }
         if (confirmCancelBtnText) {
-            confirmCancelBtnText.textContent = i18n.cancellingStatus || 'Đang xử lý hủy...';
+            confirmCancelBtnText.textContent = i18n.cancellingStatus || '';
         }
 
         try {
@@ -547,7 +545,7 @@ export function initAdminOrders() {
                     if (!select.querySelector('option[value="cancelled"]')) {
                         const opt = document.createElement('option');
                         opt.value = 'cancelled';
-                        opt.textContent = i18n.statusCancelled || 'Đã huỷ';
+                        opt.textContent = i18n.statusCancelled || '';
                         select.appendChild(opt);
                     }
                     select.value = 'cancelled';
@@ -560,7 +558,7 @@ export function initAdminOrders() {
                 if (cancelBtn) cancelBtn.style.display = 'none';
             }
 
-            const successTemplate = i18n.orderCancelledSuccess || 'Đã hủy đơn hàng #:id thành công.';
+            const successTemplate = i18n.orderCancelledSuccess || '';
             showNotice(successTemplate.replace(':id', orderId), false);
         } catch (error) {
             showNotice(error.message || i18n.orderCancelledFailed, true);
@@ -572,7 +570,7 @@ export function initAdminOrders() {
                 confirmCancelIcon.classList.remove('animate-spin');
             }
             if (confirmCancelBtnText) {
-                confirmCancelBtnText.textContent = i18n.confirmCancelBtn || 'Xác nhận hủy';
+                confirmCancelBtnText.textContent = i18n.confirmCancelBtn || '';
             }
         }
     });
@@ -617,7 +615,7 @@ export function initAdminOrders() {
         const count = checkedBoxes.length;
 
         if (bulkCountEl) {
-            const template = i18n.selectedOrdersCount || ':count đơn đã chọn';
+            const template = i18n.selectedOrdersCount || '';
             bulkCountEl.textContent = template.replace(':count', count);
         }
 
@@ -670,7 +668,7 @@ export function initAdminOrders() {
     bulkApplyBtn?.addEventListener('click', async () => {
         const selectedIds = getSelectedOrderIds();
         if (selectedIds.length === 0) {
-            showNotice(i18n.noOrdersSelected || 'Vui lòng chọn ít nhất một đơn hàng.', true);
+            showNotice(i18n.noOrdersSelected || '', true);
             return;
         }
 
@@ -681,7 +679,7 @@ export function initAdminOrders() {
             bulkApplyIcon.classList.add('animate-spin');
         }
         if (bulkApplyText) {
-            bulkApplyText.textContent = i18n.statusUpdating || 'Đang cập nhật...';
+            bulkApplyText.textContent = i18n.statusUpdating || '';
         }
 
         try {
@@ -703,7 +701,7 @@ export function initAdminOrders() {
                 throw new Error(data.message || i18n.statusChangeFailed);
             }
 
-            const successTemplate = i18n.bulkStatusUpdatedSuccess || 'Đã cập nhật trạng thái cho :count đơn hàng.';
+            const successTemplate = i18n.bulkStatusUpdatedSuccess || '';
             showNotice(data.message || successTemplate.replace(':count', selectedIds.length), false);
 
             setTimeout(() => window.location.reload(), 1000);
@@ -716,7 +714,7 @@ export function initAdminOrders() {
                 bulkApplyIcon.classList.remove('animate-spin');
             }
             if (bulkApplyText) {
-                bulkApplyText.textContent = i18n.bulkApplyStatus || 'Áp dụng trạng thái';
+                bulkApplyText.textContent = i18n.bulkApplyStatus || '';
             }
         }
     });
@@ -739,12 +737,12 @@ export function initAdminOrders() {
     bulkCancelBtn?.addEventListener('click', () => {
         const selectedIds = getSelectedOrderIds();
         if (selectedIds.length === 0) {
-            showNotice(i18n.noOrdersSelected || 'Vui lòng chọn ít nhất một đơn hàng.', true);
+            showNotice(i18n.noOrdersSelected || '', true);
             return;
         }
 
         if (bulkCancelModalDesc) {
-            const template = i18n.bulkCancelConfirmDesc || 'Bạn có chắc chắn muốn hủy :count đơn hàng đã chọn không?';
+            const template = i18n.bulkCancelConfirmDesc || '';
             bulkCancelModalDesc.textContent = template.replace(':count', selectedIds.length);
         }
 
@@ -767,7 +765,7 @@ export function initAdminOrders() {
             confirmBulkCancelIcon.classList.add('animate-spin');
         }
         if (confirmBulkCancelBtnText) {
-            confirmBulkCancelBtnText.textContent = i18n.cancellingStatus || 'Đang xử lý hủy...';
+            confirmBulkCancelBtnText.textContent = i18n.cancellingStatus || '';
         }
 
         try {
@@ -790,7 +788,7 @@ export function initAdminOrders() {
 
             closeBulkCancelModal();
 
-            const successTemplate = i18n.bulkCancelledSuccess || 'Đã hủy :count đơn hàng thành công.';
+            const successTemplate = i18n.bulkCancelledSuccess || '';
             showNotice(data.message || successTemplate.replace(':count', selectedIds.length), false);
 
             setTimeout(() => window.location.reload(), 1000);
@@ -804,7 +802,7 @@ export function initAdminOrders() {
                 confirmBulkCancelIcon.classList.remove('animate-spin');
             }
             if (confirmBulkCancelBtnText) {
-                confirmBulkCancelBtnText.textContent = i18n.confirmCancelBtn || 'Xác nhận hủy';
+                confirmBulkCancelBtnText.textContent = i18n.confirmCancelBtn || '';
             }
         }
     });

@@ -1,7 +1,9 @@
 <?php
 
 return [
+    'portal_title' => 'ポータル',
     'common' => [
+        'error' => 'エラーが発生しました。もう一度お試しください。',
         'room' => 'ルーム',
         'campaign' => 'キャンペーン',
         'user' => 'ユーザー',
@@ -52,6 +54,8 @@ return [
         'google_login_failed' => 'Googleログインに失敗しました: :error',
     ],
     'header' => [
+        'language_select' => '言語を選択',
+        'main_nav' => 'メインナビゲーション',
         'overview' => '概要',
         'rooms' => 'ルーム一覧',
         'my_rooms' => 'マイルーム',
@@ -302,6 +306,8 @@ return [
         'active_order_exists' => 'このキャンペーンにはすでにアクティブな注文があります。',
     ],
     'payments' => [
+        'col_total_amount' => '合計金額',
+        'sponsored_amount' => ':amount 支援済み',
         'host_room' => 'ホストルーム :name',
         'page_title' => '支払い＆未払い債務管理',
         'breadcrumb_portal' => 'DrinkFlow ポータル',
@@ -616,6 +622,7 @@ return [
         'captcha_refresh' => '認証コードを再読み込み',
         'captcha_loading' => '読み込み中...',
         'load_more_btn' => 'さらに読み込む',
+        'retry_btn' => '再試行',
         'loading_more' => '読み込み中...',
         'all_loaded' => 'すべての評価を表示しました',
     ],
@@ -650,6 +657,7 @@ return [
         'understood_close' => '了解して閉じる',
     ],
     'blocked' => [
+        'account_blocked' => 'アカウントはブロックされています。',
         'page_title' => 'アカウント一時停止 | DrinkFlow Enterprise',
         'security_compliance' => 'セキュリティ＆コンプライアンス',
         'suspended_tooltip' => 'アカウント一時停止中',
@@ -671,7 +679,7 @@ return [
         'scope_desc' => 'ルームの作成、個別注文、同僚からのスポンサー受取ができません。すべての監査ログ、会員ポイント、注文履歴は安全に保管されています。',
         'protocol_title' => '解決手順＆ロック解除ステップ',
         'step_1_title' => '未払いのVietQR支払いを確認する',
-        'step_1_desc' => '直近の注文に対する銀行振込履歴を照合してください (未払い概算額: :debtđ)。',
+        'step_1_desc' => '直近の注文に対する銀行振込履歴を照合してください (未払い概算額: :debt)。',
         'step_2_title' => 'ルームホストまたは経理部門管理者に連絡する',
         'step_2_desc' => 'ホストにシステム上で「支払い済み」に更新してもらうか、経理に取引番号の確認を依頼してください。',
         'step_3_title' => '異議申し立てまたは直接迅速照合を送信する',

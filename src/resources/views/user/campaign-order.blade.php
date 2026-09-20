@@ -20,6 +20,9 @@
         data-msg-order-success="{{ __('room.campaign.order_success') }}"
         data-msg-view-order="{{ __('room.orders.order_details') }}"
         data-msg-error-generic="{{ __('room.campaign.error_generic') }}"
+        data-msg-quantity-label="{{ __('room.campaign.order_quantity_aria') }}"
+        data-msg-order-number="{{ __('room.campaign.order_number') }}"
+        data-msg-view-order-number="{{ __('room.campaign.view_order_number') }}"
   >
     <!-- Back to Campaigns -->
     <div>

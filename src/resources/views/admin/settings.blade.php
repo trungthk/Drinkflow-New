@@ -1,8 +1,9 @@
 <x-admin.layout :title="__('admin.room_settings_title')" active="settings" :room="$room">
-    {{-- ── Header & Action Ribbon ────────────────────────────────────────── --}}
+    {{-- ── Header ─────────────────────────────────────────────────────────── --}}
     <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
         <div>
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.room_settings_title') }}</h1>
+            <p class="mt-1 text-xs text-outline">{{ __('admin.room_settings_subtitle') }}</p>
         </div>
         <div class="flex items-center gap-2.5">
             <a href="{{ route('admin.notification-channels.page', $room) }}"
@@ -14,170 +15,176 @@
     </div>
 
     {{-- ── Notice Notification Banner ─────────────────────────────────────── --}}
-    <div id="notice" class="hidden mb-4 rounded-xl px-4 py-3 text-xs font-medium"></div>
+    <div id="notice" class="hidden mt-4 rounded-xl px-4 py-3 text-xs font-medium"></div>
 
-    <div class="mb-6 rounded-xl border border-outline-variant bg-surface-container-lowest p-4 shadow-xs">
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">link</span>
-                    <h2 class="text-sm font-bold text-on-surface">{{ __('admin.room_join_link') }}</h2>
-                </div>
-                <div class="mt-2 flex items-center gap-2">
-                    <code id="room-join-link"
-                        class="min-w-0 flex-1 truncate rounded-lg bg-surface px-3 py-2 text-xs text-on-surface-variant">{{ route('user.rooms.join.show', $room->slug) }}</code>
-                    <button type="button" id="copy-room-join-link"
-                        class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-xs font-bold text-on-primary hover:bg-primary/90">
-                        <span
-                            class="material-symbols-outlined text-[16px]">content_copy</span>{{ __('admin.copy_room_join_link') }}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {{-- ══════════════════════════════════════════════════════════════════
+        CỘT TRÁI: CẤU HÌNH PHÒNG (một form, chia theo nhóm)
+        ══════════════════════════════════════════════════════════════════ --}}
+        <form id="room-settings-form" data-loading-form="true"
+            data-msg-success="{{ __('admin.settings_saved_ok') }}"
+            data-msg-error="{{ __('admin.error_generic') }}"
+            data-loading-text="{{ __('admin.loading') }}"
+            class="lg:col-span-7 space-y-5">
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-        {{-- ══════════════════════════════════════════════════════════════════════
-        CỘT TRÁI (50%): THÔNG TIN CHIẾN DỊCH
-        ══════════════════════════════════════════════════════════════════════ --}}
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-xs space-y-6">
-            <div class="flex items-center justify-between pb-3 border-b border-outline-variant gap-3">
-                <div class="flex items-center gap-2.5 min-w-0">
-                    <div
-                        class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                        <span class="material-symbols-outlined text-[20px]">campaign</span>
+            {{-- 1. Truy cập phòng --}}
+            <section class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xs overflow-hidden">
+                <header class="flex items-center gap-3 px-5 py-4 border-b border-outline-variant/60 bg-surface-container-low">
+                    <div class="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">lock_open</span>
                     </div>
                     <div class="min-w-0">
-                        <h2 class="font-bold text-sm text-on-surface truncate">{{ __('admin.campaign_info_title') }}
-                        </h2>
-                        <p class="text-[11px] text-outline truncate">{{ __('admin.campaign_info_desc') }}</p>
+                        <h2 class="font-bold text-sm text-on-surface">{{ __('admin.room_access_title') }}</h2>
+                        <p class="text-[11px] text-outline">{{ __('admin.room_access_desc') }}</p>
+                    </div>
+                </header>
+                <div class="p-5 space-y-5">
+                    <div class="flex items-center gap-4">
+                        <div class="min-w-0 flex-1">
+                            <label for="set-room-public" class="block cursor-pointer text-xs font-bold text-on-surface">{{ __('admin.room_public_mode') }}</label>
+                            <p class="mt-0.5 max-w-md text-[11px] text-outline leading-relaxed" id="room-public-hint"
+                                data-hint-public="{{ __('admin.room_public_mode_hint') }}"
+                                data-hint-private="{{ __('admin.room_private_mode_hint') }}">
+                                {{ ($settings['is_public'] ?? true) ? __('admin.room_public_mode_hint') : __('admin.room_private_mode_hint') }}
+                            </p>
+                        </div>
+                        <label class="relative inline-flex shrink-0 cursor-pointer">
+                            <input type="checkbox" id="set-room-public" {{ ($settings['is_public'] ?? true) ? 'checked' : '' }} class="peer sr-only">
+                            <span class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full bg-outline-variant transition-colors peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 after:content-[''] after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5"></span>
+                        </label>
+                    </div>
+
+                    <div class="pt-5 border-t border-outline-variant/50">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-[18px] text-primary">link</span>
+                            <h3 class="text-xs font-bold text-on-surface">{{ __('admin.room_join_link') }}</h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <code id="room-join-link"
+                                class="min-w-0 flex-1 truncate rounded-lg border border-outline-variant/60 bg-surface px-3 py-2.5 text-xs text-on-surface-variant">{{ route('user.rooms.join.show', $room->slug) }}</code>
+                            <button type="button" id="copy-room-join-link"
+                                data-msg-copied="{{ __('admin.room_join_link_copied') }}"
+                                data-msg-failed="{{ __('admin.copy_room_join_url_failed') }}"
+                                data-tooltip="{{ __('admin.copy_room_join_link') }}"
+                                aria-label="{{ __('admin.copy_room_join_link') }}"
+                                class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors cursor-pointer">
+                                <span class="material-symbols-outlined text-[18px]">content_copy</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <button type="submit" form="room-settings-form" id="save-campaign-settings-btn"
-                    class="px-3.5 py-1.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all shrink-0">
-                    <span class="material-symbols-outlined text-[16px]">save</span>
-                    <span>{{ __('admin.save_changes_btn') }}</span>
-                </button>
-            </div>
+            </section>
 
-            <form id="room-settings-form" data-loading-form="true" class="space-y-5">
-                {{-- 1. Tên Chiến Dịch Mặc Định --}}
-                <div class="p-4 bg-surface-container-low/50 border border-outline-variant/60 rounded-xl space-y-3">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[18px] text-blue-600">edit_note</span>
-                            <h3 class="font-bold text-xs text-on-surface">{{ __('admin.default_campaign_title') }}</h3>
+            {{-- 2. Mặc định chiến dịch --}}
+            <section class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xs overflow-hidden">
+                <header class="flex items-center justify-between gap-3 px-5 py-4 border-b border-outline-variant/60 bg-surface-container-low">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[20px]">edit_note</span>
                         </div>
-                        <span
-                            class="px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold rounded">{{ __('admin.dynamic_tags') }}</span>
+                        <div class="min-w-0">
+                            <h2 class="font-bold text-sm text-on-surface">{{ __('admin.default_campaign_title') }}</h2>
+                            <p class="text-[11px] text-outline">{{ __('admin.campaign_defaults_desc') }}</p>
+                        </div>
                     </div>
-
-                    <div>
-                        <label
-                            class="block font-semibold text-[11px] text-outline mb-1">{{ __('admin.campaign_syntax_template') }}:</label>
+                    <span class="px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold rounded shrink-0">{{ __('admin.dynamic_tags') }}</span>
+                </header>
+                <div class="p-5 space-y-5">
+                    <div class="space-y-2">
+                        <label for="set-template" class="block font-semibold text-xs text-on-surface">{{ __('admin.campaign_syntax_template') }}</label>
                         <input type="text" id="set-template"
                             value="{{ $settings['campaign_title_template'] ?? '[' . $room->name . '] Trà chiều & Cafe {date}' }}"
-                            class="w-full h-9 px-3 bg-surface border border-outline-variant rounded-lg text-xs font-bold text-on-surface focus:border-primary focus:ring-1 focus:ring-primary">
-
-                        <div class="flex flex-wrap items-center gap-1.5 pt-2">
+                            class="w-full h-10 px-3 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-hidden transition-colors font-bold">
+                        <div class="flex flex-wrap items-center gap-1.5">
                             <span class="text-[11px] text-outline">{{ __('admin.supported_variables') }}</span>
-                            <button type="button" onclick="insertTag('{date}')"
-                                class="px-2 py-0.5 bg-surface-container hover:bg-surface-container-high rounded border border-outline-variant font-mono text-[11px] text-on-surface font-semibold">{date}</button>
-                            <button type="button" onclick="insertTag('{time}')"
-                                class="px-2 py-0.5 bg-surface-container hover:bg-surface-container-high rounded border border-outline-variant font-mono text-[11px] text-on-surface font-semibold">{time}</button>
-                            <button type="button" onclick="insertTag('{day_of_week}')"
-                                class="px-2 py-0.5 bg-surface-container hover:bg-surface-container-high rounded border border-outline-variant font-mono text-[11px] text-on-surface font-semibold">{day_of_week}</button>
-                            <button type="button" onclick="insertTag('{creator_name}')"
-                                class="px-2 py-0.5 bg-surface-container hover:bg-surface-container-high rounded border border-outline-variant font-mono text-[11px] text-on-surface font-semibold">{creator_name}</button>
+                            @foreach (['{date}', '{time}', '{day_of_week}', '{creator_name}'] as $tag)
+                                <button type="button" onclick="insertTag('{{ $tag }}')"
+                                    class="px-2 py-0.5 bg-surface-container hover:bg-surface-container-high rounded border border-outline-variant font-mono text-[11px] text-on-surface font-semibold transition-colors">{{ $tag }}</button>
+                            @endforeach
                         </div>
                     </div>
-                </div>
 
-                {{-- 2. Trần ngân sách tối đa cho mỗi sản phẩm --}}
-                <div class="p-4 bg-surface-container-low/50 border border-outline-variant/60 rounded-xl space-y-2.5">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px] text-amber-600">payments</span>
-                        <h3 class="font-bold text-xs text-on-surface">{{ __('admin.max_product_budget_ceiling') }}</h3>
-                    </div>
-
-                    <div>
-                        <label
-                            class="block font-semibold text-[11px] text-outline mb-1">{{ __('admin.product_budget_limit_hint') }}</label>
+                    <div class="space-y-2 pt-5 border-t border-outline-variant/50">
+                        <label for="set-max-budget" class="flex items-center gap-2 font-semibold text-xs text-on-surface">
+                            <span class="material-symbols-outlined text-[18px] text-amber-600">payments</span>
+                            {{ __('admin.max_product_budget_ceiling') }}
+                        </label>
                         <div class="relative">
                             <input type="text" inputmode="numeric" id="set-max-budget" data-format-currency="true"
                                 value="{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) ($settings['max_campaign_budget'] ?? 70000)) }}"
-                                class="w-full h-9 pl-3 pr-16 bg-surface border border-outline-variant rounded-lg font-mono font-bold text-xs text-primary focus:border-primary focus:ring-1 focus:ring-primary">
-                            <span
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-outline">{{ __('admin.vnd_unit') }}</span>
+                                class="w-full h-10 px-3 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-hidden transition-colors pr-16 font-mono font-bold text-primary">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-outline">{{ __('admin.vnd_unit') }}</span>
                         </div>
+                        <p class="text-[11px] text-outline">{{ __('admin.product_budget_limit_hint') }}</p>
                     </div>
                 </div>
+            </section>
 
-                {{-- 3. Chính Sách Chi Tiêu & Hạn Mức Nợ --}}
-                <div class="p-4 bg-surface-container-low/50 border border-outline-variant/60 rounded-xl space-y-3">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-[18px] text-purple-600">gavel</span>
-                        <h3 class="font-bold text-xs text-on-surface">{{ __('admin.spending_debt_policy_title') }}</h3>
+            {{-- 3. Chính sách công nợ --}}
+            <section class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xs overflow-hidden">
+                <header class="flex items-center gap-3 px-5 py-4 border-b border-outline-variant/60 bg-surface-container-low">
+                    <div class="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">gavel</span>
                     </div>
-
-                    <div>
-                        <label
-                            class="block font-semibold text-[11px] text-outline mb-1">{{ __('admin.personal_debt_ceiling') }}:</label>
+                    <div class="min-w-0">
+                        <h2 class="font-bold text-sm text-on-surface">{{ __('admin.spending_debt_policy_title') }}</h2>
+                        <p class="text-[11px] text-outline">{{ __('admin.debt_policy_desc') }}</p>
+                    </div>
+                </header>
+                <div class="p-5 space-y-5">
+                    <div class="space-y-2">
+                        <label for="set-debt-ceiling" class="block font-semibold text-xs text-on-surface">{{ __('admin.personal_debt_ceiling') }}</label>
                         <div class="relative">
                             <input type="text" inputmode="numeric" id="set-debt-ceiling" data-format-currency="true"
                                 value="{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) ($settings['personal_debt_ceiling'] ?? 150000)) }}"
-                                class="w-full h-9 pl-3 pr-16 bg-surface border border-outline-variant rounded-lg font-mono font-bold text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary">
-                            <span
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-outline">{{ __('admin.vnd_unit') }}</span>
+                                class="w-full h-10 px-3 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-hidden transition-colors pr-16 font-mono font-bold">
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-outline">{{ __('admin.vnd_unit') }}</span>
                         </div>
                     </div>
 
-                    <div
-                        class="p-3 bg-surface border border-outline-variant/60 rounded-lg flex items-center justify-between">
-                        <label for="set-autolock-debt"
-                            class="font-semibold text-xs text-on-surface cursor-pointer select-none">{{ __('admin.auto_lock_on_debt_limit') }}</label>
-                        <input type="checkbox" id="set-autolock-debt" {{ ($settings['auto_lock_on_debt_limit'] ?? true) ? 'checked' : '' }}
-                            class="rounded border-outline-variant text-primary focus:ring-primary h-4 w-4 cursor-pointer">
+                    <div class="flex items-center gap-4 pt-5 border-t border-outline-variant/50">
+                        <label for="set-autolock-debt" class="min-w-0 flex-1 cursor-pointer select-none text-xs font-semibold text-on-surface">{{ __('admin.auto_lock_on_debt_limit') }}</label>
+                        <label class="relative inline-flex shrink-0 cursor-pointer">
+                            <input type="checkbox" id="set-autolock-debt" {{ ($settings['auto_lock_on_debt_limit'] ?? true) ? 'checked' : '' }} class="peer sr-only">
+                            <span class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full bg-outline-variant transition-colors peer-checked:bg-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 after:content-[''] after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-5"></span>
+                        </label>
                     </div>
                 </div>
-                <div
-                    class="flex items-center gap-3 rounded-lg border border-outline-variant bg-surface-container-low p-3">
-                    <div class="min-w-0 flex-1">
-                        <label for="set-room-public"
-                            class="block cursor-pointer text-xs font-bold text-on-surface">{{ __('admin.room_public_mode') }}</label>
-                        <p class="mt-0.5 max-w-md text-[11px] text-outline" id="room-public-hint">
-                            {{ ($settings['is_public'] ?? true) ? __('admin.room_public_mode_hint') : __('admin.room_private_mode_hint') }}
-                        </p>
-                    </div>
-                    <input type="checkbox" id="set-room-public" {{ ($settings['is_public'] ?? true) ? 'checked' : '' }}
-                        class="h-5 w-5 cursor-pointer rounded border-outline-variant text-primary focus:ring-primary">
-                </div>
-            </form>
-        </div>
+            </section>
 
-        {{-- ══════════════════════════════════════════════════════════════════════
-        CỘT PHẢI (50%): DANH SÁCH TÀI KHOẢN THANH TOÁN (GRID)
-        ══════════════════════════════════════════════════════════════════════ --}}
-        <div
-            class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-xs space-y-4 lg:col-start-2 lg:row-start-1">
-            <div class="flex items-center justify-between pb-3 border-b border-outline-variant">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
+            {{-- Save bar --}}
+            <div class="flex justify-end">
+                <button type="submit" id="save-campaign-settings-btn"
+                    class="px-5 py-2.5 bg-primary hover:bg-primary/90 text-on-primary rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                    <span class="material-symbols-outlined text-[18px]">save</span>
+                    <span>{{ __('admin.save_changes_btn') }}</span>
+                </button>
+            </div>
+        </form>
+
+        {{-- ══════════════════════════════════════════════════════════════════
+        CỘT PHẢI: TÀI KHOẢN THANH TOÁN
+        ══════════════════════════════════════════════════════════════════ --}}
+        <div class="lg:col-span-5 lg:sticky lg:top-6 bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xs overflow-hidden">
+            <div class="flex items-center justify-between gap-3 px-5 py-4 border-b border-outline-variant/60 bg-surface-container-low">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
                         <span class="material-symbols-outlined text-[20px]">account_balance</span>
                     </div>
-                    <div>
+                    <div class="min-w-0">
                         <h2 class="font-bold text-sm text-on-surface">{{ __('admin.payment_accounts_title') }}</h2>
                         <p class="text-[11px] text-outline">{{ __('admin.payment_accounts_desc') }}</p>
                     </div>
                 </div>
                 <button type="button" onclick="openCreateAccountModal()"
-                    class="px-3 py-1.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs transition-colors">
+                    class="px-3 py-1.5 bg-primary hover:bg-primary/90 text-on-primary rounded-lg text-xs font-bold flex items-center gap-1 shadow-xs transition-colors shrink-0">
                     <span class="material-symbols-outlined text-[16px]">add</span>
-                    <span>{{ __('admin.add_new_account') }}</span>
+                    <span>{{ __('admin.add_new_btn') }}</span>
                 </button>
             </div>
 
-            {{-- Grid danh sách tài khoản --}}
+            <div class="p-5">
+                {{-- Danh sách tài khoản --}}
             <div class="grid grid-cols-1 gap-3.5" id="accounts-container">
                 @forelse($accounts as $acc)
                     @php
@@ -254,6 +261,7 @@
                     </div>
                 @endforelse
             </div>
+            </div>
         </div>
     </div>
 
@@ -266,7 +274,10 @@
             <div class="flex items-center justify-between px-5 py-4 border-b border-outline-variant">
                 <div class="flex items-center gap-2">
                     <span class="material-symbols-outlined text-[20px] text-primary">add_card</span>
-                    <h3 id="payment-modal-title" class="font-bold text-sm text-on-surface">
+                    <h3 id="payment-modal-title"
+                        data-title-create="{{ __('admin.add_new_account') }}"
+                        data-title-edit="{{ __('admin.edit_account') }}"
+                        class="font-bold text-sm text-on-surface">
                         {{ __('admin.add_new_account') }}</h3>
                 </div>
                 <button type="button" onclick="closeAccountModal()"
@@ -275,7 +286,12 @@
                 </button>
             </div>
 
-            <form id="payment-account-form" class="p-5 space-y-4 text-xs">
+            <form id="payment-account-form"
+                data-msg-created="{{ __('admin.account_created_ok') }}"
+                data-msg-updated="{{ __('admin.account_updated_ok') }}"
+                data-msg-error="{{ __('admin.error_generic') }}"
+                data-loading-text="{{ __('admin.loading') }}"
+                class="p-5 space-y-4 text-xs">
                 <input id="payment-account-id" type="hidden">
 
                 {{-- Mã ngân hàng có chức năng search theo mã hoặc tên ngân hàng --}}
@@ -283,6 +299,7 @@
                     <label class="block font-semibold text-on-surface mb-1">{{ __('admin.bank_code') }}:</label>
                     <select id="acc-bank-code" data-searchable="true"
                         data-placeholder="{{ __('admin.search_bank_placeholder') }}"
+                        data-empty-text="{{ __('admin.no_options_found') }}"
                         class="w-full h-10 px-3 bg-surface border border-outline-variant rounded-lg text-on-surface font-semibold focus:border-primary focus:ring-1 focus:ring-primary"
                         required>
                         @foreach($banks ?? app(\App\Services\Common\BankService::class)->getAllBanks() as $bank)
@@ -405,6 +422,8 @@
     MODAL: Xác Nhận Xóa Tài Khoản
     ══════════════════════════════════════════════════════════════════════════════ --}}
     <div id="payment-delete-modal"
+        data-msg-deleted="{{ __('admin.account_deleted_ok') }}"
+        data-msg-error="{{ __('admin.error_generic') }}"
         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
         <div class="w-full max-w-sm rounded-2xl bg-surface-container-lowest shadow-2xl overflow-hidden">
             <div class="px-5 py-4 border-b border-outline-variant flex items-center gap-2">
@@ -422,430 +441,15 @@
                     {{ __('admin.cancel') }}
                 </button>
                 <button type="button" id="confirm-payment-delete"
-                    class="px-4 py-2 rounded-lg bg-error text-on-error text-xs font-bold hover:bg-error/90 transition-colors">
-                    {{ __('admin.delete_confirm_btn') }}
+                    class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-error text-on-error text-xs font-bold hover:bg-error/90 transition-colors">
+                    <span class="material-symbols-outlined text-[16px]">delete</span>
+                    <span>{{ __('admin.delete_confirm_btn') }}</span>
                 </button>
             </div>
         </div>
     </div>
 
     @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-        <style>
-            @keyframes qr-snake-grow {
-                0% {
-                    stroke-dasharray: 5 95;
-                }
-
-                20% {
-                    stroke-dasharray: 20 80;
-                }
-
-                45% {
-                    stroke-dasharray: 50 50;
-                }
-
-                70% {
-                    stroke-dasharray: 80 20;
-                }
-
-                90%,
-                100% {
-                    stroke-dasharray: 100 0;
-                }
-            }
-
-            @keyframes qr-snake-travel {
-                from {
-                    stroke-dashoffset: 0;
-                }
-
-                to {
-                    stroke-dashoffset: -100;
-                }
-            }
-
-            #qr-snake-rect.running {
-                animation:
-                    qr-snake-grow 4.8s ease-in-out infinite,
-                    qr-snake-travel 4.8s linear infinite;
-            }
-
-            @media (prefers-reduced-motion: reduce) {
-                #qr-snake-rect.running {
-                    animation: none;
-                    stroke-dasharray: 100 0;
-                }
-            }
-        </style>
-        <script>
-            (function () {
-                'use strict';
-
-                const $ = id => document.getElementById(id);
-                const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
-                const roomSlug = '{{ $room->slug }}';
-
-                function showNotice(msg, type = 'success') {
-                    const el = $('notice');
-                    if (!el) return;
-                    el.textContent = msg;
-                    el.className = type === 'success'
-                        ? 'mb-4 rounded-xl px-4 py-3 text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200'
-                        : 'mb-4 rounded-xl px-4 py-3 text-xs font-medium bg-rose-50 text-rose-800 border border-rose-200';
-                    el.classList.remove('hidden');
-                    setTimeout(() => el.classList.add('hidden'), 4000);
-                }
-
-                function openModal(id) {
-                    const m = $(id);
-                    if (!m) return;
-                    m.classList.remove('hidden');
-                    m.classList.add('flex');
-                }
-
-                function closeModal(id) {
-                    const m = $(id);
-                    if (!m) return;
-                    m.classList.add('hidden');
-                    m.classList.remove('flex');
-                }
-
-                /* ── Template Tag Inserter ────────────────────────────────────────── */
-                window.insertTag = function (tag) {
-                    const input = $('set-template');
-                    if (input) {
-                        input.value += ' ' + tag;
-                        input.focus();
-                    }
-                };
-
-                /* ── Currency Formatter ───────────────────────────────────────────── */
-                function formatNumberWithDots(input) {
-                    if (!input) return;
-                    const raw = String(input.value || '').replace(/\D/g, '');
-                    if (!raw) {
-                        input.value = '';
-                        return;
-                    }
-                    input.value = raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                }
-
-                const budgetInput = $('set-max-budget');
-                const debtInput = $('set-debt-ceiling');
-
-                [budgetInput, debtInput].forEach(input => {
-                    if (input) {
-                        formatNumberWithDots(input);
-                        input.addEventListener('input', () => formatNumberWithDots(input));
-                        input.addEventListener('change', () => formatNumberWithDots(input));
-                    }
-                });
-
-                /* ── Numeric-Only Filter for Account Number (0-9) ─────────────────── */
-                const accNumberInput = $('acc-number');
-                if (accNumberInput) {
-                    accNumberInput.addEventListener('input', function () {
-                        this.value = this.value.replace(/\D/g, '');
-                    });
-                    accNumberInput.addEventListener('paste', function (e) {
-                        e.preventDefault();
-                        const paste = (e.clipboardData || window.clipboardData).getData('text');
-                        this.value = paste.replace(/\D/g, '');
-                    });
-                }
-
-                /* ── Submit Campaign Settings Form ────────────────────────────────── */
-                const settingsForm = $('room-settings-form');
-                settingsForm?.addEventListener('submit', async function (e) {
-                    e.preventDefault();
-
-                    const cleanNumber = (val) => {
-                        const raw = String(val || '').replace(/\D/g, '');
-                        return raw ? parseInt(raw, 10) : 0;
-                    };
-
-                    const payload = {
-                        campaign_title_template: $('set-template')?.value || '',
-                        max_campaign_budget: cleanNumber(budgetInput?.value),
-                        personal_debt_ceiling: cleanNumber(debtInput?.value),
-                        auto_lock_on_debt_limit: $('set-autolock-debt')?.checked ?? true,
-                        is_public: $('set-room-public')?.checked ?? true
-                    };
-
-                    const submitBtn = $('save-campaign-settings-btn') || document.querySelector('button[type="submit"][form="room-settings-form"]');
-                    const originalSubmitContent = submitBtn ? submitBtn.innerHTML : '';
-                    if (submitBtn) {
-                        submitBtn.disabled = true;
-                        submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
-                        submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span><span>{{ __('admin.loading') }}</span>';
-                    }
-
-                    try {
-                        const res = await fetch(`/admin/${roomSlug}/settings`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                        if (res.ok) {
-                            showNotice('{{ __('admin.settings_saved_ok') }}');
-                        } else {
-                            showNotice('{{ __('admin.error_generic') }}', 'error');
-                        }
-                    } catch (err) {
-                        console.error(err);
-                        showNotice('{{ __('admin.error_generic') }}', 'error');
-                    } finally {
-                        if (submitBtn) {
-                            submitBtn.disabled = false;
-                            submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-                            submitBtn.innerHTML = originalSubmitContent;
-                        }
-                    }
-                });
-
-                $('copy-room-join-link')?.addEventListener('click', async () => {
-                    const value = $('room-join-link')?.textContent?.trim() || '';
-                    try {
-                        await navigator.clipboard.writeText(value);
-                        showNotice('{{ __('admin.room_join_link_copied') }}');
-                    } catch (error) {
-                        showNotice('{{ __('admin.copy_room_join_url_failed') }}', 'error');
-                    }
-                });
-
-                $('set-room-public')?.addEventListener('change', (event) => {
-                    const hint = $('room-public-hint');
-                    if (hint) hint.textContent = event.target.checked
-                        ? @js(__('admin.room_public_mode_hint'))
-                        : @js(__('admin.room_private_mode_hint'));
-                });
-
-                /* ── Payment Account Create / Edit Modals ─────────────────────────── */
-                window.openCreateAccountModal = function () {
-                    $('payment-account-form')?.reset();
-                    $('payment-account-id').value = '';
-                    $('payment-modal-title').textContent = '{{ __('admin.add_new_account') }}';
-                    const bankSelect = $('acc-bank-code');
-                    if (bankSelect) {
-                        bankSelect.selectedIndex = 0;
-                        bankSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                    openModal('payment-account-modal');
-                };
-
-                window.openEditAccountModal = function (id, bankCode, bankName, accountNumber, accountName, isDefault) {
-                    $('payment-account-id').value = id;
-                    const bankSelect = $('acc-bank-code');
-                    if (bankSelect) {
-                        bankSelect.value = bankCode;
-                        bankSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                    $('acc-number').value = accountNumber;
-                    $('acc-name').value = accountName;
-                    $('acc-default').checked = isDefault;
-                    $('payment-modal-title').textContent = '{{ __('admin.edit_account') }}';
-                    openModal('payment-account-modal');
-                };
-
-                window.closeAccountModal = function () {
-                    closeModal('payment-account-modal');
-                };
-
-                /* Form submit: Create or Update Payment Account with Submit Loading */
-                $('payment-account-form')?.addEventListener('submit', async function (e) {
-                    e.preventDefault();
-                    const accountId = $('payment-account-id').value;
-                    const bankSelect = $('acc-bank-code');
-                    const bankCode = bankSelect.value;
-                    const bankName = bankSelect.options[bankSelect.selectedIndex]?.dataset.bankName ?? bankCode;
-                    const body = JSON.stringify({
-                        bank_code: bankCode,
-                        bank_name: bankName,
-                        account_number: $('acc-number').value.trim(),
-                        account_name: $('acc-name').value.trim().toUpperCase(),
-                        is_default: $('acc-default').checked,
-                    });
-
-                    const url = `/admin/${roomSlug}/payment-accounts` + (accountId ? '/' + accountId : '');
-                    const method = accountId ? 'PATCH' : 'POST';
-
-                    const submitBtn = $('payment-submit-btn');
-                    const originalSubmitContent = submitBtn ? submitBtn.innerHTML : '';
-                    if (submitBtn) {
-                        submitBtn.disabled = true;
-                        submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
-                        submitBtn.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span><span>{{ __('admin.loading') }}</span>';
-                    }
-
-                    let isSuccess = false;
-                    try {
-                        const res = await fetch(url, {
-                            method,
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' },
-                            body,
-                        });
-                        const json = await res.json();
-                        if (!res.ok) {
-                            const msgs = json.errors ? Object.values(json.errors).flat().join(' ') : (json.message ?? '{{ __('admin.error_generic') }}');
-                            showNotice(msgs, 'error');
-                            return;
-                        }
-                        isSuccess = true;
-                        closeAccountModal();
-                        showNotice(accountId ? '{{ __('admin.account_updated_ok') }}' : '{{ __('admin.account_created_ok') }}');
-                        setTimeout(() => location.reload(), 700);
-                    } catch {
-                        showNotice('{{ __('admin.error_generic') }}', 'error');
-                    } finally {
-                        if (submitBtn && !isSuccess) {
-                            submitBtn.disabled = false;
-                            submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
-                            submitBtn.innerHTML = originalSubmitContent;
-                        }
-                    }
-                });
-
-                /* ── QR Modal (Snake Border 4.8s) ─────────────────────────────────── */
-                function setQrState(state) {
-                    $('qr-loading').classList.toggle('hidden', state !== 'loading');
-                    $('qr-canvas-wrap').classList.toggle('hidden', state !== 'ready');
-                    $('qr-error').classList.toggle('hidden', state !== 'error');
-                    if (state === 'ready') {
-                        $('qr-canvas-wrap').classList.add('flex');
-                    }
-                }
-
-                function stopSnake() {
-                    $('qr-snake-rect')?.classList.remove('running');
-                }
-                function startSnake() {
-                    $('qr-snake-rect')?.classList.add('running');
-                }
-
-                function loadQrLibrary() {
-                    if (window.QRCode?.toCanvas) return Promise.resolve(window.QRCode);
-                    if (window.qrcode?.toCanvas) return Promise.resolve(window.qrcode);
-
-                    return new Promise((resolve) => {
-                        const script = document.createElement('script');
-                        script.src = 'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';
-                        script.onload = () => {
-                            const library = window.QRCode?.toCanvas ? window.QRCode : window.qrcode;
-                            resolve(library || null);
-                        };
-                        script.onerror = () => resolve(null);
-                        document.head.appendChild(script);
-                    });
-                }
-
-                async function openQrModal(accountId, endpointUrl) {
-                    openModal('payment-qr-modal');
-                    setQrState('loading');
-                    stopSnake();
-
-                    try {
-                        const res = await fetch(endpointUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } });
-                        const json = await res.json();
-                        const d = json.data;
-
-                        if (!d) throw new Error('no_data');
-
-                        $('qr-bank-badge').textContent = d.bank_name || d.bank_code;
-                        $('qr-acc-name').textContent = d.account_name || '';
-                        $('qr-acc-number').textContent = d.account_number || '';
-
-                        if (d.amount && d.amount > 0) {
-                            $('qr-amount-label').textContent = new Intl.NumberFormat('vi-VN').format(d.amount) + ' ₫';
-                            $('qr-amount-label').classList.remove('hidden');
-                        } else {
-                            $('qr-amount-label').classList.add('hidden');
-                        }
-
-                        if (d.description) {
-                            $('qr-desc-value').textContent = d.description;
-                            $('qr-desc-wrap').classList.remove('hidden');
-                        } else {
-                            $('qr-desc-wrap').classList.add('hidden');
-                        }
-
-                        setQrState('ready');
-                        startSnake();
-
-                        if (d.payload) {
-                            loadQrLibrary().then((qrLibrary) => {
-                                if (qrLibrary && $('qr-canvas')) {
-                                    const canvas = $('qr-canvas');
-                                    canvas.width = 220;
-                                    canvas.height = 220;
-                                    qrLibrary.toCanvas(canvas, d.payload, {
-                                        width: 220,
-                                        margin: 1,
-                                        errorCorrectionLevel: 'M',
-                                        color: { dark: '#000000', light: '#ffffff' },
-                                    }).catch(() => { });
-                                }
-                            }).catch(() => { });
-                        }
-                    } catch (err) {
-                        console.error('QR fetch error:', err);
-                        setQrState('error');
-                    }
-                }
-
-                document.addEventListener('click', function (e) {
-                    const btn = e.target.closest('[data-qr-btn]');
-                    if (btn) {
-                        openQrModal(btn.dataset.accountId, btn.dataset.qrEndpoint);
-                    }
-                });
-
-                document.addEventListener('click', function (e) {
-                    if (e.target.closest('[data-close-qr]') || (e.target.id === 'payment-qr-modal')) {
-                        closeModal('payment-qr-modal');
-                        stopSnake();
-                    }
-                });
-
-                /* ── Delete Confirmation Modal ────────────────────────────────────── */
-                let pendingDeleteId = null;
-
-                window.openDeleteAccountModal = function (id) {
-                    pendingDeleteId = id;
-                    openModal('payment-delete-modal');
-                };
-
-                document.addEventListener('click', function (e) {
-                    if (e.target.closest('[data-close-delete]') || e.target.id === 'payment-delete-modal') {
-                        closeModal('payment-delete-modal');
-                        pendingDeleteId = null;
-                    }
-                });
-
-                $('confirm-payment-delete')?.addEventListener('click', async function () {
-                    if (!pendingDeleteId) return;
-                    const targetId = pendingDeleteId;
-                    closeModal('payment-delete-modal');
-                    pendingDeleteId = null;
-
-                    try {
-                        const res = await fetch(
-                            `/admin/${roomSlug}/payment-accounts/${targetId}`,
-                            { method: 'DELETE', headers: { 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' } }
-                        );
-                        const json = await res.json();
-                        if (json.data?.deleted) {
-                            showNotice('{{ __('admin.account_deleted_ok') }}');
-                            setTimeout(() => location.reload(), 700);
-                        } else {
-                            showNotice(json.message ?? '{{ __('admin.error_generic') }}', 'error');
-                        }
-                    } catch {
-                        showNotice('{{ __('admin.error_generic') }}', 'error');
-                    }
-                });
-
-            }());
-        </script>
+        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
     @endpush
 </x-admin.layout>

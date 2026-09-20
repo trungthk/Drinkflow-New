@@ -11,6 +11,8 @@ use App\Http\Requests\StorePaymentAccountRequest;
 use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Services\Audit\AuditService;
+use App\Services\Payment\VietQrService;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -102,7 +104,7 @@ class PaymentAccountController extends Controller
     }
 
     /**
-     * Generate a locally encoded payment-details QR payload for an account.
+     * Generate a VietQR payload (falls back to a plain-text payload when the bank BIN is unknown).
      *
      * Returns the raw payload string so the frontend renders the QR
      * client-side with qrcode.js — no external CDN image call required.
@@ -110,16 +112,21 @@ class PaymentAccountController extends Controller
      * @param  Room            $room     Room entity (ownership check).
      * @param  PaymentAccount  $account  Account to generate QR for.
      * @param  Request         $request  Optional ?amount=&description= query params.
+     * @param  VietQrService   $vietQr   VietQR (EMVCo/NAPAS) payload generator.
      * @return JsonResponse QR payload + metadata.
      */
-    public function qr(Room $room, PaymentAccount $account, Request $request): JsonResponse
+    public function qr(Room $room, PaymentAccount $account, Request $request, VietQrService $vietQr): JsonResponse
     {
         abort_unless($account->room_id === $room->id, 404);
 
         $amount = $request->integer('amount');
         $description = (string) $request->query('description', '');
 
-        $payload = $this->buildLocalQrPayload($account, $amount, $description);
+        try {
+            $payload = $vietQr->generate($account, $amount, $description);
+        } catch (\InvalidArgumentException) {
+            $payload = $this->buildLocalQrPayload($account, $amount, $description);
+        }
 
         $accNumber = (string) $account->getRawOriginal('account_number');
         $accName = (string) $account->account_name;
@@ -179,23 +186,10 @@ class PaymentAccountController extends Controller
             'id' => $account->id,
             'bank_code' => $account->bank_code,
             'bank_name' => $account->bank_name,
-            'account_number' => $this->mask($account->getRawOriginal('account_number')),
+            'account_number' => FormatHelper::mask((string) $account->getRawOriginal('account_number')),
             'account_name' => $account->account_name,
             'is_default' => (bool) $account->is_default,
             'status' => $account->status,
         ];
-    }
-
-    /**
-     * Mask all but the last 4 characters of an account number.
-     *
-     * @param  string  $number  Raw account number.
-     * @return string           Masked string (e.g. "••••4382").
-     */
-    private function mask(string $number): string
-    {
-        return strlen($number) <= 4
-            ? str_repeat('•', strlen($number))
-            : str_repeat('•', max(0, strlen($number) - 4)) . substr($number, -4);
     }
 }

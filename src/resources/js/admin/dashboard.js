@@ -1,3 +1,5 @@
+import { formatMoney } from '../shared/money';
+
 /**
  * Admin Dashboard Live Monitor & Realtime Controller
  */
@@ -11,9 +13,15 @@ export function initAdminDashboard() {
     const closeUrlTemplate = dashboardEl.dataset.closeUrlTemplate || '';
     const timeExpiredText = dashboardEl.dataset.timeExpiredText || 'Time expired';
     const noDeadlineText = dashboardEl.dataset.noDeadlineText || 'No deadline';
+    const openedAtText = dashboardEl.dataset.openedAtText || '';
+    const todayText = dashboardEl.dataset.todayText || '';
+    const storeLabelText = dashboardEl.dataset.storeLabelText || '';
+    const roomFundText = dashboardEl.dataset.roomFundText || '';
+    const liveCampaignText = dashboardEl.dataset.liveCampaignText || '';
+    const secondaryCampaignText = dashboardEl.dataset.secondaryCampaignText || '';
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-    const money = v => new Intl.NumberFormat('vi-VN').format(Number(v || 0)) + ' ₫';
+    const money = formatMoney;
     const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
     let timerInterval = null;
     let activeCampaignId = null;
@@ -52,23 +60,59 @@ export function initAdminDashboard() {
         }
     }
 
+    const chartLabels = {
+        campaigns: dashboardEl.dataset.chartLabelCampaigns || 'Campaigns',
+        spending: dashboardEl.dataset.chartLabelSpending || 'Total spending',
+        orders: dashboardEl.dataset.chartLabelOrders || 'Orders',
+        peak: dashboardEl.dataset.chartPeakLabel || 'Peak',
+        noData: dashboardEl.dataset.chartNoDataText || '',
+        summary: dashboardEl.dataset.chartSummaryTemplate || ':campaigns / :amount',
+    };
+    const COLOR_CAMPAIGNS = '#006948';
+    const COLOR_SPENDING = '#2563eb';
+
+    /** Round a value up to a "nice" axis maximum (1, 2, 5 x 10^n). */
+    function niceMax(value) {
+        if (value <= 0) return 1;
+        const pow = Math.pow(10, Math.floor(Math.log10(value)));
+        const n = value / pow;
+        return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * pow;
+    }
+
+    /** Compact money label for the spending axis (e.g. 2 Tr, 1.5M). */
+    function compactMoney(value) {
+        const locale = document.documentElement.lang || 'vi';
+        return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(Number(value || 0));
+    }
+
     function renderTrendChart(weeklyTrend, totalCampaigns, totalSpending) {
         const wrapper = document.querySelector('#svg-chart-wrapper');
         const labelsContainer = document.querySelector('#chart-day-labels');
         if (!wrapper) return;
 
         if (!weeklyTrend || !weeklyTrend.length) {
-            wrapper.innerHTML = `<div class="h-full flex items-center justify-center text-outline text-xs">No data</div>`;
+            wrapper.innerHTML = `<div class="h-full flex items-center justify-center text-outline text-xs font-mono">${esc(chartLabels.noData)}</div>`;
             return;
         }
 
         const badge = document.querySelector('#chart-summary-badge');
         if (badge) {
-            badge.textContent = `${totalCampaigns || 0} campaigns · ${money(totalSpending)}`;
+            badge.textContent = chartLabels.summary
+                .replace(':campaigns', String(totalCampaigns || 0))
+                .replace(':amount', money(totalSpending));
         }
 
-        const maxC = 6;
-        const maxS = Math.max(...weeklyTrend.map(d => d.spending_amount || d.spending || 0), 4000000);
+        const rows = weeklyTrend.map(item => ({
+            day: item.day_name || item.day || '',
+            date: item.date || '',
+            count: Number(item.campaigns_count || item.count || 0),
+            spend: Number(item.spending_amount || item.spending || 0),
+            orders: Number(item.orders_count || 0),
+            peak: Boolean(item.is_peak),
+        }));
+
+        const maxC = Math.max(4, Math.ceil(Math.max(...rows.map(r => r.count)) / 2) * 2);
+        const maxS = niceMax(Math.max(...rows.map(r => r.spend), 100000));
 
         const width = 700;
         const height = 210;
@@ -76,85 +120,140 @@ export function initAdminDashboard() {
         const bottomPad = 180;
         const leftPad = 45;
         const rightPad = 655;
-        const usableWidth = rightPad - leftPad;
-        const stepX = usableWidth / Math.max(weeklyTrend.length - 1, 1);
+        const midY = (topPad + bottomPad) / 2;
+        const stepX = (rightPad - leftPad) / Math.max(rows.length - 1, 1);
+        const colW = rows.length > 1 ? stepX : rightPad - leftPad;
+        const barW = 32;
 
-        const points = [];
-        let barsHtml = '';
-        let peakInfo = null;
+        const points = rows.map((r, idx) => ({
+            x: leftPad + idx * stepX,
+            y: bottomPad - (r.spend / maxS) * (bottomPad - topPad),
+        }));
 
-        weeklyTrend.forEach((item, idx) => {
-            const cx = leftPad + (idx * stepX);
-            const barW = 32;
-            const count = item.campaigns_count || item.count || 0;
-            const spend = item.spending_amount || item.spending || 0;
-            const barH = (count / maxC) * (bottomPad - topPad);
+        const barsHtml = rows.map((r, idx) => {
+            const barH = (r.count / maxC) * (bottomPad - topPad);
             const barY = bottomPad - barH;
-
-            barsHtml += `
-                <g class="group cursor-pointer">
-                    <rect x="${cx - (barW / 2)}" y="${barY}" width="${barW}" height="${barH}" rx="3" fill="#006948" class="hover:opacity-80 transition-opacity"></rect>
-                    <text x="${cx}" y="${barY - 6}" text-anchor="middle" font-size="10" font-family="JetBrains Mono" font-weight="bold" fill="#006948">${count}</text>
-                </g>
+            return `
+                <rect x="${points[idx].x - barW / 2}" y="${barY}" width="${barW}" height="${barH}" rx="3" fill="${COLOR_CAMPAIGNS}" opacity="0.85"></rect>
+                ${r.count > 0 ? `<text x="${points[idx].x}" y="${barY - 5}" text-anchor="middle" font-size="10" font-family="JetBrains Mono" font-weight="bold" fill="${COLOR_CAMPAIGNS}">${r.count}</text>` : ''}
             `;
-
-            const spendingY = bottomPad - ((spend / maxS) * (bottomPad - topPad));
-            points.push({ x: cx, y: spendingY, amount: spend, day: item.day_name || item.day });
-
-            if (item.is_peak) {
-                peakInfo = { x: cx, y: spendingY, amount: spend, day: item.day_name || item.day };
-            }
-        });
+        }).join('');
 
         const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-        const areaPath = points.length ? `${linePath} L ${points[points.length - 1].x} ${bottomPad} L ${points[0].x} ${bottomPad} Z` : '';
+        const areaPath = `${linePath} L ${points[points.length - 1].x} ${bottomPad} L ${points[0].x} ${bottomPad} Z`;
 
+        const gridY = [topPad, midY, bottomPad];
+        const gridHtml = gridY.map((y, i) => `
+            <line x1="${leftPad}" y1="${y}" x2="${rightPad}" y2="${y}" stroke="currentColor" class="${i === 2 ? 'text-outline-variant/60' : 'text-outline-variant/30'}" stroke-width="1" ${i === 2 ? '' : 'stroke-dasharray="3 3"'}></line>
+            <text x="${leftPad - 8}" y="${y + 3}" text-anchor="end" font-size="9" font-family="JetBrains Mono" fill="${COLOR_CAMPAIGNS}">${i === 0 ? maxC : i === 1 ? maxC / 2 : 0}</text>
+            <text x="${rightPad + 8}" y="${y + 3}" text-anchor="start" font-size="9" font-family="JetBrains Mono" fill="${COLOR_SPENDING}">${compactMoney(i === 0 ? maxS : i === 1 ? maxS / 2 : 0)}</text>
+        `).join('');
+
+        const peakRow = rows.findIndex(r => r.peak && r.spend > 0);
         let peakMarker = '';
-        if (peakInfo) {
+        if (peakRow >= 0) {
+            const p = points[peakRow];
+            const label = `${chartLabels.peak}: ${rows[peakRow].day}`;
+            const boxW = Math.max(90, label.length * 6.5 + 16);
+            const boxX = Math.min(Math.max(p.x - boxW / 2, 0), width - boxW);
             peakMarker = `
-                <g class="peak-marker">
-                    <circle cx="${peakInfo.x}" cy="${peakInfo.y}" r="6" fill="#006948" stroke="#ffffff" stroke-width="2"></circle>
-                    <rect x="${peakInfo.x - 65}" y="${Math.max(5, peakInfo.y - 32)}" width="130" height="22" rx="4" fill="#002114" opacity="0.9"></rect>
-                    <text x="${peakInfo.x}" y="${Math.max(20, peakInfo.y - 18)}" text-anchor="middle" font-size="10" font-weight="bold" font-family="JetBrains Mono" fill="#68dba9">Peak: ${esc(peakInfo.day)}</text>
+                <g class="pointer-events-none">
+                    <circle cx="${p.x}" cy="${p.y}" r="6" fill="${COLOR_SPENDING}" stroke="#ffffff" stroke-width="2"></circle>
+                    <rect x="${boxX}" y="${Math.max(2, p.y - 32)}" width="${boxW}" height="20" rx="4" fill="#0f172a" opacity="0.9"></rect>
+                    <text x="${boxX + boxW / 2}" y="${Math.max(2, p.y - 32) + 14}" text-anchor="middle" font-size="10" font-weight="bold" font-family="JetBrains Mono" fill="#bfdbfe">${esc(label)}</text>
                 </g>
             `;
         }
+
+        const hitHtml = rows.map((r, idx) => `
+            <g class="group" data-trend-idx="${idx}">
+                <rect x="${points[idx].x - colW / 2}" y="0" width="${colW}" height="${height}" fill="${COLOR_SPENDING}" class="opacity-0 group-hover:opacity-[0.07] transition-opacity cursor-pointer"></rect>
+                <circle cx="${points[idx].x}" cy="${points[idx].y}" r="4" fill="#ffffff" stroke="${COLOR_SPENDING}" stroke-width="2" class="pointer-events-none"></circle>
+            </g>
+        `).join('');
 
         wrapper.innerHTML = `
             <svg viewBox="0 0 ${width} ${height}" class="w-full h-full overflow-visible">
                 <defs>
                     <linearGradient id="spendingGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="#006948" stop-opacity="0.25"/>
-                        <stop offset="100%" stop-color="#006948" stop-opacity="0.0"/>
+                        <stop offset="0%" stop-color="${COLOR_SPENDING}" stop-opacity="0.22"/>
+                        <stop offset="100%" stop-color="${COLOR_SPENDING}" stop-opacity="0"/>
                     </linearGradient>
                 </defs>
-                <line x1="${leftPad}" y1="${bottomPad}" x2="${rightPad}" y2="${bottomPad}" stroke="currentColor" class="text-outline-variant/60" stroke-width="1"></line>
-                <line x1="${leftPad}" y1="${topPad}" x2="${rightPad}" y2="${topPad}" stroke="currentColor" class="text-outline-variant/30" stroke-width="1" stroke-dasharray="3 3"></line>
-                <line x1="${leftPad}" y1="${(topPad + bottomPad)/2}" x2="${rightPad}" y2="${(topPad + bottomPad)/2}" stroke="currentColor" class="text-outline-variant/30" stroke-width="1" stroke-dasharray="3 3"></line>
-
+                ${gridHtml}
                 ${barsHtml}
-
-                <path d="${areaPath}" fill="url(#spendingGrad)"></path>
-                <path d="${linePath}" fill="none" stroke="#006948" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
-
-                ${points.map(p => `
-                    <circle cx="${p.x}" cy="${p.y}" r="4" fill="#ffffff" stroke="#006948" stroke-width="2" class="hover:r-6 transition-all cursor-pointer">
-                        <title>${p.day}: ${money(p.amount)}</title>
-                    </circle>
-                `).join('')}
-
+                <path d="${areaPath}" fill="url(#spendingGrad)" class="pointer-events-none"></path>
+                <path d="${linePath}" fill="none" stroke="${COLOR_SPENDING}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"></path>
                 ${peakMarker}
+                ${hitHtml}
             </svg>
+            <div data-trend-tooltip class="pointer-events-none absolute z-20 hidden min-w-[190px] rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-[11px] shadow-lg"></div>
         `;
 
+        bindTrendTooltip(wrapper, rows, points);
+
         if (labelsContainer) {
-            labelsContainer.innerHTML = weeklyTrend.map(d => `
+            labelsContainer.innerHTML = rows.map(r => `
                 <div class="text-center">
-                    <span class="font-bold text-on-surface">${esc(d.day_name || d.day)}</span>
-                    <span class="block text-[10px] font-mono text-outline">${esc(d.date || '')}</span>
+                    <span class="font-bold text-on-surface">${esc(r.day)}</span>
+                    <span class="block text-[10px] font-mono text-outline">${esc(r.date)}</span>
                 </div>
             `).join('');
         }
+    }
+
+    /** Show a rich tooltip (campaigns, spending, orders) while hovering a day column. */
+    function bindTrendTooltip(wrapper, rows, points) {
+        const svg = wrapper.querySelector('svg');
+        const tooltip = wrapper.querySelector('[data-trend-tooltip]');
+        if (!svg || !tooltip) return;
+
+        const show = idx => {
+            const r = rows[idx];
+            tooltip.innerHTML = `
+                <div class="mb-1.5 flex items-center justify-between gap-3 border-b border-outline-variant/60 pb-1.5">
+                    <span class="font-bold text-on-surface">${esc(r.day)}</span>
+                    <span class="font-mono text-outline">${esc(r.date)}</span>
+                </div>
+                <div class="flex items-center justify-between gap-4">
+                    <span class="flex items-center gap-1.5 text-on-surface-variant"><span class="h-2 w-2 rounded-sm" style="background:${COLOR_CAMPAIGNS}"></span>${esc(chartLabels.campaigns)}</span>
+                    <strong class="font-mono text-on-surface">${r.count}</strong>
+                </div>
+                <div class="mt-1 flex items-center justify-between gap-4">
+                    <span class="flex items-center gap-1.5 text-on-surface-variant"><span class="h-2 w-2 rounded-full" style="background:${COLOR_SPENDING}"></span>${esc(chartLabels.spending)}</span>
+                    <strong class="font-mono" style="color:${COLOR_SPENDING}">${money(r.spend)}</strong>
+                </div>
+                <div class="mt-1 flex items-center justify-between gap-4">
+                    <span class="text-on-surface-variant">${esc(chartLabels.orders)}</span>
+                    <strong class="font-mono text-on-surface">${r.orders}</strong>
+                </div>
+            `;
+            tooltip.classList.remove('hidden');
+
+            // Convert the SVG point to wrapper coordinates so it stays correct when the SVG is letterboxed.
+            const ctm = svg.getScreenCTM();
+            if (!ctm) return;
+            const pt = svg.createSVGPoint();
+            pt.x = points[idx].x;
+            pt.y = points[idx].y;
+            const screen = pt.matrixTransform(ctm);
+            const box = wrapper.getBoundingClientRect();
+            const tipW = tooltip.offsetWidth;
+            const tipH = tooltip.offsetHeight;
+            let left = screen.x - box.left - tipW / 2;
+            left = Math.max(0, Math.min(left, box.width - tipW));
+            let top = screen.y - box.top - tipH - 14;
+            if (top < 0) top = screen.y - box.top + 14;
+            tooltip.style.left = `${left}px`;
+            tooltip.style.top = `${top}px`;
+        };
+
+        svg.querySelectorAll('[data-trend-idx]').forEach(group => {
+            const idx = Number(group.dataset.trendIdx);
+            group.addEventListener('mouseenter', () => show(idx));
+            group.addEventListener('click', () => show(idx));
+        });
+        wrapper.onmouseleave = () => tooltip.classList.add('hidden');
     }
 
     function renderDashboard(data) {
@@ -234,9 +333,9 @@ export function initAdminDashboard() {
             const heroBar = document.querySelector('#hero-progress-bar');
             const heroSponsorNames = document.querySelector('#hero-sponsor-names');
 
-            if (heroTitle) heroTitle.textContent = hero.name || 'Live Campaign';
+            if (heroTitle) heroTitle.textContent = hero.name || liveCampaignText;
             if (heroCode) heroCode.textContent = hero.code || `#CMP-${hero.id}`;
-            if (heroTime) heroTime.textContent = hero.started_at ? `Mở lúc: ${new Date(hero.started_at).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})}` : 'Hôm nay';
+            if (heroTime) heroTime.textContent = hero.started_at ? openedAtText.replace(':time', new Date(hero.started_at).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'})) : todayText;
 
             const gross = Number(hero.total_amount || 0);
             const sponsor = Number(hero.sponsor_total || 0);
@@ -281,9 +380,9 @@ export function initAdminDashboard() {
                 const secSubtotal = document.querySelector('#sec-campaign-subtotal');
 
                 if (secCode) secCode.textContent = sec.code || `#CMP-${sec.id}`;
-                if (secTitle) secTitle.textContent = sec.name || 'Secondary';
-                if (secVendor) secVendor.textContent = `Quán: ${sec.restaurant || 'Phúc Long'}`;
-                if (secDeadline) secDeadline.textContent = sec.deadline ? new Date(sec.deadline).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : 'Hôm nay';
+                if (secTitle) secTitle.textContent = sec.name || secondaryCampaignText;
+                if (secVendor) secVendor.textContent = storeLabelText.replace(':name', sec.restaurant || '—');
+                if (secDeadline) secDeadline.textContent = sec.deadline ? new Date(sec.deadline).toLocaleTimeString('vi-VN', {hour: '2-digit', minute: '2-digit'}) : todayText;
                 if (secOrders) secOrders.textContent = `${sec.orders_count || 0}`;
                 if (secSubtotal) secSubtotal.textContent = money(sec.total_amount);
             } else if (secCard) {
@@ -298,7 +397,7 @@ export function initAdminDashboard() {
         if (acc) {
             const pBank = document.querySelector('#payment-bank-name');
             const pMasked = document.querySelector('#payment-account-masked');
-            if (pBank) pBank.textContent = `${acc.bank_name || acc.bank_code} (${acc.account_name || 'Quỹ phòng'})`;
+            if (pBank) pBank.textContent = `${acc.bank_name || acc.bank_code} (${acc.account_name || roomFundText})`;
             if (pMasked) pMasked.textContent = acc.account_number_masked || '•••• •••• ••••';
         }
 

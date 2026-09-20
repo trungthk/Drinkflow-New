@@ -23,3 +23,17 @@ src/.phpunit.result.cache
 Thumbs.db
 .idea/
 .vscode/
+
+# Multi-agent runner (run-agents.sh) artifacts - giữ lại memory.jsonl và .agents/mcp_config.json
+.antigravity/agent.log
+.antigravity/current_task.json
+.antigravity/mcp_config.generated.json
+.antigravity/staging/
+.antigravity/backup/
+.antigravity/*_output.txt
+.codex/
+codex.json
+
+# Claude Code local settings and Playwright MCP output
+.claude/settings.local.json
+.playwright-mcp/

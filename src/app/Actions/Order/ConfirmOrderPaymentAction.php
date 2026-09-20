@@ -12,6 +12,7 @@ use App\Models\AdminNotification;
 use App\Models\Debt;
 use App\Models\Order;
 use App\Models\RoomUser;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -84,7 +85,7 @@ class ConfirmOrderPaymentAction
 
         $room = $updatedOrder->room;
         $userName = $roomUser->globalUser?->name ?? $roomUser->display_name ?? 'User #' . $roomUser->id;
-        $amountFmt = number_format((int) $updatedOrder->final_amount, 0, ',', '.') . ' ₫';
+        $amountFmt = FormatHelper::formatCurrency((int) $updatedOrder->final_amount);
         $orderIdentifier = $updatedOrder->code;
 
         // Notify room admins via AdminNotification table

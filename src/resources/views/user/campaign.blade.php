@@ -449,10 +449,11 @@
           @endif
         </div>
       @elseif($activeCampaign?->isOrderable())
-        <div data-participation-form class="fixed right-4 top-1/2 z-30 -translate-y-1/2">
-          <button type="button" @click="showDeclineModal = true" class="group inline-flex items-center gap-2 rounded-full border border-rose-200 text-rose-700 hover:bg-rose-600 bg-white px-3.5 py-2.5 text-xs font-bold shadow-lg transition-all duration-200 hover:-translate-x-1 hover:text-white hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-rose-300 cursor-pointer" title="{{ __('room.campaign.decline') }}">
-            <span class="material-symbols-outlined text-[17px] transition-transform duration-200 group-hover:rotate-90">close</span>
-            <span>{{ __('room.campaign.decline') }}</span>
+        {{-- Floating action button: same 44px round shape as the support / go-to-top buttons, sitting above the cart button. --}}
+        <div data-participation-form class="fixed right-6 top-[calc(50%-3.5rem)] z-30">
+          <button type="button" @click="showDeclineModal = true" class="group flex h-11 min-w-11 items-center justify-center rounded-full border border-rose-200 bg-white px-2.5 text-xs font-bold text-rose-700 shadow-lg transition-all duration-200 hover:bg-rose-600 hover:text-white active:scale-95 focus:outline-none focus:ring-2 focus:ring-rose-400 focus:ring-offset-2 cursor-pointer" title="{{ __('room.campaign.decline') }}" aria-label="{{ __('room.campaign.decline') }}">
+            <span class="material-symbols-outlined text-[22px] transition-transform duration-200 group-hover:rotate-90">close</span>
+            <x-room.hover-label>{{ __('room.campaign.decline') }}</x-room.hover-label>
           </button>
         </div>
       @endif
@@ -609,7 +610,12 @@
                   <span class="shrink-0 text-sm font-bold text-[#006948]">({{ (int) $favoriteItem->quantity }})</span>
                 </div>
               @empty
-                <p class="py-5 text-center text-xs text-slate-500">{{ __('room.campaign.favorite_items_empty') }}</p>
+                <div class="flex flex-col items-center gap-2 py-6 text-center">
+                  <span class="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-400">
+                    <span class="material-symbols-outlined text-[26px]">heart_broken</span>
+                  </span>
+                  <p class="text-xs text-slate-500">{{ __('room.campaign.favorite_items_empty') }}</p>
+                </div>
               @endforelse
             </div>
           </div>
@@ -739,10 +745,10 @@
 
       @if($canOrderCampaign && !$activeUserOrder)
       <!-- Fixed Cart and Confirmation Modal -->
-      <button type="button" @click="showCartModal = true" data-campaign-cart-button class="fixed right-4 top-[calc(50%+0.5rem)] z-30 flex items-center gap-2 rounded-full bg-[#006948] px-4 py-3 text-xs font-bold text-white shadow-xl transition-all duration-200 hover:-translate-x-1 hover:bg-[#005137] hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-emerald-300">
-        <span class="material-symbols-outlined text-[19px]">shopping_cart</span>
-        <span>{{ __('room.campaign.cart_button') }}</span>
-        <span class="flex h-5 min-w-5 items-center justify-center rounded-full bg-white/20 px-1 text-[11px]" x-text="cartItems.length"></span>
+      <button type="button" @click="showCartModal = true" data-campaign-cart-button class="group fixed right-6 top-1/2 z-30 flex h-11 min-w-11 items-center justify-center rounded-full bg-[#006948] px-[11px] text-xs font-bold text-white shadow-lg transition-all duration-200 hover:bg-[#005137] active:scale-95 focus:outline-none focus:ring-2 focus:ring-[#006948] focus:ring-offset-2 cursor-pointer" title="{{ __('room.campaign.cart_button') }}" aria-label="{{ __('room.campaign.cart_button') }}">
+        <span class="material-symbols-outlined text-[22px]">shopping_cart</span>
+        <x-room.hover-label>{{ __('room.campaign.cart_button') }}</x-room.hover-label>
+        <span x-show="cartItems.length > 0" x-cloak class="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white" x-text="cartItems.length"></span>
       </button>
 
       <template x-teleport="body">

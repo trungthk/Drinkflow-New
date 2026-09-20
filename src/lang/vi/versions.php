@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'default_description' => 'Lịch sử phát hành và các cập nhật mới nhất của DrinkFlow.',
     'release_v2_3_0' => [
         'title' => 'Đặt món đa phòng, đặt hộ và đối soát VietQR',
         'summary' => 'Bản phát hành chính thức v2.3.0 hoàn thiện đặt món đa phòng, đặt món giúp thành viên khác, quản lý công nợ và xác nhận thanh toán VietQR cho môi trường production.',

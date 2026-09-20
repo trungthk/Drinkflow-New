@@ -11,7 +11,6 @@ import { initAdminAudit } from './admin/audit';
 import { initAdminCampaigns } from './admin/campaigns';
 import { campaignCreateComponent } from './admin/campaign-create';
 import { initAdminCampaignDetail } from './admin/campaign-detail';
-import { liveCampaignComponent } from './admin/campaign-live';
 import { initAdminDashboard } from './admin/dashboard';
 import { initAdminDebts } from './admin/debts';
 import { initAdminNotifications } from './admin/notifications';
@@ -32,7 +31,6 @@ export {
     initAdminCampaigns,
     campaignCreateComponent,
     initAdminCampaignDetail,
-    liveCampaignComponent,
     initAdminDashboard,
     initAdminDebts,
     initAdminNotifications,
@@ -46,7 +44,6 @@ export {
 // Expose globals for Alpine and inline calls
 if (typeof window !== 'undefined') {
     window.campaignCreateComponent = campaignCreateComponent;
-    window.liveCampaignComponent = liveCampaignComponent;
     window.renderTableSkeleton = renderTableSkeleton;
     window.debounce = debounce;
     window.toggleAdminSidebar = toggleAdminSidebar;

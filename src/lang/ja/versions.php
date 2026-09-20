@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'default_description' => 'DrinkFlowのリリース履歴と最新のアップデート。',
     'release_v2_3_0' => [
         'title' => 'マルチルーム注文・代理注文・VietQR決済照合',
         'summary' => '正式版 v2.3.0 では、複数ルーム注文、代理注文、債務管理、VietQR決済確認を本番環境向けに完成させました。',

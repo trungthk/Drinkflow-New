@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ErrorPagesTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_404_page_renders_with_public_layout_and_translations(): void
     {
         $response = $this->get('/non-existent-page-url-' . uniqid());
@@ -25,6 +28,17 @@ class ErrorPagesTest extends TestCase
         $this->assertStringContainsString('HTTPエラーコード: 404 - NOT FOUND', $jaView);
 
         app()->setLocale('vi');
+    }
+
+    public function test_404_from_missing_route_model_uses_session_locale(): void
+    {
+        foreach (['en' => 'HTTP ERROR CODE: 404 - NOT FOUND', 'ja' => 'HTTPエラーコード: 404 - NOT FOUND'] as $locale => $badge) {
+            $response = $this->withSession(['locale' => $locale])->get('/rooms/missing-room-' . uniqid() . '/join');
+
+            $response->assertStatus(404);
+            $response->assertSee($badge);
+            $response->assertSee('lang="' . $locale . '"', false);
+        }
     }
 
     public function test_error_views_can_be_rendered_directly(): void

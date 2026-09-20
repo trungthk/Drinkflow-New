@@ -106,14 +106,14 @@ class AdminReportService
                 ->selectRaw('
                     debts.room_user_id,
                     COALESCE(global_users.name, room_users.display_name) as user_name,
-                    room_users.user_code,
+                    global_users.email as user_email,
                     COUNT(debts.id) as debt_count,
                     SUM(debts.original_amount) as total_original,
                     SUM(debts.paid_amount) as total_paid,
                     SUM(debts.remaining_amount) as total_remaining,
                     SUM(CASE WHEN debts.status IN (?, ?) THEN debts.remaining_amount ELSE 0 END) as outstanding_debt
                 ', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])
-                ->groupBy('debts.room_user_id', 'global_users.name', 'room_users.display_name', 'room_users.user_code')
+                ->groupBy('debts.room_user_id', 'global_users.name', 'room_users.display_name', 'global_users.email')
                 ->orderByDesc('outstanding_debt')
                 ->orderByDesc('total_original')
                 ->get();
@@ -130,11 +130,11 @@ class AdminReportService
                 ->selectRaw('
                     orders.room_user_id,
                     COALESCE(global_users.name, room_users.display_name) as user_name,
-                    room_users.user_code,
+                    global_users.email as user_email,
                     COUNT(orders.id) as sponsored_orders,
                     SUM(orders.sponsor_amount) as total_sponsored
                 ')
-                ->groupBy('orders.room_user_id', 'global_users.name', 'room_users.display_name', 'room_users.user_code')
+                ->groupBy('orders.room_user_id', 'global_users.name', 'room_users.display_name', 'global_users.email')
                 ->orderByDesc('total_sponsored')
                 ->get();
         }
@@ -149,11 +149,11 @@ class AdminReportService
                 ->selectRaw('
                     orders.room_user_id,
                     COALESCE(global_users.name, room_users.display_name) as user_name,
-                    room_users.user_code,
+                    global_users.email as user_email,
                     COUNT(orders.id) as order_count,
                     SUM(orders.final_amount) as total_spent
                 ')
-                ->groupBy('orders.room_user_id', 'global_users.name', 'room_users.display_name', 'room_users.user_code')
+                ->groupBy('orders.room_user_id', 'global_users.name', 'room_users.display_name', 'global_users.email')
                 ->orderByDesc('order_count')
                 ->limit(10)
                 ->get();

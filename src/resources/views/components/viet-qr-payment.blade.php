@@ -25,7 +25,7 @@
      */
     $id       = $componentId;              // e.g. "vqr-a1b2c3d4"
     $dur      = $durationCss();           // e.g. "2.5s"
-    $fmtAmt   = $formattedAmount();       // e.g. "150.000 ₫"
+    $fmtAmt   = $formattedAmount();       // e.g. "150.000đ"
 
     // SVG corner rx/ry – must match the card's border-radius visually.
     // Since the SVG uses a 100-unit space we proportionally scale the radius.

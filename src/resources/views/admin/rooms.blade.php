@@ -171,7 +171,7 @@
                 <!-- User Session & Enterprise SSO Chip -->
                 <div class="flex items-center gap-3 bg-surface-container-lowest border border-outline-variant/60 rounded-xl p-1.5 pr-4 shadow-xs">
                     <a href="{{ route('admin.profile') }}" title="{{ __('admin.profile_security') }}" class="flex items-center gap-3 no-underline rounded-lg hover:bg-surface-container-low transition-colors">
-                    <div class="relative w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center font-label-md text-label-md font-bold overflow-hidden">
+                    <div class="relative w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-label-md text-label-md font-bold overflow-hidden">
                         <span aria-hidden="true">{{ $adminInitials }}</span>
                         @if($adminAvatarUrl)
                             <img src="{{ $adminAvatarUrl }}" alt="{{ $adminUser?->name }}" loading="lazy" onerror="this.remove()" class="absolute inset-0 h-full w-full object-cover">

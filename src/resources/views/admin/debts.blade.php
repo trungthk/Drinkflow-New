@@ -79,7 +79,16 @@
     <!-- Debts Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
+            {{-- Fixed-width member/amount columns; the origin-campaign column takes the remaining space. --}}
+            <table class="table-colgroup w-full min-w-[68rem] table-fixed text-left text-xs border-collapse">
+                <colgroup>
+                    <col class="w-64">
+                    <col>
+                    <col class="w-32">
+                    <col class="w-32">
+                    <col class="w-36">
+                    <col class="w-44">
+                </colgroup>
                 <thead>
                     <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
                         <th class="py-3 px-4">{{ __('admin.debt_member') }}</th>
@@ -125,11 +134,28 @@
                             data-search="{{ strtolower($member . ' ' . $debt->id . ' ' . $campaignName) }}">
                             <td class="py-3.5 px-4">
                                 <div class="font-bold text-on-surface text-sm">{{ $member }}</div>
-                                <div class="text-[11px] font-mono text-outline mt-0.5">{{ $debt->code ?? 'N/A' }}</div>
-                                <div class="text-secondary text-[11px] mt-0.5">{{ $debt->roomUser?->globalUser?->email ?? '' }}</div>
+                                <div class="text-secondary text-[11px] mt-0.5">{{ $memberEmail }}</div>
+                                <div class="mt-0.5 flex items-center gap-1 text-[11px] font-mono text-outline">
+                                    <span>{{ $debt->code ?? 'N/A' }}</span>
+                                    @if ($debt->code)
+                                        <button type="button" data-copy="{{ $debt->code }}"
+                                            data-copied-message="{{ __('admin.copied') }}"
+                                            data-copy-failed-message="{{ __('admin.copy_failed') }}"
+                                            data-tooltip="{{ __('admin.copy_debt_code') }}"
+                                            aria-label="{{ __('admin.copy_debt_code') }}"
+                                            class="inline-flex items-center text-outline hover:text-primary transition-colors cursor-pointer">
+                                            <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                             <td class="py-3.5 px-4">
-                                <div class="font-semibold text-on-surface">{{ $debt->campaign?->name ?? 'N/A' }}</div>
+                                @if ($debt->campaign)
+                                    <a href="{{ route('admin.campaigns.info', [$room, $debt->campaign]) }}"
+                                        class="font-semibold text-on-surface hover:text-primary hover:underline underline-offset-2 transition-colors no-underline">{{ $debt->campaign->name }}</a>
+                                @else
+                                    <div class="font-semibold text-on-surface">N/A</div>
+                                @endif
                                 <div class="text-[11px] text-outline">{{ $debt->created_at ? $debt->created_at->format('H:i d/m/Y') : '' }}</div>
                             </td>
                             <td class="py-3.5 px-4 text-center">
@@ -205,7 +231,47 @@
     </div>
 
     <!-- Generic Debt Action Modal (Record Payment / Adjust) -->
-    <div id="debt-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+    @php
+        $debtModalI18n = [
+            'confirmTitle' => __('admin.debt_modal_confirm_title'),
+            'adjustTitle' => __('admin.debt_modal_adjust_title'),
+            'paymentAmount' => __('admin.payment_amount'),
+            'paymentMethod' => __('admin.payment_method'),
+            'methodVietqr' => __('admin.debt_method_vietqr'),
+            'methodCash' => __('admin.debt_method_cash'),
+            'methodRoomFund' => __('admin.debt_method_room_fund'),
+            'reference' => __('admin.ref_code'),
+            'confirmPayment' => __('admin.confirm_payment'),
+            'adjustType' => __('admin.adjust_type'),
+            'adjustDecrease' => __('admin.debt_adjust_decrease'),
+            'adjustIncrease' => __('admin.debt_adjust_increase'),
+            'adjustWaive' => __('admin.debt_adjust_waive'),
+            'adjustCorrection' => __('admin.debt_adjust_correction'),
+            'amount' => __('admin.debt_modal_amount'),
+            'reason' => __('admin.debt_modal_reason'),
+            'saveAdjustment' => __('admin.save_debt_adjustment'),
+            'cancel' => __('admin.cancel'),
+            'amountExceeds' => __('admin.debt_modal_amount_exceeds'),
+            'paymentError' => __('admin.debt_modal_payment_error'),
+            'adjustError' => __('admin.debt_modal_adjust_error'),
+            'serverError' => __('admin.debt_modal_server_error'),
+            'approveTitle' => __('admin.payment_approval_modal_title'),
+            'approveSubtitle' => __('admin.payment_approval_modal_subtitle'),
+            'approveBadge' => __('admin.status_pending'),
+            'approveAmountLabel' => __('admin.approval_amount_to_clear'),
+            'approveConfirm' => __('admin.confirm_approve_btn'),
+            'approveAllTitle' => __('admin.pay_all_approval_modal_title'),
+            'approveAllSubtitle' => __('admin.pay_all_approval_modal_subtitle'),
+            'approveAllBadge' => __('admin.pay_all_badge'),
+            'approveAllAmountLabel' => __('admin.total_settle_amount'),
+            'approveAllConfirm' => __('admin.confirm_approve_all_btn'),
+            'debtsCount' => __('admin.debts_count'),
+            'noDebts' => __('admin.no_debts_found'),
+            'statusPaid' => __('admin.status_paid'),
+            'settled' => __('admin.settled_badge'),
+        ];
+    @endphp
+    <div id="debt-modal" data-i18n="{{ json_encode($debtModalI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
         <div id="debt-backdrop" class="absolute inset-0"></div>
         <div class="relative z-10 w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-2xl">
             <div class="flex items-center justify-between pb-3 border-b border-outline-variant mb-4">

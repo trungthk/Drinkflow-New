@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-use App\Models\AdminAccount;
-use App\Models\Room;
 use App\Enums\GlobalUserStatus;
 use App\Enums\RoomUserStatus;
-use App\Services\Notification\UserNotificationService;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\BroadcastNotificationRequest;
+use App\Models\AdminAccount;
+use App\Models\Room;
 use App\Services\Notification\AdminNotificationService;
+use App\Services\Notification\UserNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -37,18 +38,14 @@ class NotificationController extends Controller
     /**
      * Broadcast a web and realtime notification to active members of the room.
      *
-     * @param Request $request Incoming request.
+     * @param BroadcastNotificationRequest $request Incoming validated request.
      * @param Room $room Current room.
      * @param UserNotificationService $notifications User notification delivery service.
      * @return JsonResponse Delivery result.
      */
-    public function broadcast(Request $request, Room $room, UserNotificationService $notifications): JsonResponse
+    public function broadcast(BroadcastNotificationRequest $request, Room $room, UserNotificationService $notifications): JsonResponse
     {
-        $validated = $request->validate([
-            'type' => ['required', 'string', 'max:80'],
-            'title' => ['required', 'string', 'max:160'],
-            'body' => ['nullable', 'string', 'max:2000'],
-        ]);
+        $validated = $request->validated();
 
         $count = $room->roomUsers()
             ->where('status', RoomUserStatus::Active->value)

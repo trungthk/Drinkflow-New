@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Concerns\BelongsToRoom;
 use App\Models\Concerns\HasStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -94,6 +96,18 @@ class Order extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Order::class, 'parent_id');
+    }
+
+    /**
+     * Limit the query to orders (including proxy orders placed on behalf of others) of a live (active) campaign.
+     *
+     * @param Builder<Order> $query Order query being scoped.
+     * @return Builder<Order> Scoped query.
+     */
+    public function scopeInLiveCampaign(Builder $query): Builder
+    {
+        return $query
+            ->whereHas('campaign', static fn (Builder $campaignQuery): Builder => $campaignQuery->where('status', CampaignStatus::Active->value));
     }
 
     /**

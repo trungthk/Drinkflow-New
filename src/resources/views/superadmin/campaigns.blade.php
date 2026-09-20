@@ -8,7 +8,7 @@
     @php
         $status = $campaign->status instanceof BackedEnum ? $campaign->status->value : (string) $campaign->status;
     @endphp
-    <tr><td><strong>{{ $campaign->name }}</strong><br><small>{{ $campaign->restaurant }}</small></td><td>{{ $campaign->room?->name }}</td><td>{{ $campaign->orders_count }}</td><td>{{ $campaign->debts_count }}</td><td>{{ $status }}</td><td>@if(!in_array($status, ['closed','cancelled'], true))<button class="sa-button secondary" onclick="forceCampaign({{ $campaign->id }}, 'force-close')">Force close</button><button class="sa-button danger" onclick="forceCampaign({{ $campaign->id }}, 'force-cancel')">Cancel</button>@else—@endif</td></tr>
+    <tr><td><strong>{{ $campaign->name }}</strong><br><small>{{ $campaign->restaurant }}</small></td><td>{{ $campaign->room?->name }}</td><td>{{ $campaign->orders_count }}</td><td>{{ $campaign->debts_count }}</td><td>@if($campaign->status instanceof \App\Enums\CampaignStatus)<span class="status-pill status-{{ $status }}"><span class="status-dot"></span>{{ $campaign->status->label() }}</span>@else{{ $status }}@endif</td><td>@if(!in_array($status, ['closed','cancelled'], true))<button class="sa-button secondary" onclick="forceCampaign({{ $campaign->id }}, 'force-close')">Force close</button><button class="sa-button danger" onclick="forceCampaign({{ $campaign->id }}, 'force-cancel')">Cancel</button>@else—@endif</td></tr>
 @empty
     <tr><td colspan="6" class="sa-empty">Chưa có campaign.</td></tr>
 @endforelse

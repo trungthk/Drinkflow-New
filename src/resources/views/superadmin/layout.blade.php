@@ -104,7 +104,7 @@
                 `HTTP ${response.status}`);
             return response.json();
         };
-        const money = value => new Intl.NumberFormat(@js(str_replace('_', '-', app()->getLocale()))).format(value || 0) + ' ₫';
+        const money = value => new Intl.NumberFormat('vi-VN').format(value || 0) + 'đ';
         const escapeMap = {
             '&': '&amp;',
             '<': '&lt;',
@@ -118,6 +118,7 @@
             'archived' => __('superadmin.common.archived'), 'blocked' => __('superadmin.common.blocked'),
             'pending' => __('superadmin.common.pending'), 'scheduled' => __('superadmin.common.scheduled'),
             'closed' => __('superadmin.common.closed'), 'cancelled' => __('superadmin.common.cancelled'),
+            'draft' => __('admin.status_draft'), 'closing' => __('admin.status_closing'),
             'high' => __('superadmin.common.high'), 'medium' => __('superadmin.common.medium'),
             'low' => __('superadmin.common.low'),
         ]) !!};

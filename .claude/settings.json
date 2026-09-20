@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "enabledMcpjsonServers": ["playwright"],
+  "permissions": {
+    "allow": [
+      "Bash(docker exec drinkflow-new-app-1 php artisan test:*)",
+      "Bash(docker exec drinkflow-new-app-1 php artisan route:list:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(php artisan test:*)",
+      "Bash(php artisan route:list:*)",
+      "Bash(php -l:*)",
+      "Bash(npm run build:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "mcp__playwright"
+    ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./src/.env)",
+      "Read(./src/.env.*)",
+      "Read(./realtime/.env)",
+      "Bash(php artisan migrate:fresh:*)",
+      "Bash(php artisan db:wipe:*)",
+      "Bash(docker exec drinkflow-new-app-1 php artisan migrate:fresh:*)",
+      "Bash(docker exec drinkflow-new-app-1 php artisan db:wipe:*)",
+      "Bash(docker compose down -v:*)"
+    ]
+  }
+}

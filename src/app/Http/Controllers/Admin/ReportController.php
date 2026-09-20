@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\AdminReportExport;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Room;
@@ -11,6 +12,8 @@ use App\Services\Admin\AdminReportService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ReportController extends Controller
 {
@@ -28,6 +31,25 @@ class ReportController extends Controller
         $metrics = $reportService->getReportMetrics($request, $room);
 
         return response()->json(['data' => $metrics]);
+    }
+
+    /**
+     * Download every report tab for the selected period as an Excel statement.
+     *
+     * @param Request $request Incoming HTTP request (optional date_from / date_to filters).
+     * @param AdminReportService $reportService Report analytics service.
+     * @return BinaryFileResponse XLSX download.
+     */
+    public function export(Request $request, AdminReportService $reportService): BinaryFileResponse
+    {
+        /** @var Room $room */
+        $room = $request->attributes->get('room');
+        $metrics = $reportService->getReportMetrics($request, $room);
+
+        return Excel::download(
+            new AdminReportExport($metrics),
+            'drinkflow-'.$room->slug.'-report-'.now()->format('Ymd').'.xlsx'
+        );
     }
 
     /**

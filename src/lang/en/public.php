@@ -142,6 +142,7 @@ return [
         'require_login_room' => "Please sign in with Google Workspace to access ':room'.",
     ],
     'video_modal' => [
+        'close_label' => 'Close video',
         'badge' => 'Intro Video',
         'title' => 'Discover how DrinkFlow optimizes office afternoon tea breaks',
         'close' => 'Close (Esc)',

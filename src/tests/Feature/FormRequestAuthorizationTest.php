@@ -131,6 +131,12 @@ class FormRequestAuthorizationTest extends TestCase
         $request3->setUserResolver(fn () => $assignedAdmin);
         $request3->setRouteResolver(fn () => $inactiveRoute);
         $this->assertFalse($request3->authorize());
+
+        // Broadcast notification request authorization test
+        $broadcastReq = \App\Http\Requests\BroadcastNotificationRequest::create("/admin/{$activeRoom->slug}/notifications/broadcast", 'POST');
+        $broadcastReq->setUserResolver(fn () => $assignedAdmin);
+        $broadcastReq->setRouteResolver(fn () => $route);
+        $this->assertTrue($broadcastReq->authorize());
     }
 
     public function test_global_user_request_authorizes_active_global_user(): void

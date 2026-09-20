@@ -255,7 +255,7 @@
                     class="admin-profile-chip flex items-center gap-2.5 p-2 rounded-lg bg-surface-container border border-outline-variant/60 relative group no-underline"
                     title="{{ __('admin.profile_security') }}">
                     <div data-admin-avatar="sidebar"
-                        class="relative w-8 h-8 overflow-hidden rounded-full bg-secondary text-on-secondary font-mono text-xs flex items-center justify-center font-bold ring-1 ring-emerald-600/30 shrink-0 mx-auto lg:mx-0">
+                        class="relative w-8 h-8 overflow-hidden rounded-full bg-primary text-white font-mono text-xs flex items-center justify-center font-bold ring-1 ring-emerald-600/30 shrink-0 mx-auto lg:mx-0">
                         <span aria-hidden="true">{{ $adminInitials }}</span>
                         @if ($adminAvatarUrl)
                             <img src="{{ $adminAvatarUrl }}" alt="{{ $adminUser?->name }}" loading="lazy"
@@ -293,9 +293,9 @@
     <div id="admin-main-wrapper" class="flex-1 lg:pl-64 flex flex-col min-w-0 min-h-screen">
         <!-- Top Navigation Bar -->
         <header
-            class="flex justify-between items-center w-full px-6 py-2 h-14 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-20">
+            class="flex justify-between items-center gap-2 w-full px-3 sm:px-6 py-2 h-14 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-20">
             <!-- Left side: Mobile menu toggle, Desktop sidebar collapse toggle & Breadcrumbs -->
-            <div class="flex items-center gap-3">
+            <div class="flex min-w-0 items-center gap-2 sm:gap-3">
                 <button type="button"
                     class="lg:hidden w-8 h-8 flex items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
                     onclick="document.querySelector('#admin-sidebar')?.classList.toggle('-translate-x-full')">
@@ -303,32 +303,33 @@
                 </button>
                 <button type="button" onclick="toggleAdminSidebar()"
                     class="hidden lg:flex w-8 h-8 items-center justify-center rounded text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
-                    title="{{ __('admin.toggle_sidebar') }}">
+                    data-tooltip="{{ __('admin.toggle_sidebar') }}" aria-label="{{ __('admin.toggle_sidebar') }}">
                     <span
                         class="material-symbols-outlined text-[20px] sidebar-collapse-toggle-icon">dock_to_left</span>
                 </button>
-                <nav class="flex items-center gap-2 text-xs text-outline font-medium">
-                    <span>{{ __('global.common.admin') }}</span>
-                    <span>/</span>
-                    <a href="{{ route('admin.landing') }}" class="hover:text-on-surface transition-colors">Rooms</a>
+                {{-- On mobile only the current page is shown (Admin / Rooms are hidden) so the header never overflows. --}}
+                <nav class="flex min-w-0 items-center gap-2 text-xs text-outline font-medium">
+                    <span class="hidden sm:inline">{{ __('global.common.admin') }}</span>
+                    <span class="hidden sm:inline">/</span>
+                    <a href="{{ route('admin.landing') }}" class="hidden sm:inline hover:text-on-surface transition-colors">{{ __('admin.breadcrumb_rooms') }}</a>
                     @if (request()->routeIs('admin.profile'))
-                        <span>/</span>
-                        <span class="text-on-surface font-semibold">{{ __('admin.profile') }}</span>
+                        <span class="hidden sm:inline">/</span>
+                        <span class="text-on-surface font-semibold truncate">{{ __('admin.profile') }}</span>
                     @elseif($room)
-                        <span>/</span>
+                        <span class="hidden sm:inline">/</span>
                         @if (request()->routeIs('admin.dashboard.page'))
                             <span
-                                class="text-on-surface font-semibold truncate max-w-[180px] sm:max-w-none">{{ $roomLabel }}</span>
+                                class="text-on-surface font-semibold truncate max-w-[150px] sm:max-w-none">{{ $roomLabel }}</span>
                         @else
                             <a href="{{ route('admin.dashboard.page', $room) }}"
-                                class="hover:text-on-surface transition-colors truncate max-w-[180px] sm:max-w-none">{{ $roomLabel }}</a>
+                                class="hover:text-on-surface transition-colors truncate max-w-[150px] sm:max-w-none">{{ $roomLabel }}</a>
                         @endif
                     @endif
                 </nav>
             </div>
 
             <!-- Right side: Language, Notifications Dropdown, Fast Action -->
-            <div class="flex items-center gap-3">
+            <div class="flex shrink-0 items-center gap-2 sm:gap-3">
                 <div class="relative" data-admin-language-switcher>
                     <button type="button" data-language-toggle aria-expanded="false"
                         aria-controls="admin-language-menu"
@@ -413,7 +414,7 @@
                                                         {{ $notificationPresentation['body'] }}</p>
                                                 @endif
                                                 <span
-                                                    class="text-[10px] font-mono text-outline">{{ $notif->created_at ? $notif->created_at->diffForHumans() : 'Vừa xong' }}</span>
+                                                    class="text-[10px] font-mono text-outline">{{ $notif->created_at ? $notif->created_at->diffForHumans() : __('admin.just_now') }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -484,18 +485,34 @@
                     <h3 class="flex items-center gap-2 text-sm font-bold text-on-surface"><span class="material-symbols-outlined text-secondary">campaign</span>{{ __('admin.broadcast_notification') }}</h3>
                     <button type="button" id="admin-broadcast-close" class="text-outline hover:text-on-surface"><span class="material-symbols-outlined">close</span></button>
                 </div>
-                <form id="admin-broadcast-form" data-url="{{ route('admin.notifications.broadcast', $room) }}" class="space-y-3">
-                    <label class="block text-xs font-semibold text-on-surface">{{ __('admin.broadcast_type') }}
-                        <select id="admin-broadcast-type" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface">
+                <form id="admin-broadcast-form" data-url="{{ route('admin.notifications.broadcast', $room) }}" class="space-y-3" novalidate>
+                    <label class="block text-xs font-semibold text-on-surface">
+                        <span>{{ __('admin.broadcast_type') }}<span class="ml-0.5 text-red-600" aria-hidden="true">*</span></span>
+                        <select id="admin-broadcast-type" required aria-required="true" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface">
                             <option value="admin.broadcast" data-title="{{ __('admin.broadcast_sample_title') }}" data-body="{{ __('admin.broadcast_sample_body') }}">{{ __('admin.broadcast_general') }}</option>
                             <option value="campaign.created" data-title="{{ __('admin.broadcast_campaign_title') }}" data-body="{{ __('admin.broadcast_campaign_body') }}">{{ __('admin.broadcast_campaign') }}</option>
                             <option value="payment.reminder" data-title="{{ __('admin.broadcast_payment_title') }}" data-body="{{ __('admin.broadcast_payment_body') }}">{{ __('admin.broadcast_payment') }}</option>
                         </select>
+                        <span data-broadcast-error="type" class="mt-1 hidden text-[11px] font-medium text-red-600"></span>
                     </label>
-                    <label class="block text-xs font-semibold text-on-surface">{{ __('admin.broadcast_title') }}<input id="admin-broadcast-title" required maxlength="160" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface"></label>
-                    <label class="block text-xs font-semibold text-on-surface">{{ __('admin.broadcast_content') }}<textarea id="admin-broadcast-body" rows="4" maxlength="2000" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface"></textarea></label>
+                    <label class="block text-xs font-semibold text-on-surface">
+                        <span>{{ __('admin.broadcast_title') }}<span class="ml-0.5 text-red-600" aria-hidden="true">*</span></span>
+                        <input id="admin-broadcast-title" required aria-required="true" maxlength="160" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface">
+                        <span data-broadcast-error="title" class="mt-1 hidden text-[11px] font-medium text-red-600"></span>
+                    </label>
+                    <label class="block text-xs font-semibold text-on-surface">
+                        <span>{{ __('admin.broadcast_content') }}</span>
+                        <textarea id="admin-broadcast-body" rows="4" maxlength="2000" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface"></textarea>
+                        <span data-broadcast-error="body" class="mt-1 hidden text-[11px] font-medium text-red-600"></span>
+                    </label>
                     <p id="admin-broadcast-notice" class="hidden rounded-lg px-3 py-2 text-xs"></p>
-                    <div class="flex justify-end gap-2 border-t border-outline-variant pt-3"><button type="button" id="admin-broadcast-cancel" class="rounded-lg border border-outline-variant px-4 py-2 text-xs font-semibold">{{ __('admin.cancel') }}</button><button type="submit" class="rounded-lg bg-secondary px-4 py-2 text-xs font-semibold text-on-secondary">{{ __('admin.broadcast_confirm') }}</button></div>
+                    <div class="flex justify-end gap-2 border-t border-outline-variant pt-3">
+                        <button type="button" id="admin-broadcast-cancel" class="rounded-lg border border-outline-variant px-4 py-2 text-xs font-semibold">{{ __('admin.cancel') }}</button>
+                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60">
+                            <span class="material-symbols-outlined text-[16px]">send</span>
+                            <span>{{ __('admin.broadcast_confirm') }}</span>
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -522,7 +539,10 @@
             });
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({}));
-                throw new Error(errData.message || `HTTP ${response.status}`);
+                const apiError = new Error(errData.message || `HTTP ${response.status}`);
+                apiError.status = response.status;
+                apiError.errors = errData.errors || {};
+                throw apiError;
             }
             return response.json();
         };
@@ -541,16 +561,60 @@
                 document.getElementById('admin-broadcast-open')?.addEventListener('click', open);
                 document.getElementById('admin-broadcast-close')?.addEventListener('click', close);
                 document.getElementById('admin-broadcast-cancel')?.addEventListener('click', close);
-                type?.addEventListener('change', () => { const option = type.options[type.selectedIndex]; title.value = option.dataset.title || ''; body.value = option.dataset.body || ''; });
+                const messages = @js([
+                    'typeRequired' => __('validation.required', ['attribute' => __('validation.attributes.type')]),
+                    'typeInvalid' => __('validation.in', ['attribute' => __('validation.attributes.type')]),
+                    'titleRequired' => __('validation.required', ['attribute' => __('validation.attributes.title')]),
+                    'titleMax' => __('validation.max.string', ['attribute' => __('validation.attributes.title'), 'max' => 160]),
+                    'bodyMax' => __('validation.max.string', ['attribute' => __('validation.attributes.body'), 'max' => 2000]),
+                ]);
+                const fields = { type, title, body };
+                const errorEls = Object.fromEntries(['type', 'title', 'body'].map((name) => [name, form?.querySelector(`[data-broadcast-error="${name}"]`)]));
+                const setError = (name, message) => {
+                    const field = fields[name];
+                    const el = errorEls[name];
+                    if (!field || !el) return;
+                    el.textContent = message || '';
+                    el.classList.toggle('hidden', !message);
+                    field.classList.toggle('border-red-500', Boolean(message));
+                    field.classList.toggle('border-outline-variant', !message);
+                    field.setAttribute('aria-invalid', message ? 'true' : 'false');
+                };
+                const clearErrors = () => { ['type', 'title', 'body'].forEach((name) => setError(name, '')); notice?.classList.add('hidden'); };
+                const validate = () => {
+                    const errors = {};
+                    const allowed = Array.from(type.options).map((option) => option.value);
+                    if (!type.value) errors.type = messages.typeRequired;
+                    else if (!allowed.includes(type.value)) errors.type = messages.typeInvalid;
+                    const titleValue = title.value.trim();
+                    if (!titleValue) errors.title = messages.titleRequired;
+                    else if (titleValue.length > 160) errors.title = messages.titleMax;
+                    if (body.value.trim().length > 2000) errors.body = messages.bodyMax;
+                    return errors;
+                };
+                const showErrors = (errors) => {
+                    Object.entries(errors).forEach(([name, message]) => setError(name, Array.isArray(message) ? message[0] : message));
+                    const firstInvalid = ['type', 'title', 'body'].find((name) => errors[name]);
+                    if (firstInvalid) fields[firstInvalid].focus();
+                };
+                ['type', 'title', 'body'].forEach((name) => fields[name]?.addEventListener('input', () => setError(name, '')));
+
+                type?.addEventListener('change', () => { const option = type.options[type.selectedIndex]; title.value = option.dataset.title || ''; body.value = option.dataset.body || ''; clearErrors(); });
                 form?.addEventListener('submit', async (event) => {
                     event.preventDefault();
+                    clearErrors();
+                    const clientErrors = validate();
+                    if (Object.keys(clientErrors).length) { showErrors(clientErrors); return; }
                     const button = form.querySelector('button[type="submit"]');
                     button.disabled = true;
                     try {
                         const response = await window.dfApi(form.dataset.url, { method: 'POST', body: { type: type.value, title: title.value.trim(), body: body.value.trim() } });
                         notice.textContent = response.message || '{{ __('admin.broadcast_sent', ['count' => ':count']) }}'; notice.className = 'rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700'; notice.classList.remove('hidden');
                         window.setTimeout(close, 700);
-                    } catch (error) { notice.textContent = error.message || '{{ __('admin.broadcast_failed') }}'; notice.className = 'rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700'; notice.classList.remove('hidden'); } finally { button.disabled = false; }
+                    } catch (error) {
+                        if (error.status === 422 && error.errors && Object.keys(error.errors).length) { showErrors(error.errors); }
+                        else { notice.textContent = error.message || '{{ __('admin.broadcast_failed') }}'; notice.className = 'rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700'; notice.classList.remove('hidden'); }
+                    } finally { button.disabled = false; }
                 });
             })();
         </script>

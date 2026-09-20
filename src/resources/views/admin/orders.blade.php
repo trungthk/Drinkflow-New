@@ -1,6 +1,8 @@
 @php
     $orderI18n = [
         'orderedItems' => __('admin.ordered_items'),
+        'statusPaid' => __('admin.status_paid'),
+        'statusUnpaid' => __('admin.status_unpaid'),
         'unitPrice' => __('admin.unit_price'),
         'subtotal' => __('admin.subtotal_label_short'),
         'finalPayable' => __('admin.final_payable_amount'),
@@ -29,7 +31,6 @@
         'priceAdjustSuccess' => __('admin.price_adjust_success'),
         'savingPriceAdjustment' => __('admin.saving_price_adjustment'),
         'totalOrdersBadge' => __('admin.total_orders_badge'),
-        'noToppings' => __('admin.no_toppings'),
         'statusAllFilter' => __('admin.status_all_filter'),
         'thOrderCode' => __('admin.th_order_code'),
         'thCustomer' => __('admin.th_customer'),
@@ -50,7 +51,7 @@
         'orderDetailModalSubtitle' => __('admin.order_detail_modal_subtitle'),
         'customerInfo' => __('admin.customer_info'),
         'campaignStoreInfo' => __('admin.campaign_store_info'),
-        'campaignDetailUrl' => isset($activeCampaign) && $activeCampaign ? route('admin.campaigns.show', [$room, $activeCampaign, 'view' => 'detail']) : '',
+        'campaignDetailUrl' => isset($activeCampaign) && $activeCampaign ? route('admin.campaigns.info', [$room, $activeCampaign]) : '',
         'orderFinancialSummary' => __('admin.order_financial_summary'),
         'orderHistoryTimestamps' => __('admin.order_history_timestamps'),
         'itemNameCol' => __('admin.item_name_col'),
@@ -68,9 +69,15 @@
         'adjustPriceBtn' => __('admin.adjust_price_btn'),
         'notAvailable' => __('admin.not_available'),
         'orderedBy' => __('admin.ordered_by'),
-        'proxyOrders' => __('admin.proxy_orders'),
         'paymentMethod' => __('admin.payment_method'),
         'paymentStatus' => __('admin.payment_status'),
+        'paymentMethodNames' => [
+            'transfer' => __('room.campaign.payment_transfer'),
+            'qr' => __('admin.debt_method_vietqr'),
+            'vietqr' => __('admin.debt_method_vietqr'),
+            'cash' => __('admin.debt_method_cash'),
+            'room_fund' => __('admin.debt_method_room_fund'),
+        ],
     ];
 @endphp
 
@@ -112,11 +119,8 @@
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
-                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                {{ __('admin.live_campaign_info') }}
-                            </span>
-                            <a href="{{ route('admin.campaigns.show', [$room, $activeCampaign, 'view' => 'detail']) }}" class="font-bold text-sm text-on-surface truncate hover:text-primary transition-colors no-underline" title="{{ __('admin.view_campaign_details') }}">{{ $activeCampaign->name }}</a>
+                            <x-admin.campaign-status-badge :campaign="$activeCampaign" />
+                            <a href="{{ route('admin.campaigns.info', [$room, $activeCampaign]) }}" class="font-bold text-sm text-on-surface truncate hover:text-primary transition-colors no-underline" title="{{ __('admin.view_campaign_details') }}">{{ $activeCampaign->name }}</a>
                             <span class="text-xs bg-surface-container px-2 py-0.5 rounded font-mono font-medium text-secondary">{{ $activeCampaign->code ?? 'N/A' }}</span>
                         </div>
                         <div class="text-xs text-secondary mt-1 flex items-center gap-2 flex-wrap font-medium">
@@ -133,7 +137,7 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('admin.campaigns.show', [$room, $activeCampaign, 'view' => 'detail']) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold border border-outline-variant/60 transition-colors shadow-2xs">
+                    <a href="{{ route('admin.campaigns.info', [$room, $activeCampaign]) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold border border-outline-variant/60 transition-colors shadow-2xs">
                         <span class="material-symbols-outlined text-[16px]">campaign</span>
                         <span>{{ __('admin.campaign_menu') }}</span>
                     </a>
@@ -285,7 +289,17 @@
     <!-- Orders Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
+            {{-- Fixed-width side columns; the items-detail column takes the remaining space. --}}
+            <table class="table-colgroup w-full min-w-[64rem] table-fixed text-left text-xs border-collapse">
+                <colgroup>
+                    <col class="w-10">
+                    <col class="w-44">
+                    <col class="w-44">
+                    <col>
+                    <col class="w-32">
+                    <col class="w-40">
+                    <col class="w-24">
+                </colgroup>
                 <thead>
                     <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
                         <th class="py-3 px-3 w-10 text-center">
@@ -359,6 +373,16 @@
                                         <div class="font-semibold text-on-surface text-xs truncate" title="{{ $member }}">{{ $member }}</div>
                                         @if($ord->roomUser?->user_code)
                                             <div class="text-[10px] font-mono text-outline truncate">{{ $ord->roomUser->user_code }}</div>
+                                        @endif
+                                        @if($ord->parent?->roomUser)
+                                            @php
+                                                $proxyBy = $ord->parent->roomUser->globalUser?->name ?? $ord->parent->roomUser->display_name ?? __('admin.member');
+                                                $proxyInfo = __('admin.proxy_order_info', ['name' => $proxyBy, 'email' => $ord->parent->roomUser->globalUser?->email ?? '']);
+                                            @endphp
+                                            <div class="mt-0.5 flex items-center gap-1 text-[10px] text-violet-700 truncate" title="{{ $proxyInfo }}">
+                                                <span class="material-symbols-outlined text-[12px] shrink-0">account_tree</span>
+                                                <span class="truncate">{{ __('admin.ordered_by') }}: {{ $proxyBy }}</span>
+                                            </div>
                                         @endif
                                     </div>
                                 </div>
@@ -581,7 +605,7 @@
                 </div>
                 <div class="flex items-center justify-between">
                     <span class="text-outline">{{ __('admin.th_subtotal_actual') }}:</span>
-                    <span class="font-bold text-primary font-mono" id="cancel-modal-amount">0 ₫</span>
+                    <span class="font-bold text-primary font-mono" id="cancel-modal-amount">0đ</span>
                 </div>
             </div>
 

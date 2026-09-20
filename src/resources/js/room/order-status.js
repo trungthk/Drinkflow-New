@@ -12,13 +12,13 @@ export function initOrderStatus() {
     const statusUpdated = container.querySelector('#status-updated');
 
     const statusLabels = {
-        submitted: container.dataset.labelSubmitted || 'Đã gửi',
-        confirmed: container.dataset.labelConfirmed || 'Đã nhận',
-        ordering: container.dataset.labelOrdering || 'Đang làm',
-        ordered: container.dataset.labelOrdered || 'Đã xong',
-        delivering: container.dataset.labelDelivering || 'Đang giao',
-        completed: container.dataset.labelCompleted || 'Hoàn tất',
-        cancelled: container.dataset.labelCancelled || 'Đã hủy'
+        submitted: container.dataset.labelSubmitted || '',
+        confirmed: container.dataset.labelConfirmed || '',
+        ordering: container.dataset.labelOrdering || '',
+        ordered: container.dataset.labelOrdered || '',
+        delivering: container.dataset.labelDelivering || '',
+        completed: container.dataset.labelCompleted || '',
+        cancelled: container.dataset.labelCancelled || ''
     };
 
     function renderStatus(status) {
@@ -42,7 +42,7 @@ export function initOrderStatus() {
 
         if (statusUpdated) {
             const locale = document.documentElement.lang || 'vi';
-            statusUpdated.textContent = `${container.dataset.labelUpdatedPrefix || 'Cập nhật lúc'} ${new Date().toLocaleTimeString(locale)}`;
+            statusUpdated.textContent = `${container.dataset.labelUpdatedPrefix || ''} ${new Date().toLocaleTimeString(locale)}`;
         }
     }
 

@@ -141,11 +141,12 @@ class AdminDashboardService
             $dayLabel = $i === 0 ? __('admin.day_today') : ($dayLabels[$dayOfWeek] ?? $currentDate->format('D'));
 
             $cCount = $room->campaigns()->whereDate('created_at', $currentDate)->count();
-            $sAmount = (int) Order::query()
+            $dayOrders = Order::query()
                 ->where('room_id', $room->id)
                 ->whereDate('created_at', $currentDate)
-                ->where('status', $completedStatus)
-                ->sum('final_amount');
+                ->where('status', '!=', OrderStatus::Cancelled->value);
+            $sAmount = (int) (clone $dayOrders)->sum('final_amount');
+            $oCount = (clone $dayOrders)->count();
 
             $totalWeekCampaigns += $cCount;
             $totalWeekSpending += $sAmount;
@@ -160,7 +161,13 @@ class AdminDashboardService
                 'day_name' => $dayLabel,
                 'campaigns_count' => $cCount,
                 'spending_amount' => $sAmount,
+                'orders_count' => $oCount,
+                'is_peak' => false,
             ];
+        }
+
+        if ($maxDayIndex >= 0) {
+            $weeklyTrend[$maxDayIndex]['is_peak'] = true;
         }
 
         // Active participants in active campaigns

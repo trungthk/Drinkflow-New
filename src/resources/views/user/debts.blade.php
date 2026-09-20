@@ -58,9 +58,14 @@
             this.qrData.formattedAmount = formattedAmount;
             this.qrData.transferContent = content;
             this.qrData.qrPayload = payload || this.qrData.qrPayload;
-            this.qrData.qrDataUrl = this.qrData.qrPayload && window.QRCode
-                ? await QRCode.toDataURL(this.qrData.qrPayload, { width: 220, margin: 1, errorCorrectionLevel: 'M' })
-                : '';
+            try {
+                this.qrData.qrDataUrl = this.qrData.qrPayload && window.QRCode
+                    ? await QRCode.toDataURL(this.qrData.qrPayload, { width: 220, margin: 1, errorCorrectionLevel: 'M' })
+                    : '';
+            } catch (error) {
+                console.error('QR render error:', error);
+                this.qrData.qrDataUrl = '';
+            }
             this.qrModalOpen = true;
         },
         copyText(text) {
@@ -790,12 +795,12 @@
                                                             class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-on-surface-variant">
                                                             <template
                                                                 x-if="item.ice_percent !== null && item.ice_percent !== undefined">
-                                                                <span>Đá: <strong
+                                                                <span>{{ __('room.debts.item_ice') }}: <strong
                                                                         x-text="item.ice_percent + '%'"></strong></span>
                                                             </template>
                                                             <template
                                                                 x-if="item.sugar_percent !== null && item.sugar_percent !== undefined">
-                                                                <span>Đường: <strong
+                                                                <span>{{ __('room.debts.item_sugar') }}: <strong
                                                                         x-text="item.sugar_percent + '%'"></strong></span>
                                                             </template>
                                                             <template x-if="item.note">
@@ -827,7 +832,7 @@
                                                             x-text="new Intl.NumberFormat('vi-VN').format(item.line_subtotal) + 'đ'">
                                                         </div>
                                                         <div class="text-[10px] text-on-surface-variant"
-                                                            x-text="new Intl.NumberFormat('vi-VN').format(item.unit_price) + 'đ/món'">
+                                                            x-text="'{{ __('room.debts.unit_price_per_item', ['amount' => ':amount']) }}'.replace(':amount', new Intl.NumberFormat('vi-VN').format(item.unit_price) + 'đ')">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -842,7 +847,7 @@
                                             <div class="flex items-baseline gap-2">
                                                 <template x-if="order.sponsor_amount > 0">
                                                     <span class="text-[10px] text-secondary font-medium"
-                                                        x-text="'-' + new Intl.NumberFormat('vi-VN').format(order.sponsor_amount) + 'đ tài trợ'"></span>
+                                                        x-text="'{{ __('room.debts.sponsored_amount', ['amount' => ':amount']) }}'.replace(':amount', new Intl.NumberFormat('vi-VN').format(order.sponsor_amount) + 'đ')"></span>
                                                 </template>
                                                 <span class="font-bold font-tabular-nums text-xs text-primary"
                                                     x-text="new Intl.NumberFormat('vi-VN').format(order.final_amount) + 'đ'"></span>
@@ -862,7 +867,7 @@
                                 <span class="flex items-center gap-1 font-medium">
                                     <span class="material-symbols-outlined text-[15px] text-primary">shopping_bag</span>
                                     <span
-                                        x-text="campaignData.total_orders + ' {{ __('room.debts.campaign_orders_count') }}' + (campaignData.total_cups ? ' (' + campaignData.total_cups + ' món)' : '')"></span>
+                                        x-text="campaignData.total_orders + ' {{ __('room.debts.campaign_orders_count') }}' + (campaignData.total_cups ? ' (' + '{{ __('room.debts.items_count', ['count' => ':count']) }}'.replace(':count', campaignData.total_cups) + ')' : '')"></span>
                                 </span>
                             </template>
                         </div>

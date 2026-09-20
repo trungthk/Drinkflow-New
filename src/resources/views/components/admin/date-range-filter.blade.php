@@ -6,7 +6,7 @@
     'fullWidth' => false,
 ])
 
-<div id="{{ $id }}" class="relative {{ $fullWidth ? 'block w-full' : 'inline-block' }} text-left" data-date-range-picker="true" @if($formId) data-form-id="{{ $formId }}" @endif>
+<div id="{{ $id }}" class="relative {{ $fullWidth ? 'block w-full' : 'inline-block' }} text-left" data-date-range-picker="true" data-label-today="{{ __('admin.preset_today') }}" data-label-all="{{ __('admin.preset_all_time') }}" data-label-custom="{{ __('admin.preset_custom') }}" @if($formId) data-form-id="{{ $formId }}" @endif>
     <input type="hidden" name="date_from" value="{{ $dateFrom }}" class="date-from-hidden" data-date-from />
     <input type="hidden" name="date_to" value="{{ $dateTo }}" class="date-to-hidden" data-date-to />
 

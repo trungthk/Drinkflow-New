@@ -319,7 +319,7 @@
                     });
                 };
                 reader.onerror = () => {
-                    this.showToastMessage('Lỗi đọc file: ' + (reader.error?.message || 'Không thể đọc tệp tin.'),
+                    this.showToastMessage('{{ addslashes(__('admin.data_gateway_file_read_error')) }}'.replace(':message', reader.error?.message || '{{ addslashes(__('admin.data_gateway_file_read_failed')) }}'),
                         'error');
                 };
                 reader.readAsText(file, 'UTF-8');
@@ -368,7 +368,7 @@
 
                 const data = await response.json();
                 if (!response.ok) {
-                    throw new Error(data.message || 'Không thể tạo prompt từ máy chủ.');
+                    throw new Error(data.message || '{{ addslashes(__('admin.data_gateway_prompt_server_error')) }}');
                 }
 
                 return data;
@@ -428,7 +428,7 @@
                         agentUrl
                     };
                 } catch (err) {
-                    this.showToastMessage(err.message || 'Lỗi khi sao chép prompt.', 'error');
+                    this.showToastMessage(err.message || '{{ addslashes(__('admin.data_gateway_copy_prompt_failed')) }}', 'error');
                     return null;
                 } finally {
                     this.loading = false;
@@ -483,7 +483,7 @@
                         itemsList = parsed.products;
                     } else if (Array.isArray(parsed.categories)) {
                         parsed.categories.forEach(cat => {
-                            const catName = cat.name || cat.category || 'Khác';
+                            const catName = cat.name || cat.category || '{{ addslashes(__('admin.default_menu_category')) }}';
                             const catItems = cat.items || cat.dishes || [];
                             catItems.forEach(item => {
                                 itemsList.push({

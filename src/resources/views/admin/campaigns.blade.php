@@ -45,7 +45,16 @@
     <!-- Campaigns Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border-collapse">
+            {{-- Fixed-width side columns; the campaign/restaurant column takes the remaining space. --}}
+            <table class="table-colgroup w-full min-w-[56rem] table-fixed text-left text-xs border-collapse">
+                <colgroup>
+                    <col>
+                    <col class="w-44">
+                    <col class="w-28">
+                    <col class="w-24">
+                    <col class="w-32">
+                    <col class="w-28">
+                </colgroup>
                 <thead>
                     <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
                         <th class="py-3 px-4">{{ __('admin.th_campaign_restaurant') }}</th>
@@ -60,33 +69,12 @@
                     @forelse($campaigns as $camp)
                         @php
                             $statusValue = $camp->status instanceof \BackedEnum ? $camp->status->value : (string) $camp->status;
-                            $isExpired = ($statusValue === 'active') && $camp->deadline && $camp->deadline->isPast();
-                            $stClass = match(true) {
-                                $isExpired => 'bg-rose-50 text-rose-700 border-rose-200',
-                                $statusValue === 'active' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                                $statusValue === 'closing' => 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse',
-                                $statusValue === 'scheduled' => 'bg-blue-50 text-blue-700 border-blue-200',
-                                $statusValue === 'closed' => 'bg-surface-container text-secondary border-outline-variant',
-                                $statusValue === 'archived' => 'bg-gray-100 text-gray-500 border-gray-200',
-                                default => 'bg-surface text-outline border-outline-variant'
-                            };
-                            $stLabel = match(true) {
-                                $isExpired => __('admin.status_expired'),
-                                $statusValue === 'draft' => __('admin.status_draft'),
-                                $statusValue === 'active' => __('admin.filter_active'),
-                                $statusValue === 'closing' => __('admin.status_closing'),
-                                $statusValue === 'scheduled' => __('admin.filter_scheduled'),
-                                $statusValue === 'closed' => __('admin.filter_closed'),
-                                $statusValue === 'archived' => __('admin.filter_archived'),
-                                $statusValue === 'cancelled' => __('admin.status_cancelled'),
-                                default => __('admin.status_'.$statusValue)
-                            };
                             $windowStart = $camp->started_at;
                             $windowEnd = $camp->deadline ?? $camp->closed_at;
                         @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors">
                             <td class="py-3.5 px-4">
-                                <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}?view=detail" class="font-bold text-on-surface text-sm hover:text-primary hover:underline transition-colors no-underline">
+                                <a href="{{ route('admin.campaigns.info', [$room, $camp]) }}" class="font-bold text-on-surface text-sm hover:text-primary hover:underline transition-colors no-underline">
                                     {{ $camp->name }}
                                 </a>
                                 <div class="text-secondary flex items-center gap-1.5 mt-0.5">
@@ -102,9 +90,7 @@
                                 <div class="text-[11px] text-outline">{{ __('admin.time_until', ['time' => $windowEnd?->format('H:i d/m/Y') ?? '—']) }}</div>
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border {{ $stClass }}">
-                                    {{ $stLabel }}
-                                </span>
+                                <x-admin.campaign-status-badge :campaign="$camp" />
                             </td>
                             <td class="py-3.5 px-4 text-right font-mono font-bold text-on-surface">
                                 {{ __('admin.orders_unit', ['count' => $camp->orders_count ?? 0]) }}
@@ -118,7 +104,7 @@
                                         <span class="material-symbols-outlined text-[20px]">more_vert</span>
                                     </summary>
                                     <div class="absolute right-0 mt-1 w-48 z-20 rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl p-1.5 space-y-0.5">
-                                        <a href="{{ route('admin.campaigns.show', [$room, $camp]) }}?view=detail" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
+                                        <a href="{{ route('admin.campaigns.info', [$room, $camp]) }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container no-underline">
                                             <span class="material-symbols-outlined text-[14px]">visibility</span>
                                             <span>{{ __('admin.view_campaign_details') }}</span>
                                         </a>

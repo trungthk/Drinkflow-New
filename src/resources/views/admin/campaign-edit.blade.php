@@ -43,6 +43,8 @@
      data-budget-error="{{ __('admin.campaign_budget_exceeds_limit', ['limit' => ':limit']) }}"
      data-sponsor-percentage-error="{{ __('admin.sponsor_percentage_total_invalid') }}"
      data-item-deleted-success="{{ __('admin.item_deleted_success') }}"
+     data-category-deleted-success="{{ __('admin.category_deleted_success', ['category' => ':category', 'count' => ':count']) }}"
+     data-messages="{{ json_encode(\App\Support\Helpers\CampaignFormHelper::messages(), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
      data-submit-url="{{ route('admin.campaigns.update', [$room, $campaign]) }}"
      data-delete-url="{{ route('admin.campaigns.destroy', [$room, $campaign]) }}"
      data-index-url="{{ route('admin.campaigns.page', $room) }}"
@@ -74,7 +76,7 @@
         </div>
 
         <div class="flex items-center gap-2.5 self-end sm:self-auto">
-            <a href="{{ route('admin.campaigns.show', [$room, $campaign]) }}?view=detail" class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-1.5 no-underline">
+            <a href="{{ route('admin.campaigns.info', [$room, $campaign]) }}" class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-1.5 no-underline">
                 <span class="material-symbols-outlined text-[16px]">visibility</span>
                 <span>{{ __('admin.view_campaign_details') }}</span>
             </a>
@@ -229,16 +231,23 @@
                     @if($previousCampaigns->isNotEmpty())
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
                         @foreach($previousCampaigns as $prev)
-                        <div class="p-3 rounded-lg border border-outline-variant bg-surface hover:border-primary transition-all cursor-pointer flex flex-col justify-between"
+                        <div class="p-3 min-w-0 rounded-lg border transition-all cursor-pointer flex flex-col justify-between"
+                             :class="selectedPreviousCampaignId === {{ $prev->id }} ? 'border-primary bg-primary/5 ring-1 ring-primary/40' : 'border-outline-variant bg-surface hover:border-primary'"
+                             :aria-pressed="selectedPreviousCampaignId === {{ $prev->id }} ? 'true' : 'false'"
                              @click="loadPreviousCampaign({{ $prev->toJson() }})">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="font-bold text-xs text-on-surface">{{ $prev->name }}</div>
-                                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-surface-container-high text-outline">{{ $prev->items->count() }} {{ __('admin.items_unit') }}</span>
+                            <div class="font-bold text-xs text-on-surface flex items-center gap-1.5 min-w-0">
+                                <span x-show="selectedPreviousCampaignId === {{ $prev->id }}" x-cloak
+                                    class="material-symbols-outlined text-[16px] text-primary shrink-0"
+                                    style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                <span class="truncate" title="{{ $prev->name }}">{{ $prev->name }}</span>
                             </div>
-                            <div class="text-[11px] text-outline mt-1 truncate">{{ $prev->restaurant }}</div>
-                            <div class="text-[10px] font-mono text-primary font-semibold mt-2 flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[12px]">history</span>
-                                {{ $prev->created_at->format('d/m/Y H:i') }}
+                            <div class="text-[11px] text-outline mt-1 truncate" title="{{ $prev->restaurant }}">{{ $prev->restaurant }}</div>
+                            <div class="mt-2 flex items-center justify-between gap-2">
+                                <div class="text-[10px] font-mono text-primary font-semibold flex items-center gap-1 min-w-0">
+                                    <span class="material-symbols-outlined text-[12px] shrink-0">history</span>
+                                    <span class="truncate">{{ $prev->created_at->format('d/m/Y H:i') }}</span>
+                                </div>
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-surface-container-high text-outline whitespace-nowrap shrink-0">{{ $prev->items->count() }} {{ __('admin.items_unit') }}</span>
                             </div>
                         </div>
                         @endforeach
@@ -325,7 +334,7 @@
                 <div>
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.max_product_budget_ceiling') }}</label>
                     <div class="relative">
-                        <input type="text" inputmode="numeric" data-format-currency="true" x-model="form.max_budget" placeholder="0" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono font-bold text-primary focus:outline-none focus:border-primary pr-8">
+                        <input type="text" inputmode="numeric" data-format-currency="true" x-model="form.max_budget" x-effect="$el.value = formatCurrencyDisplay(form.max_budget)" placeholder="0" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono font-bold text-primary focus:outline-none focus:border-primary pr-8">
                         <span class="absolute right-3 top-2 text-xs text-outline font-mono">đ</span>
                     </div>
                 </div>
@@ -380,12 +389,19 @@
             </div>
         </div>
 
-        <div x-show="menuView === 'category'" x-cloak class="flex flex-wrap gap-2">
+        <div x-show="menuView === 'category'" x-cloak class="flex flex-wrap gap-x-3 gap-y-3 pt-2 pr-2">
             <template x-for="category in menuCategories" :key="category">
-                <button type="button" @click="selectedCategory = category" :class="selectedCategory === category ? 'border-primary bg-primary/10 text-primary font-bold' : 'border-outline-variant bg-surface text-outline hover:text-on-surface'" class="flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors">
-                    <span x-text="category"></span>
-                    <span class="rounded-full bg-surface-container-high px-1.5 py-0.5 font-mono text-[10px]" x-text="categoryItemCount(category)"></span>
-                </button>
+                <div class="relative">
+                    <button type="button" @click="selectedCategory = category" :class="selectedCategory === category ? 'border-primary bg-primary/10 text-primary font-bold' : 'border-outline-variant bg-surface text-outline hover:text-on-surface'" class="flex items-center gap-2 rounded-lg border py-2 pl-3 pr-4 text-xs font-semibold transition-colors">
+                        <span x-text="category"></span>
+                        <span class="rounded-full bg-surface-container-high px-1.5 py-0.5 font-mono text-[10px]" x-text="categoryItemCount(category)"></span>
+                    </button>
+                    <button type="button" @click.stop="removeMenuCategory(category)"
+                        title="{{ __('admin.delete_category') }}" aria-label="{{ __('admin.delete_category') }}"
+                        class="absolute -top-2 -right-2 z-10 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white shadow-sm ring-2 ring-surface-container-lowest transition-colors hover:bg-red-700 cursor-pointer">
+                        <span class="material-symbols-outlined text-[14px] leading-none">close</span>
+                    </button>
+                </div>
             </template>
         </div>
 

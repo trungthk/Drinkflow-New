@@ -66,6 +66,9 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/campaigns/previous-menus', [\App\Http\Controllers\Admin\CampaignController::class, 'previousMenus'])->name('admin.campaigns.previous-menus');
     Route::get('/campaigns/{campaign}/edit', [\App\Http\Controllers\Admin\CampaignController::class, 'edit'])->name('admin.campaigns.edit');
     Route::get('/campaigns/{campaign}/export/{dataset}', [\App\Http\Controllers\Admin\CampaignController::class, 'exportDetail'])->name('admin.campaigns.export-detail');
+    Route::get('/campaigns/{campaign}/info', [\App\Http\Controllers\Admin\CampaignController::class, 'showInfo'])->name('admin.campaigns.info');
+    Route::get('/campaigns/{campaign}/orders', [\App\Http\Controllers\Admin\CampaignController::class, 'showOrders'])->name('admin.campaigns.orders');
+    Route::get('/campaigns/{campaign}/menu', [\App\Http\Controllers\Admin\CampaignController::class, 'showMenu'])->name('admin.campaigns.menu');
     Route::get('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'show'])->name('admin.campaigns.show');
     Route::get('/orders', [\App\Http\Controllers\Admin\OrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/orders/aggregate', [\App\Http\Controllers\Admin\CampaignController::class, 'aggregate'])->name('admin.orders.aggregate');
@@ -83,6 +86,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::patch('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'update'])->name('admin.campaigns.update');
     Route::delete('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'destroy'])->name('admin.campaigns.destroy');
     Route::post('/campaigns/{campaign}/activate', [\App\Http\Controllers\Admin\CampaignController::class, 'activate'])->name('admin.campaigns.activate');
+    Route::post('/campaigns/{campaign}/extend-deadline', [\App\Http\Controllers\Admin\CampaignController::class, 'extendDeadline'])->name('admin.campaigns.extend-deadline');
     Route::post('/campaigns/{campaign}/mark-delivering', [\App\Http\Controllers\Admin\CampaignController::class, 'markDelivering'])->name('admin.campaigns.mark-delivering');
     Route::post('/campaigns/{campaign}/cancel', [\App\Http\Controllers\Admin\CampaignController::class, 'cancel'])->name('admin.campaigns.cancel');
     Route::post('/campaigns/{campaign}/archive', [\App\Http\Controllers\Admin\CampaignController::class, 'archive'])->name('admin.campaigns.archive');
@@ -140,5 +144,6 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::post('/notification-channels/{channel}/test', [\App\Http\Controllers\Admin\NotificationChannelController::class, 'test'])->name('admin.notification-channels.test');
     Route::delete('/notification-channels/{channel}', [\App\Http\Controllers\Admin\NotificationChannelController::class, 'destroy'])->name('admin.notification-channels.destroy');
     Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('admin.reports.index');
+    Route::get('/reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('admin.reports.export');
     Route::get('/audit', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('admin.audit.index');
 });

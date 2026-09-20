@@ -126,7 +126,20 @@ html {
 .status-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; background: #eff4ff; padding: 5px 9px; color: #64748b; font-size: 10px; font-weight: 700; }
 .status-pill.status-active, .status-pill.status-ok, .status-pill.status-healthy { background: #d1fae5; color: #047857; }
 .status-pill.status-blocked, .status-pill.status-disabled, .status-pill.status-error, .status-pill.status-failed { background: #fee2e2; color: #b91c1c; }
-.status-pill.status-scheduled, .status-pill.status-pending { background: #fef3c7; color: #92400e; }
+.status-pill.status-pending { background: #fef3c7; color: #92400e; }
+/* Campaign status palette — keep in sync with App\Enums\CampaignStatus::badgeClass()/dotClass() */
+.status-pill.status-scheduled { background: #f0f9ff; color: #0369a1; }
+.status-pill.status-closing { background: #fffbeb; color: #b45309; }
+.status-pill.status-draft { background: #f5f3ff; color: #6d28d9; }
+.status-pill.status-closed { background: #334155; color: #ffffff; }
+.status-pill.status-cancelled { background: #fff1f2; color: #be123c; }
+.status-pill.status-archived { background: #fafafa; color: #71717a; outline: 1px dashed #d4d4d8; outline-offset: -1px; }
+.status-pill.status-scheduled .status-dot { background: #0ea5e9; }
+.status-pill.status-closing .status-dot { background: #f59e0b; }
+.status-pill.status-draft .status-dot { background: #8b5cf6; }
+.status-pill.status-closed .status-dot { background: #e2e8f0; }
+.status-pill.status-cancelled .status-dot { background: #f43f5e; }
+.status-pill.status-archived .status-dot { background: #a1a1aa; }
 .sa-input { min-width: 210px; border: 1px solid #dce4f0; border-radius: 8px; background: #fff; padding: 10px 12px; color: #0b1c30; font: inherit; font-size: 11px; outline: 0; }
 .sa-input:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, .12); }
 .sa-empty { padding: 28px; color: #64748b; text-align: center; font-size: 12px; }

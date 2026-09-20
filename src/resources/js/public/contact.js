@@ -17,7 +17,7 @@ export function initContactPage() {
 
         const captchaApiUrl = (wrapper && wrapper.dataset.captchaApi) || '/captcha/api/contact';
         const captchaFallbackUrl = (wrapper && wrapper.dataset.captchaFallback) || '/captcha/contact';
-        const loadingText = (wrapper && wrapper.dataset.loadingText) || 'Đang tải...';
+        const loadingText = (wrapper && wrapper.dataset.loadingText) || '';
 
         // 1. Immediately remove old image and show loading indicator
         if (wrapper) {

@@ -206,11 +206,10 @@ class DebtController extends Controller
     /**
      * Export the room-scoped debt ledger as a CSV statement.
      *
-     * @param Request $request Incoming request.
      * @param Room $room Current room.
      * @return \Symfony\Component\HttpFoundation\StreamedResponse CSV download.
      */
-    public function export(Request $request, Room $room): BinaryFileResponse
+    public function export(Room $room): BinaryFileResponse
     {
         return Excel::download(new AdminDebtLedgerExport($room->id), 'drinkflow-'.$room->slug.'-debts.csv', ExcelWriter::CSV);
     }

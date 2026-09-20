@@ -142,6 +142,7 @@ return [
         'require_login_room' => "Vui lòng đăng nhập Google Workspace để tham gia phòng ':room'.",
     ],
     'video_modal' => [
+        'close_label' => 'Đóng video',
         'badge' => 'Video giới thiệu',
         'title' => 'Khám phá cách DrinkFlow tối ưu hoá giờ trà chiều',
         'close' => 'Đóng (Esc)',

@@ -363,6 +363,7 @@
                                 data-loading-text="{{ __('global.feedback.loading_more') }}"
                                 data-all-loaded-text="{{ __('global.feedback.all_loaded') }}"
                                 data-showing-text="{{ __('global.feedback.showing_feedbacks', ['count' => '__COUNT__']) }}"
+                                data-retry-text="{{ __('global.feedback.retry_btn') }}"
                                 class="w-full py-2.5 px-4 rounded-xl border border-slate-200 hover:border-[#006948] bg-white hover:bg-emerald-50/50 text-slate-700 hover:text-[#006948] text-xs font-semibold transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer">
                             <span class="material-symbols-outlined text-[18px]">expand_more</span>
                             <span id="load-more-text">{{ __('global.feedback.load_more_btn') }}</span>

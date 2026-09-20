@@ -13,8 +13,36 @@
         </div>
     </div>
 
+    @php
+        $reportI18n = [
+            'member' => __('admin.report_col_member'),
+            'debtCount' => __('admin.report_col_debt_count'),
+            'totalOriginal' => __('admin.total_debt_amount'),
+            'totalPaid' => __('admin.total_debt_paid'),
+            'totalRemaining' => __('admin.total_debt_remaining'),
+            'status' => __('admin.report_col_status'),
+            'statusCleared' => __('admin.report_status_cleared'),
+            'statusOwing' => __('admin.report_status_owing'),
+            'rank' => __('admin.report_col_rank'),
+            'sponsor' => __('admin.report_col_sponsor'),
+            'sponsoredOrders' => __('admin.report_col_sponsored_orders'),
+            'totalSponsored' => __('admin.report_col_total_sponsored'),
+            'ordersPlaced' => __('admin.th_orders_placed_count'),
+            'totalSpent' => __('admin.report_col_total_spent'),
+            'noDrinksTitle' => __('admin.report_no_drinks_found'),
+            'noDrinksDesc' => __('admin.report_no_drinks_found_desc'),
+            'noStoresTitle' => __('admin.report_no_stores_found'),
+            'noStoresDesc' => __('admin.report_no_stores_found_desc'),
+            'noDebtsTitle' => __('admin.report_no_debts_found'),
+            'noDebtsDesc' => __('admin.report_no_debts_found_desc'),
+            'noSponsorsTitle' => __('admin.no_sponsors_found'),
+            'noSponsorsDesc' => __('admin.no_sponsors_found_desc'),
+            'noUsersTitle' => __('admin.no_users_analytics_found'),
+            'noUsersDesc' => __('admin.no_users_analytics_found_desc'),
+        ];
+    @endphp
     <!-- 5 Report Tabs Navigation -->
-    <div class="flex items-center gap-2 border-b border-outline-variant overflow-x-auto text-xs font-semibold">
+    <div id="report-tabs" data-i18n="{{ json_encode($reportI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}" class="flex items-center gap-2 border-b border-outline-variant overflow-x-auto text-xs font-semibold">
         <button type="button" onclick="switchReportTab('campaigns')" id="rtab-campaigns" class="rtab flex items-center gap-2 px-3.5 py-2.5 border-b-2 border-primary text-primary font-bold transition-colors whitespace-nowrap">
             <span class="material-symbols-outlined text-[18px]">analytics</span>
             <span>{{ __('admin.tab_campaigns_analytics') }}</span>

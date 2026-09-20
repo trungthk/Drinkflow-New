@@ -23,6 +23,9 @@ class Campaign extends Model
 
     public const SPONSOR_TYPE_BUDGET = 'budget';
 
+    /** Minutes an admin may add to an ordering deadline in one step. */
+    public const EXTEND_DEADLINE_MINUTES = [10, 20, 30, 60];
+
     protected $fillable = ['room_id', 'code', 'name', 'restaurant', 'creator_admin_id', 'sponsor_name', 'sponsor_type', 'sponsor_description', 'sponsor_allocations', 'deadline', 'max_budget', 'flat_price', 'delivery_fee', 'discount', 'payment_account_id', 'description', 'status', 'started_at', 'closed_at'];
 
     /**
@@ -51,6 +54,16 @@ class Campaign extends Model
     {
         return $this->status === CampaignStatus::Active
             && ($this->deadline === null || $this->deadline->isFuture());
+    }
+
+    /**
+     * Determine whether this campaign is finalized and must no longer be edited.
+     *
+     * @return bool True when the campaign is closed or archived.
+     */
+    public function isLocked(): bool
+    {
+        return in_array($this->status, [CampaignStatus::Closed, CampaignStatus::Archived], true);
     }
 
     public function items(): HasMany

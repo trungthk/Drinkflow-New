@@ -26,7 +26,7 @@ export function initGlobalFeedback() {
         const syncIcon = btn ? btn.querySelector('span.material-symbols-outlined') : null;
         if (syncIcon) syncIcon.classList.add('animate-spin');
 
-        const loadingText = wrapper.dataset.loadingText || 'Đang tải...';
+        const loadingText = wrapper.dataset.loadingText || '';
         const captchaApiUrl = wrapper.dataset.captchaApi || '/captcha/api/contact';
         const captchaFallbackUrl = wrapper.dataset.captchaFallback || '/captcha/contact';
 
@@ -115,9 +115,9 @@ export function initGlobalFeedback() {
         loadMoreBtn.addEventListener('click', async function() {
             const nextPage = parseInt(loadMoreBtn.dataset.nextPage, 10) || 2;
             const baseUrl = loadMoreBtn.dataset.url || window.location.pathname;
-            const loadingText = loadMoreBtn.dataset.loadingText || 'Đang tải thêm...';
-            const allLoadedText = loadMoreBtn.dataset.allLoadedText || 'Đã hiển thị toàn bộ đánh giá';
-            const showingTemplate = loadMoreBtn.dataset.showingText || 'Hiển thị __COUNT__ phản hồi';
+            const loadingText = loadMoreBtn.dataset.loadingText || '';
+            const allLoadedText = loadMoreBtn.dataset.allLoadedText || '';
+            const showingTemplate = loadMoreBtn.dataset.showingText || '';
             const btnTextSpan = document.getElementById('load-more-text');
 
             // Set loading state
@@ -191,7 +191,7 @@ export function initGlobalFeedback() {
                     if (result.has_more) {
                         loadMoreBtn.dataset.nextPage = result.next_page;
                         loadMoreBtn.disabled = false;
-                        if (btnTextSpan) btnTextSpan.textContent = loadMoreBtn.getAttribute('title') || 'Tải thêm đánh giá';
+                        if (btnTextSpan) btnTextSpan.textContent = loadMoreBtn.getAttribute('title') || '';
                         if (icon) {
                             icon.textContent = 'expand_more';
                             icon.classList.remove('animate-spin');
@@ -208,7 +208,7 @@ export function initGlobalFeedback() {
             } catch (error) {
                 console.error('Error loading more feedbacks:', error);
                 loadMoreBtn.disabled = false;
-                if (btnTextSpan) btnTextSpan.textContent = 'Thử lại';
+                if (btnTextSpan) btnTextSpan.textContent = loadMoreBtn.dataset.retryText || '';
                 if (icon) {
                     icon.textContent = 'refresh';
                     icon.classList.remove('animate-spin');

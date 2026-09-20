@@ -1,4 +1,5 @@
 import { renderSubmitLoading } from '../shared/submit-loading';
+import { formatMoney } from '../shared/money';
 
 /**
  * Admin Debts & Split Billing Controller
@@ -20,6 +21,15 @@ export function initAdminDebts() {
 
     if (!filterForm && !modal) return;
 
+    const i18n = JSON.parse(modal?.dataset.i18n || '{}');
+    const t = (key, replacements = {}) => Object.entries(replacements).reduce(
+        (text, [name, value]) => text.replaceAll(`:${name}`, value),
+        i18n[key] || '',
+    );
+    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    })[char]);
+
     const closeDebtModal = () => {
         modal?.classList.add('hidden');
         modal?.classList.remove('flex');
@@ -37,29 +47,29 @@ export function initAdminDebts() {
 
     window.openRecordPaymentModal = function(debtId, remaining, memberName) {
         const titleEl = document.querySelector('#debt-modal-title');
-        if (titleEl) titleEl.textContent = `Confirm Payment: ${memberName}`;
+        if (titleEl) titleEl.textContent = t('confirmTitle', { member: memberName });
         if (modalBody) {
             modalBody.innerHTML = `
                 <form id="record-pay-form" class="space-y-3 text-xs">
                     <div>
-                        <label class="block font-semibold text-on-surface mb-1">Payment Amount <span class="text-error">*</span>:</label>
+                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('paymentAmount'))} <span class="text-error">*</span>:</label>
                         <input type="text" inputmode="numeric" id="pay-amount" value="${Number(remaining).toLocaleString('vi-VN')}" data-max="${remaining}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono font-bold text-base text-primary" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-on-surface mb-1">Payment Method <span class="text-error">*</span>:</label>
+                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('paymentMethod'))} <span class="text-error">*</span>:</label>
                         <select id="pay-method" required class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface">
-                            <option value="vietqr">VietQR</option>
-                            <option value="cash">Cash</option>
-                            <option value="room_fund">Room Fund</option>
+                            <option value="vietqr">${escapeHtml(t('methodVietqr'))}</option>
+                            <option value="cash">${escapeHtml(t('methodCash'))}</option>
+                            <option value="room_fund">${escapeHtml(t('methodRoomFund'))}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-on-surface mb-1">Reference / Note:</label>
+                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('reference'))}:</label>
                         <input type="text" id="pay-ref" placeholder="..." class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface">
                     </div>
                     <div class="pt-3 border-t border-outline-variant flex items-center justify-end gap-2">
-                        <button type="button" onclick="closeDebtModal()" class="px-4 py-2 bg-surface-container text-on-surface rounded font-semibold">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-semibold inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">payments</span>Confirm Payment</button>
+                        <button type="button" onclick="closeDebtModal()" class="px-4 py-2 bg-surface-container text-on-surface rounded font-semibold">${escapeHtml(t('cancel'))}</button>
+                        <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-semibold inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">payments</span>${escapeHtml(t('confirmPayment'))}</button>
                     </div>
                 </form>
             `;
@@ -82,7 +92,7 @@ export function initAdminDebts() {
             const method = document.querySelector('#pay-method')?.value;
             const ref = document.querySelector('#pay-ref')?.value;
             if (amount > Number(remaining)) {
-                alert(`Payment amount cannot exceed ${Number(remaining).toLocaleString('vi-VN')} ₫.`);
+                alert(t('amountExceeds', { max: Number(remaining).toLocaleString('vi-VN') }));
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = origBtnHtml;
@@ -100,7 +110,7 @@ export function initAdminDebts() {
                     window.location.reload();
                 } else {
                     const errorPayload = await res.json().catch(() => ({}));
-                    alert(errorPayload.message || errorPayload.errors?.amount?.[0] || 'Error recording payment.');
+                    alert(errorPayload.message || errorPayload.errors?.amount?.[0] || t('paymentError'));
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = origBtnHtml;
@@ -108,7 +118,7 @@ export function initAdminDebts() {
                 }
             } catch(e) {
                 console.error(e);
-                alert('Server error.');
+                alert(t('serverError'));
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = origBtnHtml;
@@ -119,30 +129,30 @@ export function initAdminDebts() {
 
     window.openAdjustDebtModal = function(debtId, remaining, memberName) {
         const titleEl = document.querySelector('#debt-modal-title');
-        if (titleEl) titleEl.textContent = `Adjust Debt: ${memberName}`;
+        if (titleEl) titleEl.textContent = t('adjustTitle', { member: memberName });
         if (modalBody) {
             modalBody.innerHTML = `
                 <form id="adjust-debt-form" class="space-y-3 text-xs">
                     <div>
-                        <label class="block font-semibold text-on-surface mb-1">Adjustment Type <span class="text-error">*</span>:</label>
+                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('adjustType'))} <span class="text-error">*</span>:</label>
                         <select id="adj-type" required class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface">
-                            <option value="decrease">Giảm nợ (Discount)</option>
-                            <option value="increase">Tăng nợ (Surcharge)</option>
-                            <option value="waive">Miễn nợ (Forgive)</option>
-                            <option value="correction">Điều chỉnh về số tiền này</option>
+                            <option value="decrease">${escapeHtml(t('adjustDecrease'))}</option>
+                            <option value="increase">${escapeHtml(t('adjustIncrease'))}</option>
+                            <option value="waive">${escapeHtml(t('adjustWaive'))}</option>
+                            <option value="correction">${escapeHtml(t('adjustCorrection'))}</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block font-semibold text-on-surface mb-1">Amount <span class="text-error">*</span>:</label>
+                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('amount'))} <span class="text-error">*</span>:</label>
                         <input type="text" inputmode="numeric" id="adj-amount" value="${Number(remaining).toLocaleString('vi-VN')}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono font-bold text-on-surface" required>
                     </div>
                     <div>
-                        <label class="block font-semibold text-on-surface mb-1">Reason <span class="text-error">*</span>:</label>
+                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('reason'))} <span class="text-error">*</span>:</label>
                         <textarea id="adj-reason" rows="2" placeholder="..." class="w-full p-2.5 bg-surface border border-outline-variant rounded text-on-surface" required></textarea>
                     </div>
                     <div class="pt-3 border-t border-outline-variant flex items-center justify-end gap-2">
-                        <button type="button" onclick="closeDebtModal()" class="px-4 py-2 bg-surface-container text-on-surface rounded font-semibold">Cancel</button>
-                        <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded font-semibold inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">save</span>Save Adjustment</button>
+                        <button type="button" onclick="closeDebtModal()" class="px-4 py-2 bg-surface-container text-on-surface rounded font-semibold">${escapeHtml(t('cancel'))}</button>
+                        <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded font-semibold inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">save</span>${escapeHtml(t('saveAdjustment'))}</button>
                     </div>
                 </form>
             `;
@@ -175,7 +185,7 @@ export function initAdminDebts() {
                     window.location.reload();
                 } else {
                     const errorPayload = await res.json().catch(() => ({}));
-                    alert(errorPayload.message || Object.values(errorPayload.errors || {}).flat()[0] || 'Error adjusting debt.');
+                    alert(errorPayload.message || Object.values(errorPayload.errors || {}).flat()[0] || t('adjustError'));
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = origBtnHtml;
@@ -183,7 +193,7 @@ export function initAdminDebts() {
                 }
             } catch(e) {
                 console.error(e);
-                alert('Server error.');
+                alert(t('serverError'));
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = origBtnHtml;
@@ -245,7 +255,7 @@ export function initAdminDebts() {
         // Fill amount
         const amountEl = document.querySelector('#approve-modal-amount');
         if (amountEl) {
-            amountEl.textContent = Number(data.amount || 0).toLocaleString('vi-VN') + ' ₫';
+            amountEl.textContent = formatMoney(data.amount);
         }
 
         // Bind debt id to confirm button
@@ -255,20 +265,20 @@ export function initAdminDebts() {
         }
 
         if (isPayAll) {
-            if (titleEl) titleEl.textContent = 'Yêu cầu duyệt thanh toán toàn bộ nợ';
-            if (subtitleEl) subtitleEl.textContent = 'Thành viên thanh toán gộp toàn bộ các khoản nợ theo mã thành viên';
-            if (badgeTextEl) badgeTextEl.textContent = 'Thanh toán tất cả';
+            if (titleEl) titleEl.textContent = t('approveAllTitle');
+            if (subtitleEl) subtitleEl.textContent = t('approveAllSubtitle');
+            if (badgeTextEl) badgeTextEl.textContent = t('approveAllBadge');
             if (statusBadgeEl) {
                 statusBadgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-purple-100 text-purple-900 border-purple-300 shrink-0';
             }
-            if (amountLabelEl) amountLabelEl.textContent = 'Tổng số tiền thanh toán hết';
+            if (amountLabelEl) amountLabelEl.textContent = t('approveAllAmountLabel');
             if (singleInfoGrid) singleInfoGrid.classList.add('hidden');
 
             // Render debts breakdown
             if (breakdownContainer && breakdownList) {
                 breakdownContainer.classList.remove('hidden');
                 const debts = data.pendingDebts || [];
-                if (breakdownCount) breakdownCount.textContent = `${debts.length} khoản nợ`;
+                if (breakdownCount) breakdownCount.textContent = t('debtsCount', { count: debts.length });
                 breakdownList.innerHTML = debts.map(d => `
                     <div class="p-2.5 flex items-center justify-between text-xs hover:bg-surface-container transition-colors">
                         <div class="flex flex-col min-w-0 pr-2">
@@ -279,26 +289,26 @@ export function initAdminDebts() {
                             </div>
                             ${d.note ? `<div class="text-[11px] text-outline truncate italic mt-0.5">${d.note}</div>` : ''}
                         </div>
-                        <span class="font-mono font-bold text-amber-600 shrink-0 text-sm">${Number(d.amount || 0).toLocaleString('vi-VN')} ₫</span>
+                        <span class="font-mono font-bold text-amber-600 shrink-0 text-sm">${formatMoney(d.amount)}</span>
                     </div>
-                `).join('') || '<div class="p-3 text-center text-outline">Không có khoản nợ nào</div>';
+                `).join('') || `<div class="p-3 text-center text-outline">${escapeHtml(t('noDebts'))}</div>`;
             }
 
             if (approveConfirmText) {
                 const count = (data.pendingDebts || []).length;
-                approveConfirmText.textContent = `Xác nhận duyệt tất cả (${count} khoản nợ)`;
+                approveConfirmText.textContent = t('approveAllConfirm', { count });
             }
         } else {
-            if (titleEl) titleEl.textContent = 'Yêu cầu duyệt thanh toán';
-            if (subtitleEl) subtitleEl.textContent = 'Kiểm tra thông tin giao dịch và xác nhận gạch nợ cho thành viên';
-            if (badgeTextEl) badgeTextEl.textContent = 'Chờ duyệt';
+            if (titleEl) titleEl.textContent = t('approveTitle');
+            if (subtitleEl) subtitleEl.textContent = t('approveSubtitle');
+            if (badgeTextEl) badgeTextEl.textContent = t('approveBadge');
             if (statusBadgeEl) {
                 statusBadgeEl.className = 'inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-amber-100 text-amber-900 border-amber-300 shrink-0';
             }
-            if (amountLabelEl) amountLabelEl.textContent = 'Số tiền cần duyệt';
+            if (amountLabelEl) amountLabelEl.textContent = t('approveAmountLabel');
             if (singleInfoGrid) singleInfoGrid.classList.remove('hidden');
             if (breakdownContainer) breakdownContainer.classList.add('hidden');
-            if (approveConfirmText) approveConfirmText.textContent = 'Xác nhận duyệt & Gạch nợ';
+            if (approveConfirmText) approveConfirmText.textContent = t('approveConfirm');
         }
 
         // Show modal
@@ -355,20 +365,20 @@ export function initAdminDebts() {
                         const statusCell = row.querySelector('td:nth-child(3) span');
                         if (statusCell) {
                             statusCell.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border bg-emerald-50 text-emerald-700 border-emerald-200';
-                            statusCell.textContent = '✓ Đã thanh toán';
+                            statusCell.textContent = `✓ ${t('statusPaid')}`;
                         }
                         // Update remaining amount cell
                         const amtCell = row.querySelector('td:nth-child(5)');
                         if (amtCell) {
                             amtCell.className = 'py-3.5 px-4 text-right font-mono font-bold text-sm text-emerald-600';
-                            amtCell.textContent = '0 ₫';
+                            amtCell.textContent = formatMoney(0);
                         }
                         // Update action cell
                         const actCell = row.querySelector('td:nth-child(6) div');
                         if (actCell) {
                             actCell.innerHTML = `<span class="text-[11px] text-emerald-700 font-semibold flex items-center gap-0.5">
                                 <span class="material-symbols-outlined text-[14px]">verified</span>
-                                <span>Đã quyết toán</span>
+                                <span>${escapeHtml(t('settled'))}</span>
                             </span>`;
                         }
                         row.dataset.status = 'paid';
@@ -378,7 +388,7 @@ export function initAdminDebts() {
                     }
                 }
             } else {
-                alert(data.message || 'Lỗi khi duyệt thanh toán.');
+                alert(data.message || t('paymentError'));
                 // Restore button
                 if (approveConfirmText) approveConfirmText.textContent = origText;
                 approveConfirm.disabled = false;
@@ -386,7 +396,7 @@ export function initAdminDebts() {
             }
         } catch (e) {
             console.error(e);
-            alert('Lỗi kết nối máy chủ.');
+            alert(t('serverError'));
             if (approveConfirmText) approveConfirmText.textContent = origText;
             approveConfirm.disabled = false;
             approveConfirm.classList.remove('opacity-75', 'cursor-not-allowed');

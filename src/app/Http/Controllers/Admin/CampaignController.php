@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Campaign\ExtendCampaignDeadlineAction;
 use App\Actions\Campaign\CloseCampaignAction;
 use App\Actions\Campaign\CreateCampaignAction;
 use App\Actions\Campaign\CreateCampaignItemAction;
@@ -20,6 +21,7 @@ use App\Events\RoomRealtimeEvent;
 use App\Exports\CampaignAggregateExport;
 use App\Exports\CampaignDetailExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ExtendCampaignDeadlineRequest;
 use App\Http\Requests\BatchUpdateCampaignItemStatusRequest;
 use App\Http\Requests\CampaignPageRequest;
 use App\Http\Requests\CloseCampaignRequest;
@@ -41,6 +43,7 @@ use App\Services\Order\PublicOrderCheckService;
 use App\Services\Media\ImageUploadService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -198,15 +201,16 @@ class CampaignController extends Controller
     }
 
     /**
-     * Display the specified campaign details or JSON representation.
+     * Display the campaign overview & information view.
      *
      * @param Request $request Incoming HTTP request.
      * @param Room $room Room entity.
      * @param Campaign $campaign Campaign entity.
      * @param \App\Services\Admin\AdminCampaignDetailService $detailService Campaign detail service.
+     * @param PublicOrderCheckService $orderCheckService Public order check service.
      * @return JsonResponse|View Response payload or Blade view.
      */
-    public function show(Request $request, Room $room, Campaign $campaign, \App\Services\Admin\AdminCampaignDetailService $detailService, PublicOrderCheckService $orderCheckService): JsonResponse|View
+    public function showInfo(Request $request, Room $room, Campaign $campaign, \App\Services\Admin\AdminCampaignDetailService $detailService, PublicOrderCheckService $orderCheckService): JsonResponse|View
     {
         $this->assertCampaign($campaign);
 
@@ -223,11 +227,77 @@ class CampaignController extends Controller
                 ['campaign' => $campaign->id, 'hash' => $orderCheckService->hash($campaign)]
             )
             : null;
-        $viewName = ($request->query('view') === 'live' || (in_array($campaign->status, ['active', 'closing', 'scheduled']) && $request->query('view') !== 'detail'))
-            ? 'admin.campaign-live'
-            : 'admin.campaign-detail';
 
-        return view($viewName, $data);
+        return view('admin.campaign-info', $data);
+    }
+
+    /**
+     * Display the menu availability page where items can be switched on or off.
+     *
+     * @param Room $room Room entity.
+     * @param Campaign $campaign Campaign entity.
+     * @return View Blade view listing the campaign menu items.
+     */
+    public function showMenu(Room $room, Campaign $campaign): View
+    {
+        $this->assertCampaign($campaign);
+
+        return view('admin.campaign-menu', ['room' => $room, 'campaign' => $campaign]);
+    }
+
+    /**
+     * Display the campaign orders and items list view.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @param Room $room Room entity.
+     * @param Campaign $campaign Campaign entity.
+     * @param \App\Services\Admin\AdminCampaignDetailService $detailService Campaign detail service.
+     * @param PublicOrderCheckService $orderCheckService Public order check service.
+     * @return JsonResponse|View Response payload or Blade view.
+     */
+    public function showOrders(Request $request, Room $room, Campaign $campaign, \App\Services\Admin\AdminCampaignDetailService $detailService, PublicOrderCheckService $orderCheckService): JsonResponse|View
+    {
+        $this->assertCampaign($campaign);
+
+        if ($request->expectsJson()) {
+            $campaign->load(['items.sizes', 'items.toppings', 'paymentAccount', 'orders.roomUser.globalUser', 'orders.items', 'debts.roomUser.globalUser']);
+            return response()->json(['data' => $campaign]);
+        }
+
+        $data = $detailService->getCampaignViewData($room, $campaign);
+        $data['orderCheckUrl'] = in_array($campaign->status?->value, ['closed', 'archived'], true)
+            ? URL::temporarySignedRoute(
+                'public.order-check',
+                now()->addDays(30),
+                ['campaign' => $campaign->id, 'hash' => $orderCheckService->hash($campaign)]
+            )
+            : null;
+
+        return view('admin.campaign-orders', $data);
+    }
+
+    /**
+     * Return the campaign as JSON, or redirect HTML requests to the matching campaign page.
+     *
+     * @param Request $request Incoming HTTP request.
+     * @param Room $room Room entity.
+     * @param Campaign $campaign Campaign entity.
+     * @return JsonResponse|RedirectResponse JSON payload or redirect to the info/orders page.
+     */
+    public function show(Request $request, Room $room, Campaign $campaign): JsonResponse|RedirectResponse
+    {
+        $this->assertCampaign($campaign);
+
+        if ($request->expectsJson()) {
+            $campaign->load(['items.sizes', 'items.toppings', 'paymentAccount', 'orders.roomUser.globalUser', 'orders.items', 'debts.roomUser.globalUser']);
+            return response()->json(['data' => $campaign]);
+        }
+
+        $routeName = in_array($request->query('view'), ['orders', 'items', 'detail'], true)
+            ? 'admin.campaigns.orders'
+            : 'admin.campaigns.info';
+
+        return redirect()->route($routeName, [$room, $campaign]);
     }
 
     /**
@@ -254,11 +324,17 @@ class CampaignController extends Controller
      * @param Request $request Incoming HTTP request.
      * @param Room $room Room entity.
      * @param Campaign $campaign Campaign entity.
-     * @return View|JsonResponse Blade view or JSON response.
+     * @return View|JsonResponse|RedirectResponse Blade view, JSON response or redirect when the campaign is locked.
      */
-    public function edit(Request $request, Room $room, Campaign $campaign): View|JsonResponse
+    public function edit(Request $request, Room $room, Campaign $campaign): View|JsonResponse|RedirectResponse
     {
         $this->assertCampaign($campaign);
+        if ($campaign->isLocked()) {
+            abort_if($request->wantsJson(), 422, __('admin.campaign_locked_cannot_modify'));
+
+            return redirect()->route('admin.campaigns.info', [$room, $campaign])
+                ->with('error', __('admin.campaign_locked_cannot_modify'));
+        }
         $room = $request->attributes->get('room') ?? $room;
         $campaign->load(['items.sizes', 'items.toppings', 'paymentAccount']);
         $paymentAccounts = $room->paymentAccounts()->where('status', PaymentAccountStatus::Active)->get();
@@ -309,7 +385,7 @@ class CampaignController extends Controller
      */
     public function update(UpdateCampaignRequest $request, Room $room, Campaign $campaign, UpdateCampaignAction $updateAction): JsonResponse
     {
-        $this->assertCampaign($campaign);
+        $this->assertCampaignEditable($campaign);
         $data = $request->validated();
         $adminId = $request->user('admin')?->id;
         $updatedCampaign = $updateAction->execute($campaign, $data, $adminId);
@@ -318,6 +394,31 @@ class CampaignController extends Controller
         return response()->json([
             'message' => __('admin.campaign_updated_successfully'),
             'data' => $updatedCampaign,
+        ]);
+    }
+
+    /**
+     * Extend the ordering deadline of a live campaign by a fixed number of minutes.
+     *
+     * @param ExtendCampaignDeadlineRequest $request Validated request carrying the minutes to add.
+     * @param Room $room Current room.
+     * @param Campaign $campaign Campaign whose deadline is extended.
+     * @param ExtendCampaignDeadlineAction $action Deadline extension action.
+     * @return JsonResponse Updated campaign and a human readable message.
+     */
+    public function extendDeadline(ExtendCampaignDeadlineRequest $request, Room $room, Campaign $campaign, ExtendCampaignDeadlineAction $action): JsonResponse
+    {
+        $this->assertCampaignEditable($campaign);
+        $minutes = (int) $request->validated('minutes');
+        $updated = $action->execute($campaign, $minutes, $request->user('admin')?->id);
+        $this->publishCampaignEvent('campaign.updated', $updated);
+
+        return response()->json([
+            'message' => __('admin.extend_deadline_success', [
+                'minutes' => $minutes,
+                'deadline' => $updated->deadline?->format('H:i d/m/Y'),
+            ]),
+            'data' => $updated,
         ]);
     }
 
@@ -486,13 +587,14 @@ class CampaignController extends Controller
     /**
      * Handle the store item operation.
      * @param StoreCampaignItemRequest $request Parameter value.
+     * @param Room $room Current room.
      * @param Campaign $campaign Parameter value.
      * @param CreateCampaignItemAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function storeItem(StoreCampaignItemRequest $request, Campaign $campaign, CreateCampaignItemAction $action): JsonResponse
+    public function storeItem(StoreCampaignItemRequest $request, Room $room, Campaign $campaign, CreateCampaignItemAction $action): JsonResponse
     {
-        $this->assertCampaign($campaign);
+        $this->assertCampaignEditable($campaign);
         $item = $action->execute($campaign, $request->validated());
         $this->publishMenuEvent('campaign.menu.updated', $campaign, $item);
 
@@ -510,7 +612,7 @@ class CampaignController extends Controller
      */
     public function updateItem(StoreCampaignItemRequest $request, Room $room, Campaign $campaign, CampaignItem $item, UpdateCampaignItemAction $action): JsonResponse
     {
-        $this->assertItem($campaign, $item);
+        $this->assertItemEditable($campaign, $item);
         $updated = $action->execute($item, $request->validated());
         $this->publishMenuEvent('campaign.menu.updated', $campaign, $updated);
 
@@ -527,7 +629,7 @@ class CampaignController extends Controller
      */
     public function archiveItem(Room $room, Campaign $campaign, CampaignItem $item, AuditService $audit): JsonResponse
     {
-        $this->assertItem($campaign, $item);
+        $this->assertItemEditable($campaign, $item);
         $before = $item->status?->value ?? (string) $item->status;
         $item->update(['status' => \App\Enums\CampaignItemStatus::Inactive]);
         $audit->record('campaign_item.archived', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before], ['status' => \App\Enums\CampaignItemStatus::Inactive->value]);
@@ -546,7 +648,7 @@ class CampaignController extends Controller
      */
     public function batchUpdateItemStatus(BatchUpdateCampaignItemStatusRequest $request, Room $room, Campaign $campaign, AuditService $audit): JsonResponse
     {
-        $this->assertCampaign($campaign);
+        $this->assertCampaignEditable($campaign);
         $validated = $request->validated();
 
         $itemIds = collect($validated['items'])->pluck('id')->all();
@@ -579,7 +681,7 @@ class CampaignController extends Controller
     /** Toggle a campaign item's availability status. */
     public function toggleItemStatus(UpdateCampaignItemStatusRequest $request, Room $room, Campaign $campaign, CampaignItem $item, AuditService $audit): JsonResponse
     {
-        $this->assertItem($campaign, $item);
+        $this->assertItemEditable($campaign, $item);
         $status = $request->validated()['status'];
         $before = $item->status?->value ?? (string) $item->status;
         $item->update(['status' => \App\Enums\CampaignItemStatus::from($status)]);
@@ -591,28 +693,30 @@ class CampaignController extends Controller
     /**
      * Handle the store topping operation.
      * @param StoreItemOptionRequest $request Parameter value.
+     * @param Room $room Current room.
      * @param Campaign $campaign Parameter value.
      * @param CampaignItem $item Parameter value.
      * @param CreateItemOptionAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function storeTopping(StoreItemOptionRequest $request, Campaign $campaign, CampaignItem $item, CreateItemOptionAction $action): JsonResponse
+    public function storeTopping(StoreItemOptionRequest $request, Room $room, Campaign $campaign, CampaignItem $item, CreateItemOptionAction $action): JsonResponse
     {
-        $this->assertItem($campaign, $item);
+        $this->assertItemEditable($campaign, $item);
         return response()->json(['data' => $action->topping($item, $request->validated())], 201);
     }
 
     /**
      * Handle the store size operation.
      * @param StoreItemOptionRequest $request Parameter value.
+     * @param Room $room Current room.
      * @param Campaign $campaign Parameter value.
      * @param CampaignItem $item Parameter value.
      * @param CreateItemOptionAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function storeSize(StoreItemOptionRequest $request, Campaign $campaign, CampaignItem $item, CreateItemOptionAction $action): JsonResponse
+    public function storeSize(StoreItemOptionRequest $request, Room $room, Campaign $campaign, CampaignItem $item, CreateItemOptionAction $action): JsonResponse
     {
-        $this->assertItem($campaign, $item);
+        $this->assertItemEditable($campaign, $item);
         return response()->json(['data' => $action->size($item, $request->validated())], 201);
     }
 
@@ -627,7 +731,7 @@ class CampaignController extends Controller
      */
     public function updateTopping(UpdateItemOptionRequest $request, Room $room, Campaign $campaign, CampaignItem $item, CampaignItemTopping $option): JsonResponse
     {
-        $this->assertItem($campaign, $item);
+        $this->assertItemEditable($campaign, $item);
         abort_unless($option->campaign_item_id === $item->id, 404);
         $option->update($request->validated());
         return response()->json(['data' => $option->fresh()]);
@@ -644,7 +748,7 @@ class CampaignController extends Controller
      */
     public function updateSize(UpdateItemOptionRequest $request, Room $room, Campaign $campaign, CampaignItem $item, CampaignItemSize $option): JsonResponse
     {
-        $this->assertItem($campaign, $item);
+        $this->assertItemEditable($campaign, $item);
         abort_unless($option->campaign_item_id === $item->id, 404);
         $option->update($request->validated());
         return response()->json(['data' => $option->fresh()]);
@@ -659,7 +763,7 @@ class CampaignController extends Controller
      */
     public function deleteTopping(Campaign $campaign, CampaignItem $item, CampaignItemTopping $option): JsonResponse
     {
-        $this->assertItem($campaign, $item);
+        $this->assertItemEditable($campaign, $item);
         abort_unless($option->campaign_item_id === $item->id, 404);
         $option->update(['status' => 'hidden']);
         return response()->json(['data' => ['hidden' => true]]);
@@ -674,7 +778,7 @@ class CampaignController extends Controller
      */
     public function deleteSize(Campaign $campaign, CampaignItem $item, CampaignItemSize $option): JsonResponse
     {
-        $this->assertItem($campaign, $item);
+        $this->assertItemEditable($campaign, $item);
         abort_unless($option->campaign_item_id === $item->id, 404);
         $option->update(['status' => 'hidden']);
         return response()->json(['data' => ['hidden' => true]]);
@@ -702,7 +806,7 @@ class CampaignController extends Controller
     {
         $rows = $aggregator->forRoom(request()->attributes->get('room')->id, $request->integer('campaign_id'));
         return Excel::download(
-            new CampaignAggregateExport($rows),
+            new CampaignAggregateExport($rows->toArray()),
             'drinkflow-aggregator.csv'
         );
     }
@@ -715,6 +819,31 @@ class CampaignController extends Controller
     private function assertCampaign(Campaign $campaign): void
     {
         abort_unless($campaign->room_id === request()->attributes->get('room')->id, 404);
+    }
+
+    /**
+     * Ensure the campaign belongs to the current room and can still be modified.
+     *
+     * @param Campaign $campaign Campaign being modified.
+     * @return void
+     */
+    private function assertCampaignEditable(Campaign $campaign): void
+    {
+        $this->assertCampaign($campaign);
+        abort_if($campaign->isLocked(), 422, __('admin.campaign_locked_cannot_modify'));
+    }
+
+    /**
+     * Ensure the item belongs to the campaign and the campaign can still be modified.
+     *
+     * @param Campaign $campaign Campaign being modified.
+     * @param CampaignItem $item Item being modified.
+     * @return void
+     */
+    private function assertItemEditable(Campaign $campaign, CampaignItem $item): void
+    {
+        $this->assertCampaignEditable($campaign);
+        abort_unless($item->campaign_id === $campaign->id, 404);
     }
 
     /**
