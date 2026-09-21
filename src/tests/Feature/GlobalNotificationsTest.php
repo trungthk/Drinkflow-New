@@ -209,4 +209,30 @@ class GlobalNotificationsTest extends TestCase
         $this->assertNotEmpty($notif2->fresh()->body);
         $this->assertStringContainsString('Chiến dịch đặt món mới', $notif2->fresh()->body);
     }
+
+    /**
+     * The page wires each unread notification to the in-place (no reload) read handler.
+     *
+     * @return void
+     */
+    public function test_notifications_page_exposes_in_place_read_hooks(): void
+    {
+        $user = GlobalUser::create(['name' => 'Trung Lê', 'normalized_name' => 'TRUNG LE', 'email' => 'hooks@company.com', 'status' => 'active']);
+        $unread = UserNotification::create(['global_user_id' => $user->id, 'type' => 'campaign.created', 'title' => 'Thông báo chưa đọc', 'body' => 'Nội dung']);
+
+        $response = $this->actingAs($user, 'web')->get('/me/notifications');
+
+        $response->assertOk()
+            ->assertSee('data-notification-list', false)
+            ->assertSee('data-read-label="'.__('global.notifications.badge_read').'"', false)
+            ->assertSee('data-error-label="'.__('global.notifications.mark_read_error').'"', false)
+            ->assertSee('data-notification-card data-notification-id="'.$unread->id.'"', false)
+            ->assertSee('data-notification-read-form', false)
+            ->assertSee('data-unread-accent', false)
+            ->assertSee('data-status-badge', false)
+            ->assertSee('data-unread-count', false)
+            ->assertSee('data-header-notification-id="'.$unread->id.'"', false)
+            ->assertSee('data-user-notification-new-badge', false);
+    }
 }
+

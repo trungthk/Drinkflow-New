@@ -645,6 +645,7 @@ return [
         'badge_new' => 'New',
         'badge_read' => 'Read',
         'mark_as_read' => 'Mark as read',
+        'mark_read_error' => 'Could not mark as read. Please try again.',
         'empty_title' => 'No Notifications',
         'empty_desc' => 'You\'re all caught up! No new notifications in this category.',
         'modal_config_title' => 'Notification Preferences',

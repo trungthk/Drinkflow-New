@@ -52,7 +52,7 @@
                 class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 transition-colors {{ $tab === 'unread' ? 'bg-[#006948] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100' }}"
             >
                 <span>{{ __('global.notifications.tab_unread') }}</span>
-                <span class="px-1.5 py-0.2 rounded-full text-[11px] {{ $tab === 'unread' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-700 font-bold' }}">{{ $unreadCount }}</span>
+                <span data-unread-count class="px-1.5 py-0.2 rounded-full text-[11px] {{ $tab === 'unread' ? 'bg-white/20 text-white' : 'bg-rose-100 text-rose-700 font-bold' }}">{{ $unreadCount }}</span>
             </a>
 
             <a 
@@ -86,7 +86,9 @@
     </div>
 
     <!-- Notification Cards List -->
-    <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-3" data-notification-list
+         data-read-label="{{ __('global.notifications.badge_read') }}"
+         data-error-label="{{ __('global.notifications.mark_read_error') }}">
         @if($notifications->total() > 0)
             @foreach($notifications as $notif)
                 @php
@@ -101,9 +103,9 @@
                         default => 'notifications'
                     };
                 @endphp
-                <div class="bg-white border border-slate-200 hover:border-slate-300 rounded-2xl p-4 transition-all duration-150 shadow-2xs relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 {{ $isUnread ? 'bg-emerald-50/10' : 'opacity-90' }}">
+                <div data-notification-card data-notification-id="{{ $notif->id }}" class="bg-white border border-slate-200 hover:border-slate-300 rounded-2xl p-4 transition-all duration-150 shadow-2xs relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 {{ $isUnread ? 'bg-emerald-50/10' : 'opacity-90' }}">
                     @if($isUnread)
-                        <div class="absolute left-0 top-0 bottom-0 w-1 bg-[#006948]"></div>
+                        <div data-unread-accent class="absolute left-0 top-0 bottom-0 w-1 bg-[#006948]"></div>
                     @endif
                     <div class="flex items-start gap-3.5 flex-1 min-w-0">
                         <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/80 text-[#006948] flex items-center justify-center shrink-0 mt-0.5">
@@ -113,9 +115,9 @@
                             <div class="flex flex-wrap items-center gap-2">
                                 <span class="text-sm font-semibold text-slate-900">{{ $notif->title }}</span>
                                 @if($isUnread)
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">{{ __('global.notifications.badge_new') }}</span>
+                                    <span data-status-badge class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">{{ __('global.notifications.badge_new') }}</span>
                                 @else
-                                    <span class="inline-flex items-center px-2 py-0.2 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500">{{ __('global.notifications.badge_read') }}</span>
+                                    <span data-status-badge class="inline-flex items-center px-2 py-0.2 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500">{{ __('global.notifications.badge_read') }}</span>
                                 @endif
                             </div>
                             <p class="text-xs text-slate-600 leading-relaxed">{{ $notif->body }}</p>
@@ -129,12 +131,13 @@
                     </div>
 
                     @if($isUnread)
-                        <div class="flex items-center gap-2 self-end sm:self-center shrink-0">
-                            <form action="{{ route('user.notifications.read', $notif->id) }}" method="POST">
+                        <div data-notification-actions class="flex items-center gap-2 self-end sm:self-center shrink-0">
+                            <form action="{{ route('user.notifications.read', $notif->id) }}" method="POST" data-notification-read-form>
                                 @csrf
                                 @method('PATCH')
-                                <button type="submit" class="px-3 py-1 rounded-xl text-xs font-medium text-[#006948] hover:bg-emerald-50 transition-colors">
-                                    {{ __('global.notifications.mark_as_read') }}
+                                <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-medium text-[#006948] hover:bg-emerald-50 transition-colors">
+                                    <span data-read-spinner class="hidden material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
+                                    <span>{{ __('global.notifications.mark_as_read') }}</span>
                                 </button>
                             </form>
                         </div>

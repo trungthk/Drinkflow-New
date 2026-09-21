@@ -107,7 +107,7 @@
               <div class="flex items-center gap-2">
                 <h3 class="text-sm font-semibold text-slate-900">{{ __('global.header.notifications') }}</h3>
                 @if($unreadNotificationsCount > 0)
-                  <span
+                  <span data-user-notification-new-badge data-template="{{ __('global.header.new_badge', ['count' => ':count']) }}"
                     class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200/60">{{ __('global.header.new_badge', ['count' => $unreadNotificationsCount]) }}</span>
                 @endif
               </div>
@@ -123,7 +123,7 @@
                 @php
                   $notificationPresentation = app(\App\Services\Notification\NotificationPresentationService::class)->present($notif);
                 @endphp
-                <div
+                <div data-header-notification-id="{{ $notif->id }}"
                   class="p-3.5 flex items-start gap-3 hover:bg-slate-50/80 transition-colors {{ is_null($notif->read_at) ? 'bg-emerald-50/20' : '' }}">
                   <span
                     class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100">
@@ -140,7 +140,7 @@
                     </span>
                   </div>
                   @if(is_null($notif->read_at))
-                    <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0 mt-2"></span>
+                    <span data-header-notification-dot class="w-2 h-2 rounded-full bg-emerald-600 shrink-0 mt-2"></span>
                   @endif
                 </div>
               @empty

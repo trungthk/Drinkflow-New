@@ -645,6 +645,7 @@ return [
         'badge_new' => '新着',
         'badge_read' => '既読',
         'mark_as_read' => '既読にする',
+        'mark_read_error' => '既読にできませんでした。もう一度お試しください。',
         'empty_title' => '通知はありません',
         'empty_desc' => 'すべて確認済みです！このカテゴリに新しい通知はありません。',
         'modal_config_title' => '通知設定',

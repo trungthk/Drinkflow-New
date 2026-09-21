@@ -645,6 +645,7 @@ return [
         'badge_new' => 'Mới',
         'badge_read' => 'Đã đọc',
         'mark_as_read' => 'Đánh dấu đã đọc',
+        'mark_read_error' => 'Không thể đánh dấu đã đọc. Vui lòng thử lại.',
         'empty_title' => 'Không có thông báo nào',
         'empty_desc' => 'Bạn đã xem hết các thông báo hoặc chưa có cập nhật mới nào trong danh mục này.',
         'modal_config_title' => 'Tùy chọn nhận thông báo',
