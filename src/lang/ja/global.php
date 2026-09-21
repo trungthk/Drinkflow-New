@@ -51,7 +51,7 @@ return [
         'google_profile_failed' => 'Googleからユーザー情報を取得できませんでした。',
         'google_unsupported_account' => 'このアカウントはログインに対応していません。',
         'google_account_access_revoked' => 'アカウントがロックされたか、ルームから削除されています。管理者に連絡して対応を依頼してください。',
-        'google_login_failed' => 'Googleログインに失敗しました: :error',
+        'google_login_failed' => 'Googleログインに失敗しました。もう一度お試しください。',
     ],
     'header' => [
         'language_select' => '言語を選択',
@@ -725,5 +725,12 @@ return [
         'logout_desc' => 'DrinkFlowアカウントからログアウトしてもよろしいですか？再度利用するにはGoogleアカウントでログインする必要があります。',
         'cancel' => 'キャンセル',
         'confirm_logout' => 'ログアウト',
+    ],
+    'join_modal' => [
+        'fab_label' => 'ルームへの参加登録',
+        'title' => 'ルームへの参加登録',
+        'subtitle' => '参加するルームのリンクを貼り付けてください',
+        'cancel' => 'キャンセル',
+        'close' => '閉じる',
     ],
 ];

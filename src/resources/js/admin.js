@@ -18,7 +18,7 @@ import { initAdminOrders } from './admin/orders';
 import { initAdminReports } from './admin/reports';
 import { initAdminSettings } from './admin/settings';
 import { initAdminUsers } from './admin/users';
-import { initAdminLoading } from './admin/loading';
+import { initAdminLoading, initAdminReloadButtons } from './admin/loading';
 
 export {
     initAdminGoToTop,
@@ -39,6 +39,7 @@ export {
     initAdminSettings,
     initAdminUsers,
     initAdminLoading,
+    initAdminReloadButtons,
 };
 
 // Expose globals for Alpine and inline calls
@@ -68,4 +69,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminSettings();
     initAdminUsers();
     initAdminLoading();
+    initAdminReloadButtons();
 });

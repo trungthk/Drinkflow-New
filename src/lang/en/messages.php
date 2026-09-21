@@ -24,6 +24,7 @@ return [
     'campaign_sponsor_not_set' => 'None',
     'campaign_restaurant' => 'Store / Brand: :restaurant',
     'campaign_order' => 'Order: :url',
+    'campaign_register' => 'Click here to register as a new member: :url',
     'campaign_order_now' => 'Click here to place your order now',
     'campaign_closed_body' => 'Campaign has closed for ordering. Admin is aggregating orders to proceed.',
     'campaign_order_check' => 'Check your order: :url',

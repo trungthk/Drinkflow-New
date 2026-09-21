@@ -429,7 +429,7 @@
                                                     <span
                                                         class="px-1.5 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant text-[10px] leading-4 flex items-center gap-0.5 font-medium">
                                                         <span class="material-symbols-outlined text-[12px]">add_circle</span>
-                                                        {{ $top->topping_name }} (+{{ \App\Support\Helpers\FormatHelper::formatCurrency($top->price) }})
+                                                        {{ $top->topping_name }} (+{{ \App\Support\Helpers\FormatHelper::formatCurrency($top->unit_price) }})
                                                     </span>
                                                 @endforeach
                                             </div>
@@ -606,7 +606,6 @@
                                             class="font-display-lg text-display-lg font-bold text-error tracking-tight font-tabular-nums">
                                             {{ \App\Support\Helpers\FormatHelper::formatCurrency($orderFinalAmount) }}
                                         </span>
-                                        <span class="font-label-md text-label-md font-bold text-error">đ</span>
                                     </div>
                                 </div>
                             </div>

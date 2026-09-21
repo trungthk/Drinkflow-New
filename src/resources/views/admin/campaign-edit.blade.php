@@ -642,7 +642,7 @@
                 <div><span class="text-outline">{{ __('admin.restaurant_brand') }}</span><p class="font-semibold text-on-surface truncate" x-text="form.restaurant"></p></div>
                 <div><span class="text-outline">{{ __('admin.max_product_budget_ceiling') }}</span><p class="font-mono font-semibold text-primary" x-text="formatVND(form.max_budget)"></p></div>
                 <div><span class="text-outline">{{ __('admin.menu_item_count_label') }}</span><p class="font-semibold text-on-surface" x-text="menuItems.length"></p></div>
-                <div class="col-span-2"><span class="text-outline">{{ __('admin.order_deadline') }}</span><p class="font-semibold text-on-surface" x-text="form.deadline || '—'"></p></div>
+                <div class="col-span-2"><span class="text-outline">{{ __('admin.order_deadline') }}</span><p class="font-semibold text-on-surface" x-text="formatDeadline(form.deadline)"></p></div>
             </div>
             <p class="rounded-lg bg-amber-50 dark:bg-amber-950/30 px-3 py-2 text-xs text-amber-800 dark:text-amber-300">{{ __('admin.confirm_campaign_publish_message') }}</p>
             <div class="flex justify-end gap-2 pt-4">

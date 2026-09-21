@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\PaymentMethod;
 use App\Http\Requests\Concerns\AuthorizesUserAndAdmin;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class DebtPaymentRequest extends FormRequest
 {
@@ -30,7 +32,7 @@ class DebtPaymentRequest extends FormRequest
     {
         return [
             'amount' => ['required', 'integer', 'min:1'],
-            'payment_method' => ['required', 'string', 'max:30'],
+            'payment_method' => ['required', 'string', Rule::enum(PaymentMethod::class)],
             'reference' => ['nullable', 'string', 'max:120'],
         ];
     }
@@ -61,7 +63,7 @@ class DebtPaymentRequest extends FormRequest
             'amount.integer' => __('validation.integer', ['attribute' => __('validation.attributes.amount')]),
             'amount.min' => __('validation.min.numeric', ['attribute' => __('validation.attributes.amount'), 'min' => 1]),
             'payment_method.required' => __('validation.required', ['attribute' => __('validation.attributes.payment_method')]),
-            'payment_method.max' => __('validation.max.string', ['attribute' => __('validation.attributes.payment_method'), 'max' => 30]),
+            'payment_method.enum' => __('validation.enum', ['attribute' => __('validation.attributes.payment_method')]),
             'reference.max' => __('validation.max.string', ['attribute' => __('validation.attributes.reference'), 'max' => 120]),
         ];
     }

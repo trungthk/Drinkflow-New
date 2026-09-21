@@ -14,6 +14,25 @@
         "--output-dir",
         ".playwright-mcp"
       ]
+    },
+    "mysql": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@benborla29/mcp-server-mysql"
+      ],
+      "env": {
+        "MYSQL_HOST": "${MYSQL_HOST:-127.0.0.1}",
+        "MYSQL_PORT": "${MYSQL_PORT:-3306}",
+        "MYSQL_USER": "${MYSQL_USER:-root}",
+        "MYSQL_PASS": "${MYSQL_PASS:-}",
+        "MYSQL_DB": "${MYSQL_DB:-drinkflow}",
+        "ALLOW_INSERT_OPERATION": "false",
+        "ALLOW_UPDATE_OPERATION": "false",
+        "ALLOW_DELETE_OPERATION": "false"
+      }
     }
   }
 }

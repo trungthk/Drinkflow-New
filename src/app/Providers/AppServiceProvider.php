@@ -80,6 +80,22 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(RoomMembershipUpdated::class, PublishRealtimeEvent::class);
         Event::listen(UserNotificationCreated::class, PublishRealtimeEvent::class);
 
+        \Illuminate\Support\Facades\RateLimiter::for('campaign-resend-notification', function (\Illuminate\Http\Request $request) {
+            $campaign = $request->route('campaign');
+            $campaignId = $campaign instanceof \Illuminate\Database\Eloquent\Model ? $campaign->getKey() : (string) $campaign;
+            $adminKey = $request->user('admin')?->id ? 'admin:' . $request->user('admin')->id : ($request->ip() ?: '127.0.0.1');
+            $tooManyRequests = static fn (\Illuminate\Http\Request $request, array $headers): \Illuminate\Http\JsonResponse => response()->json([
+                'message' => __('admin.resend_notification_rate_limited', ['seconds' => (int) ($headers['Retry-After'] ?? 60)]),
+            ], 429, $headers);
+
+            return [
+                // One announcement per campaign per minute, regardless of which admin triggers it.
+                \Illuminate\Cache\RateLimiting\Limit::perMinute(1)->by('campaign:' . $campaignId)->response($tooManyRequests),
+                // Cap the total number of resends a single admin can fire per hour.
+                \Illuminate\Cache\RateLimiting\Limit::perHour(10)->by($adminKey)->response($tooManyRequests),
+            ];
+        });
+
         \Illuminate\Support\Facades\RateLimiter::for('contact-submission', function (\Illuminate\Http\Request $request) {
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)->by($request->ip() ?: '127.0.0.1');
         });
@@ -92,6 +108,15 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\RateLimiter::for('crawler-preview', function (\Illuminate\Http\Request $request) {
             $adminKey = $request->user('admin')?->id ? 'admin:' . $request->user('admin')->id : ($request->ip() ?: '127.0.0.1');
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(10)->by($adminKey);
+        });
+
+        // Per-admin limits for expensive or fan-out admin operations (file exports, bulk changes, reminders).
+        \Illuminate\Support\Facades\RateLimiter::for('admin-export', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(10)->by('admin-export:' . ($request->user('admin')?->id ?? $request->ip() ?: '127.0.0.1'));
+        });
+
+        \Illuminate\Support\Facades\RateLimiter::for('admin-bulk', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(20)->by('admin-bulk:' . ($request->user('admin')?->id ?? $request->ip() ?: '127.0.0.1'));
         });
 
         \Illuminate\Support\Facades\RateLimiter::for('room-join', function (\Illuminate\Http\Request $request) {

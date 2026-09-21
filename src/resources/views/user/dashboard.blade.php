@@ -146,15 +146,18 @@
               </div>
 
               <!-- Campaign CTA Buttons -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div class="grid grid-cols-1 {{ ($activeCampaign['has_ordered'] ?? false) ? 'sm:grid-cols-2' : '' }} gap-2">
                 <a href="{{ route('user.campaigns.index', $room->slug) }}" class="h-9 bg-[#006948] hover:bg-[#005137] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-2xs cursor-pointer">
                   <span class="material-symbols-outlined text-[16px]">restaurant_menu</span>
                   <span>{{ __('room.dashboard.enter_campaign') }}</span>
                 </a>
-                <a href="{{ route('user.orders.index', $room->slug) }}" class="h-9 bg-white hover:bg-slate-50 border border-[#006948] text-[#006948] rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
-                  <span class="material-symbols-outlined text-[16px]">receipt_long</span>
-                  <span>{{ __('room.dashboard.placed_orders') }}</span>
-                </a>
+                {{-- Only members who already ordered in this campaign see their placed orders. --}}
+                @if($activeCampaign['has_ordered'] ?? false)
+                  <a href="{{ route('user.orders.index', $room->slug) }}" class="h-9 bg-white hover:bg-slate-50 border border-[#006948] text-[#006948] rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">receipt_long</span>
+                    <span>{{ __('room.dashboard.placed_orders') }}</span>
+                  </a>
+                @endif
               </div>
             </div>
           </div>

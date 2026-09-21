@@ -8,8 +8,8 @@ Chào mừng bạn đến với tài liệu hướng dẫn triển khai chính t
 
 | Tài liệu | Phương thức triển khai | Đối tượng & Trường hợp sử dụng |
 | :--- | :--- | :--- |
-| 🐳 [**Docker Compose Deployment**](./docker-vps-deployment.md) | **Container hóa (Docker Compose)** | ⭐ **Khuyến nghị**. Triển khai nhanh, đóng gói đồng nhất, dễ scale, quản lý trọn gói PostgreSQL, PHP-FPM, Socket.IO. |
-| 🛠️ [**Standalone VPS Deployment**](./standalone-vps-deployment.md) | **Cài đặt từng dịch vụ (Native Services)** | Dành cho người muốn kiểm soát toàn bộ tài nguyên bare-metal, tối ưu hóa hiệu năng tối đa của PHP-FPM, Nginx, PostgreSQL, Redis, Supervisor trên hệ điều hành Ubuntu. |
+| 🐳 [**Docker Compose Deployment**](./docker-vps-deployment.md) | **Container hóa (Docker Compose)** | ⭐ **Khuyến nghị**. Triển khai nhanh, đóng gói đồng nhất, dễ scale, quản lý trọn gói MySQL, PHP-FPM, Socket.IO. |
+| 🛠️ [**Standalone VPS Deployment**](./standalone-vps-deployment.md) | **Cài đặt từng dịch vụ (Native Services)** | Dành cho người muốn kiểm soát toàn bộ tài nguyên bare-metal, tối ưu hóa hiệu năng tối đa của PHP-FPM, Nginx, MySQL, Redis, Supervisor trên hệ điều hành Ubuntu. |
 
 ---
 
@@ -59,7 +59,7 @@ INTERNET / USERS
 | `22` (hoặc custom) | TCP | Public (Giới hạn IP nếu có) | Truy cập quản trị SSH |
 | `80` | TCP | Public | HTTP (Tự động redirect sang 443) |
 | `443` | TCP | Public | HTTPS an toàn (Web + Realtime WSS) |
-| `5432` | TCP | **Internal / Localhost Only** | PostgreSQL Database (Không mở ra ngoài) |
+| `3306` | TCP | **Internal / Localhost Only** | MySQL Database (Không mở ra ngoài) |
 | `3001` | TCP | **Internal / Reverse Proxy** | Socket.IO Realtime Gateway |
 | `6379` | TCP | **Internal / Localhost Only** | Redis Cache & Queue (nếu sử dụng) |
 
@@ -72,7 +72,7 @@ Trước khi công bố đường dẫn cho người dùng nội bộ, hãy ch�
 - [ ] `APP_ENV=production` và `APP_DEBUG=false` trong file `.env`.
 - [ ] Khóa tài khoản root SSH và chỉ đăng nhập bằng SSH Key.
 - [ ] Cấu hình UFW Firewall chỉ mở cổng 22, 80, 443.
-- [ ] Cơ sở dữ liệu PostgreSQL đặt mật khẩu mạnh, không listen ra public IP.
+- [ ] Cơ sở dữ liệu MySQL đặt mật khẩu mạnh, không listen ra public IP.
 - [ ] Chứng chỉ SSL (Let's Encrypt) hoạt động với điểm đánh giá SSL Labs hạng A.
 - [ ] Thiết lập Google OAuth Credentials với đúng Redirect URL: `https://your-domain.com/auth/google/callback`.
 - [ ] Chạy `php artisan config:cache`, `route:cache`, `view:cache`.

@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\DB;
 class RoomNotificationChannelService
 {
     /**
+     * Configuration keys holding credentials; their stored values are never sent back to the browser.
+     *
+     * @var array<int, string>
+     */
+    private const SECRET_KEYS = ['bot_token', 'api_token', 'secret_token', 'webhook_url'];
+
+    /**
      * Save or update a notification channel entity.
      *
      * @param int $roomId Room identifier.
@@ -35,6 +42,12 @@ class RoomNotificationChannelService
                     if (is_string($encrypted) && $encrypted !== '') {
                         $existing = json_decode((string) Crypt::decrypt($encrypted), true, 512, JSON_THROW_ON_ERROR);
                         if (is_array($existing)) {
+                            // A blank credential means "keep the stored one"; secrets are never echoed to the editor.
+                            foreach (self::SECRET_KEYS as $secretKey) {
+                                if (array_key_exists($secretKey, $config) && trim((string) $config[$secretKey]) === '') {
+                                    unset($config[$secretKey]);
+                                }
+                            }
                             $config = array_replace($existing, $config);
                         }
                     }
@@ -89,10 +102,10 @@ class RoomNotificationChannelService
     }
 
     /**
-     * Return channel details for an authorized room administrator editing a channel.
+     * Return channel details for an authorized room administrator editing a channel, with credentials blanked out.
      *
      * @param NotificationChannel $channel Notification channel.
-     * @return array<string, mixed> Channel details with decrypted configuration.
+     * @return array<string, mixed> Channel details; credential values are blank and listed in `secrets_configured`.
      */
     public function editable(NotificationChannel $channel): array
     {
@@ -104,12 +117,21 @@ class RoomNotificationChannelService
             $config = is_array($decoded) ? $decoded : [];
         }
 
+        $secretsConfigured = array_values(array_filter(
+            self::SECRET_KEYS,
+            static fn (string $key): bool => isset($config[$key]) && $config[$key] !== '',
+        ));
+        foreach ($secretsConfigured as $key) {
+            $config[$key] = '';
+        }
+
         return [
             'id' => $channel->id,
             'type' => $channel->type,
             'name' => $channel->name,
             'status' => $channel->status,
             'config' => $config,
+            'secrets_configured' => $secretsConfigured,
         ];
     }
 }

@@ -26,10 +26,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 ? route('admin.login.page')
                 : route('auth.google');
         });
-        $middleware->validateCsrfTokens(except: ['admin/*', 'superadmin/*', 'logout']);
+        $middleware->validateCsrfTokens(except: ['logout']);
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\EnsureActiveAdmin::class,
+            \App\Http\Middleware\SecurityHeaders::class,
         ]);
         // Apply the session locale right after the session starts and before route model binding,
         // so a 404 thrown by a missing {room}/{campaign} model is rendered in the user's language.

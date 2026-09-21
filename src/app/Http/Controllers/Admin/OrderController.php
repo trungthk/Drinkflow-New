@@ -45,7 +45,7 @@ class OrderController extends Controller
         if ($request->filled('room_user_id')) $query->where('room_user_id', $request->integer('room_user_id'));
         if ($request->filled('from')) $query->whereDate('created_at', '>=', $request->date('from'));
         if ($request->filled('to')) $query->whereDate('created_at', '<=', $request->date('to'));
-        return response()->json(['data' => $query->paginate(50)]);
+        return response()->json(['data' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)]);
     }
 
     /**
@@ -112,7 +112,7 @@ class OrderController extends Controller
             $selectedStatus = 'all';
         }
 
-        $orders = $query->paginate(50)->withQueryString();
+        $orders = $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString();
 
         return view('admin.orders', [
             'room' => $room,

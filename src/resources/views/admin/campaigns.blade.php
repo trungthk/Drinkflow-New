@@ -39,6 +39,7 @@
                     {{ __('admin.filter_clear') }}
                 </a>
             @endif
+            <x-admin.reload-button />
         </div>
     </form>
 

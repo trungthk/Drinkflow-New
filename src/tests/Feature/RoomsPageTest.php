@@ -179,7 +179,7 @@ class RoomsPageTest extends TestCase
         $this->assertStringContainsString(route('user.me.feedback'), $navContent);
     }
 
-    public function test_header_shows_all_tabs_when_user_has_rooms(): void
+    public function test_header_temporarily_hides_rooms_orders_payments_and_statistics_tabs(): void
     {
         $user = GlobalUser::create([
             'name' => 'User With Rooms',
@@ -225,12 +225,21 @@ class RoomsPageTest extends TestCase
         $content = $response->getContent();
         $navContent = (string) str($content)->after('aria-label="Điều hướng chính">')->before('</nav>');
 
-        $this->assertStringContainsString(route('user.me.rooms'), $navContent);
-        $this->assertStringContainsString(route('user.me.orders'), $navContent);
-        $this->assertStringContainsString(route('user.me.payments'), $navContent);
-        $this->assertStringContainsString(route('user.me.statistics'), $navContent);
+        // Hidden for now (see $hiddenMenus in components/global/header.blade.php).
+        $this->assertStringNotContainsString(route('user.me.rooms'), $navContent);
+        $this->assertStringNotContainsString(route('user.me.orders'), $navContent);
+        $this->assertStringNotContainsString(route('user.me.payments'), $navContent);
+        $this->assertStringNotContainsString(route('user.me.statistics'), $navContent);
         $this->assertStringContainsString(route('user.me.dashboard'), $navContent);
         $this->assertStringContainsString(route('user.me.feedback'), $navContent);
+
+        // The join-room floating button and its modal replace them as the way to join another room.
+        $response->assertSee('data-join-room-open', false)
+            ->assertSee('id="join-room-modal"', false)
+            ->assertSee(route('user.me.rooms.join'), false)
+            ->assertSee(__('global.join_modal.fab_label'));
+        $joinPosition = strpos($content, 'data-join-room-open');
+        $this->assertNotFalse(strpos($content, '>support_agent<', $joinPosition), 'The join-room button must sit above the contact button.');
     }
 
     public function test_restricted_rooms_render_correct_blocked_card(): void

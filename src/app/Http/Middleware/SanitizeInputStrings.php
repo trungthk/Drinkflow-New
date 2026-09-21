@@ -72,7 +72,11 @@ class SanitizeInputStrings
     }
 
     /**
-     * Sanitize string against script injection, dangerous protocols, and inline event handlers.
+     * Strip the most common script-injection constructs from free text.
+     *
+     * This is defence in depth only: it is a deny-list and cannot make arbitrary text safe for HTML.
+     * Every place that renders user text must still encode its output (Blade `{{ }}` / escapeHtml in JS).
+     * The rules are applied repeatedly so nested payloads such as `<scr<script></script>ipt>` cannot re-form.
      *
      * @param string $value Input string.
      * @return string Sanitized string.
@@ -83,17 +87,26 @@ class SanitizeInputStrings
         $cleaned = str_replace(chr(0), '', $value);
         $cleaned = (string) preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u', '', $cleaned);
 
-        // 2. Remove <script> tags and their contents
-        $cleaned = (string) preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $cleaned);
+        for ($pass = 0; $pass < 5; $pass++) {
+            $before = $cleaned;
 
-        // 3. Remove standalone <script> and dangerous tags
-        $cleaned = (string) preg_replace('/<\/?(script|iframe|object|embed|applet|meta|link|style)\b[^>]*>/is', '', $cleaned);
+            // 2. Remove <script> tags and their contents
+            $cleaned = (string) preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $cleaned);
 
-        // 4. Remove dangerous javascript: / data: / vbscript: URI protocols
-        $cleaned = (string) preg_replace('/(javascript|vbscript|data):[^\s"\']+/is', '', $cleaned);
+            // 3. Remove standalone <script> and dangerous tags
+            $cleaned = (string) preg_replace('/<\/?(script|iframe|object|embed|applet|meta|link|style)\b[^>]*>/is', '', $cleaned);
 
-        // 5. Remove dangerous inline event handlers (onerror=, onload=, onclick=, onmouseover=, etc.)
-        $cleaned = (string) preg_replace('/(\bon\w+)\s*=\s*(["\']?).*?\2/is', '', $cleaned);
+            // 4. Remove javascript: / vbscript: URIs and data: URIs that carry active content
+            $cleaned = (string) preg_replace('/(javascript|vbscript):[^\s"\']+/is', '', $cleaned);
+            $cleaned = (string) preg_replace('/data:\s*(text\/html|application\/|image\/svg)[^\s"\']*/is', '', $cleaned);
+
+            // 5. Remove inline event handler attributes (onerror=, onload=, ...) that sit inside an HTML tag
+            $cleaned = (string) preg_replace('/(<[a-z][^>]*?[\s\/"\'])on[a-z]+\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]*)/i', '$1', $cleaned);
+
+            if ($cleaned === $before) {
+                break;
+            }
+        }
 
         return $cleaned;
     }

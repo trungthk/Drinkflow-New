@@ -165,4 +165,6 @@ io.on('connection', socket => {
   });
 });
 
-httpServer.listen(port, () => console.log(`DrinkFlow realtime listening on ${port}`));
+// HOST defaults to all interfaces so Docker keeps working; native VPS deployments set HOST=127.0.0.1 behind Nginx.
+const host = process.env.HOST || '0.0.0.0';
+httpServer.listen(port, host, () => console.log(`DrinkFlow realtime listening on ${host}:${port}`));

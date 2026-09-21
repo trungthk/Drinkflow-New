@@ -15,6 +15,13 @@ class DatabaseSeeder extends Seeder
     /** Seed a rich, repeatable workspace for local testing, demos, and join-room flows. */
     public function run(): void
     {
+        // Demo accounts use a well-known password, so production only receives reference data.
+        if (app()->isProduction()) {
+            $this->call(VersionSeeder::class);
+
+            return;
+        }
+
         // 1. Core Admins
         $admin = AdminAccount::updateOrCreate(
             ['email' => 'admin@drinkflow.local'],

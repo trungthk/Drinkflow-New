@@ -16,6 +16,10 @@
   $currentLocale = app()->getLocale();
   $activeLocaleMeta = $locales[$currentLocale] ?? $locales['vi'];
 
+  // Menus hidden for now. The markup is kept: remove an entry here to show that menu again.
+  $hiddenMenus = ['rooms', 'orders', 'payments', 'statistics'];
+  $showMenu = static fn (string $menu): bool => ! in_array($menu, $hiddenMenus, true);
+
   $hasRooms = $user !== null && $user->roomUsers()->exists();
   $hasOrders = $hasRooms
     && \App\Models\Order::query()
@@ -217,13 +221,15 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-[#006948]"></span>
                   @endif
                 </a>
-                @if($hasRooms)
+                @if($hasRooms && $showMenu('payments'))
                   <a class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium {{ $activeTab === 'payments' ? 'text-[#006948] bg-emerald-50/60 font-semibold' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50' }} rounded-xl transition-colors"
                     href="{{ route('user.me.payments') }}">
                     <span
                       class="material-symbols-outlined text-[17px] {{ $activeTab === 'payments' ? 'text-[#006948]' : 'text-slate-400' }}">account_balance_wallet</span>
                     <span>{{ __('global.header.wallet_payments') }}</span>
                   </a>
+                @endif
+                @if($hasRooms && $showMenu('statistics'))
                   <a class="flex items-center gap-2.5 px-3 py-2 text-xs font-medium {{ $activeTab === 'statistics' ? 'text-[#006948] bg-emerald-50/60 font-semibold' : 'text-slate-700 hover:text-slate-900 hover:bg-slate-50' }} rounded-xl transition-colors"
                     href="{{ route('user.me.statistics') }}">
                     <span
@@ -269,19 +275,23 @@
         </a>
 
         <!-- Chỉ hiển thị khi đã tham gia ít nhất 1 Room -->
-        @if($hasRooms)
+        @if($hasRooms && $showMenu('rooms'))
           <a class="{{ $tabClasses($activeTab === 'rooms') }}" href="{{ route('user.me.rooms') }}">
             <span>{{ __('global.header.my_rooms') }}</span>
           </a>
         @endif
 
-        @if($hasOrders)
+        @if($hasOrders && $showMenu('orders'))
           <a class="{{ $tabClasses($activeTab === 'orders') }}" href="{{ route('user.me.orders') }}">
             <span>{{ __('global.header.order_history') }}</span>
           </a>
+        @endif
+        @if($hasOrders && $showMenu('payments'))
           <a class="{{ $tabClasses($activeTab === 'payments') }}" href="{{ route('user.me.payments') }}">
             <span>{{ __('global.header.payments') }}</span>
           </a>
+        @endif
+        @if($hasOrders && $showMenu('statistics'))
           <a class="{{ $tabClasses($activeTab === 'statistics') }}" href="{{ route('user.me.statistics') }}">
             <span>{{ __('global.header.statistics') }}</span>
           </a>

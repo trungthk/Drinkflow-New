@@ -140,6 +140,7 @@ return [
         'error_invalid_identity' => 'Invalid Google identity.',
         'error_identity_conflict' => 'Google identity is already linked to another account.',
         'require_login_room' => "Please sign in with Google Workspace to access ':room'.",
+        'require_register' => 'Please register an account to use DrinkFlow',
     ],
     'video_modal' => [
         'close_label' => 'Close video',

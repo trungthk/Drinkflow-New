@@ -58,7 +58,13 @@ class AdminCampaignDetailService
         $aggregatedItems = collect();
         foreach ($orders as $order) {
             foreach ($order->items as $item) {
-                $key = $item->item_name . '|' . ($item->size_name ?? '');
+                $toppingLabels = $item->toppings
+                    ->map(static fn ($topping): string => (($topping->quantity > 1 ? $topping->quantity.'x ' : '').trim((string) $topping->topping_name)))
+                    ->filter(static fn (string $label): bool => trim($label) !== '')
+                    ->sort()
+                    ->values();
+                // Different toppings / ice / sugar are different drinks for the store, so they get their own line.
+                $key = implode('|', [$item->item_name, $item->size_name ?? '', $toppingLabels->join(';'), $item->ice_percent ?? '', $item->sugar_percent ?? '']);
                 if (! $aggregatedItems->has($key)) {
                     $aggregatedItems->put($key, [
                         'name' => $item->item_name,
@@ -67,7 +73,9 @@ class AdminCampaignDetailService
                         'quantity' => 0,
                         'total_amount' => 0,
                         'notes' => collect(),
-                        'toppings' => collect(),
+                        'toppings' => $toppingLabels,
+                        'ice_percent' => $item->ice_percent,
+                        'sugar_percent' => $item->sugar_percent,
                     ]);
                 }
                 $curr = $aggregatedItems->get($key);
@@ -75,12 +83,6 @@ class AdminCampaignDetailService
                 $curr['total_amount'] += $item->line_subtotal;
                 if (! empty($item->note)) {
                     $curr['notes']->push($item->note);
-                }
-                foreach ($item->toppings as $topping) {
-                    $label = trim((string) $topping->topping_name);
-                    if ($label !== '') {
-                        $curr['toppings']->push(($topping->quantity > 1 ? $topping->quantity.'x ' : '').$label);
-                    }
                 }
                 $aggregatedItems->put($key, $curr);
             }
@@ -146,7 +148,13 @@ class AdminCampaignDetailService
             }
 
             foreach ($order->items as $item) {
-                $itemKey = $item->item_name . '|' . ($item->size_name ?? '');
+                $toppingLabels = $item->toppings
+                    ->map(static fn ($topping): string => (($topping->quantity > 1 ? $topping->quantity.'x ' : '').trim((string) $topping->topping_name)))
+                    ->filter(static fn (string $label): bool => trim($label) !== '')
+                    ->sort()
+                    ->values();
+                // Same rule as the aggregated list: other toppings / ice / sugar mean a separate line.
+                $itemKey = implode('|', [$item->item_name, $item->size_name ?? '', $toppingLabels->join(';'), $item->ice_percent ?? '', $item->sugar_percent ?? '']);
                 if (! $dept['items']->has($itemKey)) {
                     $dept['items']->put($itemKey, [
                         'name' => $item->item_name,
@@ -156,6 +164,9 @@ class AdminCampaignDetailService
                         'total_amount' => 0,
                         'notes' => collect(),
                         'members' => collect(),
+                        'toppings' => $toppingLabels,
+                        'ice_percent' => $item->ice_percent,
+                        'sugar_percent' => $item->sugar_percent,
                     ]);
                 }
                 $deptItem = $dept['items']->get($itemKey);

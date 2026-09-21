@@ -24,6 +24,7 @@ return [
     'campaign_sponsor_not_set' => 'Không có',
     'campaign_restaurant' => 'Quán / Thương hiệu: :restaurant',
     'campaign_order' => 'Đặt món: :url',
+    'campaign_register' => 'Bấm vào đây để đăng ký mới: :url',
     'campaign_order_now' => 'Bấm vào đây để đặt món ngay',
     'campaign_closed_body' => 'Chiến dịch đã đóng đặt món. Admin đang tổng hợp đơn để tiến hành order.',
     'campaign_order_check' => 'Tra cứu đơn hàng: :url',

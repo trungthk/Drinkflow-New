@@ -163,7 +163,8 @@ export function initSearchableSelects() {
             let count = 0;
 
             Array.from(select.options).forEach(opt => {
-                if (normalizedFilter && !normalizeSearchText(opt.text).includes(normalizedFilter)) return;
+                // Options may carry extra searchable terms (e.g. email, code) in data-search.
+                if (normalizedFilter && !normalizeSearchText(`${opt.text} ${opt.dataset.search || ''}`).includes(normalizedFilter)) return;
                 count++;
 
                 const optBtn = document.createElement('button');

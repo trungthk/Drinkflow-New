@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
+use App\Events\CampaignCreated;
 use App\Models\AdminAccount;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
@@ -14,6 +15,7 @@ use App\Models\Order;
 use App\Models\Room;
 use App\Models\RoomUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
@@ -574,5 +576,114 @@ class AdminCampaignSubViewsTest extends TestCase
         $this->assertStringContainsString('class="truncate" title="Trà sữa buổi chiều"', $html);
         $this->assertStringContainsString('class="text-[11px] text-outline mt-1 truncate" title="Gong Cha"', $html);
         $this->assertMatchesRegularExpression('/history<\/span>\s*<span class="truncate">[^<]+<\/span>\s*<\/div>\s*<span class="[^"]*whitespace-nowrap[^"]*">1 /u', $html);
+    }
+
+    /**
+     * Test the resend button renders only for live campaigns.
+     */
+    public function test_info_shows_resend_notification_button_only_for_live_campaigns(): void
+    {
+        $url = "/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/info";
+
+        $this->actingAs($this->admin, 'admin')->get($url)->assertOk()->assertDontSee('id="resend-notification-btn"', false);
+
+        $this->campaign->update(['status' => CampaignStatus::Active, 'deadline' => now()->addHour()]);
+        $this->actingAs($this->admin, 'admin')->get($url)->assertOk()->assertSee('id="resend-notification-btn"', false);
+    }
+
+    /**
+     * Test resending re-dispatches the created event (web, channel and socket fan-out) for live campaigns only.
+     */
+    public function test_resend_notification_redispatches_created_event_for_live_campaigns(): void
+    {
+        Event::fake([CampaignCreated::class]);
+        $url = "/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/resend-notification";
+
+        // Closed campaign cannot be announced again.
+        $this->actingAs($this->admin, 'admin')->postJson($url)->assertStatus(422);
+        Event::assertNotDispatched(CampaignCreated::class);
+
+        $this->travel(61)->seconds(); // the rejected attempt above also counts toward the limit
+        $this->campaign->update(['status' => CampaignStatus::Active]);
+        $this->actingAs($this->admin, 'admin')->postJson($url)->assertOk()->assertJsonPath('message', __('admin.resend_notification_success'));
+
+        Event::assertDispatched(CampaignCreated::class, fn (CampaignCreated $event): bool => $event->campaign->id === $this->campaign->id);
+        $this->assertDatabaseHas('audit_logs', ['event' => 'campaign.notification_resent', 'target_id' => $this->campaign->id]);
+    }
+
+    /**
+     * Test resending is rate limited per campaign with a localized JSON error.
+     */
+    public function test_resend_notification_is_rate_limited_per_campaign(): void
+    {
+        Event::fake([CampaignCreated::class]);
+        $url = "/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/resend-notification";
+        $this->campaign->update(['status' => CampaignStatus::Active]);
+
+        $this->actingAs($this->admin, 'admin')->postJson($url)->assertOk();
+        $this->actingAs($this->admin, 'admin')->postJson($url)
+            ->assertStatus(429)
+            ->assertJsonStructure(['message']);
+
+        Event::assertDispatchedTimes(CampaignCreated::class, 1);
+    }
+
+    /**
+     * Test the aggregated and orders tabs show toppings and ice/sugar, and split drinks by customization.
+     */
+    public function test_orders_page_shows_toppings_and_customizations_in_item_columns(): void
+    {
+        $roomUser = RoomUser::create([
+            'room_id' => $this->room->id,
+            'global_user_id' => GlobalUser::create(['name' => 'Topping Fan', 'email' => 'fan@example.test'])->id,
+            'display_name' => 'Topping Fan',
+            'status' => 'active',
+        ]);
+        $order = Order::create([
+            'room_id' => $this->room->id,
+            'campaign_id' => $this->campaign->id,
+            'room_user_id' => $roomUser->id,
+            'subtotal' => 75000,
+            'final_amount' => 75000,
+            'status' => OrderStatus::Submitted,
+        ]);
+        $plain = $order->items()->create(['item_name' => 'Trà đào', 'size_name' => 'L', 'unit_price' => 30000, 'quantity' => 1, 'line_subtotal' => 30000]);
+        $withPearl = $order->items()->create([
+            'item_name' => 'Trà đào', 'size_name' => 'L', 'unit_price' => 30000, 'quantity' => 1,
+            'ice_percent' => 50, 'sugar_percent' => 70, 'line_subtotal' => 35000,
+        ]);
+        $withPearl->toppings()->create(['topping_name' => 'Trân châu', 'unit_price' => 5000, 'quantity' => 1, 'subtotal' => 5000]);
+
+        $response = $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/orders")
+            ->assertOk()
+            ->assertSee('+ Trân châu', false)
+            ->assertSee('50% '.__('room.orders.ice'), false)
+            ->assertSee('70% '.__('room.orders.sugar'), false);
+
+        // Same drink with and without toppings is two lines in the aggregated list.
+        $aggregated = $response->viewData('aggregatedItems');
+        $this->assertCount(2, $aggregated);
+        $this->assertSame([1, 1], $aggregated->pluck('quantity')->values()->all());
+        $this->assertSame(['Trân châu'], $aggregated->firstWhere('toppings', collect(['Trân châu']))['toppings']->all());
+
+        // The department tab lists the same customizations per department.
+        $departments = $response->viewData('departmentGroups');
+        $this->assertCount(1, $departments);
+        $this->assertCount(2, $departments->first()['items']);
+        $this->assertContains(['Trân châu'], $departments->first()['items']->pluck('toppings')->map->all()->all());
+    }
+
+    /**
+     * Test the close-campaign modal pre-checks "auto create debt records".
+     */
+    public function test_close_modal_auto_debt_checkbox_is_checked_by_default(): void
+    {
+        $this->campaign->update(['status' => CampaignStatus::Active, 'deadline' => now()->addHour()]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/info")
+            ->assertOk()
+            ->assertSee('id="close-campaign-allow-debt" checked', false);
     }
 }

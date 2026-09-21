@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Enums\PaymentMethod;
 use App\Http\Requests\Concerns\AuthorizesUserAndAdmin;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class SettleDebtsRequest extends FormRequest
 {
@@ -28,7 +30,7 @@ class SettleDebtsRequest extends FormRequest
             'room_user_id' => ['nullable', 'integer'],
             'date' => ['nullable', 'date_format:Y-m-d'],
             'all' => ['nullable', 'boolean'],
-            'payment_method' => ['required', 'string', 'max:30'],
+            'payment_method' => ['required', 'string', Rule::enum(PaymentMethod::class)],
             'reference' => ['nullable', 'string', 'max:120'],
         ];
     }
@@ -40,7 +42,7 @@ class SettleDebtsRequest extends FormRequest
     {
         return [
             'payment_method.required' => __('validation.required', ['attribute' => __('validation.attributes.payment_method')]),
-            'payment_method.max' => __('validation.max.string', ['attribute' => __('validation.attributes.payment_method'), 'max' => 30]),
+            'payment_method.enum' => __('validation.enum', ['attribute' => __('validation.attributes.payment_method')]),
             'reference.max' => __('validation.max.string', ['attribute' => __('validation.attributes.reference'), 'max' => 120]),
         ];
     }

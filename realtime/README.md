@@ -35,6 +35,7 @@ Gateway tự đọc `realtime/.env`, sau đó `src/.env` nếu biến chưa tồ
 | Biến | Bắt buộc | Mô tả |
 | --- | --- | --- |
 | `PORT` | Không | Cổng HTTP/Socket.IO, mặc định `3001`. |
+| `HOST` | Không | Địa chỉ lắng nghe, mặc định `0.0.0.0` (cần cho Docker). Khi chạy native sau Nginx hãy đặt `127.0.0.1`. |
 | `APP_KEY` | Có* | Khóa HMAC mà Laravel hiện dùng để ký socket token. |
 | `SOCKET_TOKEN_SECRET` | Có* | Nếu có giá trị, gateway dùng khóa này thay cho `APP_KEY`. Phải giống khóa Laravel dùng để ký token; với code hiện tại nên để trống hoặc đặt bằng `APP_KEY`. |
 | `REALTIME_INTERNAL_SECRET` | Có cho internal emit | Shared secret đối chiếu header `X-Realtime-Secret`. |

@@ -150,7 +150,13 @@ export function initAdminNotifications() {
             };
             Object.entries(fieldMap[details.type] || {}).forEach(([key, selector]) => {
                 const input = document.querySelector(selector);
-                if (input) input.value = config[key] || '';
+                if (input) {
+                    input.value = config[key] || '';
+                    if ((details.secrets_configured || []).includes(key)) {
+                        input.dataset.defaultPlaceholder = input.dataset.defaultPlaceholder || input.placeholder;
+                        input.placeholder = '••••••••';
+                    }
+                }
             });
             switchPlatform(typeSelect?.value || 'webhook');
             if (formTitle) formTitle.textContent = translations.notificationEdit || 'Edit';

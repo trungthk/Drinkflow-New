@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Exports;
 
+use App\Exports\Concerns\NeutralizesFormulas;
 use App\Enums\DebtStatus;
 use App\Models\Debt;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,6 +16,8 @@ use Maatwebsite\Excel\Concerns\WithCustomCsvSettings;
 
 final class AdminDebtLedgerExport implements FromQuery, WithMapping, WithHeadings, ShouldAutoSize, WithCustomCsvSettings
 {
+    use NeutralizesFormulas;
+
     public function __construct(private readonly int $roomId) {}
 
     public function query(): Builder
@@ -26,7 +29,7 @@ final class AdminDebtLedgerExport implements FromQuery, WithMapping, WithHeading
     {
         $status = $debt->status instanceof DebtStatus ? $debt->status->value : (string) $debt->status;
         $sponsorType = $debt->sponsor_type ?: 'none';
-        return [$debt->campaign?->name, $debt->roomUser?->user_code, $debt->roomUser?->globalUser?->email, $debt->created_at?->format('Y-m-d'), $debt->original_amount, __('admin.sponsor_type_'.$sponsorType), $debt->sponsor_amount, $debt->paid_amount, $debt->remaining_amount, __('admin.status_'.$status)];
+        return self::neutralizeRow([$debt->campaign?->name, $debt->roomUser?->user_code, $debt->roomUser?->globalUser?->email, $debt->created_at?->format('Y-m-d'), $debt->original_amount, __('admin.sponsor_type_'.$sponsorType), $debt->sponsor_amount, $debt->paid_amount, $debt->remaining_amount, __('admin.status_'.$status)]);
     }
 
     public function headings(): array

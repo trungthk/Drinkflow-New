@@ -68,6 +68,76 @@ class UserRoomDashboardTopItemsTest extends TestCase
     }
 
     /**
+     * The placed-orders shortcut only shows once the member has a valid order in the live campaign.
+     *
+     * @return void
+     */
+    public function test_placed_orders_button_is_hidden_until_member_orders_in_live_campaign(): void
+    {
+        $room = Room::create(['name' => 'Technology', 'slug' => 'technology-placed-orders', 'status' => RoomStatus::Active]);
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Live coffee',
+            'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active,
+        ]);
+        $user = $this->user('placed@example.test');
+        $member = $this->member($room, $user, 'PLACED');
+        $dashboardUrl = route('user.dashboard', $room->slug);
+        $service = app(UserRoomDashboardService::class);
+
+        $this->assertFalse($service->getDashboardData($room, $member, $user)['activeCampaign']['has_ordered']);
+        $this->actingAs($user, 'web')->get($dashboardUrl)->assertOk()
+            ->assertSee(route('user.campaigns.index', $room->slug), false)
+            ->assertDontSee(__('room.dashboard.placed_orders'));
+
+        // A cancelled order does not count as having ordered.
+        $order = $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+            'subtotal' => 10000, 'final_amount' => 10000, 'status' => OrderStatus::Cancelled,
+        ]);
+        $this->assertFalse($service->getDashboardData($room, $member, $user)['activeCampaign']['has_ordered']);
+
+        $order->update(['status' => OrderStatus::Submitted]);
+        $this->assertTrue($service->getDashboardData($room, $member, $user)['activeCampaign']['has_ordered']);
+        $this->actingAs($user, 'web')->get($dashboardUrl)->assertOk()->assertSee(__('room.dashboard.placed_orders'));
+    }
+
+    /**
+     * The orders page renders a submitted order whose items carry toppings (priced by unit_price).
+     *
+     * @return void
+     */
+    public function test_orders_page_renders_order_with_toppings(): void
+    {
+        $room = Room::create(['name' => 'Technology', 'slug' => 'technology-topping-order', 'status' => RoomStatus::Active]);
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Live coffee',
+            'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active,
+        ]);
+        $user = $this->user('topping@example.test');
+        $member = $this->member($room, $user, 'TOPPING');
+        $order = $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+            'subtotal' => 35000, 'final_amount' => 35000, 'status' => OrderStatus::Submitted,
+        ]);
+        $item = $order->items()->create([
+            'item_name' => 'Milk tea', 'unit_price' => 30000, 'quantity' => 1, 'line_subtotal' => 35000,
+        ]);
+        $item->toppings()->create([
+            'topping_name' => 'Pearl', 'unit_price' => 5000, 'quantity' => 1, 'subtotal' => 5000,
+        ]);
+
+        $this->actingAs($user, 'web')
+            ->get(route('user.orders.index', $room->slug))
+            ->assertOk()
+            ->assertSee('Pearl')
+            ->assertSee('+'.\App\Support\Helpers\FormatHelper::formatCurrency(5000), false);
+    }
+
+    /**
      * Create an active global account.
      *
      * @param string $email Unique account email.

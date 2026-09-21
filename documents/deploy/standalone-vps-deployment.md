@@ -2,6 +2,8 @@
 
 Tài liệu này hướng dẫn chi tiết cách cài đặt và cấu hình từng dịch vụ riêng biệt trực tiếp trên hệ điều hành **Ubuntu 22.04 / 24.04 LTS** mà không sử dụng Docker, nhằm tối ưu hóa 100% hiệu năng phần cứng cho hệ thống **DrinkFlow Enterprise**.
 
+> **Cập nhật:** tài liệu đã được đối chiếu với code hiện tại (nhánh `master`). Các điểm khác so với bản cũ: không chạy `db:seed` đầy đủ trên production, có cấu hình SMTP cho email OTP, cấu hình Chrome cho Food Crawler, bảo mật `.env`/Redis/session, và script deploy có sao lưu DB + chế độ bảo trì.
+
 ---
 
 ## 1. Danh sách Dịch vụ Cần Cài đặt
@@ -14,6 +16,8 @@ Tài liệu này hướng dẫn chi tiết cách cài đặt và cấu hình t�
 6. **Supervisor** (Giám sát và duy trì tiến trình chạy ngầm Queue Worker và Socket.IO).
 7. **Composer 2** (Trình quản lý thư viện PHP).
 8. **Certbot** (Cấp và tự động gia hạn SSL Let's Encrypt).
+9. **Google Chrome (stable)** (Chỉ cần nếu dùng tính năng Food Crawler - nhập menu từ ShopeeFood).
+10. **SMTP** (Dịch vụ gửi email - bắt buộc để admin nhận mã OTP khi quên mật khẩu).
 
 ---
 
@@ -76,7 +80,8 @@ sudo ufw enable
 ```
 
 MySQL, Redis và Socket.IO phải chỉ lắng nghe trên `127.0.0.1`; không mở các port
-3306, 6379 hoặc 3001 ra Internet.
+3306, 6379 hoặc 3001 ra Internet. Sau khi cài xong, xác nhận bằng `sudo ss -ltnp`
+(xem mục 10).
 
 ---
 
@@ -109,13 +114,14 @@ sudo add-apt-repository ppa:ondrej/php -y
 sudo apt update
 
 # Cài đặt PHP 8.3 FPM, CLI và các extension thiết yếu cho Laravel
+# gd: captcha + xử lý ảnh | zip/xml: xuất Excel | redis: phpredis | intl, bcmath, mbstring: Laravel
 sudo apt install -y php8.3-fpm php8.3-cli php8.3-common \
-    php8.3-mysql php8.3-sqlite3 \
+    php8.3-mysql \
     php8.3-mbstring php8.3-xml php8.3-curl php8.3-zip \
     php8.3-gd php8.3-bcmath php8.3-intl php8.3-redis \
     php8.3-opcache php8.3-readline
 
-# Kiểm tra phiên bản PHP
+# Kiểm tra phiên bản PHP (yêu cầu tối thiểu của ứng dụng: PHP ^8.2)
 php -v
 ```
 
@@ -134,8 +140,10 @@ upload_max_filesize = 50M
 post_max_size = 50M
 max_execution_time = 120
 date.timezone = Asia/Ho_Chi_Minh
+expose_php = Off
+cgi.fix_pathinfo = 0
 
-# Bật OPcache
+; Bật OPcache
 opcache.enable=1
 opcache.memory_consumption=128
 opcache.interned_strings_buffer=16
@@ -143,6 +151,12 @@ opcache.max_accelerated_files=10000
 opcache.revalidate_freq=0
 opcache.validate_timestamps=0
 ```
+
+> **Lưu ý 1:** `opcache.validate_timestamps=0` nghĩa là PHP-FPM **không tự nhận code mới**.
+> Sau mỗi lần deploy phải `reload php8.3-fpm` (script ở mục 8 đã làm việc này).
+>
+> **Lưu ý 2:** Food Crawler gọi Node/Chrome bằng `shell_exec`. Không đưa `shell_exec`
+> vào `disable_functions`, nếu không tính năng nhập menu sẽ lỗi.
 
 Khởi động lại PHP-FPM:
 
@@ -192,14 +206,19 @@ sudo systemctl restart mysql
 
 #### Tạo Database & User riêng cho DrinkFlow
 
+Sinh mật khẩu ngẫu nhiên và lưu vào trình quản lý secrets (không dùng lại mật khẩu mẫu):
+
+```bash
+openssl rand -base64 24
+```
+
 Đăng nhập MySQL bằng tài khoản quản trị:
 
 ```bash
 sudo mysql
 ```
 
-Trong dấu nhắc lệnh `mysql`, thay `MAT_KHAU_DATABASE_THAT_MANH` bằng một mật khẩu
-được tạo riêng và lưu trong trình quản lý secrets:
+Trong dấu nhắc lệnh `mysql`, thay `MAT_KHAU_DATABASE_THAT_MANH` bằng mật khẩu vừa tạo:
 
 ```sql
 CREATE DATABASE drinkflow_prod
@@ -226,22 +245,31 @@ Nếu cần truy cập MySQL từ máy quản trị, dùng SSH tunnel thay vì m
 
 ---
 
-### 3.4. Cài đặt Redis Server (Cache & Queue)
+### 3.4. Cài đặt Redis Server (Cache, Session & Queue)
 
 ```bash
 sudo apt install -y redis-server
+
+# Sinh mật khẩu Redis
+openssl rand -hex 24
 
 # Mở file cấu hình redis
 sudo nano /etc/redis/redis.conf
 ```
 
-Tìm dòng `supervised no` đổi thành `supervised systemd`:
+Chỉnh các dòng sau (thay `MAT_KHAU_REDIS` bằng mật khẩu vừa sinh):
 
 ```ini
+bind 127.0.0.1 -::1
 supervised systemd
+requirepass MAT_KHAU_REDIS
 maxmemory 256mb
-maxmemory-policy allkeys-lru
+maxmemory-policy volatile-lru
 ```
+
+> **Vì sao `volatile-lru` thay vì `allkeys-lru`:** Redis này chứa cả **hàng đợi (queue)**,
+> **session** và **cache**. `allkeys-lru` có thể xóa nhầm job trong hàng đợi khi hết bộ nhớ
+> (mất thông báo, mất tác vụ). `volatile-lru` chỉ loại bỏ các key có TTL (session, cache).
 
 Khởi động lại Redis:
 
@@ -250,7 +278,7 @@ sudo systemctl restart redis-server
 sudo systemctl enable redis-server
 
 # Kiểm tra kết nối
-redis-cli ping
+redis-cli -a 'MAT_KHAU_REDIS' ping
 # Kết quả trả về: PONG
 ```
 
@@ -276,7 +304,62 @@ npm -v
 
 ---
 
+### 3.6. Cài đặt Google Chrome cho Food Crawler (tùy chọn)
+
+Chỉ cần khi dùng tính năng nhập menu từ ShopeeFood. Trên Ubuntu, gói `chromium-browser`
+chỉ là bản **snap** và không chạy ổn định dưới `www-data`, vì vậy dùng Google Chrome:
+
+```bash
+wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb -O /tmp/chrome.deb
+sudo apt install -y /tmp/chrome.deb
+rm /tmp/chrome.deb
+
+google-chrome-stable --version
+```
+
+Thư mục profile riêng cho Chrome (`storage/app/chrome-profile`) được tạo ở mục 4.4, sau khi
+đã clone mã nguồn (không tạo trước vì `git clone` cần thư mục đích còn trống).
+Các biến `FOOD_CRAWLER_*` tương ứng nằm trong `.env` (mục 4.3).
+
+---
+
 ## 4. Triển khai Mã Nguồn DrinkFlow
+
+### 4.0. Checklist trước khi deploy (làm trên máy phát triển)
+
+Server chỉ nhận được những gì đã được **commit và push** lên GitHub. Nhánh chính của
+repo là **`master`** (không phải `main`).
+
+1. Kiểm tra file chưa được theo dõi bởi Git:
+
+   ```bash
+   git status --short
+   ```
+
+   Mọi file có dấu `??` mà code đang dùng **phải được `git add` + commit**. Đặc biệt
+   `src/app/Http/Middleware/SecurityHeaders.php` được `bootstrap/app.php` tham chiếu:
+   nếu thiếu file này trên server, **toàn bộ website sẽ lỗi 500**. Các file mới hiện có
+   gồm (không đầy đủ): `src/app/Support/Security/`, `src/app/Exports/Concerns/`,
+   `src/app/Enums/PaymentMethod.php`, `src/app/Services/FoodCrawler/Browser/network-guard.cjs`,
+   `src/resources/js/shared/escape-html.js`, `src/resources/views/admin/partials/`.
+
+2. Chạy toàn bộ test:
+
+   ```bash
+   cd src
+   php artisan test
+   ```
+
+   Hiện `NormalizeDongSignMigrationTest` thất bại vì thiếu file migration
+   `database/migrations/2026_09_20_000000_normalize_dong_sign_in_stored_texts.php`.
+   Nếu đây là migration cần chạy trên production, hãy thêm nó vào repo trước khi push;
+   nếu không, xử lý test đó trước khi deploy.
+
+3. Push:
+
+   ```bash
+   git push origin master
+   ```
 
 ### 4.1. Clone Source Code & Cấp Quyền
 
@@ -285,7 +368,9 @@ sudo mkdir -p /var/www/drinkflow
 sudo chown -R $USER:www-data /var/www/drinkflow
 cd /var/www/drinkflow
 
-git clone https://github.com/your-username/Drinkflow-New.git .
+# Repo private: dùng deploy key hoặc Personal Access Token khi git hỏi thông tin
+git clone https://github.com/trungthk/Drinkflow-New.git .
+git checkout master
 ```
 
 ### 4.2. Cài đặt PHP Dependencies & Build Frontend Assets
@@ -293,17 +378,22 @@ git clone https://github.com/your-username/Drinkflow-New.git .
 ```bash
 cd /var/www/drinkflow/src
 
-# 1. Cài đặt PHP Packages cho Production
-composer install --no-dev --optimize-autoloader --no-interaction
+# 1. PHP packages cho Production (--no-scripts: bước package:discover chạy bằng www-data ở mục 4.4,
+#    vì bootstrap/cache thuộc www-data)
+composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# 2. Cài đặt Node packages & Build Vite CSS/JS
-npm install
+# 2. Node packages & build Vite CSS/JS.
+#    Không tải Chrome đi kèm puppeteer (dùng Google Chrome đã cài ở mục 3.6)
+PUPPETEER_SKIP_DOWNLOAD=1 npm ci
 npm run build
 
-# 3. Cài đặt dependencies cho Realtime Gateway
+# 3. Dependencies cho Realtime Gateway
 cd /var/www/drinkflow/realtime
-npm install --production
+npm ci --omit=dev
 ```
+
+> `src/public/build/` không được commit, vì vậy **bắt buộc** chạy `npm run build` trên
+> server sau mỗi lần thay đổi JS/CSS (script ở mục 8 đã làm).
 
 ### 4.3. Cấu hình file `.env` của Laravel
 
@@ -312,19 +402,27 @@ Quay lại thư mục `src/`:
 ```bash
 cd /var/www/drinkflow/src
 cp .env.example .env
+
+# Sinh sẵn 2 secret ngẫu nhiên để dán vào .env bên dưới
+echo "REALTIME_INTERNAL_SECRET=$(openssl rand -hex 32)"
+echo "SOCKET_TOKEN_SECRET=$(openssl rand -hex 32)"
+
 nano .env
 ```
 
-Cấu hình các thông số:
+Cấu hình các thông số (mọi giá trị chứa ký tự đặc biệt như `#`, `$`, khoảng trắng phải đặt trong dấu nháy kép):
 
 ```ini
 APP_NAME=DrinkFlow
-APP_ENV=production
+APP_ENV=production          # BẮT BUỘC là production: nếu để "local", captcha đăng nhập admin bị tắt
 APP_KEY=
-APP_DEBUG=false
+APP_DEBUG=false             # BẮT BUỘC false
 APP_URL=https://drinkflow.yourcompany.com
 APP_TIMEZONE=Asia/Ho_Chi_Minh
 APP_LOCALE=vi
+
+LOG_CHANNEL=daily
+LOG_LEVEL=warning
 
 # Kết nối MySQL tự host, chỉ lắng nghe trên máy VPS
 DB_CONNECTION=mysql
@@ -332,52 +430,128 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=drinkflow_prod
 DB_USERNAME=drinkflow_user
-DB_PASSWORD=MAT_KHAU_DATABASE_THAT_MANH
+DB_PASSWORD="MAT_KHAU_DATABASE_THAT_MANH"
 
-# Session & Cache qua Redis (hoặc database)
+# Session, Cache & Queue qua Redis
 SESSION_DRIVER=redis
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=true
+SESSION_SECURE_COOKIE=true
+SESSION_SAME_SITE=lax
 CACHE_STORE=redis
 QUEUE_CONNECTION=redis
+REDIS_CLIENT=phpredis
 REDIS_HOST=127.0.0.1
 REDIS_PORT=6379
+REDIS_PASSWORD="MAT_KHAU_REDIS"
 
-# Realtime Socket.IO
+# Email (BẮT BUỘC: dùng để gửi OTP quên mật khẩu admin. Nếu để MAIL_MAILER=log thì OTP chỉ ghi vào log)
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.yourprovider.com
+MAIL_PORT=587
+MAIL_USERNAME=your-smtp-user
+MAIL_PASSWORD="your-smtp-password"
+MAIL_FROM_ADDRESS=no-reply@yourcompany.com
+MAIL_FROM_NAME="${APP_NAME}"
+
+# Captcha (để false; captcha chỉ tự tắt khi APP_ENV=local)
+CAPTCHA_DISABLE=false
+
+# Realtime Socket.IO (dùng 2 secret sinh ở trên, KHÔNG dùng lại giá trị mẫu)
 REALTIME_URL=http://127.0.0.1:3001
 REALTIME_PUBLIC_URL=https://drinkflow.yourcompany.com
-REALTIME_INTERNAL_SECRET=DrinkFlowSecret_Prod_Key_99999
-SOCKET_TOKEN_SECRET=SocketTokenSecret_Prod_Key_88888
+REALTIME_INTERNAL_SECRET=DAN_GIA_TRI_openssl_rand_hex_32
+SOCKET_TOKEN_SECRET=DAN_GIA_TRI_openssl_rand_hex_32
 CORS_ORIGIN=https://drinkflow.yourcompany.com
 
 # Google OAuth
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_REDIRECT_URI=https://drinkflow.yourcompany.com/auth/google/callback
+# Giới hạn tên miền email được phép thêm vào phòng (phân tách bằng dấu phẩy, để trống = cho phép mọi domain)
+GOOGLE_ALLOWED_DOMAINS=yourcompany.com
+
+# Food Crawler (chỉ cần khi dùng nhập menu từ ShopeeFood)
+FOOD_CRAWLER_CHROME_PATH=/usr/bin/google-chrome-stable
+FOOD_CRAWLER_NODE_BINARY=/usr/bin/node
+FOOD_CRAWLER_NPM_BINARY=/usr/bin/npm
+FOOD_CRAWLER_HEADLESS=true
+FOOD_CRAWLER_USER_DATA_DIR=/var/www/drinkflow/src/storage/app/chrome-profile
 ```
+
+Khóa quyền đọc `.env` (chỉ chủ sở hữu và `www-data` được đọc; Realtime Gateway cũng đọc file này):
+
+```bash
+chown $USER:www-data /var/www/drinkflow/src/.env
+chmod 640 /var/www/drinkflow/src/.env
+```
+
+Cập nhật `GOOGLE_REDIRECT_URI` trong Google Cloud Console cho khớp với giá trị trên
+(đúng scheme `https`).
 
 ### 4.4. Sinh App Key, Chạy Migration & Phân Quyền Thư mục
 
 ```bash
 cd /var/www/drinkflow/src
 
-# Sinh Application Encryption Key
+# Phân quyền chuẩn cho Web Server
+sudo chown -R www-data:www-data storage bootstrap/cache
+sudo chmod -R 775 storage bootstrap/cache
+
+# Thư mục profile cho Chrome của Food Crawler (mục 3.6)
+sudo -u www-data mkdir -p storage/app/chrome-profile
+
+# Sinh Application Encryption Key (ghi vào .env của user hiện tại)
 php artisan key:generate --force
 
-# Chạy Migration và Seed CSDL
-php artisan migrate --force
-php artisan db:seed --force
+# Từ đây chạy artisan bằng www-data để file cache/log không bị sai chủ sở hữu
+sudo -u www-data php artisan package:discover --ansi
+sudo -u www-data php artisan migrate --force
 
-# Phân quyền chuẩn cho Web Server
-sudo chown -R www-data:www-data /var/www/drinkflow/src/storage /var/www/drinkflow/src/bootstrap/cache
-sudo chmod -R 775 /var/www/drinkflow/src/storage /var/www/drinkflow/src/bootstrap/cache
+# Chỉ nạp dữ liệu tham chiếu (phiên bản hệ thống). KHÔNG chạy `db:seed` đầy đủ trên production
+# vì seeder demo tạo tài khoản admin/superadmin với mật khẩu công khai (xem 4.5).
+sudo -u www-data php artisan db:seed --class=VersionSeeder --force
 
-# Tạo storage link nếu cần
+# Tạo symlink public/storage (chạy bằng user hiện tại vì thư mục public/ thuộc user này)
 php artisan storage:link
 
 # Tối ưu hóa cache Production
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+sudo -u www-data php artisan config:cache
+sudo -u www-data php artisan route:cache
+sudo -u www-data php artisan view:cache
+sudo -u www-data php artisan event:cache
 ```
+
+> Từ phiên bản này, `DatabaseSeeder` tự bỏ qua dữ liệu demo khi `APP_ENV=production` và
+> chỉ gọi `VersionSeeder`. Chạy `db:seed --class=VersionSeeder` vẫn là cách rõ ràng nhất.
+
+### 4.5. Tạo tài khoản Superadmin đầu tiên
+
+Không dùng tài khoản demo trong seeder (`superadmin@drinkflow.local` / `drinkflow2026`).
+Tạo tài khoản thật với mật khẩu mạnh (tối thiểu 12 ký tự); mật khẩu được nhập ẩn, không lưu vào lịch sử shell:
+
+```bash
+cd /var/www/drinkflow/src
+
+read -rp "Email superadmin: " SA_EMAIL
+read -rsp "Mật khẩu (>= 12 ký tự): " SA_PASS; echo
+
+SA_EMAIL="$SA_EMAIL" SA_PASS="$SA_PASS" sudo -E -u www-data php artisan tinker --execute='
+App\Models\AdminAccount::create([
+    "name" => "Superadmin",
+    "email" => strtolower(getenv("SA_EMAIL")),
+    "password" => getenv("SA_PASS"),
+    "role" => "superadmin",
+    "status" => "active",
+]);
+echo "OK\n";
+'
+
+unset SA_EMAIL SA_PASS
+```
+
+Sau khi đăng nhập lần đầu tại `/admin/login`, tạo các admin phòng từ trang Superadmin,
+và bật xác thực 2 bước (Google Workspace) trong trang hồ sơ admin nếu tổ chức dùng Google Workspace.
 
 ---
 
@@ -402,6 +576,7 @@ server {
     index index.php index.html;
     charset utf-8;
     client_max_body_size 50M;
+    server_tokens off;
 
     # Gzip Compression
     gzip on;
@@ -442,12 +617,15 @@ server {
         fastcgi_hide_header X-Powered-By;
         fastcgi_buffer_size 16k;
         fastcgi_buffers 4 16k;
+        # Food Crawler mở Chrome trong request, có thể mất > 60s (mặc định của Nginx)
+        fastcgi_read_timeout 120s;
     }
 
     # 4. Static Build Assets Cache
     location ~* \.(jpg|jpeg|png|gif|ico|css|js|woff2|woff|ttf|svg|webp)$ {
         expires 30d;
         add_header Cache-Control "public, no-transform";
+        add_header X-Content-Type-Options "nosniff" always;
         access_log off;
     }
 
@@ -457,6 +635,12 @@ server {
     }
 }
 ```
+
+> Các header bảo mật của trang (`X-Frame-Options`, `Content-Security-Policy: frame-ancestors`,
+> `Referrer-Policy`, `Permissions-Policy`, HSTS khi chạy HTTPS) do **ứng dụng Laravel** gắn vào
+> (middleware `SecurityHeaders`), không cần thêm trong Nginx.
+> Nếu đặt website sau Cloudflare hoặc reverse proxy khác, cần cấu hình Trusted Proxies của
+> Laravel để IP client (dùng cho rate limit) và scheme HTTPS được nhận đúng.
 
 Kích hoạt site:
 
@@ -473,10 +657,17 @@ file DrinkFlow vừa thay đổi rồi chạy lại `sudo nginx -t`. `reload` đ
 
 ### 5.2. Cài đặt SSL Let's Encrypt bằng Certbot
 
+Trỏ bản ghi DNS `A` của `drinkflow.yourcompany.com` về IP VPS trước khi chạy:
+
 ```bash
 sudo apt install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d drinkflow.yourcompany.com
+
+# Kiểm tra tự động gia hạn
+sudo certbot renew --dry-run
 ```
+
+> `SESSION_SECURE_COOKIE=true` yêu cầu website chạy HTTPS; nếu chưa cấp SSL thì không thể đăng nhập.
 
 ---
 
@@ -534,10 +725,14 @@ command=node server.js
 autostart=true
 autorestart=true
 user=www-data
-environment=NODE_ENV="production",PORT="3001"
+environment=NODE_ENV="production",PORT="3001",HOST="127.0.0.1"
 redirect_stderr=true
 stdout_logfile=/var/www/drinkflow/src/storage/logs/realtime.log
 ```
+
+`HOST="127.0.0.1"` bắt buộc để gateway chỉ lắng nghe nội bộ (mặc định là mọi interface).
+Gateway tự đọc `realtime/.env`, sau đó `src/.env` (các biến `SOCKET_TOKEN_SECRET`,
+`REALTIME_INTERNAL_SECRET`, `CORS_ORIGIN`), nên `www-data` phải đọc được `src/.env` (đã cấp ở mục 4.3).
 
 ### 6.4. Nạp và Khởi chạy Supervisor:
 
@@ -563,6 +758,12 @@ Thêm dòng sau vào cuối:
 * * * * * php /var/www/drinkflow/src/artisan schedule:run >> /dev/null 2>&1
 ```
 
+Kiểm tra danh sách tác vụ đã lên lịch:
+
+```bash
+sudo -u www-data php /var/www/drinkflow/src/artisan schedule:list
+```
+
 ---
 
 ## 8. Script Cập nhật Mã Nguồn Định kỳ (`deploy-native.sh`)
@@ -573,40 +774,73 @@ Tạo file `/var/www/drinkflow/deploy-native.sh`:
 nano /var/www/drinkflow/deploy-native.sh
 ```
 
-Nội dung script:
+Nội dung script (sao lưu DB trước khi migrate, bật chế độ bảo trì trong lúc cập nhật,
+chỉ khởi động lại các tiến trình của DrinkFlow để không ảnh hưởng website khác trên VPS):
 
 ```bash
 #!/usr/bin/env bash
-set -e
+set -Eeuo pipefail
 
-cd /var/www/drinkflow
+APP_DIR=/var/www/drinkflow
+BRANCH=master
+DB_NAME=drinkflow_prod
+BACKUP_DIR=/var/backups/drinkflow
 
-echo "🚀 [1/7] Kéo mã nguồn mới nhất..."
-git pull origin main
+artisan() { sudo -u www-data php "$APP_DIR/src/artisan" "$@"; }
 
-echo "📦 [2/7] Cài đặt Composer Dependencies..."
-cd src
-composer install --no-dev --optimize-autoloader --no-interaction
+on_error() {
+    echo "❌ Deploy thất bại ở dòng $1. Website ĐANG Ở CHẾ ĐỘ BẢO TRÌ."
+    echo "   Sửa lỗi rồi chạy lại script, hoặc rollback (xem mục 11) rồi chạy: sudo -u www-data php $APP_DIR/src/artisan up"
+}
+trap 'on_error $LINENO' ERR
 
-echo "🎨 [3/7] Build Assets Vite..."
-npm install
+cd "$APP_DIR"
+
+echo "💾 [1/9] Sao lưu cơ sở dữ liệu..."
+sudo mkdir -p "$BACKUP_DIR"
+sudo mysqldump --single-transaction --routines "$DB_NAME" | gzip \
+    | sudo tee "$BACKUP_DIR/pre-deploy-$(date +%Y%m%d-%H%M%S).sql.gz" > /dev/null
+
+echo "🚧 [2/9] Bật chế độ bảo trì..."
+artisan down --retry=60 || true
+
+echo "🚀 [3/9] Kéo mã nguồn mới nhất (nhánh $BRANCH)..."
+git fetch origin "$BRANCH"
+git pull --ff-only origin "$BRANCH"
+
+echo "📦 [4/9] Cài đặt Composer Dependencies..."
+cd "$APP_DIR/src"
+composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+artisan package:discover --ansi
+
+echo "🎨 [5/9] Build Assets Vite & Realtime dependencies..."
+PUPPETEER_SKIP_DOWNLOAD=1 npm ci
 npm run build
+(cd "$APP_DIR/realtime" && npm ci --omit=dev)
 
-echo "🗄️ [4/7] Chạy Database Migrations..."
-php artisan migrate --force
+echo "🗄️ [6/9] Chạy Database Migrations..."
+artisan migrate --force
 
-echo "⚡ [5/7] Làm mới Cache..."
-php artisan optimize:clear
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+echo "⚡ [7/9] Làm mới Cache..."
+artisan optimize:clear
+artisan config:cache
+artisan route:cache
+artisan view:cache
+artisan event:cache
 
-echo "🔄 [6/7] Khởi động lại Worker & Realtime..."
-sudo supervisorctl restart all
+echo "🔄 [8/9] Khởi động lại Worker, Realtime & PHP-FPM..."
+artisan queue:restart
+sudo supervisorctl restart drinkflow-realtime
+sudo supervisorctl restart 'drinkflow-worker:*'
 sudo systemctl reload php8.3-fpm
 sudo systemctl reload nginx
 
-echo "✅ [7/7] Cập nhật thành công!"
+echo "✅ [9/9] Tắt bảo trì & kiểm tra..."
+artisan up
+APP_URL=$(grep -E '^APP_URL=' "$APP_DIR/src/.env" | head -n1 | cut -d= -f2- | tr -d '"')
+curl -fsS -o /dev/null -w "Health check /up: HTTP %{http_code}\n" "$APP_URL/up"
+
+echo "🎉 Cập nhật thành công!"
 ```
 
 Cấp quyền:
@@ -615,8 +849,105 @@ Cấp quyền:
 chmod +x /var/www/drinkflow/deploy-native.sh
 ```
 
-Mỗi khi muốn deploy code mới, chỉ cần chạy:
+Mỗi khi muốn deploy code mới (sau khi đã push lên `master`), chỉ cần chạy:
 
 ```bash
-./deploy-native.sh
+/var/www/drinkflow/deploy-native.sh
 ```
+
+> Script không dùng `supervisorctl restart all` vì lệnh đó sẽ khởi động lại **cả các
+> chương trình của website khác** trên cùng VPS.
+> `git pull --ff-only` sẽ dừng nếu server có thay đổi cục bộ; không sửa trực tiếp mã nguồn trên server.
+
+---
+
+## 9. Sao lưu Định kỳ
+
+Sao lưu hằng ngày cơ sở dữ liệu và ảnh người dùng tải lên (`storage/app/public`):
+
+```bash
+sudo mkdir -p /var/backups/drinkflow
+sudo crontab -e
+```
+
+```cron
+30 2 * * * mysqldump --single-transaction --routines drinkflow_prod | gzip > /var/backups/drinkflow/db-$(date +\%Y\%m\%d).sql.gz
+40 2 * * * tar -czf /var/backups/drinkflow/uploads-$(date +\%Y\%m\%d).tar.gz -C /var/www/drinkflow/src/storage/app public
+50 2 * * * find /var/backups/drinkflow -type f -mtime +14 -delete
+```
+
+Nên đồng bộ thư mục `/var/backups/drinkflow` sang nơi lưu trữ ngoài VPS, và thử khôi phục định kỳ.
+
+---
+
+## 10. Kiểm tra sau khi Deploy
+
+Chạy lần lượt và đối chiếu kết quả mong đợi:
+
+```bash
+# 1. Các cổng nội bộ chỉ nghe trên 127.0.0.1 (3306, 6379, 3001), không xuất hiện 0.0.0.0
+sudo ss -ltnp | grep -E ':(3306|6379|3001)\b'
+
+# 2. Tiến trình nền đang RUNNING
+sudo supervisorctl status
+
+# 3. Realtime Gateway phản hồi nội bộ
+curl -s http://127.0.0.1:3001/health
+
+# 4. Header bảo mật do ứng dụng gắn (kỳ vọng: X-Frame-Options, Content-Security-Policy,
+#    X-Content-Type-Options, Referrer-Policy và Strict-Transport-Security)
+curl -sI https://drinkflow.yourcompany.com/admin/login | grep -iE 'x-frame|content-security|nosniff|referrer|strict-transport'
+
+# 5. Không còn tài khoản demo (kỳ vọng in ra 0)
+sudo -u www-data php /var/www/drinkflow/src/artisan tinker --execute='echo App\Models\AdminAccount::where("email", "like", "%@drinkflow.local")->count();'
+
+# 6. Gửi thử email (thay địa chỉ nhận) - cần thiết để OTP quên mật khẩu hoạt động
+sudo -u www-data php /var/www/drinkflow/src/artisan tinker --execute='Mail::raw("DrinkFlow mail test", fn ($m) => $m->to("you@yourcompany.com")->subject("DrinkFlow mail test")); echo "sent";'
+
+# 7. Chrome chạy được dưới www-data (chỉ khi dùng Food Crawler; kỳ vọng in ra <html>...)
+sudo -u www-data google-chrome-stable --headless=new --no-sandbox \
+    --user-data-dir=/var/www/drinkflow/src/storage/app/chrome-profile --dump-dom about:blank
+```
+
+Kiểm tra thủ công trên trình duyệt:
+
+1. Mở `/admin/login`: có hiển thị captcha (nếu không, `APP_ENV` đang là `local`).
+2. Đăng nhập superadmin, mở một phòng, thực hiện một thao tác ghi (ví dụ đổi trạng thái order).
+   Nếu gặp lỗi `419 Page Expired`, tải lại trang; CSRF hiện đã được bắt buộc cho toàn bộ
+   khu vực admin.
+3. Mở DevTools > Network > WS: kết nối `/socket.io/` thành công (mã 101).
+4. Thử "Quên mật khẩu" với email admin thật: email OTP về hộp thư.
+5. Thử nhập menu từ link ShopeeFood (Food Crawler). Link phải thuộc `shopeefood.vn`;
+   máy chủ chỉ crawl qua HTTPS và chặn mọi địa chỉ mạng nội bộ.
+6. Kênh thông báo Slack/Webhook chỉ chấp nhận URL **HTTPS công khai** (Slack: `hooks.slack.com`).
+   Kênh đã lưu trước đó trỏ tới địa chỉ nội bộ hoặc `http://` sẽ không gửi được và cần cập nhật lại.
+
+> **Lưu ý khi nâng cấp từ bản cũ:** cấu hình mặc định mới bật mã hóa session
+> (`SESSION_ENCRYPT`), nên mọi người dùng sẽ bị đăng xuất một lần sau khi deploy.
+> Đổi hoặc reset mật khẩu admin cũng đăng xuất các phiên khác của admin đó.
+
+---
+
+## 11. Rollback khi Deploy Lỗi
+
+```bash
+cd /var/www/drinkflow
+
+# 1. Quay về commit trước đó (xem git log để chọn)
+git log --oneline -5
+git checkout <commit-truoc-do>
+
+# 2. Cài lại dependencies & build tương ứng với commit đó (các bước 4-5 trong script deploy)
+
+# 3. Nếu migration mới đã chạy và cần hoàn tác dữ liệu: khôi phục DB từ bản sao lưu pre-deploy
+sudo -u www-data php src/artisan down
+gunzip -c /var/backups/drinkflow/pre-deploy-YYYYMMDD-HHMMSS.sql.gz | sudo mysql drinkflow_prod
+
+# 4. Làm mới cache, khởi động lại tiến trình, tắt bảo trì
+sudo -u www-data php src/artisan optimize:clear
+sudo supervisorctl restart drinkflow-realtime 'drinkflow-worker:*'
+sudo systemctl reload php8.3-fpm
+sudo -u www-data php src/artisan up
+```
+
+Sau khi xử lý xong, quay lại nhánh làm việc bằng `git checkout master`.

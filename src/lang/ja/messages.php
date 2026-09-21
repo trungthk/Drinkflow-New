@@ -24,6 +24,7 @@ return [
     'campaign_sponsor_not_set' => 'なし',
     'campaign_restaurant' => '店舗 / ブランド: :restaurant',
     'campaign_order' => '注文: :url',
+    'campaign_register' => '新規登録はこちら: :url',
     'campaign_order_now' => 'ここをクリックして今すぐ注文',
     'campaign_closed_body' => 'キャンペーンの注文受付は終了しました。管理者が注文を集約しています。',
     'campaign_cancelled_body' => 'キャンペーンは中止されました。次回のドリンク注文をお楽しみに！',

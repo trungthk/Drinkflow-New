@@ -7,6 +7,7 @@ namespace App\Services\Notification;
 use App\Models\NotificationChannel;
 use App\Models\Room;
 use App\Support\Helpers\FormatHelper;
+use App\Support\Security\OutboundUrlGuard;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -85,6 +86,7 @@ class RoomNotificationChannelDispatcher
                     'sponsorship_amount' => 20000,
                     'max_product_budget' => 60000,
                     'order_url' => url("/rooms/{$roomSlug}/campaigns"),
+                    'register_url' => url("/rooms/{$roomSlug}"),
                 ],
                 'message' => implode("\n", [
                     __('messages.campaign_created_title'),
@@ -94,6 +96,7 @@ class RoomNotificationChannelDispatcher
                     __('messages.campaign_product_budget', ['amount' => FormatHelper::formatCurrency(60000)]),
                     __('messages.campaign_sponsorship', ['sponsor' => 'Team Lead', 'amount' => FormatHelper::formatCurrency(20000)]),
                     __('messages.campaign_order', ['url' => url("/rooms/{$roomSlug}/campaigns")]),
+                    __('messages.campaign_register', ['url' => url("/rooms/{$roomSlug}")]),
                 ]),
             ],
             'campaign.closed' => [
@@ -175,21 +178,59 @@ class RoomNotificationChannelDispatcher
     private function send(string $type, array $config, array $payload): void
     {
         match ($type) {
-            'slack' => Http::timeout(5)->post($this->required($config, 'webhook_url'), [
+            'slack' => $this->postJson($this->required($config, 'webhook_url'), [
                 'text' => $this->formatSlackMessage($payload),
-            ])->throw(),
-            'telegram' => Http::timeout(5)->post('https://api.telegram.org/bot'.$this->required($config, 'bot_token').'/sendMessage', [
+            ], [], ['hooks.slack.com']),
+            'telegram' => Http::timeout(5)->post('https://api.telegram.org/bot'.$this->pathSegment($this->required($config, 'bot_token'), '/^\d+:[A-Za-z0-9_-]+$/').'/sendMessage', [
                 'chat_id' => $this->required($config, 'chat_id'),
                 'text' => $this->formatTelegramMessage($payload),
                 'parse_mode' => 'HTML',
                 'disable_web_page_preview' => false,
             ])->throw(),
-            'chatwork' => Http::timeout(5)->withHeaders(['X-ChatWorkToken' => $this->required($config, 'api_token')])->asForm()->post('https://api.chatwork.com/v2/rooms/'.$this->required($config, 'room_id').'/messages', [
+            'chatwork' => Http::timeout(5)->withHeaders(['X-ChatWorkToken' => $this->required($config, 'api_token')])->asForm()->post('https://api.chatwork.com/v2/rooms/'.$this->pathSegment($this->required($config, 'room_id'), '/^\d+$/').'/messages', [
                 'body' => $this->formatChatworkMessage($payload),
             ])->throw(),
-            'webhook' => Http::timeout(5)->when(isset($config['secret_token']) && $config['secret_token'] !== '', fn ($request) => $request->withHeaders(['X-Webhook-Secret' => $config['secret_token']]))->post($this->required($config, 'webhook_url'), $this->formatWebhookPayload($payload))->throw(),
+            'webhook' => $this->postJson(
+                $this->required($config, 'webhook_url'),
+                $this->formatWebhookPayload($payload),
+                isset($config['secret_token']) && $config['secret_token'] !== '' ? ['X-Webhook-Secret' => $config['secret_token']] : [],
+            ),
             default => throw new \InvalidArgumentException('Unsupported notification channel type.'),
         };
+    }
+
+    /**
+     * POST a JSON payload to a user-supplied URL after SSRF validation, pinning the resolved address and refusing redirects.
+     *
+     * @param string $url Destination URL configured by a room administrator.
+     * @param array<string, mixed> $body JSON body.
+     * @param array<string, string> $headers Extra request headers.
+     * @param array<int, string> $allowedHosts Exact host names allowed; empty means any public host.
+     * @return void
+     * @throws \InvalidArgumentException When the URL is not a safe public HTTPS target.
+     */
+    private function postJson(string $url, array $body, array $headers = [], array $allowedHosts = []): void
+    {
+        $options = app(OutboundUrlGuard::class)->httpOptions($url, $allowedHosts);
+
+        Http::timeout(5)->withOptions($options)->withHeaders($headers)->post($url, $body)->throw();
+    }
+
+    /**
+     * Ensure a credential interpolated into a fixed API URL path cannot alter that path.
+     *
+     * @param string $value Credential or identifier.
+     * @param string $pattern Regular expression the value must fully match.
+     * @return string The unchanged value.
+     * @throws \InvalidArgumentException When the value does not match the expected format.
+     */
+    private function pathSegment(string $value, string $pattern): string
+    {
+        if (preg_match($pattern, $value) !== 1) {
+            throw new \InvalidArgumentException('Notification channel configuration is invalid.');
+        }
+
+        return $value;
     }
 
     /**

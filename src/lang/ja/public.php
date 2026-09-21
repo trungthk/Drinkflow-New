@@ -140,6 +140,7 @@ return [
         'error_invalid_identity' => '無効なGoogle認証情報です。',
         'error_identity_conflict' => 'Google IDは既に別のアカウントに連携されています。',
         'require_login_room' => "「:room」に参加するにはGoogle Workspaceでログインしてください。",
+        'require_register' => 'ご利用にはアカウント登録が必要です',
     ],
     'video_modal' => [
         'close_label' => '動画を閉じる',

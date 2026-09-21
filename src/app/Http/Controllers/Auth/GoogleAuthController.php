@@ -12,6 +12,7 @@ use App\Services\Audit\AuditService;
 use App\Services\Auth\GoogleOAuthService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class GoogleAuthController extends Controller
@@ -120,8 +121,10 @@ class GoogleAuthController extends Controller
                 ->with('login_error', $errorMessage)
                 ->withErrors($e->errors());
         } catch (\Throwable $e) {
+            Log::warning('Google OAuth login failed.', ['exception' => $e::class, 'error' => $e->getMessage()]);
+
             return redirect()->to($loginSource)
-                ->with('login_error', __('global.auth.google_login_failed', ['error' => $e->getMessage()]));
+                ->with('login_error', __('global.auth.google_login_failed'));
         }
     }
 }

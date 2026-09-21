@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\User\AdminAddRoomUserAction;
+use App\Actions\User\RestoreRoomUserAction;
 use App\Actions\User\SetRoomUserStatusAction;
 use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
@@ -36,7 +37,7 @@ class RoomUserController extends Controller
             });
         }
         if ($request->filled('status')) $query->where('status', $request->string('status')->toString());
-        return response()->json(['data' => $query->paginate(50)]);
+        return response()->json(['data' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)]);
     }
 
     /**
@@ -91,7 +92,7 @@ class RoomUserController extends Controller
             $query->where('status', $status);
         }
 
-        $roomUsers = $query->paginate(50)->withQueryString();
+        $roomUsers = $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString();
 
         $metrics = $userService->getDirectoryMetrics($room);
 
@@ -166,6 +167,21 @@ class RoomUserController extends Controller
         $this->assertRoom($room, $roomUser);
 
         return response()->json(['data' => $action->execute($roomUser, \App\Enums\RoomUserStatus::Removed->value)]);
+    }
+
+    /**
+     * Restore a removed member back to the room as an active member.
+     *
+     * @param Room $room Current room.
+     * @param RoomUser $roomUser Removed membership to restore.
+     * @param RestoreRoomUserAction $action Restore action.
+     * @return JsonResponse Restored membership.
+     */
+    public function restore(Room $room, RoomUser $roomUser, RestoreRoomUserAction $action): JsonResponse
+    {
+        $this->assertRoom($room, $roomUser);
+
+        return response()->json(['data' => $action->execute($roomUser)]);
     }
 
     /**

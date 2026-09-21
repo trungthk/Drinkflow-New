@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const { isAllowedUrl } = require('./network-guard.cjs');
 
 async function main() {
 const [url, chromePath, headlessValue, userDataDir, profileDirectory] = process.argv.slice(2);
@@ -20,22 +21,28 @@ await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/5
 await page.setExtraHTTPHeaders({ 'Accept-Language': 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7' });
 await page.setRequestInterception(true);
 page.on('request', (request) => {
-    if (!request.url().includes('gappapi.deliverynow.vn')) {
-        request.continue();
-        return;
-    }
-    request.continue({
-        headers: {
-            ...request.headers(),
-            Origin: 'https://shopeefood.vn',
-            Referer: 'https://shopeefood.vn/',
-            'x-foody-api-version': '1',
-            'x-foody-app-type': '1004',
-            'x-foody-client-language': 'vi',
-            'x-foody-client-type': '1',
-            'x-foody-client-version': '3.0.0',
-        },
-    });
+    isAllowedUrl(request.url()).then((allowed) => {
+        if (!allowed) {
+            request.abort('blockedbyclient');
+            return;
+        }
+        if (!request.url().includes('gappapi.deliverynow.vn')) {
+            request.continue();
+            return;
+        }
+        request.continue({
+            headers: {
+                ...request.headers(),
+                Origin: 'https://shopeefood.vn',
+                Referer: 'https://shopeefood.vn/',
+                'x-foody-api-version': '1',
+                'x-foody-app-type': '1004',
+                'x-foody-client-language': 'vi',
+                'x-foody-client-type': '1',
+                'x-foody-client-version': '3.0.0',
+            },
+        });
+    }, () => request.abort('failed'));
 });
 const payload = {
     restaurant: null,

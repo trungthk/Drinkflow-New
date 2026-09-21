@@ -28,7 +28,7 @@ class AuditController extends Controller
         $dateTo = $request->input('date_to', $request->input('to'));
         if ($dateFrom) $query->whereDate('created_at', '>=', $dateFrom);
         if ($dateTo) $query->whereDate('created_at', '<=', $dateTo);
-        return response()->json(['data' => $query->paginate(50)]);
+        return response()->json(['data' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)]);
     }
 
     /**
@@ -67,7 +67,7 @@ class AuditController extends Controller
         if ($dateFrom) $query->whereDate('created_at', '>=', $dateFrom);
         if ($dateTo) $query->whereDate('created_at', '<=', $dateTo);
 
-        $logs = $query->paginate(50)->withQueryString();
+        $logs = $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString();
 
         $events = AuditLog::where('room_id', $room->id)->distinct()->pluck('event')->filter()->values();
         $targetTypes = AuditLog::where('room_id', $room->id)->distinct()->pluck('target_type')->filter()->values();

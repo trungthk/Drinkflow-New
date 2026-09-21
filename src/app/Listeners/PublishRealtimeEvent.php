@@ -61,7 +61,13 @@ class PublishRealtimeEvent implements ShouldQueue
             $event instanceof CampaignCreated => [
                 'campaign.created',
                 $event->campaign->room_id,
-                ['campaign_id' => $event->campaign->id, 'status' => $event->campaign->status?->value],
+                [
+                    'campaign_id' => $event->campaign->id,
+                    'name' => $event->campaign->name,
+                    'restaurant' => $event->campaign->restaurant,
+                    'deadline' => $event->campaign->deadline?->toIso8601String(),
+                    'status' => $event->campaign->status?->value,
+                ],
                 null,
             ],
             $event instanceof CampaignUpdated => [

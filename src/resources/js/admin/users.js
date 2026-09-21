@@ -1,4 +1,5 @@
 import { formatMoney } from '../shared/money';
+import { escapeHtml } from '../shared/escape-html';
 
 /**
  * Admin Room Users & Devices Controller
@@ -50,6 +51,11 @@ export function initAdminUsers() {
             wrap: 'bg-red-100 text-red-600',
             confirm: 'bg-red-600 text-white hover:bg-red-700',
         },
+    };
+    ACTION_VARIANTS.restore = {
+        icon: 'restore_from_trash', confirmIcon: 'restore_from_trash',
+        wrap: 'bg-emerald-100 text-emerald-700',
+        confirm: 'bg-primary text-on-primary hover:bg-primary/90',
     };
     const BULK_ACTION_VARIANT = { active: 'unblock', blocked: 'block', removed: 'remove' };
     let activeVariant = ACTION_VARIANTS.default;
@@ -259,15 +265,15 @@ export function initAdminUsers() {
                     <div class="flex items-center gap-2.5">
                         <span class="material-symbols-outlined text-[20px] text-primary">laptop_mac</span>
                         <div>
-                            <div class="font-mono font-bold text-on-surface">${dev.device_uuid || dev.device_name || deviceFallbackLabel}</div>
-                            <div class="text-[11px] text-outline">${dev.last_seen_at || '—'}</div>
+                            <div class="font-mono font-bold text-on-surface">${escapeHtml(dev.device_uuid || dev.device_name || deviceFallbackLabel)}</div>
+                            <div class="text-[11px] text-outline">${escapeHtml(dev.last_seen_at || '—')}</div>
                         </div>
                     </div>
                     <div>
                         ${dev.status === 'revoked' ? `
                             <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 text-[10px] font-semibold border border-rose-200">${deviceRevokedLabel}</span>
                         ` : `
-                            <button type="button" data-revoke-device data-room-user-id="${roomUserId}" data-device-id="${dev.id}" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold border border-rose-200 transition-colors cursor-pointer">
+                            <button type="button" data-revoke-device data-room-user-id="${escapeHtml(roomUserId)}" data-device-id="${escapeHtml(dev.id)}" class="px-2.5 py-1 bg-rose-50 text-rose-700 hover:bg-rose-100 rounded text-[11px] font-semibold border border-rose-200 transition-colors cursor-pointer">
                                 ${deviceRevokeLabel}
                             </button>
                         `}
@@ -441,6 +447,12 @@ export function initAdminUsers() {
             return;
         }
 
+        const restoreButton = event.target.closest('[data-restore-room-user]');
+        if (restoreButton) {
+            window.restoreRoomUser(Number(restoreButton.dataset.roomUserId));
+            return;
+        }
+
         const removeButton = event.target.closest('[data-remove-room-user]');
         if (removeButton) {
             window.removeRoomUser(Number(removeButton.dataset.roomUserId));
@@ -545,6 +557,32 @@ export function initAdminUsers() {
         );
     };
 
+    window.restoreRoomUser = async function(roomUserId) {
+        openActionModal(
+            actionModal?.dataset.restoreTitle || 'Restore User',
+            actionModal?.dataset.restoreMessage || 'Restore this user to the room?',
+            async () => {
+                try {
+                    const res = await fetch(`/admin/${roomSlug}/room-users/${roomUserId}/restore`, {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
+                    });
+                    if (res.ok) {
+                        window.location.reload();
+                    } else {
+                        const err = await res.json().catch(() => ({}));
+                        const msg = err.errors ? Object.values(err.errors).flat().join('\n') : (err.message || 'Error restoring user');
+                        alert(msg);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    alert('An error occurred.');
+                }
+            },
+            'restore'
+        );
+    };
+
     // Create User Modal Handlers
     const openCreateUserModal = () => {
         if (!createUserModal) return;
@@ -611,17 +649,18 @@ export function initAdminUsers() {
                 closeCreateUserModal();
                 window.location.reload();
             } else {
-                let errorMsg = 'An error occurred while adding user.';
+                let errorLines = ['An error occurred while adding user.'];
                 if (data.errors) {
-                    errorMsg = Object.values(data.errors).flat().join('<br>');
+                    errorLines = Object.values(data.errors).flat();
                 } else if (data.message) {
-                    errorMsg = data.message;
+                    errorLines = [data.message];
                 }
                 if (createUserError) {
-                    createUserError.innerHTML = errorMsg;
+                    // Server messages can echo user input (e.g. the e-mail domain), so they must be encoded.
+                    createUserError.innerHTML = errorLines.map(escapeHtml).join('<br>');
                     createUserError.classList.remove('hidden');
                 } else {
-                    alert(errorMsg);
+                    alert(errorLines.join('\n'));
                 }
             }
         } catch (err) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Exports;
 
+use App\Exports\Concerns\NeutralizesFormulas;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -16,6 +17,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
  */
 class CampaignAggregateExport implements FromArray, WithHeadings, ShouldAutoSize
 {
+    use NeutralizesFormulas;
+
     /** @var array<int, array<int, mixed>> */
     private array $rows;
 
@@ -27,12 +30,12 @@ class CampaignAggregateExport implements FromArray, WithHeadings, ShouldAutoSize
     public function __construct(array $rows)
     {
         $this->rows = array_values(array_map(
-            static fn (array $row): array => [
+            static fn (array $row): array => self::neutralizeRow([
                 $row['name'] ?? '',
                 $row['size'] ?? '',
                 $row['toppings'] ?? '',
                 $row['quantity'] ?? 0,
-            ],
+            ]),
             $rows
         ));
     }

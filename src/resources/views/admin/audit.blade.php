@@ -60,6 +60,7 @@
                 <span class="material-symbols-outlined text-[14px]">filter_alt</span>
                 <span>{{ __('admin.filter_apply') }}</span>
             </button>
+            <x-admin.reload-button :compact="true" />
         </div>
     </form>
 

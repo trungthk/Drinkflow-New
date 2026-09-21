@@ -68,6 +68,10 @@ class UserRoomDashboardService
                 'sponsor_percent' => $sponsorPercent,
                 'popular_items' => $popularItems,
                 'order_url' => route('user.campaigns.order-page', [$room->slug, $activeCampaign->id]),
+                'has_ordered' => $roomUser->orders()
+                    ->where('campaign_id', $activeCampaign->id)
+                    ->where('status', '!=', OrderStatus::Cancelled->value)
+                    ->exists(),
             ];
         }
 

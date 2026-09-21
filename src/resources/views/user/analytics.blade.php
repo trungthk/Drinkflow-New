@@ -15,7 +15,6 @@
                     </span>
                     <div>
                         <h1 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight">{{ __('room.analytics.page_title') }}</h1>
-                        <p class="text-xs text-slate-500 mt-0.5">{{ $room->name }} · {{ __('room.analytics.for_user') }} {{ $user->name }}</p>
                         <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1">
                             <span class="material-symbols-outlined text-[13px]" aria-hidden="true">date_range</span>
                             {{ $periodStart->format('d/m/Y') }} – {{ $periodEnd->format('d/m/Y') }}
@@ -24,6 +23,8 @@
                 </div>
                 <nav class="flex self-start lg:self-auto items-center gap-1 rounded-lg bg-slate-100 border border-slate-200/70 p-0.5" aria-label="{{ __('room.analytics.period_filter') }}">
                     @foreach(\App\Enums\AnalyticsPeriod::cases() as $option)
+                        {{-- "Whole year" filter is hidden for now; drop this line to show it again. --}}
+                        @continue($option === \App\Enums\AnalyticsPeriod::Year)
                         <a href="{{ route('user.analytics.room', ['room' => $room->slug, 'period' => $option->value]) }}"
                            @if($period === $option) aria-current="page" @endif
                            class="px-2.5 sm:px-3 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-colors {{ $period === $option ? 'bg-[#006948] text-white shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-white/60' }}">

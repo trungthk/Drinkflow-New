@@ -162,9 +162,9 @@ export function initAdminReports() {
                             <div class="flex items-center justify-between p-2.5 bg-surface-container-low rounded border border-outline-variant/60">
                                 <div class="flex items-center gap-2">
                                     <span class="w-5 h-5 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
-                                    <span class="font-bold text-on-surface">${d.item_name}</span>
+                                    <span class="font-bold text-on-surface">${escapeHtml(d.item_name)}</span>
                                 </div>
-                                <span class="font-mono font-bold text-primary">${d.quantity}</span>
+                                <span class="font-mono font-bold text-primary">${escapeHtml(d.quantity)}</span>
                             </div>
                         `).join('');
                     } else {
@@ -178,9 +178,9 @@ export function initAdminReports() {
                             <div class="flex items-center justify-between p-2.5 bg-surface-container-low rounded border border-outline-variant/60">
                                 <div class="flex items-center gap-2">
                                     <span class="w-5 h-5 rounded-full bg-secondary/10 text-secondary font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
-                                    <span class="font-bold text-on-surface">${s.restaurant}</span>
+                                    <span class="font-bold text-on-surface">${escapeHtml(s.restaurant)}</span>
                                 </div>
-                                <span class="font-mono font-bold text-on-surface">${s.orders} (${money(s.spending)})</span>
+                                <span class="font-mono font-bold text-on-surface">${escapeHtml(s.orders)} (${money(s.spending)})</span>
                             </div>
                         `).join('');
                     } else {
@@ -206,7 +206,7 @@ export function initAdminReports() {
                             const isCleared = remaining <= 0;
                             return [
                                 memberCellHtml(u.user_name, u.user_email),
-                                `<span class="font-mono font-semibold text-on-surface">${u.debt_count}</span>`,
+                                `<span class="font-mono font-semibold text-on-surface">${escapeHtml(u.debt_count)}</span>`,
                                 `<span class="font-mono font-semibold text-outline">${money(u.total_original)}</span>`,
                                 `<span class="font-mono font-semibold text-emerald-600">${money(u.total_paid)}</span>`,
                                 `<span class="font-mono font-bold ${isCleared ? 'text-outline' : 'text-error'}">${money(remaining)}</span>`,
@@ -239,7 +239,7 @@ export function initAdminReports() {
                         const rows = data.sponsors_leaderboard.map((s, idx) => [
                             `<span class="w-6 h-6 rounded-full inline-flex items-center justify-center font-bold text-xs ${rankClass(idx)}">${idx + 1}</span>`,
                             memberCellHtml(s.user_name, s.user_email),
-                            `<span class="font-mono font-semibold text-on-surface">${s.sponsored_orders}</span>`,
+                            `<span class="font-mono font-semibold text-on-surface">${escapeHtml(s.sponsored_orders)}</span>`,
                             `<span class="font-mono font-bold text-emerald-600">${money(s.total_sponsored)}</span>`,
                         ]);
                         sponsorsList.innerHTML = reportTableHtml(columns, rows);
@@ -262,7 +262,7 @@ export function initAdminReports() {
                         const rows = data.top_users.map((u, idx) => [
                             `<span class="font-mono font-bold text-outline">${idx + 1}</span>`,
                             memberCellHtml(u.user_name, u.user_email),
-                            `<span class="font-mono font-semibold text-on-surface">${u.order_count}</span>`,
+                            `<span class="font-mono font-semibold text-on-surface">${escapeHtml(u.order_count)}</span>`,
                             `<span class="font-mono font-bold text-primary">${money(u.total_spent)}</span>`,
                         ]);
                         usersList.innerHTML = reportTableHtml(columns, rows);

@@ -85,6 +85,27 @@ class RoomAnalyticsPeriodTest extends TestCase
     }
 
     /**
+     * The whole-year filter and the "room · for user" subtitle are hidden from the page header.
+     *
+     * @return void
+     */
+    public function test_page_hides_year_filter_and_room_user_subtitle(): void
+    {
+        $room = Room::create(['name' => 'Hidden Header Room', 'slug' => 'analytics-header', 'status' => RoomStatus::Active]);
+        $user = GlobalUser::create(['name' => 'Header Member', 'email' => 'analytics-header@example.test', 'status' => GlobalUserStatus::Active]);
+        $this->member($room, $user);
+
+        $response = $this->actingAs($user, 'web')->get(route('user.analytics.room', $room->slug))->assertOk();
+
+        $response->assertSee(__('room.analytics.filter_week'))
+            ->assertSee(__('room.analytics.filter_month'))
+            ->assertSee(__('room.analytics.filter_quarter'))
+            ->assertDontSee(__('room.analytics.filter_year'))
+            ->assertDontSee('period=year', false)
+            ->assertDontSee(__('room.analytics.for_user').' Header Member');
+    }
+
+    /**
      * Create a membership without trusted device cookies.
      *
      * @param Room $room Target room.

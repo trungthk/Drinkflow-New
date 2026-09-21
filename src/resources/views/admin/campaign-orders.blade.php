@@ -266,6 +266,11 @@
                                         <div class="font-semibold text-on-surface">{{ $item['name'] }}
                                             {{ $item['size'] ? '(' . $item['size'] . ')' : '' }}
                                         </div>
+                                        @include('admin.partials.item-customizations', [
+                                            'toppings' => $item['toppings'] ?? collect(),
+                                            'icePercent' => $item['ice_percent'] ?? null,
+                                            'sugarPercent' => $item['sugar_percent'] ?? null,
+                                        ])
                                         @if (!empty($item['notes']) && $item['notes']->isNotEmpty())
                                             <div class="text-[11px] text-outline mt-0.5">
                                                 {{ __('admin.notes') }}: {{ $item['notes']->unique()->join(' • ') }}
@@ -368,7 +373,7 @@
                                             <div class="text-[10px] font-mono text-outline flex items-center gap-1.5 flex-wrap mt-0.5">
                                                 <span class="inline-flex items-center gap-1">
                                                     <span>{{ $order->code }}</span>
-                                                    <button type="button" @click="copyOrderCode('{{ addslashes($order->code) }}', $event)"
+                                                    <button type="button" @click="copyOrderCode(@js($order->code), $event)"
                                                         data-tip="{{ __('admin.copy_order_code') }}"
                                                         @mouseenter="showTip($event)" @mouseleave="hideTip()" @focus="showTip($event)" @blur="hideTip()"
                                                         class="text-outline hover:text-primary transition-colors cursor-pointer"
@@ -395,6 +400,11 @@
                                                     @endif
                                                     <span class="text-primary font-mono font-bold">x{{ $item->quantity }}</span>
                                                     <span class="text-outline font-mono text-[11px]">({{ \App\Support\Helpers\FormatHelper::formatCurrency($item->unit_price) }})</span>
+                                                    @include('admin.partials.item-customizations', [
+                                                        'toppings' => $item->toppings->map(fn ($topping): string => ($topping->quantity > 1 ? $topping->quantity . 'x ' : '') . $topping->topping_name . ($topping->unit_price > 0 ? ' (+' . \App\Support\Helpers\FormatHelper::formatCurrency((int) $topping->unit_price) . ')' : '')),
+                                                        'icePercent' => $item->ice_percent,
+                                                        'sugarPercent' => $item->sugar_percent,
+                                                    ])
                                                     @if (!empty($item->note))
                                                         <div class="text-[11px] text-outline italic pl-2 border-l-2 border-outline-variant/60 mt-0.5">
                                                             📝 {{ $item->note }}
@@ -530,6 +540,11 @@
                                                     <div class="font-semibold text-on-surface">
                                                         {{ $item['name'] }} {{ $item['size'] ? '(' . $item['size'] . ')' : '' }}
                                                     </div>
+                                                    @include('admin.partials.item-customizations', [
+                                                        'toppings' => $item['toppings'] ?? collect(),
+                                                        'icePercent' => $item['ice_percent'] ?? null,
+                                                        'sugarPercent' => $item['sugar_percent'] ?? null,
+                                                    ])
                                                     @if (!empty($item['notes']) && $item['notes']->isNotEmpty())
                                                         <div class="text-[11px] text-outline mt-0.5">
                                                             {{ __('admin.notes') }}: {{ $item['notes']->unique()->join(' • ') }}
@@ -1129,7 +1144,7 @@
                                 'toppings' => $it->toppings->map(
                                     fn($top) => [
                                         'name' => $top->topping_name,
-                                        'price' => (int) $top->price,
+                                        'price' => (int) $top->unit_price,
                                     ],
                                 ),
                             ],

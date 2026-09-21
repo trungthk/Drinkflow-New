@@ -253,6 +253,46 @@
                 }
             };
 
+            // ----- Resend Notification -----
+            let isResendingNotification = false;
+            window.executeResendNotification = async function () {
+                if (isResendingNotification) return;
+                isResendingNotification = true;
+                const btn = document.getElementById('execute-resend-notification-btn');
+                const cancelBtn = document.getElementById('cancel-resend-notification-btn');
+                const normalEl = document.getElementById('resend-notification-normal');
+                const loadingEl = document.getElementById('resend-notification-loading');
+                if (btn) btn.disabled = true;
+                if (cancelBtn) cancelBtn.disabled = true;
+                if (normalEl) normalEl.style.display = 'none';
+                if (loadingEl) loadingEl.style.display = 'flex';
+
+                try {
+                    const response = await fetch('{{ route('admin.campaigns.resend-notification', [$room, $campaign]) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const res = await response.json().catch(() => ({}));
+                    if (!response.ok) throw new Error(res.message || '{{ __('admin.resend_notification_failed') }}');
+
+                    if (window.notify) window.notify(res.message, 'success');
+                } catch (err) {
+                    if (window.notify) window.notify(err.message, 'error');
+                    else alert(err.message);
+                } finally {
+                    isResendingNotification = false;
+                    if (btn) btn.disabled = false;
+                    if (cancelBtn) cancelBtn.disabled = false;
+                    if (normalEl) normalEl.style.display = 'flex';
+                    if (loadingEl) loadingEl.style.display = 'none';
+                    closeModal('confirm-resend-notification-modal');
+                }
+            };
+
             // ----- Mark Delivered -----
             let isDeliveringLoading = false;
             window.executeMarkDelivering = async function () {
@@ -458,6 +498,11 @@
                         <!-- Action Buttons (vertical stack) -->
                         <div class="flex flex-col gap-2 w-full">
                             @if ($isCampaignLive)
+                                <button type="button" id="resend-notification-btn" onclick="openModal('confirm-resend-notification-modal')"
+                                    class="w-full h-10 px-4 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-[18px]">campaign</span>
+                                    <span>{{ __('admin.resend_notification') }}</span>
+                                </button>
                                 <button type="button" onclick="openModal('close-confirm-modal');"
                                     class="w-full h-10 px-4 rounded-xl border border-amber-300 bg-amber-50/60 hover:bg-amber-50 text-amber-700 text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer">
                                     <span class="material-symbols-outlined text-[18px]">lock_clock</span>
@@ -493,12 +538,12 @@
                             <div class="p-3.5 bg-surface-container-low border border-outline-variant/60 rounded-xl flex items-center gap-3">
                                 <img src="{{ $campaign->paymentAccount->qr_code_url }}" alt="Payment QR" loading="lazy"
                                     class="w-14 h-14 rounded-lg object-contain bg-white border border-outline-variant/50 p-1 cursor-pointer hover:scale-105 transition-transform"
-                                    onclick="openQrModal('{{ $campaign->paymentAccount->qr_code_url }}')"
+                                    onclick="openQrModal(@js($campaign->paymentAccount->qr_code_url))"
                                     title="{{ __('admin.click_to_view_large_qr') }}">
                                 <div class="flex-1 min-w-0">
                                     <span class="text-[10px] uppercase font-bold tracking-wider text-outline block">{{ __('admin.payment_qr_code') }}</span>
                                     <span class="text-xs font-bold text-on-surface block truncate">{{ $campaign->paymentAccount->bank_code }} · {{ $campaign->paymentAccount->account_number }}</span>
-                                    <button type="button" onclick="openQrModal('{{ $campaign->paymentAccount->qr_code_url }}')"
+                                    <button type="button" onclick="openQrModal(@js($campaign->paymentAccount->qr_code_url))"
                                         class="text-[11px] text-primary hover:underline font-medium inline-flex items-center gap-0.5 mt-0.5">
                                         <span class="material-symbols-outlined text-[13px]">zoom_in</span>
                                         <span>{{ __('admin.view_qr_code') }}</span>
@@ -830,7 +875,7 @@
                     </div>
 
                     <label class="flex items-start gap-3 p-3 bg-surface rounded-xl border border-outline-variant/60 cursor-pointer hover:bg-surface-container transition-colors select-none">
-                        <input type="checkbox" id="close-campaign-allow-debt" class="mt-0.5 rounded border-outline-variant text-primary focus:ring-primary h-4 w-4">
+                        <input type="checkbox" id="close-campaign-allow-debt" checked class="mt-0.5 rounded border-outline-variant text-primary focus:ring-primary h-4 w-4">
                         <div class="flex flex-col">
                             <span class="font-bold text-on-surface">{{ __('admin.auto_record_debts_label') }}</span>
                             <span class="text-[11px] text-outline mt-0.5 leading-relaxed">{{ __('admin.auto_record_debts_desc') }}</span>
@@ -887,6 +932,45 @@
                 </div>
             </div>
         </div>
+
+        <!-- MODAL: CONFIRM RESEND NOTIFICATION -->
+        @if ($isCampaignLive)
+        <div id="confirm-resend-notification-modal" class="fixed inset-0 z-50 items-center justify-center p-4 bg-black/50 backdrop-blur-xs" style="display: none;" onclick="closeModalOnBackdrop(event, 'confirm-resend-notification-modal', () => !document.getElementById('execute-resend-notification-btn')?.disabled)">
+            <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
+                <div class="p-5 border-b border-outline-variant/60 flex items-center gap-3 bg-surface-container-low">
+                    <span class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[22px]">campaign</span>
+                    </span>
+                    <div>
+                        <h3 class="text-base font-bold text-on-surface">{{ __('admin.resend_notification') }}</h3>
+                        <p class="text-xs text-outline font-mono">#{{ $campaign->code }} · {{ $campaign->name }}</p>
+                    </div>
+                </div>
+
+                <div class="p-5 space-y-4 text-xs">
+                    <p class="text-on-surface leading-relaxed">{{ __('admin.resend_notification_confirm_message') }}</p>
+
+                    <div class="pt-3 border-t border-outline-variant/60 flex items-center justify-end gap-2">
+                        <button type="button" id="cancel-resend-notification-btn" onclick="closeModal('confirm-resend-notification-modal')"
+                            class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                            {{ __('admin.cancel') }}
+                        </button>
+                        <button type="button" id="execute-resend-notification-btn" onclick="executeResendNotification()"
+                            class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold transition-colors cursor-pointer shadow-xs disabled:opacity-70 disabled:cursor-not-allowed">
+                            <span id="resend-notification-normal" class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px]">send</span>
+                                <span>{{ __('admin.resend_notification') }}</span>
+                            </span>
+                            <span id="resend-notification-loading" class="items-center gap-1.5" style="display: none;">
+                                <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                <span>{{ __('admin.processing') }}</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
 
         <!-- MODAL: CONFIRM DUPLICATE CAMPAIGN -->
         <div id="confirm-duplicate-modal" class="fixed inset-0 z-50 items-center justify-center p-4 bg-black/50 backdrop-blur-xs" style="display: none;" onclick="closeModalOnBackdrop(event, 'confirm-duplicate-modal', () => !document.getElementById('execute-duplicate-btn')?.disabled)">

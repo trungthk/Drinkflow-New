@@ -36,6 +36,16 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         return String(num).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     };
 
+    /**
+     * Format a datetime-local value (YYYY-MM-DDTHH:mm) as dd/MM/yyyy HH:mm, matching channel notifications.
+     */
+    const formatDateTimeDisplay = value => {
+        const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
+        if (!match) return '—';
+        const [, year, month, day, hour, minute] = match;
+        return `${day}/${month}/${year} ${hour}:${minute}`;
+    };
+
     const normalizeImageUrl = value => {
         const imageUrl = String(value || '').trim();
         if (!imageUrl) return '';
@@ -578,6 +588,10 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
 
         formatVND(num) {
             return formatMoney(num);
+        },
+
+        formatDeadline(value) {
+            return formatDateTimeDisplay(value);
         },
 
         async submitForm(status) {

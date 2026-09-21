@@ -48,7 +48,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/dashboard/data', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
     Route::get('/socket-token', \App\Http\Controllers\Admin\SocketTokenController::class)->name('admin.socket-token');
     Route::post('/notifications/read-all', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllRead'])->name('admin.notifications.read-all');
-    Route::post('/notifications/broadcast', [\App\Http\Controllers\Admin\NotificationController::class, 'broadcast'])->name('admin.notifications.broadcast');
+    Route::post('/notifications/broadcast', [\App\Http\Controllers\Admin\NotificationController::class, 'broadcast'])->middleware('throttle:admin-bulk')->name('admin.notifications.broadcast');
 
     // Dedicated Standalone Page Views
     Route::get('/campaigns/list', [\App\Http\Controllers\Admin\CampaignController::class, 'page'])->name('admin.campaigns.page');
@@ -65,19 +65,19 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/campaigns/create', [\App\Http\Controllers\Admin\CampaignController::class, 'create'])->name('admin.campaigns.create');
     Route::get('/campaigns/previous-menus', [\App\Http\Controllers\Admin\CampaignController::class, 'previousMenus'])->name('admin.campaigns.previous-menus');
     Route::get('/campaigns/{campaign}/edit', [\App\Http\Controllers\Admin\CampaignController::class, 'edit'])->name('admin.campaigns.edit');
-    Route::get('/campaigns/{campaign}/export/{dataset}', [\App\Http\Controllers\Admin\CampaignController::class, 'exportDetail'])->name('admin.campaigns.export-detail');
+    Route::get('/campaigns/{campaign}/export/{dataset}', [\App\Http\Controllers\Admin\CampaignController::class, 'exportDetail'])->middleware('throttle:admin-export')->name('admin.campaigns.export-detail');
     Route::get('/campaigns/{campaign}/info', [\App\Http\Controllers\Admin\CampaignController::class, 'showInfo'])->name('admin.campaigns.info');
     Route::get('/campaigns/{campaign}/orders', [\App\Http\Controllers\Admin\CampaignController::class, 'showOrders'])->name('admin.campaigns.orders');
     Route::get('/campaigns/{campaign}/menu', [\App\Http\Controllers\Admin\CampaignController::class, 'showMenu'])->name('admin.campaigns.menu');
     Route::get('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'show'])->name('admin.campaigns.show');
     Route::get('/orders', [\App\Http\Controllers\Admin\OrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/orders/aggregate', [\App\Http\Controllers\Admin\CampaignController::class, 'aggregate'])->name('admin.orders.aggregate');
-    Route::get('/orders/aggregate/export', [\App\Http\Controllers\Admin\CampaignController::class, 'exportAggregate'])->name('admin.orders.aggregate.export');
+    Route::get('/orders/aggregate/export', [\App\Http\Controllers\Admin\CampaignController::class, 'exportAggregate'])->middleware('throttle:admin-export')->name('admin.orders.aggregate.export');
     Route::get('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'show'])->name('admin.orders.show');
     Route::patch('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'update'])->name('admin.orders.update');
     Route::patch('/orders/{order}/status', [\App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('admin.orders.status');
-    Route::post('/orders/bulk-status', [\App\Http\Controllers\Admin\OrderController::class, 'bulkStatus'])->name('admin.orders.bulk-status');
-    Route::post('/orders/bulk-cancel', [\App\Http\Controllers\Admin\OrderController::class, 'bulkCancel'])->name('admin.orders.bulk-cancel');
+    Route::post('/orders/bulk-status', [\App\Http\Controllers\Admin\OrderController::class, 'bulkStatus'])->middleware('throttle:admin-bulk')->name('admin.orders.bulk-status');
+    Route::post('/orders/bulk-cancel', [\App\Http\Controllers\Admin\OrderController::class, 'bulkCancel'])->middleware('throttle:admin-bulk')->name('admin.orders.bulk-cancel');
     Route::post('/orders/{order}/cancel', [\App\Http\Controllers\Admin\OrderController::class, 'cancel'])->name('admin.orders.cancel');
     Route::post('/orders/{order}/unlock', [\App\Http\Controllers\Admin\OrderController::class, 'unlock'])->name('admin.orders.unlock');
     Route::delete('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'destroy'])->name('admin.orders.destroy');
@@ -88,6 +88,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::post('/campaigns/{campaign}/activate', [\App\Http\Controllers\Admin\CampaignController::class, 'activate'])->name('admin.campaigns.activate');
     Route::post('/campaigns/{campaign}/extend-deadline', [\App\Http\Controllers\Admin\CampaignController::class, 'extendDeadline'])->name('admin.campaigns.extend-deadline');
     Route::post('/campaigns/{campaign}/mark-delivering', [\App\Http\Controllers\Admin\CampaignController::class, 'markDelivering'])->name('admin.campaigns.mark-delivering');
+    Route::post('/campaigns/{campaign}/resend-notification', [\App\Http\Controllers\Admin\CampaignController::class, 'resendNotification'])->middleware('throttle:campaign-resend-notification')->name('admin.campaigns.resend-notification');
     Route::post('/campaigns/{campaign}/cancel', [\App\Http\Controllers\Admin\CampaignController::class, 'cancel'])->name('admin.campaigns.cancel');
     Route::post('/campaigns/{campaign}/archive', [\App\Http\Controllers\Admin\CampaignController::class, 'archive'])->name('admin.campaigns.archive');
     Route::post('/campaigns/{campaign}/duplicate', [\App\Http\Controllers\Admin\CampaignController::class, 'duplicate'])->name('admin.campaigns.duplicate');
@@ -115,19 +116,20 @@ Route::middleware(['auth:admin', 'admin.room'])
         ->middleware('throttle:crawler-preview')
         ->name('admin.data-gateway.generate-prompt');
     Route::get('/debts', [\App\Http\Controllers\Admin\DebtController::class, 'index'])->name('admin.debts.index');
-    Route::get('/debts/export', [\App\Http\Controllers\Admin\DebtController::class, 'export'])->name('admin.debts.export');
-    Route::post('/debts/settle', [\App\Http\Controllers\Admin\DebtController::class, 'settle'])->name('admin.debts.settle');
-    Route::post('/debts/remind', [\App\Http\Controllers\Admin\DebtController::class, 'remind'])->name('admin.debts.remind');
+    Route::get('/debts/export', [\App\Http\Controllers\Admin\DebtController::class, 'export'])->middleware('throttle:admin-export')->name('admin.debts.export');
+    Route::post('/debts/settle', [\App\Http\Controllers\Admin\DebtController::class, 'settle'])->middleware('throttle:admin-bulk')->name('admin.debts.settle');
+    Route::post('/debts/remind', [\App\Http\Controllers\Admin\DebtController::class, 'remind'])->middleware('throttle:admin-bulk')->name('admin.debts.remind');
     Route::get('/debts/{debt}', [\App\Http\Controllers\Admin\DebtController::class, 'show'])->name('admin.debts.show');
     Route::post('/debts/{debt}/payments', [\App\Http\Controllers\Admin\DebtController::class, 'pay'])->name('admin.debts.pay');
     Route::post('/debts/{debt}/approve', [\App\Http\Controllers\Admin\DebtController::class, 'approve'])->name('admin.debts.approve');
     Route::post('/debts/{debt}/adjust', [\App\Http\Controllers\Admin\DebtController::class, 'adjust'])->name('admin.debts.adjust');
     Route::patch('/debts/{debt}/status', [\App\Http\Controllers\Admin\DebtController::class, 'status'])->name('admin.debts.status');
     Route::get('/room-users', [\App\Http\Controllers\Admin\RoomUserController::class, 'index'])->name('admin.room-users.index');
-    Route::post('/room-users', [\App\Http\Controllers\Admin\RoomUserController::class, 'store'])->name('admin.room-users.store');
+    Route::post('/room-users', [\App\Http\Controllers\Admin\RoomUserController::class, 'store'])->middleware('throttle:admin-bulk')->name('admin.room-users.store');
     Route::get('/room-users/{roomUser}', [\App\Http\Controllers\Admin\RoomUserController::class, 'show'])->name('admin.room-users.show');
     Route::patch('/room-users/{roomUser}/status', [\App\Http\Controllers\Admin\RoomUserController::class, 'status'])->name('admin.room-users.status');
-    Route::post('/room-users/bulk-action', [\App\Http\Controllers\Admin\RoomUserController::class, 'bulkAction'])->name('admin.room-users.bulk-action');
+    Route::post('/room-users/bulk-action', [\App\Http\Controllers\Admin\RoomUserController::class, 'bulkAction'])->middleware('throttle:admin-bulk')->name('admin.room-users.bulk-action');
+    Route::post('/room-users/{roomUser}/restore', [\App\Http\Controllers\Admin\RoomUserController::class, 'restore'])->name('admin.room-users.restore');
     Route::delete('/room-users/{roomUser}', [\App\Http\Controllers\Admin\RoomUserController::class, 'destroy'])->name('admin.room-users.destroy');
     Route::post('/room-users/{roomUser}/devices/{device}/revoke', [\App\Http\Controllers\Admin\RoomUserController::class, 'revokeDevice'])->name('admin.room-user-devices.revoke');
     Route::get('/payment-accounts', [\App\Http\Controllers\Admin\PaymentAccountController::class, 'index'])->name('admin.payment-accounts.index');
@@ -144,6 +146,6 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::post('/notification-channels/{channel}/test', [\App\Http\Controllers\Admin\NotificationChannelController::class, 'test'])->name('admin.notification-channels.test');
     Route::delete('/notification-channels/{channel}', [\App\Http\Controllers\Admin\NotificationChannelController::class, 'destroy'])->name('admin.notification-channels.destroy');
     Route::get('/reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('admin.reports.index');
-    Route::get('/reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->name('admin.reports.export');
+    Route::get('/reports/export', [\App\Http\Controllers\Admin\ReportController::class, 'export'])->middleware('throttle:admin-export')->name('admin.reports.export');
     Route::get('/audit', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('admin.audit.index');
 });

@@ -51,7 +51,7 @@ return [
         'google_profile_failed' => 'Could not retrieve user profile from Google.',
         'google_unsupported_account' => 'This account is not supported for login.',
         'google_account_access_revoked' => 'Your account has been blocked or removed from the room. Please contact an administrator for assistance.',
-        'google_login_failed' => 'Google login failed: :error',
+        'google_login_failed' => 'Google login failed. Please try again.',
     ],
     'header' => [
         'language_select' => 'Select language',
@@ -725,5 +725,12 @@ return [
         'logout_desc' => 'Are you sure you want to log out of your DrinkFlow account? You will need to sign in with Google to continue.',
         'cancel' => 'Cancel',
         'confirm_logout' => 'Log Out',
+    ],
+    'join_modal' => [
+        'fab_label' => 'Register to join a room',
+        'title' => 'Register to join a room',
+        'subtitle' => 'Paste a Room link to join',
+        'cancel' => 'Cancel',
+        'close' => 'Close',
     ],
 ];

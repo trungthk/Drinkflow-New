@@ -65,7 +65,7 @@ class CampaignController extends Controller
             ->when($request->filled('status'), fn($query) => $query->where('status', $request->string('status')->toString()))
             ->latest();
 
-        return response()->json(['data' => $query->paginate(20)]);
+        return response()->json(['data' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)]);
     }
 
     /**
@@ -98,7 +98,7 @@ class CampaignController extends Controller
             $query->where('status', $status);
         }
 
-        $campaigns = $query->paginate(20)->withQueryString();
+        $campaigns = $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString();
 
         return view('admin.campaigns', [
             'room' => $room,
@@ -504,6 +504,22 @@ class CampaignController extends Controller
             'message' => __('admin.campaign_delivering_success'),
             'data' => $updated,
         ]);
+    }
+
+    /**
+     * Send the live campaign announcement again via web, channel gateways and realtime socket.
+     *
+     * @param Room $room Current room.
+     * @param Campaign $campaign Live campaign to announce again.
+     * @param \App\Actions\Campaign\ResendCampaignNotificationAction $action Resend action.
+     * @return JsonResponse Operation response.
+     */
+    public function resendNotification(Room $room, Campaign $campaign, \App\Actions\Campaign\ResendCampaignNotificationAction $action): JsonResponse
+    {
+        $this->assertCampaign($campaign);
+        $action->execute($campaign, request()->user('admin')?->id);
+
+        return response()->json(['message' => __('admin.resend_notification_success')]);
     }
 
     /**

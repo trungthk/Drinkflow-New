@@ -7,6 +7,8 @@ namespace App\Actions\Campaign;
 use App\Enums\CampaignItemStatus;
 use App\Enums\CampaignStatus;
 use App\Enums\PaymentAccountStatus;
+use App\Events\CampaignCreated;
+use App\Events\CampaignUpdated;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
 use App\Models\PaymentAccount;
@@ -111,7 +113,9 @@ class UpdateCampaignAction
         $items = $data['items'] ?? [];
         unset($data['items']);
 
-        return DB::transaction(function () use ($campaign, $data, $hasItems, $items): Campaign {
+        $previousStatus = $campaign->status;
+
+        $updated = DB::transaction(function () use ($campaign, $data, $hasItems, $items, $previousStatus): Campaign {
             $before = $campaign->toArray();
             $updateData = collect($data)->all();
             if (isset($data['status'])) {
@@ -198,12 +202,29 @@ class UpdateCampaignAction
             $freshCampaign = $campaign->fresh(['items.toppings', 'items.sizes', 'paymentAccount', 'room']);
             $this->auditService->record('campaign.updated', 'campaign', $campaign->id, $campaign->room_id, $before, $freshCampaign->toArray());
 
-            $statusValue = $freshCampaign->status instanceof \BackedEnum ? $freshCampaign->status->value : (string) $freshCampaign->status;
-            if (in_array($statusValue, [CampaignStatus::Active->value, CampaignStatus::Scheduled->value, CampaignStatus::Closing->value], true)) {
-                \App\Events\CampaignUpdated::dispatch($freshCampaign);
-            }
-
             return $freshCampaign;
         });
+
+        if ($this->wentLive($previousStatus, $updated->status)) {
+            // Draft/scheduled -> active is a go-live: announce it like a newly created campaign.
+            CampaignCreated::dispatch($updated);
+        } elseif (in_array($updated->status, [CampaignStatus::Active, CampaignStatus::Scheduled, CampaignStatus::Closing], true)) {
+            CampaignUpdated::dispatch($updated);
+        }
+
+        return $updated;
+    }
+
+    /**
+     * Determine whether an update moved a campaign from an unpublished state to active.
+     *
+     * @param CampaignStatus|null $previous Status before the update.
+     * @param CampaignStatus|null $current Status after the update.
+     * @return bool True when the campaign has just gone live.
+     */
+    private function wentLive(?CampaignStatus $previous, ?CampaignStatus $current): bool
+    {
+        return $current === CampaignStatus::Active
+            && in_array($previous, [CampaignStatus::Draft, CampaignStatus::Scheduled], true);
     }
 }

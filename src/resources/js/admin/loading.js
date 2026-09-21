@@ -38,3 +38,24 @@ export function initAdminLoading() {
         if (isInternalNavigation) show();
     });
 }
+
+/** Wire every [data-reload-page] button to reload the current page with a spinner while it loads. */
+export function initAdminReloadButtons() {
+    const setLoading = (button, loading) => {
+        button.disabled = loading;
+        button.setAttribute('aria-busy', loading ? 'true' : 'false');
+        button.querySelector('[data-reload-icon]')?.classList.toggle('animate-spin', loading);
+    };
+
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-reload-page]');
+        if (!button || button.disabled) return;
+        setLoading(button, true);
+        window.location.reload();
+    });
+
+    // Restore the buttons when the page comes back from the back/forward cache.
+    window.addEventListener('pageshow', () => {
+        document.querySelectorAll('[data-reload-page]').forEach((button) => setLoading(button, false));
+    });
+}

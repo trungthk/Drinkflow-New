@@ -51,7 +51,7 @@ return [
         'google_profile_failed' => 'Không thể lấy thông tin người dùng từ Google.',
         'google_unsupported_account' => 'Tài khoản không được hỗ trợ đăng nhập.',
         'google_account_access_revoked' => 'Tài khoản của bạn đã bị khóa hoặc bị xóa khỏi phòng. Vui lòng liên hệ quản trị viên để xử lý.',
-        'google_login_failed' => 'Đăng nhập Google thất bại: :error',
+        'google_login_failed' => 'Đăng nhập Google thất bại. Vui lòng thử lại.',
     ],
     'header' => [
         'language_select' => 'Chọn ngôn ngữ',
@@ -725,5 +725,12 @@ return [
         'logout_desc' => 'Bạn có chắc chắn muốn đăng xuất khỏi tài khoản DrinkFlow không? Bạn sẽ cần đăng nhập lại bằng tài khoản Google để tiếp tục sử dụng.',
         'cancel' => 'Hủy bỏ',
         'confirm_logout' => 'Đăng xuất',
+    ],
+    'join_modal' => [
+        'fab_label' => 'Đăng ký tham gia phòng',
+        'title' => 'Đăng ký tham gia phòng',
+        'subtitle' => 'Dán liên kết Room để gia nhập',
+        'cancel' => 'Hủy',
+        'close' => 'Đóng',
     ],
 ];

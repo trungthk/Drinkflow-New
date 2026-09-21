@@ -5,6 +5,7 @@
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.debts_management') }}</h1>
         </div>
         <div class="flex items-center gap-2.5">
+            <x-admin.reload-button :header="true" />
             <button type="button" onclick="exportDebtCSV()" class="px-3.5 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant text-on-surface rounded text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors">
                 <span class="material-symbols-outlined text-[16px] text-primary">download</span>
                 <span>{{ __('admin.export_csv_btn') }}</span>
@@ -57,6 +58,19 @@
             <x-admin.search-input id="debt-search" name="search" :value="$filters['search'] ?? ''" placeholder="{{ __('admin.search_debts_placeholder') }}" containerClass="relative w-full max-w-md" />
         </div>
         <div class="flex items-center gap-2 flex-wrap">
+            <div class="w-60">
+                <select id="debt-user-filter" name="user" data-searchable="true"
+                    data-placeholder="{{ __('admin.debt_filter_user_search_placeholder') }}"
+                    data-empty-text="{{ __('admin.debt_filter_user_empty') }}"
+                    aria-label="{{ __('admin.debt_filter_user') }}"
+                    class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                    <option value="">{{ __('admin.debt_filter_all_users') }}</option>
+                    @foreach($memberFilters as $memberFilter)
+                        <option value="{{ $memberFilter['value'] }}" data-search="{{ $memberFilter['search'] }}" {{ (string) ($filters['user'] ?? '') === (string) $memberFilter['value'] ? 'selected' : '' }}>{{ $memberFilter['label'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <x-admin.date-range-filter id="debt-date-range" :date-from="$filters['date_from'] ?? ''" :date-to="$filters['date_to'] ?? ''" form-id="debts-filter-form" />
             <select id="debt-status-filter" name="status" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
                 <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all') }}</option>
                 @foreach($statusFilters as $statusFilter)
@@ -67,7 +81,7 @@
                 <span class="material-symbols-outlined text-[16px]">filter_alt</span>
                 {{ __('admin.filter_apply') }}
             </button>
-            @if(trim((string) ($filters['search'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all')
+            @if(trim((string) ($filters['search'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all' || ($filters['user'] ?? '') !== '' || ($filters['date_from'] ?? '') !== '' || ($filters['date_to'] ?? '') !== '')
                 <a id="debt-clear-filters" href="{{ route('admin.debts.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
                     <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
                     {{ __('admin.filter_clear') }}
@@ -87,7 +101,7 @@
                     <col class="w-32">
                     <col class="w-32">
                     <col class="w-36">
-                    <col class="w-44">
+                    <col class="w-52">
                 </colgroup>
                 <thead>
                     <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
@@ -171,20 +185,27 @@
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
+                                    <button type="button" data-open-debt-detail
+                                        data-debt-detail="{{ json_encode($debtDetails[$debt->id] ?? [], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
+                                        data-tooltip="{{ __('admin.view_debt_detail') }}"
+                                        aria-label="{{ __('admin.view_debt_detail') }}"
+                                        class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary border border-outline-variant/60 transition-colors cursor-pointer">
+                                        <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                    </button>
                                     @if($debtStatusValue === 'pending')
                                         <button
                                             type="button"
                                             class="px-2.5 py-1 bg-amber-500 text-white hover:bg-amber-600 rounded text-[11px] font-bold flex items-center gap-1 shadow-2xs transition-colors cursor-pointer"
                                             onclick="openApproveDebtModal({
                                                 id: {{ $debt->id }},
-                                                member: '{{ addslashes($member) }}',
-                                                memberEmail: '{{ addslashes($memberEmail) }}',
-                                                memberCode: '{{ addslashes($memberCode) }}',
-                                                campaign: '{{ addslashes($campaignName) }}',
+                                                member: @js($member),
+                                                memberEmail: @js($memberEmail),
+                                                memberCode: @js($memberCode),
+                                                campaign: @js($campaignName),
                                                 amount: {{ (int) ($isPayAll ? $totalPendingAmount : $debt->remaining_amount) }},
-                                                updatedAt: '{{ $updatedAt }}',
-                                                createdAt: '{{ $createdAt }}',
-                                                transferContent: '{{ addslashes($transferContent) }}',
+                                                updatedAt: @js($updatedAt),
+                                                createdAt: @js($createdAt),
+                                                transferContent: @js($transferContent),
                                                 isPayAll: {{ $isPayAll ? 'true' : 'false' }},
                                                 pendingDebts: {{ Js::from($userPendingDebts) }}
                                             })"
@@ -194,11 +215,11 @@
                                         </button>
                                     @endif
                                     @if($debt->remaining_amount > 0 && $debtStatusValue !== 'pending')
-                                        <button type="button" onclick="openRecordPaymentModal({{ $debt->id }}, {{ $debt->remaining_amount }}, '{{ addslashes($member) }}')" class="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-[11px] font-semibold flex items-center gap-1 shadow-2xs transition-colors">
+                                        <button type="button" onclick="openRecordPaymentModal({{ $debt->id }}, {{ $debt->remaining_amount }}, @js($member))" class="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-[11px] font-semibold flex items-center gap-1 shadow-2xs transition-colors">
                                             <span class="material-symbols-outlined text-[14px]">payments</span>
                                             <span>{{ __('admin.record_payment_btn') }}</span>
                                         </button>
-                                        <button type="button" onclick="openAdjustDebtModal({{ $debt->id }}, {{ $debt->remaining_amount }}, '{{ addslashes($member) }}')" class="p-1 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors" title="{{ __('admin.adjust_debt_btn') }}">
+                                        <button type="button" onclick="openAdjustDebtModal({{ $debt->id }}, {{ $debt->remaining_amount }}, @js($member))" class="p-1 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors" title="{{ __('admin.adjust_debt_btn') }}">
                                             <span class="material-symbols-outlined text-[16px]">tune</span>
                                         </button>
                                     @elseif($debt->remaining_amount <= 0)
@@ -269,6 +290,8 @@
             'noDebts' => __('admin.no_debts_found'),
             'statusPaid' => __('admin.status_paid'),
             'settled' => __('admin.settled_badge'),
+            'noPayments' => __('admin.debt_detail_no_payments'),
+            'noAdjustments' => __('admin.debt_detail_no_adjustments'),
         ];
     @endphp
     <div id="debt-modal" data-i18n="{{ json_encode($debtModalI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
@@ -379,6 +402,104 @@
                     <span class="material-symbols-outlined text-[15px]">check_circle</span>
                     <span id="approve-modal-confirm-text">{{ __('admin.confirm_approve_btn') }}</span>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debt Detail Modal (read-only) -->
+    <div id="debt-detail-modal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/65 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="debt-detail-title">
+        <div id="debt-detail-backdrop" class="absolute inset-0"></div>
+        <div class="relative z-10 w-full max-w-2xl bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant bg-surface-container-low shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                        <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                    </span>
+                    <div>
+                        <h3 id="debt-detail-title" class="font-bold text-base text-on-surface">{{ __('admin.debt_detail') }}</h3>
+                        <p class="text-[11px] font-mono text-outline mt-0.5" data-debt-detail-field="code">—</p>
+                    </div>
+                </div>
+                <button type="button" data-debt-detail-close aria-label="{{ __('admin.close') }}" class="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <div class="px-6 py-5 space-y-4 overflow-y-auto flex-1 text-xs">
+                <div class="flex items-start gap-3">
+                    <span class="material-symbols-outlined text-[18px] text-outline mt-0.5 shrink-0">account_circle</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-0.5">{{ __('admin.debt_member') }}</div>
+                        <div class="font-bold text-on-surface text-sm" data-debt-detail-field="member">—</div>
+                        <div class="text-xs text-outline mt-0.5" data-debt-detail-field="member_meta">—</div>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-surface-container text-on-surface border-outline-variant shrink-0" data-debt-detail-field="status_label">—</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="bg-surface-container rounded-lg p-3">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.origin_campaign') }}</div>
+                        <div class="text-xs font-semibold text-on-surface break-words" data-debt-detail-field="campaign">—</div>
+                    </div>
+                    <div class="bg-surface-container rounded-lg p-3">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.created_at') }}</div>
+                        <div class="text-xs font-semibold text-on-surface" data-debt-detail-field="created_at">—</div>
+                    </div>
+                    <div class="bg-surface-container rounded-lg p-3" data-debt-detail-row="payment_requested_at">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.request_time') }}</div>
+                        <div class="text-xs font-semibold text-on-surface" data-debt-detail-field="payment_requested_at">—</div>
+                    </div>
+                    <div class="bg-surface-container rounded-lg p-3" data-debt-detail-row="payment_content">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.request_content') }}</div>
+                        <div class="text-xs font-mono font-bold text-primary break-words" data-debt-detail-field="payment_content">—</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div class="border border-outline-variant/60 rounded-lg p-3">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.th_original_debt') }}</div>
+                        <div class="font-mono font-bold text-on-surface" data-debt-detail-field="original">—</div>
+                    </div>
+                    <div class="border border-outline-variant/60 rounded-lg p-3" data-debt-detail-row="sponsor">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.debt_detail_sponsor_amount') }}</div>
+                        <div class="font-mono font-bold text-emerald-700" data-debt-detail-field="sponsor">—</div>
+                        <div class="text-[11px] text-outline mt-0.5" data-debt-detail-field="sponsor_type"></div>
+                    </div>
+                    <div class="border border-outline-variant/60 rounded-lg p-3" data-debt-detail-row="adjustment">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.debt_detail_adjustment_amount') }}</div>
+                        <div class="font-mono font-bold text-on-surface" data-debt-detail-field="adjustment">—</div>
+                    </div>
+                    <div class="border border-outline-variant/60 rounded-lg p-3">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.debt_detail_paid_amount') }}</div>
+                        <div class="font-mono font-bold text-emerald-700" data-debt-detail-field="paid">—</div>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 col-span-2 sm:col-span-1">
+                        <div class="text-[11px] font-mono uppercase text-amber-700 tracking-wider mb-1">{{ __('admin.remaining_debt') }}</div>
+                        <div class="font-mono font-bold text-amber-700 text-base" data-debt-detail-field="remaining">—</div>
+                    </div>
+                </div>
+
+                <div class="bg-surface-container rounded-lg p-3" data-debt-detail-row="note">
+                    <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.notes') }}</div>
+                    <div class="text-xs text-on-surface break-words whitespace-pre-line" data-debt-detail-field="note">—</div>
+                </div>
+                <div class="bg-surface-container rounded-lg p-3" data-debt-detail-row="sponsor_description">
+                    <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.sponsor_description_label') }}</div>
+                    <div class="text-xs text-on-surface break-words whitespace-pre-line" data-debt-detail-field="sponsor_description">—</div>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="text-[11px] font-mono uppercase text-outline tracking-wider">{{ __('admin.debt_detail_payment_history') }}</div>
+                    <div class="border border-outline-variant/60 rounded-xl overflow-hidden divide-y divide-outline-variant/40" data-debt-detail-list="payments"></div>
+                </div>
+                <div class="space-y-2">
+                    <div class="text-[11px] font-mono uppercase text-outline tracking-wider">{{ __('admin.debt_detail_adjustment_history') }}</div>
+                    <div class="border border-outline-variant/60 rounded-xl overflow-hidden divide-y divide-outline-variant/40" data-debt-detail-list="adjustments"></div>
+                </div>
+            </div>
+
+            <div class="px-6 py-4 border-t border-outline-variant flex items-center justify-end bg-surface-container-low/40 shrink-0">
+                <button type="button" data-debt-detail-close class="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg text-xs font-semibold transition-colors cursor-pointer">{{ __('admin.close') }}</button>
             </div>
         </div>
     </div>

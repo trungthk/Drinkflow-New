@@ -140,6 +140,7 @@ return [
         'error_invalid_identity' => 'Google identity không hợp lệ.',
         'error_identity_conflict' => 'Google identity đã liên kết với tài khoản khác.',
         'require_login_room' => "Vui lòng đăng nhập Google Workspace để tham gia phòng ':room'.",
+        'require_register' => 'Vui lòng đăng ký tài khoản để sử dụng',
     ],
     'video_modal' => [
         'close_label' => 'Đóng video',

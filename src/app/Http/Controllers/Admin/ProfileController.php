@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\EnsureActiveAdmin;
 use App\Http\Requests\UpdateAdminPasswordRequest;
 use App\Http\Requests\UpdateAdminProfileRequest;
 use App\Http\Requests\UpdateAdminTwoFactorRequest;
@@ -135,7 +136,10 @@ class ProfileController extends Controller
             return back()->withErrors(['current_password' => __('admin.current_password_incorrect')]);
         }
 
+        $admin->forceFill(['remember_token' => Str::random(60)]);
         $admin->update(['password' => $data['password']]);
+        // Keep this session signed in while every other session/remember-me cookie of the admin is revoked.
+        $request->session()->put('admin_password_fingerprint', EnsureActiveAdmin::passwordFingerprint($admin->refresh()));
         $audit->record('admin.password_updated', 'admin', $admin->id);
 
         return back()->with('status', __('admin.password_updated'));

@@ -6,10 +6,12 @@ namespace App\Services\FoodCrawler;
 
 use App\Services\FoodCrawler\DTO\RestaurantMenuData;
 use App\Services\FoodCrawler\Exceptions\FoodCrawlerException;
+use App\Support\Security\OutboundUrlGuard;
+use InvalidArgumentException;
 
 final class FoodCrawlerGateway
 {
-    public function __construct(private readonly ProviderResolver $resolver)
+    public function __construct(private readonly ProviderResolver $resolver, private readonly OutboundUrlGuard $guard)
     {
     }
 
@@ -21,18 +23,23 @@ final class FoodCrawlerGateway
      */
     public function crawl(string $url): RestaurantMenuData
     {
-        $parts = parse_url(trim($url));
+        $url = trim($url);
+        $parts = parse_url($url);
         if (! is_array($parts) || ! in_array($parts['scheme'] ?? '', ['http', 'https'], true) || ! isset($parts['host'])) {
             throw new FoodCrawlerException('The crawler URL must use HTTP or HTTPS.');
         }
-        $host = (string) $parts['host'];
-        $ips = gethostbynamelist($host) ?: [];
-        foreach ($ips as $ip) {
-            if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
-                throw new FoodCrawlerException('The crawler URL must point to a public host.');
-            }
+
+        // Resolve the provider first: its host allowlist is the primary SSRF control.
+        $provider = $this->resolver->resolve($url);
+
+        // Only HTTPS is crawled; a plain-HTTP link is upgraded so the guard below sees a single scheme.
+        $url = (string) preg_replace('#^http://#i', 'https://', $url);
+        try {
+            $this->guard->assertSafe($url);
+        } catch (InvalidArgumentException) {
+            throw new FoodCrawlerException('The crawler URL must point to a public host.');
         }
 
-        return $this->resolver->resolve($url)->crawl($url);
+        return $provider->crawl($url);
     }
 }

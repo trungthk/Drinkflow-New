@@ -26,7 +26,7 @@ class PaymentAccountController extends Controller
      */
     public function index(Room $room): JsonResponse
     {
-        return response()->json(['data' => $room->paymentAccounts()->paginate(20)->through(fn(PaymentAccount $account) => $this->payload($account))]);
+        return response()->json(['data' => $room->paymentAccounts()->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->through(fn(PaymentAccount $account) => $this->payload($account))]);
     }
 
 

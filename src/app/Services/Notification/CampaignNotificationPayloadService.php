@@ -32,6 +32,10 @@ class CampaignNotificationPayloadService
         $orderUrl = in_array($event, [NotificationType::CampaignCreated->value, NotificationType::CampaignUpdated->value], true) && $room !== null
             ? route('user.campaigns.index', $room)
             : null;
+        // Link a new member can follow to sign up and join this room.
+        $registerUrl = $event === NotificationType::CampaignCreated->value && $room !== null
+            ? route('user.rooms.show', $room)
+            : null;
         $orderCheckUrl = $event === NotificationType::CampaignClosed->value
             ? URL::temporarySignedRoute(
                 'public.order-check',
@@ -53,9 +57,10 @@ class CampaignNotificationPayloadService
                 'sponsorship_amount' => $campaign->max_budget,
                 'max_product_budget' => $campaign->max_budget,
                 'order_url' => $orderUrl,
+                'register_url' => $registerUrl,
                 'order_check_url' => $orderCheckUrl,
             ],
-            'message' => $this->message($title, $campaign, $event === NotificationType::CampaignClosed->value ? $orderCheckUrl : $orderUrl, $event),
+            'message' => $this->message($title, $campaign, $event === NotificationType::CampaignClosed->value ? $orderCheckUrl : $orderUrl, $event, $registerUrl),
         ];
     }
 
@@ -66,9 +71,11 @@ class CampaignNotificationPayloadService
      * @param string $title Notification title.
      * @param Campaign $campaign Campaign data.
      * @param ?string $orderUrl User order link when ordering is available.
+     * @param string $event Lifecycle event name.
+     * @param ?string $registerUrl Link for new members to register and join the room.
      * @return string Formatted notification text.
      */
-    private function message(string $title, Campaign $campaign, ?string $orderUrl, string $event = 'campaign.created'): string
+    private function message(string $title, Campaign $campaign, ?string $orderUrl, string $event = 'campaign.created', ?string $registerUrl = null): string
     {
         $lines = [$title, __('messages.campaign_name', ['name' => $campaign->name])];
         if (! empty($campaign->restaurant)) {
@@ -86,16 +93,25 @@ class CampaignNotificationPayloadService
                     ? FormatHelper::formatCurrency((int) $campaign->max_budget)
                     : __('messages.campaign_product_budget_unlimited'),
             ]);
-            if ($campaign->sponsor_name || $campaign->max_budget) {
+            if (filled($campaign->sponsor_name)) {
                 $lines[] = __('messages.campaign_sponsorship', [
-                    'sponsor' => $campaign->sponsor_name ?: __('messages.campaign_sponsor_not_set'),
+                    'sponsor' => $campaign->sponsor_name,
                     'amount' => $campaign->max_budget
                         ? FormatHelper::formatCurrency((int) $campaign->max_budget)
                         : __('messages.campaign_product_budget_unlimited'),
                 ]);
+            } else {
+                // No sponsor: state it plainly, without any amount or description.
+                $lines[] = __('messages.campaign_sponsorship', [
+                    'sponsor' => __('messages.campaign_sponsor_not_set'),
+                    'amount' => '',
+                ]);
             }
             if ($orderUrl !== null) {
                 $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
+            }
+            if ($registerUrl !== null) {
+                $lines[] = __('messages.campaign_register', ['url' => $registerUrl]);
             }
         } elseif ($event === NotificationType::CampaignUpdated->value) {
             $lines[] = __('messages.campaign_updated_body');

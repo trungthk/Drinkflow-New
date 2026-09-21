@@ -135,7 +135,12 @@ class NotificationChannelController extends Controller
             $template = 'test_ping';
         }
 
-        $dispatcher->test($channel, $template);
+        try {
+            $dispatcher->test($channel, $template);
+        } catch (\InvalidArgumentException) {
+            // The stored destination is not a safe public HTTPS endpoint (e.g. saved before SSRF validation existed).
+            return response()->json(['message' => __('admin.webhook_url_unsafe')], 422);
+        }
 
         return response()->json([
             'message' => 'test_sent',

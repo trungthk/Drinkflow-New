@@ -58,6 +58,16 @@ class ResolveGlobalUser
             if ($request->expectsJson()) {
                 abort(401, __('errors.common.unauthenticated'));
             }
+            // Room links (e.g. campaign announcements) send guests home with the sign-up modal open.
+            if ($request->route('room') !== null) {
+                if ($request->isMethod('GET')) {
+                    $request->session()->put('url.intended', $request->fullUrl());
+                }
+                $response = redirect()->to('/')->with('auth_notice', __('public.auth_modal.require_register'));
+
+                return $clearTrustedDeviceCookies ? $this->forgetTrustedDeviceCookies($response) : $response;
+            }
+
             $referer = $request->headers->get('referer') ?: url()->previous();
             if ($this->isSafeInternalUrl($request, $referer)
                 && $referer !== $request->fullUrl()

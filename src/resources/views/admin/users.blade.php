@@ -88,6 +88,7 @@
                     {{ __('admin.filter_clear') }}
                 </a>
             @endif
+            <x-admin.reload-button />
         </div>
     </form>
 
@@ -217,6 +218,16 @@
                                                 class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.approve_user') }}</span>
                                         </button>
                                     @endif
+                                    @if($statusVal === 'removed')
+                                        <button type="button" data-restore-room-user data-room-user-id="{{ $ru->id }}"
+                                            class="group relative p-1 rounded text-emerald-600 hover:text-emerald-700 hover:bg-surface-container transition-colors"
+                                            title="{{ __('admin.restore_user_to_room') }}"
+                                            aria-label="{{ __('admin.restore_user_to_room') }}">
+                                            <span class="material-symbols-outlined text-[16px]">restore_from_trash</span>
+                                            <span role="tooltip"
+                                                class="pointer-events-none absolute bottom-full right-0 z-20 mb-2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ __('admin.restore_user_to_room') }}</span>
+                                        </button>
+                                    @endif
                                     @if($statusVal !== 'removed')
                                         <button type="button" data-remove-room-user data-room-user-id="{{ $ru->id }}"
                                             class="group relative p-1 rounded text-secondary hover:text-rose-600 hover:bg-surface-container transition-colors"
@@ -287,6 +298,8 @@
         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog"
         aria-modal="true" data-status-title="{{ __('admin.toggle_user_status') }}"
         data-remove-title="{{ __('admin.remove_user_from_room') }}"
+         data-restore-title="{{ __('admin.restore_user_to_room') }}"
+         data-restore-message="{{ __('admin.confirm_restore_user') }}"
          data-block-message="{{ __('admin.confirm_block_user') }}"
          data-unblock-message="{{ __('admin.confirm_unblock_user') }}"
          data-remove-message="{{ __('admin.confirm_remove_user') }}"

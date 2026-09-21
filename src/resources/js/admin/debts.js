@@ -202,6 +202,74 @@ export function initAdminDebts() {
         });
     };
 
+    // ── Debt Detail Modal (read-only) ─────────────────────────────────────
+    const detailModal = document.querySelector('#debt-detail-modal');
+    const closeDetailModal = () => {
+        detailModal?.classList.add('hidden');
+        detailModal?.classList.remove('flex');
+    };
+    const renderDetailList = (name, rows, renderRow, emptyText) => {
+        const container = detailModal?.querySelector(`[data-debt-detail-list="${name}"]`);
+        if (!container) return;
+        container.innerHTML = rows.length
+            ? rows.map(renderRow).join('')
+            : `<div class="px-3 py-3 text-[11px] text-outline">${escapeHtml(emptyText)}</div>`;
+    };
+    const openDebtDetail = (detail) => {
+        if (!detailModal) return;
+        detailModal.querySelectorAll('[data-debt-detail-field]').forEach((el) => {
+            el.textContent = detail[el.dataset.debtDetailField] || (el.dataset.debtDetailField === 'sponsor_type' ? '' : '—');
+        });
+        // Optional blocks are hidden when they carry no value.
+        detailModal.querySelectorAll('[data-debt-detail-row]').forEach((el) => {
+            el.classList.toggle('hidden', !detail[el.dataset.debtDetailRow]);
+        });
+        renderDetailList('payments', detail.payments || [], (payment) => `
+            <div class="px-3 py-2.5 flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <div class="font-semibold text-on-surface">${escapeHtml(payment.method)}</div>
+                    <div class="text-[11px] text-outline">${escapeHtml(payment.paid_at)}${payment.reference ? ' · ' + escapeHtml(payment.reference) : ''}</div>
+                </div>
+                <div class="font-mono font-bold text-emerald-700 shrink-0">${escapeHtml(payment.amount)}</div>
+            </div>`, i18n.noPayments || '');
+        renderDetailList('adjustments', detail.adjustments || [], (adjustment) => `
+            <div class="px-3 py-2.5 flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <div class="font-semibold text-on-surface">${escapeHtml(adjustment.type)}</div>
+                    <div class="text-[11px] text-outline">${escapeHtml(adjustment.created_at)}${adjustment.reason ? ' · ' + escapeHtml(adjustment.reason) : ''}</div>
+                </div>
+                <div class="text-right shrink-0">
+                    <div class="font-mono font-bold text-on-surface">${escapeHtml(adjustment.amount)}</div>
+                    <div class="text-[11px] font-mono text-outline">${escapeHtml(adjustment.before)} → ${escapeHtml(adjustment.after)}</div>
+                </div>
+            </div>`, i18n.noAdjustments || '');
+        detailModal.classList.remove('hidden');
+        detailModal.classList.add('flex');
+    };
+    document.addEventListener('click', (event) => {
+        const openButton = event.target instanceof Element ? event.target.closest('[data-open-debt-detail]') : null;
+        if (openButton) {
+            try {
+                openDebtDetail(JSON.parse(openButton.dataset.debtDetail || '{}'));
+            } catch (error) {
+                console.error(error);
+            }
+            return;
+        }
+        if (event.target instanceof Element && (event.target.closest('[data-debt-detail-close]') || event.target.id === 'debt-detail-backdrop')) {
+            closeDetailModal();
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && detailModal && !detailModal.classList.contains('hidden')) closeDetailModal();
+    });
+    // Applying a date range submits the filter form (same behavior as the audit log page).
+    document.addEventListener('admin:daterange-change', (event) => {
+        if (event.target?.id !== 'debt-date-range') return;
+        filterForm?.requestSubmit();
+    });
+    document.querySelector('#debt-user-filter')?.addEventListener('change', () => filterForm?.requestSubmit());
+
     // ── Approve Payment Detail Modal ──────────────────────────────────────
     const approveModal    = document.querySelector('#approve-debt-modal');
     const approveBackdrop = document.querySelector('#approve-debt-backdrop');
@@ -283,11 +351,11 @@ export function initAdminDebts() {
                     <div class="p-2.5 flex items-center justify-between text-xs hover:bg-surface-container transition-colors">
                         <div class="flex flex-col min-w-0 pr-2">
                             <div class="flex items-center gap-1.5 font-semibold text-on-surface">
-                                <span class="font-mono text-[11px] text-primary font-bold">${d.code || 'N/A'}</span>
+                                <span class="font-mono text-[11px] text-primary font-bold">${escapeHtml(d.code || 'N/A')}</span>
                                 <span class="text-outline-variant">•</span>
-                                <span class="truncate">${d.campaign || 'N/A'}</span>
+                                <span class="truncate">${escapeHtml(d.campaign || 'N/A')}</span>
                             </div>
-                            ${d.note ? `<div class="text-[11px] text-outline truncate italic mt-0.5">${d.note}</div>` : ''}
+                            ${d.note ? `<div class="text-[11px] text-outline truncate italic mt-0.5">${escapeHtml(d.note)}</div>` : ''}
                         </div>
                         <span class="font-mono font-bold text-amber-600 shrink-0 text-sm">${formatMoney(d.amount)}</span>
                     </div>

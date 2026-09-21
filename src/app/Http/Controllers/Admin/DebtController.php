@@ -38,7 +38,7 @@ class DebtController extends Controller
         if ($request->filled('status')) $query->where('status', $request->string('status')->toString());
         if ($request->filled('campaign_id')) $query->where('campaign_id', $request->integer('campaign_id'));
         $ledger = Debt::query()->where('room_id', $room->id);
-        return response()->json(['data' => $query->paginate(50), 'summary' => [
+        return response()->json(['data' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE), 'summary' => [
             'by_user' => (clone $ledger)->selectRaw('room_user_id, SUM(remaining_amount) as remaining_amount, COUNT(*) as debt_count')->groupBy('room_user_id')->with('roomUser.globalUser:id,name,email')->get(),
             'by_day' => (clone $ledger)->selectRaw('DATE(created_at) as date, SUM(original_amount) as original_amount, SUM(remaining_amount) as remaining_amount, COUNT(*) as debt_count')->groupByRaw('DATE(created_at)')->orderBy('date')->get(),
         ]]);
@@ -60,8 +60,24 @@ class DebtController extends Controller
                 'roomUser.globalUser',
                 'roomUser.debts' => fn($q) => $q->where('room_id', $room->id)->where('status', DebtStatus::Pending)->with('campaign'),
                 'campaign',
+                'payments',
+                'adjustments',
             ])
             ->latest();
+
+        $userId = $request->integer('user');
+        if ($userId > 0) {
+            $query->where('room_user_id', $userId);
+        }
+
+        $dateFrom = $this->validDate($request->string('date_from')->toString());
+        $dateTo = $this->validDate($request->string('date_to')->toString());
+        if ($dateFrom !== '') {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+        if ($dateTo !== '') {
+            $query->whereDate('created_at', '<=', $dateTo);
+        }
 
         $search = trim($request->string('search')->toString());
         if ($search !== '') {
@@ -71,6 +87,7 @@ class DebtController extends Controller
                     $debtQuery->orWhere('id', (int) $matches[1]);
                 }
                 $debtQuery
+                    ->orWhereRaw('LOWER(code) LIKE ?', ['%' . $normalizedSearch . '%'])
                     ->orWhereRaw('LOWER(note) LIKE ?', ['%' . $normalizedSearch . '%'])
                     ->orWhereHas('campaign', function (Builder $campaignQuery) use ($normalizedSearch): void {
                         $campaignQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearch . '%'])
@@ -95,7 +112,7 @@ class DebtController extends Controller
             $selectedStatus = 'all';
         }
 
-        $debts = $query->paginate(50)->withQueryString();
+        $debts = $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString();
 
         $summary = $debtService->getLedgerSummary($room);
 
@@ -111,11 +128,31 @@ class DebtController extends Controller
                 'value' => $status->value,
                 'label' => __('admin.filter_debt_'.$status->value),
             ])->all(),
+            'memberFilters' => $debtService->getMemberFilterOptions($room),
+            'debtDetails' => $debts->getCollection()->mapWithKeys(
+                static fn (Debt $debt): array => [$debt->id => $debtService->formatDetail($debt)]
+            )->all(),
             'filters' => [
                 'search' => $search,
                 'status' => $selectedStatus,
+                'user' => $userId > 0 ? $userId : '',
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
             ],
         ], $summary));
+    }
+
+    /**
+     * Keep a filter date only when it is a valid Y-m-d value.
+     *
+     * @param string $value Raw query value.
+     * @return string The same value when valid, otherwise an empty string.
+     */
+    private function validDate(string $value): string
+    {
+        $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+
+        return $date !== false && $date->format('Y-m-d') === $value ? $value : '';
     }
 
     /**
