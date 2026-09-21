@@ -191,6 +191,7 @@ return [
         'proxy_for' => '代理注文:',
         'proxy_user_not_found' => ':code に一致する有効なメンバーが見つかりません。',
         'proxy_self_not_allowed' => '自分自身には代理注文できません。',
+        'proxy_requires_own_order' => '他の人の分を代理注文するには、まずご自身の分を1品以上注文してください。',
         'more_categories' => 'その他',
         'more_categories_count' => 'その他 (+:count)',
         'item_exceeded_budget_error' => '上限予算を超過しています（1品あたり:limit）',

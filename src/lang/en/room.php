@@ -191,6 +191,7 @@ return [
         'proxy_for' => 'For:',
         'proxy_user_not_found' => 'No active member found for :code.',
         'proxy_self_not_allowed' => 'You cannot order for yourself using this field.',
+        'proxy_requires_own_order' => 'You need to order at least one item for yourself before ordering on behalf of others.',
         'more_categories' => 'More',
         'more_categories_count' => 'More (+:count)',
         'item_exceeded_budget_error' => 'Exceeds allowed budget ceiling (:limit/item)',

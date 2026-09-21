@@ -18,6 +18,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Services\Order\ProxyOrderPolicy;
 use App\Enums\RoomUserStatus;
 use App\Services\Campaign\UserRoomCampaignService;
 use App\Support\Helpers\FormatHelper;
@@ -166,6 +167,10 @@ class CampaignController extends Controller
         $toppings = collect($data['topping_ids'] ?? [])->map(fn (int $id) => $item->toppings->firstWhere('id', $id))->filter();
         abort_if($toppings->count() !== count($data['topping_ids'] ?? []), 422, __('admin.invalid_topping'));
 
+        if ($roomUser instanceof RoomUser) {
+            app(ProxyOrderPolicy::class)->assertNotSelf($roomUser, $data['proxy_user_code'] ?? null, 'proxy_user_code');
+        }
+
         $cartKey = $this->cartKey($room->id, $campaign->id);
         $cart = session()->get($cartKey, []);
         abort_if(count($cart) >= 50, 422, __('room.campaign.cart_limit_reached'));
@@ -246,8 +251,16 @@ class CampaignController extends Controller
         $cartKey = $this->cartKey($room->id, $campaign->id);
         $cart = session()->get($cartKey, []);
         abort_if(! array_key_exists($index, $cart), 404);
-        $cart[$index]['proxy_user_code'] = trim((string) ($data['proxy_user_code'] ?? '')) ?: null;
+        $proxyCode = trim((string) ($data['proxy_user_code'] ?? '')) ?: null;
+        $policy = app(ProxyOrderPolicy::class);
+        $requester = $request->attributes->get('room_user');
+        if ($requester instanceof RoomUser) {
+            $policy->assertNotSelf($requester, $proxyCode, 'proxy_user_code');
+        }
+        $cart[$index]['proxy_user_code'] = $proxyCode;
         $cart[$index]['proxy_user_name'] = trim((string) ($data['proxy_user_name'] ?? '')) ?: null;
+        // Assigning items to others must leave at least one item for the requester.
+        $policy->assertHasOwnItems(array_values($cart), 'proxy_user_code');
         session()->put($cartKey, array_values($cart));
 
         return response()->json(['data' => array_values($cart)]);
@@ -282,6 +295,9 @@ class CampaignController extends Controller
                 || ($normalizedPhone !== '' && $phone === $normalizedPhone);
         });
         abort_if($roomUser === null, 404);
+        // Ordering on behalf of yourself is not allowed: the requester is excluded from the lookup.
+        $requester = $request->attributes->get('room_user');
+        abort_if($requester instanceof RoomUser && $roomUser->id === $requester->id, 422, __('room.campaign.proxy_self_not_allowed'));
 
         $settings = $room->roomSettings()->whereIn('key', ['auto_lock_on_debt_limit', 'personal_debt_ceiling'])->get()->keyBy('key');
         $autoLock = filter_var($settings->get('auto_lock_on_debt_limit')?->value ?? true, FILTER_VALIDATE_BOOLEAN);

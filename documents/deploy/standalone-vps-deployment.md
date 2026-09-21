@@ -584,7 +584,10 @@ server {
     gzip_types text/plain text/css text/xml application/json application/javascript image/svg+xml;
 
     # 1. Socket.IO Realtime Proxy
-    location /socket.io/ {
+    # BẮT BUỘC dùng `^~`: nếu không, khối regex `\.(...|js|...)$` ở mục 4 sẽ được ưu tiên và
+    # /socket.io/socket.io.js bị tìm như file tĩnh trong public/ (404). Các request polling/WebSocket
+    # không có đuôi .js nên vẫn chạy, chỉ riêng file client bị lỗi.
+    location ^~ /socket.io/ {
         proxy_pass http://127.0.0.1:3001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -633,6 +636,16 @@ server {
     }
 }
 ```
+
+> **Đang chạy bản cấu hình cũ (dùng `location /socket.io/` không có `^~`)?** Trình duyệt sẽ báo
+> `GET https://<domain>/socket.io/socket.io.js 404`. Sửa trực tiếp trên VPS (chạy cho cả file đã được
+> Certbot thêm khối HTTPS, sed thay mọi vị trí):
+>
+> ```bash
+> sudo sed -i 's|location /socket.io/ {|location ^~ /socket.io/ {|' /etc/nginx/sites-available/drinkflow
+> sudo nginx -t && sudo systemctl reload nginx
+> curl -sI https://drinkflow.yourcompany.com/socket.io/socket.io.js | head -n3   # kỳ vọng: HTTP 200, content-type javascript
+> ```
 
 > Các header bảo mật của trang (`X-Frame-Options`, `Content-Security-Policy: frame-ancestors`,
 > `Referrer-Policy`, `Permissions-Policy`, HSTS khi chạy HTTPS) do **ứng dụng Laravel** gắn vào
@@ -838,10 +851,16 @@ sudo systemctl reload nginx
 
 echo "✅ [9/9] Tắt bảo trì & kiểm tra..."
 artisan up
+# Từ đây website ĐÃ online: lỗi ở các bước kiểm tra bên dưới chỉ là cảnh báo, không được báo "đang bảo trì".
+trap - ERR
 APP_URL=$(grep -E '^APP_URL=' "$APP_DIR/src/.env" | head -n1 | cut -d= -f2- | tr -d '"')
-curl -fsS -o /dev/null -w "Health check /up: HTTP %{http_code}\n" "$APP_URL/up"
+# --http1.1: tránh lỗi "curl: (16) Error in the HTTP2 framing layer" khi VPS tự gọi domain của chính nó (xem mục 8.2).
+# --retry: chờ PHP-FPM/Nginx nạp xong sau khi reload thay vì báo lỗi ngay.
+CURL_CHECK=(curl --http1.1 -fsS --retry 5 --retry-delay 3 --retry-connrefused --max-time 20 -o /dev/null)
+"${CURL_CHECK[@]}" -w "Health check /up: HTTP %{http_code}\n" "$APP_URL/up" \
+    || echo "⚠️ Health check /up không đạt (website đã bật, chỉ kiểm tra thất bại). Xem mục 8.2."
 # Cảnh báo (không dừng deploy) nếu web chưa phục vụ captcha; thường do chưa reload FPM hoặc CAPTCHA_DISABLE=true
-curl -fsS -o /dev/null -w "Captcha /captcha/api/contact: HTTP %{http_code}\n" "$APP_URL/captcha/api/contact" \
+"${CURL_CHECK[@]}" -w "Captcha /captcha/api/contact: HTTP %{http_code}\n" "$APP_URL/captcha/api/contact" \
     || echo "⚠️ Captcha không phản hồi. Kiểm tra: reload php8.3-fpm, CAPTCHA_DISABLE trong .env / biến môi trường FPM."
 
 echo "🎉 Cập nhật thành công!"
@@ -890,6 +909,55 @@ sudo chmod 440 /etc/sudoers.d/drinkflow-deploy
 sudo visudo -cf /etc/sudoers.d/drinkflow-deploy
 ```
 
+### 8.2. Xử lý lỗi `curl: (16) Error in the HTTP2 framing layer` ở bước kiểm tra cuối
+
+Triệu chứng khi chạy `deploy-native.sh`:
+
+```text
+curl: (16) Error in the HTTP2 framing layer
+Health check /up: HTTP 000
+❌ Deploy thất bại ở dòng NN. Website ĐANG Ở CHẾ ĐỘ BẢO TRÌ.
+```
+
+Đây là lỗi của lệnh `curl` health check (VPS gọi HTTPS tới chính domain của nó qua HTTP/2), **không phải lỗi ứng dụng**.
+Vì `artisan up` đã chạy ngay trước đó nên website thường **đã online**; thông báo "đang bảo trì" chỉ đúng nếu lỗi xảy ra ở các bước trước `artisan up`.
+
+**Bước 1: xác nhận website đang online (không cần chạy lại deploy):**
+
+```bash
+curl --http1.1 -sS -o /dev/null -w "HTTP %{http_code}\n" https://drinkflow.yourcompany.com/up
+# HTTP 200: website đã online. Nếu HTTP 503: đang bảo trì, bật lại bằng lệnh dưới
+sudo -u www-data php /var/www/drinkflow/src/artisan up
+```
+
+**Bước 2: cập nhật script trên VPS** bằng khối cuối `[9/9]` ở mục 8 (`trap - ERR`, `--http1.1`, `--retry`, kiểm tra chỉ cảnh báo).
+Tìm vị trí cần sửa:
+
+```bash
+grep -n "Health check\|artisan up" /var/www/drinkflow/deploy-native.sh
+nano /var/www/drinkflow/deploy-native.sh
+```
+
+**Bước 3 (tùy chọn): tìm nguyên nhân gốc của lỗi HTTP/2** để kiểm tra bằng HTTP/2 trong tương lai:
+
+```bash
+curl --version | head -n1
+curl -sv --http2   -o /dev/null https://drinkflow.yourcompany.com/up 2>&1 | tail -n 25
+curl -sv --http1.1 -o /dev/null https://drinkflow.yourcompany.com/up 2>&1 | tail -n 25   # nếu chỉ HTTP/1.1 chạy được: lỗi nằm ở HTTP/2
+sudo nginx -T 2>/dev/null | grep -nE "listen .*(ssl|http2)|http2"
+sudo tail -n 30 /var/log/nginx/error.log
+# Gọi thẳng Nginx trên máy, bỏ qua DNS/Cloudflare, để loại trừ lỗi từ tầng ngoài:
+curl --http1.1 -sk --resolve drinkflow.yourcompany.com:443:127.0.0.1 -o /dev/null -w "local HTTP %{http_code}\n" https://drinkflow.yourcompany.com/up
+```
+
+Cách đọc kết quả:
+
+| Kết quả | Nguyên nhân thường gặp |
+|---|---|
+| `--http1.1` OK, `--http2` lỗi | `curl` cũ hoặc Nginx/proxy xử lý HTTP/2 lỗi. Giữ `--http1.1` trong script; cập nhật `curl`/Nginx nếu cần dùng HTTP/2 |
+| Gọi `--resolve ... 127.0.0.1` OK nhưng gọi qua domain lỗi | Lỗi ở tầng ngoài (Cloudflare/proxy/hairpin NAT của VPS), không phải Nginx của bạn |
+| Cả hai đều lỗi, log Nginx có `upstream ... too big header` hoặc `connect() failed` | PHP-FPM chưa sẵn sàng hoặc header phản hồi quá lớn (tăng `fastcgi_buffer_size`) |
+
 ---
 
 ## 9. Sao lưu Định kỳ
@@ -924,6 +992,9 @@ sudo supervisorctl status
 
 # 3. Realtime Gateway phản hồi nội bộ
 curl -s http://127.0.0.1:3001/health
+
+# 3b. File client Socket.IO đi qua Nginx tới Realtime (kỳ vọng HTTP 200). Nếu 404: thiếu `^~` ở location /socket.io/
+curl -sI https://drinkflow.yourcompany.com/socket.io/socket.io.js | head -n1
 
 # 4. Header bảo mật do ứng dụng gắn (kỳ vọng: X-Frame-Options, Content-Security-Policy,
 #    X-Content-Type-Options, Referrer-Policy và Strict-Transport-Security)

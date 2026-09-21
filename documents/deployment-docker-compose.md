@@ -184,7 +184,7 @@ server {
         try_files $uri $uri/ /index.php?$query_string;
     }
 
-    location /socket.io/ {
+    location ^~ /socket.io/ {
         proxy_pass http://socket:6001;
 
         proxy_http_version 1.1;

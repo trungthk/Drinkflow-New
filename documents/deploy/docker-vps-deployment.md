@@ -240,7 +240,7 @@ server {
     gzip_types text/plain text/css text/xml application/json application/javascript application/xml+rss application/atom+xml image/svg+xml;
 
     # 1. Socket.IO Realtime Gateway Proxy
-    location /socket.io/ {
+    location ^~ /socket.io/ {
         proxy_pass http://127.0.0.1:3001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;

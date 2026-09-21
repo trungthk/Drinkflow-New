@@ -191,6 +191,7 @@ return [
         'proxy_for' => 'Đặt giúp:',
         'proxy_user_not_found' => 'Không tìm thấy thành viên đang hoạt động với thông tin :code.',
         'proxy_self_not_allowed' => 'Bạn không thể dùng chức năng này để đặt món cho chính mình.',
+        'proxy_requires_own_order' => 'Bạn cần đặt ít nhất một món cho chính mình trước khi đặt giúp người khác.',
         'more_categories' => 'Khác',
         'more_categories_count' => 'Khác (+:count)',
         'item_exceeded_budget_error' => 'Vượt trần ngân sách cho phép (:limit/món)',

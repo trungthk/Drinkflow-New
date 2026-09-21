@@ -159,6 +159,11 @@
       }
     },
     proceedToConfirm() {
+      // Ordering for others requires at least one item for yourself (the server enforces this too).
+      if (this.cartItems.some(item => item.proxy_user_code) && !this.cartItems.some(item => !item.proxy_user_code)) {
+        window.alert(@js(__('room.campaign.proxy_requires_own_order')));
+        return;
+      }
       if (this.hasExceededItems()) {
         this.showBudgetErrors = true;
         return;
@@ -217,7 +222,12 @@
         const url = '{{ route('user.room-members.lookup', $room) }}' + '?q=' + encodeURIComponent(code);
         const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
         const payload = await response.json();
-        if (!response.ok) throw new Error('{{ __('room.campaign.proxy_user_not_found', ['code' => '']) }}' + code);
+        if (!response.ok) {
+          // 404 = nobody matches; 422 = a business rule (own account, debt limit) with its own message.
+          throw new Error(response.status === 404
+            ? '{{ __('room.campaign.proxy_user_not_found', ['code' => '']) }}' + code
+            : (payload.message || '{{ __('room.campaign.error_generic') }}'));
+        }
         this.proxyUserLookupResult = payload;
       } catch (error) {
         this.proxyUserLookupError = error.message;

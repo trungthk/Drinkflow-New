@@ -9,33 +9,38 @@ use App\Events\ProxyOrdersCreated;
 use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\RoomUser;
+use App\Services\Order\ProxyOrderPolicy;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CreateProxyOrdersAction
 {
-    public function __construct(private readonly CreateOrderAction $createOrderAction)
-    {
+    public function __construct(
+        private readonly CreateOrderAction $createOrderAction,
+        private readonly ProxyOrderPolicy $policy
+    ) {
     }
 
     /**
      * Split a cart containing mixed proxy items into one Parent Order (for the requester)
      * and N Child Orders (one per unique proxy_user_code recipient).
      *
-     * If all items belong to proxied users (none for the requester), a zero-item Parent Order
-     * is still created as an ownership placeholder, per the confirmed design decision.
+     * The requester must order at least one item for themselves: ordering only on behalf of others is rejected,
+     * so the parent order always carries the requester's own items.
      *
      * @param Campaign $campaign         Active campaign.
      * @param RoomUser $requesterRoomUser Room user who is placing the order.
      * @param array<string, mixed> $data  Validated checkout payload (items[], payment_method, note).
      * @return Order The created parent order.
-     * @throws ValidationException When a proxy_user_code cannot be resolved inside the campaign room.
+     * @throws ValidationException When the requester has no own item, a recipient is the requester, or a proxy_user_code cannot be resolved inside the campaign room.
      */
     public function execute(Campaign $campaign, RoomUser $requesterRoomUser, array $data): Order
     {
         // Split items into requester's own and proxied groups
         $items = $data['items'] ?? [];
+
+        $this->policy->assertHasOwnItems($items);
 
         /** @var array<int, array<string, mixed>> $ownItems */
         $ownItems = [];
@@ -58,6 +63,7 @@ class CreateProxyOrdersAction
         /** @var array<string, RoomUser> $proxyRoomUsers keyed by proxy_user_code */
         $proxyRoomUsers = [];
         foreach (array_keys($proxyGroups) as $code) {
+            $this->policy->assertNotSelf($requesterRoomUser, (string) $code);
             $proxyRoomUser = RoomUser::query()
                 ->where('room_id', $campaign->room_id)
                 ->where('user_code', $code)
@@ -82,7 +88,7 @@ class CreateProxyOrdersAction
 
         /** @var array{parent: Order, children: Collection<int, Order>} $created */
         $created = DB::transaction(function () use ($campaign, $requesterRoomUser, $data, $ownItems, $proxyGroups, $proxyRoomUsers): array {
-            // Create parent order (may have zero items when requester ordered only for others)
+            // Parent order: the requester's own items (validated above to be non-empty)
             $parentData = array_merge($data, ['items' => $ownItems]);
             $parentOrder = $this->createOrderAction->execute($campaign, $requesterRoomUser, $parentData, null, true);
 
