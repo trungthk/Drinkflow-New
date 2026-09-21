@@ -11,6 +11,9 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    // Listeners are registered explicitly in AppServiceProvider. Auto-discovery would register every
+    // App\Listeners\*::handle() a second time and fire each notification twice.
+    ->withEvents(discover: false)
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'global.user' => \App\Http\Middleware\ResolveGlobalUser::class,

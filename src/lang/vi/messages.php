@@ -35,7 +35,7 @@ return [
     'order_price_adjusted_title' => 'Điều chỉnh giá đơn hàng',
     'order_price_adjusted_body' => 'Đơn hàng #:order_id đã được điều chỉnh giá thành :amount. Lý do: :reason',
     'campaign_updated_title' => 'Cập nhật chiến dịch',
-    'campaign_updated_body' => 'Chiến dịch vừa được cập nhật thông tin thực đơn hoặc thời hạn đặt món.',
+    'campaign_updated_body' => 'Thông tin chiến dịch vừa mới được cập nhật.',
     'campaign_delivering_title' => 'Món đã được giao đến! 🧋',
     'campaign_delivering_body' => 'Đơn hàng của :restaurant (#:code) đã được giao đến phòng. Mời bạn đến nhận món!',
 ];

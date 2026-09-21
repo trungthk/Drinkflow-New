@@ -35,7 +35,7 @@ return [
     'order_price_adjusted_title' => 'Order Price Adjusted',
     'order_price_adjusted_body' => 'Order #:order_id price has been adjusted to :amount. Reason: :reason',
     'campaign_updated_title' => 'Campaign Updated',
-    'campaign_updated_body' => 'The campaign menu details or ordering deadline have been updated.',
+    'campaign_updated_body' => 'The campaign information has just been updated.',
     'campaign_delivering_title' => 'Items have arrived! 🧋',
     'campaign_delivering_body' => 'Orders from :restaurant (#:code) have arrived at the room. Please come pick up your items!',
 ];
