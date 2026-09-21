@@ -126,6 +126,7 @@ return [
         'desc' => 'Sử dụng tài khoản email doanh nghiệp (@company.com) để truy cập không gian DrinkFlow của đơn vị.',
         'instruction_title' => 'Yêu cầu tài khoản doanh nghiệp',
         'instruction_desc' => 'Vui lòng sử dụng địa chỉ email công ty được quản trị viên cấp phép để đăng nhập vào không gian DrinkFlow.',
+        'allowed_domains_label' => 'Tên miền được phép đăng nhập',
         'login_failed' => 'Đăng nhập không thành công',
         'btn_google' => 'Tiếp tục với Google Workspace',
         'security_notice' => 'Chỉ chấp nhận tài khoản có đuôi email công ty đã được quản trị viên cấp phép.',

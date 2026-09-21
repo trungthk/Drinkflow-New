@@ -72,4 +72,26 @@ class LandingPageTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee(route('user.me.dashboard'));
     }
+
+    public function test_auth_modal_lists_allowed_google_domains_as_badges(): void
+    {
+        config(['services.google.allowed_domains' => ['company.com', 'partner.vn']]);
+
+        $response = $this->get('/');
+
+        $response->assertStatus(200);
+        $response->assertSee(__('public.auth_modal.allowed_domains_label'));
+        $response->assertSee('&#64;company.com', false);
+        $response->assertSee('&#64;partner.vn', false);
+    }
+
+    public function test_auth_modal_hides_domain_badges_when_no_domain_restriction(): void
+    {
+        config(['services.google.allowed_domains' => []]);
+
+        $response = $this->get('/');
+
+        $response->assertStatus(200);
+        $response->assertDontSee(__('public.auth_modal.allowed_domains_label'));
+    }
 }

@@ -96,7 +96,8 @@ class GlobalDashboardTest extends TestCase
         $response->assertSee('Tổng chi tiêu');
         $response->assertSee('Tài trợ đã nhận (Sponsor)');
         $response->assertSee('Room gần đây');
-        $response->assertSee('Đơn hàng gần đây');
+        // Khối "Đơn hàng gần đây" đang được tạm ẩn khỏi trang /me.
+        $response->assertDontSee('Đơn hàng gần đây');
         $response->assertSee('Room Mobile');
         $response->assertDontSee('Bắt đầu trải nghiệm đặt món cùng đồng nghiệp');
     }
@@ -169,7 +170,8 @@ class GlobalDashboardTest extends TestCase
         ]));
         $response->assertSee('Expired Room');
         $response->assertSee(__('global.dashboard.campaign_expired'));
-        $response->assertSee('Completed drink');
+        // Khối "Đơn hàng gần đây" đang tạm ẩn nên không hiển thị tên món.
+        $response->assertDontSee('Completed drink');
         $response->assertDontSee('Pending drink');
     }
 
@@ -245,7 +247,6 @@ class GlobalDashboardTest extends TestCase
         $responseA = $this->actingAs($userA, 'web')->get('/me');
         $responseA->assertOk();
         $responseA->assertSee('Room Team A');
-        $responseA->assertSee('Trà sen vàng');
         $responseA->assertDontSee('Room Team B');
         $responseA->assertDontSee('Cà phê phin B');
 
@@ -253,7 +254,6 @@ class GlobalDashboardTest extends TestCase
         $responseB = $this->actingAs($userB, 'web')->get('/me');
         $responseB->assertOk();
         $responseB->assertSee('Room Team B');
-        $responseB->assertSee('Cà phê phin B');
         $responseB->assertDontSee('Room Team A');
         $responseB->assertDontSee('Trà sen vàng');
     }

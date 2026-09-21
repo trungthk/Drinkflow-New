@@ -126,6 +126,7 @@ return [
         'desc' => '社用メールアドレス（@company.com）を使用して所属組織のDrinkFlowにアクセスします。',
         'instruction_title' => '企業アカウントの要件',
         'instruction_desc' => 'DrinkFlowワークスペースにログインするには、管理者に許可された社用メールアドレスをご使用ください。',
+        'allowed_domains_label' => 'ログイン可能なドメイン',
         'login_failed' => 'ログインに失敗しました',
         'btn_google' => 'Google Workspaceで続行',
         'security_notice' => '管理者に許可されたドメインの社用アカウントのみログイン可能です。',

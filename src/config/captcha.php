@@ -58,6 +58,9 @@ return [
         'height' => 38,
         'quality' => 90,
         'lines' => 3,
+        // Chừa lề trái và giảm góc xoay để ký tự đầu tiên không bị tràn/cắt ở mép ảnh.
+        'textLeftPadding' => 14,
+        'angle' => 8,
         'sensitive' => false,
         'bgImage' => false,
         'bgColor' => '#f8f9ff',

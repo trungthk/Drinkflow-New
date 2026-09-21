@@ -8,6 +8,7 @@
     $loginErrorMessage = session('login_error') ?? (isset($errors) ? $errors->first('email') : null);
     $hasAuthNotice = session()->has('auth_notice');
     $authNoticeMessage = session('auth_notice');
+    $allowedDomains = array_values((array) config('services.google.allowed_domains', []));
 @endphp
 
 <!-- GOOGLE WORKSPACE SSO LOGIN / SIGN-UP MODAL -->
@@ -66,6 +67,16 @@
                 {{ __('public.auth_modal.instruction_title') }}
             </div>
             <p>{{ __('public.auth_modal.instruction_desc') }}</p>
+            @if($allowedDomains !== [])
+                <div class="mt-3 pt-3 border-t border-emerald-100">
+                    <span class="block font-semibold text-[#3d4a42] mb-1.5">{{ __('public.auth_modal.allowed_domains_label') }}</span>
+                    <div class="flex flex-wrap gap-1.5">
+                        @foreach($allowedDomains as $domain)
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full bg-white border border-emerald-200 text-[#006948] font-mono font-semibold text-[11px]">&#64;{{ $domain }}</span>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- Google Workspace SSO Action -->

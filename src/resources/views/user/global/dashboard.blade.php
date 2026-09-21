@@ -140,6 +140,7 @@
         </div>
       </section>
 
+      {{-- Tạm ẩn: Đơn hàng gần đây
       @if($recentOrders->isNotEmpty())
       <!-- Section: Đơn Hàng Gần Đây -->
       <section class="bg-white border border-slate-200/80 rounded-2xl shadow-xs overflow-hidden">
@@ -247,6 +248,7 @@
         </div>
       </section>
       @endif
+      --}}
     @else
       <!-- Onboarding Hero Canvas when user hasn't joined any room -->
       <section class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
@@ -331,80 +333,41 @@
         <span class="text-xs text-slate-400 hidden sm:inline">{{ __('global.dashboard.shortcuts_desc') }}</span>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Action 1: Tất cả Room -->
-        @if($roomsCount > 0)
-          <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer" href="{{ route('user.me.rooms') }}">
+        <!-- Action 1: Thông báo -->
+          <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer text-left w-full" href="{{ route('user.me.notifications') }}">
             <div class="w-11 h-11 rounded-xl bg-emerald-50 text-[#006948] group-hover:bg-[#006948] group-hover:text-white transition-colors flex items-center justify-center shrink-0 border border-emerald-100">
-              <span class="material-symbols-outlined text-[20px]">groups</span>
+              <span class="material-symbols-outlined text-[20px]">notifications</span>
             </div>
             <div class="flex-1 min-w-0">
-              <span class="text-sm font-semibold text-slate-900 block truncate">{{ __('global.dashboard.shortcut_all_rooms') }}</span>
-              <span class="text-xs text-slate-500 block mt-0.5">{{ __('global.dashboard.shortcut_all_rooms_desc') }}</span>
+              <span class="text-sm font-semibold text-slate-900 block truncate">{{ __('global.dashboard.shortcut_notifications') }}</span>
+              <span class="text-xs text-slate-500 block mt-0.5">{{ __('global.dashboard.shortcut_notifications_desc') }}</span>
             </div>
             <span class="material-symbols-outlined text-slate-300 group-hover:text-[#006948] group-hover:translate-x-0.5 transition-all text-[17px]">chevron_right</span>
           </a>
-        @else
-          <div class="p-4 rounded-xl border border-slate-200/60 bg-slate-50/40 opacity-50 cursor-not-allowed flex items-center gap-3.5 select-none" title="{{ __('global.dashboard.no_rooms_joined') }}">
-            <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200/70">
-              <span class="material-symbols-outlined text-[20px]">groups</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <span class="text-sm font-semibold text-slate-700 block truncate">{{ __('global.dashboard.shortcut_all_rooms') }}</span>
-              <span class="text-xs text-slate-400 block mt-0.5">{{ __('global.dashboard.shortcut_all_rooms_desc') }}</span>
-            </div>
-            <span class="material-symbols-outlined text-slate-300 text-[17px]">chevron_right</span>
-          </div>
-        @endif
 
-        <!-- Action 2: Quét mã VietQR -->
-        @if($roomsCount > 0)
-          <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer" href="{{ route('user.me.payments') }}">
+        <!-- Action 2: Trợ giúp -->
+          <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer text-left w-full" href="{{ route('contact') }}">
             <div class="w-11 h-11 rounded-xl bg-emerald-50 text-[#006948] group-hover:bg-[#006948] group-hover:text-white transition-colors flex items-center justify-center shrink-0 border border-emerald-100">
-              <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+              <span class="material-symbols-outlined text-[20px]">help</span>
             </div>
             <div class="flex-1 min-w-0">
-              <span class="text-sm font-semibold text-slate-900 block truncate">{{ __('global.dashboard.shortcut_vietqr') }}</span>
-              <span class="text-xs text-slate-500 block mt-0.5">{{ __('global.dashboard.shortcut_vietqr_desc') }}</span>
+              <span class="text-sm font-semibold text-slate-900 block truncate">{{ __('global.dashboard.shortcut_help') }}</span>
+              <span class="text-xs text-slate-500 block mt-0.5">{{ __('global.dashboard.shortcut_help_desc') }}</span>
             </div>
             <span class="material-symbols-outlined text-slate-300 group-hover:text-[#006948] group-hover:translate-x-0.5 transition-all text-[17px]">chevron_right</span>
           </a>
-        @else
-          <div class="p-4 rounded-xl border border-slate-200/60 bg-slate-50/40 opacity-50 cursor-not-allowed flex items-center gap-3.5 select-none" title="{{ __('global.dashboard.no_rooms_joined') }}">
-            <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200/70">
-              <span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <span class="text-sm font-semibold text-slate-700 block truncate">{{ __('global.dashboard.shortcut_vietqr') }}</span>
-              <span class="text-xs text-slate-400 block mt-0.5">{{ __('global.dashboard.shortcut_vietqr_desc') }}</span>
-            </div>
-            <span class="material-symbols-outlined text-slate-300 text-[17px]">chevron_right</span>
-          </div>
-        @endif
 
-        <!-- Action 3: Báo cáo chi tiêu -->
-        @if($roomsCount > 0)
-          <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer" href="{{ route('user.me.statistics') }}">
+        <!-- Action 3: Thông tin cá nhân -->
+          <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer text-left w-full" href="{{ route('user.me.profile') }}">
             <div class="w-11 h-11 rounded-xl bg-emerald-50 text-[#006948] group-hover:bg-[#006948] group-hover:text-white transition-colors flex items-center justify-center shrink-0 border border-emerald-100">
-              <span class="material-symbols-outlined text-[20px]">bar_chart</span>
+              <span class="material-symbols-outlined text-[20px]">person</span>
             </div>
             <div class="flex-1 min-w-0">
-              <span class="text-sm font-semibold text-slate-900 block truncate">{{ __('global.dashboard.shortcut_stats') }}</span>
-              <span class="text-xs text-slate-500 block mt-0.5">{{ __('global.dashboard.shortcut_stats_desc') }}</span>
+              <span class="text-sm font-semibold text-slate-900 block truncate">{{ __('global.dashboard.shortcut_profile') }}</span>
+              <span class="text-xs text-slate-500 block mt-0.5">{{ __('global.dashboard.shortcut_profile_desc') }}</span>
             </div>
             <span class="material-symbols-outlined text-slate-300 group-hover:text-[#006948] group-hover:translate-x-0.5 transition-all text-[17px]">chevron_right</span>
           </a>
-        @else
-          <div class="p-4 rounded-xl border border-slate-200/60 bg-slate-50/40 opacity-50 cursor-not-allowed flex items-center gap-3.5 select-none" title="{{ __('global.dashboard.no_rooms_joined') }}">
-            <div class="w-11 h-11 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center shrink-0 border border-slate-200/70">
-              <span class="material-symbols-outlined text-[20px]">bar_chart</span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <span class="text-sm font-semibold text-slate-700 block truncate">{{ __('global.dashboard.shortcut_stats') }}</span>
-              <span class="text-xs text-slate-400 block mt-0.5">{{ __('global.dashboard.shortcut_stats_desc') }}</span>
-            </div>
-            <span class="material-symbols-outlined text-slate-300 text-[17px]">chevron_right</span>
-          </div>
-        @endif
 
         <!-- Action 4 -->
         <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer" href="{{ route('user.me.devices') }}">

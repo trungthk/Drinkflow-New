@@ -126,6 +126,7 @@ return [
         'desc' => 'Use your company email account (@company.com) to access your organization\'s DrinkFlow workspace.',
         'instruction_title' => 'Enterprise Account Requirement',
         'instruction_desc' => 'Please use your authorized company email address to sign in to the DrinkFlow workspace.',
+        'allowed_domains_label' => 'Allowed sign-in domains',
         'login_failed' => 'Login Failed',
         'btn_google' => 'Continue with Google Workspace',
         'security_notice' => 'Only authorized corporate email domains approved by the administrator are permitted.',

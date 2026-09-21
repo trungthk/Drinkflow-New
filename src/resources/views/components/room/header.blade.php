@@ -59,13 +59,6 @@
                 @endforeach
               </div>
             @endif
-            <div class="pt-1.5 mt-1 border-t border-slate-100 px-2">
-              <a href="{{ route('user.me.rooms') }}"
-                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-600 hover:text-[#006948] hover:bg-slate-50 transition-colors">
-                <span class="material-symbols-outlined text-[15px]">meeting_room</span>
-                <span>{{ __('global.header.rooms') }}</span>
-              </a>
-            </div>
           </div>
         </div>
       </div>
