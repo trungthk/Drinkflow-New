@@ -35,20 +35,20 @@
     <div class="h-screen overflow-hidden flex flex-col lg:flex-row">
         <!-- LEFT COLUMN: Brand & Operations Engine (~46% width) -->
         <aside
-            class="lg:w-5/12 xl:w-1/2 bg-[#0a2220] text-surface-bright hidden md:flex flex-col p-6 lg:py-8 lg:px-10 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-emerald-950/40 justify-between select-none shrink-0">
+            class="lg:w-5/12 xl:w-1/2 bg-gradient-to-br from-emerald-50 via-white to-emerald-100/70 text-on-surface hidden md:flex flex-col p-6 lg:py-8 lg:px-10 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-emerald-100 justify-between select-none shrink-0">
             <div
-                class="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(#4edea3_1px,transparent_1px)] [background-size:20px_20px]">
+                class="absolute inset-0 opacity-[0.06] pointer-events-none bg-[radial-gradient(#006948_1px,transparent_1px)] [background-size:20px_20px]">
             </div>
-            <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/20 blur-3xl pointer-events-none">
+            <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/10 blur-3xl pointer-events-none">
             </div>
 
             <!-- Top Brand -->
             <div class="relative z-10">
                 <div class="flex items-center gap-3">
                     <span
-                        class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-900/30 ring-1 ring-white/20 shrink-0"
+                        class="w-10 h-10 rounded-xl flex items-center justify-center text-on-surface shadow-md shadow-emerald-900/10 ring-1 ring-emerald-600/20 shrink-0"
                         style="background: linear-gradient(135deg, #006948 0%, #047857 100%); background-color: #006948; border: 1px solid #005137;">
-                        <svg class="w-5 h-5 text-white fill-current" viewBox="0 0 24 24" aria-hidden="true"
+                        <svg class="w-5 h-5 text-on-surface fill-current" viewBox="0 0 24 24" aria-hidden="true"
                             style="width: 22px; height: 22px; fill: #ffffff; color: #ffffff;">
                             <path
                                 d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z" />
@@ -57,10 +57,10 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <span
-                                class="text-xl font-bold tracking-tight text-white">{{ __('admin.brand_title') }}</span>
-                            {{-- <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 tracking-wider">{{ __('admin.engine_badge') }}</span> --}}
+                                class="text-xl font-bold tracking-tight text-on-surface">{{ __('admin.brand_title') }}</span>
+                            {{-- <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 border border-emerald-200 tracking-wider">{{ __('admin.engine_badge') }}</span> --}}
                         </div>
-                        <p class="text-[10px] font-mono tracking-widest text-emerald-400/80 uppercase block mt-0.5">
+                        <p class="text-[10px] font-mono tracking-widest text-primary/70 uppercase block mt-0.5">
                             {{ __('admin.brand_subtitle') }}</p>
                     </div>
                 </div>
@@ -72,48 +72,48 @@
                     {{ $brandHero }}
                 @else
                     <div>
-                        <h1 class="text-2xl lg:text-3xl font-bold text-white leading-tight tracking-tight mb-2">
+                        <h1 class="text-2xl lg:text-3xl font-bold text-on-surface leading-tight tracking-tight mb-2">
                             {{ __('admin.auth_hero_title') }}
                         </h1>
-                        <p class="text-xs lg:text-sm text-slate-300/80 leading-relaxed">
+                        <p class="text-xs lg:text-sm text-slate-600 leading-relaxed">
                             {{ __('admin.auth_hero_desc') }}
                         </p>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                        <div class="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
-                            <div class="flex items-center gap-2 text-emerald-400 mb-1">
+                        <div class="p-3 rounded-xl bg-white/80 shadow-xs border border-emerald-100 backdrop-blur-xs">
+                            <div class="flex items-center gap-2 text-primary mb-1">
                                 <span class="material-symbols-outlined text-[18px]">dinner_dining</span>
                                 <strong
-                                    class="text-xs font-semibold text-white">{{ __('admin.bulk_kitchen_title') }}</strong>
+                                    class="text-xs font-semibold text-on-surface">{{ __('admin.bulk_kitchen_title') }}</strong>
                             </div>
-                            <p class="text-[11px] text-slate-400 leading-snug">
+                            <p class="text-[11px] text-slate-500 leading-snug">
                                 {{ __('admin.bulk_kitchen_desc') }}
                             </p>
                         </div>
 
-                        <div class="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs">
-                            <div class="flex items-center gap-2 text-emerald-400 mb-1">
+                        <div class="p-3 rounded-xl bg-white/80 shadow-xs border border-emerald-100 backdrop-blur-xs">
+                            <div class="flex items-center gap-2 text-primary mb-1">
                                 <span class="material-symbols-outlined text-[18px]">qr_code_2</span>
                                 <strong
-                                    class="text-xs font-semibold text-white">{{ __('admin.vietqr_napas_title') }}</strong>
+                                    class="text-xs font-semibold text-on-surface">{{ __('admin.vietqr_napas_title') }}</strong>
                             </div>
-                            <p class="text-[11px] text-slate-400 leading-snug">
+                            <p class="text-[11px] text-slate-500 leading-snug">
                                 {{ __('admin.vietqr_napas_desc') }}
                             </p>
                         </div>
 
-                        <div class="p-3 rounded-xl bg-white/5 border border-white/10 backdrop-blur-xs sm:col-span-2">
+                        <div class="p-3 rounded-xl bg-white/80 shadow-xs border border-emerald-100 backdrop-blur-xs sm:col-span-2">
                             <div class="flex items-center justify-between mb-1">
-                                <div class="flex items-center gap-2 text-emerald-400">
+                                <div class="flex items-center gap-2 text-primary">
                                     <span class="material-symbols-outlined text-[18px]">hub</span>
                                     <strong
-                                        class="text-xs font-semibold text-white">{{ __('admin.webhook_chatops_title') }}</strong>
+                                        class="text-xs font-semibold text-on-surface">{{ __('admin.webhook_chatops_title') }}</strong>
                                 </div>
                                 <span
-                                    class="text-[10px] font-mono font-bold text-emerald-300 px-2 py-0.5 rounded bg-emerald-500/20">{{ __('admin.latency_badge') }}</span>
+                                    class="text-[10px] font-mono font-bold text-emerald-700 px-2 py-0.5 rounded bg-emerald-100">{{ __('admin.latency_badge') }}</span>
                             </div>
-                            <p class="text-[11px] text-slate-400 leading-snug">
+                            <p class="text-[11px] text-slate-500 leading-snug">
                                 {{ __('admin.webhook_chatops_desc') }}
                             </p>
                         </div>

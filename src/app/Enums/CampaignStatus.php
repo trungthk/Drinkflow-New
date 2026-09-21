@@ -54,7 +54,7 @@ enum CampaignStatus: string
             self::Closing => 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
             self::Scheduled => 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800',
             self::Draft => 'bg-violet-50 text-violet-700 border-violet-200 dark:bg-violet-950/40 dark:text-violet-300 dark:border-violet-800',
-            self::Closed => 'bg-slate-700 text-white border-slate-700 dark:bg-slate-500 dark:text-white dark:border-slate-400',
+            self::Closed => 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800/60 dark:text-slate-300 dark:border-slate-600',
             self::Cancelled => 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800',
             self::Archived => 'bg-zinc-50 text-zinc-500 border-dashed border-zinc-300 dark:bg-zinc-900/40 dark:text-zinc-400 dark:border-zinc-600',
         };
@@ -77,7 +77,7 @@ enum CampaignStatus: string
             self::Closing => 'bg-amber-500 status-dot-pulse',
             self::Scheduled => 'bg-sky-500',
             self::Draft => 'bg-violet-500',
-            self::Closed => 'bg-slate-200',
+            self::Closed => 'bg-slate-400',
             self::Cancelled => 'bg-rose-500',
             self::Archived => 'bg-zinc-400',
         };

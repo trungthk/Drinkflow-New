@@ -432,7 +432,7 @@ export function initAdminDebts() {
                         // Update status badge cell
                         const statusCell = row.querySelector('td:nth-child(3) span');
                         if (statusCell) {
-                            statusCell.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border bg-emerald-50 text-emerald-700 border-emerald-200';
+                            statusCell.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full whitespace-nowrap text-[11px] font-semibold border bg-emerald-50 text-emerald-700 border-emerald-200';
                             statusCell.textContent = `✓ ${t('statusPaid')}`;
                         }
                         // Update remaining amount cell

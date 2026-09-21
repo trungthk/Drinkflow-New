@@ -17,10 +17,10 @@
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
     <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 
-    <!-- Google Fonts: JetBrains Mono & Hanken Grotesk -->
+    <!-- Google Fonts: Inter (same typography as the user portal) -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Material Symbols Outlined -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
@@ -34,47 +34,47 @@
                 extend: {
                     colors: {
                         "primary": "#006948",
-                        "primary-container": "#00855d",
+                        "primary-container": "#005137",
                         "primary-fixed": "#85f8c4",
                         "primary-fixed-dim": "#68dba9",
                         "on-primary": "#ffffff",
                         "on-primary-container": "#f5fff7",
-                        "secondary": "#565e74",
-                        "secondary-container": "#dae2fd",
-                        "on-secondary-container": "#5c647a",
-                        "on-secondary-fixed-variant": "#3f465c",
+                        "secondary": "#475569",
+                        "secondary-container": "#ecfdf5",
+                        "on-secondary-container": "#065f46",
+                        "on-secondary-fixed-variant": "#065f46",
                         "tertiary": "#006947",
                         "tertiary-container": "#00855b",
                         "tertiary-fixed": "#6ffbbe",
                         "tertiary-fixed-dim": "#4edea3",
-                        "background": "#f8f9ff",
-                        "surface": "#f8f9ff",
-                        "surface-dim": "#cbdbf5",
-                        "surface-bright": "#f8f9ff",
-                        "surface-container": "#e5eeff",
-                        "surface-container-low": "#eff4ff",
-                        "surface-container-high": "#dce9ff",
-                        "surface-container-highest": "#d3e4fe",
+                        "background": "#f8fafc",
+                        "surface": "#f8fafc",
+                        "surface-dim": "#e2e8f0",
+                        "surface-bright": "#ffffff",
+                        "surface-container": "#f1f5f9",
+                        "surface-container-low": "#f8fafc",
+                        "surface-container-high": "#e2e8f0",
+                        "surface-container-highest": "#cbd5e1",
                         "surface-container-lowest": "#ffffff",
-                        "on-surface": "#0b1c30",
-                        "on-surface-variant": "#3d4a42",
-                        "outline": "#6d7a72",
-                        "outline-variant": "#bccac0",
+                        "on-surface": "#0f172a",
+                        "on-surface-variant": "#475569",
+                        "outline": "#64748b",
+                        "outline-variant": "#e2e8f0",
                         "error": "#ba1a1a",
                         "error-container": "#ffdad6",
                         "on-error": "#ffffff",
                         "on-error-container": "#93000a"
                     },
                     fontFamily: {
-                        "label-lg": ["JetBrains Mono", "monospace"],
-                        "label-sm": ["JetBrains Mono", "monospace"],
-                        "label-md": ["JetBrains Mono", "monospace"],
-                        "headline-sm": ["Hanken Grotesk", "sans-serif"],
-                        "headline-lg": ["Hanken Grotesk", "sans-serif"],
-                        "display-lg": ["Hanken Grotesk", "sans-serif"],
-                        "body-md": ["Hanken Grotesk", "sans-serif"],
-                        "body-lg": ["Hanken Grotesk", "sans-serif"],
-                        "body-sm": ["Hanken Grotesk", "sans-serif"]
+                        "label-lg": ["Inter", "sans-serif"],
+                        "label-sm": ["Inter", "sans-serif"],
+                        "label-md": ["Inter", "sans-serif"],
+                        "headline-sm": ["Inter", "sans-serif"],
+                        "headline-lg": ["Inter", "sans-serif"],
+                        "display-lg": ["Inter", "sans-serif"],
+                        "body-md": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "body-sm": ["Inter", "sans-serif"]
                     },
                     fontSize: {
                         "label-lg": ["13px", { lineHeight: "18px", letterSpacing: "-0.01em", fontWeight: "600" }],
@@ -114,7 +114,7 @@
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
 </head>
 
-<body data-submit-loading-text="{{ __('global.common.loading') }}" class="bg-surface text-on-surface min-h-screen flex flex-col justify-between antialiased selection:bg-primary-container selection:text-on-primary-container">
+<body data-submit-loading-text="{{ __('global.common.loading') }}" class="admin-shell font-sans bg-surface text-on-surface min-h-screen flex flex-col justify-between antialiased selection:bg-primary-container selection:text-on-primary-container">
     <!-- Ambient Backdrop Micro-Pattern -->
     <div class="fixed inset-0 pointer-events-none opacity-[0.035] bg-[radial-gradient(#006948_1px,transparent_1px)] [background-size:24px_24px]"></div>
 
@@ -182,7 +182,7 @@
                             <span class="font-headline-sm text-[13px] leading-tight font-semibold text-on-surface">{{ $admin->name }}</span>
                             <span class="inline-block w-1.5 h-1.5 rounded-full bg-primary" title="{{ __('admin.status_active') }}"></span>
                         </div>
-                        <span class="font-label-sm text-label-sm text-outline-variant flex items-center gap-1">
+                        <span class="font-label-sm text-label-sm text-outline flex items-center gap-1">
                             {{ $admin->email }}
                         </span>
                     </div>
@@ -363,7 +363,7 @@
                                         <span class="material-symbols-outlined text-[18px] shrink-0">bedtime</span>
                                         <span class="truncate">{{ __('admin.no_campaign_today') }}</span>
                                     </div>
-                                    <span class="font-label-sm text-label-sm text-outline-variant font-medium shrink-0">{{ __('admin.ready_status') }}</span>
+                                    <span class="font-label-sm text-label-sm text-outline font-medium shrink-0">{{ __('admin.ready_status') }}</span>
                                 </div>
                             @endif
                         </div>

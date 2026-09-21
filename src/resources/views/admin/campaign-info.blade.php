@@ -9,7 +9,7 @@
 <x-admin.layout :title="__('admin.brand_title') . ' · ' . $campaign->name . ' · ' . __('admin.campaign_nav_info')" active="campaigns" :room="$room">
     <div id="campaign-app" class="space-y-6">
         <!-- TOP SUB-NAVIGATION BAR -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-outline-variant/60">
+        <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-4 pb-2 border-b border-outline-variant/60">
             <div class="flex items-center gap-3">
                 <a href="{{ route('admin.campaigns.page', $room) }}"
                     class="p-2 rounded-xl border border-outline-variant hover:bg-surface-container text-outline hover:text-on-surface transition-colors flex items-center justify-center shrink-0"
@@ -19,15 +19,15 @@
             </div>
 
             <!-- Sub-navigation Tabs -->
-            <div class="flex items-center gap-1.5 bg-surface-container-low p-1.5 rounded-2xl border border-outline-variant/60 self-start sm:self-auto overflow-x-auto max-w-full">
+            <div class="flex items-center gap-1.5 bg-surface-container-low p-1.5 rounded-2xl border border-outline-variant/60 self-start sm:self-auto overflow-x-auto no-scrollbar max-w-full">
                 <a href="{{ route('admin.campaigns.info', [$room, $campaign]) }}"
-                    class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all no-underline bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/50">
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all no-underline whitespace-nowrap shrink-0 bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/50">
                     <span class="material-symbols-outlined text-[18px]">info</span>
                     <span>{{ __('admin.campaign_nav_info') }}</span>
                 </a>
 
                 <a href="{{ route('admin.campaigns.orders', [$room, $campaign]) }}"
-                    class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all no-underline text-outline hover:text-on-surface hover:bg-surface-container/60">
+                    class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all no-underline whitespace-nowrap shrink-0 text-outline hover:text-on-surface hover:bg-surface-container/60">
                     <span class="material-symbols-outlined text-[18px]">receipt_long</span>
                     <span>{{ __('admin.campaign_nav_orders') }}</span>
                     @if ($orders->count() > 0)
@@ -39,7 +39,7 @@
 
                 @unless ($campaign->isLocked())
                     <a href="{{ route('admin.campaigns.menu', [$room, $campaign]) }}"
-                        class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all no-underline text-outline hover:text-on-surface hover:bg-surface-container/60">
+                        class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all no-underline whitespace-nowrap shrink-0 text-outline hover:text-on-surface hover:bg-surface-container/60">
                         <span class="material-symbols-outlined text-[18px]">restaurant_menu</span>
                         <span>{{ __('admin.campaign_nav_menu') }}</span>
                     </a>
@@ -395,7 +395,7 @@
                         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-outline">
                             <span class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-lg border border-outline-variant/50">
                                 <span class="material-symbols-outlined text-[16px] text-amber-600">schedule</span>
-                                <span>{{ __('admin.deadline_label') }}:</span>
+                                <span>{{ __('admin.deadline_label') }}</span>
                                 <strong class="text-on-surface font-mono font-semibold">{{ $campaign->deadline?->format('H:i d/m/Y') ?? '—' }}</strong>
                             </span>
                             @if (!empty($campaign->max_budget))
@@ -848,7 +848,7 @@
                         </span>
                         <div>
                             <h3 class="text-base font-bold text-on-surface">{{ __('admin.close_campaign_confirm_modal_title') }}</h3>
-                            <p class="text-xs text-outline font-mono">#{{ $campaign->code }} · {{ $campaign->name }}</p>
+                            <p class="text-xs text-outline font-mono font-code">#{{ $campaign->code }} · {{ $campaign->name }}</p>
                         </div>
                     </div>
                     <button type="button" onclick="closeModal('close-confirm-modal')" class="text-outline hover:text-on-surface cursor-pointer">
@@ -907,7 +907,7 @@
                         </span>
                         <div>
                             <h3 class="text-sm font-bold text-on-surface">{{ __('admin.confirm_delivery_title') }}</h3>
-                            <p class="text-[11px] text-outline font-mono">#{{ $campaign->code }} · {{ $campaign->name }}</p>
+                            <p class="text-[11px] text-outline font-mono font-code">#{{ $campaign->code }} · {{ $campaign->name }}</p>
                         </div>
                     </div>
                     <button type="button" onclick="closeModal('confirm-delivery-modal')" class="text-outline hover:text-on-surface cursor-pointer">
@@ -943,7 +943,7 @@
                     </span>
                     <div>
                         <h3 class="text-base font-bold text-on-surface">{{ __('admin.resend_notification') }}</h3>
-                        <p class="text-xs text-outline font-mono">#{{ $campaign->code }} · {{ $campaign->name }}</p>
+                        <p class="text-xs text-outline font-mono font-code">#{{ $campaign->code }} · {{ $campaign->name }}</p>
                     </div>
                 </div>
 
@@ -981,7 +981,7 @@
                     </span>
                     <div>
                         <h3 class="text-base font-bold text-on-surface">{{ __('admin.duplicate_campaign') }}</h3>
-                        <p class="text-xs text-outline font-mono">#{{ $campaign->code }} · {{ $campaign->name }}</p>
+                        <p class="text-xs text-outline font-mono font-code">#{{ $campaign->code }} · {{ $campaign->name }}</p>
                     </div>
                 </div>
 

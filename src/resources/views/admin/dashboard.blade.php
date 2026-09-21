@@ -9,6 +9,9 @@
         data-no-deadline-text="{{ __('admin.no_deadline_set') }}"
         data-opened-at-text="{{ __('admin.dashboard_opened_at') }}"
         data-today-text="{{ __('admin.dashboard_today') }}"
+        data-members-ordered-text="{{ __('admin.members_ordered_unit', ['count' => ':count']) }}"
+        data-across-members-text="{{ __('admin.across_members', ['count' => ':count']) }}"
+        data-pending-users-text="{{ __('admin.pending_users', ['count' => ':count']) }}"
         data-store-label-text="{{ __('admin.dashboard_store_label') }}"
         data-room-fund-text="{{ __('admin.dashboard_room_fund') }}"
         data-live-campaign-text="{{ __('admin.live_campaign_info') }}"
@@ -37,18 +40,18 @@
                     <span class="material-symbols-outlined text-[18px]">meeting_room</span>
                 </div>
                 <div id="metric-active-rooms" class="text-2xl font-bold text-on-surface">{{ $activeRoomsCount ?? 1 }}</div>
-                <div id="metric-rooms-hint" class="text-[11px] text-outline mt-1 font-mono">{{ __('admin.across_members', ['count' => $activeParticipants ?? $room->roomUsers()->where('status', 'active')->count()]) }}</div>
+                <div id="metric-rooms-hint" class="text-[11px] text-outline mt-1 font-mono">{{ __('admin.across_members', ['count' => $activeRoomUsers ?? $room->roomUsers()->where('status', 'active')->count()]) }}</div>
             </div>
 
             <!-- Metric 2: Live Campaigns -->
             <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between shadow-2xs">
                 <div class="flex items-center justify-between text-outline mb-1">
                     <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.live_campaigns') }}</span>
-                    <span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-error-container text-on-error-container font-bold uppercase">{{ __('admin.active_now') }}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap shrink-0 bg-error-container text-on-error-container font-bold">{{ __('admin.active_now') }}</span>
                 </div>
                 <div class="text-2xl font-bold text-error flex items-baseline gap-1.5">
                     <span id="metric-live-campaigns">{{ $activeCampaignsCount ?? 0 }}</span>
-                    <span class="text-xs text-outline font-normal">runs</span>
+                    <span class="text-xs text-outline font-normal">{{ __('admin.campaign_runs_unit') }}</span>
                 </div>
                 <div id="metric-campaigns-hint" class="text-[11px] text-error mt-1 font-semibold flex items-center gap-1 font-mono">
                     <span class="w-1.5 h-1.5 rounded-full bg-error status-dot-pulse"></span>
@@ -153,7 +156,7 @@
                                 </span>
                             @endif
                             <h3 id="hero-campaign-title" class="text-lg font-bold text-on-surface">{{ $activeCampaign?->name ?? __('admin.loading_campaign') }}</h3>
-                            <span id="hero-campaign-code" class="text-xs font-mono text-outline">{{ $activeCampaign?->code ?? 'N/A' }}</span>
+                            <span id="hero-campaign-code" class="text-xs font-mono font-code text-outline">{{ $activeCampaign?->code ?? 'N/A' }}</span>
                         </div>
                         <div class="flex items-center gap-2 text-xs font-mono text-outline">
                             <span id="hero-campaign-time">{{ __('admin.ready') }}</span>
@@ -227,7 +230,7 @@
                             <span class="w-2 h-2 rounded-full bg-primary"></span>
                             {{ __('admin.running_secondary') }}
                         </span>
-                        <span id="sec-campaign-code" class="text-xs font-mono text-outline">{{ $secondaryCampaign?->code ?? 'N/A' }}</span>
+                        <span id="sec-campaign-code" class="text-xs font-mono font-code text-outline">{{ $secondaryCampaign?->code ?? 'N/A' }}</span>
                     </div>
                     <h3 id="sec-campaign-title" class="text-base font-bold text-on-surface mb-1 truncate">{{ $secondaryCampaign?->name ?? __('admin.no_secondary_campaign') }}</h3>
                     <p id="sec-campaign-vendor" class="text-xs text-outline mb-4 font-mono">{{ $secondaryCampaign?->restaurant ?? '—' }}</p>
@@ -292,7 +295,7 @@
                             @if(isset($liveOrders) && $liveOrders instanceof \Illuminate\Support\Collection)
                                 @foreach($liveOrders as $order)
                                     <tr class="hover:bg-surface-container-low/50 transition-colors">
-                                        <td class="py-2.5 px-3 font-mono text-outline">#{{ $order->code }}</td>
+                                        <td class="py-2.5 px-3 font-mono font-code text-outline">#{{ $order->code }}</td>
                                         <td class="py-2.5 px-3 font-semibold text-on-surface">{{ $order->roomUser?->globalUser?->name ?? $order->roomUser?->display_name ?? __('global.common.member') }}</td>
                                         <td class="py-2.5 px-3 text-outline">{{ $order->campaign?->name ?? __('global.common.campaign') }}</td>
                                         <td class="py-2.5 px-3 text-right font-mono font-bold text-on-surface">{{ \App\Support\Helpers\FormatHelper::formatCurrency($order->final_amount ?? 0) }}</td>

@@ -1,33 +1,33 @@
 <x-admin-auth.layout :title="__('admin.forgot_password_title')">
     <x-slot name="brandHero">
         <div>
-            <h2 class="text-2xl lg:text-3xl font-bold tracking-tight text-white leading-tight">
+            <h2 class="text-2xl lg:text-3xl font-bold tracking-tight text-on-surface leading-tight">
                 {{ __('admin.forgot_hero_heading') }}
             </h2>
         </div>
 
-        <p class="text-xs lg:text-sm text-slate-300/80 leading-relaxed">
+        <p class="text-xs lg:text-sm text-slate-600 leading-relaxed">
             {{ __('admin.forgot_hero_desc') }}
         </p>
 
         <div class="space-y-3 pt-2">
-            <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
-                <div class="w-8 h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-white/80 shadow-xs border border-emerald-100">
+                <div class="w-8 h-8 rounded bg-emerald-100 text-primary flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[18px]">verified_user</span>
                 </div>
                 <div>
-                    <strong class="text-xs font-semibold text-white block">{{ __('admin.two_factor_otp') }}</strong>
-                    <span class="text-[11px] text-slate-400">{{ __('admin.otp_validity_15m') }}</span>
+                    <strong class="text-xs font-semibold text-on-surface block">{{ __('admin.two_factor_otp') }}</strong>
+                    <span class="text-[11px] text-slate-500">{{ __('admin.otp_validity_15m') }}</span>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/10">
-                <div class="w-8 h-8 rounded bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-white/80 shadow-xs border border-emerald-100">
+                <div class="w-8 h-8 rounded bg-emerald-100 text-primary flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[18px]">policy</span>
                 </div>
                 <div>
-                    <strong class="text-xs font-semibold text-white block">{{ __('admin.security_audit_trail') }}</strong>
-                    <span class="text-[11px] text-slate-400">{{ __('admin.security_audit_desc') }}</span>
+                    <strong class="text-xs font-semibold text-on-surface block">{{ __('admin.security_audit_trail') }}</strong>
+                    <span class="text-[11px] text-slate-500">{{ __('admin.security_audit_desc') }}</span>
                 </div>
             </div>
         </div>

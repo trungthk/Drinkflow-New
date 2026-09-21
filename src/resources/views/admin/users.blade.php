@@ -200,7 +200,7 @@
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <span
-                                    class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold border {{ $statusVal === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}">
+                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full whitespace-nowrap text-[11px] font-semibold border {{ $statusVal === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}">
                                     {{ __('admin.status_' . $statusVal) }}
                                 </span>
                             </td>

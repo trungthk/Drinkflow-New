@@ -419,3 +419,82 @@ button:not(:disabled), [role="button"]:not([aria-disabled="true"]) { cursor: poi
     }
 }
 
+
+/* ==========================================================================
+   Unified theme - keeps the admin console visually aligned with the user portal
+   (Inter typography, soft rounded cards, emerald accents, calm status pills).
+   Scoped to .admin-shell so it never leaks into other layouts.
+   ========================================================================== */
+
+/* Monospace is reserved for codes (.font-code). Labels, dates and figures use Inter with tabular numbers. */
+.admin-shell .font-mono {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+}
+
+.admin-shell .font-code,
+.admin-shell code {
+    font-family: var(--font-mono);
+    font-variant-numeric: normal;
+}
+
+/* Cards: 16px radius, hairline border and a soft shadow, like the user portal cards. */
+.admin-shell :is(.rounded-lg, .rounded-xl).bg-surface-container-lowest.border:is(.p-4, .p-5, .p-6),
+.admin-shell .rounded-2xl.bg-surface-container-lowest.border {
+    border-radius: 1rem;
+    border-color: rgb(226 232 240 / 0.8);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+}
+
+/* Form controls: rounded-xl with an emerald focus ring. */
+.admin-shell :is(input, select, textarea).rounded-lg {
+    border-radius: 0.75rem;
+}
+
+.admin-shell :is(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']), select, textarea):focus {
+    border-color: #006948;
+    box-shadow: 0 0 0 1px #006948;
+    outline: none;
+}
+
+/* Table headers: calm uppercase labels on a light surface. */
+.admin-shell table thead th,
+.admin-shell table thead td {
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #64748b;
+}
+
+.admin-shell table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+/* Micro labels/pills that were monospace + uppercase read as calm sentence-case text (table headers keep uppercase). */
+.admin-shell :is(span, p, label, div, dt, h2, h3, h4, h5).font-mono.uppercase {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.admin-shell span.font-code {
+    white-space: nowrap;
+}
+
+.admin-shell table thead th {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Empty-state icons and separators used the hairline border colour as text colour and almost vanished on white. */
+.admin-shell .text-outline-variant {
+    color: #cbd5e1;
+}
+
+/* Tables inside modals are narrow: let their headers wrap instead of being cut with an ellipsis. */
+.admin-shell .fixed table thead th {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}

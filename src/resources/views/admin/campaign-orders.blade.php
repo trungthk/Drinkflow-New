@@ -15,7 +15,7 @@
             style="display: none;" x-text="tip.text"></div>
 
         <!-- TOP SUB-NAVIGATION BAR -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-outline-variant/60">
+        <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center justify-between gap-4 pb-2 border-b border-outline-variant/60">
             <div class="flex items-center gap-3">
                 <a href="{{ route('admin.campaigns.page', $room) }}"
                     class="p-2 rounded-xl border border-outline-variant hover:bg-surface-container text-outline hover:text-on-surface transition-colors flex items-center justify-center shrink-0"
@@ -42,15 +42,15 @@
             </div>
 
             <!-- Sub-navigation Tabs -->
-            <div class="flex items-center gap-1.5 bg-surface-container-low p-1.5 rounded-2xl border border-outline-variant/60 self-start sm:self-auto overflow-x-auto max-w-full">
+            <div class="flex items-center gap-1.5 bg-surface-container-low p-1.5 rounded-2xl border border-outline-variant/60 self-start sm:self-auto overflow-x-auto no-scrollbar max-w-full">
                 <a href="{{ route('admin.campaigns.info', [$room, $campaign]) }}"
-                    class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all no-underline text-outline hover:text-on-surface hover:bg-surface-container/60">
+                    class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all no-underline whitespace-nowrap shrink-0 text-outline hover:text-on-surface hover:bg-surface-container/60">
                     <span class="material-symbols-outlined text-[18px]">info</span>
                     <span>{{ __('admin.campaign_nav_info') }}</span>
                 </a>
 
                 <a href="{{ route('admin.campaigns.orders', [$room, $campaign]) }}"
-                    class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all no-underline bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/50">
+                    class="px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all no-underline whitespace-nowrap shrink-0 bg-surface-container-lowest text-primary shadow-xs border border-outline-variant/50">
                     <span class="material-symbols-outlined text-[18px]">receipt_long</span>
                     <span>{{ __('admin.campaign_nav_orders') }}</span>
                     @if ($orders->count() > 0)
@@ -62,7 +62,7 @@
 
                 @unless ($campaign->isLocked())
                     <a href="{{ route('admin.campaigns.menu', [$room, $campaign]) }}"
-                        class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all no-underline text-outline hover:text-on-surface hover:bg-surface-container/60">
+                        class="px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all no-underline whitespace-nowrap shrink-0 text-outline hover:text-on-surface hover:bg-surface-container/60">
                         <span class="material-symbols-outlined text-[18px]">restaurant_menu</span>
                         <span>{{ __('admin.campaign_nav_menu') }}</span>
                     </a>
@@ -120,7 +120,7 @@
         <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xs overflow-hidden">
             <!-- Tabs Navigation Header -->
             <div class="border-b border-outline-variant/60 bg-surface-container-low px-4 pt-3 flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-1.5 overflow-x-auto max-w-full">
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar max-w-full">
                     @php
                         $aggregatedCount = count($aggregatedItems ?? []);
                         $ordersCount = $orders->count();
@@ -248,7 +248,7 @@
                 </div>
 
                 <div class="overflow-x-auto w-full rounded-xl border border-outline-variant/60">
-                    <table class="table-colgroup w-full min-w-full text-left border-collapse text-xs table-fixed">
+                    <table class="table-colgroup w-full min-w-[40rem] text-left border-collapse text-xs table-fixed">
                         <thead>
                             <tr class="h-10 bg-surface-container-low border-b border-outline-variant text-outline uppercase font-mono tracking-wider">
                                 <th class="px-4 py-2 w-16 text-left">{{ __('admin.order_no') }}</th>
@@ -339,7 +339,7 @@
                 </div>
 
                 <div class="overflow-x-auto w-full rounded-xl border border-outline-variant/60">
-                    <table class="table-colgroup w-full min-w-full text-left border-collapse text-xs table-fixed">
+                    <table class="table-colgroup w-full min-w-[40rem] text-left border-collapse text-xs table-fixed">
                         <thead>
                             <tr class="h-10 bg-surface-container-low border-b border-outline-variant text-outline uppercase font-mono tracking-wider">
                                 <th class="px-4 py-2 w-14 text-left">{{ __('admin.order_no') }}</th>
@@ -608,7 +608,7 @@
 
                 @if ($isCampaignClosed || $campaign->debts->isNotEmpty())
                     <div class="overflow-x-auto w-full rounded-xl border border-outline-variant/60">
-                        <table class="table-colgroup w-full min-w-full text-left border-collapse text-xs table-fixed">
+                        <table class="table-colgroup w-full min-w-[40rem] text-left border-collapse text-xs table-fixed">
                             <thead>
                                 <tr class="h-10 bg-surface-container-low border-b border-outline-variant text-outline uppercase font-mono tracking-wider">
                                     <th class="px-4 py-2 w-14 text-left">{{ __('admin.order_no') }}</th>
@@ -660,7 +660,7 @@
                                         </td>
                                         <td class="px-4 py-3 text-left">
                                             <span class="font-mono text-xs text-primary font-semibold block">{{ $transferContent }}</span>
-                                            <span class="text-[10px] font-mono text-outline">#{{ $debt->code }}</span>
+                                            <span class="text-[10px] font-mono font-code text-outline">#{{ $debt->code }}</span>
                                         </td>
                                         <td class="px-4 py-3 w-44 text-center">
                                             <div class="flex items-center justify-center">
@@ -740,7 +740,7 @@
                 </div>
 
                 <div class="overflow-x-auto w-full rounded-xl border border-outline-variant/60">
-                    <table class="table-colgroup w-full min-w-full text-left border-collapse text-xs table-fixed">
+                    <table class="table-colgroup w-full min-w-[40rem] text-left border-collapse text-xs table-fixed">
                         <thead>
                             <tr class="h-10 bg-surface-container-low border-b border-outline-variant text-outline uppercase font-mono tracking-wider">
                                 <th class="px-4 py-2 w-16 text-left">{{ __('admin.order_no') }}</th>
@@ -816,7 +816,7 @@
                 </div>
 
                 <div class="overflow-x-auto w-full rounded-xl border border-outline-variant/60">
-                    <table class="table-colgroup w-full min-w-full text-left border-collapse text-xs table-fixed">
+                    <table class="table-colgroup w-full min-w-[40rem] text-left border-collapse text-xs table-fixed">
                         <thead>
                             <tr class="h-10 bg-surface-container-low border-b border-outline-variant text-outline uppercase font-mono tracking-wider">
                                 <th class="px-4 py-2 w-16 text-left">{{ __('admin.order_no') }}</th>
@@ -889,7 +889,7 @@
                                 <div>
                                     <h3 class="text-sm font-bold text-on-surface flex items-center gap-2">
                                         <span>{{ __('admin.order_detail') }}</span>
-                                        <span class="text-xs font-mono text-primary" x-text="selectedOrder.code"></span>
+                                        <span class="text-xs font-mono font-code text-primary" x-text="selectedOrder.code"></span>
                                     </h3>
                                     <p class="text-[11px] text-outline" x-text="selectedOrder.created_at ? ('{{ __('admin.order_created_at') }}: ' + selectedOrder.created_at) : ''"></p>
                                 </div>
@@ -1009,7 +1009,7 @@
                                 <div>
                                     <h3 class="text-sm font-bold text-on-surface flex items-center gap-2">
                                         <span>{{ __('admin.debt_detail') }}</span>
-                                        <span class="text-xs font-mono text-primary" x-text="'#' + selectedDebt.code"></span>
+                                        <span class="text-xs font-mono font-code text-primary" x-text="'#' + selectedDebt.code"></span>
                                     </h3>
                                     <p class="text-[11px] text-outline" x-text="selectedDebt.created_at ? ('{{ __('admin.created_at') }}: ' + selectedDebt.created_at) : ''"></p>
                                 </div>

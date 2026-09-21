@@ -15,6 +15,9 @@ export function initAdminDashboard() {
     const noDeadlineText = dashboardEl.dataset.noDeadlineText || 'No deadline';
     const openedAtText = dashboardEl.dataset.openedAtText || '';
     const todayText = dashboardEl.dataset.todayText || '';
+    const acrossMembersText = dashboardEl.dataset.acrossMembersText || ':count';
+    const membersOrderedText = dashboardEl.dataset.membersOrderedText || ':count';
+    const pendingUsersText = dashboardEl.dataset.pendingUsersText || ':count';
     const storeLabelText = dashboardEl.dataset.storeLabelText || '';
     const roomFundText = dashboardEl.dataset.roomFundText || '';
     const liveCampaignText = dashboardEl.dataset.liveCampaignText || '';
@@ -135,7 +138,7 @@ export function initAdminDashboard() {
             const barY = bottomPad - barH;
             return `
                 <rect x="${points[idx].x - barW / 2}" y="${barY}" width="${barW}" height="${barH}" rx="3" fill="${COLOR_CAMPAIGNS}" opacity="0.85"></rect>
-                ${r.count > 0 ? `<text x="${points[idx].x}" y="${barY - 5}" text-anchor="middle" font-size="10" font-family="JetBrains Mono" font-weight="bold" fill="${COLOR_CAMPAIGNS}">${r.count}</text>` : ''}
+                ${r.count > 0 ? `<text x="${points[idx].x}" y="${barY - 5}" text-anchor="middle" font-size="10" font-family="Inter, sans-serif" font-weight="bold" fill="${COLOR_CAMPAIGNS}">${r.count}</text>` : ''}
             `;
         }).join('');
 
@@ -145,8 +148,8 @@ export function initAdminDashboard() {
         const gridY = [topPad, midY, bottomPad];
         const gridHtml = gridY.map((y, i) => `
             <line x1="${leftPad}" y1="${y}" x2="${rightPad}" y2="${y}" stroke="currentColor" class="${i === 2 ? 'text-outline-variant/60' : 'text-outline-variant/30'}" stroke-width="1" ${i === 2 ? '' : 'stroke-dasharray="3 3"'}></line>
-            <text x="${leftPad - 8}" y="${y + 3}" text-anchor="end" font-size="9" font-family="JetBrains Mono" fill="${COLOR_CAMPAIGNS}">${i === 0 ? maxC : i === 1 ? maxC / 2 : 0}</text>
-            <text x="${rightPad + 8}" y="${y + 3}" text-anchor="start" font-size="9" font-family="JetBrains Mono" fill="${COLOR_SPENDING}">${compactMoney(i === 0 ? maxS : i === 1 ? maxS / 2 : 0)}</text>
+            <text x="${leftPad - 8}" y="${y + 3}" text-anchor="end" font-size="9" font-family="Inter, sans-serif" fill="${COLOR_CAMPAIGNS}">${i === 0 ? maxC : i === 1 ? maxC / 2 : 0}</text>
+            <text x="${rightPad + 8}" y="${y + 3}" text-anchor="start" font-size="9" font-family="Inter, sans-serif" fill="${COLOR_SPENDING}">${compactMoney(i === 0 ? maxS : i === 1 ? maxS / 2 : 0)}</text>
         `).join('');
 
         const peakRow = rows.findIndex(r => r.peak && r.spend > 0);
@@ -160,7 +163,7 @@ export function initAdminDashboard() {
                 <g class="pointer-events-none">
                     <circle cx="${p.x}" cy="${p.y}" r="6" fill="${COLOR_SPENDING}" stroke="#ffffff" stroke-width="2"></circle>
                     <rect x="${boxX}" y="${Math.max(2, p.y - 32)}" width="${boxW}" height="20" rx="4" fill="#0f172a" opacity="0.9"></rect>
-                    <text x="${boxX + boxW / 2}" y="${Math.max(2, p.y - 32) + 14}" text-anchor="middle" font-size="10" font-weight="bold" font-family="JetBrains Mono" fill="#bfdbfe">${esc(label)}</text>
+                    <text x="${boxX + boxW / 2}" y="${Math.max(2, p.y - 32) + 14}" text-anchor="middle" font-size="10" font-weight="bold" font-family="Inter, sans-serif" fill="#bfdbfe">${esc(label)}</text>
                 </g>
             `;
         }
@@ -195,7 +198,7 @@ export function initAdminDashboard() {
         if (labelsContainer) {
             labelsContainer.innerHTML = rows.map(r => `
                 <div class="text-center">
-                    <span class="font-bold text-on-surface">${esc(r.day)}</span>
+                    <span class="text-xs font-semibold text-on-surface">${esc(r.day)}</span>
                     <span class="block text-[10px] font-mono text-outline">${esc(r.date)}</span>
                 </div>
             `).join('');
@@ -212,7 +215,7 @@ export function initAdminDashboard() {
             const r = rows[idx];
             tooltip.innerHTML = `
                 <div class="mb-1.5 flex items-center justify-between gap-3 border-b border-outline-variant/60 pb-1.5">
-                    <span class="font-bold text-on-surface">${esc(r.day)}</span>
+                    <span class="text-xs font-semibold text-on-surface">${esc(r.day)}</span>
                     <span class="font-mono text-outline">${esc(r.date)}</span>
                 </div>
                 <div class="flex items-center justify-between gap-4">
@@ -264,7 +267,7 @@ export function initAdminDashboard() {
         if (activeRooms) activeRooms.textContent = data.active_rooms || 1;
 
         const roomsHint = document.querySelector('#metric-rooms-hint');
-        if (roomsHint) roomsHint.textContent = `${data.total_members_across_rooms || data.active_room_users || 0} members`;
+        if (roomsHint) roomsHint.textContent = acrossMembersText.replace(':count', String(data.active_room_users || 0));
 
         const liveCmp = document.querySelector('#metric-live-campaigns');
         if (liveCmp) liveCmp.textContent = data.active_campaigns || 0;
@@ -285,7 +288,7 @@ export function initAdminDashboard() {
         if (unpaidDebt) unpaidDebt.textContent = money(data.outstanding_debts);
 
         const debtUsers = document.querySelector('#metric-debt-users');
-        if (debtUsers) debtUsers.textContent = `${data.pending_debt_users_count || 0} users`;
+        if (debtUsers) debtUsers.textContent = pendingUsersText.replace(':count', String(data.pending_debt_users_count || 0));
 
         // Nav Badge
         const navBadge = document.querySelector('#nav-live-badge');
@@ -360,7 +363,7 @@ export function initAdminDashboard() {
             const modalTitle = document.querySelector('#modal-title');
 
             if (modalCampaignName) modalCampaignName.textContent = hero.name;
-            if (modalMembersCount) modalMembersCount.textContent = `${participants} orders`;
+            if (modalMembersCount) modalMembersCount.textContent = membersOrderedText.replace(':count', String(participants));
             if (modalSubtotalVal) modalSubtotalVal.textContent = money(gross);
             if (modalTitle) modalTitle.textContent = `#${hero.code || hero.id}`;
 

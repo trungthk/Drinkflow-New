@@ -121,7 +121,7 @@
                         <div class="flex items-center gap-2 flex-wrap">
                             <x-admin.campaign-status-badge :campaign="$activeCampaign" />
                             <a href="{{ route('admin.campaigns.info', [$room, $activeCampaign]) }}" class="font-bold text-sm text-on-surface truncate hover:text-primary transition-colors no-underline" title="{{ __('admin.view_campaign_details') }}">{{ $activeCampaign->name }}</a>
-                            <span class="text-xs bg-surface-container px-2 py-0.5 rounded font-mono font-medium text-secondary">{{ $activeCampaign->code ?? 'N/A' }}</span>
+                            <span class="text-xs bg-surface-container px-2 py-0.5 rounded font-mono font-code font-medium text-secondary">{{ $activeCampaign->code ?? 'N/A' }}</span>
                         </div>
                         <div class="text-xs text-secondary mt-1 flex items-center gap-2 flex-wrap font-medium">
                             <span class="flex items-center gap-1 text-on-surface">
@@ -348,7 +348,7 @@
                                 <button type="button"
                                         onclick="openOrderDetailModal({{ $ord->id }})"
                                         class="font-bold text-on-surface text-sm flex items-center gap-1.5 hover:text-primary transition-colors text-left group">
-                                    <span class="underline decoration-dotted underline-offset-2 group-hover:decoration-solid font-mono">{{ $ord->code ?? 'N/A' }}</span>
+                                    <span class="underline decoration-dotted underline-offset-2 group-hover:decoration-solid font-mono font-code">{{ $ord->code ?? 'N/A' }}</span>
                                     @if($ord->is_locked)
                                         <span class="material-symbols-outlined text-[14px] text-amber-600" title="{{ __('admin.order_locked_tooltip') }}">lock</span>
                                     @endif

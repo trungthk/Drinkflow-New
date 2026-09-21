@@ -26,7 +26,7 @@
     $label = $statusEnum?->label($expired) ?? __('admin.status_closed');
 @endphp
 
-<span {{ $attributes->merge(['class' => "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[11px] font-semibold border shadow-2xs {$badgeClass}"]) }}>
+<span {{ $attributes->merge(['class' => "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border {$badgeClass}"]) }}>
     <span class="w-1.5 h-1.5 rounded-full shrink-0 {{ $dotClass }}"></span>
     <span>{{ $label }}</span>
 </span>

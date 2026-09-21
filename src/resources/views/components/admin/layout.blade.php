@@ -91,7 +91,7 @@
                     <label
                         class="text-[10px] font-mono text-outline block mb-1 uppercase tracking-wider font-semibold sidebar-text">{{ __('admin.active_workspace') }}</label>
                     <button type="button" data-workspace-toggle aria-expanded="false" aria-controls="workspace-menu"
-                        class="sidebar-nav-link relative group w-full flex items-center justify-between px-3 py-2 bg-surface border border-outline-variant rounded hover:border-outline text-left transition-colors cursor-pointer"
+                        class="sidebar-nav-link relative group w-full flex items-center justify-between px-3 py-2 bg-surface border border-outline-variant rounded-xl hover:border-outline text-left transition-colors cursor-pointer"
                         title="{{ $room ? $roomLabel : __('admin.select_room_title') }}">
                         <div class="flex items-center gap-2 truncate">
                             <span
@@ -136,7 +136,7 @@
                 <nav class="space-y-1 text-xs">
                     @if ($room)
                         <!-- Dashboard -->
-                        <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'dashboard' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'dashboard' ? 'bg-emerald-50 text-primary ring-1 ring-emerald-100 font-semibold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                             href="{{ route('admin.dashboard.page', $room) }}" title="{{ __('admin.dashboard') }}">
                             <span class="material-symbols-outlined text-[18px] shrink-0">space_dashboard</span>
                             <span class="sidebar-text truncate">{{ __('admin.dashboard') }}</span>
@@ -147,14 +147,14 @@
                         </a>
 
                         <!-- Campaigns -->
-                        <a class="sidebar-nav-link relative group flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'campaigns' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        <a class="sidebar-nav-link relative group flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'campaigns' ? 'bg-emerald-50 text-primary ring-1 ring-emerald-100 font-semibold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                             href="{{ route('admin.campaigns.page', $room) }}" title="{{ __('admin.campaigns') }}">
                             <div class="flex items-center gap-3 min-w-0">
                                 <span class="material-symbols-outlined text-[18px] shrink-0">campaign</span>
                                 <span class="sidebar-text truncate">{{ __('admin.campaigns') }}</span>
                             </div>
                             <span id="nav-live-badge"
-                                class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-error-container text-on-error-container font-bold hidden sidebar-text">Live</span>
+                                class="px-1.5 py-0.5 rounded-full text-[10px] bg-error-container text-on-error-container font-bold hidden sidebar-text">Live</span>
                             <div
                                 class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">
                                 {{ __('admin.campaigns') }}
@@ -163,7 +163,7 @@
 
                         @if ($hasLiveCampaign)
                             <!-- Orders -->
-                            <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'orders' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                            <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'orders' ? 'bg-emerald-50 text-primary ring-1 ring-emerald-100 font-semibold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                                 href="{{ route('admin.orders.page', $room) }}" title="{{ __('admin.orders') }}">
                                 <span class="material-symbols-outlined text-[18px] shrink-0">local_shipping</span>
                                 <span class="sidebar-text truncate">{{ __('admin.orders') }}</span>
@@ -180,7 +180,7 @@
                         @endif
 
                         <!-- Payments & Debt -->
-                        <a class="sidebar-nav-link relative group flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors {{ in_array($active, ['debts', 'payments']) ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        <a class="sidebar-nav-link relative group flex items-center justify-between px-3 py-2 rounded-lg font-medium transition-colors {{ in_array($active, ['debts', 'payments']) ? 'bg-emerald-50 text-primary ring-1 ring-emerald-100 font-semibold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                             href="{{ route('admin.debts.page', $room) }}" title="{{ __('admin.debts') }}">
                             <div class="flex items-center gap-3 min-w-0">
                                 <span class="material-symbols-outlined text-[18px] shrink-0">payments</span>
@@ -195,7 +195,7 @@
                         </a>
 
                         <!-- Users -->
-                        <a class="sidebar-nav-link relative group flex items-center justify-between gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'users' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        <a class="sidebar-nav-link relative group flex items-center justify-between gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'users' ? 'bg-emerald-50 text-primary ring-1 ring-emerald-100 font-semibold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                             href="{{ route('admin.room-users.page', $room) }}" title="{{ __('admin.users') }}">
                             <span class="flex min-w-0 items-center gap-3">
                                 <span class="material-symbols-outlined text-[18px] shrink-0">group</span>
@@ -211,7 +211,7 @@
                         </a>
 
                         <!-- Reports -->
-                        <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'reports' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'reports' ? 'bg-emerald-50 text-primary ring-1 ring-emerald-100 font-semibold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                             href="{{ route('admin.reports.page', $room) }}" title="{{ __('admin.reports_audit') }}">
                             <span class="material-symbols-outlined text-[18px] shrink-0">assessment</span>
                             <span class="sidebar-text truncate">{{ __('admin.reports_audit') }}</span>
@@ -222,7 +222,7 @@
                         </a>
 
                         <!-- Room Settings -->
-                        <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ in_array($active, ['settings', 'notifications']) ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ in_array($active, ['settings', 'notifications']) ? 'bg-emerald-50 text-primary ring-1 ring-emerald-100 font-semibold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                             href="{{ route('admin.settings.page', $room) }}"
                             title="{{ __('admin.payments_settings') }}">
                             <span class="material-symbols-outlined text-[18px] shrink-0">settings</span>
@@ -234,7 +234,7 @@
                         </a>
 
                         <!-- System Diagnostics -->
-                        <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'audit' ? 'bg-secondary-container text-on-secondary-container border-l-4 border-primary font-bold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
+                        <a class="sidebar-nav-link relative group flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-colors {{ $active === 'audit' ? 'bg-emerald-50 text-primary ring-1 ring-emerald-100 font-semibold' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low' }}"
                             href="{{ route('admin.audit.page', $room) }}"
                             title="{{ __('admin.system_diagnostics') }}">
                             <span class="material-symbols-outlined text-[18px] shrink-0">health_and_safety</span>

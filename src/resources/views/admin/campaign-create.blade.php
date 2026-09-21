@@ -140,7 +140,7 @@
                         {{ __('admin.menu_and_items') }}
                     </h2>
                     <!-- Tab Switcher -->
-                    <div class="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg border border-outline-variant/60 text-xs overflow-x-auto max-w-full">
+                    <div class="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg border border-outline-variant/60 text-xs overflow-x-auto no-scrollbar max-w-full">
                         <button type="button" @click="menuTab = 'reuse'" :class="menuTab === 'reuse' ? 'bg-primary font-bold text-white shadow-sm' : 'text-outline hover:text-on-surface'" class="px-2.5 py-1 rounded transition-all whitespace-nowrap flex items-center gap-1">
                             <span class="material-symbols-outlined text-[14px]">history</span>
                             <span>{{ __('admin.source_previous') }}</span>

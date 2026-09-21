@@ -13,6 +13,8 @@ use App\Models\Debt;
 use App\Models\Order;
 use App\Models\PaymentAccount;
 use App\Models\Room;
+use App\Models\RoomUser;
+use App\Enums\RoomUserStatus;
 use App\Support\Helpers\FormatHelper;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -62,6 +64,7 @@ class AdminDashboardService
             'pendingDebtUsersCount' => $metrics['pending_debt_users_count'],
             'activeCampaignsCount' => $metrics['active_campaigns_count'],
             'activeParticipants' => $metrics['active_participants'],
+            'activeRoomUsers' => $metrics['active_room_users'],
             'debtCollectionRate' => $metrics['debt_collection_rate'],
             'activeCampaign' => $metrics['active_campaign'],
             'secondaryCampaign' => $metrics['secondary_campaign'],
@@ -180,6 +183,12 @@ class AdminDashboardService
                 ->count('room_user_id');
         }
 
+        // Active members of the room (shown on the dashboard and used as the participation denominator)
+        $activeRoomUsers = RoomUser::query()
+            ->where('room_id', $room->id)
+            ->where('status', RoomUserStatus::Active->value)
+            ->count();
+
         // Debt collection rate
         $totalDebtsAmount = (int) (clone $debts)->sum('original_amount');
         $paidDebtsAmount = (int) (clone $debts)->sum('paid_amount');
@@ -199,6 +208,7 @@ class AdminDashboardService
             'active_campaigns' => $activeCampaigns->count(),
             'active_campaigns_count' => $activeCampaigns->count(),
             'active_participants' => $activeParticipants,
+            'active_room_users' => $activeRoomUsers,
             'debt_collection_rate' => $debtCollectionRate,
             'active_campaign' => $activeCampaign,
             'secondary_campaign' => $secondaryCampaign,

@@ -72,7 +72,7 @@
                 <colgroup>
                     <col class="w-24">
                     <col>
-                    <col class="w-28">
+                    <col class="w-56">
                     <col class="w-28">
                     <col class="w-20">
                 </colgroup>

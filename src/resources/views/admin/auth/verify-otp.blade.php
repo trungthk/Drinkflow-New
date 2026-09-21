@@ -1,21 +1,21 @@
 <x-admin-auth.layout :title="__('admin.verify_otp_title')">
     <x-slot name="brandHero">
         <div>
-            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-white/5 border border-white/10 text-emerald-400 text-xs font-mono font-semibold mb-3">
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-white/80 shadow-xs border border-emerald-100 text-primary text-xs font-mono font-semibold mb-3">
                 <span class="material-symbols-outlined text-[15px]">security</span>
                 <span>{{ __('admin.mfa_challenge') }}</span>
             </div>
-            <h2 class="text-2xl lg:text-3xl font-bold tracking-tight text-white leading-tight">
+            <h2 class="text-2xl lg:text-3xl font-bold tracking-tight text-on-surface leading-tight">
                 {{ __('admin.verify_hero_heading') }}
             </h2>
         </div>
 
-        <p class="text-xs lg:text-sm text-slate-300/80 leading-relaxed">
+        <p class="text-xs lg:text-sm text-slate-600 leading-relaxed">
             {{ __('admin.verify_hero_desc', ['email' => $email]) }}
         </p>
 
-        <div class="p-4 rounded-xl bg-white/5 border border-white/10">
-            <div class="flex items-center justify-between text-xs text-slate-300 font-mono">
+        <div class="p-4 rounded-xl bg-white/80 shadow-xs border border-emerald-100">
+            <div class="flex items-center justify-between text-xs text-slate-600 font-mono">
                 <span>{{ __('admin.validity_duration') }}</span>
                 <span class="text-amber-400 font-bold">{{ __('admin.duration_15_mins') }}</span>
             </div>

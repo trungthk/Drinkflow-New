@@ -115,7 +115,7 @@
                                 class="w-full h-10 px-3 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:border-primary focus:ring-1 focus:ring-primary outline-hidden transition-colors pr-16 font-mono font-bold text-primary">
                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-outline">{{ __('admin.vnd_unit') }}</span>
                         </div>
-                        <p class="text-[11px] text-outline">{{ __('admin.product_budget_limit_hint') }}</p>
+                        <p class="text-[11px] text-outline">{{ __('admin.product_budget_limit_hint') }} <strong class="font-semibold text-on-surface">{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) ($settings['max_campaign_budget'] ?? 70000)) }}</strong></p>
                     </div>
                 </div>
             </section>

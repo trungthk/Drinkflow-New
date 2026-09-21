@@ -1,18 +1,18 @@
 <x-admin-auth.layout :title="__('admin.reset_password_title')">
     <x-slot name="brandHero">
         <div>
-            <h2 class="text-2xl lg:text-3xl font-bold tracking-tight text-white leading-tight">
+            <h2 class="text-2xl lg:text-3xl font-bold tracking-tight text-on-surface leading-tight">
                 {{ __('admin.reset_hero_heading') }}
             </h2>
         </div>
 
-        <p class="text-xs lg:text-sm text-slate-300/80 leading-relaxed">
+        <p class="text-xs lg:text-sm text-slate-600 leading-relaxed">
             {{ __('admin.reset_hero_desc', ['email' => $email]) }}
         </p>
 
-        <div class="p-4 rounded-xl bg-white/5 border border-white/10 space-y-2">
-            <div class="text-xs font-semibold text-white">{{ __('admin.security_requirements') }}</div>
-            <ul class="text-xs text-slate-300 space-y-1 list-disc list-inside">
+        <div class="p-4 rounded-xl bg-white/80 shadow-xs border border-emerald-100 space-y-2">
+            <div class="text-xs font-semibold text-on-surface">{{ __('admin.security_requirements') }}</div>
+            <ul class="text-xs text-slate-600 space-y-1 list-disc list-inside">
                 <li>{{ __('admin.req_min_8_chars') }}</li>
                 <li>{{ __('admin.req_alphanumeric') }}</li>
                 <li>{{ __('admin.req_match_confirmation') }}</li>

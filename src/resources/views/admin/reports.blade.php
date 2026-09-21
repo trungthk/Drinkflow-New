@@ -111,12 +111,11 @@
             <div class="flex flex-col md:flex-row md:items-center justify-between pb-3 border-b border-outline-variant gap-2">
                 <div>
                     <h2 class="font-bold text-sm text-on-surface">{{ __('admin.participation_ratio_heading') }}</h2>
-                    <p class="text-[11px] text-outline">{{ __('admin.total_room_members_label') }} {{ $roomMembersCount ?? 30 }}</p>
+                    <p class="text-[11px] text-outline">{{ __('admin.total_room_members_label') }} {{ $roomMembersCount ?? 0 }}</p>
                 </div>
                 <div class="flex items-center gap-3 text-[11px] font-semibold">
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-primary inline-block"></span> {{ __('admin.filter_active') }}</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-secondary inline-block"></span> {{ __('admin.filter_closed') }}</span>
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500 inline-block"></span> {{ __('admin.status_pending') }}</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span> {{ __('admin.participating') }}</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-surface-container-high inline-block"></span> {{ __('admin.not_participating') }}</span>
                 </div>
             </div>
 
@@ -131,10 +130,8 @@
                             <span class="font-bold text-xs">{{ $c->name ?? $c->title }} ({{ $c->restaurant }})</span>
                             <span class="font-mono text-outline">{{ $ordersCount }} ({{ $pct }}%)</span>
                         </div>
-                        <div class="w-full h-3.5 bg-surface-container rounded-sm flex overflow-hidden">
-                            <div class="bg-primary hover:opacity-90 transition-all" style="width: {{ $pct }}%" title="{{ $ordersCount }}"></div>
-                            <div class="bg-secondary/40 hover:opacity-90 transition-all" style="width: {{ max(0, 10 - $pct/10) }}%"></div>
-                            <div class="bg-amber-500 hover:opacity-90 transition-all" style="width: {{ max(0, 100 - $pct - 5) }}%"></div>
+                        <div class="w-full h-2.5 bg-surface-container-high rounded-full flex overflow-hidden">
+                            <div class="bg-primary rounded-full hover:opacity-90 transition-all" style="width: {{ $pct }}%" title="{{ $ordersCount }}"></div>
                         </div>
                     </div>
                 @empty

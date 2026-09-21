@@ -98,4 +98,40 @@ class AdminDashboardTrendTest extends TestCase
             ->assertSee('data-chart-label-orders="'.__('admin.chart_tooltip_orders').'"', false)
             ->assertSee('data-chart-peak-label="'.__('admin.chart_peak_label').'"', false);
     }
+
+    /**
+     * The dashboard exposes the number of active room members (blocked members are not counted), both in the API and the page.
+     */
+    public function test_dashboard_reports_active_room_members_count(): void
+    {
+        $admin = AdminAccount::create([
+            'name' => 'Room Admin',
+            'email' => 'members-admin@example.test',
+            'password' => Hash::make('secret'),
+            'role' => AdminRole::Admin,
+            'status' => 'active',
+        ]);
+        $room = Room::create(['name' => 'Members Room', 'slug' => 'members-room', 'status' => 'active']);
+        $admin->rooms()->attach($room);
+
+        foreach (['active', 'active', 'blocked'] as $index => $status) {
+            $globalUser = GlobalUser::create(['name' => "Member {$index}", 'email' => "member-count-{$index}@example.test"]);
+            RoomUser::create([
+                'room_id' => $room->id,
+                'global_user_id' => $globalUser->id,
+                'display_name' => "Member {$index}",
+                'status' => $status,
+            ]);
+        }
+
+        $this->actingAs($admin, 'admin')
+            ->getJson("/admin/{$room->id}/dashboard/data")
+            ->assertOk()
+            ->assertJsonPath('data.active_room_users', 2);
+
+        $this->actingAs($admin, 'admin')
+            ->get("/admin/{$room->slug}/dashboard")
+            ->assertOk()
+            ->assertSee(__('admin.across_members', ['count' => 2]));
+    }
 }
