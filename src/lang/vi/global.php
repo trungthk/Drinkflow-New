@@ -604,7 +604,7 @@ return [
         'quota_exceeded_error' => 'Bạn đã hoàn thành hạn mức 1 lượt đánh giá trong ngày hôm nay. Vui lòng quay lại vào ngày mai!',
         'reset_btn' => 'Nhập lại',
         'send_btn' => 'Gửi đánh giá',
-        'submit_success_status' => 'Cảm ơn bạn đã gửi đánh giá! Góp ý của bạn đã được ghi nhận vào hệ thống nội bộ DrinkFlow.',
+        'submit_success_status' => 'Cảm ơn bạn đã gửi đánh giá! Góp ý của bạn đã được ghi nhận và sẽ hiển thị sau khi quản trị viên hệ thống duyệt.',
         'satisfaction_stats' => 'Thống kê mức độ hài lòng',
         'updated_today' => 'Cập nhật hôm nay',
         'based_on_reviews' => 'Dựa trên :count lượt đánh giá từ thành viên',

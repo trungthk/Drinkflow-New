@@ -26,6 +26,7 @@ return [
         'active_count' => ':count đang hoạt động', 'confirm_action' => 'Bạn có chắc chắn muốn tiếp tục?',
     ],
     'layout' => [
+        'feedbacks' => 'Phản hồi người dùng',
         'enterprise_superadmin' => 'Siêu quản trị doanh nghiệp', 'dashboard_health' => 'Tổng quan & Sức khỏe hệ thống',
         'room_management' => 'Quản lý phòng', 'admin_assignments' => 'Quản trị viên & Phân công',
         'global_users' => 'Người dùng & Định danh toàn hệ thống', 'global_campaigns' => 'Chiến dịch toàn hệ thống',
@@ -192,5 +193,15 @@ return [
         'merge_conflict_oauth' => 'Hai tài khoản có OAuth identity trùng nhau.',
         'reset_password_invalid' => 'Mật khẩu xác nhận không đúng.',
         'reset_phrase_invalid' => 'Cụm từ xác nhận không đúng.',
+    ],
+    'feedbacks' => [
+        'title' => 'Duyệt phản hồi người dùng',
+        'description' => 'Phản hồi mới luôn ở trạng thái chờ duyệt. Chỉ phản hồi đã duyệt và có đánh giá từ :rating sao trở lên mới hiển thị ở trang /me/feedback.',
+        'queue' => 'Hàng chờ phản hồi', 'pending_count' => ':count phản hồi chờ duyệt',
+        'search' => 'Tìm theo nội dung hoặc tên', 'all_ratings' => 'Tất cả số sao',
+        'rating' => 'Đánh giá', 'content' => 'Nội dung',
+        'status_inactive' => 'Chờ duyệt', 'status_active' => 'Đã duyệt',
+        'approve' => 'Duyệt', 'deactivate' => 'Gỡ duyệt',
+        'hidden_low_rating' => 'Không hiển thị (dưới :rating sao)', 'empty' => 'Không có phản hồi phù hợp.',
     ],
 ];

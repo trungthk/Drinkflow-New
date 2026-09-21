@@ -712,6 +712,7 @@ return [
     'campaign_cannot_extend_state' => 'Chỉ có thể gia hạn chiến dịch đang mở hoặc đã lên lịch.',
     'campaign_extend_requires_deadline' => 'Chiến dịch chưa có hạn chốt đơn để gia hạn.',
     'audit_event_campaign_deadline_extended' => 'Đã gia hạn chốt đơn chiến dịch',
+    'audit_event_feedback_status_changed' => 'Đã đổi trạng thái phản hồi',
     'resend_notification' => 'Gửi lại thông báo',
     'resend_notification_success' => 'Đã gửi lại thông báo chiến dịch đến thành viên và các kênh.',
     'resend_notification_failed' => 'Không thể gửi lại thông báo.',

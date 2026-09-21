@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\User;
 
+use App\Enums\FeedbackStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\Feedback;
 use App\Models\GlobalUser;
@@ -20,7 +21,8 @@ class UserFeedbackService
      */
     public function getFeedbackData(GlobalUser $user, Request $request): array
     {
-        $feedbacks = Feedback::with('globalUser')->orderByDesc('created_at')->orderByDesc('id')->paginate(5);
+        // Only approved feedback rated 3 stars or more is shown; the statistics follow the same rule.
+        $feedbacks = Feedback::visibleOnFeedbackPage()->with('globalUser')->orderByDesc('created_at')->orderByDesc('id')->paginate(5);
 
         if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
             return [
@@ -60,12 +62,12 @@ class UserFeedbackService
         $canSubmit = $todayCount < 1;
 
         // Aggregate statistics
-        $totalCount = Feedback::count();
+        $totalCount = Feedback::visibleOnFeedbackPage()->count();
         if ($totalCount > 0) {
-            $avgScore = round((float) Feedback::avg('rating'), 1);
+            $avgScore = round((float) Feedback::visibleOnFeedbackPage()->avg('rating'), 1);
             $countsByStar = [];
             for ($s = 5; $s >= 1; $s--) {
-                $countS = Feedback::where('rating', $s)->count();
+                $countS = Feedback::visibleOnFeedbackPage()->where('rating', $s)->count();
                 $countsByStar[$s] = [
                     'count' => $countS,
                     'percent' => (int) round(($countS / $totalCount) * 100),
@@ -125,6 +127,8 @@ class UserFeedbackService
             'rating' => $validated['rating'],
             'subsystem' => $validated['subsystem'],
             'content' => $validated['content'],
+            // Needs superadmin approval before it can appear on the feedback page.
+            'status' => FeedbackStatus::Inactive,
             'user_display_name' => $user->name ?: __('global.feedback.anonymous_user'),
             'department_name' => $department,
         ]);

@@ -59,6 +59,7 @@ return [
         'confirm_action' => 'Are you sure you want to continue?',
     ],
     'layout' => [
+        'feedbacks' => 'User feedback',
         'enterprise_superadmin' => 'Enterprise Superadmin',
         'dashboard_health' => 'Dashboard & Health',
         'room_management' => 'Room Management',
@@ -349,5 +350,15 @@ return [
         'merge_conflict_oauth' => 'Both accounts share conflicting OAuth identities.',
         'reset_password_invalid' => 'Confirmation password is incorrect.',
         'reset_phrase_invalid' => 'Confirmation phrase is incorrect.',
+    ],
+    'feedbacks' => [
+        'title' => 'Feedback moderation',
+        'description' => 'New feedback always starts as pending. Only approved feedback rated :rating stars or higher is shown on the /me/feedback page.',
+        'queue' => 'Feedback queue', 'pending_count' => ':count pending',
+        'search' => 'Search by content or name', 'all_ratings' => 'All ratings',
+        'rating' => 'Rating', 'content' => 'Content',
+        'status_inactive' => 'Pending', 'status_active' => 'Approved',
+        'approve' => 'Approve', 'deactivate' => 'Unapprove',
+        'hidden_low_rating' => 'Not shown (below :rating stars)', 'empty' => 'No matching feedback.',
     ],
 ];

@@ -604,7 +604,7 @@ return [
         'quota_exceeded_error' => '本日の評価上限（1日1回）に達しました。明日またお越しください！',
         'reset_btn' => 'クリア',
         'send_btn' => '評価を送信',
-        'submit_success_status' => '評価を送信していただきありがとうございます！フィードバックがDrinkFlowシステムに記録されました。',
+        'submit_success_status' => '評価を送信していただきありがとうございます！フィードバックは記録され、システム管理者の承認後に表示されます。',
         'satisfaction_stats' => '満足度統計',
         'updated_today' => '本日更新',
         'based_on_reviews' => 'メンバーからの :count 件の評価に基づく',

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\FeedbackStatus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -12,6 +14,9 @@ class Feedback extends Model
 {
     use HasFactory;
 
+    /** Minimum rating for an approved feedback to be shown on the /me/feedback page. */
+    public const MIN_VISIBLE_RATING = 3;
+
     protected $table = 'feedbacks';
 
     protected $fillable = [
@@ -19,6 +24,7 @@ class Feedback extends Model
         'rating',
         'subsystem',
         'content',
+        'status',
         'user_display_name',
         'department_name',
     ];
@@ -27,9 +33,23 @@ class Feedback extends Model
     {
         return [
             'rating' => 'integer',
+            'status' => FeedbackStatus::class,
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Feedback shown on the /me/feedback page: approved by a superadmin and rated at least MIN_VISIBLE_RATING.
+     *
+     * @param Builder<Feedback> $query Feedback query.
+     * @return Builder<Feedback> Query limited to publicly visible feedback.
+     */
+    public function scopeVisibleOnFeedbackPage(Builder $query): Builder
+    {
+        return $query
+            ->where('status', FeedbackStatus::Active->value)
+            ->where('rating', '>=', self::MIN_VISIBLE_RATING);
     }
 
     public function globalUser(): BelongsTo

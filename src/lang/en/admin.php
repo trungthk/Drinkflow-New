@@ -703,6 +703,7 @@ return [
     'campaign_cannot_extend_state' => 'Only active or scheduled campaigns can be extended.',
     'campaign_extend_requires_deadline' => 'This campaign has no ordering deadline to extend.',
     'audit_event_campaign_deadline_extended' => 'Campaign deadline extended',
+    'audit_event_feedback_status_changed' => 'Feedback status changed',
     'resend_notification' => 'Resend notification',
     'resend_notification_success' => 'Campaign notification sent again to members and channels.',
     'resend_notification_failed' => 'Unable to resend the notification.',

@@ -703,6 +703,7 @@ return [
     'campaign_cannot_extend_state' => '延長できるのは公開中または予約済みのキャンペーンのみです。',
     'campaign_extend_requires_deadline' => 'このキャンペーンには延長できる注文締切がありません。',
     'audit_event_campaign_deadline_extended' => 'キャンペーンの締切を延長しました',
+    'audit_event_feedback_status_changed' => 'フィードバックのステータスを変更しました',
     'resend_notification' => '通知を再送',
     'resend_notification_success' => 'キャンペーン通知をメンバーとチャンネルに再送しました。',
     'resend_notification_failed' => '通知を再送できません。',

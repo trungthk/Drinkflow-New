@@ -61,6 +61,8 @@ Route::middleware(['auth:admin', 'superadmin'])->prefix('superadmin')->group(fun
     Route::get('/queue/failed', [\App\Http\Controllers\Superadmin\QueueController::class, 'index'])->name('superadmin.queue.failed.index');
     Route::post('/queue/failed/{failedJob}/retry', [\App\Http\Controllers\Superadmin\QueueController::class, 'retry'])->name('superadmin.queue.failed.retry');
     Route::delete('/queue/failed/{failedJob}', [\App\Http\Controllers\Superadmin\QueueController::class, 'forget'])->name('superadmin.queue.failed.forget');
+    Route::get('/feedbacks/page', [\App\Http\Controllers\Superadmin\PageController::class, 'feedbacks'])->name('superadmin.feedbacks.page');
+    Route::patch('/feedbacks/{feedback}/status', [\App\Http\Controllers\Superadmin\FeedbackController::class, 'status'])->name('superadmin.feedbacks.status');
     Route::get('/versions/page', [\App\Http\Controllers\Superadmin\PageController::class, 'versions'])->name('superadmin.versions.page');
     Route::get('/versions', [\App\Http\Controllers\Superadmin\VersionController::class, 'index'])->name('superadmin.versions.index');
     Route::post('/versions', [\App\Http\Controllers\Superadmin\VersionController::class, 'store'])->name('superadmin.versions.store');

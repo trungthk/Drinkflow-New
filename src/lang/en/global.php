@@ -604,7 +604,7 @@ return [
         'quota_exceeded_error' => 'You have reached the limit of 1 review for today. Please come back tomorrow!',
         'reset_btn' => 'Reset Form',
         'send_btn' => 'Submit Feedback',
-        'submit_success_status' => 'Thank you for your feedback! Your review has been recorded in the DrinkFlow system.',
+        'submit_success_status' => 'Thank you for your feedback! Your review has been recorded and will be shown once a system administrator approves it.',
         'satisfaction_stats' => 'Satisfaction Overview',
         'updated_today' => 'Updated today',
         'based_on_reviews' => 'Based on :count reviews from members',

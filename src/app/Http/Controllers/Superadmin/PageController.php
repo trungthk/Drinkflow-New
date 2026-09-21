@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
 use App\Enums\DebtStatus;
+use App\Enums\FeedbackStatus;
+use App\Models\Feedback;
 use App\Models\AdminAccount;
 use App\Models\AuditLog;
 use App\Models\Campaign;
@@ -185,5 +187,37 @@ class PageController extends Controller
         $search = trim($request->string('q')->toString());
         if ($search !== '') $query->where(fn ($q) => $q->where('version', 'like', "%{$search}%")->orWhere('title', 'like', "%{$search}%"));
         return view('superadmin.versions', ['versions' => $query->paginate(20)->withQueryString(), 'filters' => compact('search')]);
+    }
+
+    /**
+     * Feedback moderation queue: approve or take down user feedback.
+     *
+     * @param Request $request Incoming request (filters: status, rating, q).
+     * @return View Feedback moderation view.
+     */
+    public function feedbacks(Request $request): View
+    {
+        $status = (string) $request->query('status', FeedbackStatus::Inactive->value);
+        $rating = $request->integer('rating');
+        $search = trim($request->string('q')->toString());
+
+        $query = Feedback::query()->with('globalUser:id,name,email')->latest('created_at')->latest('id');
+        if (FeedbackStatus::tryFrom($status) !== null) {
+            $query->where('status', $status);
+        } else {
+            $status = 'all';
+        }
+        if ($rating >= 1 && $rating <= 5) {
+            $query->where('rating', $rating);
+        }
+        if ($search !== '') {
+            $query->where(fn ($q) => $q->where('content', 'like', "%{$search}%")->orWhere('user_display_name', 'like', "%{$search}%"));
+        }
+
+        return view('superadmin.feedbacks', [
+            'feedbacks' => $query->paginate(20)->withQueryString(),
+            'filters' => ['status' => $status, 'rating' => $rating >= 1 && $rating <= 5 ? $rating : null, 'search' => $search],
+            'pendingCount' => Feedback::query()->where('status', FeedbackStatus::Inactive->value)->count(),
+        ]);
     }
 }

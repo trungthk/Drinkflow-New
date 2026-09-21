@@ -26,6 +26,7 @@ return [
         'active_count' => ':count件が有効', 'confirm_action' => 'この操作を続行しますか？',
     ],
     'layout' => [
+        'feedbacks' => 'ユーザーフィードバック',
         'enterprise_superadmin' => 'エンタープライズスーパー管理者', 'dashboard_health' => 'ダッシュボードと稼働状況',
         'room_management' => 'ルーム管理', 'admin_assignments' => '管理者と割り当て',
         'global_users' => 'グローバルユーザーとID', 'global_campaigns' => 'グローバルキャンペーン',
@@ -181,5 +182,15 @@ return [
         'merge_conflict_oauth' => '両方のアカウントで競合するOAuth IDが存在します。',
         'reset_password_invalid' => '確認用パスワードが正しくありません。',
         'reset_phrase_invalid' => '確認用フレーズが正しくありません。',
+    ],
+    'feedbacks' => [
+        'title' => 'フィードバックの承認',
+        'description' => '新しいフィードバックは常に承認待ちになります。承認済みで評価が:rating以上のフィードバックのみ /me/feedback に表示されます。',
+        'queue' => 'フィードバック待ち一覧', 'pending_count' => '承認待ち :count 件',
+        'search' => '内容または名前で検索', 'all_ratings' => 'すべての評価',
+        'rating' => '評価', 'content' => '内容',
+        'status_inactive' => '承認待ち', 'status_active' => '承認済み',
+        'approve' => '承認', 'deactivate' => '承認を取り消す',
+        'hidden_low_rating' => '非表示（:rating未満）', 'empty' => '該当するフィードバックはありません。',
     ],
 ];

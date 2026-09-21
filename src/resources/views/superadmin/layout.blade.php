@@ -45,6 +45,9 @@
             <a class="{{ ($active ?? '') === 'debts' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.debts.page') }}"><span
                     class="material-symbols-outlined">account_balance</span>{{ __('superadmin.layout.global_debts') }}</a>
+            <a class="{{ ($active ?? '') === 'feedbacks' ? 'is-active' : '' }}"
+                href="{{ route('superadmin.feedbacks.page') }}"><span
+                    class="material-symbols-outlined">rate_review</span>{{ __('superadmin.layout.feedbacks') }}</a>
             <a class="{{ ($active ?? '') === 'audit' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.audit.page') }}"><span
                     class="material-symbols-outlined">history_toggle_off</span>{{ __('superadmin.layout.audit_logs') }}</a>

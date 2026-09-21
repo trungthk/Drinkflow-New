@@ -220,18 +220,22 @@ class GlobalFeedbackTest extends TestCase
             'status' => 'active',
         ]);
 
-        // Create 12 feedbacks with distinct timestamps
+        // 12 approved feedbacks (rating 3-5) with distinct timestamps...
         for ($i = 1; $i <= 12; $i++) {
             Feedback::forceCreate([
                 'global_user_id' => $user->id,
-                'rating' => ($i % 5) + 1,
+                'rating' => ($i % 3) + 3,
                 'subsystem' => 'all',
                 'content' => "Góp ý số {$i}",
+                'status' => 'active',
                 'user_display_name' => "User {$i}",
                 'created_at' => now()->subMinutes(100 - $i),
                 'updated_at' => now()->subMinutes(100 - $i),
             ]);
         }
+        // ...plus feedback that must never be listed: pending, or approved with a low rating.
+        Feedback::forceCreate(['global_user_id' => $user->id, 'rating' => 5, 'subsystem' => 'all', 'content' => 'Chưa duyệt', 'status' => 'inactive', 'created_at' => now(), 'updated_at' => now()]);
+        Feedback::forceCreate(['global_user_id' => $user->id, 'rating' => 2, 'subsystem' => 'all', 'content' => 'Điểm thấp', 'status' => 'active', 'created_at' => now(), 'updated_at' => now()]);
 
         // Page 1: 5 items
         $res1 = $this->actingAs($user, 'web')
