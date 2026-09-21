@@ -15,6 +15,17 @@ Route::match(['get', 'post'], '/logout', function (\Illuminate\Http\Request $req
     return redirect('/');
 })->middleware('throttle:user-auth-logout')->name('logout');
 
+// Chỉ đăng ký ở môi trường local: đăng nhập nhanh bằng user đầu tiên để test.
+if (app()->environment('local')) {
+    Route::get('/dev/login', function (\Illuminate\Http\Request $request) {
+        $user = \App\Models\GlobalUser::query()->orderBy('id')->firstOrFail();
+        \Illuminate\Support\Facades\Auth::guard('web')->login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('user.me.dashboard');
+    })->name('dev.login');
+}
+
 Route::get('/rooms/{room}', [\App\Http\Controllers\User\RoomController::class, 'show'])->name('user.rooms.show');
 Route::get('/rooms/{room}/join', \App\Http\Controllers\User\JoinPageController::class)->name('user.rooms.join.show');
 Route::post('/rooms/{room}/join', [\App\Http\Controllers\User\RoomController::class, 'join'])
@@ -27,6 +38,7 @@ Route::middleware(['global.user', 'room.user'])->group(function () {
     Route::get('/rooms/{room}/campaigns', [\App\Http\Controllers\User\CampaignController::class, 'index'])->name('user.campaigns.index');
     Route::get('/rooms/{room}/campaigns/{campaign}', [\App\Http\Controllers\User\CampaignController::class, 'show'])->name('user.campaigns.show');
     Route::get('/rooms/{room}/campaigns/{campaign}/details', [\App\Http\Controllers\User\CampaignController::class, 'details'])->name('user.campaigns.details');
+    Route::get('/rooms/{room}/campaigns/{campaign}/favorite-items', [\App\Http\Controllers\User\CampaignController::class, 'favoriteItems'])->name('user.campaigns.favorite-items');
     Route::post('/rooms/{room}/campaigns/{campaign}/decline', [\App\Http\Controllers\User\CampaignController::class, 'decline'])->name('user.campaigns.decline');
     Route::post('/rooms/{room}/campaigns/{campaign}/rejoin', [\App\Http\Controllers\User\CampaignController::class, 'rejoin'])->name('user.campaigns.rejoin');
     Route::get('/rooms/{room}/campaigns/{campaign}/order', \App\Http\Controllers\User\CampaignOrderPageController::class)->name('user.campaigns.order-page');

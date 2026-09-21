@@ -4,8 +4,6 @@
     'roomUser' => null,
     'user' => null,
     'activeTab' => 'overview',
-    'breadcrumbs' => [],
-    'activeCampaign' => null,
     'unreadNotificationsCount' => 0,
     'userRooms' => collect(),
 ])
@@ -66,8 +64,6 @@
     :room-user="$roomUser"
     :user="$user"
     :active-tab="$activeTab"
-    :breadcrumbs="$breadcrumbs"
-    :active-campaign="$activeCampaign"
     :unread-notifications-count="$unreadNotificationsCount"
     :notifications="$notifications ?? null"
     :user-rooms="$userRooms"

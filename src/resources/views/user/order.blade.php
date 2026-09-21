@@ -4,10 +4,6 @@
   :room-user="request()->attributes->get('room_user')"
   :user="request()->attributes->get('global_user') ?? auth('web')->user()"
   :active-tab="'orders'"
-  :breadcrumbs="[
-      ['title' => __('room.orders.page_title'), 'url' => route('user.orders.index', $room->slug)],
-      ['title' => '#' . $order->code, 'url' => '']
-  ]"
 >
   <main class="w-full max-w-3xl mx-auto space-y-6"
         data-order-status-container

@@ -18,11 +18,74 @@ use App\Models\Room;
 use App\Models\RoomUser;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class UserRoomCampaignService
 {
+    /**
+     * Số món tối đa hiển thị trong danh sách "Top món yêu thích".
+     */
+    private const FAVORITE_ITEMS_LIMIT = 5;
+
+    /**
+     * Thời gian (giây) cache kết quả "Top món yêu thích" để tránh truy vấn lặp lại khi mở dashboard/modal liên tục.
+     */
+    private const FAVORITE_ITEMS_CACHE_SECONDS = 10;
+
+    /**
+     * Lấy top món được chọn nhiều nhất trong một chiến dịch (bỏ qua đơn đã hủy), cache 10 giây.
+     *
+     * Dashboard và modal "Top món yêu thích" dùng chung hàm này nên luôn thấy cùng một dữ liệu. Khóa cache gồm
+     * phòng và người dùng (room_id:user_id) kèm chiến dịch để không lẫn dữ liệu giữa các chiến dịch của cùng phòng.
+     *
+     * @param  \App\Models\Campaign  $campaign  Chiến dịch cần thống kê
+     * @param  int  $userId  ID người dùng (GlobalUser) đang xem, dùng làm một phần khóa cache
+     * @return \Illuminate\Support\Collection<int, array{rank: int, name: string, quantity: int}>  Danh sách món kèm thứ hạng (bắt đầu từ 1) và tổng số lượng
+     */
+    public function getFavoriteItems(Campaign $campaign, int $userId): Collection
+    {
+        $cacheKey = sprintf('favorite-items:%d:%d:%d', $campaign->room_id, $userId, $campaign->id);
+
+        /** @var array<int, array{rank: int, name: string, quantity: int}> $items */
+        $items = Cache::remember(
+            $cacheKey,
+            now()->addSeconds(self::FAVORITE_ITEMS_CACHE_SECONDS),
+            fn (): array => $this->queryFavoriteItems($campaign)->all(),
+        );
+
+        return collect($items);
+    }
+
+    /**
+     * Truy vấn top món được chọn nhiều nhất của chiến dịch (không cache).
+     *
+     * @param  \App\Models\Campaign  $campaign  Chiến dịch cần thống kê
+     * @return \Illuminate\Support\Collection<int, array{rank: int, name: string, quantity: int}>
+     */
+    private function queryFavoriteItems(Campaign $campaign): Collection
+    {
+        return OrderItem::query()
+            ->whereHas('order', static function ($query) use ($campaign): void {
+                $query->where('campaign_id', $campaign->id)
+                    ->where('status', '!=', OrderStatus::Cancelled->value);
+            })
+            ->selectRaw('item_name, SUM(quantity) as quantity')
+            ->groupBy('item_name')
+            ->orderByDesc('quantity')
+            ->orderBy('item_name')
+            ->limit(self::FAVORITE_ITEMS_LIMIT)
+            ->get()
+            ->values()
+            ->map(static fn (OrderItem $item, int $index): array => [
+                'rank' => $index + 1,
+                'name' => (string) $item->item_name,
+                'quantity' => (int) $item->quantity,
+            ]);
+    }
+
     /**
      * Tìm kiếm và phân trang danh sách chiến dịch đang diễn ra hoặc đã lên lịch trong phòng.
      *
@@ -80,7 +143,6 @@ class UserRoomCampaignService
         $hasDeclined = false;
         $campaignStats  = null;
         $campaignSponsors = collect();
-        $favoriteItems = collect();
 
         /** @var array<int, \App\Enums\OrderStatus> $activeOrderStatuses */
         $activeOrderStatuses = [
@@ -92,18 +154,6 @@ class UserRoomCampaignService
         ];
 
         if ($activeCampaign) {
-            $favoriteItems = OrderItem::query()
-                ->whereHas('order', static function ($query) use ($activeCampaign): void {
-                    $query->where('campaign_id', $activeCampaign->id)
-                        ->where('status', '!=', OrderStatus::Cancelled->value);
-                })
-                ->selectRaw('item_name, SUM(quantity) as quantity')
-                ->groupBy('item_name')
-                ->orderByDesc('quantity')
-                ->orderBy('item_name')
-                ->limit(5)
-                ->get();
-
             $sponsorAllocations = collect($activeCampaign->sponsor_allocations ?? []);
             $sponsorRoomUsers = RoomUser::query()
                 ->where('room_id', $room->id)
@@ -182,7 +232,6 @@ class UserRoomCampaignService
             'canOrderCampaign'           => $canOrderCampaign,
             'campaignStats'              => $campaignStats,
             'campaignSponsors'           => $campaignSponsors,
-            'favoriteItems'              => $favoriteItems,
             'categories'                 => $categories,
             'activeUserOrder'            => $activeUserOrder,
             'hasDeclined'                => $hasDeclined,

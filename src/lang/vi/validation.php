@@ -244,7 +244,7 @@ return [
         'allow_debt' => 'Cho phép ghi nợ',
         'minutes' => 'Số phút gia hạn',
         'delivery_location' => 'Địa điểm nhận hàng',
-        'desk_location' => 'Vị trí bàn làm việc',
+        'desk_location' => 'Phòng ban / Đội nhóm',
         'ice' => 'Mức đá',
         'note' => 'Ghi chú',
         'notify_campaign' => 'Thông báo chiến dịch mới',

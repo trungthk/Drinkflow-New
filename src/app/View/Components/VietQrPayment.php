@@ -21,7 +21,7 @@ use Illuminate\View\View;
  * @property string       $accountNumber     Beneficiary account number.
  * @property string       $description       Transfer reference / memo.
  * @property int          $size              QR container width in px (default 300).
- * @property float        $animationDuration Snake animation duration in seconds (default 2.5).
+ * @property float        $animationDuration Snake animation duration in seconds (default 5).
  * @property string       $snakeColor        CSS color of the animated snake stroke.
  * @property string       $trackColor        CSS color of the static border track.
  * @property int          $borderRadius      Border radius of the QR card in px.
@@ -44,7 +44,7 @@ class VietQrPayment extends Component
      * @param  string       $accountNumber     Account number string.
      * @param  string       $description       Transfer memo / reference label.
      * @param  int          $size              Card/QR width in pixels (default: 300).
-     * @param  float        $animationDuration Snake animation duration in seconds (default: 2.5).
+     * @param  float        $animationDuration Snake animation duration in seconds (default: 5).
      * @param  string       $snakeColor        Animated snake border color (default: #16a34a — green-600).
      * @param  string       $trackColor        Static border track color (default: #e2e8f0 — slate-200).
      * @param  int          $borderRadius      Card border radius in pixels (default: 20).
@@ -58,7 +58,7 @@ class VietQrPayment extends Component
         public readonly string      $accountNumber     = '',
         public readonly string      $description       = '',
         public readonly int         $size              = 300,
-        public readonly float       $animationDuration = 2.5,
+        public readonly float       $animationDuration = 5.0,
         public readonly string      $snakeColor        = '#16a34a',
         public readonly string      $trackColor        = '#e2e8f0',
         public readonly int         $borderRadius      = 20,

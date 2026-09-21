@@ -50,7 +50,7 @@
     }
 @endphp
 
-<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms"
+<x-room.layout :room="$room" :room-user="$roomUser" :user-rooms="$userRooms"
     :unread-notifications-count="$unreadNotificationsCount" :active-tab="'orders'"
     :title="__('room.orders.page_title')">
     <div class="flex flex-col w-full gap-space-md" x-data="{
@@ -228,6 +228,7 @@
                             <div class="flex flex-wrap items-center gap-space-sm">
                                 <span
                                     class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">{{ $orderDisplayCode }}</span>
+                                <x-room.copy-button :text="$orderCode" />
                                 <span
                                     class="px-2.5 py-0.5 rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm uppercase font-semibold">
                                     {{ $room->code ?? $room->slug }}
@@ -249,18 +250,19 @@
                                     {{ __('room.orders.room_label') }}: <strong
                                         class="text-on-surface font-semibold ml-0.5">{{ $room->name }}</strong>
                                 </span>
-                                <span class="text-outline-variant">•</span>
-                                <span class="flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-[16px] text-secondary">storefront</span>
-                                    {{ __('room.orders.campaign_label') }}: <strong
-                                        class="text-on-surface font-semibold ml-0.5">{{ $activeOrder->campaign?->name ?? 'Direct' }}</strong>
+                                <span class="text-outline-variant hidden sm:inline">•</span>
+                                <span class="flex items-center gap-1 min-w-0 max-w-full w-full sm:w-auto">
+                                    <span class="material-symbols-outlined text-[16px] text-secondary shrink-0">storefront</span>
+                                    <span class="whitespace-nowrap shrink-0">{{ __('room.orders.campaign_label') }}:</span>
+                                    <strong class="text-on-surface font-semibold ml-0.5 truncate min-w-0"
+                                        title="{{ $activeOrder->campaign?->name ?? 'Direct' }}">{{ $activeOrder->campaign?->name ?? 'Direct' }}</strong>
                                 </span>
                             </div>
                         </div>
                         <div
-                            class="flex items-center gap-space-md bg-surface-container-low p-space-sm rounded-xl lg:self-auto self-start">
+                            class="flex items-center gap-space-md bg-surface-container-low p-space-sm rounded-xl w-full lg:w-auto lg:self-auto">
                             <x-avatar :user="$user" size="sm" class="flex-shrink-0 border-2 border-white ring-2 ring-[#006948]/30 shadow-xs" :alt="$user->name" />
-                            <div class="flex flex-col pr-space-sm min-w-0">
+                            <div class="flex flex-col pr-space-sm min-w-0 flex-1 lg:flex-none">
                                 <span
                                     class="font-label-sm text-label-sm text-on-surface-variant">{{ __('room.orders.orderer_label') }}</span>
                                 <span
@@ -287,7 +289,7 @@
                                 {{ __('room.orders.realtime_progress') }}
                             </h3>
                         </div>
-                        <div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+                        <div class="hidden sm:flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
                             <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                             <span>{{ __('room.orders.auto_updating') }}</span>
                         </div>
@@ -380,127 +382,52 @@
                             <!-- Items List -->
                             <div class="flex flex-col gap-3">
                                 @forelse($activeOrder->items as $item)
-                                    <div class="bg-surface-container-low rounded-lg p-2.5 flex items-start gap-2.5">
-                                        <div
-                                            class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shrink-0">
-                                            <span class="material-symbols-outlined text-[18px]">emoji_food_beverage</span>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <div class="flex items-start justify-between gap-2">
-                                                <div class="min-w-0">
-                                                    <h5 class="text-sm leading-5 text-on-surface font-bold truncate">
-                                                        {{ $item->item_name }}
-                                                    </h5>
-                                                    <p class="text-[11px] leading-4 text-on-surface-variant">
-                                                        {{ __('room.orders.qty_prefix') }}: {{ $item->quantity }} ×
-                                                        {{ \App\Support\Helpers\FormatHelper::formatCurrency($item->unit_price) }}
-                                                    </p>
-                                                </div>
-                                                <span
-                                                    class="font-tabular-nums text-tabular-nums text-sm leading-5 font-bold text-on-surface shrink-0">
-                                                    {{ \App\Support\Helpers\FormatHelper::formatCurrency($item->line_subtotal) }}
-                                                </span>
-                                            </div>
-
-                                            <!-- Customizations tags -->
-                                            <div class="flex flex-wrap gap-1 mt-1.5">
-                                                @if($item->size_name)
-                                                    <span
-                                                        class="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface text-[10px] leading-4 flex items-center gap-0.5">
-                                                        <span class="material-symbols-outlined text-[12px]">format_size</span>
-                                                        Size {{ $item->size_name }}
-                                                    </span>
-                                                @endif
-                                                @if($item->sugar_percent !== null)
-                                                    <span
-                                                        class="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface text-[10px] leading-4 flex items-center gap-0.5">
-                                                        <span class="material-symbols-outlined text-[12px]">water_drop</span>
-                                                        {{ $item->sugar_percent }}% {{ __('room.orders.sugar') }}
-                                                    </span>
-                                                @endif
-                                                @if($item->ice_percent !== null)
-                                                    <span
-                                                        class="px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface text-[10px] leading-4 flex items-center gap-0.5">
-                                                        <span class="material-symbols-outlined text-[12px]">ac_unit</span>
-                                                        {{ $item->ice_percent }}% {{ __('room.orders.ice') }}
-                                                    </span>
-                                                @endif
-                                                @foreach($item->toppings as $top)
-                                                    <span
-                                                        class="px-1.5 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant text-[10px] leading-4 flex items-center gap-0.5 font-medium">
-                                                        <span class="material-symbols-outlined text-[12px]">add_circle</span>
-                                                        {{ $top->topping_name }} (+{{ \App\Support\Helpers\FormatHelper::formatCurrency($top->unit_price) }})
-                                                    </span>
-                                                @endforeach
-                                            </div>
-
-                                            @if($item->note)
-                                                <div class="mt-1.5 flex items-start gap-1.5 text-on-surface-variant">
-                                                    <span
-                                                        class="material-symbols-outlined text-secondary text-[14px] flex-shrink-0">edit_note</span>
-                                                    <p class="text-[11px] leading-4 italic">
-                                                        “{{ $item->note }}”
-                                                    </p>
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </div>
+                                    <x-room.order-item-card :item="$item" />
                                 @empty
                                     <div class="p-4 text-center text-on-surface-variant font-body-sm">
                                         {{ __('room.orders.empty_items') }}
                                     </div>
                                 @endforelse
                             </div>
-
-                            @if($proxyOrders->isNotEmpty())
-                                <div class="mt-2 border-t border-outline-variant/20 pt-3 space-y-2">
-                                    <div class="flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-secondary text-[18px]">group</span>
-                                        <h5 class="text-xs font-semibold text-on-surface">{{ __('room.orders.proxy_items_title') }}
-                                        </h5>
-                                    </div>
-                                    <div class="space-y-2">
-                                        @foreach($proxyOrders as $proxyOrder)
-                                            <div class="rounded-lg border border-secondary/20 bg-secondary/5 p-2.5">
-                                                <div class="space-y-1.5">
-                                                    @foreach($proxyOrder->items as $proxyItem)
-                                                        <div class="bg-surface-container-low rounded-lg p-2.5 flex items-start gap-2.5 text-xs text-on-surface">
-                                                            <div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shrink-0">
-                                                                <span class="material-symbols-outlined text-[18px]">emoji_food_beverage</span>
-                                                            </div>
-                                                            <div class="min-w-0 flex-1">
-                                                            <div class="flex items-start justify-between gap-2">
-                                                            <div class="min-w-0">
-                                                            <div class="truncate text-sm leading-5 text-on-surface font-bold">{{ $proxyItem->item_name }}@if($proxyItem->size_name)
-                                                                <span
-                                                            class="font-normal text-outline">({{ $proxyItem->size_name }})</span>@endif
-                                                            </div>
-                                                            </div>
-                                                            <span class="min-w-0 shrink truncate text-right text-[11px] leading-4 font-semibold text-secondary">{{ $proxyOrder->roomUser?->display_name ?? $proxyOrder->roomUser?->globalUser?->name ?? __('room.orders.member_unknown') }}@if($proxyOrder->roomUser?->globalUser?->email) ({{ $proxyOrder->roomUser->globalUser->email }})@endif</span>
-                                                            </div>
-<div class="flex items-center justify-between gap-2 text-[11px] leading-4 text-on-surface-variant font-mono"><span class="order-last shrink-0 text-outline">{{ $proxyOrder->code }}</span>
-                                                                {{ $proxyItem->quantity }} ×
-                                                                {{ \App\Support\Helpers\FormatHelper::formatCurrency((int) $proxyItem->unit_price) }} = <span
-                                                                    class="font-semibold">{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) $proxyItem->line_subtotal) }}</span>
-                                                            </div>
-                                                            @if($proxyItem->toppings->isNotEmpty())
-                                                                <div class="text-[10px] text-secondary">{{ __('room.orders.toppings') }}:
-                                                                    {{ $proxyItem->toppings->pluck('topping_name')->join(', ') }}</div>
-                                                            @endif
-                                                            @if($proxyItem->note)
-                                                                <div class="text-[10px] italic text-on-surface-variant">
-                                                                    {{ __('room.orders.note') }}: {{ $proxyItem->note }}</div>
-                                                            @endif
-                                                            </div>
-                                                        </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
                         </div>
+
+                        @if($proxyOrders->isNotEmpty())
+                            <!-- Món đã order dùm: cùng bố cục với "Món đã chọn", kèm thông tin người được đặt hộ -->
+                            <div
+                                class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm border border-outline-variant/30 flex flex-col gap-space-sm">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-space-sm">
+                                        <span class="material-symbols-outlined text-primary text-[20px]">group</span>
+                                        <h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">
+                                            {{ __('room.orders.proxy_items_title') }}
+                                        </h4>
+                                    </div>
+                                    <span
+                                        class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+                                        {{ $proxyOrders->sum(static fn ($proxyOrder): int => $proxyOrder->items->count()) }} {{ __('room.orders.items_count_suffix') }}
+                                    </span>
+                                </div>
+
+                                <div class="flex flex-col gap-3">
+                                    @foreach($proxyOrders as $proxyOrder)
+                                        @php
+                                            $proxyGlobalUser = $proxyOrder->roomUser?->globalUser;
+                                            $proxyName = $proxyOrder->roomUser?->display_name ?? $proxyGlobalUser?->name ?? __('room.orders.member_unknown');
+                                        @endphp
+                                        @foreach($proxyOrder->items as $proxyItem)
+                                            <x-room.order-item-card :item="$proxyItem">
+                                                <span class="font-semibold text-on-surface">{{ $proxyName }}</span>
+                                                @if($proxyGlobalUser?->email)
+                                                    <span>({{ $proxyGlobalUser->email }})</span>
+                                                @endif
+                                                <span>- {{ __('room.orders.proxy_order_code_is') }}</span>
+                                                <span class="inline-flex items-center gap-0.5 font-mono text-outline">{{ $proxyOrder->code }}<x-room.copy-button :text="$proxyOrder->code" align="right" /></span>
+                                            </x-room.order-item-card>
+                                        @endforeach
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     <!-- Right: Financial Settlement (5 cols) -->
@@ -749,7 +676,7 @@
                     stroke-linejoin: round;
                     stroke-dasharray: 20 80;
                     stroke-dashoffset: 0;
-                    animation: vietqr-snake-run 3s linear infinite;
+                    animation: vietqr-snake-run 6s linear infinite;
                     filter: drop-shadow(0 0 3px rgba(0, 105, 72, 0.5));
                 }
 
@@ -811,11 +738,6 @@
                                     </svg>
                                     <img :src="qrData.qrDataUrl" alt="VietQR"
                                         class="w-48 h-48 object-contain rounded-lg relative z-0" loading="lazy" />
-                                    <div
-                                        class="mt-2 flex items-center gap-1 text-[11px] font-label-sm text-secondary relative z-0">
-                                        <span class="material-symbols-outlined text-[14px]">bolt</span>
-                                        <span>{{ __('room.orders.scan_banking_app') }}</span>
-                                    </div>
                                 </div>
                                 <div class="mt-3 text-center">
                                     <span
@@ -875,7 +797,7 @@
                             <div class="pt-2 border-t border-outline-variant/60 flex items-center justify-between gap-2">
                                 <button type="button" @click="qrModalOpen = false"
                                     class="px-4 py-2 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface font-semibold text-xs hover:bg-surface-container-high transition-colors cursor-pointer">
-                                    {{ __('Đóng') }}
+                                    {{ __('room.orders.close') }}
                                 </button>
                                 <template x-if="paymentStatus !== 'paid' && paymentStatus !== 'pending'">
                                     <button type="button" :disabled="isSubmittingPayment"

@@ -25,18 +25,18 @@
     <!-- Top Greeting Banner -->
     <section>
       <div class="bg-white border border-slate-200/80 rounded-2xl p-6 sm:p-7 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
-        <div>
+        <div class="min-w-0">
           <div class="flex flex-wrap items-center gap-3">
-            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{{ __('global.dashboard.greeting', ['name' => $user->name]) }}</h1>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-medium border border-emerald-200/70">
-              <span class="material-symbols-outlined text-[14px] text-[#006948]" style="font-variation-settings: 'FILL' 1;">security</span>
-              {{ $workspaceText }}
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight break-words min-w-0">{{ __('global.dashboard.greeting', ['name' => $user->name]) }}</h1>
+            <span class="inline-flex max-w-full items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-medium border border-emerald-200/70">
+              <span class="material-symbols-outlined text-[14px] text-[#006948] shrink-0" style="font-variation-settings: 'FILL' 1;">security</span>
+              <span class="min-w-0 break-words">{{ $workspaceText }}</span>
             </span>
           </div>
           <p class="text-sm text-slate-500 mt-1.5 max-w-2xl leading-relaxed">{{ __('global.dashboard.subtitle') }}</p>
         </div>
-        <div class="flex items-center gap-3 shrink-0">
-          <div class="bg-slate-50 border border-slate-200/70 rounded-xl px-3.5 py-2 text-right hidden sm:block">
+        <div class="hidden sm:flex items-center gap-3 shrink-0">
+          <div class="bg-slate-50 border border-slate-200/70 rounded-xl px-3.5 py-2 text-right">
             <span class="text-[11px] text-slate-400 block font-medium">{{ __('global.dashboard.session_title') }}</span>
             <span class="text-xs font-mono font-semibold text-slate-700">#SES-{{ strtoupper(substr(session()->getId() ?: md5($user->id), 0, 8)) }}</span>
           </div>
@@ -127,7 +127,7 @@
         </div>
 
         <!-- Cards Grid (1 to 4 cols) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           @forelse($recentRooms as $roomItem)
             <x-global.room-card :item="$roomItem" :show-live-status="true" />
           @empty

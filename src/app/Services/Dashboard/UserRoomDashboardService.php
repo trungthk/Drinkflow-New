@@ -13,11 +13,19 @@ use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Services\Campaign\UserRoomCampaignService;
 use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Facades\DB;
 
 class UserRoomDashboardService
 {
+    /**
+     * @param UserRoomCampaignService $campaignService Nguồn dữ liệu (đã cache) cho Top món được chọn nhiều nhất.
+     */
+    public function __construct(private readonly UserRoomCampaignService $campaignService)
+    {
+    }
+
     /**
      * Aggregate all data required for the Room User Dashboard view.
      *
@@ -38,20 +46,7 @@ class UserRoomDashboardService
             $sponsorBudget = 200000;
             $sponsorRemaining = max(0, $sponsorBudget - $sponsorUsed);
             $sponsorPercent = $sponsorBudget > 0 ? min(100.0, round(($sponsorUsed / $sponsorBudget) * 100, 1)) : 0.0;
-            $popularItems = DB::table('order_items')
-                ->join('orders', 'orders.id', '=', 'order_items.order_id')
-                ->where('orders.campaign_id', $activeCampaign->id)
-                ->where('orders.status', '!=', OrderStatus::Cancelled->value)
-                ->selectRaw('order_items.item_name, SUM(order_items.quantity) AS total_quantity')
-                ->groupBy('order_items.item_name')
-                ->orderByDesc('total_quantity')
-                ->orderBy('order_items.item_name')
-                ->limit(5)
-                ->get()
-                ->map(static fn(object $item): object => (object) [
-                    'name' => (string) $item->item_name,
-                    'quantity' => (int) $item->total_quantity,
-                ]);
+            $popularItems = $this->campaignService->getFavoriteItems($activeCampaign, (int) $roomUser->global_user_id);
 
             $campaignData = [
                 'id' => $activeCampaign->id,

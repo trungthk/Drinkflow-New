@@ -4,7 +4,6 @@
   :room-user="$roomUser"
   :user="$user"
   :active-tab="'campaigns'"
-  :active-campaign="$activeCampaign ? ['name' => $activeCampaign->name, 'time_remaining' => $campaignStats['time_remaining'] ?? '14:22', 'has_expired' => $campaignStats['has_expired'] ?? false] : null"
   :unread-notifications-count="$unreadNotificationsCount ?? 0"
   :user-rooms="$userRooms ?? collect()"
 >
@@ -12,9 +11,10 @@
     searchQuery: '',
     searchInput: '',
     searchTimer: null,
-    selectedCategory: 'all',
+    selectedCategory: {{ Js::from($categories->first() ?? 'all') }},
     menuItems: {{ Js::from($activeCampaign?->items ?? []) }},
     maxBudget: {{ (int) ($activeCampaign?->max_budget ?? 0) }},
+    withinBudgetOnly: false,
     hasDeclined: {{ Js::from((bool) $hasDeclined) }},
     showCustomModal: false,
     showCartModal: false,
@@ -22,6 +22,30 @@
     showDeclineModal: false,
     showRejoinModal: false,
     showFavoriteModal: false,
+    favoriteItems: [],
+    favoriteLoading: false,
+    favoriteError: false,
+    favoriteItemsUrl: {{ Js::from($activeCampaign ? route('user.campaigns.favorite-items', [$room, $activeCampaign]) : '') }},
+    favoriteRankLabel: {{ Js::from(__('room.dashboard.rank_label', ['rank' => ':rank'])) }},
+    {{-- Giữ đồng bộ bảng màu với components/room/rank-medal.blade.php --}}
+    medalClasses: ['text-amber-500', 'text-slate-400', 'text-orange-700', 'text-emerald-600', 'text-emerald-400'],
+    async openFavorites() {
+      this.showFavoriteModal = true;
+      this.favoriteError = false;
+      this.favoriteItems = [];
+      if (!this.favoriteItemsUrl) return;
+      this.favoriteLoading = true;
+      try {
+        const response = await fetch(this.favoriteItemsUrl, { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) throw new Error('favorite items request failed');
+        const payload = await response.json();
+        this.favoriteItems = payload.data ?? [];
+      } catch (error) {
+        this.favoriteError = true;
+      } finally {
+        this.favoriteLoading = false;
+      }
+    },
     showBudgetErrors: false,
     participationSubmitting: false,
     cartItems: {{ Js::from($cart ?? []) }},
@@ -88,6 +112,7 @@
     selectedSize: null,
     selectedToppings: [],
     note: '',
+    defaultNote: {{ Js::from($user?->default_order_note ?? '') }},
     sampleNotes: [
       '{{ __('room.campaign.sample_note_less_sweet') }}',
       '{{ __('room.campaign.sample_note_no_ice') }}',
@@ -122,7 +147,7 @@
       this.selectedItem = item;
       this.selectedSize = (item.sizes && item.sizes.length > 0) ? item.sizes[0] : null;
       this.selectedToppings = [];
-      this.note = '';
+      this.note = this.defaultNote;
       this.showCustomModal = true;
     },
     async addToCart() {
@@ -321,13 +346,30 @@
       if (this.selectedCategory !== 'all' && item.category !== this.selectedCategory) {
         return false;
       }
+      if (this.withinBudgetOnly && this.maxBudget > 0 && this.minOrderablePrice(item) > this.maxBudget) {
+        return false;
+      }
       if (this.searchQuery.trim() !== '') {
-        const q = this.searchQuery.toLowerCase();
-        const name = (item.name || '').toLowerCase();
-        const desc = (item.description || '').toLowerCase();
+        const q = this.normalizeText(this.searchQuery.trim());
+        const name = this.normalizeText(item.name);
+        const desc = this.normalizeText(item.description);
         return name.includes(q) || desc.includes(q);
       }
       return true;
+    },
+    minOrderablePrice(item) {
+      // Giá thấp nhất có thể đặt được: giá gốc cộng phụ thu size nhỏ nhất (nếu có).
+      const deltas = (item.sizes || []).map(size => Number(size.price_delta || 0));
+      return Number(item.base_price || 0) + (deltas.length ? Math.min(...deltas) : 0);
+    },
+    normalizeText(text) {
+      // Không phân biệt hoa thường và dấu tiếng Việt (đ/Đ được quy về d).
+      return String(text || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/đ/g, 'd')
+        .replace(/Đ/g, 'D')
+        .toLowerCase();
     }
   }">
 
@@ -434,7 +476,7 @@
               {{ __('room.campaign.cart_summary_title') }}: <strong class="text-[#006948]">{{ $activeUserOrder->items->pluck('item_name')->join(', ') }}</strong> ({{ \App\Support\Helpers\FormatHelper::formatCurrency($activeUserOrder->final_amount) }})
             </span>
           </div>
-          <a href="{{ route('user.orders.index', $room->slug) }}" class="inline-flex items-center gap-1 font-bold text-[#006948] hover:underline shrink-0">
+          <a href="{{ route('user.orders.index', $room->slug) }}" class="inline-flex items-center gap-1 font-bold text-[#006948] shrink-0">
             <span>{{ __('room.orders.order_details') }}</span>
             <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
           </a>
@@ -532,7 +574,7 @@
 
           <!-- Search Bar with Clear Button -->
           <div class="flex w-full sm:w-auto items-center gap-2">
-          <button type="button" @click="showFavoriteModal = true" class="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100">
+          <button type="button" @click="openFavorites()" class="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100">
             <span class="material-symbols-outlined text-[17px]">favorite</span>
             <span>{{ __('room.campaign.favorite_items_button') }}</span>
           </button>
@@ -547,6 +589,14 @@
           </div>
           </div>
         </div>
+        @if((int) ($activeCampaign->max_budget ?? 0) > 0)
+          <!-- Budget Filter: chỉ hiện món có giá nằm trong trần ngân sách của chiến dịch -->
+          <label class="inline-flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-700 select-none">
+            <input type="checkbox" x-model="withinBudgetOnly" class="h-4 w-4 cursor-pointer rounded border-slate-300 text-[#006948] focus:ring-[#006948]">
+            <span>{{ __('room.campaign.budget_filter_label', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency((int) $activeCampaign->max_budget)]) }}</span>
+          </label>
+        @endif
+
         <!-- Menu Items Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           @forelse($activeCampaign->items as $item)
@@ -614,19 +664,31 @@
               </button>
             </div>
             <div class="mt-4 space-y-2">
-              @forelse($favoriteItems as $favoriteItem)
+              <div x-show="favoriteLoading" class="flex items-center justify-center gap-2 py-6 text-xs text-slate-500">
+                <span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                <span>{{ __('room.campaign.favorite_items_loading') }}</span>
+              </div>
+              <div x-show="!favoriteLoading && favoriteError" x-cloak class="flex flex-col items-center gap-2 py-6 text-center">
+                <p class="text-xs text-red-600">{{ __('room.campaign.favorite_items_error') }}</p>
+                <button type="button" @click="openFavorites()" class="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50">{{ __('room.campaign.favorite_items_retry') }}</button>
+              </div>
+              <template x-for="item in favoriteItems" :key="item.rank">
                 <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5">
-                  <span class="truncate text-sm font-semibold text-slate-800">{{ $favoriteItem->item_name }}</span>
-                  <span class="shrink-0 text-sm font-bold text-[#006948]">({{ (int) $favoriteItem->quantity }})</span>
+                  <div class="flex min-w-0 items-center gap-2.5">
+                    <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center" :class="medalClasses[item.rank - 1] ?? 'text-slate-300'" role="img" :title="favoriteRankLabel.replace(':rank', item.rank)" :aria-label="favoriteRankLabel.replace(':rank', item.rank)">
+                      <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;" aria-hidden="true">military_tech</span>
+                    </span>
+                    <span class="truncate text-sm font-semibold text-slate-800" x-text="item.name"></span>
+                  </div>
+                  <span class="shrink-0 text-sm font-bold text-[#006948]" x-text="'(' + item.quantity + ')'"></span>
                 </div>
-              @empty
-                <div class="flex flex-col items-center gap-2 py-6 text-center">
-                  <span class="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-400">
-                    <span class="material-symbols-outlined text-[26px]">heart_broken</span>
-                  </span>
-                  <p class="text-xs text-slate-500">{{ __('room.campaign.favorite_items_empty') }}</p>
-                </div>
-              @endforelse
+              </template>
+              <div x-show="!favoriteLoading && !favoriteError && favoriteItems.length === 0" x-cloak class="flex flex-col items-center gap-2 py-6 text-center">
+                <span class="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-400">
+                  <span class="material-symbols-outlined text-[26px]">heart_broken</span>
+                </span>
+                <p class="text-xs text-slate-500">{{ __('room.campaign.favorite_items_empty') }}</p>
+              </div>
             </div>
           </div>
         </div>

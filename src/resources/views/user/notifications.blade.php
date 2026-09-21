@@ -1,4 +1,4 @@
-<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'notifications'" :title="__('room.notifications.page_title')">
+<x-room.layout :room="$room" :room-user="$roomUser" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'notifications'" :title="__('room.notifications.page_title')">
     <div class="flex flex-col w-full gap-6" x-data="{
         currentTab: 'all',
         unreadCount: {{ $unreadCount }},
@@ -140,7 +140,7 @@
                                 <span class="w-1.5 h-1.5 rounded-full bg-error" x-show="!item.is_read"></span>
                             </div>
                         </div>
-                        <p class="text-xs text-on-surface-variant" x-text="item.body"></p>
+                        <p class="text-xs text-on-surface-variant [overflow-wrap:anywhere]" x-text="item.body"></p>
                     </div>
 
                     <!-- Actions -->

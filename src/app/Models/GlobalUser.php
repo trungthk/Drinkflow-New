@@ -69,6 +69,18 @@ class GlobalUser extends Authenticatable
         return !empty($value) ? $value : asset('images/default-avatar.svg');
     }
 
+    /**
+     * Ghi chú mặc định của người dùng (cấu hình ở /me/profile), tự điền vào ô ghi chú khi chọn món.
+     *
+     * @return string Nội dung ghi chú đã cắt khoảng trắng thừa; chuỗi rỗng nếu chưa thiết lập.
+     */
+    public function getDefaultOrderNoteAttribute(): string
+    {
+        $note = is_array($this->preferences) ? ($this->preferences['note'] ?? '') : '';
+
+        return is_string($note) ? trim($note) : '';
+    }
+
     public function oauthIdentities(): HasMany
     {
         return $this->hasMany(OAuthIdentity::class);

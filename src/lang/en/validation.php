@@ -244,7 +244,7 @@ return [
         'allow_debt' => 'Allow debt',
         'minutes' => 'Extension minutes',
         'delivery_location' => 'Delivery location',
-        'desk_location' => 'Desk location',
+        'desk_location' => 'Department / Team',
         'ice' => 'Ice level',
         'note' => 'Note',
         'notify_campaign' => 'Campaign notifications',

@@ -48,7 +48,7 @@
                 d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z" />
             </svg>
           </span>
-          <span class="text-lg sm:text-xl font-bold text-[#006948] tracking-tight shrink-0">DrinkFlow</span>
+          <span class="hidden min-[360px]:inline text-lg sm:text-xl font-bold text-[#006948] tracking-tight shrink-0">DrinkFlow</span>
         </a>
       </div>
 
@@ -57,7 +57,7 @@
         <!-- Language Selector Dropdown -->
         <div class="relative shrink-0" id="global-lang-selector">
           <button type="button" id="global-lang-btn" aria-haspopup="true" aria-expanded="false"
-            class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors duration-150 border border-slate-200 shadow-2xs cursor-pointer shrink-0"
+            class="flex items-center gap-1 sm:gap-1.5 h-8 sm:h-9 px-2 sm:px-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors duration-150 border border-slate-200 shadow-2xs cursor-pointer shrink-0"
             title="{{ __('global.header.language_select') }}">
             <span class="text-xs sm:text-sm leading-none">{{ $activeLocaleMeta['flag'] }}</span>
             <span
@@ -133,7 +133,7 @@
                   </span>
                   <div class="flex-1 min-w-0">
                     <p class="text-xs font-semibold text-slate-800">{{ $notificationPresentation['title'] }}</p>
-                    <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ $notificationPresentation['body'] }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5 line-clamp-2 [overflow-wrap:anywhere]">{{ $notificationPresentation['body'] }}</p>
                     <span class="text-[11px] text-slate-400 block mt-1 flex items-center gap-1">
                       <span class="material-symbols-outlined text-[12px]">schedule</span>
                       {{ $notif->created_at->diffForHumans() }}
@@ -159,13 +159,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Help Action -->
-        <a class="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg sm:rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors shadow-2xs shrink-0"
-          href="{{ route('user.me.feedback') }}" title="{{ __('global.header.help_support') }}"
-          aria-label="{{ __('global.header.help_support') }}">
-          <span class="material-symbols-outlined text-[17px] sm:text-[19px]">help</span>
-        </a>
 
         <!-- User Avatar & Dropdown Anchor -->
         <div class="relative flex items-center pl-1 sm:pl-2 border-l border-slate-200 shrink-0"

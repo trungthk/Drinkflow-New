@@ -32,6 +32,25 @@ use Illuminate\Support\Str;
 class CampaignController extends Controller
 {
     /**
+     * Trả về top món được chọn nhiều nhất của một chiến dịch (nạp khi mở modal "Top món yêu thích").
+     *
+     * @param Request $request Current HTTP request (mang thông tin thành viên phòng).
+     * @param Room $room Phòng hiện tại.
+     * @param Campaign $campaign Chiến dịch cần thống kê.
+     * @param UserRoomCampaignService $service Service thống kê món theo chiến dịch.
+     * @return JsonResponse Payload dạng {"data": [{"rank": 1, "name": "...", "quantity": 3}]}.
+     */
+    public function favoriteItems(Request $request, Room $room, Campaign $campaign, UserRoomCampaignService $service): JsonResponse
+    {
+        abort_unless($campaign->room_id === $room->id, 404);
+
+        /** @var RoomUser $roomUser */
+        $roomUser = $request->attributes->get('room_user');
+
+        return response()->json(['data' => $service->getFavoriteItems($campaign, (int) $roomUser->global_user_id)]);
+    }
+
+    /**
      * Get campaign details and its orders for modal display.
      * If campaign has full sponsor: returns all orders in the campaign.
      * If campaign has no sponsor or partial: returns only the current user's orders.
@@ -356,13 +375,13 @@ class CampaignController extends Controller
     /**
      * Xem thông tin chi tiết một chiến dịch cụ thể trong phòng.
      *
+     * @param  \App\Models\Room  $room  Phòng chứa chiến dịch
      * @param  \App\Models\Campaign  $campaign  Chiến dịch cần xem
      * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request
      * @return \Illuminate\Http\JsonResponse|\Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse
      */
-    public function show(Campaign $campaign, Request $request): JsonResponse|View|RedirectResponse
+    public function show(Room $room, Campaign $campaign, Request $request): JsonResponse|View|RedirectResponse
     {
-        $room = $request->attributes->get('room');
         abort_unless($campaign->room_id === $room->id && in_array($campaign->status?->value, ['active', 'scheduled'], true), 404);
 
         if ($request->expectsJson()) {

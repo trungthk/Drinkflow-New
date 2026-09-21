@@ -11,7 +11,7 @@
     • account-number     – Account number             (default: '')
     • description        – Transfer reference / memo  (default: '')
     • size               – QR card width in px        (default: 300)
-    • animation-duration – Snake animation seconds    (default: 2.5)
+    • animation-duration – Snake animation seconds    (default: 5)
     • snake-color        – Animated border color      (default: #16a34a)
     • track-color        – Static border track color  (default: #e2e8f0)
     • border-radius      – Card corner radius in px   (default: 20)

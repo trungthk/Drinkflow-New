@@ -12,28 +12,28 @@ use InvalidArgumentException;
 /**
  * VietQrService
  *
- * Generates a fully compliant EMVCo / NAPAS 247 VietQR payload string.
+ * Generates a NAPAS 247 VietQR (EMVCo) payload string for a bank-account transfer.
+ * The layout follows the payload accepted by Vietnamese banking apps and MoMo.
  *
  * Specification references:
  *  - EMVCo Merchant-Presented QR Code Specification (EMV QRCPS v1.1)
- *  - NAPAS VietQR Technical Standard (revision 2024-Q2)
+ *  - NAPAS VietQR Technical Standard (QR "chuyen nhanh 247" to account)
  *
  * Payload structure (root TLVs, assembled in order):
- *  ID 00 – Payload Format Indicator  → "01"
- *  ID 01 – Point of Initiation Mode  → "12" dynamic | "11" static
- *  ID 38 – Merchant Account Info (NAPAS)
- *          ├─ sub-00 GUID       "A000000727"
- *          ├─ sub-01 BIN       bank BIN (6 digits)
- *          └─ sub-02 AccountNo  account number
- *  ID 52 – Merchant Category Code   → "0000"
- *  ID 53 – Transaction Currency     → "704" (VND)
- *  ID 54 – Transaction Amount       → omitted when 0
- *  ID 58 – Country Code             → "VN"
- *  ID 59 – Merchant Name            → account_name (≤ 25 chars, ASCII uppercase)
- *  ID 60 – Merchant City            → "HO CHI MINH"
- *  ID 62 – Additional Data
- *          └─ sub-05 Reference Label → transfer content (≤ 25 chars, ASCII)
- *  ID 63 – CRC-16/CCITT-FALSE (4 hex chars, uppercase)
+ *  ID 00 - Payload Format Indicator  -> "01"
+ *  ID 01 - Point of Initiation Mode  -> "12" dynamic (has amount) | "11" static
+ *  ID 38 - Merchant Account Info (NAPAS)
+ *          |- sub-00 GUID              "A000000727"
+ *          |- sub-01 Beneficiary       (nested TLV)
+ *          |    |- 00 Acquirer BIN     bank BIN (6 digits)
+ *          |    `- 01 Account number
+ *          `- sub-02 Service code      "QRIBFTTA" (transfer to account)
+ *  ID 53 - Transaction Currency     -> "704" (VND)
+ *  ID 54 - Transaction Amount       -> omitted when 0
+ *  ID 58 - Country Code             -> "VN"
+ *  ID 62 - Additional Data
+ *          `- sub-08 Purpose of Transaction -> transfer content (<= 25 chars, ASCII)
+ *  ID 63 - CRC-16/CCITT-FALSE (4 hex chars, uppercase)
  */
 class VietQrService
 {
@@ -46,22 +46,28 @@ class VietQrService
     private const TAG_PAYLOAD_FORMAT_INDICATOR = '00';
     private const TAG_INITIATION_MODE          = '01';
     private const TAG_MERCHANT_ACCOUNT_NAPAS   = '38';
-    private const TAG_MERCHANT_CATEGORY_CODE   = '52';
     private const TAG_TRANSACTION_CURRENCY     = '53';
     private const TAG_TRANSACTION_AMOUNT       = '54';
     private const TAG_COUNTRY_CODE             = '58';
-    private const TAG_MERCHANT_NAME            = '59';
-    private const TAG_MERCHANT_CITY            = '60';
     private const TAG_ADDITIONAL_DATA          = '62';
     private const TAG_CRC                      = '63';
 
     // Merchant Account Info (ID 38) sub-tag IDs
-    private const SUB_TAG_GUID       = '00';
-    private const SUB_TAG_BANK_BIN   = '01';
-    private const SUB_TAG_ACCOUNT_NO = '02';
+    private const SUB_TAG_GUID        = '00';
+    private const SUB_TAG_BENEFICIARY = '01';
+    private const SUB_TAG_SERVICE     = '02';
+
+    // Beneficiary organisation (ID 38 -> sub-01) inner tag IDs
+    private const BENEFICIARY_TAG_BANK_BIN   = '00';
+    private const BENEFICIARY_TAG_ACCOUNT_NO = '01';
 
     // Additional Data Field (ID 62) sub-tag IDs
-    private const SUB_TAG_REFERENCE_LABEL = '05';
+    private const SUB_TAG_PURPOSE = '08';
+
+    /**
+     * NAPAS service code: instant transfer (247) to a bank account.
+     */
+    private const SERVICE_CODE_TO_ACCOUNT = 'QRIBFTTA';
 
     // Initiation modes
     private const MODE_DYNAMIC = '12';
@@ -70,7 +76,6 @@ class VietQrService
     // Fixed field values
     private const VND_CURRENCY_CODE      = '704';
     private const COUNTRY_CODE_VN        = 'VN';
-    private const DEFAULT_MERCHANT_CITY  = 'HO CHI MINH';
     private const DEFAULT_REFERENCE      = 'DRINKFLOW';
 
     public function __construct(private readonly BankService $bankService) {}
@@ -83,9 +88,8 @@ class VietQrService
      * Generate a VietQR / EMVCo QR payload string.
      *
      * @param  PaymentAccount  $account          Bank account to receive the transfer.
-     * @param  int             $amount           Transfer amount in VNĐ (0 = static QR, no amount field).
-     * @param  string          $transferContent  Reference / memo shown to the payer (will be ASCII-sanitized, ≤ 25 chars).
-     * @param  string|null     $merchantCity     Override merchant city label; defaults to "HO CHI MINH".
+     * @param  int             $amount           Transfer amount in VND (0 = static QR, no amount field).
+     * @param  string          $transferContent  Transfer content shown to the payer (ASCII-sanitized, max 25 chars).
      * @return string                            Complete EMVCo QR payload string ready for QR encoding.
      *
      * @throws \InvalidArgumentException When the bank BIN cannot be resolved from the banks catalogue.
@@ -94,30 +98,26 @@ class VietQrService
         PaymentAccount $account,
         int $amount = 0,
         string $transferContent = '',
-        ?string $merchantCity = null,
     ): string {
-        // ── 1. Resolve bank BIN ──────────────────────────────────────────────
+        // 1. Resolve bank BIN
         $bin = $this->resolveBankBin((string) $account->bank_code);
 
-        $accountNo    = (string) $account->account_number;
-        $merchantName = Str::upper($this->truncate((string) $account->account_name, 25));
-        $city         = Str::upper($merchantCity ?? self::DEFAULT_MERCHANT_CITY);
-        $reference    = $this->sanitizeReference($transferContent);
+        $accountNo = (string) $account->account_number;
+        $reference = $this->sanitizeReference($transferContent);
 
-        // ── 2. Build Merchant Account Information (ID 38) ────────────────────
+        // 2. Build Merchant Account Information (ID 38)
         $merchantAccountInfo = $this->buildMerchantAccountInfo($bin, $accountNo);
 
-        // ── 3. Build Additional Data Field (ID 62) ───────────────────────────
+        // 3. Build Additional Data Field (ID 62)
         $additionalData = $this->buildAdditionalData($reference);
 
-        // ── 4. Assemble root-level TLVs (EMVCo-prescribed order) ────────────
+        // 4. Assemble root-level TLVs (EMVCo-prescribed order)
         $mode    = $amount > 0 ? self::MODE_DYNAMIC : self::MODE_STATIC;
         $payload = '';
 
         $payload .= $this->tlv(self::TAG_PAYLOAD_FORMAT_INDICATOR, '01');
         $payload .= $this->tlv(self::TAG_INITIATION_MODE,          $mode);
         $payload .= $this->tlv(self::TAG_MERCHANT_ACCOUNT_NAPAS,   $merchantAccountInfo);
-        $payload .= $this->tlv(self::TAG_MERCHANT_CATEGORY_CODE,   '0000');
         $payload .= $this->tlv(self::TAG_TRANSACTION_CURRENCY,     self::VND_CURRENCY_CODE);
 
         if ($amount > 0) {
@@ -125,33 +125,18 @@ class VietQrService
         }
 
         $payload .= $this->tlv(self::TAG_COUNTRY_CODE,    self::COUNTRY_CODE_VN);
-        $payload .= $this->tlv(self::TAG_MERCHANT_NAME,   $merchantName);
-        $payload .= $this->tlv(self::TAG_MERCHANT_CITY,   $city);
         $payload .= $this->tlv(self::TAG_ADDITIONAL_DATA, $additionalData);
 
-        // ── 5. Append CRC stub and compute CRC-16 ───────────────────────────
-        // EMVCo spec §4.7: CRC covers everything from tag 00 up to and including
+        // 5. Append CRC stub and compute CRC-16
+        // EMVCo spec 4.7: CRC covers everything from tag 00 up to and including
         // the CRC tag ID (63) and its length field (04), but NOT the 4-digit value.
         $payloadWithStub = $payload . self::TAG_CRC . '04';
         $crc             = $this->crc16($payloadWithStub);
 
-        // ── 6. Return final payload ──────────────────────────────────────────
+        // 6. Return final payload
         return $payloadWithStub . $crc;
     }
 
-    /**
-     * Generate a VietQR payload for client-side QR rendering.
-     *
-     * Use this when you need a pre-rendered PNG (e.g., email, PDF) and an internet
-     * connection is available. For offline / privacy-sensitive scenarios prefer
-     * generate() + a local QR encoder.
-     *
-     * @param  PaymentAccount  $account          Bank account.
-     * @param  int             $amount           Amount in VNĐ (0 = omit parameter).
-     * @param  string          $transferContent  Reference / memo.
-     * @param  string          $template         VietQR image template ("compact2", "qr_only", "print", …).
-     * @return string                            CDN PNG URL.
-     */
     // =========================================================================
     // Payload-building helpers
     // =========================================================================
@@ -160,9 +145,11 @@ class VietQrService
      * Build the Merchant Account Information value string for tag ID 38.
      *
      * Sub-TLVs assembled in order:
-     *   00 → NAPAS GUID  "A000000727"
-     *   01 → Bank BIN    (6 digits, e.g. "970436")
-     *   02 → Account No  (numeric string)
+     *   00 -> NAPAS GUID  "A000000727"
+     *   01 -> Beneficiary organisation, itself a TLV string:
+     *           00 -> Bank BIN   (6 digits, e.g. "970436")
+     *           01 -> Account No (numeric string)
+     *   02 -> Service code "QRIBFTTA" (instant transfer to account)
      *
      * @param  string  $bin       NAPAS 6-digit BIN.
      * @param  string  $accountNo Account number.
@@ -170,9 +157,12 @@ class VietQrService
      */
     private function buildMerchantAccountInfo(string $bin, string $accountNo): string
     {
-        $inner  = $this->tlv(self::SUB_TAG_GUID,       self::NAPAS_GUID);
-        $inner .= $this->tlv(self::SUB_TAG_BANK_BIN,   $bin);
-        $inner .= $this->tlv(self::SUB_TAG_ACCOUNT_NO, $accountNo);
+        $beneficiary  = $this->tlv(self::BENEFICIARY_TAG_BANK_BIN,   $bin);
+        $beneficiary .= $this->tlv(self::BENEFICIARY_TAG_ACCOUNT_NO, $accountNo);
+
+        $inner  = $this->tlv(self::SUB_TAG_GUID,        self::NAPAS_GUID);
+        $inner .= $this->tlv(self::SUB_TAG_BENEFICIARY, $beneficiary);
+        $inner .= $this->tlv(self::SUB_TAG_SERVICE,     self::SERVICE_CODE_TO_ACCOUNT);
 
         return $inner;
     }
@@ -180,17 +170,17 @@ class VietQrService
     /**
      * Build the Additional Data Field value string for tag ID 62.
      *
-     * Only sub-tag 05 (Reference Label) is populated; other sub-tags are omitted
-     * to keep the payload compact.
+     * Only sub-tag 08 (Purpose of Transaction) is populated: banking apps and MoMo
+     * read it as the transfer content.
      *
-     * @param  string  $referenceLabel  Sanitized, ASCII-safe, ≤ 25-char transfer memo.
-     * @return string                   Encoded inner-TLV string (value portion of tag 62).
+     * @param  string  $transferContent  Sanitized, ASCII-safe, max 25-char transfer content.
+     * @return string                    Encoded inner-TLV string (value portion of tag 62).
      */
-    private function buildAdditionalData(string $referenceLabel): string
+    private function buildAdditionalData(string $transferContent): string
     {
-        $label = $referenceLabel !== '' ? $referenceLabel : self::DEFAULT_REFERENCE;
+        $content = $transferContent !== '' ? $transferContent : self::DEFAULT_REFERENCE;
 
-        return $this->tlv(self::SUB_TAG_REFERENCE_LABEL, $label);
+        return $this->tlv(self::SUB_TAG_PURPOSE, $content);
     }
 
     // =========================================================================

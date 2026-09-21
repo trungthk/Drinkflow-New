@@ -118,10 +118,18 @@
                 </div>
 
                 <!-- Desk / Floor Identifier -->
-                <div class="space-y-1.5">
-                  <label for="contact-desk" class="h-5 flex items-center text-xs font-semibold text-slate-700">{{ __('global.profile.desk_label') }}</label>
+                <div class="space-y-1.5 relative">
+                  <div class="h-5 flex items-center gap-1">
+                    <label for="contact-desk" class="text-xs font-semibold text-slate-700">{{ __('global.profile.desk_label') }}</label>
+                    <span class="group/info inline-flex">
+                      <button type="button" class="inline-flex h-5 w-5 items-center justify-center rounded-full text-slate-400 hover:text-[#006948] focus:text-[#006948] focus:outline-none cursor-help" aria-label="{{ __('global.profile.desk_info') }}">
+                        <span class="material-symbols-outlined text-[16px]" aria-hidden="true">info</span>
+                      </button>
+                      <span role="tooltip" class="pointer-events-none absolute bottom-full left-0 right-0 z-20 mb-1 rounded-lg bg-slate-900 px-3 py-2 text-[11px] font-medium leading-relaxed text-white opacity-0 shadow-lg transition-opacity group-hover/info:opacity-100 group-focus-within/info:opacity-100">{{ __('global.profile.desk_info') }}</span>
+                    </span>
+                  </div>
                   <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3 top-1/4 text-slate-400 text-[18px] leading-none">desk</span>
+                    <span class="material-symbols-outlined absolute left-3 top-1/4 text-slate-400 text-[18px] leading-none">groups</span>
                     <input id="contact-desk" name="desk_location" type="text" value="{{ old('desk_location', $deskLocation) }}" placeholder="{{ __('global.profile.desk_placeholder') }}" class="w-full h-10 pl-9 pr-3.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-[#006948] focus:ring-1 focus:ring-[#006948] transition-all">
                   </div>
                 </div>

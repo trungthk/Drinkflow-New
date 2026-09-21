@@ -4,7 +4,6 @@
   :room-user="$roomUser"
   :user="$user"
   :active-tab="'overview'"
-  :active-campaign="$activeCampaign"
   :unread-notifications-count="$unreadNotificationsCount ?? 0"
   :user-rooms="$userRooms ?? collect()"
 >
@@ -69,10 +68,10 @@
               @forelse($activeCampaign['popular_items'] as $index => $item)
                 <div class="flex items-center justify-between gap-3 py-2 {{ $loop->last ? '' : 'border-b border-slate-100' }}">
                   <div class="flex items-center gap-2.5 min-w-0">
-                    <span class="w-6 h-6 shrink-0 rounded-md {{ $index === 0 ? 'bg-amber-50 text-amber-700' : 'bg-slate-50 text-slate-500' }} flex items-center justify-center text-[11px] font-bold">{{ $index + 1 }}</span>
-                    <span class="text-xs font-semibold text-slate-800 truncate">{{ $item->name }}</span>
+                    <x-room.rank-medal :rank="$index + 1" />
+                    <span class="text-xs font-semibold text-slate-800 truncate">{{ $item['name'] }}</span>
                   </div>
-                  <span class="text-xs font-semibold text-[#006948] whitespace-nowrap">{{ __('room.dashboard.item_selected_quantity', ['count' => $item->quantity]) }}</span>
+                  <span class="text-xs font-semibold text-[#006948] whitespace-nowrap">({{ $item['quantity'] }})</span>
                 </div>
               @empty
                 <div class="py-10 flex flex-col items-center justify-center text-center gap-2 text-slate-400 my-auto">
@@ -90,20 +89,20 @@
 
             <div class="relative z-10 space-y-4">
               <!-- Campaign Header Info -->
-              <div class="flex items-start justify-between gap-3">
-                <div class="flex items-center gap-3">
+              <div class="flex flex-col-reverse items-start gap-3 sm:flex-row sm:justify-between">
+                <div class="flex w-full min-w-0 flex-1 items-start gap-3">
                   <div class="w-10 h-10 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center shrink-0 shadow-2xs">
                     <span class="material-symbols-outlined text-[20px]">local_cafe</span>
                   </div>
-                  <div>
+                  <div class="min-w-0">
                     <div class="flex items-center gap-1.5">
-                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider border border-emerald-200/70">
+                      <span class="inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider border border-emerald-200/70">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
                         {{ __('room.dashboard.active_campaign_badge') }}
                       </span>
                     </div>
-                    <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight mt-0.5">{{ $activeCampaign['name'] }}</h2>
-                    <p class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                    <h2 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight mt-0.5 break-words">{{ $activeCampaign['name'] }}</h2>
+                    <p class="text-[11px] text-slate-500 flex flex-wrap items-center gap-x-1 gap-y-0.5 mt-0.5">
                       <span class="material-symbols-outlined text-[13px] text-[#006948]">storefront</span>
                       <span class="font-semibold text-slate-800">{{ $activeCampaign['restaurant'] }}</span>
                       <span class="text-slate-300">•</span>
@@ -117,7 +116,7 @@
                   $dashTimeRemaining = $activeCampaign['time_remaining'] ?? '';
                   $dashHasExpired = ($activeCampaign['has_expired'] ?? false) || $dashTimeRemaining === '00:00' || $dashTimeRemaining === '00:00:00' || empty($dashTimeRemaining);
                 @endphp
-                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg {{ $dashHasExpired ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-rose-50 text-rose-700 border border-rose-200/80' }} font-mono text-xs font-bold shrink-0">
+                <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg {{ $dashHasExpired ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-rose-50 text-rose-700 border border-rose-200/80' }} font-mono text-xs font-bold shrink-0 whitespace-nowrap">
                   <span class="material-symbols-outlined text-[14px] {{ $dashHasExpired ? '' : 'animate-pulse' }}">schedule</span>
                   <span>{{ $dashHasExpired ? __('room.header.countdown_closed') : $dashTimeRemaining }}</span>
                 </div>
@@ -125,8 +124,8 @@
 
               <!-- Sponsor Budget Info Box -->
               <div class="bg-slate-50/80 border border-slate-100 rounded-lg p-3 space-y-1.5">
-                <div class="flex items-center justify-between text-xs">
-                  <div class="flex items-center gap-1.5 text-slate-600">
+                <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
+                  <div class="flex flex-wrap items-center gap-1.5 text-slate-600">
                     <span class="material-symbols-outlined text-[15px] text-[#006948]">savings</span>
                     <span class="font-medium">{{ __('room.dashboard.sponsor_budget_title') }}</span>
                     <span class="font-bold font-mono text-slate-900">{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeCampaign['sponsor_budget']) }}</span>

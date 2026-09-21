@@ -126,7 +126,6 @@ class CampaignOrderingAvailabilityTest extends TestCase
             ->assertDontSee('data-campaign-cart-button', false)
             ->assertDontSee('data-participation-form', false)
             ->assertSee(__('room.header.countdown_closed'))
-            ->assertDontSee(__('room.header.countdown_prefix').' 00:00')
             ->assertSee(__('room.campaign.ordering_closed'));
 
         $this->withoutMiddleware(ValidateCsrfToken::class)

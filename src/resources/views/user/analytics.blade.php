@@ -1,4 +1,4 @@
-<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'analytics'" :title="__('room.analytics.page_title')">
+<x-room.layout :room="$room" :room-user="$roomUser" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'analytics'" :title="__('room.analytics.page_title')">
     @php
         $metrics = [
             ['label' => __('room.analytics.orders_placed'), 'icon' => 'receipt_long', 'value' => $totalOrders, 'detail' => __('room.analytics.orders_unit', ['cups' => $totalCups]) . ' · ' . __('room.analytics.participation_rate', ['percent' => $participationRate])],
@@ -70,8 +70,8 @@
                 <table class="w-full text-left text-xs">
                     <thead class="bg-slate-50 text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">
                         <tr>
-                            <th scope="col" class="py-2.5 px-3 sm:px-4">{{ __('room.analytics.table_rank') }}</th>
-                            <th scope="col" class="py-2.5 px-3">{{ __('room.analytics.table_item_name') }}</th>
+                            <th scope="col" class="py-2.5 px-3 sm:px-4 whitespace-nowrap">{{ __('room.analytics.table_rank') }}</th>
+                            <th scope="col" class="py-2.5 px-3 whitespace-nowrap">{{ __('room.analytics.table_item_name') }}</th>
                             <th scope="col" class="py-2.5 px-3 text-right whitespace-nowrap">{{ __('room.analytics.table_quantity') }}</th>
                             <th scope="col" class="py-2.5 px-3 sm:px-4 text-right whitespace-nowrap">{{ __('room.analytics.table_total_amount') }}</th>
                         </tr>
@@ -84,9 +84,9 @@
                                         {{ $index + 1 }}
                                     </span>
                                 </td>
-                                <td class="py-2.5 px-3 font-semibold text-slate-900">{{ $item['name'] }}</td>
-                                <td class="py-2.5 px-3 text-right text-slate-600 font-mono">{{ $item['quantity'] }}</td>
-                                <td class="py-2.5 px-3 sm:px-4 text-right font-semibold text-slate-900 font-mono">{{ \App\Support\Helpers\FormatHelper::formatCurrency($item['total_amount']) }}</td>
+                                <td class="py-2.5 px-3 font-semibold text-slate-900 whitespace-nowrap">{{ $item['name'] }}</td>
+                                <td class="py-2.5 px-3 text-right text-slate-600 font-mono whitespace-nowrap">{{ $item['quantity'] }}</td>
+                                <td class="py-2.5 px-3 sm:px-4 text-right font-semibold text-slate-900 font-mono whitespace-nowrap">{{ \App\Support\Helpers\FormatHelper::formatCurrency($item['total_amount']) }}</td>
                             </tr>
                         @empty
                             <tr>

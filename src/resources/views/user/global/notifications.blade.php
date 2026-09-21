@@ -120,7 +120,7 @@
                                     <span data-status-badge class="inline-flex items-center px-2 py-0.2 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500">{{ __('global.notifications.badge_read') }}</span>
                                 @endif
                             </div>
-                            <p class="text-xs text-slate-600 leading-relaxed">{{ $notif->body }}</p>
+                            <p class="text-xs text-slate-600 leading-relaxed [overflow-wrap:anywhere]">{{ $notif->body }}</p>
                             <div class="flex items-center gap-4 text-xs text-slate-400 pt-0.5">
                                 <span class="flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[13px]">schedule</span>

@@ -4,10 +4,6 @@
   :room-user="request()->attributes->get('room_user')"
   :user="request()->attributes->get('global_user') ?? auth('web')->user()"
   :active-tab="'campaigns'"
-  :breadcrumbs="[
-      ['title' => __('room.campaign.page_title'), 'url' => route('user.campaigns.index', $room->slug)],
-      ['title' => $campaign->name ?? __('global.common.campaign'), 'url' => '']
-  ]"
 >
   <main class="w-full max-w-3xl mx-auto space-y-6"
         data-campaign-order-container
@@ -71,7 +67,7 @@
           </label>
           <textarea id="note" rows="2" class="mt-1.5 w-full rounded-xl border border-slate-200/80 px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 bg-slate-50/50 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all"
                     maxlength="1000"
-                    placeholder="{{ __('room.campaign.note_placeholder') }}"></textarea>
+                    placeholder="{{ __('room.campaign.note_placeholder') }}">{{ (request()->attributes->get('global_user') ?? auth('web')->user())?->default_order_note }}</textarea>
         </div>
 
         <button class="w-full flex items-center justify-center gap-2 rounded-xl bg-[#006948] hover:bg-[#005137] px-5 py-3.5 font-bold text-xs sm:text-sm text-white transition-colors shadow-sm cursor-pointer"

@@ -1,4 +1,4 @@
-<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'profile'" :title="__('room.profile.page_title')">
+<x-room.layout :room="$room" :room-user="$roomUser" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'profile'" :title="__('room.profile.page_title')">
     @php
         $memberStatus = $roomUser->status instanceof \App\Enums\RoomUserStatus
             ? $roomUser->status->value

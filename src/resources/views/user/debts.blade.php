@@ -1,4 +1,4 @@
-<x-room.layout :room="$room" :room-user="$roomUser" :active-campaign="$activeCampaign" :user-rooms="$userRooms"
+<x-room.layout :room="$room" :room-user="$roomUser" :user-rooms="$userRooms"
     :unread-notifications-count="$unreadNotificationsCount" :active-tab="'debts'" :title="__('room.debts.page_title')">
     <div class="flex flex-col w-full gap-space-lg" x-data="{
         qrModalOpen: false,
@@ -288,12 +288,12 @@
                         <thead>
                             <tr
                                 class="bg-surface-container-low text-on-surface-variant text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border-b border-outline-variant/20">
-                                <th class="py-2.5 px-3">{{ __('room.debts.table_tx_id') }}</th>
-                                <th class="py-2.5 px-2.5">{{ __('room.debts.table_time') }}</th>
-                                <th class="py-2.5 px-2.5">{{ __('room.debts.table_content_campaign') }}</th>
-                                <th class="py-2.5 px-2.5 text-right">{{ __('room.debts.table_total') }}</th>
-                                <th class="py-2.5 px-2.5 text-center">{{ __('room.debts.table_status') }}</th>
-                                <th class="py-2.5 px-3 text-center">{{ __('room.debts.table_action') }}</th>
+                                <th class="py-2.5 px-3 whitespace-nowrap">{{ __('room.debts.table_tx_id') }}</th>
+                                <th class="py-2.5 px-2.5 whitespace-nowrap">{{ __('room.debts.table_time') }}</th>
+                                <th class="py-2.5 px-2.5 min-w-[150px]">{{ __('room.debts.table_content_campaign') }}</th>
+                                <th class="py-2.5 px-2.5 text-right whitespace-nowrap">{{ __('room.debts.table_total') }}</th>
+                                <th class="py-2.5 px-2.5 text-center whitespace-nowrap">{{ __('room.debts.table_status') }}</th>
+                                <th class="py-2.5 px-3 text-center whitespace-nowrap">{{ __('room.debts.table_action') }}</th>
                             </tr>
                         </thead>
                         <tbody class="text-on-surface divide-y divide-outline-variant/20">
@@ -304,13 +304,13 @@
                                     $isPending = $debtStatus === \App\Enums\DebtStatus::Pending->value;
                                 @endphp
                                 <tr class="hover:bg-surface-container-low/50 transition-colors">
-                                    <td class="py-2.5 px-3 font-tabular-nums font-bold text-primary font-mono text-xs">
+                                    <td class="py-2.5 px-3 font-tabular-nums font-bold text-primary font-mono text-xs whitespace-nowrap">
                                         {{ $debt->code ?? 'N/A' }}
                                     </td>
                                     <td class="py-2.5 px-2.5 text-on-surface-variant whitespace-nowrap text-[11px]">
                                         {{ $debt->created_at?->format('d/m/Y H:i') }}
                                     </td>
-                                    <td class="py-2.5 px-2.5 font-medium max-w-sm">
+                                    <td class="py-2.5 px-2.5 font-medium max-w-sm min-w-[150px]">
                                         <div class="flex flex-col gap-0.5">
                                             <span class="text-on-surface text-xs font-medium leading-snug">
                                                 {{ $debt->note ?: ($debt->sponsor_description ?: __('room.debts.default_debt_content')) }}
@@ -334,10 +334,10 @@
                                         </div>
                                     </td>
                                     <td
-                                        class="py-2.5 px-2.5 text-right font-tabular-nums font-bold text-xs {{ $debt->remaining_amount > 0 ? 'text-error' : 'text-on-surface' }}">
+                                        class="py-2.5 px-2.5 text-right whitespace-nowrap font-tabular-nums font-bold text-xs {{ $debt->remaining_amount > 0 ? 'text-error' : 'text-on-surface' }}">
                                         {{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount > 0 ? $debt->remaining_amount : $debt->original_amount) }}
                                     </td>
-                                    <td class="py-2.5 px-2.5 text-center">
+                                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">
                                         @if($isPaid)
                                             <span
                                                 class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] bg-primary-fixed text-on-primary-fixed-variant font-medium">
@@ -358,7 +358,7 @@
                                             </span>
                                         @endif
                                     </td>
-                                    <td class="py-2.5 px-3 text-center">
+                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
                                         @if(!$isPaid && $debt->remaining_amount > 0)
                                             <button
                                                 class="px-2.5 py-1 rounded bg-[#006948] text-white hover:bg-[#005137] transition-all inline-flex items-center gap-1 shadow-2xs cursor-pointer font-medium text-xs"
@@ -377,7 +377,7 @@
                             @empty
                                 <tr>
                                     <td colspan="6" class="py-8 text-center text-on-surface-variant text-xs">
-                                        <div class="flex flex-col items-center justify-center gap-1.5">
+                                        <div class="sticky left-0 flex w-[calc(100vw-4rem)] max-w-full flex-col items-center justify-center gap-1.5 whitespace-normal">
                                             <span class="material-symbols-outlined text-[28px] text-outline-variant"
                                                 aria-hidden="true">receipt_long</span>
                                             <span>{{ __('room.debts.all_settled') }}</span>
@@ -430,7 +430,7 @@
                 stroke-linejoin: round;
                 stroke-dasharray: 20 80;
                 stroke-dashoffset: 0;
-                animation: vietqr-snake-run 3s linear infinite;
+                animation: vietqr-snake-run 6s linear infinite;
                 filter: drop-shadow(0 0 3px rgba(0, 105, 72, 0.5));
             }
 
@@ -492,11 +492,6 @@
                                 </svg>
                                 <img :src="qrData.qrDataUrl" alt="VietQR"
                                     class="w-48 h-48 object-contain rounded-lg relative z-0" loading="lazy" />
-                                <div
-                                    class="mt-2 flex items-center gap-1 text-[11px] text-secondary font-medium relative z-0">
-                                    <span class="material-symbols-outlined text-[13px]">bolt</span>
-                                    <span>{{ __('room.debts.vietqr_scan_hint') }}</span>
-                                </div>
                             </div>
                             <div class="mt-2.5 text-center">
                                 <span

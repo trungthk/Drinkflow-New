@@ -3,8 +3,6 @@
   'roomUser' => null,
   'user' => null,
   'activeTab' => 'overview',
-  'breadcrumbs' => [],
-  'activeCampaign' => null,
   'unreadNotificationsCount' => null,
   'notifications' => null,
   'userRooms' => collect(),
@@ -14,28 +12,29 @@
   x-data="{ showRoomDropdown: false, showLangDropdown: false, showNotifDropdown: false }">
   <!-- Tier 1: Main Global Header Bar -->
   <div class="h-14 border-b border-slate-100 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-full flex items-center justify-between gap-2 sm:gap-4">
       <!-- Left Brand & Room Selector -->
-      <div class="flex items-center gap-3">
-        <a class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors py-1 px-2 rounded-lg hover:bg-slate-50 group"
-          href="{{ route('user.me.dashboard') }}">
+      <div class="flex items-center gap-1 sm:gap-3 min-w-0">
+        <a class="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors py-1 px-1.5 sm:px-2 rounded-lg hover:bg-slate-50 group shrink-0"
+          href="{{ route('user.me.dashboard') }}" title="{{ __('room.header.back_to_portal') }}"
+          aria-label="{{ __('room.header.back_to_portal') }}">
           <span
             class="material-symbols-outlined text-[18px] group-hover:-translate-x-0.5 transition-transform text-[#006948]">arrow_back</span>
-          <span>{{ __('room.header.back_to_portal') }}</span>
+          <span class="hidden sm:inline">{{ __('room.header.back_to_portal') }}</span>
         </a>
         <span class="h-4 w-px bg-slate-200 hidden sm:block"></span>
 
         <!-- Room Selector Dropdown -->
-        <div class="relative">
+        <div class="relative min-w-0">
           <button @click="showRoomDropdown = !showRoomDropdown" @click.outside="showRoomDropdown = false" type="button"
-            class="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-slate-800 transition-all cursor-pointer">
+            class="flex items-center gap-1.5 sm:gap-2 max-w-full px-2 sm:px-2.5 h-8 sm:h-auto sm:py-1 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-slate-800 transition-all cursor-pointer">
             <span
-              class="w-6 h-6 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-300 ring-1 ring-emerald-500/20 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+              class="w-6 h-6 rounded-lg bg-emerald-50 text-[#006948] border border-emerald-300 ring-1 ring-emerald-500/20 hidden sm:flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
               <span class="material-symbols-outlined text-[15px]">corporate_fare</span>
             </span>
             <span
-              class="font-bold text-xs sm:text-sm text-slate-900 truncate max-w-[140px] sm:max-w-[200px]">{{ $room->name ?? __('global.common.room') }}</span>
-            <span class="material-symbols-outlined text-[16px] text-slate-400"
+              class="font-bold text-xs sm:text-sm text-slate-900 truncate min-w-0 max-w-[120px] sm:max-w-[200px]">{{ $room->name ?? __('global.common.room') }}</span>
+            <span class="material-symbols-outlined text-[16px] text-slate-400 shrink-0"
               :class="{ 'rotate-180': showRoomDropdown }">expand_more</span>
           </button>
 
@@ -68,7 +67,7 @@
         <!-- Language Switcher -->
         <div class="relative shrink-0">
           <button @click="showLangDropdown = !showLangDropdown" @click.outside="showLangDropdown = false" type="button"
-            class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors duration-150 border border-slate-200 shadow-2xs cursor-pointer shrink-0"
+            class="flex items-center gap-1 sm:gap-1.5 h-8 sm:h-9 px-2 sm:px-2.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors duration-150 border border-slate-200 shadow-2xs cursor-pointer shrink-0"
             title="{{ __('global.header.language_select') }}">
             <span class="text-xs sm:text-sm leading-none">{{ $activeLocaleMeta['flag'] }}</span>
             <span
@@ -144,7 +143,7 @@
                   </span>
                   <div class="flex-1 min-w-0">
                     <p class="text-xs font-semibold text-slate-800">{{ $notificationPresentation['title'] }}</p>
-                    <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ $notificationPresentation['body'] }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5 line-clamp-2 [overflow-wrap:anywhere]">{{ $notificationPresentation['body'] }}</p>
                     <span class="text-[11px] text-slate-400 block mt-1 flex items-center gap-1">
                       <span class="material-symbols-outlined text-[12px]">schedule</span>
                       {{ $notif->created_at->diffForHumans() }}
@@ -192,57 +191,7 @@
     </div>
   </div>
 
-  <!-- Tier 2: Breadcrumb & Countdown Sub-Bar -->
-  <div class="h-9 bg-slate-50/80 border-b border-slate-100 text-xs text-slate-500">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-3">
-      <!-- Breadcrumbs -->
-      <div class="flex items-center gap-1.5 truncate">
-        <a class="hover:text-slate-900 transition-colors flex items-center gap-1"
-          href="{{ route('user.me.dashboard') }}">
-          <span class="material-symbols-outlined text-[14px]">home</span>
-          <span>{{ __('room.header.breadcrumb_home') }}</span>
-        </a>
-        <span class="material-symbols-outlined text-[13px] text-slate-400">chevron_right</span>
-        <a class="hover:text-slate-900 transition-colors font-medium truncate"
-          href="{{ $room ? route('user.dashboard', $room->slug) : '#' }}">
-          {{ $room->name ?? __('global.common.room') }}
-        </a>
-        @if(!empty($breadcrumbs))
-          @foreach($breadcrumbs as $crumb)
-            <span class="material-symbols-outlined text-[13px] text-slate-400">chevron_right</span>
-            @if(isset($crumb['url']) && $crumb['url'])
-              <a class="hover:text-slate-900 transition-colors truncate" href="{{ $crumb['url'] }}">{{ $crumb['title'] }}</a>
-            @else
-              <span class="text-slate-800 font-semibold truncate">{{ $crumb['title'] }}</span>
-            @endif
-          @endforeach
-        @endif
-      </div>
-
-      <!-- Live Countdown Badge -->
-      <div class="shrink-0">
-        @if($activeCampaign)
-          @php
-            $timeRemaining = is_array($activeCampaign) ? ($activeCampaign['time_remaining'] ?? '') : ($activeCampaign->time_remaining ?? '');
-            $hasExpired = (is_array($activeCampaign) ? ($activeCampaign['has_expired'] ?? false) : ($activeCampaign->has_expired ?? false)) || $timeRemaining === '00:00' || $timeRemaining === '00:00:00' || empty($timeRemaining);
-          @endphp
-          <div
-            class="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full {{ $hasExpired ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-rose-50 text-rose-700 border border-rose-200/70' }} font-mono text-[11px] font-semibold">
-            <span
-              class="w-1.5 h-1.5 rounded-full {{ $hasExpired ? 'bg-slate-400' : 'bg-rose-600 animate-pulse' }}"></span>
-            <span>{{ $hasExpired ? __('room.header.countdown_closed') : (__('room.header.countdown_prefix') . ' ' . $timeRemaining) }}</span>
-          </div>
-        @else
-          <div class="flex items-center gap-1 text-[11px] text-slate-400">
-            <span class="material-symbols-outlined text-[14px]">bedtime</span>
-            <span>{{ __('room.header.no_active_campaign') }}</span>
-          </div>
-        @endif
-      </div>
-    </div>
-  </div>
-
-  <!-- Tier 3: Navigation Tabs Bar -->
+  <!-- Tier 2: Navigation Tabs Bar -->
   <div class="h-11 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center">
       <nav class="flex items-center h-full gap-1 overflow-x-auto no-scrollbar">

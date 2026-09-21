@@ -244,7 +244,7 @@ return [
         'allow_debt' => '債務を許可',
         'minutes' => '延長分数',
         'delivery_location' => '配達場所',
-        'desk_location' => 'デスクの場所',
+        'desk_location' => '部署 / チーム',
         'ice' => '氷の量',
         'note' => 'メモ',
         'notify_campaign' => 'キャンペーン通知',
