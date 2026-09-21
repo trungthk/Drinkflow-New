@@ -221,9 +221,7 @@ sudo mysql
 Trong dấu nhắc lệnh `mysql`, thay `MAT_KHAU_DATABASE_THAT_MANH` bằng mật khẩu vừa tạo:
 
 ```sql
-CREATE DATABASE drinkflow_prod
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE drinkflow CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE USER 'drinkflow_user'@'127.0.0.1'
     IDENTIFIED BY 'MAT_KHAU_DATABASE_THAT_MANH';
@@ -832,13 +830,19 @@ echo "🔄 [8/9] Khởi động lại Worker, Realtime & PHP-FPM..."
 artisan queue:restart
 sudo supervisorctl restart drinkflow-realtime
 sudo supervisorctl restart 'drinkflow-worker:*'
+# BẮT BUỘC: opcache.validate_timestamps=0 nên PHP-FPM chỉ nhận code, route và config mới sau khi reload.
+# Thiếu bước này, web vẫn chạy bản cũ (ví dụ /captcha/api/contact trả 404) dù `php artisan route:list` đã đúng.
 sudo systemctl reload php8.3-fpm
+sudo systemctl is-active --quiet php8.3-fpm
 sudo systemctl reload nginx
 
 echo "✅ [9/9] Tắt bảo trì & kiểm tra..."
 artisan up
 APP_URL=$(grep -E '^APP_URL=' "$APP_DIR/src/.env" | head -n1 | cut -d= -f2- | tr -d '"')
 curl -fsS -o /dev/null -w "Health check /up: HTTP %{http_code}\n" "$APP_URL/up"
+# Cảnh báo (không dừng deploy) nếu web chưa phục vụ captcha; thường do chưa reload FPM hoặc CAPTCHA_DISABLE=true
+curl -fsS -o /dev/null -w "Captcha /captcha/api/contact: HTTP %{http_code}\n" "$APP_URL/captcha/api/contact" \
+    || echo "⚠️ Captcha không phản hồi. Kiểm tra: reload php8.3-fpm, CAPTCHA_DISABLE trong .env / biến môi trường FPM."
 
 echo "🎉 Cập nhật thành công!"
 ```
@@ -858,6 +862,33 @@ Mỗi khi muốn deploy code mới (sau khi đã push lên `master`), chỉ cầ
 > Script không dùng `supervisorctl restart all` vì lệnh đó sẽ khởi động lại **cả các
 > chương trình của website khác** trên cùng VPS.
 > `git pull --ff-only` sẽ dừng nếu server có thay đổi cục bộ; không sửa trực tiếp mã nguồn trên server.
+
+### 8.1. Nâng cấp script `deploy-native.sh` đã tạo từ trước
+
+Script đã có sẵn trên VPS **không tự cập nhật** theo tài liệu này. Kiểm tra xem nó đã có bước reload PHP-FPM chưa:
+
+```bash
+grep -n "reload php8.3-fpm" /var/www/drinkflow/deploy-native.sh
+```
+
+Nếu không in ra dòng nào, thêm bước reload ngay sau dòng khởi động lại worker:
+
+```bash
+sudo sed -i "/supervisorctl restart 'drinkflow-worker:\*'/a sudo systemctl reload php8.3-fpm" /var/www/drinkflow/deploy-native.sh
+grep -n "reload php8.3-fpm" /var/www/drinkflow/deploy-native.sh   # phải thấy đúng 1 dòng
+```
+
+Nếu tài khoản deploy phải nhập mật khẩu khi chạy `sudo`, script sẽ treo hoặc dừng tại bước này. Cách đơn giản nhất là
+chạy cả script bằng `sudo /var/www/drinkflow/deploy-native.sh`. Nếu muốn chạy bằng user thường, cần cho phép **mọi** lệnh `sudo`
+trong script (`systemctl`, `supervisorctl`, `mysqldump`, `mkdir`, `tee`, `-u www-data`) chạy không hỏi mật khẩu. Ví dụ dưới đây
+chỉ mới phần reload PHP-FPM/Nginx (thay `deploy` bằng user thật; kiểm tra đường dẫn bằng `which systemctl`):
+
+```bash
+echo 'deploy ALL=(root) NOPASSWD: /usr/bin/systemctl reload php8.3-fpm, /usr/bin/systemctl reload nginx, /usr/bin/systemctl is-active --quiet php8.3-fpm' \
+    | sudo tee /etc/sudoers.d/drinkflow-deploy
+sudo chmod 440 /etc/sudoers.d/drinkflow-deploy
+sudo visudo -cf /etc/sudoers.d/drinkflow-deploy
+```
 
 ---
 
@@ -903,6 +934,9 @@ sudo -u www-data php /var/www/drinkflow/src/artisan tinker --execute='echo App\M
 
 # 6. Gửi thử email (thay địa chỉ nhận) - cần thiết để OTP quên mật khẩu hoạt động
 sudo -u www-data php /var/www/drinkflow/src/artisan tinker --execute='Mail::raw("DrinkFlow mail test", fn ($m) => $m->to("you@yourcompany.com")->subject("DrinkFlow mail test")); echo "sent";'
+
+# 6b. Route captcha do web (PHP-FPM) phục vụ (kỳ vọng HTTP 200). Nếu 404 dù `route:list` đúng: chưa reload php8.3-fpm
+curl -sI https://drinkflow.yourcompany.com/captcha/api/contact | head -n1
 
 # 7. Chrome chạy được dưới www-data (chỉ khi dùng Food Crawler; kỳ vọng in ra <html>...)
 sudo -u www-data google-chrome-stable --headless=new --no-sandbox \

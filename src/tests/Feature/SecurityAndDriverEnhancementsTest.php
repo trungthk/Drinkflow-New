@@ -27,7 +27,9 @@ use App\Support\Traits\HandlesDatabaseDriver;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class SecurityAndDriverEnhancementsTest extends TestCase
@@ -85,6 +87,71 @@ class SecurityAndDriverEnhancementsTest extends TestCase
 
         $response->assertRedirect();
         $this->assertAuthenticatedAs($admin, 'admin');
+    }
+
+    /**
+     * A valid, single-use captcha plus correct credentials must log the admin in (regression: the captcha used to be
+     * checked twice, so login always failed once captcha was enabled).
+     */
+    public function test_admin_login_succeeds_with_valid_captcha_in_production_environment(): void
+    {
+        $admin = AdminAccount::create([
+            'name' => 'Prod Admin',
+            'email' => 'captchaok@example.test',
+            'password' => 'secret123',
+            'role' => AdminRole::Admin,
+            'status' => AdminStatus::Active,
+        ]);
+
+        $this->app->detectEnvironment(fn () => 'production');
+        Config::set('app.env', 'production');
+        Config::set('captcha.disable', false);
+        $key = Hash::make('abcd');
+        Cache::put('captcha_'.md5($key), true, 60);
+
+        $response = $this->withSession(['captcha' => ['sensitive' => false, 'key' => $key, 'encrypt' => false]])
+            ->from('/admin/login')
+            ->post('/admin/login', [
+                'email' => 'captchaok@example.test',
+                'password' => 'secret123',
+                'captcha' => 'ABCD',
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertAuthenticatedAs($admin, 'admin');
+    }
+
+    /**
+     * A wrong captcha is rejected, recorded as a security event and never authenticates.
+     */
+    public function test_admin_login_rejects_wrong_captcha_and_records_security_event(): void
+    {
+        AdminAccount::create([
+            'name' => 'Prod Admin',
+            'email' => 'captchabad@example.test',
+            'password' => 'secret123',
+            'role' => AdminRole::Admin,
+            'status' => AdminStatus::Active,
+        ]);
+
+        $this->app->detectEnvironment(fn () => 'production');
+        Config::set('app.env', 'production');
+        Config::set('captcha.disable', false);
+        $key = Hash::make('abcd');
+        Cache::put('captcha_'.md5($key), true, 60);
+
+        $response = $this->withSession(['captcha' => ['sensitive' => false, 'key' => $key, 'encrypt' => false]])
+            ->from('/admin/login')
+            ->post('/admin/login', [
+                'email' => 'captchabad@example.test',
+                'password' => 'secret123',
+                'captcha' => 'wxyz',
+            ]);
+
+        $response->assertRedirect('/admin/login');
+        $response->assertSessionHasErrors(['captcha']);
+        $this->assertGuest('admin');
+        $this->assertDatabaseHas('security_events', ['type' => 'failed_login']);
     }
 
     public function test_admin_login_requires_captcha_in_production_environment(): void

@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
+use App\Models\SecurityEvent;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\RateLimiter;
 
 class AdminLoginRequest extends FormRequest
 {
@@ -14,6 +17,30 @@ class AdminLoginRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * Record a failed captcha as a security event and count it towards the login lockout.
+     *
+     * The captcha is validated by the `captcha` rule (the single, consuming check), so this is the only place a bad
+     * code is seen before the request is rejected.
+     *
+     * @param Validator $validator Failed validator.
+     * @return void
+     */
+    protected function failedValidation(Validator $validator): void
+    {
+        if ($validator->errors()->has('captcha')) {
+            RateLimiter::hit(strtolower((string) $this->input('email')).'|'.$this->ip(), 60);
+            SecurityEvent::create([
+                'type' => 'failed_login',
+                'severity' => 'medium',
+                'ip_address' => $this->ip(),
+                'metadata' => ['actor' => 'admin', 'reason' => 'captcha'],
+            ]);
+        }
+
+        parent::failedValidation($validator);
     }
 
     /**

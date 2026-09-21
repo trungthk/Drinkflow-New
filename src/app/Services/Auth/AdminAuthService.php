@@ -33,11 +33,14 @@ class AdminAuthService
     private const OTP_MAX_ATTEMPTS_PER_CODE = 5;
 
     /**
-     * Authenticate an admin account with credentials and captcha validation.
+     * Authenticate an admin account with its credentials.
+     *
+     * The captcha is validated once, by the `captcha` rule of {@see AdminLoginRequest}. It must not be checked again here:
+     * a captcha code is single-use, so a second check would always fail and lock every admin out.
      *
      * @param AdminLoginRequest $request Validated login request.
      * @return AdminAccount Authenticated admin account instance.
-     * @throws ValidationException If rate limited, invalid captcha, or bad credentials.
+     * @throws ValidationException If rate limited or the credentials are invalid.
      */
     public function login(AdminLoginRequest $request): AdminAccount
     {
@@ -47,25 +50,6 @@ class AdminAuthService
             throw ValidationException::withMessages([
                 'email' => __('admin.too_many_login_attempts'),
             ]);
-        }
-
-        // Validate Captcha when not running in local environment or testing
-        $isLocalOrDisabled = app()->isLocal() || (bool) config('captcha.disable');
-        if (! $isLocalOrDisabled) {
-            $captchaInput = (string) $request->input('captcha', '');
-            if ($captchaInput === '' || ! function_exists('captcha_check') || ! captcha_check($captchaInput)) {
-                RateLimiter::hit($key, 60);
-                SecurityEvent::create([
-                    'type' => 'failed_login',
-                    'severity' => 'medium',
-                    'ip_address' => $request->ip(),
-                    'metadata' => ['actor' => 'admin', 'reason' => 'captcha'],
-                ]);
-
-                throw ValidationException::withMessages([
-                    'captcha' => __('admin.invalid_captcha'),
-                ]);
-            }
         }
 
         $credentials = $request->only('email', 'password');
