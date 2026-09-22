@@ -127,6 +127,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             max_budget: initialCampaign?.max_budget ?? campaignSettings.max_budget,
             delivery_fee: initialCampaign?.delivery_fee ?? '',
             discount: initialCampaign?.discount ?? '',
+            self_paid_price_basis: initialCampaign?.self_paid_price_basis || 'original',
             flat_price: initialCampaign?.flat_price ?? '',
             status: initialCampaign?.status || 'active'
         },
@@ -198,6 +199,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 this.form.description = initialCampaign.description || '';
                 this.form.sponsor_type = ['none', 'full'].includes(initialCampaign.sponsor_type) ? initialCampaign.sponsor_type : 'none';
                 this.form.sponsor_description = initialCampaign.sponsor_description || '';
+                this.form.self_paid_price_basis = ['original', 'campaign_prorated'].includes(initialCampaign.self_paid_price_basis) ? initialCampaign.self_paid_price_basis : 'original';
                 this.form.max_budget = initialCampaign.max_budget ?? this.campaignSettings.max_budget;
                 this.form.flat_price = initialCampaign.flat_price ?? '';
                 this.form.status = initialCampaign.status || 'active';
@@ -488,6 +490,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             this.form.payment_account_id = campaign.payment_account_id ? String(campaign.payment_account_id) : this.form.payment_account_id;
             this.form.sponsor_type = ['none', 'full'].includes(campaign.sponsor_type) ? campaign.sponsor_type : 'none';
             this.form.sponsor_description = campaign.sponsor_description || '';
+            this.form.self_paid_price_basis = ['original', 'campaign_prorated'].includes(campaign.self_paid_price_basis) ? campaign.self_paid_price_basis : 'original';
             this.sponsors = (campaign.sponsor_allocations || []).map(allocation => ({
                 user_id: String(allocation.room_user_id || ''),
                 percentage: Number(allocation.percentage) || 0,
@@ -623,6 +626,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 description: this.form.description || null,
                 sponsor_type: this.form.sponsor_type,
                 sponsor_description: this.form.sponsor_description || null,
+                self_paid_price_basis: this.form.self_paid_price_basis || 'original',
                 max_budget: this.form.max_budget ? parseCleanNumber(this.form.max_budget) : null,
                 flat_price: this.form.flat_price ? parseCleanNumber(this.form.flat_price) : null,
                 sponsor_allocations: this.form.sponsor_type === 'full' ? this.sponsors.filter(sponsor => sponsor.user_id).map(sponsor => ({

@@ -46,6 +46,10 @@ export function initCampaignOrder() {
                     <span class="min-w-0 flex-1">
                         <span class="block font-semibold text-slate-900 truncate">${esc(item.name)}</span>
                         <span class="text-xs text-slate-500 font-mono font-medium">${formatMoney(item.base_price)}</span>
+                        <span class="mt-1 flex items-center gap-1.5 text-[11px] text-slate-500">
+                            <input type="checkbox" data-self-paid="${item.id}" class="rounded border-slate-300 text-amber-600 focus:ring-amber-500">
+                            <span>${container.dataset.msgSelfPaid || ''}</span>
+                        </span>
                     </span>
                     <input data-item="${item.id}" class="w-20 rounded-xl border border-slate-200 px-3 py-2 text-center text-sm font-semibold text-slate-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none" type="number" min="0" max="99" value="0" aria-label="${esc((container.dataset.msgQuantityLabel || '').replace(':name', item.name))}">
                 </label>`
@@ -63,7 +67,8 @@ export function initCampaignOrder() {
             const selected = [...container.querySelectorAll('[data-item]')]
                 .map((input) => ({
                     item_id: Number(input.dataset.item),
-                    quantity: Number(input.value)
+                    quantity: Number(input.value),
+                    is_self_paid: container.querySelector(`[data-self-paid="${input.dataset.item}"]`)?.checked || false
                 }))
                 .filter((item) => item.quantity > 0);
 

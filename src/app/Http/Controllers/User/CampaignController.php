@@ -104,6 +104,7 @@ class CampaignController extends Controller
                     'sugar_percent' => $item->sugar_percent,
                     'line_subtotal' => (int) $item->line_subtotal,
                     'note' => $item->note,
+                    'is_self_paid' => (bool) $item->is_self_paid,
                     'toppings' => $toppings,
                 ];
             })->values()->all();
@@ -190,6 +191,14 @@ class CampaignController extends Controller
             app(ProxyOrderPolicy::class)->assertNotSelf($roomUser, $data['proxy_user_code'] ?? null, 'proxy_user_code');
         }
 
+        $isSelfPaid = filter_var($data['is_self_paid'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $proxyUserCode = isset($data['proxy_user_code']) && $data['proxy_user_code'] !== '' ? (string) $data['proxy_user_code'] : null;
+        if ($isSelfPaid && $proxyUserCode !== null) {
+            throw ValidationException::withMessages([
+                'proxy_user_code' => __('room.campaign.proxy_self_paid_not_allowed'),
+            ]);
+        }
+
         $cartKey = $this->cartKey($room->id, $campaign->id);
         $cart = session()->get($cartKey, []);
         abort_if(count($cart) >= 50, 422, __('room.campaign.cart_limit_reached'));
@@ -204,7 +213,8 @@ class CampaignController extends Controller
             'quantity'        => (int) $data['quantity'],
             'note'            => $data['note'] ?? null,
             'unit_price'      => (int) $item->base_price + (int) ($size?->price_delta ?? 0) + (int) $toppings->sum('price'),
-            'proxy_user_code' => isset($data['proxy_user_code']) && $data['proxy_user_code'] !== '' ? (string) $data['proxy_user_code'] : null,
+            'is_self_paid'    => $isSelfPaid,
+            'proxy_user_code' => $proxyUserCode,
         ];
         session()->put($cartKey, $cart);
 
@@ -271,6 +281,11 @@ class CampaignController extends Controller
         $cart = session()->get($cartKey, []);
         abort_if(! array_key_exists($index, $cart), 404);
         $proxyCode = trim((string) ($data['proxy_user_code'] ?? '')) ?: null;
+        if ($proxyCode !== null && ! empty($cart[$index]['is_self_paid'])) {
+            throw ValidationException::withMessages([
+                'proxy_user_code' => __('room.campaign.proxy_self_paid_not_allowed'),
+            ]);
+        }
         $policy = app(ProxyOrderPolicy::class);
         $requester = $request->attributes->get('room_user');
         if ($requester instanceof RoomUser) {
@@ -322,7 +337,7 @@ class CampaignController extends Controller
         $autoLock = filter_var($settings->get('auto_lock_on_debt_limit')?->value ?? true, FILTER_VALIDATE_BOOLEAN);
         $ceiling = (int) ($settings->get('personal_debt_ceiling')?->value ?? 150000);
         $outstanding = (int) $roomUser->debts()->whereIn('status', DebtStatus::outstandingValues())->sum('remaining_amount');
-        abort_if($autoLock && $outstanding >= $ceiling, 422, __('admin.debt_limit_reached', ['limit' => FormatHelper::formatCurrency($ceiling)]));
+        abort_if($autoLock && $outstanding >= $ceiling, 422, __('room.campaign.proxy_debt_limit_reached', ['limit' => FormatHelper::formatCurrency($ceiling)]));
 
         return response()->json([
             'display_name' => $roomUser->display_name ?: $roomUser->globalUser?->name,

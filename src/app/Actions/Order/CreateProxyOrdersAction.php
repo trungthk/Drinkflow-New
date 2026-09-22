@@ -52,6 +52,12 @@ class CreateProxyOrdersAction
                 ? (string) $item['proxy_user_code']
                 : null;
 
+            if ($code !== null && filter_var($item['is_self_paid'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                throw ValidationException::withMessages([
+                    'items' => __('room.campaign.proxy_self_paid_not_allowed'),
+                ]);
+            }
+
             if ($code === null) {
                 $ownItems[] = $item;
             } else {

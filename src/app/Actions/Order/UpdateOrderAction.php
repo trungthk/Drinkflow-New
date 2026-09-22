@@ -73,9 +73,10 @@ class UpdateOrderAction
 
                 // Recalculate Subtotal and Final Amount
                 $newSubtotal = (int) $order->items()->sum('line_subtotal');
+                $selfPaidSubtotal = (int) $order->items()->where('is_self_paid', true)->sum('line_subtotal');
                 $campaign ??= Campaign::query()->lockForUpdate()->findOrFail($order->campaign_id);
                 $orderUpdate['subtotal'] = $newSubtotal;
-                $orderUpdate['sponsor_amount'] = $this->recalculateSponsor($campaign, $order, $newSubtotal);
+                $orderUpdate['sponsor_amount'] = $this->recalculateSponsor($campaign, $order, $newSubtotal, $selfPaidSubtotal);
                 $orderUpdate['final_amount'] = max(0, $newSubtotal + $order->delivery_amount - $order->discount_amount - $orderUpdate['sponsor_amount']);
 
                 if (! empty($priceChanges)) {
@@ -123,14 +124,19 @@ class UpdateOrderAction
     /**
      * Recalculate sponsorship after an administrator changes an order's prices.
      *
+     * Items marked "trả riêng" (self-paid) are excluded from the sponsorable charge,
+     * matching the exclusion already applied when the order was first created.
+     *
      * @param Campaign $campaign Locked campaign policy.
      * @param Order $order Locked order.
-     * @param int $subtotal Recalculated item subtotal.
+     * @param int $subtotal Recalculated item subtotal (includes self-paid items).
+     * @param int $selfPaidSubtotal Portion of $subtotal coming from self-paid items.
      * @return int Updated sponsorship amount.
      */
-    private function recalculateSponsor(Campaign $campaign, Order $order, int $subtotal): int
+    private function recalculateSponsor(Campaign $campaign, Order $order, int $subtotal, int $selfPaidSubtotal = 0): int
     {
-        $charge = max(0, $subtotal + (int) $order->delivery_amount - (int) $order->discount_amount);
+        $sponsorableSubtotal = max(0, $subtotal - $selfPaidSubtotal);
+        $charge = max(0, $sponsorableSubtotal + (int) $order->delivery_amount - (int) $order->discount_amount);
 
         return match ($campaign->sponsor_type) {
             Campaign::SPONSOR_TYPE_FULL => $charge,

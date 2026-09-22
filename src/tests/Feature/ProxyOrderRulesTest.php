@@ -61,6 +61,44 @@ class ProxyOrderRulesTest extends TestCase
             ->assertStatus(422)->assertJsonValidationErrors('proxy_user_code');
     }
 
+    /** A self-paid cart item cannot be assigned a proxy recipient, whether at add-time or via a later update. */
+    public function test_cart_rejects_assigning_proxy_to_a_self_paid_item(): void
+    {
+        [$me, $meRu, $other, $otherRu, $room] = $this->twoMembers();
+        [$campaign, $item] = $this->campaign($room);
+        $cart = route('user.campaigns.cart.store', [$room, $campaign]);
+
+        // Cannot add a self-paid item directly with a proxy recipient.
+        $this->actingAs($me, 'web')
+            ->postJson($cart, ['item_id' => $item->id, 'quantity' => 1, 'is_self_paid' => true, 'proxy_user_code' => $otherRu->user_code])
+            ->assertStatus(422)->assertJsonValidationErrors('proxy_user_code');
+
+        // Adding it without a proxy, then trying to assign one afterwards, is also rejected.
+        $this->actingAs($me, 'web')->postJson($cart, ['item_id' => $item->id, 'quantity' => 1, 'is_self_paid' => true])->assertOk();
+        $proxy = route('user.campaigns.cart.proxy', [$room, $campaign, 0]);
+        $this->actingAs($me, 'web')->patchJson($proxy, ['proxy_user_code' => $otherRu->user_code, 'proxy_user_name' => 'Other'])
+            ->assertStatus(422)->assertJsonPath('errors.proxy_user_code.0', __('room.campaign.proxy_self_paid_not_allowed'));
+    }
+
+    /** Checkout rejects an item that is both self-paid and assigned to another member via proxy_user_code. */
+    public function test_checkout_rejects_self_paid_item_with_proxy_user_code(): void
+    {
+        [$me, $meRu, $other, $otherRu, $room] = $this->twoMembers();
+        [$campaign, $item] = $this->campaign($room);
+
+        $this->actingAs($me, 'web')
+            ->postJson(route('user.orders.store', [$room, $campaign]), [
+                'items' => [
+                    ['item_id' => $item->id, 'quantity' => 1],
+                    ['item_id' => $item->id, 'quantity' => 1, 'is_self_paid' => true, 'proxy_user_code' => $otherRu->user_code],
+                ],
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.items.0', __('room.campaign.proxy_self_paid_not_allowed'));
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
     /** Items can go to others only while at least one item stays with the requester. */
     public function test_cart_keeps_at_least_one_own_item_when_ordering_for_others(): void
     {

@@ -15,6 +15,8 @@
 - [9. Thông báo](09-thong-bao.md)
 - [10. Đánh giá & góp ý](10-danh-gia-gop-y.md)
 - **11. Khi tài khoản bị khoá / hạn chế** ← *đang xem*
+- [12. Đặt món giúp thành viên khác (Order dùm)](12-dat-ho-thanh-vien-khac.md)
+- [13. Món trả riêng (không dùng tài trợ)](13-mon-tra-rieng.md)
 
 </details>
 
@@ -55,4 +57,4 @@ Nếu cần hỗ trợ thêm, bấm **"Xem thông tin liên hệ Admin"** để 
 
 ---
 
-⬅️ [Trang trước: 10. Đánh giá & góp ý](10-danh-gia-gop-y.md) &nbsp;|&nbsp; [🏠 Quay lại Mục lục](README.md)
+⬅️ [Trang trước: 10. Đánh giá & góp ý](10-danh-gia-gop-y.md) &nbsp;|&nbsp; [🏠 Mục lục](README.md) &nbsp;|&nbsp; [Trang sau: 12. Đặt món giúp thành viên khác (Order dùm) ➡️](12-dat-ho-thanh-vien-khac.md)

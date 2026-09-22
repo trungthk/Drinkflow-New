@@ -1,6 +1,7 @@
 @php
     $orderI18n = [
         'orderedItems' => __('admin.ordered_items'),
+        'selfPaidBadge' => __('admin.self_paid_badge'),
         'ice' => __('admin.pref_ice'),
         'sugar' => __('admin.pref_sugar'),
         'statusPaid' => __('admin.status_paid'),

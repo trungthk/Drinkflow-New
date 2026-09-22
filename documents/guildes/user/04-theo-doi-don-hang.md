@@ -15,6 +15,8 @@
 - [9. Thông báo](09-thong-bao.md)
 - [10. Đánh giá & góp ý](10-danh-gia-gop-y.md)
 - [11. Khi tài khoản bị khoá / hạn chế](11-tai-khoan-bi-khoa.md)
+- [12. Đặt món giúp thành viên khác (Order dùm)](12-dat-ho-thanh-vien-khac.md)
+- [13. Món trả riêng (không dùng tài trợ)](13-mon-tra-rieng.md)
 
 </details>
 
@@ -24,7 +26,7 @@ Trong Room, bấm tab **"Đơn hàng của tôi"** để xem toàn bộ đơn b�
 
 ![Đơn hàng của tôi trong Room](images/06-don-hang-cua-toi.png)
 
-Mỗi đơn hiển thị: mã đơn, thời gian đặt, danh sách món (kèm topping/ghi chú), tạm tính, phần trợ giá từ quỹ Room, phí giao hàng chia sẻ và **số tiền cần thanh toán** cuối cùng. Nếu bạn có đặt hộ đồng nghiệp, đơn cũng liệt kê rõ **"Món đã order dùm"** và người nhận.
+Mỗi đơn hiển thị: mã đơn, thời gian đặt, danh sách món (kèm topping/ghi chú), tạm tính, phần trợ giá từ quỹ Room, phí giao hàng chia sẻ và **số tiền cần thanh toán** cuối cùng. Nếu bạn có đặt hộ đồng nghiệp, đơn cũng liệt kê rõ **"Món đã order dùm"** và người nhận (xem [bài 12](12-dat-ho-thanh-vien-khac.md)). Món nào được đánh dấu **"Trả riêng"** (xem [bài 13](13-mon-tra-rieng.md)) sẽ hiển thị kèm nhãn vàng tương ứng.
 
 **Tiến độ đơn hàng theo thời gian thực** được hiển thị theo 4 bước:
 

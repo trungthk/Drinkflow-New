@@ -96,7 +96,8 @@ class CreateOrderAction
                 }
                 $line = $unit * $quantity;
                 $subtotal += $line;
-                $snapshots[] = compact('item', 'size', 'toppings', 'quantity', 'unit', 'line', 'input');
+                $isSelfPaid = filter_var($input['is_self_paid'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                $snapshots[] = compact('item', 'size', 'toppings', 'quantity', 'unit', 'line', 'input', 'isSelfPaid');
             }
 
             $discount = 0;
@@ -130,6 +131,7 @@ class CreateOrderAction
                     'sugar_percent' => $snapshot['input']['sugar_percent'] ?? null,
                     'line_subtotal' => $snapshot['line'],
                     'note' => $snapshot['input']['note'] ?? null,
+                    'is_self_paid' => $snapshot['isSelfPaid'],
                 ]);
                 foreach ($snapshot['toppings'] as $topping) {
                     $orderItem->toppings()->create([
@@ -198,18 +200,25 @@ class CreateOrderAction
     /**
      * Calculate sponsorship while the campaign row is locked to protect its shared budget.
      *
+     * Items marked "trả riêng" (self-paid) never receive sponsor coverage: their amount
+     * is excluded from the sponsorable charge so the ordering member is billed directly.
+     *
      * @param Campaign $campaign Locked campaign.
      * @param array<int, array<string, mixed>> $snapshots Ordered item snapshots.
-     * @param int $subtotal Item subtotal.
+     * @param int $subtotal Item subtotal (includes self-paid items).
      * @param int $delivery Delivery charge.
      * @param int $discount Campaign discount.
      * @return int Sponsor amount for the order.
      */
     private function sponsorAmount(Campaign $campaign, array $snapshots, int $subtotal, int $delivery, int $discount): int
     {
-        $charge = max(0, $subtotal + $delivery - $discount);
+        $selfPaidSubtotal = (int) collect($snapshots)->sum(
+            static fn (array $snapshot): int => $snapshot['isSelfPaid'] ? (int) $snapshot['line'] : 0,
+        );
+        $sponsorableSubtotal = max(0, $subtotal - $selfPaidSubtotal);
+        $charge = max(0, $sponsorableSubtotal + $delivery - $discount);
         $configuredPerItem = (int) collect($snapshots)->sum(
-            static fn (array $snapshot): int => (int) $snapshot['item']->sponsor_amount * (int) $snapshot['quantity'],
+            static fn (array $snapshot): int => $snapshot['isSelfPaid'] ? 0 : (int) $snapshot['item']->sponsor_amount * (int) $snapshot['quantity'],
         );
 
         return match ($campaign->sponsor_type) {

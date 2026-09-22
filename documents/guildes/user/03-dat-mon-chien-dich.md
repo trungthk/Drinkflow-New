@@ -15,6 +15,8 @@
 - [9. Thông báo](09-thong-bao.md)
 - [10. Đánh giá & góp ý](10-danh-gia-gop-y.md)
 - [11. Khi tài khoản bị khoá / hạn chế](11-tai-khoan-bi-khoa.md)
+- [12. Đặt món giúp thành viên khác (Order dùm)](12-dat-ho-thanh-vien-khac.md)
+- [13. Món trả riêng (không dùng tài trợ)](13-mon-tra-rieng.md)
 
 </details>
 
@@ -47,6 +49,7 @@ Phần đầu trang hiển thị:
    - **Lượng đá / Lượng đường** (nếu món hỗ trợ)
    - **Ghi chú đặc biệt** (ví dụ: ít ngọt, không đá, để riêng trân châu...)
    - **Số lượng**
+   - **Trả riêng (không dùng tài trợ)** — tick chọn nếu muốn món này không dùng đến chính sách tài trợ của chiến dịch mà ghi thẳng vào công nợ cá nhân của bạn. Xem chi tiết ở [bài 13](13-mon-tra-rieng.md).
 4. Bấm **"Thêm vào đơn"** để đưa món vào giỏ hàng.
 
 Muốn xem trước những món được đồng nghiệp chọn nhiều nhất, bấm **"Top món yêu thích"** ở đầu trang menu.
@@ -71,7 +74,7 @@ Bạn có thể đặt món giúp một thành viên khác trong cùng Room (ví
 2. Nhập **mã thành viên, email hoặc số điện thoại** của người đó vào ô tra cứu rồi bấm **"Tra cứu"**.
 3. Chọn đúng người và bấm **"Lưu người nhận"** — món đó sẽ được gán cho đồng nghiệp thay vì tính vào đơn của bạn.
 
-Lưu ý: bạn cần có **ít nhất một món cho chính mình** trong giỏ trước khi được phép đặt hộ người khác, và không thể dùng chức năng này để "đặt hộ chính mình".
+Lưu ý: bạn cần có **ít nhất một món cho chính mình** trong giỏ trước khi được phép đặt hộ người khác, và không thể dùng chức năng này để "đặt hộ chính mình". Món đánh dấu **"Trả riêng"** cũng không thể đặt hộ cho người khác. Xem hướng dẫn đầy đủ (bao gồm giới hạn hạn mức nợ của người nhận) tại [bài 12: Đặt món giúp thành viên khác (Order dùm)](12-dat-ho-thanh-vien-khac.md).
 
 ## 3.5. Không tham gia / tham gia lại chiến dịch
 

@@ -35,6 +35,7 @@ class StoreCampaignCartRequest extends FormRequest
             'topping_ids.*'   => ['integer'],
             'note'            => ['nullable', 'string', 'max:500'],
             'quantity'        => ['required', 'integer', 'min:1', 'max:99'],
+            'is_self_paid'    => ['nullable', 'boolean'],
             'proxy_user_code' => ['nullable', 'string', 'max:50'],
         ];
     }
@@ -53,6 +54,7 @@ class StoreCampaignCartRequest extends FormRequest
             'topping_ids.*'   => __('room.campaign.validation.topping'),
             'note'            => __('room.campaign.validation.note'),
             'quantity'        => __('room.campaign.validation.quantity'),
+            'is_self_paid'    => __('room.campaign.validation.is_self_paid'),
             'proxy_user_code' => __('room.campaign.validation.proxy_user_code'),
         ];
     }

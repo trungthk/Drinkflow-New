@@ -141,12 +141,14 @@ export function initAdminOrders() {
                     : '';
 
                 const itemNoteHtml = item.note ? '<div class="text-[11px] text-amber-700 dark:text-amber-400 italic mt-1 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">edit_note</span> ' + escape(item.note) + '</div>' : '';
+                const selfPaidHtml = item.is_self_paid ? '<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-300 mt-1"><span class="material-symbols-outlined text-[11px]">payments</span>' + escape(i18n.selfPaidBadge || '') + '</span>' : '';
 
                 return '<tr class="border-b border-outline-variant/40 hover:bg-surface-container-low/50 transition-colors">'
                     + '<td class="py-2 px-3 text-on-surface">'
                     +   '<div class="font-bold text-xs">' + escape(item.item_name) + (item.size ? ' <span class="text-primary font-normal">(' + escape(item.size) + ')</span>' : '') + '</div>'
                     +   toppingsHtml
                     +   itemNoteHtml
+                    +   selfPaidHtml
                     + '</td>'
                     + '<td class="py-2 px-3 text-center font-mono font-bold text-on-surface">' + escape(item.quantity) + '</td>'
                     + '<td class="py-2 px-3 text-right font-mono text-outline">' + formatVND(item.unit_price) + '</td>'

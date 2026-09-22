@@ -165,20 +165,27 @@
                                 @endif
                             </td>
                             <td class="py-3.5 px-4 text-left">
-                                <button type="button" data-open-user-detail data-room-user-id="{{ $ru->id }}"
-                                    class="flex items-center gap-3 text-left group/user cursor-pointer focus:outline-none bg-transparent border-0 p-0">
-                                    <div>
-                                        <div
-                                            class="font-bold text-on-surface text-sm group-hover/user:text-primary transition-colors flex items-center gap-1.5">
-                                            <span>{{ $name }}</span>
-                                            <span
-                                                class="material-symbols-outlined text-[14px] text-outline opacity-0 group-hover/user:opacity-100 transition-opacity">visibility</span>
-                                        </div>
-                                        <div class="text-[11px] text-outline">
-                                            <span>{{ $email }}</span>
-                                        </div>
+                                <div class="group/user">
+                                    <button type="button" data-open-user-detail data-room-user-id="{{ $ru->id }}"
+                                        class="flex items-center gap-1.5 text-left cursor-pointer focus:outline-none bg-transparent border-0 p-0 font-bold text-on-surface text-sm group-hover/user:text-primary transition-colors">
+                                        <span>{{ $name }}</span>
+                                        <span
+                                            class="material-symbols-outlined text-[14px] text-outline opacity-0 group-hover/user:opacity-100 transition-opacity">visibility</span>
+                                    </button>
+                                    <div class="flex items-center gap-1 text-[11px] text-outline">
+                                        <span>{{ $email }}</span>
+                                        @if($ru->globalUser?->email)
+                                            <button type="button" data-copy="{{ $ru->globalUser->email }}"
+                                                data-copied-message="{{ __('admin.copied') }}"
+                                                data-copy-failed-message="{{ __('admin.copy_failed') }}"
+                                                data-tooltip="{{ __('admin.copy_email') }}"
+                                                aria-label="{{ __('admin.copy_email') }}"
+                                                class="inline-flex items-center text-outline hover:text-primary transition-colors cursor-pointer">
+                                                <span class="material-symbols-outlined text-[12px]">content_copy</span>
+                                            </button>
+                                        @endif
                                     </div>
-                                </button>
+                                </div>
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <span
@@ -440,7 +447,17 @@
                             <span id="user-detail-status-badge"
                                 class="text-[11px] font-semibold px-2 py-0.5 rounded border">-</span>
                         </div>
-                        <p id="user-detail-email" class="text-xs text-outline mt-0.5">-</p>
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <p id="user-detail-email" class="text-xs text-outline">-</p>
+                            <button type="button" id="user-detail-email-copy" data-copy=""
+                                data-copied-message="{{ __('admin.copied') }}"
+                                data-copy-failed-message="{{ __('admin.copy_failed') }}"
+                                data-tooltip="{{ __('admin.copy_email') }}"
+                                aria-label="{{ __('admin.copy_email') }}"
+                                class="hidden inline-flex items-center text-outline hover:text-primary transition-colors cursor-pointer">
+                                <span class="material-symbols-outlined text-[13px]">content_copy</span>
+                            </button>
+                        </div>
                         <p class="mt-0.5 text-[11px] text-outline">
                             {{ __('admin.member_code') }}: <span id="user-detail-code" class="font-mono font-semibold text-primary">-</span>
                         </p>
@@ -475,7 +492,17 @@
                             <span class="material-symbols-outlined text-[15px] text-secondary">call</span>
                             {{ __('admin.user_phone') }}
                         </span>
-                        <span id="user-detail-phone" class="font-semibold text-on-surface font-mono">-</span>
+                        <span class="flex items-center gap-1">
+                            <span id="user-detail-phone" class="font-semibold text-on-surface font-mono">-</span>
+                            <button type="button" id="user-detail-phone-copy" data-copy=""
+                                data-copied-message="{{ __('admin.copied') }}"
+                                data-copy-failed-message="{{ __('admin.copy_failed') }}"
+                                data-tooltip="{{ __('admin.copy_phone') }}"
+                                aria-label="{{ __('admin.copy_phone') }}"
+                                class="hidden inline-flex items-center text-outline hover:text-primary transition-colors cursor-pointer">
+                                <span class="material-symbols-outlined text-[13px]">content_copy</span>
+                            </button>
+                        </span>
                     </div>
                     <div class="flex items-center justify-between py-1 border-b border-outline-variant/40">
                         <span class="text-outline flex items-center gap-1.5">

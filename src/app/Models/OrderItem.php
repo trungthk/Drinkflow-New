@@ -10,7 +10,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class OrderItem extends Model
 {
-    protected $fillable = ['order_id', 'campaign_item_id', 'item_name', 'size_name', 'unit_price', 'quantity', 'ice_percent', 'sugar_percent', 'line_subtotal', 'note'];
+    protected $fillable = ['order_id', 'campaign_item_id', 'item_name', 'size_name', 'unit_price', 'quantity', 'ice_percent', 'sugar_percent', 'line_subtotal', 'note', 'is_self_paid'];
+
+    protected function casts(): array
+    {
+        return ['is_self_paid' => 'boolean'];
+    }
 
     public function order(): BelongsTo
     {

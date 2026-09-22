@@ -23,10 +23,16 @@ class Campaign extends Model
 
     public const SPONSOR_TYPE_BUDGET = 'budget';
 
+    /** Nợ trả riêng lấy đúng đơn giá món, không cộng ship và không trừ giảm giá/chiết khấu chung của chiến dịch. */
+    public const SELF_PAID_PRICE_BASIS_ORIGINAL = 'original';
+
+    /** Nợ trả riêng được phân bổ theo tỷ lệ ship và giảm giá/chiết khấu chung của chiến dịch, như các món được tài trợ. */
+    public const SELF_PAID_PRICE_BASIS_CAMPAIGN_PRORATED = 'campaign_prorated';
+
     /** Minutes an admin may add to an ordering deadline in one step. */
     public const EXTEND_DEADLINE_MINUTES = [10, 20, 30, 60];
 
-    protected $fillable = ['room_id', 'code', 'name', 'restaurant', 'creator_admin_id', 'sponsor_name', 'sponsor_type', 'sponsor_description', 'sponsor_allocations', 'deadline', 'max_budget', 'flat_price', 'delivery_fee', 'discount', 'payment_account_id', 'description', 'status', 'started_at', 'closed_at'];
+    protected $fillable = ['room_id', 'code', 'name', 'restaurant', 'creator_admin_id', 'sponsor_name', 'sponsor_type', 'sponsor_description', 'sponsor_allocations', 'deadline', 'max_budget', 'flat_price', 'delivery_fee', 'discount', 'self_paid_price_basis', 'payment_account_id', 'description', 'status', 'started_at', 'closed_at'];
 
     /**
      * Bootstrap the model and its traits.

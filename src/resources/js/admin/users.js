@@ -347,6 +347,7 @@ export function initAdminUsers() {
 
             const nameEl = document.querySelector('#user-detail-name');
             const emailEl = document.querySelector('#user-detail-email');
+            const emailCopyEl = document.querySelector('#user-detail-email-copy');
             const codeEl = document.querySelector('#user-detail-code');
             const roleBadge = document.querySelector('#user-detail-role-badge');
             const statusBadge = document.querySelector('#user-detail-status-badge');
@@ -355,6 +356,11 @@ export function initAdminUsers() {
 
             if (nameEl) nameEl.textContent = name;
             if (emailEl) emailEl.textContent = email;
+            if (emailCopyEl) {
+                const realEmail = user.global_user?.email || '';
+                emailCopyEl.dataset.copy = realEmail;
+                emailCopyEl.classList.toggle('hidden', !realEmail);
+            }
             if (codeEl) codeEl.textContent = user.user_code || '—';
 
             if (roleBadge) {
@@ -389,10 +395,16 @@ export function initAdminUsers() {
 
             // Populate Contact & Location
             const phoneEl = document.querySelector('#user-detail-phone');
+            const phoneCopyEl = document.querySelector('#user-detail-phone-copy');
             const deskEl = document.querySelector('#user-detail-desk');
             const deliveryEl = document.querySelector('#user-detail-delivery');
 
             if (phoneEl) phoneEl.textContent = user.global_user?.phone || '—';
+            if (phoneCopyEl) {
+                const realPhone = user.global_user?.phone || '';
+                phoneCopyEl.dataset.copy = realPhone;
+                phoneCopyEl.classList.toggle('hidden', !realPhone);
+            }
             if (deskEl) deskEl.textContent = user.global_user?.desk_location || '—';
             if (deliveryEl) deliveryEl.textContent = user.global_user?.delivery_location || '—';
 

@@ -25,6 +25,8 @@ Chào mừng bạn đến với **DrinkFlow** — nền tảng gom đơn đồ u
 | 9 | [Thông báo](09-thong-bao.md) | Chuông thông báo, trung tâm thông báo, cấu hình kênh nhận tin |
 | 10 | [Đánh giá & góp ý](10-danh-gia-gop-y.md) | Gửi đánh giá trải nghiệm, xem thống kê hài lòng chung |
 | 11 | [Khi tài khoản bị khoá / hạn chế](11-tai-khoan-bi-khoa.md) | Phân biệt khoá toàn hệ thống và hạn chế theo Room, cách gửi khiếu nại |
+| 12 | [Đặt món giúp thành viên khác (Order dùm)](12-dat-ho-thanh-vien-khac.md) | Điều kiện đặt hộ, cách gán món cho người nhận, giới hạn hạn mức nợ |
+| 13 | [Món trả riêng (không dùng tài trợ)](13-mon-tra-rieng.md) | Đánh dấu món không dùng tài trợ, ảnh hưởng đến công nợ cá nhân |
 
 ## Ghi chú về hình ảnh minh họa
 

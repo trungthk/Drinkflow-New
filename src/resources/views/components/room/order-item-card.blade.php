@@ -53,6 +53,13 @@
                     {{ $top->topping_name }} (+{{ \App\Support\Helpers\FormatHelper::formatCurrency($top->unit_price) }})
                 </span>
             @endforeach
+            @if($item->is_self_paid)
+                <span
+                    class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-300 text-[10px] leading-4 flex items-center gap-0.5 font-semibold">
+                    <span class="material-symbols-outlined text-[12px]">payments</span>
+                    {{ __('room.campaign.self_paid_badge') }}
+                </span>
+            @endif
         </div>
 
         @if($item->note)

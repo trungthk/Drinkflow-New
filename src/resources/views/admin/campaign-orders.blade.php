@@ -415,6 +415,11 @@
                                                             📝 {{ $item->note }}
                                                         </div>
                                                     @endif
+                                                    @if ($item->is_self_paid)
+                                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-300 mt-0.5">
+                                                            <span class="material-symbols-outlined text-[11px]">payments</span>{{ __('admin.self_paid_badge') }}
+                                                        </span>
+                                                    @endif
                                                 </div>
                                             @endforeach
                                             @if (!empty($order->note))
@@ -1059,6 +1064,9 @@
                                                     <div x-show="item.note" class="text-[11px] text-amber-800 bg-amber-50/80 px-2 py-0.5 rounded border border-amber-200/60 mt-1 italic">
                                                         📝 <span x-text="item.note"></span>
                                                     </div>
+                                                    <span x-show="item.is_self_paid" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 border border-amber-300 mt-1">
+                                                        <span class="material-symbols-outlined text-[11px]">payments</span>{{ __('admin.self_paid_badge') }}
+                                                    </span>
                                                 </div>
                                                 <div class="text-right shrink-0">
                                                     <div class="font-bold text-on-surface font-mono" x-text="formatCurrency(item.line_subtotal || item.total_amount)"></div>
@@ -1259,6 +1267,7 @@
                                 'total_amount' => (int) $it->total_amount,
                                 'line_subtotal' => (int) ($it->line_subtotal ?? $it->total_amount),
                                 'note' => $it->note,
+                                'is_self_paid' => (bool) $it->is_self_paid,
                                 'toppings' => $it->toppings->map(
                                     fn($top) => [
                                         'name' => $top->topping_name,

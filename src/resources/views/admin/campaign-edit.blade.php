@@ -9,6 +9,7 @@
         'description' => $campaign->description ?? '',
         'sponsor_type' => $campaign->sponsor_type ?? \App\Models\Campaign::SPONSOR_TYPE_NONE,
         'sponsor_description' => $campaign->sponsor_description ?? '',
+        'self_paid_price_basis' => $campaign->self_paid_price_basis ?? \App\Models\Campaign::SELF_PAID_PRICE_BASIS_ORIGINAL,
         'max_budget' => $campaign->max_budget ?? $maxBudget,
         'flat_price' => $campaign->flat_price ?? '',
         'status' => $campaignStatusValue,
@@ -341,6 +342,15 @@
                 <div x-show="form.sponsor_type !== 'none'">
                     <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.sponsor_description_label') }}</label>
                     <textarea x-model="form.sponsor_description" rows="2" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-on-surface mb-1">{{ __('admin.self_paid_price_basis_label') }}</label>
+                    <select x-model="form.self_paid_price_basis" class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface">
+                        <option value="original">{{ __('admin.self_paid_price_basis_original') }}</option>
+                        <option value="campaign_prorated">{{ __('admin.self_paid_price_basis_campaign_prorated') }}</option>
+                    </select>
+                    <p class="mt-1 text-[11px] text-outline">{{ __('admin.self_paid_price_basis_hint') }}</p>
                 </div>
             </div>
         </div>
