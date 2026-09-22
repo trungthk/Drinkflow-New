@@ -13,8 +13,11 @@ class SecurityHeaders
     /**
      * Attach baseline browser-side protections (anti-clickjacking, MIME sniffing, referrer leakage) to every web response.
      *
-     * The CSP is intentionally limited to directives that cannot break existing inline handlers or CDN assets;
-     * script-src is not restricted yet because the Blade views still rely on inline event handlers.
+     * script-src/style-src are pinned to an explicit allowlist (self + the CDNs Blade layouts actually load) instead
+     * of being left unset: an unset directive is not restricted at all, so any XSS payload could previously pull in
+     * and run a script from an arbitrary attacker-controlled domain. 'unsafe-inline' and 'unsafe-eval' stay in place
+     * because the Blade views still rely on inline event handlers and both Alpine.js and the Tailwind CDN JIT
+     * compiler evaluate code at runtime; removing them needs those to be migrated first (see AGENTS.md follow-up).
      *
      * @param Request $request Incoming HTTP request.
      * @param Closure(Request): Response $next Next middleware handler.
@@ -29,7 +32,7 @@ class SecurityHeaders
             'X-Content-Type-Options' => 'nosniff',
             'Referrer-Policy' => 'strict-origin-when-cross-origin',
             'Permissions-Policy' => 'camera=(), microphone=(), geolocation=(), payment=()',
-            'Content-Security-Policy' => "frame-ancestors 'self'; base-uri 'self'; object-src 'none'",
+            'Content-Security-Policy' => $this->buildContentSecurityPolicy(),
         ];
 
         if ($request->isSecure()) {
@@ -43,5 +46,64 @@ class SecurityHeaders
         }
 
         return $response;
+    }
+
+    /**
+     * Build the Content-Security-Policy header value, including the realtime notification
+     * server's origin (its address is environment-specific, so it cannot be hardcoded).
+     *
+     * @return string Full CSP directive string.
+     */
+    private function buildContentSecurityPolicy(): string
+    {
+        [$realtimeOrigin, $realtimeWsOrigin] = $this->realtimeOrigins();
+        // The Vite dev server (`npm run dev`) only ever binds to the developer's own loopback interface:
+        // no production visitor's browser can reach it, so always allowing it costs nothing and keeps
+        // local HMR working regardless of how APP_ENV happens to be set on a given machine.
+        // (CSP source-lists cannot express a literal IPv6 host such as `[::1]`, so only the IPv4/hostname
+        // forms are listed; browsers ignore an `[::1]` entry with a console warning if one is added here.)
+        $viteDevOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
+        $viteDevWsOrigins = ['ws://localhost:5173', 'ws://127.0.0.1:5173'];
+
+        $scriptSrc = array_filter([
+            "'self'", "'unsafe-inline'", "'unsafe-eval'",
+            'https://cdn.jsdelivr.net', 'https://cdn.tailwindcss.com',
+            $realtimeOrigin,
+            ...$viteDevOrigins,
+        ]);
+        $connectSrc = array_filter(["'self'", $realtimeOrigin, $realtimeWsOrigin, ...$viteDevOrigins, ...$viteDevWsOrigins]);
+        $styleSrc = array_filter(["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdn.tailwindcss.com', ...$viteDevOrigins]);
+        $fontSrc = ["'self'", 'https://fonts.gstatic.com', 'data:'];
+        $imgSrc = ["'self'", 'data:', 'https:'];
+
+        return implode('; ', [
+            "default-src 'self'",
+            'script-src '.implode(' ', $scriptSrc),
+            'style-src '.implode(' ', $styleSrc),
+            'font-src '.implode(' ', $fontSrc),
+            'img-src '.implode(' ', $imgSrc),
+            'connect-src '.implode(' ', $connectSrc),
+            "frame-ancestors 'self'",
+            "base-uri 'self'",
+            "object-src 'none'",
+        ]);
+    }
+
+    /**
+     * Derive the realtime server's HTTP(S) and WS(S) origins from its configured public URL.
+     *
+     * @return array{0: string|null, 1: string|null} [http(s) origin, ws(s) origin], both null when unconfigured.
+     */
+    private function realtimeOrigins(): array
+    {
+        $parts = parse_url((string) config('services.realtime.public_url', ''));
+        if (! isset($parts['scheme'], $parts['host'])) {
+            return [null, null];
+        }
+
+        $authority = $parts['host'].(isset($parts['port']) ? ':'.$parts['port'] : '');
+        $wsScheme = $parts['scheme'] === 'https' ? 'wss' : 'ws';
+
+        return [$parts['scheme'].'://'.$authority, $wsScheme.'://'.$authority];
     }
 }

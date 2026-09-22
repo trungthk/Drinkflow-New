@@ -7,36 +7,10 @@ namespace App\Services\FoodCrawler\Browser;
 use App\Services\FoodCrawler\Contracts\BrowserTransportInterface;
 use App\Services\FoodCrawler\Exceptions\FoodCrawlerException;
 use Illuminate\Support\Facades\Log;
-use Spatie\Browsershot\Browsershot;
 use Throwable;
 
 final class PuppeteerBrowserTransport implements BrowserTransportInterface
 {
-    private function browser(string $url): Browsershot
-    {
-        $chromePath = (string) config('food-crawler.browser.chrome_path');
-        $nodeBinary = (string) config('food-crawler.browser.node_binary');
-        $nodeModulePath = (string) config('food-crawler.browser.node_module_path');
-        if (! is_file($chromePath)) {
-            throw new FoodCrawlerException('Chrome executable was not found at the configured path.');
-        }
-        if (! is_file($nodeBinary)) {
-            throw new FoodCrawlerException('Node.js executable was not found at the configured path.');
-        }
-        if (! is_dir($nodeModulePath) || ! is_dir($nodeModulePath.'/puppeteer')) {
-            throw new FoodCrawlerException('Puppeteer was not found in the configured Node module path.');
-        }
-        putenv('NODE_PATH='.$nodeModulePath);
-
-        return Browsershot::url($url)
-            ->setChromePath($chromePath)
-            ->setNodeBinary($nodeBinary)
-            ->setNpmBinary((string) config('food-crawler.browser.npm_binary'))
-            ->setNodeModulePath($nodeModulePath)
-            ->noSandbox()
-            ->waitUntilNetworkIdle(false)
-            ->timeout((int) config('food-crawler.browser.timeout', 30));
-    }
 
     /**
      * Load a public page with Chromium and return its rendered HTML.
