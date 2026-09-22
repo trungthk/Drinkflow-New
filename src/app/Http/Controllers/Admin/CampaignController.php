@@ -14,9 +14,12 @@ use App\Actions\Campaign\SplitCampaignBillAction;
 use App\Actions\Campaign\TransitionCampaignAction;
 use App\Actions\Campaign\UpdateCampaignAction;
 use App\Actions\Campaign\UpdateCampaignItemAction;
+use App\Actions\Debt\ConfirmCampaignDebtsPaidAction;
 use App\Enums\PaymentAccountStatus;
+use App\Enums\PaymentMethod;
 use App\Enums\CampaignStatus;
 use App\Enums\RoomUserStatus;
+use App\Events\CampaignUpdated;
 use App\Events\RoomRealtimeEvent;
 use App\Exports\CampaignAggregateExport;
 use App\Exports\CampaignDetailExport;
@@ -25,6 +28,7 @@ use App\Http\Requests\ExtendCampaignDeadlineRequest;
 use App\Http\Requests\BatchUpdateCampaignItemStatusRequest;
 use App\Http\Requests\CampaignPageRequest;
 use App\Http\Requests\CloseCampaignRequest;
+use App\Http\Requests\ConfirmCampaignDebtsPaidRequest;
 use App\Http\Requests\SplitBillRequest;
 use App\Http\Requests\StoreCampaignItemRequest;
 use App\Http\Requests\StoreCampaignImageRequest;
@@ -156,6 +160,7 @@ class CampaignController extends Controller
         $roomUsers = $room->roomUsers()->with('globalUser')->where('status', RoomUserStatus::Active)->get();
         $previousCampaigns = Campaign::query()
             ->where('room_id', $room->id)
+            ->where('status', CampaignStatus::Closed)
             ->whereHas('items')
             ->with(['items.sizes', 'items.toppings'])
             ->latest()
@@ -191,6 +196,7 @@ class CampaignController extends Controller
     {
         $campaigns = Campaign::query()
             ->where('room_id', $room->id)
+            ->where('status', CampaignStatus::Closed)
             ->whereHas('items')
             ->with(['items.sizes', 'items.toppings'])
             ->latest()
@@ -276,6 +282,19 @@ class CampaignController extends Controller
         return view('admin.campaign-orders', $data);
     }
 
+    /** Confirm all outstanding debts for this campaign as paid. */
+    public function confirmDebtsPaid(ConfirmCampaignDebtsPaidRequest $request, Room $room, Campaign $campaign, ConfirmCampaignDebtsPaidAction $action): JsonResponse
+    {
+        $this->assertCampaign($campaign);
+
+        $count = $action->execute($campaign, PaymentMethod::from($request->validated('payment_method')), $request->user('admin')?->id);
+
+        return response()->json([
+            'data' => ['count' => $count],
+            'message' => __('admin.bulk_debts_paid_success', ['count' => $count]),
+        ]);
+    }
+
     /**
      * Return the campaign as JSON, or redirect HTML requests to the matching campaign page.
      *
@@ -347,6 +366,7 @@ class CampaignController extends Controller
         $previousCampaigns = Campaign::query()
             ->where('room_id', $room->id)
             ->where('id', '!=', $campaign->id)
+            ->where('status', CampaignStatus::Closed)
             ->whereHas('items')
             ->with(['items.sizes', 'items.toppings'])
             ->latest()
@@ -387,8 +407,10 @@ class CampaignController extends Controller
     {
         $this->assertCampaignEditable($campaign);
         $data = $request->validated();
+        $notifyMembers = (bool) ($data['notify_members'] ?? true);
+        unset($data['notify_members']);
         $adminId = $request->user('admin')?->id;
-        $updatedCampaign = $updateAction->execute($campaign, $data, $adminId);
+        $updatedCampaign = $updateAction->execute($campaign, $data, $adminId, $notifyMembers);
         $this->publishCampaignEvent('campaign.updated', $updatedCampaign);
 
         return response()->json([
@@ -648,7 +670,7 @@ class CampaignController extends Controller
         $this->assertItemEditable($campaign, $item);
         $before = $item->status?->value ?? (string) $item->status;
         $item->update(['status' => \App\Enums\CampaignItemStatus::Inactive]);
-        $audit->record('campaign_item.archived', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before], ['status' => \App\Enums\CampaignItemStatus::Inactive->value]);
+        $audit->record('campaign_item.archived', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before, 'name' => $item->name], ['status' => \App\Enums\CampaignItemStatus::Inactive->value, 'name' => $item->name]);
         $this->publishMenuEvent('campaign.menu.deleted', $campaign, $item);
         return response()->json(['data' => $item->fresh()]);
     }
@@ -666,6 +688,7 @@ class CampaignController extends Controller
     {
         $this->assertCampaignEditable($campaign);
         $validated = $request->validated();
+        $notifyMembers = (bool) ($validated['notify_members'] ?? false);
 
         $itemIds = collect($validated['items'])->pluck('id')->all();
         $existingItems = $campaign->items()->whereIn('id', $itemIds)->get()->keyBy('id');
@@ -680,10 +703,14 @@ class CampaignController extends Controller
             $before = $item->status?->value ?? (string) $item->status;
             if ($before !== $newStatus) {
                 $item->update(['status' => \App\Enums\CampaignItemStatus::from($newStatus)]);
-                $audit->record('campaign_item.status_updated', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before], ['status' => $newStatus]);
+                $audit->record('campaign_item.status_updated', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before, 'name' => $item->name], ['status' => $newStatus, 'name' => $item->name]);
                 $this->publishMenuEvent('campaign.menu.updated', $campaign, $item);
                 $updatedCount++;
             }
+        }
+
+        if ($updatedCount > 0 && $notifyMembers) {
+            CampaignUpdated::dispatch($campaign->fresh()->loadMissing('room'));
         }
 
         return response()->json([
@@ -701,7 +728,7 @@ class CampaignController extends Controller
         $status = $request->validated()['status'];
         $before = $item->status?->value ?? (string) $item->status;
         $item->update(['status' => \App\Enums\CampaignItemStatus::from($status)]);
-        $audit->record('campaign_item.status_updated', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before], ['status' => $status]);
+        $audit->record('campaign_item.status_updated', 'campaign_item', $item->id, $campaign->room_id, ['status' => $before, 'name' => $item->name], ['status' => $status, 'name' => $item->name]);
         $this->publishMenuEvent('campaign.menu.updated', $campaign, $item);
         return response()->json(['data' => $item->fresh()]);
     }

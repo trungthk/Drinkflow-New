@@ -404,7 +404,7 @@
                                         <div class="flex items-start gap-2.5">
                                             <span
                                                 class="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                                                <span class="material-symbols-outlined text-[14px]">info</span>
+                                                <span class="material-symbols-outlined text-[14px]">{{ $notificationPresentation['icon'] }}</span>
                                             </span>
                                             <div class="flex-1 min-w-0">
                                                 <p class="text-xs font-medium text-on-surface leading-snug">

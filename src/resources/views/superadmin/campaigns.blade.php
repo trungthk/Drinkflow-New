@@ -13,5 +13,6 @@
     <tr><td colspan="6" class="sa-empty">Chưa có campaign.</td></tr>
 @endforelse
 </tbody></table></div><div class="mt-4">{{ $campaigns->links() }}</div></section>
+<x-superadmin.confirm-modal />
 @endsection
-@push('scripts')<script>async function forceCampaign(id,action){if(!confirm('Xác nhận thao tác trên campaign này?'))return;try{await dfApi(`/superadmin/campaigns/${id}/${action}`,{method:'POST'});window.location.reload();}catch(e){alert(e.message);}}</script>@endpush
+@push('scripts')<script>function forceCampaign(id,action){openSuperadminConfirm({message:@js(__('superadmin.common.confirm_action')),onConfirm:async()=>{await dfApi(`/superadmin/campaigns/${id}/${action}`,{method:'POST'});window.location.reload();}});}</script>@endpush

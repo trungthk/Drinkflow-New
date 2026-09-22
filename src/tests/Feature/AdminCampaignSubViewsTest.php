@@ -6,10 +6,12 @@ namespace Tests\Feature;
 
 use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
+use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Events\CampaignCreated;
 use App\Models\AdminAccount;
 use App\Models\Campaign;
+use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\Room;
@@ -72,6 +74,68 @@ class AdminCampaignSubViewsTest extends TestCase
             ->assertSee(__('admin.financial_settlement_summary'));
     }
 
+    public function test_full_sponsorship_uses_gross_total_for_total_and_each_sponsor(): void
+    {
+        $firstSponsor = RoomUser::create([
+            'room_id' => $this->room->id,
+            'global_user_id' => GlobalUser::create(['name' => 'First Sponsor', 'email' => 'first-sponsor@example.test'])->id,
+            'display_name' => 'First Sponsor',
+            'status' => 'active',
+        ]);
+        $secondSponsor = RoomUser::create([
+            'room_id' => $this->room->id,
+            'global_user_id' => GlobalUser::create(['name' => 'Second Sponsor', 'email' => 'second-sponsor@example.test'])->id,
+            'display_name' => 'Second Sponsor',
+            'status' => 'active',
+        ]);
+        $this->campaign->update([
+            'sponsor_type' => Campaign::SPONSOR_TYPE_FULL,
+            'sponsor_allocations' => [
+                ['room_user_id' => $firstSponsor->id, 'percentage' => 50],
+                ['room_user_id' => $secondSponsor->id, 'percentage' => 50],
+            ],
+            'delivery_fee' => 10,
+            'discount' => 9,
+        ]);
+        Order::create([
+            'room_id' => $this->room->id,
+            'campaign_id' => $this->campaign->id,
+            'room_user_id' => $firstSponsor->id,
+            'subtotal' => 100,
+            'sponsor_amount' => 100,
+            'final_amount' => 0,
+            'status' => OrderStatus::Submitted,
+        ]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/info")
+            ->assertOk()
+            ->assertViewHas('grossTotal', 101)
+            ->assertViewHas('sponsorSubsidy', 101)
+            ->assertViewHas('sponsorsList', static function ($sponsors): bool {
+                return $sponsors->pluck('amount')->all() === [50, 51]
+                    && $sponsors->pluck('name')->all() === ['First Sponsor', 'Second Sponsor'];
+            });
+    }
+
+    /**
+     * Test the cancel-campaign confirm button carries a loading state for its submit.
+     */
+    public function test_cancel_campaign_button_has_submit_loading_state(): void
+    {
+        $this->campaign->update(['status' => CampaignStatus::Active]);
+
+        $html = $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/info")
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString('id="cancel-campaign-btn-normal"', $html);
+        $this->assertStringContainsString('id="cancel-campaign-btn-loading"', $html);
+        $this->assertStringContainsString(__('admin.cancelling_status'), $html);
+        $this->assertStringContainsString("loadingEl.style.display = 'flex'", $html);
+    }
+
     /**
      * Test admin can access campaign orders and items list view via /orders route.
      */
@@ -110,6 +174,58 @@ class AdminCampaignSubViewsTest extends TestCase
             ->assertSee(__('admin.aggregated_items_list'))
             ->assertSee(__('admin.orders_list_tab'))
             ->assertSee('Nguyễn Văn A');
+    }
+
+    public function test_campaign_orders_tab_excludes_cancelled_orders_from_list_and_totals(): void
+    {
+        $globalUser = GlobalUser::create(['name' => 'Order Member', 'email' => 'order-member@example.test']);
+        $roomUser = RoomUser::create([
+            'room_id' => $this->room->id,
+            'global_user_id' => $globalUser->id,
+            'display_name' => 'Order Member',
+            'status' => 'active',
+        ]);
+        $activeOrder = Order::create([
+            'room_id' => $this->room->id,
+            'campaign_id' => $this->campaign->id,
+            'room_user_id' => $roomUser->id,
+            'subtotal' => 50000,
+            'sponsor_amount' => 0,
+            'final_amount' => 50000,
+            'status' => OrderStatus::Submitted,
+        ]);
+        $cancelledOrder = Order::create([
+            'room_id' => $this->room->id,
+            'campaign_id' => $this->campaign->id,
+            'room_user_id' => $roomUser->id,
+            'subtotal' => 30000,
+            'sponsor_amount' => 0,
+            'final_amount' => 30000,
+            'status' => OrderStatus::Cancelled,
+            'cancelled_at' => now(),
+        ]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/orders")
+            ->assertOk()
+            ->assertViewHas('orders', fn ($orders): bool => $orders->count() === 1 && $orders->first()->id === $activeOrder->id)
+            ->assertViewHas('grossSubtotal', 50000)
+            ->assertSee($activeOrder->code)
+            ->assertDontSee($cancelledOrder->code);
+    }
+
+    public function test_adjustment_form_displays_formatted_currency_values(): void
+    {
+        $this->campaign->update(['delivery_fee' => 12345, 'discount' => 6789]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/info")
+            ->assertOk()
+            ->assertSee('id="adjust-fee-input" inputmode="numeric" value="12.345"', false)
+            ->assertSee('id="adjust-discount-input" inputmode="numeric" value="6.789"', false)
+            ->assertSee('oninput="formatMoneyInput(event)"', false)
+            ->assertSee('type="checkbox" id="adjust-notify-members" class=', false)
+            ->assertSee('notify_members: Boolean(notifyCheckbox && notifyCheckbox.checked)', false);
     }
 
     /**
@@ -674,6 +790,53 @@ class AdminCampaignSubViewsTest extends TestCase
         $this->assertContains(['Trân châu'], $departments->first()['items']->pluck('toppings')->map->all()->all());
     }
 
+    public function test_aggregated_quantity_tooltip_lists_each_member_and_combines_their_item_quantities(): void
+    {
+        $members = collect(['Alice', 'Bob'])->mapWithKeys(function (string $name): array {
+            $globalUser = GlobalUser::create(['name' => $name, 'email' => strtolower($name).'@example.test']);
+            $roomUser = RoomUser::create([
+                'room_id' => $this->room->id,
+                'global_user_id' => $globalUser->id,
+                'display_name' => $name,
+                'status' => 'active',
+            ]);
+
+            return [$name => $roomUser];
+        });
+
+        foreach (['Alice' => [1, 2], 'Bob' => [2]] as $name => $quantities) {
+            $orderQuantity = array_sum($quantities);
+            $order = Order::create([
+                'room_id' => $this->room->id,
+                'campaign_id' => $this->campaign->id,
+                'room_user_id' => $members[$name]->id,
+                'subtotal' => $orderQuantity * 25000,
+                'final_amount' => $orderQuantity * 25000,
+                'status' => OrderStatus::Submitted,
+            ]);
+            foreach ($quantities as $quantity) {
+                $order->items()->create([
+                    'item_name' => 'Coffee',
+                    'unit_price' => 25000,
+                    'quantity' => $quantity,
+                    'line_subtotal' => $quantity * 25000,
+                ]);
+            }
+        }
+
+        $response = $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/orders")
+            ->assertOk();
+
+        $item = $response->viewData('aggregatedItems')->first();
+        $this->assertSame(5, $item['quantity']);
+        $this->assertSame([
+            ['name' => 'Alice', 'quantity' => 3],
+            ['name' => 'Bob', 'quantity' => 2],
+        ], $item['member_quantities']->values()->all());
+        $response->assertSee("data-tip=\"Alice x 3\nBob x 2\"", false);
+    }
+
     /**
      * Test the close-campaign modal pre-checks "auto create debt records".
      */
@@ -685,5 +848,279 @@ class AdminCampaignSubViewsTest extends TestCase
             ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/info")
             ->assertOk()
             ->assertSee('id="close-campaign-allow-debt" checked', false);
+    }
+
+    /**
+     * Test the update endpoint respects the notify_members flag sent by the confirm modal.
+     */
+    public function test_update_endpoint_skips_notification_when_notify_members_is_false(): void
+    {
+        $this->campaign->update(['status' => CampaignStatus::Active]);
+        $base = "/admin/{$this->room->slug}/campaigns/{$this->campaign->id}";
+
+        Event::fake([\App\Events\CampaignUpdated::class]);
+        $this->actingAs($this->admin, 'admin')
+            ->patchJson($base, ['delivery_fee' => 1000, 'discount' => 0, 'notify_members' => false])
+            ->assertOk();
+        Event::assertNotDispatched(\App\Events\CampaignUpdated::class);
+
+        Event::fake([\App\Events\CampaignUpdated::class]);
+        $this->actingAs($this->admin, 'admin')
+            ->patchJson($base, ['delivery_fee' => 2000, 'discount' => 0, 'notify_members' => true])
+            ->assertOk();
+        Event::assertDispatched(\App\Events\CampaignUpdated::class);
+    }
+
+    /**
+     * Test the batch item status update only notifies room members when explicitly requested.
+     */
+    public function test_batch_item_status_update_only_notifies_when_notify_members_is_true(): void
+    {
+        $this->campaign->update(['status' => CampaignStatus::Active]);
+        $item = $this->campaign->items()->create(['name' => 'Trà đào', 'normalized_name' => 'tra dao', 'base_price' => 30000, 'status' => 'active']);
+        $base = "/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/items-batch-status";
+
+        Event::fake([\App\Events\CampaignUpdated::class]);
+        $this->actingAs($this->admin, 'admin')
+            ->patchJson($base, ['items' => [['id' => $item->id, 'status' => 'inactive']]])
+            ->assertOk();
+        Event::assertNotDispatched(\App\Events\CampaignUpdated::class);
+        $this->assertSame('inactive', $item->fresh()->status->value);
+
+        Event::fake([\App\Events\CampaignUpdated::class]);
+        $this->actingAs($this->admin, 'admin')
+            ->patchJson($base, ['items' => [['id' => $item->id, 'status' => 'active']], 'notify_members' => true])
+            ->assertOk();
+        Event::assertDispatched(\App\Events\CampaignUpdated::class);
+        $this->assertSame('active', $item->fresh()->status->value);
+    }
+
+    /**
+     * Test the orders tab action dropdown only offers delete/confirm-payment while the campaign is live.
+     */
+    public function test_orders_tab_action_dropdown_hides_live_only_actions_when_not_live(): void
+    {
+        $globalUser = GlobalUser::create(['name' => 'Dropdown Member', 'email' => 'dropdown-member@example.test']);
+        $roomUser = RoomUser::create([
+            'room_id' => $this->room->id, 'global_user_id' => $globalUser->id,
+            'display_name' => 'Dropdown Member', 'status' => 'active',
+        ]);
+        $order = Order::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id, 'room_user_id' => $roomUser->id,
+            'subtotal' => 50000, 'final_amount' => 50000, 'status' => OrderStatus::Submitted,
+        ]);
+        $rowDeleteCall = "openDeleteOrderModal({$order->id});";
+        $rowConfirmPaymentCall = "openConfirmPaymentModal({$order->id});";
+
+        // Closed campaign (from setUp): only "view detail" should show, no delete/confirm-payment.
+        $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/orders")
+            ->assertOk()
+            ->assertSee(__('admin.view_order_detail'))
+            ->assertDontSee($rowDeleteCall, false)
+            ->assertDontSee($rowConfirmPaymentCall, false);
+
+        $this->campaign->update(['status' => CampaignStatus::Active]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/orders")
+            ->assertOk()
+            ->assertSee($rowDeleteCall, false)
+            ->assertSee($rowConfirmPaymentCall, false);
+    }
+
+    /**
+     * Test an admin can delete an order only while its campaign is live.
+     */
+    public function test_admin_can_delete_order_only_while_campaign_is_live(): void
+    {
+        $globalUser = GlobalUser::create(['name' => 'Delete Member', 'email' => 'delete-member@example.test']);
+        $roomUser = RoomUser::create([
+            'room_id' => $this->room->id, 'global_user_id' => $globalUser->id,
+            'display_name' => 'Delete Member', 'status' => 'active',
+        ]);
+        $order = Order::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id, 'room_user_id' => $roomUser->id,
+            'subtotal' => 50000, 'final_amount' => 50000, 'status' => OrderStatus::Submitted,
+        ]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->deleteJson("/admin/{$this->room->slug}/orders/{$order->id}")
+            ->assertStatus(422);
+        $this->assertDatabaseHas('orders', ['id' => $order->id]);
+
+        $this->campaign->update(['status' => CampaignStatus::Active]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->deleteJson("/admin/{$this->room->slug}/orders/{$order->id}")
+            ->assertOk();
+        $this->assertDatabaseMissing('orders', ['id' => $order->id]);
+    }
+
+    /**
+     * Test confirming payment for an order settles the member's debt for that campaign, scoped only to
+     * that member (not other members' orders in the same campaign), and only while the campaign is live.
+     */
+    public function test_admin_can_confirm_order_payment_only_while_campaign_is_live(): void
+    {
+        $globalUser = GlobalUser::create(['name' => 'Payer Member', 'email' => 'payer-member@example.test']);
+        $roomUser = RoomUser::create([
+            'room_id' => $this->room->id, 'global_user_id' => $globalUser->id,
+            'display_name' => 'Payer Member', 'status' => 'active',
+        ]);
+        $order = Order::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id, 'room_user_id' => $roomUser->id,
+            'subtotal' => 50000, 'final_amount' => 50000, 'status' => OrderStatus::Submitted,
+        ]);
+        $otherGlobalUser = GlobalUser::create(['name' => 'Other Member', 'email' => 'other-member@example.test']);
+        $otherRoomUser = RoomUser::create([
+            'room_id' => $this->room->id, 'global_user_id' => $otherGlobalUser->id,
+            'display_name' => 'Other Member', 'status' => 'active',
+        ]);
+        $otherOrder = Order::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id, 'room_user_id' => $otherRoomUser->id,
+            'subtotal' => 20000, 'final_amount' => 20000, 'status' => OrderStatus::Submitted,
+        ]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->postJson("/admin/{$this->room->slug}/orders/{$order->id}/confirm-payment")
+            ->assertStatus(422);
+
+        $this->campaign->update(['status' => CampaignStatus::Active]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->postJson("/admin/{$this->room->slug}/orders/{$order->id}/confirm-payment")
+            ->assertOk();
+
+        $this->assertSame('paid', $order->fresh()->payment_status->value);
+        $this->assertNotSame('paid', $otherOrder->fresh()->payment_status->value);
+        $this->assertDatabaseHas('debts', [
+            'campaign_id' => $this->campaign->id,
+            'room_user_id' => $roomUser->id,
+            'status' => 'paid',
+            'remaining_amount' => 0,
+        ]);
+    }
+
+    /**
+     * Test the orders tab action dropdown hides "confirm payment" once an order is already paid,
+     * but keeps offering delete.
+     */
+    public function test_orders_tab_hides_confirm_payment_action_for_already_paid_orders(): void
+    {
+        $this->campaign->update(['status' => CampaignStatus::Active]);
+        $globalUser = GlobalUser::create(['name' => 'Paid Member', 'email' => 'paid-member@example.test']);
+        $roomUser = RoomUser::create([
+            'room_id' => $this->room->id, 'global_user_id' => $globalUser->id,
+            'display_name' => 'Paid Member', 'status' => 'active',
+        ]);
+        $order = Order::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id, 'room_user_id' => $roomUser->id,
+            'subtotal' => 50000, 'final_amount' => 50000, 'status' => OrderStatus::Submitted,
+            'payment_status' => 'paid',
+        ]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/orders")
+            ->assertOk()
+            ->assertDontSee("openConfirmPaymentModal({$order->id});", false)
+            ->assertSee("openDeleteOrderModal({$order->id});", false);
+    }
+
+    /**
+     * Test deleting an order also removes the member's debt and debt payment records for that campaign.
+     */
+    public function test_deleting_order_also_deletes_its_debt_and_payments(): void
+    {
+        $this->campaign->update(['status' => CampaignStatus::Active]);
+        $globalUser = GlobalUser::create(['name' => 'Debt Delete Member', 'email' => 'debt-delete-member@example.test']);
+        $roomUser = RoomUser::create([
+            'room_id' => $this->room->id, 'global_user_id' => $globalUser->id,
+            'display_name' => 'Debt Delete Member', 'status' => 'active',
+        ]);
+        $order = Order::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id, 'room_user_id' => $roomUser->id,
+            'subtotal' => 50000, 'final_amount' => 50000, 'status' => OrderStatus::Submitted,
+        ]);
+        $debt = Debt::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id, 'room_user_id' => $roomUser->id,
+            'original_amount' => 50000, 'remaining_amount' => 0, 'paid_amount' => 50000, 'status' => DebtStatus::Paid,
+        ]);
+        \App\Models\DebtPayment::create([
+            'debt_id' => $debt->id, 'amount' => 50000, 'payment_method' => 'vietqr',
+        ]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->deleteJson("/admin/{$this->room->slug}/orders/{$order->id}")
+            ->assertOk();
+
+        $this->assertDatabaseMissing('orders', ['id' => $order->id]);
+        $this->assertDatabaseMissing('debts', ['id' => $debt->id]);
+        $this->assertDatabaseMissing('debt_payments', ['debt_id' => $debt->id]);
+    }
+
+    public function test_bulk_payment_confirmation_updates_only_outstanding_campaign_debts(): void
+    {
+        $user = GlobalUser::create(['name' => 'Debt Member', 'email' => 'debt-member@example.test']);
+        $roomUser = RoomUser::create([
+            'room_id' => $this->room->id, 'global_user_id' => $user->id,
+            'display_name' => 'Debt Member', 'status' => 'active',
+        ]);
+        $order = Order::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id,
+            'room_user_id' => $roomUser->id, 'subtotal' => 50000,
+            'final_amount' => 50000, 'status' => OrderStatus::Submitted,
+        ]);
+        $cancelledOrder = Order::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id,
+            'room_user_id' => $roomUser->id, 'subtotal' => 10000,
+            'final_amount' => 10000, 'status' => OrderStatus::Cancelled,
+            'cancelled_at' => now(),
+        ]);
+        $debt = Debt::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id,
+            'room_user_id' => $roomUser->id, 'original_amount' => 50000,
+            'paid_amount' => 10000, 'remaining_amount' => 40000,
+            'status' => DebtStatus::Partial,
+        ]);
+        $otherCampaign = Campaign::create([
+            'room_id' => $this->room->id, 'name' => 'Other Campaign',
+            'restaurant' => 'Other Shop', 'status' => CampaignStatus::Closed,
+        ]);
+        $otherDebt = Debt::create([
+            'room_id' => $this->room->id, 'campaign_id' => $otherCampaign->id,
+            'room_user_id' => $roomUser->id, 'original_amount' => 20000,
+            'paid_amount' => 0, 'remaining_amount' => 20000,
+            'status' => DebtStatus::Unpaid,
+        ]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.campaigns.orders', [$this->room, $this->campaign]))
+            ->assertOk()
+            ->assertSee(__('admin.confirm_paid_orders'));
+
+        $url = route('admin.campaigns.confirm-debts-paid', [$this->room, $this->campaign]);
+        $this->actingAs($this->admin, 'admin')->postJson($url)->assertUnprocessable()->assertJsonValidationErrors('payment_method');
+        $this->actingAs($this->admin, 'admin')->postJson($url, ['payment_method' => 'transfer'])->assertOk()->assertJsonPath('data.count', 1);
+
+        $this->assertSame(DebtStatus::Paid, $debt->fresh()->status);
+        $this->assertSame(50000, $debt->fresh()->paid_amount);
+        $this->assertSame(0, $debt->fresh()->remaining_amount);
+        $this->assertSame(DebtStatus::Unpaid, $otherDebt->fresh()->status);
+        $this->assertSame(OrderStatus::Submitted, $order->fresh()->status);
+        $this->assertSame('paid', $order->fresh()->payment_status->value);
+        $this->assertNotNull($order->fresh()->paid_at);
+        $this->assertSame('unpaid', $cancelledOrder->fresh()->payment_status->value);
+        $this->assertDatabaseHas('debt_payments', [
+            'debt_id' => $debt->id,
+            'amount' => 40000,
+            'payment_method' => 'transfer',
+            'created_by_admin_id' => $this->admin->id,
+        ]);
+        $this->assertSame(1, $debt->payments()->count());
+
+        $this->actingAs($this->admin, 'admin')->postJson($url, ['payment_method' => 'transfer'])->assertOk()->assertJsonPath('data.count', 0);
+        $this->assertSame(50000, $debt->fresh()->paid_amount);
+        $this->assertSame(1, $debt->payments()->count());
     }
 }

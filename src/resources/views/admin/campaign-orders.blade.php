@@ -11,7 +11,7 @@
         <!-- Shared tooltip (fixed position so it is never clipped by scrollable tables) -->
         <div x-ref="tip" x-show="tip.show" role="tooltip"
             :style="`left: ${tip.x}px; top: ${tip.y}px;`"
-            class="pointer-events-none fixed z-[70] w-max max-w-[220px] whitespace-normal break-words rounded-md bg-slate-900 px-2.5 py-1.5 text-left text-[10px] font-medium leading-snug text-white shadow-lg"
+            class="pointer-events-none fixed z-[70] w-max max-w-[220px] whitespace-pre-line break-words rounded-md bg-slate-900 px-2.5 py-1.5 text-left text-[10px] font-medium leading-snug text-white shadow-lg"
             style="display: none;" x-text="tip.text"></div>
 
         <!-- TOP SUB-NAVIGATION BAR -->
@@ -260,6 +260,11 @@
                         </thead>
                         <tbody class="divide-y divide-outline-variant/40">
                             @forelse($aggregatedItems as $index => $item)
+                                @php
+                                    $memberTooltip = $item['member_quantities']
+                                        ->map(fn (array $member): string => $member['name'] . ' x ' . $member['quantity'])
+                                        ->join("\n");
+                                @endphp
                                 <tr class="hover:bg-surface-container-low/50 transition-colors">
                                     <td class="px-4 py-3 w-16 text-left font-mono text-outline">{{ $index + 1 }}</td>
                                     <td class="px-4 py-3 text-left">
@@ -278,7 +283,9 @@
                                         @endif
                                     </td>
                                     <td class="px-4 py-3 w-32 text-center">
-                                        <span class="inline-block px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 text-primary font-mono font-bold rounded">
+                                        <span tabindex="0" data-tip="{{ $memberTooltip }}"
+                                            @mouseenter="showTip($event)" @mouseleave="hideTip()" @focus="showTip($event)" @blur="hideTip()"
+                                            class="inline-block px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 text-primary font-mono font-bold rounded cursor-help">
                                             {{ $item['quantity'] }} {{ __('admin.portions') }}
                                         </span>
                                     </td>
@@ -318,13 +325,11 @@
                     </div>
                     @if ($ordersCount > 0)
                         <div class="flex items-center gap-2">
-                            @if ($isCampaignLive)
-                                <button type="button" @click="confirmAllOrders()" :disabled="isConfirmingAllOrders"
+                            @if ($campaign->debts->contains(fn ($debt) => in_array($debt->status, [\App\Enums\DebtStatus::Unpaid, \App\Enums\DebtStatus::Partial, \App\Enums\DebtStatus::Pending], true) && $debt->remaining_amount > 0))
+                                <button type="button" @click="showBulkConfirmModal = true" :disabled="isConfirmingAllOrders"
                                     class="inline-flex items-center gap-1.5 rounded-xl border border-primary bg-primary px-3.5 py-2 text-xs font-semibold text-on-primary hover:opacity-90 transition-colors disabled:cursor-not-allowed disabled:opacity-60">
-                                    <span class="material-symbols-outlined text-[16px]"
-                                        :class="{ 'animate-spin': isConfirmingAllOrders }"
-                                        x-text="isConfirmingAllOrders ? 'progress_activity' : 'done_all'">done_all</span>
-                                    <span x-text="isConfirmingAllOrders ? '{{ __('admin.processing') }}...' : '{{ __('admin.confirm_all_orders') }}'">{{ __('admin.confirm_all_orders') }}</span>
+                                    <span class="material-symbols-outlined text-[16px]">payments</span>
+                                    <span>{{ __('admin.confirm_paid_orders') }}</span>
                                 </button>
                             @endif
                             <a download data-download-button
@@ -439,13 +444,32 @@
                                         </div>
                                     </td>
                                     <td class="px-4 py-3 w-28 text-center">
-                                        <button type="button" @click="openOrderDetail({{ $order->id }})"
-                                            data-tip="{{ __('admin.view_order_detail') }}"
-                                            @mouseenter="showTip($event)" @mouseleave="hideTip()" @focus="showTip($event)" @blur="hideTip()"
-                                            class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary border border-outline-variant/60 transition-colors cursor-pointer"
-                                            aria-label="{{ __('admin.view_order_detail') }}">
-                                            <span class="material-symbols-outlined text-[18px]">visibility</span>
-                                        </button>
+                                        <details class="relative inline-block text-left">
+                                            <summary class="list-none mx-auto cursor-pointer inline-flex items-center justify-center w-8 h-8 rounded-lg text-secondary hover:text-primary hover:bg-surface-container-high border border-outline-variant/60 transition-colors" aria-label="{{ __('admin.th_actions') }}">
+                                                <span class="material-symbols-outlined text-[18px]">more_vert</span>
+                                            </summary>
+                                            <div class="absolute right-0 mt-1 w-52 z-20 rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl p-1.5 space-y-0.5 text-left">
+                                                <button type="button" @click="openOrderDetail({{ $order->id }}); $el.closest('details').open = false"
+                                                    class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left cursor-pointer">
+                                                    <span class="material-symbols-outlined text-[16px]">visibility</span>
+                                                    <span>{{ __('admin.view_order_detail') }}</span>
+                                                </button>
+                                                @if ($isCampaignLive)
+                                                    @if ($order->payment_status !== \App\Enums\PaymentStatus::Paid)
+                                                        <button type="button" @click="openConfirmPaymentModal({{ $order->id }}); $el.closest('details').open = false"
+                                                            class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-emerald-700 hover:bg-emerald-50 text-left cursor-pointer">
+                                                            <span class="material-symbols-outlined text-[16px]">paid</span>
+                                                            <span>{{ __('admin.confirm_order_payment_btn') }}</span>
+                                                        </button>
+                                                    @endif
+                                                    <button type="button" @click="openDeleteOrderModal({{ $order->id }}); $el.closest('details').open = false"
+                                                        class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-error hover:bg-error-container/30 text-left cursor-pointer">
+                                                        <span class="material-symbols-outlined text-[16px]">delete</span>
+                                                        <span>{{ __('admin.delete_order_btn') }}</span>
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </details>
                                     </td>
                                 </tr>
                             @empty
@@ -869,6 +893,93 @@
             </div>
         </div>
 
+        <!-- MODAL: DELETE ORDER CONFIRMATION -->
+        <div x-show="showDeleteOrderModal" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+            @keydown.escape.window="if (!isDeletingOrder) showDeleteOrderModal = false">
+            <form @submit.prevent="deleteOrder()" @click.outside="if (!isDeletingOrder) showDeleteOrderModal = false"
+                class="w-full max-w-md rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-2xl">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-error-container/60 text-error" aria-hidden="true">
+                        <span class="material-symbols-outlined text-[21px]">delete</span>
+                    </span>
+                    <h3 class="text-base font-bold text-on-surface">{{ __('admin.delete_order_title') }}</h3>
+                </div>
+                <p class="mt-3 text-xs leading-relaxed text-outline">{{ __('admin.confirm_delete_order') }}</p>
+                <div class="mt-5 flex justify-end gap-2">
+                    <button type="button" @click="showDeleteOrderModal = false" :disabled="isDeletingOrder"
+                        class="rounded-lg border border-outline-variant px-3.5 py-2 text-xs font-semibold text-on-surface disabled:opacity-50">{{ __('admin.cancel') }}</button>
+                    <button type="submit" :disabled="isDeletingOrder" :aria-busy="isDeletingOrder"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-error px-3.5 py-2 text-xs font-semibold text-white disabled:opacity-60">
+                        <span x-show="isDeletingOrder" class="material-symbols-outlined animate-spin text-[16px]" style="display: none;" aria-hidden="true">progress_activity</span>
+                        <span x-show="!isDeletingOrder" class="material-symbols-outlined text-[16px]" aria-hidden="true">delete</span>
+                        <span x-text="isDeletingOrder ? @js(__('admin.processing')) : @js(__('admin.delete_order_btn'))">{{ __('admin.delete_order_btn') }}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- MODAL: CONFIRM ORDER PAYMENT -->
+        <div x-show="showConfirmPaymentModal" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+            @keydown.escape.window="if (!isConfirmingOrderPayment) showConfirmPaymentModal = false">
+            <form @submit.prevent="confirmOrderPayment()" @click.outside="if (!isConfirmingOrderPayment) showConfirmPaymentModal = false"
+                class="w-full max-w-md rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-2xl">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700" aria-hidden="true">
+                        <span class="material-symbols-outlined text-[21px]">paid</span>
+                    </span>
+                    <h3 class="text-base font-bold text-on-surface">{{ __('admin.confirm_order_payment_title') }}</h3>
+                </div>
+                <p class="mt-3 text-xs leading-relaxed text-outline">{{ __('admin.confirm_order_payment_desc') }}</p>
+                <div class="mt-5 flex justify-end gap-2">
+                    <button type="button" @click="showConfirmPaymentModal = false" :disabled="isConfirmingOrderPayment"
+                        class="rounded-lg border border-outline-variant px-3.5 py-2 text-xs font-semibold text-on-surface disabled:opacity-50">{{ __('admin.cancel') }}</button>
+                    <button type="submit" :disabled="isConfirmingOrderPayment" :aria-busy="isConfirmingOrderPayment"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-on-primary disabled:opacity-60">
+                        <span x-show="isConfirmingOrderPayment" class="material-symbols-outlined animate-spin text-[16px]" style="display: none;" aria-hidden="true">progress_activity</span>
+                        <span x-show="!isConfirmingOrderPayment" class="material-symbols-outlined text-[16px]" aria-hidden="true">paid</span>
+                        <span x-text="isConfirmingOrderPayment ? @js(__('admin.processing')) : @js(__('admin.confirm_order_payment_btn'))">{{ __('admin.confirm_order_payment_btn') }}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- MODAL: BULK PAYMENT CONFIRMATION -->
+        <div x-show="showBulkConfirmModal" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
+            @keydown.escape.window="if (!isConfirmingAllOrders) showBulkConfirmModal = false">
+            <form @submit.prevent="confirmAllOrders()" @click.outside="if (!isConfirmingAllOrders) showBulkConfirmModal = false"
+                class="w-full max-w-md rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-2xl">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden="true">
+                        <span class="material-symbols-outlined text-[21px]">payments</span>
+                    </span>
+                    <h3 class="text-base font-bold text-on-surface">{{ __('admin.confirm_paid_orders_title') }}</h3>
+                </div>
+                <p class="mt-3 text-xs leading-relaxed text-outline">{{ __('admin.confirm_paid_orders_desc') }}</p>
+                <label class="mt-4 block text-xs font-semibold text-on-surface" for="bulk-payment-method">{{ __('admin.payment_method') }}</label>
+                <select id="bulk-payment-method" x-model="bulkPaymentMethod" required :disabled="isConfirmingAllOrders"
+                    class="mt-1.5 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface">
+                    <option value="">{{ __('admin.select_payment_method') }}</option>
+                    <option value="cash">{{ __('admin.debt_method_cash') }}</option>
+                    <option value="transfer">{{ __('admin.debt_method_transfer') }}</option>
+                    <option value="vietqr">{{ __('admin.debt_method_vietqr') }}</option>
+                    <option value="room_fund">{{ __('admin.debt_method_room_fund') }}</option>
+                </select>
+                <div class="mt-5 flex justify-end gap-2">
+                    <button type="button" @click="showBulkConfirmModal = false" :disabled="isConfirmingAllOrders"
+                        class="rounded-lg border border-outline-variant px-3.5 py-2 text-xs font-semibold text-on-surface disabled:opacity-50">{{ __('admin.cancel') }}</button>
+                    <button type="submit" :disabled="isConfirmingAllOrders" :aria-busy="isConfirmingAllOrders"
+                        class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-on-primary disabled:opacity-60">
+                        <span x-show="isConfirmingAllOrders" class="material-symbols-outlined animate-spin text-[16px]" style="display: none;" aria-hidden="true">progress_activity</span>
+                        <span x-show="!isConfirmingAllOrders" class="material-symbols-outlined text-[16px]" aria-hidden="true">payments</span>
+                        <span x-text="isConfirmingAllOrders ? @js(__('admin.processing')) : @js(__('admin.confirm_paid_orders'))">{{ __('admin.confirm_paid_orders') }}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
         <!-- MODAL: ORDER DETAILS -->
         <div x-show="orderDetailModalOpen" x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
@@ -1107,6 +1218,13 @@
             selectedOrder: null,
             selectedDebt: null,
             isConfirmingAllOrders: false,
+            showBulkConfirmModal: false,
+            bulkPaymentMethod: '',
+            showDeleteOrderModal: false,
+            isDeletingOrder: false,
+            showConfirmPaymentModal: false,
+            isConfirmingOrderPayment: false,
+            orderActionTarget: null,
             isUpdatingOrder: {},
             isUpdatingDebt: {},
             downloadStates: {},
@@ -1260,40 +1378,92 @@
             },
 
             async confirmAllOrders() {
-                if (this.isConfirmingAllOrders) return;
+                if (this.isConfirmingAllOrders || !this.bulkPaymentMethod) return;
                 this.isConfirmingAllOrders = true;
 
                 try {
-                    const response = await fetch(`{{ url('admin/' . $room->slug . '/orders/bulk-status') }}`, {
+                    const response = await fetch(@js(route('admin.campaigns.confirm-debts-paid', [$room, $campaign])), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
                             'Accept': 'application/json'
                         },
-                        body: JSON.stringify({
-                            campaign_id: {{ $campaign->id }},
-                            from_status: 'submitted',
-                            to_status: 'confirmed'
-                        })
+                        body: JSON.stringify({ payment_method: this.bulkPaymentMethod })
                     });
                     const res = await response.json();
                     if (!response.ok) throw new Error(res.message || '{{ __('admin.status_change_failed') }}');
 
-                    Object.keys(this.orderStatus).forEach(id => {
-                        if (this.orderStatus[id] === 'submitted') {
-                            this.orderStatus[id] = 'confirmed';
-                        }
-                    });
-
+                    this.showBulkConfirmModal = false;
                     if (window.notify) {
-                        window.notify(res.message || '{{ __('admin.bulk_orders_confirmed_success') }}', 'success');
+                        window.notify(res.message || '{{ __('admin.bulk_debts_paid_success', ['count' => ':count']) }}'.replace(':count', res.data?.count ?? 0), 'success');
                     }
+                    setTimeout(() => window.location.reload(), 800);
                 } catch (err) {
                     if (window.notify) window.notify(err.message, 'error');
                     else alert(err.message);
                 } finally {
                     this.isConfirmingAllOrders = false;
+                }
+            },
+
+            openDeleteOrderModal(orderId) {
+                this.orderActionTarget = orderId;
+                this.showDeleteOrderModal = true;
+            },
+
+            async deleteOrder() {
+                if (!this.orderActionTarget || this.isDeletingOrder) return;
+                this.isDeletingOrder = true;
+                try {
+                    const response = await fetch(`{{ url('admin/' . $room->slug . '/orders') }}/${this.orderActionTarget}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const res = await response.json();
+                    if (!response.ok) throw new Error(res.message || '{{ __('admin.delete_order_failed') }}');
+
+                    this.showDeleteOrderModal = false;
+                    if (window.notify) window.notify('{{ __('admin.order_deleted_success') }}', 'success');
+                    setTimeout(() => window.location.reload(), 800);
+                } catch (err) {
+                    if (window.notify) window.notify(err.message, 'error');
+                    else alert(err.message);
+                } finally {
+                    this.isDeletingOrder = false;
+                }
+            },
+
+            openConfirmPaymentModal(orderId) {
+                this.orderActionTarget = orderId;
+                this.showConfirmPaymentModal = true;
+            },
+
+            async confirmOrderPayment() {
+                if (!this.orderActionTarget || this.isConfirmingOrderPayment) return;
+                this.isConfirmingOrderPayment = true;
+                try {
+                    const response = await fetch(`{{ url('admin/' . $room->slug . '/orders') }}/${this.orderActionTarget}/confirm-payment`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const res = await response.json();
+                    if (!response.ok) throw new Error(res.message || '{{ __('admin.confirm_order_payment_failed') }}');
+
+                    this.showConfirmPaymentModal = false;
+                    if (window.notify) window.notify(res.message || '{{ __('admin.confirm_order_payment_success') }}', 'success');
+                    setTimeout(() => window.location.reload(), 800);
+                } catch (err) {
+                    if (window.notify) window.notify(err.message, 'error');
+                    else alert(err.message);
+                } finally {
+                    this.isConfirmingOrderPayment = false;
                 }
             },
 

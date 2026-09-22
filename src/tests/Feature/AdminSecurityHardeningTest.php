@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Vite;
 use Tests\TestCase;
 
 /**
@@ -57,6 +58,28 @@ class AdminSecurityHardeningTest extends TestCase
         $response->assertHeader('X-Content-Type-Options', 'nosniff');
         $response->assertHeader('Referrer-Policy');
         $this->assertStringContainsString("frame-ancestors 'self'", (string) $response->headers->get('Content-Security-Policy'));
+    }
+
+    public function test_csp_allows_the_active_local_vite_port_only(): void
+    {
+        $originalHotFile = Vite::hotFile();
+        $hotFile = tempnam(sys_get_temp_dir(), 'drinkflow-vite-');
+        $this->assertNotFalse($hotFile);
+
+        try {
+            Vite::useHotFile($hotFile);
+            file_put_contents($hotFile, 'http://127.0.0.1:5174');
+            $policy = (string) $this->get('/admin/login')->headers->get('Content-Security-Policy');
+            $this->assertStringContainsString('http://127.0.0.1:5174', $policy);
+            $this->assertStringContainsString('ws://127.0.0.1:5174', $policy);
+
+            file_put_contents($hotFile, 'https://untrusted.example:5174');
+            $policy = (string) $this->get('/admin/login')->headers->get('Content-Security-Policy');
+            $this->assertStringNotContainsString('untrusted.example', $policy);
+        } finally {
+            Vite::useHotFile($originalHotFile);
+            unlink($hotFile);
+        }
     }
 
     public function test_outbound_url_guard_rejects_internal_and_non_https_targets(): void

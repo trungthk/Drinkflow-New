@@ -13,10 +13,25 @@
     $accountNumber = $campaignAccount?->account_number ?? '';
     $accountName = $campaignAccount?->account_name ?? '';
     $isFullSponsor = $activeOrder?->campaign?->sponsor_type === \App\Models\Campaign::SPONSOR_TYPE_FULL || ((int) ($activeOrder?->sponsor_amount ?? 0) >= (int) ($activeOrder?->subtotal ?? 0) && (int) ($activeOrder?->subtotal ?? 0) > 0);
-    $orderFinalAmount = (int) ($activeOrder?->final_amount ?? 0);
-    if ($orderFinalAmount <= 0 && !$isFullSponsor && (int) ($activeOrder?->subtotal ?? 0) > 0) {
-        $orderFinalAmount = max(0, (int) $activeOrder->subtotal - (int) ($activeOrder->sponsor_amount ?? 0));
+    $campaignOrders = $orderCampaign?->relationLoaded('orders')
+        ? $orderCampaign->orders->filter(static fn ($order): bool => $order->status !== \App\Enums\OrderStatus::Cancelled && $order->cancelled_at === null)
+        : collect();
+    $campaignSubtotal = (int) $campaignOrders->sum('subtotal');
+    $orderSubtotal = (int) ($activeOrder?->subtotal ?? 0);
+    $orderDeliveryAmount = (int) ($activeOrder?->delivery_amount ?? 0);
+    $orderDiscountAmount = (int) ($activeOrder?->discount_amount ?? 0);
+    if ($activeOrder && $campaignSubtotal > 0) {
+        $orderRatio = $orderSubtotal / $campaignSubtotal;
+        if ($orderDeliveryAmount === 0) {
+            $orderDeliveryAmount = (int) round((int) ($orderCampaign->delivery_fee ?? 0) * $orderRatio);
+        }
+        if ($orderDiscountAmount === 0) {
+            $orderDiscountAmount = (int) round((int) ($orderCampaign->discount ?? 0) * $orderRatio);
+        }
     }
+    $orderGrossTotal = max(0, $orderSubtotal + $orderDeliveryAmount - $orderDiscountAmount);
+    $orderSponsorAmount = $isFullSponsor ? $orderGrossTotal : (int) ($activeOrder?->sponsor_amount ?? 0);
+    $orderFinalAmount = max(0, $orderGrossTotal - $orderSponsorAmount);
     $formattedOrderAmount = \App\Support\Helpers\FormatHelper::formatCurrency($orderFinalAmount);
     $initialQrPayload = $campaignAccount && $accountNumber
         ? app(\App\Services\Payment\VietQrService::class)->generate($campaignAccount, $orderFinalAmount, (string) $orderCode)
@@ -28,24 +43,29 @@
         ? $room->roomUsers()->with('globalUser')->whereIn('id', $orderSponsorUserIds)->get()->keyBy('id')
         : collect();
 
-    $orderSponsorsList = $orderSponsorAllocations->map(function ($alloc) use ($orderSponsorRoomUsers, $activeOrder) {
+    $orderSponsorsList = $orderSponsorAllocations->map(function ($alloc) use ($orderSponsorRoomUsers, $orderSponsorAmount) {
         $user = $orderSponsorRoomUsers->get((int) ($alloc['room_user_id'] ?? 0));
         $name = $user?->display_name ?? $user?->globalUser?->name ?? __('admin.sponsor_info');
         $percentage = (float) ($alloc['percentage'] ?? 0);
-        $orderSponsorAmt = (int) ($activeOrder?->sponsor_amount ?? 0);
-        $amount = (int) round(($orderSponsorAmt * $percentage) / 100);
+        $amount = (int) round(($orderSponsorAmount * $percentage) / 100);
         return [
             'name' => $name,
             'percentage' => $percentage,
             'amount' => $amount,
         ];
-    });
+    })->values();
+
+    if ($isFullSponsor && $orderSponsorsList->isNotEmpty()) {
+        $firstSponsor = $orderSponsorsList->first();
+        $firstSponsor['amount'] = max(0, $firstSponsor['amount'] + $orderSponsorAmount - (int) $orderSponsorsList->sum('amount'));
+        $orderSponsorsList->put(0, $firstSponsor);
+    }
 
     if ($orderSponsorsList->isEmpty() && !empty($orderCampaign?->sponsor_name)) {
         $orderSponsorsList->push([
             'name' => $orderCampaign->sponsor_name,
             'percentage' => (float) ($orderCampaign->sponsor_percentage ?? ($orderCampaign->sponsor_type === \App\Models\Campaign::SPONSOR_TYPE_FULL ? 100 : 0)),
-            'amount' => (int) ($activeOrder?->sponsor_amount ?? 0),
+            'amount' => $orderSponsorAmount,
         ]);
     }
 @endphp
@@ -461,7 +481,7 @@
                                     <span
                                         class="font-tabular-nums text-tabular-nums text-on-surface font-medium">{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeOrder->subtotal) }}</span>
                                 </div>
-                                @if((int) ($activeOrder->sponsor_amount ?? 0) > 0)
+                                @if($orderSponsorAmount > 0)
                                     <div class="space-y-2 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-200/60">
                                         <div
                                             class="flex items-center justify-between font-body-md text-body-md text-primary font-medium">
@@ -471,7 +491,7 @@
                                                     class="font-bold text-emerald-950">{{ __('room.orders.sponsor_discount') }}:</span>
                                             </span>
                                             <span
-                                                class="font-tabular-nums text-tabular-nums font-bold text-emerald-700 font-mono">-{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeOrder->sponsor_amount) }}</span>
+                                                class="font-tabular-nums text-tabular-nums font-bold text-emerald-700 font-mono">-{{ \App\Support\Helpers\FormatHelper::formatCurrency($orderSponsorAmount) }}</span>
                                         </div>
                                         @if($orderSponsorsList->isNotEmpty())
                                             <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
@@ -498,7 +518,7 @@
                                         @endif
                                     </div>
                                 @endif
-                                @if((int) ($activeOrder->discount_amount ?? 0) > 0)
+                                @if($orderDiscountAmount > 0)
                                     <div
                                         class="flex items-center justify-between font-body-md text-body-md text-emerald-700 font-medium bg-emerald-50 p-2 rounded-lg border border-emerald-100">
                                         <span class="flex items-center gap-1">
@@ -506,15 +526,15 @@
                                             {{ __('room.orders.discount_label') }}:
                                         </span>
                                         <span
-                                            class="font-tabular-nums text-tabular-nums font-bold">-{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeOrder->discount_amount) }}</span>
+                                            class="font-tabular-nums text-tabular-nums font-bold">-{{ \App\Support\Helpers\FormatHelper::formatCurrency($orderDiscountAmount) }}</span>
                                     </div>
                                 @endif
-                                @if((int) ($activeOrder->delivery_amount ?? 0) > 0)
+                                @if($orderDeliveryAmount > 0)
                                     <div
                                         class="flex items-center justify-between font-body-md text-body-md text-on-surface-variant">
                                         <span>{{ __('room.orders.delivery_share') }}:</span>
                                         <span
-                                            class="font-tabular-nums text-tabular-nums text-on-surface font-medium">+{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeOrder->delivery_amount) }}</span>
+                                            class="font-tabular-nums text-tabular-nums text-on-surface font-medium">+{{ \App\Support\Helpers\FormatHelper::formatCurrency($orderDeliveryAmount) }}</span>
                                     </div>
                                 @endif
 

@@ -9,12 +9,21 @@ export function initAdminCampaigns() {
     const duplicateModal = document.querySelector('#duplicate-campaign-modal');
     const closeModal = document.querySelector('#close-campaign-modal');
     const cancelModal = document.querySelector('#cancel-campaign-modal');
+    const archiveModal = document.querySelector('#archive-campaign-modal');
 
     let campaignToDuplicate = null;
     let campaignToClose = null;
     let campaignToCancel = null;
+    let campaignToArchive = null;
 
-    if (!filterForm && !duplicateModal && !closeModal && !cancelModal) return;
+    const setSpinnerVisible = (button, visible) => {
+        const spinner = button?.querySelector('[data-spinner]');
+        const actionIcon = button?.querySelector('[data-action-icon]');
+        if (spinner) spinner.style.display = visible ? 'inline-block' : 'none';
+        if (actionIcon) actionIcon.style.display = visible ? 'none' : 'inline-block';
+    };
+
+    if (!filterForm && !duplicateModal && !closeModal && !cancelModal && !archiveModal) return;
 
     searchInput?.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
@@ -71,7 +80,7 @@ export function initAdminCampaigns() {
         const confirmBtn = closeModal?.querySelector('[data-close-confirm]');
         if (confirmBtn) {
             confirmBtn.disabled = false;
-            confirmBtn.querySelector('[data-spinner]')?.classList.add('hidden');
+            setSpinnerVisible(confirmBtn, false);
         }
     };
 
@@ -85,9 +94,8 @@ export function initAdminCampaigns() {
     closeModal?.querySelector('[data-close-confirm]')?.addEventListener('click', async (e) => {
         if (!campaignToClose) return;
         const btn = e.currentTarget;
-        const spinner = btn.querySelector('[data-spinner]');
         btn.disabled = true;
-        spinner?.classList.remove('hidden');
+        setSpinnerVisible(btn, true);
 
         const slug = roomSlug || window.__DF_ROOM_SLUG__;
         try {
@@ -103,7 +111,7 @@ export function initAdminCampaigns() {
         } catch (error) {
             window.notify?.(error.message, 'error');
             btn.disabled = false;
-            spinner?.classList.add('hidden');
+            setSpinnerVisible(btn, false);
         }
     });
 
@@ -115,7 +123,7 @@ export function initAdminCampaigns() {
         const confirmBtn = cancelModal?.querySelector('[data-cancel-modal-confirm]');
         if (confirmBtn) {
             confirmBtn.disabled = false;
-            confirmBtn.querySelector('[data-spinner]')?.classList.add('hidden');
+            setSpinnerVisible(confirmBtn, false);
         }
     };
 
@@ -129,9 +137,8 @@ export function initAdminCampaigns() {
     cancelModal?.querySelector('[data-cancel-modal-confirm]')?.addEventListener('click', async (e) => {
         if (!campaignToCancel) return;
         const btn = e.currentTarget;
-        const spinner = btn.querySelector('[data-spinner]');
         btn.disabled = true;
-        spinner?.classList.remove('hidden');
+        setSpinnerVisible(btn, true);
 
         const slug = roomSlug || window.__DF_ROOM_SLUG__;
         try {
@@ -147,26 +154,49 @@ export function initAdminCampaigns() {
         } catch (error) {
             window.notify?.(error.message, 'error');
             btn.disabled = false;
-            spinner?.classList.add('hidden');
+            setSpinnerVisible(btn, false);
         }
     });
 
-    // Archive Campaign
-    window.archiveCampaign = async function(id) {
-        if (!window.confirm('Archive this campaign?')) return;
+    // Archive Campaign Modal
+    const hideArchiveModal = () => {
+        archiveModal?.classList.add('hidden');
+        archiveModal?.classList.remove('flex');
+        campaignToArchive = null;
+        const confirmBtn = archiveModal?.querySelector('[data-archive-confirm]');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            setSpinnerVisible(confirmBtn, false);
+        }
+    };
+
+    window.openArchiveCampaignModal = function(id) {
+        campaignToArchive = id;
+        archiveModal?.classList.remove('hidden');
+        archiveModal?.classList.add('flex');
+    };
+
+    archiveModal?.querySelector('[data-archive-cancel]')?.addEventListener('click', hideArchiveModal);
+    archiveModal?.querySelector('[data-archive-confirm]')?.addEventListener('click', async (event) => {
+        if (!campaignToArchive) return;
+        const btn = event.currentTarget;
+        btn.disabled = true;
+        setSpinnerVisible(btn, true);
         const slug = roomSlug || window.__DF_ROOM_SLUG__;
         try {
-            const res = await fetch(`/admin/${slug}/campaigns/${id}/archive`, {
+            const res = await fetch(`/admin/${slug}/campaigns/${campaignToArchive}/archive`, {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }
             });
             if (!res.ok) {
                 const payload = await res.json().catch(() => ({}));
-                throw new Error(payload.message || 'Failed to archive campaign.');
+                throw new Error(payload.message || archiveModal?.dataset.errorMessage);
             }
             window.location.reload();
         } catch (error) {
             window.notify?.(error.message, 'error');
+            btn.disabled = false;
+            setSpinnerVisible(btn, false);
         }
-    };
+    });
 }

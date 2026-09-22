@@ -19,6 +19,7 @@ class UpdateCampaignRequest extends StoreCampaignRequest
             'max_budget' => ['sometimes', 'required', 'integer', 'min:0'],
             'deadline' => ['nullable', 'date'],
             'status' => ['sometimes', 'in:draft,scheduled,active,closed,cancelled,archived'],
+            'notify_members' => ['sometimes', 'boolean'],
             'items.*.id' => ['nullable', 'integer'],
             'items.*.price' => ['nullable', 'integer', 'min:0'],
             'items.*.base_price' => ['nullable', 'integer', 'min:0'],

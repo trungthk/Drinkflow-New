@@ -82,4 +82,37 @@ class GuestCampaignLinkTest extends TestCase
         $this->assertNull($closed['campaign']['register_url']);
         $this->assertStringNotContainsString(__('messages.campaign_register', ['url' => $registerUrl]), $closed['message']);
     }
+
+    /** Closed campaign gateway copy uses the sponsor-specific reminder and signed order check link. */
+    public function test_closed_campaign_gateway_reminder_depends_on_sponsorship(): void
+    {
+        $room = Room::create(['name' => 'Marketing', 'slug' => 'marketing']);
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Friday coffee',
+            'restaurant' => 'Cafe',
+            'sponsor_type' => Campaign::SPONSOR_TYPE_NONE,
+            'status' => CampaignStatus::Closed,
+        ])->load('room');
+
+        $service = app(CampaignNotificationPayloadService::class);
+        $withoutSponsor = $service->make($campaign, 'campaign.closed');
+        $this->assertStringContainsString(
+            __('messages.campaign_closed_body').' => '.$withoutSponsor['campaign']['order_check_url'],
+            $withoutSponsor['message']
+        );
+        $this->assertStringNotContainsString(__('messages.campaign_closed_sponsored_body'), $withoutSponsor['message']);
+
+        $campaign->update(['sponsor_type' => Campaign::SPONSOR_TYPE_FULL, 'sponsor_name' => 'Team Lead']);
+        $withSponsor = $service->make($campaign->fresh('room'), 'campaign.closed');
+        $this->assertStringContainsString(
+            __('messages.campaign_closed_sponsored_body').' => '.$withSponsor['campaign']['order_check_url'],
+            $withSponsor['message']
+        );
+        $this->assertStringNotContainsString(__('messages.campaign_closed_body'), $withSponsor['message']);
+        $this->assertStringContainsString(
+            __('messages.campaign_closed_sponsored_body'),
+            app(RoomNotificationChannelDispatcher::class)->formatTelegramMessage($withSponsor)
+        );
+    }
 }

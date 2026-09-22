@@ -68,6 +68,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/campaigns/{campaign}/export/{dataset}', [\App\Http\Controllers\Admin\CampaignController::class, 'exportDetail'])->middleware('throttle:admin-export')->name('admin.campaigns.export-detail');
     Route::get('/campaigns/{campaign}/info', [\App\Http\Controllers\Admin\CampaignController::class, 'showInfo'])->name('admin.campaigns.info');
     Route::get('/campaigns/{campaign}/orders', [\App\Http\Controllers\Admin\CampaignController::class, 'showOrders'])->name('admin.campaigns.orders');
+    Route::post('/campaigns/{campaign}/confirm-debts-paid', [\App\Http\Controllers\Admin\CampaignController::class, 'confirmDebtsPaid'])->middleware('throttle:admin-bulk')->name('admin.campaigns.confirm-debts-paid');
     Route::get('/campaigns/{campaign}/menu', [\App\Http\Controllers\Admin\CampaignController::class, 'showMenu'])->name('admin.campaigns.menu');
     Route::get('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'show'])->name('admin.campaigns.show');
     Route::get('/orders', [\App\Http\Controllers\Admin\OrderController::class, 'index'])->name('admin.orders.index');
@@ -81,6 +82,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::post('/orders/{order}/cancel', [\App\Http\Controllers\Admin\OrderController::class, 'cancel'])->name('admin.orders.cancel');
     Route::post('/orders/{order}/unlock', [\App\Http\Controllers\Admin\OrderController::class, 'unlock'])->name('admin.orders.unlock');
     Route::delete('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'destroy'])->name('admin.orders.destroy');
+    Route::post('/orders/{order}/confirm-payment', [\App\Http\Controllers\Admin\OrderController::class, 'confirmPayment'])->name('admin.orders.confirm-payment');
     Route::post('/campaigns', [\App\Http\Controllers\Admin\CampaignController::class, 'store'])->name('admin.campaigns.store');
     Route::post('/campaigns/menu-images', [\App\Http\Controllers\Admin\CampaignController::class, 'uploadImage'])->name('admin.campaigns.menu-images.store');
     Route::patch('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'update'])->name('admin.campaigns.update');

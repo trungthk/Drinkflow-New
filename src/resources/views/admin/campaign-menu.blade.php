@@ -227,6 +227,11 @@
                                     </div>
                                 </div>
 
+                                <label class="flex items-center gap-2.5 cursor-pointer text-xs text-on-surface-variant select-none">
+                                    <input type="checkbox" id="items-confirm-notify-checkbox" class="rounded border-outline-variant text-primary focus:ring-primary w-4 h-4">
+                                    <span class="font-medium">{{ __('admin.notify_members_checkbox_label') }}</span>
+                                </label>
+
                                 <!-- Modal Actions -->
                                 <div class="pt-3 border-t border-outline-variant/60 flex items-center justify-end gap-2">
                                     <button type="button" id="items-confirm-cancel-btn" onclick="closeItemsConfirmModal()"
@@ -376,6 +381,8 @@
                             const hiddenEl = document.getElementById('items-confirm-hidden-count');
                             if (activatedEl) activatedEl.textContent = activatedCount + ' {{ __('admin.portions') }}';
                             if (hiddenEl) hiddenEl.textContent = hiddenCount + ' {{ __('admin.portions') }}';
+                            const notifyCheckbox = document.getElementById('items-confirm-notify-checkbox');
+                            if (notifyCheckbox) notifyCheckbox.checked = false;
                             window.openModal('modal-items-confirm');
                         };
 
@@ -407,10 +414,12 @@
                             setItemsSavingState(true);
                             try {
                                 const endpoint = '{{ route('admin.campaign-items.batch-status', [$room, $campaign]) }}';
+                                const notifyCheckbox = document.getElementById('items-confirm-notify-checkbox');
                                 const res = await dfApi(endpoint, {
                                     method: 'PATCH',
                                     body: {
-                                        items: changed.map(it => ({ id: it.id, status: it.status }))
+                                        items: changed.map(it => ({ id: it.id, status: it.status })),
+                                        notify_members: Boolean(notifyCheckbox && notifyCheckbox.checked)
                                     }
                                 });
                                 itemsData.forEach(item => {

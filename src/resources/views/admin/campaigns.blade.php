@@ -128,7 +128,7 @@
                                             <span class="material-symbols-outlined text-[16px]">cancel</span>{{ __('admin.cancel_campaign_btn') }}
                                         </button>
                                     @elseif($statusValue === 'closed')
-                                        <button type="button" onclick="window.archiveCampaign({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
+                                        <button type="button" onclick="window.openArchiveCampaignModal({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
                                             <span class="material-symbols-outlined text-[16px]">archive</span>{{ __('admin.archive_campaign') }}
                                         </button>
                                     @endif
@@ -183,7 +183,7 @@
             <div class="mt-5 flex justify-end gap-2">
                 <button type="button" data-close-cancel class="px-3 py-2 rounded-lg text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.cancel') }}</button>
                 <button type="button" data-close-confirm class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-container text-on-primary transition-colors flex items-center gap-1.5 disabled:opacity-60">
-                    <span class="material-symbols-outlined text-[16px] hidden animate-spin" data-spinner>progress_activity</span>
+                    <span class="material-symbols-outlined text-[16px] animate-spin" data-spinner style="display: none;" aria-hidden="true">progress_activity</span>
                     <span data-label>{{ __('admin.confirm_close_btn') }}</span>
                 </button>
             </div>
@@ -201,8 +201,27 @@
             <div class="mt-5 flex justify-end gap-2">
                 <button type="button" data-cancel-modal-cancel class="px-3 py-2 rounded-lg text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.cancel') }}</button>
                 <button type="button" data-cancel-modal-confirm class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-error hover:bg-error/90 text-white transition-colors flex items-center gap-1.5 disabled:opacity-60">
-                    <span class="material-symbols-outlined text-[16px] hidden animate-spin" data-spinner>progress_activity</span>
+                    <span class="material-symbols-outlined text-[16px] animate-spin" data-spinner style="display: none;" aria-hidden="true">progress_activity</span>
                     <span data-label>{{ __('admin.confirm_cancel_campaign_btn') }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Archive Campaign Confirmation Modal -->
+    <div id="archive-campaign-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="archive-campaign-modal-title" data-error-message="{{ __('admin.archive_campaign_failed') }}">
+        <div class="w-full max-w-sm rounded-xl bg-surface-container-lowest border border-outline-variant p-5 shadow-xl">
+            <div class="flex items-center gap-2 text-primary mb-2">
+                <span class="material-symbols-outlined text-[22px]">archive</span>
+                <h2 id="archive-campaign-modal-title" class="text-base font-bold text-on-surface">{{ __('admin.confirm_archive_campaign_title') }}</h2>
+            </div>
+            <p class="mt-2 text-xs text-outline leading-relaxed">{{ __('admin.confirm_archive_campaign_desc') }}</p>
+            <div class="mt-5 flex justify-end gap-2">
+                <button type="button" data-archive-cancel class="px-3 py-2 rounded-lg text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.cancel') }}</button>
+                <button type="button" data-archive-confirm class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-container text-on-primary transition-colors flex items-center gap-1.5 disabled:opacity-60">
+                    <span class="material-symbols-outlined text-[16px]" data-action-icon aria-hidden="true">archive</span>
+                    <span class="material-symbols-outlined text-[16px] animate-spin" data-spinner style="display: none;" aria-hidden="true">progress_activity</span>
+                    <span>{{ __('admin.archive_campaign') }}</span>
                 </button>
             </div>
         </div>

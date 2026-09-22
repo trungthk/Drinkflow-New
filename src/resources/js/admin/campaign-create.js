@@ -91,6 +91,8 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         selectedPreviousCampaignId: null,
         showConfirmModal: false,
         pendingStatus: 'active',
+        showNotifyModal: false,
+        notifyMembers: true,
         showAddItemModal: false,
         editingItemIndex: null,
         itemModalTab: 'basic',
@@ -628,6 +630,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                         percentage: Number(sponsor.percentage) || 0
                     })) : [],
                 status: this.form.status,
+                notify_members: this.notifyMembers,
                 items: this.menuItems.filter(item => item.name && item.name.trim()).map(item => ({
                     id: item.id || null,
                     name: item.name.trim(),
@@ -678,6 +681,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             } catch (e) {
                 alert(msg('genericError', { message: e.message }));
                 this.showConfirmModal = false;
+                this.showNotifyModal = false;
             } finally {
                 this.submitting = false;
                 this.submittingAction = null;
@@ -686,6 +690,16 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
 
         saveChanges() {
             this.submittingAction = this.form.status === 'draft' ? 'draft' : 'save_changes';
+            if (this.isEditMode && ['active', 'scheduled', 'closing'].includes(this.form.status)) {
+                this.notifyMembers = false;
+                this.showNotifyModal = true;
+                return;
+            }
+            this.submitForm(this.form.status);
+        },
+
+        confirmSaveChanges() {
+            this.showNotifyModal = false;
             this.submitForm(this.form.status);
         },
 

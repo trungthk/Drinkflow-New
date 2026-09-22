@@ -33,6 +33,7 @@ class BatchUpdateCampaignItemStatusRequest extends FormRequest
             'items' => ['required', 'array'],
             'items.*.id' => ['required', 'integer'],
             'items.*.status' => ['required', Rule::in(['active', 'inactive'])],
+            'notify_members' => ['sometimes', 'boolean'],
         ];
     }
 

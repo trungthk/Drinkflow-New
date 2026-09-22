@@ -655,5 +655,37 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Confirm Update Campaign (notify members toggle) -->
+    <div x-show="showNotifyModal"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+         @keydown.escape.window="if (!submitting) showNotifyModal = false">
+        <div class="w-full max-w-md rounded-xl bg-surface-container-lowest border border-outline-variant p-5 shadow-2xl"
+             @click.outside="if (!submitting) showNotifyModal = false">
+            <div class="flex items-center justify-between border-b border-outline-variant pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden="true">
+                        <span class="material-symbols-outlined text-[19px]">edit_note</span>
+                    </span>
+                    <h3 class="font-bold text-base text-on-surface">{{ __('admin.confirm_update_campaign_title') }}</h3>
+                </div>
+                <button type="button" @click="showNotifyModal = false" :disabled="submitting" class="text-outline hover:text-on-surface disabled:opacity-50"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <p class="py-4 text-xs text-on-surface-variant leading-relaxed">{{ __('admin.confirm_update_campaign_desc') }}</p>
+            <label class="flex items-center gap-2.5 cursor-pointer text-xs text-on-surface-variant select-none pb-2">
+                <input type="checkbox" x-model="notifyMembers" class="rounded border-outline-variant text-primary focus:ring-primary w-4 h-4">
+                <span class="font-medium">{{ __('admin.notify_members_checkbox_label') }}</span>
+            </label>
+            <div class="flex justify-end gap-2 pt-3 border-t border-outline-variant">
+                <button type="button" @click="showNotifyModal = false" :disabled="submitting" class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface text-xs font-semibold hover:bg-surface-container-low transition-colors disabled:opacity-50">{{ __('admin.cancel') }}</button>
+                <button type="button" @click="confirmSaveChanges()" :disabled="submitting" class="px-4 py-2 rounded-lg bg-primary text-on-primary text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5 transition-colors">
+                    <span x-show="submitting" class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                    <span x-show="!submitting" class="material-symbols-outlined text-[16px]">save</span>
+                    <span x-text="submitting ? '{{ __('admin.processing') }}' : '{{ __('admin.confirm_update_btn') }}'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 </x-admin.layout>

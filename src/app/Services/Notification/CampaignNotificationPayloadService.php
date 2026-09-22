@@ -124,10 +124,13 @@ class CampaignNotificationPayloadService
                 $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
             }
         } elseif ($event === NotificationType::CampaignClosed->value) {
-            $lines[] = __('messages.campaign_closed_body');
+            $hasSponsor = $campaign->sponsor_type !== Campaign::SPONSOR_TYPE_NONE
+                && (filled($campaign->sponsor_type) || filled($campaign->sponsor_name) || ! empty($campaign->sponsor_allocations));
+            $reminder = __($hasSponsor ? 'messages.campaign_closed_sponsored_body' : 'messages.campaign_closed_body');
             if ($orderUrl !== null) {
-                $lines[] = __('messages.campaign_order_check', ['url' => $orderUrl]);
+                $reminder .= ' => '.$orderUrl;
             }
+            $lines[] = $reminder;
         } elseif ($event === NotificationType::CampaignCancelled->value) {
             $lines[] = __('messages.campaign_cancelled_body');
         } elseif ($event === NotificationType::CampaignDelivering->value) {

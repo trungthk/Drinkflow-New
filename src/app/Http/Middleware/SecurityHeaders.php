@@ -6,6 +6,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Vite;
 use Symfony\Component\HttpFoundation\Response;
 
 class SecurityHeaders
@@ -57,13 +58,19 @@ class SecurityHeaders
     private function buildContentSecurityPolicy(): string
     {
         [$realtimeOrigin, $realtimeWsOrigin] = $this->realtimeOrigins();
-        // The Vite dev server (`npm run dev`) only ever binds to the developer's own loopback interface:
-        // no production visitor's browser can reach it, so always allowing it costs nothing and keeps
-        // local HMR working regardless of how APP_ENV happens to be set on a given machine.
-        // (CSP source-lists cannot express a literal IPv6 host such as `[::1]`, so only the IPv4/hostname
-        // forms are listed; browsers ignore an `[::1]` entry with a console warning if one is added here.)
-        $viteDevOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173'];
-        $viteDevWsOrigins = ['ws://localhost:5173', 'ws://127.0.0.1:5173'];
+        $viteDevOrigins = [];
+        $viteDevWsOrigins = [];
+        if (Vite::isRunningHot()) {
+            $viteUrl = parse_url(trim((string) file_get_contents(Vite::hotFile())));
+            if (is_array($viteUrl)
+                && in_array($viteUrl['scheme'] ?? null, ['http', 'https'], true)
+                && in_array($viteUrl['host'] ?? null, ['localhost', '127.0.0.1'], true)
+                && isset($viteUrl['port'])) {
+                $origin = $viteUrl['scheme'].'://'.$viteUrl['host'].':'.$viteUrl['port'];
+                $viteDevOrigins[] = $origin;
+                $viteDevWsOrigins[] = ($viteUrl['scheme'] === 'https' ? 'wss' : 'ws').'://'.$viteUrl['host'].':'.$viteUrl['port'];
+            }
+        }
 
         $scriptSrc = array_filter([
             "'self'", "'unsafe-inline'", "'unsafe-eval'",

@@ -9,6 +9,7 @@ use App\Enums\OrderStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\Campaign;
 use App\Models\CampaignParticipant;
+use App\Models\Order;
 use App\Models\Room;
 
 class AdminCampaignDetailService
@@ -32,7 +33,9 @@ class AdminCampaignDetailService
             'debts.roomUser.globalUser',
         ]);
 
-        $orders = $campaign->orders->whereNotIn('status', [OrderStatus::Cancelled->value]);
+        $orders = $campaign->orders
+            ->filter(static fn (Order $order): bool => $order->status !== OrderStatus::Cancelled && $order->cancelled_at === null)
+            ->values();
         $allActiveRoomUsers = $room->roomUsers()
             ->where('status', RoomUserStatus::Active)
             ->with('globalUser')
@@ -71,6 +74,7 @@ class AdminCampaignDetailService
                         'size' => $item->size_name,
                         'unit_price' => $item->unit_price,
                         'quantity' => 0,
+                        'member_quantities' => collect(),
                         'total_amount' => 0,
                         'notes' => collect(),
                         'toppings' => $toppingLabels,
@@ -80,6 +84,13 @@ class AdminCampaignDetailService
                 }
                 $curr = $aggregatedItems->get($key);
                 $curr['quantity'] += $item->quantity;
+                $memberKey = $order->room_user_id ?? 'order-'.$order->id;
+                $memberQuantity = $curr['member_quantities']->get($memberKey, [
+                    'name' => $order->roomUser?->display_name ?? __('admin.member'),
+                    'quantity' => 0,
+                ]);
+                $memberQuantity['quantity'] += $item->quantity;
+                $curr['member_quantities']->put($memberKey, $memberQuantity);
                 $curr['total_amount'] += $item->line_subtotal;
                 if (! empty($item->note)) {
                     $curr['notes']->push($item->note);
@@ -89,7 +100,10 @@ class AdminCampaignDetailService
         }
 
         $grossSubtotal = (int) $orders->sum('subtotal');
-        $sponsorSubsidy = (int) $orders->sum('sponsor_amount');
+        $grossTotal = max(0, $grossSubtotal + (int) ($campaign->delivery_fee ?? 0) - (int) ($campaign->discount ?? 0));
+        $sponsorSubsidy = $campaign->sponsor_type === Campaign::SPONSOR_TYPE_FULL
+            ? $grossTotal
+            : (int) $orders->sum('sponsor_amount');
         $netPayables = (int) $orders->sum('final_amount');
         $paidViaQr = (int) $campaign->debts->sum('paid_amount');
         $memberDebt = (int) $campaign->debts->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])->sum('remaining_amount');
@@ -100,7 +114,7 @@ class AdminCampaignDetailService
             ? $room->roomUsers()->with('globalUser')->whereIn('id', $sponsorUserIds)->get()->keyBy('id')
             : collect();
 
-        $sponsorsList = $sponsorAllocationsData->map(function ($alloc) use ($sponsorRoomUsers, $sponsorSubsidy) {
+        $sponsorsList = $sponsorAllocationsData->map(function ($alloc) use ($sponsorRoomUsers, $sponsorSubsidy): array {
             $user = $sponsorRoomUsers->get((int) ($alloc['room_user_id'] ?? 0));
             $name = $user?->display_name ?? $user?->globalUser?->name ?? __('admin.sponsor_info');
             $percentage = (float) ($alloc['percentage'] ?? 0);
@@ -111,7 +125,14 @@ class AdminCampaignDetailService
                 'amount' => $amount,
                 'avatar' => $user?->globalUser?->avatar_url ?? null,
             ];
-        });
+        })->values();
+
+        // Match the sponsor debt allocation: assign rounding remainder to the first sponsor.
+        if ($campaign->sponsor_type === Campaign::SPONSOR_TYPE_FULL && $sponsorsList->isNotEmpty()) {
+            $firstSponsor = $sponsorsList->first();
+            $firstSponsor['amount'] = max(0, $firstSponsor['amount'] + $sponsorSubsidy - (int) $sponsorsList->sum('amount'));
+            $sponsorsList->put(0, $firstSponsor);
+        }
 
         if ($sponsorsList->isEmpty() && !empty($campaign->sponsor_name)) {
             $sponsorsList->push([
@@ -201,6 +222,7 @@ class AdminCampaignDetailService
             'declinedUsers' => $declinedUsers,
             'unresponsiveUsers' => $unresponsiveUsers,
             'grossSubtotal' => $grossSubtotal,
+            'grossTotal' => $grossTotal,
             'sponsorSubsidy' => $sponsorSubsidy,
             'netPayables' => $netPayables,
             'paidViaQr' => $paidViaQr,

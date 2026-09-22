@@ -45,6 +45,8 @@ class RoomOrdersLayoutTest extends TestCase
             'name' => 'Coffee Live',
             'restaurant' => 'DrinkFlow Cafe',
             'status' => CampaignStatus::Active,
+            'delivery_fee' => 10000,
+            'discount' => 5000,
         ]);
         $order = Order::create([
             'room_id' => $room->id,
@@ -116,7 +118,9 @@ class RoomOrdersLayoutTest extends TestCase
         $response->assertSeeText(__('room.orders.step_delivered_title'));
         $response->assertSeeText(__('room.orders.step_completed_title'));
         $response->assertSee('Trà sữa ô long');
-        $response->assertSee('90.000đ');
+        $response->assertSee('95.000đ');
+        $response->assertSee('10.000đ');
+        $response->assertSee('5.000đ');
         $response->assertSee('Size L');
         $response->assertSee('30% đường');
         $response->assertSee('50% đá');
@@ -125,7 +129,7 @@ class RoomOrdersLayoutTest extends TestCase
         $response->assertSee('bg-blue-600 hover:bg-blue-700', false);
         $response->assertSee('openPaymentConfirm', false);
         $response->assertSee('showGlobalLoading', false);
-        $response->assertDontSee(__('room.orders.pay_now_vietqr').' (90.000đ)');
+        $response->assertDontSee(__('room.orders.pay_now_vietqr').' (95.000đ)');
         $response->assertDontSee('Chờ duyệt thanh toán');
         $response->assertDontSee('confirm(', false);
 

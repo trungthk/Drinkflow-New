@@ -86,4 +86,24 @@ class CampaignChannelNotificationTest extends TestCase
         Event::assertDispatchedTimes(CampaignCreated::class, 1);
         Event::assertDispatchedTimes(CampaignUpdated::class, 1);
     }
+
+    /** Unchecking "notify members" on the update form must skip the update announcement entirely. */
+    public function test_update_action_skips_notification_when_notify_members_is_false(): void
+    {
+        Event::fake([CampaignCreated::class, CampaignUpdated::class]);
+        $room = Room::create(['name' => 'Marketing', 'slug' => 'marketing']);
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Friday coffee',
+            'restaurant' => 'Cafe',
+            'status' => CampaignStatus::Active,
+        ]);
+
+        $action = app(UpdateCampaignAction::class);
+        $updated = $action->execute($campaign, ['name' => 'Friday coffee v2'], null, false);
+
+        $this->assertSame('Friday coffee v2', $updated->name);
+        Event::assertNotDispatched(CampaignCreated::class);
+        Event::assertNotDispatched(CampaignUpdated::class);
+    }
 }

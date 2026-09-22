@@ -48,7 +48,7 @@ class OrderController extends Controller
                     });
             })
             ->where('status', '!=', OrderStatus::Cancelled->value)
-            ->with(['items.toppings', 'children.roomUser.globalUser', 'children.items.toppings', 'campaign.paymentAccount'])
+            ->with(['items.toppings', 'children.roomUser.globalUser', 'children.items.toppings', 'campaign.paymentAccount', 'campaign.orders'])
             ->latest();
 
         $orders = $query->paginate(20);

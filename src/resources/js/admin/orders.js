@@ -35,6 +35,9 @@ export function initAdminOrders() {
         }
     };
     const formatVND = formatMoney;
+    const priceFormatter = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 });
+    const parsePriceInput = (value) => Number(String(value).replace(/\D/g, '')) || 0;
+    const formatPriceInput = (value) => priceFormatter.format(parsePriceInput(value));
 
     search?.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
@@ -43,6 +46,9 @@ export function initAdminOrders() {
         }
     });
     search?.addEventListener('admin:search-cleared', () => filterForm?.requestSubmit());
+    search?.addEventListener('search', () => {
+        if (!search.value) filterForm?.requestSubmit();
+    });
 
     /**
      * Close the order detail modal.
@@ -316,13 +322,34 @@ export function initAdminOrders() {
             const order = (await response.json()).data;
             const title = page.querySelector('#modal-order-title');
             if (title) title.textContent = (order.code || ('#ORD-' + order.id)) + ' - ' + (order.room_user?.display_name || '');
-            const items = (order.items || []).map((item) => '<div class="grid grid-cols-[1fr_7rem] gap-3 items-center p-2.5 rounded border border-outline-variant/60"><div class="min-w-0"><div class="font-bold text-on-surface truncate">' + escape(item.quantity) + '× ' + escape(item.item_name) + (item.size ? ' (' + escape(item.size) + ')' : '') + '</div><div class="text-[11px] text-outline truncate">' + escape(item.toppings?.map((topping) => topping.name).join(', ') || '—') + '</div></div><input type="number" min="0" data-price data-id="' + escape(item.id) + '" data-quantity="' + escape(item.quantity) + '" value="' + escape(item.unit_price) + '" class="w-full h-9 px-2 bg-surface border border-outline-variant rounded font-mono font-bold text-right text-primary"></div>').join('');
+            const itemsForAdjustment = (order.items || []).map((item) => {
+                const options = [];
+                const size = item.size_name || item.size;
+                if (size) options.push('Size: ' + size);
+                if (item.ice_percent !== null && item.ice_percent !== undefined && item.ice_percent !== '') options.push((i18n.ice || 'Ice') + ': ' + item.ice_percent + '%');
+                if (item.sugar_percent !== null && item.sugar_percent !== undefined && item.sugar_percent !== '') options.push((i18n.sugar || 'Sugar') + ': ' + item.sugar_percent + '%');
+                return { ...item, size: options.join(' · '), toppings: (item.toppings || []).map((topping) => ({ ...topping, name: (topping.name || topping.topping_name || '') + (Number(topping.price ?? topping.unit_price ?? 0) > 0 ? ' (+' + formatVND(Number(topping.price ?? topping.unit_price)) + ')' : '') })) };
+            });
+            const items = itemsForAdjustment.map((item) => '<div class="grid grid-cols-[1fr_7rem] gap-3 items-center p-2.5 rounded border border-outline-variant/60"><div class="min-w-0"><div class="font-bold text-on-surface truncate">' + escape(item.quantity) + '× ' + escape(item.item_name) + (item.size ? ' (' + escape(item.size) + ')' : '') + '</div><div class="text-[11px] text-outline truncate">' + escape(item.toppings?.map((topping) => topping.name).join(', ') || '—') + '</div></div><div class="relative"><input type="text" inputmode="numeric" data-price data-id="' + escape(item.id) + '" data-quantity="' + escape(item.quantity) + '" value="' + escape(formatPriceInput(item.unit_price)) + '" class="w-full h-9 pl-2 pr-6 bg-surface border border-outline-variant rounded font-mono font-bold text-right text-primary"><span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-mono text-outline pointer-events-none">đ</span></div></div>').join('');
             body.innerHTML = '<form id="price-adjust-form" class="space-y-4"><div class="space-y-2"><h4 class="font-semibold text-on-surface">' + escape(i18n.orderedItems) + '</h4>' + items + '</div><div class="flex justify-between rounded-lg bg-surface-container-low p-3 text-sm"><span class="font-semibold">' + escape(i18n.subtotal) + '</span><span id="adjusted-subtotal" class="font-mono font-bold text-primary"></span></div><div><label class="block font-semibold text-on-surface mb-1" for="adj-reason">' + escape(i18n.adjustmentReason) + '</label><textarea id="adj-reason" rows="2" required class="w-full p-2.5 bg-surface border border-outline-variant rounded text-xs"></textarea></div><div class="pt-3 border-t border-outline-variant flex justify-end gap-2"><button type="button" data-close class="px-4 py-2 bg-surface-container rounded font-semibold text-xs">' + escape(i18n.cancel) + '</button><button type="submit" class="px-4 py-2 bg-primary text-on-primary rounded font-semibold text-xs inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">save</span><span>' + escape(i18n.save) + '</span></button></div></form>';
             const refreshTotal = () => {
-                const total = [...body.querySelectorAll('[data-price]')].reduce((sum, input) => sum + (Number(input.value) || 0) * (Number(input.dataset.quantity) || 0), 0);
+                const total = [...body.querySelectorAll('[data-price]')].reduce((sum, input) => sum + parsePriceInput(input.value) * (Number(input.dataset.quantity) || 0), 0);
                 body.querySelector('#adjusted-subtotal').textContent = formatMoney(total);
             };
-            body.querySelectorAll('[data-price]').forEach((input) => input.addEventListener('input', debounce(refreshTotal, 150)));
+            const debouncedRefreshTotal = debounce(refreshTotal, 150);
+            body.querySelectorAll('[data-price]').forEach((input) => input.addEventListener('input', () => {
+                const digitsBeforeCaret = input.value.slice(0, input.selectionStart ?? input.value.length).replace(/\D/g, '').length;
+                const digits = input.value.replace(/\D/g, '');
+                input.value = digits ? formatPriceInput(digits) : '';
+                let caret = 0;
+                let seenDigits = 0;
+                while (caret < input.value.length && seenDigits < digitsBeforeCaret) {
+                    if (/\d/.test(input.value[caret])) seenDigits++;
+                    caret++;
+                }
+                input.setSelectionRange(caret, caret);
+                debouncedRefreshTotal();
+            }));
             body.querySelector('[data-close]')?.addEventListener('click', closeModal);
             refreshTotal();
             body.querySelector('#price-adjust-form')?.addEventListener('submit', async (event) => {
@@ -335,7 +362,7 @@ export function initAdminOrders() {
                 const origHtml = submit.innerHTML;
                 submit.innerHTML = '<span class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> <span>' + escape(i18n.savingPriceAdjustment || '') + '</span>';
 
-                const payload = { items: [...body.querySelectorAll('[data-price]')].map((input) => ({ id: Number(input.dataset.id), unit_price: Number(input.value) })), reason: reason };
+                const payload = { items: [...body.querySelectorAll('[data-price]')].map((input) => ({ id: Number(input.dataset.id), unit_price: parsePriceInput(input.value) })), reason: reason };
                 try {
                     const update = await fetch('/admin/' + room + '/orders/' + order.id, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, Accept: 'application/json' }, body: JSON.stringify(payload) });
                     const updateData = await update.json();

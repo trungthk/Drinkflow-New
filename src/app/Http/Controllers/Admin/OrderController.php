@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Debt\ApproveDebtPaymentAction;
 use App\Actions\Order\DeleteOrderAction;
 use App\Actions\Order\UpdateOrderAction;
 use App\Actions\Order\UpdateOrderStatusAction;
 use App\Enums\CampaignStatus;
+use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BulkCancelOrdersRequest;
@@ -15,6 +17,7 @@ use App\Http\Requests\BulkUpdateOrderStatusRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Models\Campaign;
+use App\Models\Debt;
 use App\Models\Order;
 use App\Models\Room;
 use App\Services\Audit\AuditService;
@@ -297,7 +300,8 @@ class OrderController extends Controller
     }
 
     /**
-     * Handle the destroy operation.
+     * Handle the destroy operation. Only allowed while the order's campaign is still live.
+     *
      * @param Room $room Parameter value.
      * @param Order $order Parameter value.
      * @param DeleteOrderAction $action Parameter value.
@@ -306,8 +310,53 @@ class OrderController extends Controller
     public function destroy(Room $room, Order $order, DeleteOrderAction $action): JsonResponse
     {
         $this->assertRoom($order);
+        $this->assertCampaignLive($order);
         $action->execute($order);
         return response()->json(['message' => 'order_deleted']);
+    }
+
+    /**
+     * Confirm payment for an order and settle the member's outstanding debt for its campaign.
+     *
+     * Approving the debt (creating it first if none exists yet) marks every order this member
+     * placed in the same campaign as paid, matching how debts are modeled room_user+campaign-wide
+     * rather than per order.
+     *
+     * @param Room $room Room entity.
+     * @param Order $order Order to confirm payment for.
+     * @param ApproveDebtPaymentAction $action Domain action to approve debt payment.
+     * @return JsonResponse Result of the operation.
+     */
+    public function confirmPayment(Room $room, Order $order, ApproveDebtPaymentAction $action): JsonResponse
+    {
+        $this->assertRoom($order);
+        $this->assertCampaignLive($order);
+
+        $debt = Debt::firstOrNew([
+            'campaign_id' => $order->campaign_id,
+            'room_user_id' => $order->room_user_id,
+        ]);
+        if (! $debt->exists) {
+            $debt->fill([
+                'room_id' => $order->room_id,
+                'original_amount' => (int) $order->final_amount,
+                'sponsor_amount' => (int) $order->sponsor_amount,
+                'sponsor_type' => $order->campaign?->sponsor_type ?? Campaign::SPONSOR_TYPE_NONE,
+                'sponsor_description' => $order->campaign?->sponsor_description,
+                'adjustment_amount' => 0,
+                'paid_amount' => 0,
+                'remaining_amount' => (int) $order->final_amount,
+                'status' => DebtStatus::Pending,
+                'payment_content' => $order->code,
+            ])->save();
+        }
+
+        $action->execute($debt);
+
+        return response()->json([
+            'message' => __('admin.confirm_order_payment_success'),
+            'data' => $order->fresh(),
+        ]);
     }
 
     /**
@@ -318,5 +367,16 @@ class OrderController extends Controller
     private function assertRoom(Order $order): void
     {
         abort_unless($order->room_id === request()->attributes->get('room')->id, 404);
+    }
+
+    /**
+     * Guard an order mutation to campaigns that are still live (active).
+     *
+     * @param Order $order Order whose campaign status is checked.
+     * @return void
+     */
+    private function assertCampaignLive(Order $order): void
+    {
+        abort_unless($order->campaign?->status === CampaignStatus::Active, 422, __('admin.campaign_locked_cannot_modify'));
     }
 }

@@ -531,7 +531,7 @@ class AdminFeatureTest extends TestCase
     }
 
     /**
-     * Sidebar orders badge counts only top-level orders of the live campaign.
+     * Sidebar orders badge counts only top-level orders of the live campaign and excludes cancelled orders.
      *
      * @return void
      */
@@ -561,8 +561,9 @@ class AdminFeatureTest extends TestCase
         $make($closed);
         $make($closed);
         $make($closed);
+        $make($live)->update(['status' => 'cancelled', 'cancelled_at' => now()]);
 
-        $this->assertSame(3, \App\Models\Order::query()->where('room_id', $room->id)->inLiveCampaign()->count());
+        $this->assertSame(4, \App\Models\Order::query()->where('room_id', $room->id)->inLiveCampaign()->count());
         $this->actingAs($admin, 'admin')->get(route('admin.orders.page', $room->slug))
             ->assertOk()
             ->assertViewHas('realtimeOrderCount', 3);
@@ -694,6 +695,20 @@ class AdminFeatureTest extends TestCase
             'name' => 'Trà Sữa Phúc Long',
             'normalized_name' => 'TRA SUA PHUC LONG',
             'base_price' => 55000,
+            'status' => 'active',
+        ]);
+
+        $activeCampaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Live Lunch',
+            'restaurant' => 'Highlands',
+            'status' => 'active',
+        ]);
+        CampaignItem::create([
+            'campaign_id' => $activeCampaign->id,
+            'name' => 'Phin Sữa Đá',
+            'normalized_name' => 'PHIN SUA DA',
+            'base_price' => 35000,
             'status' => 'active',
         ]);
 
@@ -880,6 +895,9 @@ class AdminFeatureTest extends TestCase
             ->assertSee(__('admin.filter_active'))
             ->assertSee(__('admin.filter_closed'))
             ->assertSee("/admin/{$room->slug}/campaigns/{$expiredCampaign->id}/edit")
+            ->assertSee("window.openArchiveCampaignModal({$closedCampaign->id})", false)
+            ->assertSee('id="archive-campaign-modal"', false)
+            ->assertSee(__('admin.confirm_archive_campaign_title'))
             ->assertDontSee('onclick="deleteCampaign(');
     }
 

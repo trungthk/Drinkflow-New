@@ -41,11 +41,16 @@ class UpdateCampaignAction
      * @param Campaign $campaign Campaign instance to update.
      * @param array<string, mixed> $data Validated input payload.
      * @param int|null $adminId Identifier of the admin performing the update.
+     * @param bool $notifyMembers Whether to announce this update to room members.
      * @return Campaign Fresh campaign instance with relations loaded.
      * @throws ValidationException When business invariants are violated.
      */
-    public function execute(Campaign $campaign, array $data, ?int $adminId = null): Campaign
+    public function execute(Campaign $campaign, array $data, ?int $adminId = null, bool $notifyMembers = true): Campaign
     {
+        // Captured before any of the branches below mutate $data, so the fee/discount-only
+        // detection below reflects exactly what the caller asked to change.
+        $requestedFields = array_keys($data);
+
         /** @var Room $room */
         $room = $campaign->room;
 
@@ -115,7 +120,7 @@ class UpdateCampaignAction
 
         $previousStatus = $campaign->status;
 
-        $updated = DB::transaction(function () use ($campaign, $data, $hasItems, $items, $previousStatus): Campaign {
+        $updated = DB::transaction(function () use ($campaign, $data, $hasItems, $items, $previousStatus, $requestedFields): Campaign {
             $before = $campaign->toArray();
             $updateData = collect($data)->all();
             if (isset($data['status'])) {
@@ -200,16 +205,20 @@ class UpdateCampaignAction
 
             /** @var Campaign $freshCampaign */
             $freshCampaign = $campaign->fresh(['items.toppings', 'items.sizes', 'paymentAccount', 'room']);
-            $this->auditService->record('campaign.updated', 'campaign', $campaign->id, $campaign->room_id, $before, $freshCampaign->toArray());
+            $isFeeAdjustmentOnly = !empty($requestedFields) && empty(array_diff($requestedFields, ['delivery_fee', 'discount']));
+            $auditEvent = $isFeeAdjustmentOnly ? 'campaign.fee_adjusted' : 'campaign.updated';
+            $this->auditService->record($auditEvent, 'campaign', $campaign->id, $campaign->room_id, $before, $freshCampaign->toArray());
 
             return $freshCampaign;
         });
 
-        if ($this->wentLive($previousStatus, $updated->status)) {
-            // Draft/scheduled -> active is a go-live: announce it like a newly created campaign.
-            CampaignCreated::dispatch($updated);
-        } elseif (in_array($updated->status, [CampaignStatus::Active, CampaignStatus::Scheduled, CampaignStatus::Closing], true)) {
-            CampaignUpdated::dispatch($updated);
+        if ($notifyMembers) {
+            if ($this->wentLive($previousStatus, $updated->status)) {
+                // Draft/scheduled -> active is a go-live: announce it like a newly created campaign.
+                CampaignCreated::dispatch($updated);
+            } elseif (in_array($updated->status, [CampaignStatus::Active, CampaignStatus::Scheduled, CampaignStatus::Closing], true)) {
+                CampaignUpdated::dispatch($updated);
+            }
         }
 
         return $updated;

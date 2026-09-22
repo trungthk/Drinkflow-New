@@ -36,7 +36,7 @@ class AuditService
 
         if ($roomId && \Illuminate\Support\Facades\Schema::hasTable('admin_notifications')) {
             $room = Room::find($roomId);
-            $room?->admins()->each(function ($recipient) use ($auditLog, $roomId, $event): void {
+            $room?->admins()->each(function ($recipient) use ($auditLog, $roomId, $event, $targetType, $before, $after, $metadata): void {
                 AdminNotification::create([
                     'admin_id' => $recipient->id,
                     'room_id' => $roomId,
@@ -44,7 +44,13 @@ class AuditService
                     'type' => $event,
                     'title' => $event,
                     'body' => null,
-                    'data' => ['audit_log_id' => $auditLog->id],
+                    'data' => [
+                        'audit_log_id' => $auditLog->id,
+                        'target_type' => $targetType,
+                        'before' => $before,
+                        'after' => $after,
+                        'metadata' => $metadata,
+                    ],
                 ]);
             });
         }

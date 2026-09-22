@@ -66,9 +66,17 @@
             document.querySelector('#admin-reset').onclick = resetPassword;
         }
         async function openRoomAssignment() {
-            const [{ data: admin }, { data: rooms }] = await Promise.all([dfApi(`/superadmin/admins/${adminId}`), dfApi(roomsUrl)]);
+            const [{ data: admin }, { data: firstPage }] = await Promise.all([dfApi(`/superadmin/admins/${adminId}`), dfApi(roomsUrl)]);
             const assigned = new Set((admin.rooms || []).map(room => Number(room.id)));
-            document.querySelector('#room-options').innerHTML = (rooms.data || []).map(room => `<label class="sa-health-row"><span><strong>${escapeHtml(room.name)}</strong><small>${escapeHtml(room.slug)} · ${escapeHtml(superadminStatusLabels[room.status] || room.status)}</small></span><input type="checkbox" value="${room.id}" ${assigned.has(Number(room.id)) ? 'checked' : ''}></label>`).join('') || `<div class="sa-empty">${@js(__('superadmin.admins.no_rooms'))}</div>`;
+            const rooms = [...firstPage.data];
+            let nextPageUrl = firstPage.next_page_url;
+            while (nextPageUrl) {
+                const { data: page } = await dfApi(nextPageUrl);
+                rooms.push(...page.data);
+                nextPageUrl = page.next_page_url;
+            }
+            const statusLabels = JSON.parse(document.body.dataset.statusLabels || '{}');
+            document.querySelector('#room-options').innerHTML = rooms.map(room => `<label class="sa-health-row"><span><strong>${escapeHtml(room.name)}</strong><small>${escapeHtml(room.slug)} · ${escapeHtml(statusLabels[room.status] || room.status)}</small></span><input type="checkbox" value="${room.id}" ${assigned.has(Number(room.id)) ? 'checked' : ''}></label>`).join('') || `<div class="sa-empty">${@js(__('superadmin.admins.no_rooms'))}</div>`;
             document.querySelector('#room-assignment-panel').hidden = false;
         }
         async function saveRoomAssignment() {

@@ -150,6 +150,11 @@
       this.note = this.defaultNote;
       this.showCustomModal = true;
     },
+    closeCustomModal() {
+      this.showCustomModal = false;
+      this.selectedToppings = [];
+      this.selectedSize = null;
+    },
     async addToCart() {
       if (this.isCustomItemExceeded) {
         window.alert('{{ __('room.campaign.custom_exceeds_budget_msg', ['limit' => \App\Support\Helpers\FormatHelper::formatCurrency((int) ($activeCampaign?->max_budget ?? 0))]) }}');
@@ -700,7 +705,7 @@
         <div x-show="showCustomModal" 
              x-cloak 
              class="fixed inset-0 z-[100] flex h-screen min-h-screen w-screen items-center justify-center overflow-y-auto bg-slate-900/60 p-0 backdrop-blur-md">
-          <div @click.outside="showCustomModal = false"
+          <div @click.outside="closeCustomModal()"
                class="my-auto h-screen min-h-screen w-full overflow-hidden border border-slate-200 bg-white shadow-2xl sm:h-auto sm:min-h-0 sm:max-h-[calc(100dvh-2rem)] sm:max-w-lg sm:rounded-2xl animate-fadeIn">
             <!-- Modal Header -->
             <div class="p-5 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
@@ -721,7 +726,7 @@
                   <span class="text-xs font-mono font-semibold text-slate-500" x-text="new Intl.NumberFormat('vi-VN').format(calculatedPrice) + 'đ'"></span>
                 </div>
               </div>
-              <button type="button" @click="showCustomModal = false" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 cursor-pointer">
+              <button type="button" @click="closeCustomModal()" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 cursor-pointer">
                 <span class="material-symbols-outlined text-[20px]">close</span>
               </button>
             </div>
@@ -759,9 +764,10 @@
                     <template x-for="top in selectedItem.toppings" :key="top.id">
                       <label class="p-2.5 rounded-xl border border-slate-200 flex items-center justify-between gap-2 hover:bg-slate-50 cursor-pointer text-xs">
                         <div class="flex items-center gap-2">
-                          <input type="checkbox" 
-                                 name="toppings[]" 
+                          <input type="checkbox"
+                                 name="toppings[]"
                                  :value="top.id"
+                                 :checked="selectedToppings.some(t => t.id === top.id)"
                                  @change="if ($event.target.checked) { selectedToppings.push(top); } else { selectedToppings = selectedToppings.filter(t => t.id !== top.id); }"
                                  class="rounded border-slate-300 text-[#006948] focus:ring-[#006948]">
                           <span x-text="top.name" class="font-medium text-slate-800"></span>

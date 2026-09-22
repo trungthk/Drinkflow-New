@@ -222,6 +222,30 @@ class CampaignOrderingAvailabilityTest extends TestCase
     }
 
     /**
+     * Verify the item-customization modal keeps its topping checkboxes reactively bound to the
+     * selection state, and resets that state whenever the modal is dismissed without confirming —
+     * otherwise a previously checked topping stays visually checked (via stale DOM state) on reopen
+     * without being priced in or sent to the backend.
+     *
+     * @return void
+     */
+    public function test_item_customize_modal_resets_toppings_when_closed(): void
+    {
+        [$user, $room] = $this->createRoomMember('toppings');
+        [, $item] = $this->createCampaignWithItem($room, CampaignStatus::Active, now()->addHour());
+        $item->toppings()->create(['name' => 'Trân châu', 'price' => 5000]);
+
+        $html = $this->actingAs($user, 'web')
+            ->get(route('user.campaigns.index', $room))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString(':checked="selectedToppings.some(t => t.id === top.id)"', $html);
+        $this->assertStringContainsString('closeCustomModal()', $html);
+        $this->assertStringContainsString("closeCustomModal() {\n      this.showCustomModal = false;\n      this.selectedToppings = [];", $html);
+    }
+
+    /**
      * Create a campaign and one active item for an ordering scenario.
      *
      * @param Room $room Room owning the campaign.

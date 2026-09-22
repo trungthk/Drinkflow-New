@@ -74,6 +74,19 @@
                 const raw = String(val).replace(/[^\d]/g, '');
                 return raw ? parseInt(raw, 10) : 0;
             }
+            window.formatMoneyInput = function (event) {
+                const input = event.target;
+                const digitsBeforeCaret = input.value.slice(0, input.selectionStart ?? input.value.length).replace(/\D/g, '').length;
+                const digits = input.value.replace(/\D/g, '');
+                input.value = digits ? formatInput(parseInput(digits)) : '';
+                let caret = 0;
+                let seenDigits = 0;
+                while (caret < input.value.length && seenDigits < digitsBeforeCaret) {
+                    if (/\d/.test(input.value[caret])) seenDigits++;
+                    caret++;
+                }
+                input.setSelectionRange(caret, caret);
+            };
             function filterNumberInput(e) {
                 if (['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Enter', 'Home', 'End'].includes(e.key)) {
                     return;
@@ -90,6 +103,10 @@
             // ----- Generic modal open/close helpers -----
             function openModal(id) {
                 const el = document.getElementById(id);
+                if (id === 'adjust-fee-modal') {
+                    const notifyCheckbox = document.getElementById('adjust-notify-members');
+                    if (notifyCheckbox) notifyCheckbox.checked = false;
+                }
                 if (el) el.style.display = 'flex';
             }
             function closeModal(id) {
@@ -117,7 +134,13 @@
                 if (isCancelling) return;
                 isCancelling = true;
                 const btn = document.getElementById('confirm-cancel-submit-btn');
+                const backBtn = document.getElementById('cancel-campaign-back-btn');
+                const normalEl = document.getElementById('cancel-campaign-btn-normal');
+                const loadingEl = document.getElementById('cancel-campaign-btn-loading');
                 if (btn) btn.disabled = true;
+                if (backBtn) backBtn.disabled = true;
+                if (normalEl) normalEl.style.display = 'none';
+                if (loadingEl) loadingEl.style.display = 'flex';
 
                 try {
                     const response = await fetch('{{ route('admin.campaigns.cancel', [$room, $campaign]) }}', {
@@ -137,9 +160,11 @@
                 } catch (err) {
                     if (window.notify) window.notify(err.message, 'error');
                     else alert(err.message);
-                } finally {
                     isCancelling = false;
                     if (btn) btn.disabled = false;
+                    if (backBtn) backBtn.disabled = false;
+                    if (normalEl) normalEl.style.display = 'flex';
+                    if (loadingEl) loadingEl.style.display = 'none';
                 }
             };
 
@@ -333,12 +358,20 @@
 
                 const feeInput = document.getElementById('adjust-fee-input');
                 const discountInput = document.getElementById('adjust-discount-input');
+                const notifyCheckbox = document.getElementById('adjust-notify-members');
                 const feeVal = feeInput ? parseInput(feeInput.value) : deliveryFee;
                 const discountVal = discountInput ? parseInput(discountInput.value) : discount;
 
                 isAdjusting = true;
                 const btn = document.getElementById('adjust-submit-btn');
-                if (btn) btn.disabled = true;
+                const normalContent = document.getElementById('adjust-submit-normal');
+                const loadingContent = document.getElementById('adjust-submit-loading');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.setAttribute('aria-busy', 'true');
+                }
+                if (normalContent) normalContent.style.display = 'none';
+                if (loadingContent) loadingContent.style.display = 'inline-flex';
 
                 try {
                     const response = await fetch('{{ route('admin.campaigns.update', [$room, $campaign]) }}', {
@@ -350,7 +383,8 @@
                         },
                         body: JSON.stringify({
                             delivery_fee: feeVal,
-                            discount: discountVal
+                            discount: discountVal,
+                            notify_members: Boolean(notifyCheckbox && notifyCheckbox.checked)
                         })
                     });
                     const res = await response.json();
@@ -364,7 +398,12 @@
                     else alert(err.message);
                 } finally {
                     isAdjusting = false;
-                    if (btn) btn.disabled = false;
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.removeAttribute('aria-busy');
+                    }
+                    if (normalContent) normalContent.style.display = 'inline-flex';
+                    if (loadingContent) loadingContent.style.display = 'none';
                 }
             };
         })();
@@ -594,7 +633,7 @@
                                 <div class="flex justify-between items-center pt-2 font-bold text-on-surface border-t border-outline-variant/40">
                                     <span class="text-sm">{{ __('admin.gross_total') }}:</span>
                                     <span class="font-mono text-base text-primary font-bold">
-                                        {{ \App\Support\Helpers\FormatHelper::formatCurrency(max(0, ($grossSubtotal ?? 0) + ($campaign->delivery_fee ?? 0) - ($campaign->discount ?? 0))) }}
+                                        {{ \App\Support\Helpers\FormatHelper::formatCurrency($grossTotal) }}
                                     </span>
                                 </div>
                             </div>
@@ -770,8 +809,9 @@
                     <div class="space-y-1.5">
                         <label class="block text-xs font-semibold text-on-surface">{{ __('admin.delivery_fee_input') }}</label>
                         <div class="relative">
-                            <input type="text" id="adjust-fee-input" inputmode="numeric" value="{{ (int) ($campaign->delivery_fee ?? 0) }}"
+                            <input type="text" id="adjust-fee-input" inputmode="numeric" value="{{ number_format((int) ($campaign->delivery_fee ?? 0), 0, ',', '.') }}"
                                 onkeydown="filterNumberInput(event)"
+                                oninput="formatMoneyInput(event)"
                                 class="w-full h-10 px-3 pr-8 bg-surface border border-outline-variant rounded-lg text-sm font-mono focus:border-primary focus:ring-1 focus:ring-primary outline-hidden"
                                 placeholder="0">
                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-outline">đ</span>
@@ -781,13 +821,19 @@
                     <div class="space-y-1.5">
                         <label class="block text-xs font-semibold text-on-surface">{{ __('admin.discount_input') }}</label>
                         <div class="relative">
-                            <input type="text" id="adjust-discount-input" inputmode="numeric" value="{{ (int) ($campaign->discount ?? 0) }}"
+                            <input type="text" id="adjust-discount-input" inputmode="numeric" value="{{ number_format((int) ($campaign->discount ?? 0), 0, ',', '.') }}"
                                 onkeydown="filterNumberInput(event)"
+                                oninput="formatMoneyInput(event)"
                                 class="w-full h-10 px-3 pr-8 bg-surface border border-outline-variant rounded-lg text-sm font-mono focus:border-primary focus:ring-1 focus:ring-primary outline-hidden"
                                 placeholder="0">
                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-outline">đ</span>
                         </div>
                     </div>
+
+                    <label class="flex items-center gap-2.5 cursor-pointer text-xs text-on-surface-variant select-none">
+                        <input type="checkbox" id="adjust-notify-members" class="rounded border-outline-variant text-primary focus:ring-primary w-4 h-4">
+                        <span class="font-medium">{{ __('admin.notify_members_checkbox_label') }}</span>
+                    </label>
 
                     <div class="pt-3 border-t border-outline-variant/60 flex items-center justify-end gap-2">
                         <button type="button" onclick="closeModal('adjust-fee-modal')"
@@ -796,8 +842,14 @@
                         </button>
                         <button type="submit" id="adjust-submit-btn"
                             class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs">
-                            <span class="material-symbols-outlined text-[16px]">save</span>
-                            <span>{{ __('admin.save_adjustment') }}</span>
+                            <span id="adjust-submit-normal" class="inline-flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px]">save</span>
+                                <span>{{ __('admin.save_adjustment') }}</span>
+                            </span>
+                            <span id="adjust-submit-loading" class="items-center gap-1.5" style="display: none;" role="status">
+                                <span class="material-symbols-outlined animate-spin text-[16px]" aria-hidden="true">progress_activity</span>
+                                <span>{{ __('admin.processing') }}</span>
+                            </span>
                         </button>
                     </div>
                 </form>
@@ -824,14 +876,23 @@
                     </div>
 
                     <div class="pt-3 border-t border-outline-variant/60 flex items-center justify-end gap-2">
-                        <button type="button" onclick="closeModal('confirm-cancel-modal')"
-                            class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors cursor-pointer">
+                        <button type="button" id="cancel-campaign-back-btn" onclick="closeModal('confirm-cancel-modal')"
+                            class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
                             {{ __('admin.cancel') }}
                         </button>
                         <button type="button" id="confirm-cancel-submit-btn" onclick="cancelCampaign()"
-                            class="px-4 py-2 rounded-lg bg-error hover:bg-error/90 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs">
-                            <span class="material-symbols-outlined text-[16px]">delete_forever</span>
-                            <span>{{ __('admin.confirm_cancel_campaign_btn') }}</span>
+                            class="px-4 py-2 rounded-lg bg-error hover:bg-error/90 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs disabled:opacity-60 disabled:cursor-not-allowed">
+                            <span id="cancel-campaign-btn-normal" class="flex items-center gap-1.5">
+                                <span class="material-symbols-outlined text-[16px]">delete_forever</span>
+                                <span>{{ __('admin.confirm_cancel_campaign_btn') }}</span>
+                            </span>
+                            <span id="cancel-campaign-btn-loading" class="items-center gap-1.5" style="display: none;">
+                                <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>{{ __('admin.cancelling_status') }}</span>
+                            </span>
                         </button>
                     </div>
                 </div>
