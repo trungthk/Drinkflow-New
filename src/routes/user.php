@@ -16,8 +16,12 @@ Route::match(['get', 'post'], '/logout', function (\Illuminate\Http\Request $req
 })->middleware('throttle:user-auth-logout')->name('logout');
 
 // Chỉ đăng ký ở môi trường local: đăng nhập nhanh bằng user đầu tiên để test.
+// Yêu cầu thêm: chỉ chấp nhận truy cập trực tiếp từ localhost (127.0.0.1), ngay cả khi
+// APP_ENV bị cấu hình nhầm thành "local" trên một máy chủ có thể truy cập từ mạng ngoài.
 if (app()->environment('local')) {
     Route::get('/dev/login', function (\Illuminate\Http\Request $request) {
+        abort_unless($request->ip() === '127.0.0.1', 404);
+
         $user = \App\Models\GlobalUser::query()->orderBy('id')->firstOrFail();
         \Illuminate\Support\Facades\Auth::guard('web')->login($user);
         $request->session()->regenerate();
