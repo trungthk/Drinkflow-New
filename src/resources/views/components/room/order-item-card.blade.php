@@ -3,8 +3,12 @@
 {{-- Thẻ hiển thị một món trong đơn (tên, số lượng × đơn giá, thành tiền, size/đường/đá/topping, ghi chú). --}}
 <div class="bg-surface-container-low rounded-lg p-2.5 flex items-start gap-2.5">
     <div
-        class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shrink-0">
+        class="relative w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-primary shrink-0 overflow-hidden">
         <span class="material-symbols-outlined text-[18px]">emoji_food_beverage</span>
+        @if($imageUrl = $item->campaignItem?->image_url)
+            <img src="{{ $imageUrl }}" alt="{{ $item->item_name }}" loading="lazy"
+                class="absolute inset-0 h-full w-full object-cover" onerror="this.remove()">
+        @endif
     </div>
     <div class="flex-1 min-w-0">
         <div class="flex items-start justify-between gap-2">

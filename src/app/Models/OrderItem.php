@@ -26,4 +26,15 @@ class OrderItem extends Model
     {
         return $this->hasMany(OrderItemTopping::class);
     }
+
+    /**
+     * The menu item this order item was ordered from, used to display its image.
+     * May be null when the campaign item was later deleted.
+     *
+     * @return BelongsTo<CampaignItem, $this>
+     */
+    public function campaignItem(): BelongsTo
+    {
+        return $this->belongsTo(CampaignItem::class);
+    }
 }

@@ -290,6 +290,12 @@
           </a>
         @endif
 
+        <!-- Luôn hiển thị Hướng dẫn sử dụng -->
+        <a class="{{ $tabClasses($activeTab === 'guides') }}" href="{{ route('user.me.guides') }}">
+          <span class="material-symbols-outlined text-[16px] sm:text-[17px]">menu_book</span>
+          <span>{{ __('global.header.user_guide') }}</span>
+        </a>
+
         <!-- Luôn hiển thị Đánh giá -->
         <a class="{{ $tabClasses($activeTab === 'feedback') }}" href="{{ route('user.me.feedback') }}">
           <span>{{ __('global.header.feedback') }}</span>

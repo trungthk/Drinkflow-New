@@ -20,6 +20,7 @@ return [
         'room_analytics' => 'Thống kê Room',
         'notifications' => 'Thông báo',
         'profile' => 'Hồ sơ',
+        'user_guide' => 'Hướng dẫn',
     ],
     'footer' => [
         'copyright' => '© :year DrinkFlow Enterprise Procurement System',
@@ -194,6 +195,8 @@ return [
         'proxy_desc' => 'Nhập mã thành viên để gán món này cho họ.',
         'proxy_code_label' => 'Mã code, email hoặc số điện thoại thành viên',
         'proxy_code_placeholder' => 'Nhập mã code, email hoặc số điện thoại',
+        'proxy_code_clear' => 'Xóa mã đã nhập',
+        'proxy_code_hint' => 'Có thể nhập mã thành viên, email hoặc số điện thoại.',
         'proxy_lookup' => 'Tra cứu',
         'proxy_save' => 'Lưu người nhận',
         'proxy_for' => 'Đặt giúp:',

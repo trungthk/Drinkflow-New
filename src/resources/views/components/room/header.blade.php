@@ -214,12 +214,14 @@
           </a>
         @endif
 
-        <!-- Tab 3: Đơn hàng của tôi -->
-        <a href="{{ $room ? route('user.orders.index', $room->slug) : '#' }}"
-          class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'orders' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-          <span class="material-symbols-outlined text-[16px]">receipt_long</span>
-          <span>{{ __('room.nav.my_orders') }}</span>
-        </a>
+        <!-- Tab 3: Đơn hàng của tôi (ẩn khi có chiến dịch đang live mà thành viên chưa đặt món) -->
+        @unless($hasUnorderedActiveCampaign ?? false)
+          <a href="{{ $room ? route('user.orders.index', $room->slug) : '#' }}"
+            class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'orders' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+            <span class="material-symbols-outlined text-[16px]">receipt_long</span>
+            <span>{{ __('room.nav.my_orders') }}</span>
+          </a>
+        @endunless
 
         <!-- Tab 4: Thanh toán & Nợ -->
         <a href="{{ $room ? route('user.debts.index', $room->slug) : '#' }}"
@@ -251,6 +253,13 @@
           class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'profile' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
           <span class="material-symbols-outlined text-[16px]">person</span>
           <span>{{ __('room.nav.profile') }}</span>
+        </a>
+
+        <!-- Tab 8: Hướng dẫn sử dụng -->
+        <a href="{{ $room ? route('user.rooms.guides', $room->slug) : '#' }}"
+          class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'guides' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+          <span class="material-symbols-outlined text-[16px]">menu_book</span>
+          <span>{{ __('room.nav.user_guide') }}</span>
         </a>
       </nav>
     </div>

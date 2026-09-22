@@ -31,8 +31,6 @@ Các bước:
 3. Một cửa sổ đăng nhập Google hiện ra — chọn đúng tài khoản email công ty của bạn (chỉ các tên miền được quản trị viên cấp phép mới đăng nhập được).
 4. Sau khi xác thực thành công, hệ thống tự động đưa bạn vào **Cổng thông tin cá nhân** tại địa chỉ `/me`.
 
-![Trang chủ và cửa sổ đăng nhập Google Workspace](images/00-trang-chu-dang-nhap.png)
-
 > **Lưu ý:** Nếu bạn bấm vào một link Room (ví dụ link Host gửi trong Slack) khi chưa đăng nhập, hệ thống sẽ đưa bạn về trang chủ kèm thông báo yêu cầu đăng ký/đăng nhập trước. Sau khi đăng nhập xong, bạn có thể dán lại link Room đó để tiếp tục tham gia (xem [bài 2](02-tham-gia-va-quan-ly-room.md)).
 
 ## 1.2. Làm quen giao diện Cổng thông tin cá nhân (`/me`)

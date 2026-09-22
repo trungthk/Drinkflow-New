@@ -20,6 +20,7 @@ return [
         'room_analytics' => 'ルーム統計',
         'notifications' => '通知センター',
         'profile' => 'メンバー情報',
+        'user_guide' => '使い方ガイド',
     ],
     'footer' => [
         'copyright' => '© :year DrinkFlow Enterprise Procurement System',
@@ -194,6 +195,8 @@ return [
         'proxy_desc' => 'この商品を割り当てるメンバーコードを入力してください。',
         'proxy_code_label' => 'メンバーコード、メール、または電話番号',
         'proxy_code_placeholder' => 'コード、メール、電話番号を入力',
+        'proxy_code_clear' => '入力したコードを消去',
+        'proxy_code_hint' => 'メンバーコード、メールアドレス、電話番号のいずれかを入力できます。',
         'proxy_lookup' => '検索',
         'proxy_save' => '受取人を保存',
         'proxy_for' => '代理注文:',

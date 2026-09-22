@@ -62,6 +62,8 @@ Route::middleware(['global.user', 'room.user'])->group(function () {
     Route::get('/rooms/{room}/socket-token', \App\Http\Controllers\User\SocketTokenController::class)->name('user.socket-token');
     Route::get('/rooms/{room}/notifications', [\App\Http\Controllers\User\RoomNotificationController::class, 'index'])->name('user.rooms.notifications');
     Route::get('/rooms/{room}/profile', [\App\Http\Controllers\User\RoomProfileController::class, 'index'])->name('user.rooms.profile');
+    Route::get('/rooms/{room}/guides', [\App\Http\Controllers\User\RoomGuideController::class, 'index'])->name('user.rooms.guides');
+    Route::get('/rooms/{room}/guides/{slug}', [\App\Http\Controllers\User\RoomGuideController::class, 'show'])->name('user.rooms.guides.show');
 });
 
 Route::middleware(['global.user'])->group(function () {
@@ -86,6 +88,9 @@ Route::middleware(['global.user'])->group(function () {
     Route::post('/me/feedback', [\App\Http\Controllers\User\Global\ProfileController::class, 'storeFeedback'])
         ->middleware('throttle:feedback-submission')
         ->name('user.me.feedback.store');
+
+    Route::get('/me/guides', [\App\Http\Controllers\User\Global\GuideController::class, 'index'])->name('user.me.guides');
+    Route::get('/me/guides/{slug}', [\App\Http\Controllers\User\Global\GuideController::class, 'show'])->name('user.me.guides.show');
 
     // Global User JSON API & Action Endpoints
     Route::get('/profile', [\App\Http\Controllers\User\Global\ProfileController::class, 'show'])->name('user.profile.show');

@@ -63,6 +63,7 @@ return [
         'payments' => 'Thanh toán',
         'statistics' => 'Thống kê',
         'feedback' => 'Đánh giá',
+        'user_guide' => 'Hướng dẫn sử dụng',
         'notifications' => 'Thông báo',
         'new_badge' => ':count mới',
         'mark_all_read' => 'Đánh dấu đã đọc',

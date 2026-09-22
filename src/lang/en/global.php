@@ -63,6 +63,7 @@ return [
         'payments' => 'Payments',
         'statistics' => 'Statistics',
         'feedback' => 'Feedback',
+        'user_guide' => 'User Guide',
         'notifications' => 'Notifications',
         'new_badge' => ':count new',
         'mark_all_read' => 'Mark all as read',

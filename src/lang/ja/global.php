@@ -63,6 +63,7 @@ return [
         'payments' => '支払い',
         'statistics' => '統計',
         'feedback' => 'フィードバック',
+        'user_guide' => '使い方ガイド',
         'notifications' => '通知',
         'new_badge' => ':count 件の新着',
         'mark_all_read' => 'すべて既読にする',

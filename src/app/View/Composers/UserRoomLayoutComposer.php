@@ -7,9 +7,11 @@ namespace App\View\Composers;
 use App\Constants\AppLocale;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
+use App\Enums\OrderStatus;
 use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Room;
+use App\Models\RoomUser;
 use App\Services\Notification\NotificationPresentationService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -72,6 +74,20 @@ class UserRoomLayoutComposer
             ] : null;
         }
 
+        // "Đơn hàng của tôi" is hidden while a campaign is live and this member has not ordered
+        // in it yet, so they are nudged toward the menu instead of an empty order history.
+        $hasOrderedActiveCampaign = true;
+        if ($activeCampaign !== null && $roomUser instanceof RoomUser) {
+            $activeCampaignId = is_array($activeCampaign) ? ($activeCampaign['id'] ?? null) : null;
+            $hasOrderedActiveCampaign = $activeCampaign['has_ordered']
+                ?? ($activeCampaignId !== null
+                    ? $roomUser->orders()
+                        ->where('campaign_id', $activeCampaignId)
+                        ->where('status', '!=', OrderStatus::Cancelled->value)
+                        ->exists()
+                    : true);
+        }
+
         $unpaidDebtCount = (int) ($data['unpaidDebtCount'] ?? 0);
         if (! array_key_exists('unpaidDebtCount', $data) && $room instanceof Room && $roomUser !== null) {
             $unpaidDebtCount = Debt::query()
@@ -102,6 +118,7 @@ class UserRoomLayoutComposer
             'unreadNotificationsCount' => (int) ($unreadCount ?? 0),
             'activeCampaign' => $activeCampaign,
             'hasActiveCampaign' => $activeCampaign !== null,
+            'hasUnorderedActiveCampaign' => $activeCampaign !== null && ! $hasOrderedActiveCampaign,
             'unpaidDebtCount' => $unpaidDebtCount,
             'userRooms' => $userRooms,
             'currentLocale' => $currentLocale,

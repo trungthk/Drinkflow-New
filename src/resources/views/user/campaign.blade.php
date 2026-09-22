@@ -238,7 +238,8 @@
       return this.cartItems.reduce((total, item) => total + (Number(item.unit_price) * Number(item.quantity)), 0);
     },
     get ownItemsCount() {
-      return this.cartItems.filter(item => !item.proxy_user_code).reduce((total, item) => total + Number(item.quantity), 0);
+      // Chỉ tính món tự đặt cho chính mình, không tính món trả riêng hay đặt dùm (đã có số đếm riêng).
+      return this.cartItems.filter(item => !item.proxy_user_code && !item.is_self_paid).reduce((total, item) => total + Number(item.quantity), 0);
     },
     get proxyItemsCount() {
       return this.cartItems.filter(item => item.proxy_user_code).reduce((total, item) => total + Number(item.quantity), 0);
@@ -964,49 +965,67 @@
       </template>
 
       <template x-teleport="body">
-        <div x-show="showProxyModal" x-cloak class="fixed inset-0 z-[115] flex min-h-[100dvh] items-center justify-center bg-slate-900/70 p-4 backdrop-blur-md" @click.self="showProxyModal = false">
-          <div class="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl animate-fadeIn" @click.stop>
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-                <span class="material-symbols-outlined text-[24px]">person_add</span>
-              </div>
-              <button type="button" @click="showProxyModal = false" class="rounded-lg p-1 text-slate-400 hover:bg-slate-100"><span class="material-symbols-outlined text-[20px]">close</span></button>
-            </div>
-            <h3 class="mt-3 text-base font-bold text-slate-900">{{ __('room.campaign.proxy_title') }}</h3>
-            <p class="mt-1 text-xs sm:text-sm leading-relaxed text-slate-500">{{ __('room.campaign.proxy_desc') }}</p>
+        <div x-show="showProxyModal" x-cloak class="fixed inset-0 z-[115] flex min-h-[100dvh] items-center justify-center bg-slate-900/50 p-4 backdrop-blur-[2px]" @click.self="showProxyModal = false">
+          <div class="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl animate-fadeIn" @click.stop>
+            <!-- Close -->
+            <button type="button" @click="showProxyModal = false" class="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-400 transition hover:bg-slate-200 hover:text-slate-600" aria-label="{{ __('global.common.close') }}">
+              <span class="material-symbols-outlined text-[18px]">close</span>
+            </button>
 
-            <div class="mt-5 space-y-2">
-              <label class="block text-xs font-bold text-slate-700">{{ __('room.campaign.proxy_code_label') }}</label>
-              <div class="flex gap-2">
-                <input x-model="proxyUserCode" @input="proxyUserLookupResult = null; proxyUserLookupError = null" @keydown.enter.prevent="lookupProxyUser()" type="text" maxlength="255" class="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-[#006948] focus:bg-white" placeholder="{{ __('room.campaign.proxy_code_placeholder') }}">
-                <button type="button" @click="lookupProxyUser()" :disabled="proxyUserLookupLoading || !proxyUserCode.trim()" class="inline-flex shrink-0 items-center justify-center rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50">
-                  <span x-show="!proxyUserLookupLoading">{{ __('room.campaign.proxy_lookup') }}</span>
-                  <span x-show="proxyUserLookupLoading" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                </button>
+            <div class="px-5 pb-5 pt-6 sm:px-6">
+              <!-- Header -->
+              <div class="text-center">
+                <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+                  <span class="material-symbols-outlined text-[24px]">person_add</span>
+                </div>
+                <h3 class="text-base font-bold tracking-tight text-slate-900">{{ __('room.campaign.proxy_title') }}</h3>
+                <p class="mt-1 text-xs leading-relaxed text-slate-500 sm:text-sm">{{ __('room.campaign.proxy_desc') }}</p>
               </div>
 
-              <!-- Feedback: lookup error hoặc kết quả tìm thấy (loại trừ nhau) -->
-              <div x-show="proxyUserLookupError" class="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-medium text-rose-700">
-                <span class="material-symbols-outlined shrink-0 text-[18px]">error</span>
+              <!-- Form -->
+              <div class="mt-5 rounded-xl bg-slate-50 p-3 sm:p-4">
+                <label class="mb-2 block text-xs font-semibold text-slate-700">{{ __('room.campaign.proxy_code_label') }}</label>
+                <div class="flex gap-2">
+                  <div class="relative min-w-0 flex-1">
+                    <input x-model="proxyUserCode" @input="proxyUserLookupResult = null; proxyUserLookupError = null" @keydown.enter.prevent="lookupProxyUser()" type="text" maxlength="255" class="h-11 w-full rounded-xl border-2 border-slate-200 bg-white pl-3.5 pr-10 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#006948] focus:ring-4 focus:ring-[#006948]/10" placeholder="{{ __('room.campaign.proxy_code_placeholder') }}">
+                    <button type="button" x-show="proxyUserCode" @click="proxyUserCode = ''; proxyUserLookupResult = null; proxyUserLookupError = null" class="absolute inset-y-0 right-2 my-auto flex h-7 w-7 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600" aria-label="{{ __('room.campaign.proxy_code_clear') }}">
+                      <span class="material-symbols-outlined text-[16px] leading-none">close</span>
+                    </button>
+                  </div>
+                  <button type="button" @click="lookupProxyUser()" :disabled="proxyUserLookupLoading || !proxyUserCode.trim()" class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#006948] text-white shadow-sm transition hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50" title="{{ __('room.campaign.proxy_lookup') }}" aria-label="{{ __('room.campaign.proxy_lookup') }}">
+                    <span x-show="!proxyUserLookupLoading" class="material-symbols-outlined text-[18px] leading-none">search</span>
+                    <span x-show="proxyUserLookupLoading" class="material-symbols-outlined animate-spin text-[18px] leading-none">progress_activity</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Feedback: gợi ý mặc định, hoặc lỗi/kết quả tìm thấy (loại trừ nhau) -->
+              <div x-show="!proxyUserLookupError && !proxyUserLookupResult" class="mt-2 flex items-start gap-2 rounded-xl bg-sky-50 px-3 py-2.5 text-xs text-sky-700">
+                <span class="material-symbols-outlined shrink-0 text-[16px]">info</span>
+                <span>{{ __('room.campaign.proxy_code_hint') }}</span>
+              </div>
+              <div x-show="proxyUserLookupError" class="mt-2 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs font-medium text-rose-700">
+                <span class="material-symbols-outlined shrink-0 text-[16px]">error</span>
                 <p x-text="proxyUserLookupError"></p>
               </div>
-              <div x-show="proxyUserLookupResult" class="flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
-                <span class="material-symbols-outlined shrink-0 text-[18px] text-emerald-600">verified_user</span>
+              <div x-show="proxyUserLookupResult" class="mt-2 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs text-emerald-800">
+                <span class="material-symbols-outlined shrink-0 text-[16px] text-emerald-600">verified_user</span>
                 <div class="min-w-0">
                   <p class="font-bold" x-text="proxyUserLookupResult?.display_name || proxyUserLookupResult?.user_code"></p>
                   <p class="mt-0.5 truncate text-[11px] text-emerald-700" x-show="proxyUserLookupResult?.email" x-text="proxyUserLookupResult?.email"></p>
                   <p class="mt-0.5 truncate text-[11px] text-emerald-700" x-show="proxyUserLookupResult?.phone && !proxyUserLookupResult?.email" x-text="proxyUserLookupResult?.phone"></p>
                 </div>
               </div>
-            </div>
 
-            <div class="mt-6 flex justify-end gap-2 border-t border-slate-100 pt-4">
-              <button type="button" @click="showProxyModal = false" class="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100">{{ __('global.common.cancel') }}</button>
-              <button type="button" @click="saveProxyAssignment()" :disabled="cartUpdating || (proxyUserCode.trim() && !proxyUserLookupResult)" class="inline-flex items-center gap-1.5 rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50">
-                <span x-show="!cartUpdating" class="material-symbols-outlined text-[16px]">save</span>
-                <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
-                {{ __('room.campaign.proxy_save') }}
-              </button>
+              <!-- Footer -->
+              <div class="mt-5 flex items-center justify-end gap-2 border-t border-slate-100 pt-4">
+                <button type="button" @click="showProxyModal = false" class="rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-700">{{ __('global.common.cancel') }}</button>
+                <button type="button" @click="saveProxyAssignment()" :disabled="cartUpdating || (proxyUserCode.trim() && !proxyUserLookupResult)" class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[#006948] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#005137] disabled:cursor-not-allowed disabled:opacity-50">
+                  <span x-show="!cartUpdating" class="material-symbols-outlined text-[16px]">save</span>
+                  <span x-show="cartUpdating" class="material-symbols-outlined animate-spin text-[16px]">progress_activity</span>
+                  {{ __('room.campaign.proxy_save') }}
+                </button>
+              </div>
             </div>
           </div>
         </div>

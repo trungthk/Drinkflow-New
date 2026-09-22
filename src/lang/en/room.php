@@ -20,6 +20,7 @@ return [
         'room_analytics' => 'Room Analytics',
         'notifications' => 'Notifications',
         'profile' => 'Profile',
+        'user_guide' => 'Guide',
     ],
     'footer' => [
         'copyright' => '© :year DrinkFlow Enterprise Procurement System',
@@ -194,6 +195,8 @@ return [
         'proxy_desc' => 'Enter the member code to assign this item to them.',
         'proxy_code_label' => 'Member code, email, or phone number',
         'proxy_code_placeholder' => 'Enter code, email, or phone number',
+        'proxy_code_clear' => 'Clear entered code',
+        'proxy_code_hint' => 'You can enter a member code, email, or phone number.',
         'proxy_lookup' => 'Find',
         'proxy_save' => 'Save recipient',
         'proxy_for' => 'For:',
