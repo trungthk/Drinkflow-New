@@ -18,7 +18,7 @@ class QueueController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(['data' => ['connection' => config('queue.default'), 'failed_jobs' => DB::table('failed_jobs')->latest('failed_at')->paginate(20)]]);
+        return response()->json(['data' => ['connection' => config('queue.default'), 'failed_jobs' => DB::table('failed_jobs')->latest('failed_at')->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)]]);
     }
 
     /**

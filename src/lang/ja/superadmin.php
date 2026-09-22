@@ -24,6 +24,12 @@ return [
         'records_count' => ':count件', 'releases_count' => ':countリリース',
         'failed_jobs_count' => ':count件の失敗ジョブ', 'global_users_count' => ':count人のグローバルユーザー',
         'active_count' => ':count件が有効', 'confirm_action' => 'この操作を続行しますか？',
+        'all_actors' => 'すべての実行者', 'actor_admin' => '管理者', 'actor_user' => 'ユーザー', 'actor_system' => 'システム',
+    ],
+    'health' => [
+        'ok' => '正常', 'error' => 'エラー', 'unknown' => '不明', 'unreachable' => '接続できません',
+        'running' => '実行中', 'starting' => '起動中', 'stopped' => '停止', 'fatal' => '致命的エラー',
+        'configured' => '設定済み', 'not_configured' => '未設定',
     ],
     'layout' => [
         'feedbacks' => 'ユーザーフィードバック',
@@ -46,6 +52,7 @@ return [
         'non_cancelled_orders' => 'キャンセル以外の注文', 'remaining_debt' => '未払い債務の合計',
         'system_health' => 'システム稼働状況', 'health_description' => '主要インフラ層の状態です。',
         'telemetry' => 'テレメトリ', 'database' => 'データベース', 'queue' => 'キュー', 'checking' => '確認中...',
+        'mail' => 'メール', 'storage' => 'ファイルストレージ', 'supervisor' => 'バックグラウンドワーカー (Supervisor)',
         'quick_access' => 'クイックアクセス', 'quick_access_description' => '監視が必要な領域です。',
         'failed_login_events' => 'ログイン失敗とセキュリティイベント', 'global_change_history' => '全体変更履歴',
         'failed_jobs' => '失敗ジョブ', 'failed_jobs_description' => '失敗ジョブの再試行または削除',
@@ -117,6 +124,9 @@ return [
         'recent_campaigns' => '最近のキャンペーン', 'recent_campaigns_description' => 'このルームの最新キャンペーンです。',
         'no_admins' => '管理者は未割り当てです。', 'no_campaigns' => 'キャンペーンはありません。',
         'disable_room' => 'ルームを無効化', 'enable_room' => 'ルームを有効化',
+        'field_name' => 'ルーム名', 'field_slug' => 'URLスラッグ', 'create_description' => '部門用の新しいワークスペースを作成します。',
+        'sort' => '並び替え', 'sort_newest' => '新しい順', 'sort_name' => '名前 (A-Z)',
+        'sort_members' => 'メンバー数が多い順', 'sort_campaigns' => 'キャンペーン数が多い順',
     ],
     'users' => [
         'title' => 'グローバルユーザーとID',
@@ -162,6 +172,10 @@ return [
         'maintenance_saved' => 'メンテナンス設定を保存しました。', 'settings_saved' => 'システム設定を保存しました。',
         'prompt_password' => 'スーパー管理者のパスワードを入力', 'prompt_phrase' => 'RESET DRINKFLOW と正確に入力',
         'confirm_reset' => 'この操作は元に戻せません。続行しますか？', 'reset_complete' => 'システムをリセットしました。',
+        'send_test_mail' => 'テストメールを送信', 'mail_test_subject' => 'DrinkFlow テストメール',
+        'mail_test_body' => 'これは :app のシステム監視ページから送信されたテストメールです。',
+        'mail_test_sent' => 'テストメールを送信しました。受信箱をご確認ください。',
+        'mail_test_failed' => 'テストメールの送信に失敗しました。',
     ],
     'versions' => [
         'title' => 'バージョン管理', 'description' => 'リリースノート、重要フラグ、クライアントの強制更新を管理します。',

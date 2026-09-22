@@ -11,17 +11,21 @@ use App\Http\Requests\SystemSettingsRequest;
 use App\Http\Requests\UpdateMaintenanceRequest;
 use App\Models\SystemSetting;
 use App\Services\Audit\AuditService;
+use App\Services\System\MailHealthService;
+use App\Services\System\SystemHealthService;
 use App\Services\System\SystemSettingsService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class SystemController extends Controller
 {
     /**
      * Handle the index operation.
      * @param SystemSettingsService $settings Parameter value.
+     * @param SystemHealthService $health Infrastructure health snapshot service.
      * @return JsonResponse Result of the operation.
      */
-    public function index(SystemSettingsService $settings): JsonResponse
+    public function index(SystemSettingsService $settings, SystemHealthService $health): JsonResponse
     {
         $items = SystemSetting::query()->orderBy('key')->get()->map(fn(SystemSetting $setting) => [
             'key' => $setting->key,
@@ -30,7 +34,28 @@ class SystemController extends Controller
             'value' => $setting->is_secret ? null : $settings->get($setting->key),
             'configured' => $setting->value !== null,
         ]);
-        return response()->json(['data' => ['settings' => $items, 'maintenance' => $this->maintenanceState($settings)]]);
+        return response()->json(['data' => [
+            'settings' => $items,
+            'maintenance' => $this->maintenanceState($settings),
+            'health' => $health->snapshot(),
+        ]]);
+    }
+
+    /**
+     * Send a real test email to the current superadmin to actively verify the mail transport.
+     *
+     * @param Request $request Incoming request (authenticated superadmin only, see routes/superadmin.php).
+     * @param MailHealthService $mail Mail health-check service.
+     * @return JsonResponse Whether the mailer accepted the test message.
+     */
+    public function sendTestMail(Request $request, MailHealthService $mail): JsonResponse
+    {
+        $sent = $mail->sendTest($request->user('admin'));
+
+        return response()->json([
+            'data' => ['sent' => $sent],
+            'message' => $sent ? __('superadmin.system.mail_test_sent') : __('superadmin.system.mail_test_failed'),
+        ], $sent ? 200 : 422);
     }
 
     /**

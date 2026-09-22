@@ -18,7 +18,16 @@
     @endif
 </head>
 
-<body data-submit-loading-text="{{ __('global.common.loading') }}" class="superadmin-shell">
+<body data-submit-loading-text="{{ __('global.common.loading') }}" data-status-labels="{{ json_encode([
+        'active' => __('superadmin.common.active'), 'disabled' => __('superadmin.common.disabled'),
+        'archived' => __('superadmin.common.archived'), 'blocked' => __('superadmin.common.blocked'),
+        'pending' => __('superadmin.common.pending'), 'scheduled' => __('superadmin.common.scheduled'),
+        'closed' => __('superadmin.common.closed'), 'cancelled' => __('superadmin.common.cancelled'),
+        'draft' => __('admin.status_draft'), 'closing' => __('admin.status_closing'),
+        'high' => __('superadmin.common.high'), 'medium' => __('superadmin.common.medium'),
+        'low' => __('superadmin.common.low'),
+    ] + __('superadmin.health'), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}" class="superadmin-shell">
+    <x-superadmin.loading />
     <aside class="superadmin-sidebar" id="superadmin-sidebar">
         <div class="superadmin-brand">
             <div class="superadmin-logo">D</div>
@@ -88,45 +97,31 @@
         </header>
         <main class="superadmin-content">@yield('content')</main>
     </div>
+    <x-superadmin.confirm-modal />
+    {{-- Temporary compatibility shim: the deferred Vite module (resources/js/superadmin/shared.js) sets
+    window.dfApi/escapeHtml/statusPill/money too, but as a `type="module"` script it only runs right before
+    DOMContentLoaded — after the plain inline scripts below have already executed. Pages are migrated to
+    `import { dfApi, ... } from '../shared'` one at a time (see plan); once every page/@push('scripts') block
+    no longer calls these as bare globals, this shim and the matching window.* assignment in shared.js can
+    both be deleted. --}}
     <script>
-        const dfApi = async (url, options = {}) => {
-            const headers = {
-                'Accept': 'application/json',
-                ...(options.headers || {})
-            };
+        window.dfApi = window.dfApi || async function (url, options = {}) {
+            const headers = { Accept: 'application/json', ...(options.headers || {}) };
             if (options.body && typeof options.body !== 'string') {
                 headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(options.body);
             }
-            headers['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]').content;
-            const response = await fetch(url, {
-                ...options,
-                headers
-            });
-            if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message ||
-                `HTTP ${response.status}`);
+            headers['X-CSRF-TOKEN'] = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const response = await fetch(url, { ...options, headers });
+            if (!response.ok) throw new Error((await response.json().catch(() => ({}))).message || `HTTP ${response.status}`);
             return response.json();
         };
-        const money = value => new Intl.NumberFormat('vi-VN').format(value || 0) + 'đ';
-        const escapeMap = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            "'": '&#039;',
-            '"': '&quot;'
-        };
-        const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => escapeMap[character] || character);
-        const superadminStatusLabels = {!! json_encode([
-            'active' => __('superadmin.common.active'), 'disabled' => __('superadmin.common.disabled'),
-            'archived' => __('superadmin.common.archived'), 'blocked' => __('superadmin.common.blocked'),
-            'pending' => __('superadmin.common.pending'), 'scheduled' => __('superadmin.common.scheduled'),
-            'closed' => __('superadmin.common.closed'), 'cancelled' => __('superadmin.common.cancelled'),
-            'draft' => __('admin.status_draft'), 'closing' => __('admin.status_closing'),
-            'high' => __('superadmin.common.high'), 'medium' => __('superadmin.common.medium'),
-            'low' => __('superadmin.common.low'),
-        ]) !!};
-        const statusPill = value =>
-            `<span class="status-pill status-${escapeHtml(value)}"><span class="status-dot"></span>${escapeHtml(superadminStatusLabels[value] || value)}</span>`;
+        window.money = window.money || (value => new Intl.NumberFormat('vi-VN').format(value || 0) + 'đ');
+        window.escapeHtml = window.escapeHtml || (value => String(value ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;' }[c] || c)));
+        window.statusPill = window.statusPill || (value => {
+            const labels = JSON.parse(document.body.dataset.statusLabels || '{}');
+            return `<span class="status-pill status-${window.escapeHtml(value)}"><span class="status-dot"></span>${window.escapeHtml(labels[value] || value)}</span>`;
+        });
     </script>
     @stack('scripts')
 </body>

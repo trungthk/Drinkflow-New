@@ -49,4 +49,13 @@ return [
         'socket_token_secret' => env('SOCKET_TOKEN_SECRET', env('APP_KEY')),
     ],
 
+    // Only used by App\Services\System\SupervisorHealthService on the superadmin monitoring
+    // dashboard. Left disabled unless a server actually runs `php artisan queue:work` under
+    // Supervisor and sets these — there is nothing to query on a local dev machine.
+    'supervisor' => [
+        'enabled' => (bool) env('SUPERVISOR_ENABLED', false),
+        'program' => env('SUPERVISOR_PROGRAM'),
+        'supervisorctl_path' => env('SUPERVISORCTL_PATH', '/usr/bin/supervisorctl'),
+    ],
+
 ];

@@ -8,6 +8,19 @@
         </div>
     </div>
     <div id="notice" class="sa-notice"></div>
+    <section class="sa-card sa-section">
+        <div class="sa-section-header">
+            <div>
+                <h2>{{ __('superadmin.dashboard.system_health') }}</h2>
+                <p>{{ __('superadmin.dashboard.health_description') }}</p>
+            </div>
+            <form id="mail-test-form" method="post" action="{{ route('superadmin.system.mail-test') }}">
+                @csrf
+                <button class="sa-button secondary" type="submit">{{ __('superadmin.system.send_test_mail') }}</button>
+            </form>
+        </div>
+        <div id="system-health" class="sa-health-list"></div>
+    </section>
     <div class="sa-split">
         <section class="sa-card sa-section">
             <div class="sa-section-header">
@@ -59,6 +72,21 @@
             document.querySelector('#maintenance-ends').value = toDateTimeLocal(maintenance.ends_at);
             document.querySelector('#settings-form').innerHTML = data.settings.length ? data.settings.map(setting => setting.is_secret ?
                 `<div class="sa-health-row"><div><strong>${escapeHtml(setting.key)}</strong><small>Secret · ${setting.configured ? 'Configured' : 'Not configured'}</small></div><span>••••••••</span></div>` : settingControl(setting)).join('') + (data.settings.length ? '<button class="sa-button" type="submit"><span class="material-symbols-outlined">save</span>Save settings</button>' : '') : '<div class="sa-empty">Chưa có system setting.</div>';
+            renderHealth(data.health);
+        };
+        const healthLabels = {!! json_encode(['database' => __('superadmin.dashboard.database'), 'queue' => __('superadmin.dashboard.queue'), 'socket' => 'Socket.IO', 'mail' => __('superadmin.dashboard.mail'), 'storage' => __('superadmin.dashboard.storage'), 'supervisor' => __('superadmin.dashboard.supervisor')], JSON_UNESCAPED_UNICODE) !!};
+        const renderHealth = health => {
+            const rows = [
+                ['database', statusPill(health.database.status)],
+                ['queue', `<small>${escapeHtml(health.queue.connection)} · ${health.queue.failed_jobs}</small>`],
+                ['socket', statusPill(health.socket.status)],
+                ['mail', statusPill(health.mail.configured ? 'configured' : 'not_configured')],
+                ['storage', statusPill(health.storage.status)],
+            ];
+            if (health.supervisor) rows.push(['supervisor', statusPill(health.supervisor.status)]);
+            document.querySelector('#system-health').innerHTML = rows.map(([key, markup]) =>
+                `<div class="sa-health-row"><div><strong>${escapeHtml(healthLabels[key] || key)}</strong></div>${markup}</div>`
+            ).join('');
         };
         const settingControl = setting => {
             const value = setting.type === 'json' ? JSON.stringify(setting.value ?? {}, null, 2) : setting.value ?? '';
@@ -71,6 +99,16 @@
             if (Number.isNaN(date.getTime())) return value.slice(0, 16);
             const offset = date.getTimezoneOffset();
             return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16);
+        };
+        // None of the forms on this page navigate away or reload after submit, so — unlike a normal
+        // POST — the submit button the shared submit-loading listener (initSuperadminLoading) disabled
+        // and spun must be restored by hand once the async request settles.
+        const restoreSubmitButton = form => {
+            const button = form.querySelector('button[type="submit"]');
+            if (!button) return;
+            button.disabled = false;
+            button.classList.remove('opacity-75', 'cursor-wait');
+            if (button.dataset.originalHtml) button.innerHTML = button.dataset.originalHtml;
         };
         document.querySelector('#maintenance-form').addEventListener('submit', async e => {
             e.preventDefault();
@@ -86,6 +124,19 @@
                 systemNotice('Đã lưu maintenance settings.');
             } catch (error) {
                 systemNotice(error.message, 'error');
+            } finally {
+                restoreSubmitButton(e.target);
+            }
+        });
+        document.querySelector('#mail-test-form').addEventListener('submit', async e => {
+            e.preventDefault();
+            try {
+                const result = await dfApi('{{ route('superadmin.system.mail-test') }}', { method: 'POST' });
+                systemNotice(result.message);
+            } catch (error) {
+                systemNotice(error.message, 'error');
+            } finally {
+                restoreSubmitButton(e.target);
             }
         });
         document.querySelector('#settings-form').addEventListener('submit', async e => {
@@ -99,7 +150,10 @@
                 await dfApi('{{ route('superadmin.system.settings') }}', { method: 'PUT', body: { settings } });
                 systemNotice('Đã lưu system settings.');
                 await loadSystem();
-            } catch (error) { systemNotice(error.message, 'error'); }
+            } catch (error) {
+                systemNotice(error.message, 'error');
+                restoreSubmitButton(e.target);
+            }
         });
         async function resetSystem() {
             const password = prompt('Nhập mật khẩu superadmin');

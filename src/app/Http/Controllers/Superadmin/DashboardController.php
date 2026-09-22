@@ -14,19 +14,20 @@ use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\Room;
+use App\Services\System\SystemHealthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     /**
      * Handle the index operation.
      * @param Request $request Parameter value.
+     * @param SystemHealthService $health Infrastructure health snapshot service.
      * @return JsonResponse|View Result of the operation.
      */
-    public function index(Request $request): JsonResponse|View
+    public function index(Request $request, SystemHealthService $health): JsonResponse|View
     {
         if (!$request->expectsJson()) {
             return view('superadmin.dashboard');
@@ -43,24 +44,8 @@ class DashboardController extends Controller
                 'active_campaigns' => Campaign::where('status', CampaignStatus::Active)->count(),
                 'orders_today' => Order::whereDate('created_at', $today)->whereNot('status', OrderStatus::Cancelled)->count(),
                 'outstanding_debt' => (int) Debt::whereIn('status', DebtStatus::outstandingValues())->sum('remaining_amount'),
-                'socket_connections' => ['status' => config('services.realtime.url') ? 'configured' : 'unknown', 'endpoint' => config('services.realtime.url')],
-                'queue_health' => ['connection' => config('queue.default'), 'failed_jobs' => DB::table('failed_jobs')->count()],
-                'system_health' => ['database' => $this->databaseHealth()],
+                'system_health' => $health->snapshot(),
             ]
         ]);
-    }
-
-    /**
-     * Handle the database health operation.
-     * @return string Result of the operation.
-     */
-    private function databaseHealth(): string
-    {
-        try {
-            DB::select('select 1');
-            return 'ok';
-        } catch (\Throwable) {
-            return 'error';
-        }
     }
 }

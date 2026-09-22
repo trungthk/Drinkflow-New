@@ -32,7 +32,7 @@ class DebtController extends Controller
                 'total_debt' => (int) Debt::when($request->filled('room_id'), fn($q) => $q->where('room_id', $request->integer('room_id')))->sum('remaining_amount'),
                 'by_room' => Debt::select('room_id', DB::raw('SUM(remaining_amount) as total'), DB::raw('COUNT(*) as debt_count'))->groupBy('room_id')->with('room:id,name,slug')->get(),
                 'by_campaign' => Debt::select('campaign_id', DB::raw('SUM(remaining_amount) as total'), DB::raw('COUNT(*) as debt_count'))->groupBy('campaign_id')->with('campaign:id,name')->get(),
-                'items' => $query->paginate(20),
+                'items' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE),
             ]
         ]);
     }

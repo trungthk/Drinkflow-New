@@ -28,6 +28,6 @@ class AuditController extends Controller
             $query->whereDate('created_at', '>=', $request->date('from'));
         if ($request->filled('to'))
             $query->whereDate('created_at', '<=', $request->date('to'));
-        return response()->json(['data' => $query->paginate(20)]);
+        return response()->json(['data' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)]);
     }
 }

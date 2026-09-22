@@ -18,7 +18,16 @@ import { initLogoutModal } from './global/logout-modal';
 import { initGlobalLoading } from './global/loading';
 import { initGlobalGoToTop } from './global/go-to-top';
 
-import { initSuperadminRooms } from './superadmin/rooms';
+import { initSuperadminLoading, initSuperadminReloadButtons } from './superadmin/loading';
+import { exposeSuperadminGlobals } from './superadmin/shared';
+import { initSuperadminModals, openSuperadminConfirm } from './superadmin/modal';
+import { initDateRangePickers } from './admin/ui-enhancements';
+
+// Runs before DOMContentLoaded: the inline @push('scripts') blocks in superadmin/*.blade.php
+// call window.dfApi/escapeHtml/statusPill/money/openSuperadminConfirm synchronously as soon as
+// the page script runs (see resources/views/superadmin/layout.blade.php's shim for why).
+exposeSuperadminGlobals();
+window.openSuperadminConfirm = openSuperadminConfirm;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Public Components & Pages
@@ -37,5 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initGlobalGoToTop();
 
     // Superadmin Components & Pages
-    initSuperadminRooms();
+    initSuperadminLoading();
+    initSuperadminReloadButtons();
+    initSuperadminModals();
+    initDateRangePickers();
 });

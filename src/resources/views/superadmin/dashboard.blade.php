@@ -46,6 +46,18 @@
                     <div><strong>Socket.IO</strong><small id="socket-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">hub</span>
                 </div>
+                <div class="sa-health-row">
+                    <div><strong>{{ __('superadmin.dashboard.mail') }}</strong><small id="mail-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
+                        class="material-symbols-outlined">mail</span>
+                </div>
+                <div class="sa-health-row">
+                    <div><strong>{{ __('superadmin.dashboard.storage') }}</strong><small id="storage-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
+                        class="material-symbols-outlined">hard_drive</span>
+                </div>
+                <div class="sa-health-row" id="supervisor-row" hidden>
+                    <div><strong>{{ __('superadmin.dashboard.supervisor') }}</strong><small id="supervisor-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
+                        class="material-symbols-outlined">engineering</span>
+                </div>
             </div>
         </section>
         <section class="sa-card sa-section">
@@ -81,10 +93,17 @@
             document.querySelector('#total-admins').textContent = data.total_admins;
             document.querySelector('#orders-today').textContent = data.orders_today;
             document.querySelector('#debt').textContent = money(data.outstanding_debt);
-            document.querySelector('#database-status').textContent = data.system_health.database;
+            const health = data.system_health;
+            document.querySelector('#database-status').innerHTML = statusPill(health.database.status);
             document.querySelector('#queue-status').textContent =
-                `${data.queue_health.connection} · ${@js(__('superadmin.dashboard.failed_count', ['count' => '__COUNT__'])).replace('__COUNT__', data.queue_health.failed_jobs)}`;
-            document.querySelector('#socket-status').textContent = data.socket_connections.status;
+                `${health.queue.connection} · ${@js(__('superadmin.dashboard.failed_count', ['count' => '__COUNT__'])).replace('__COUNT__', health.queue.failed_jobs)}`;
+            document.querySelector('#socket-status').innerHTML = statusPill(health.socket.status);
+            document.querySelector('#mail-status').innerHTML = statusPill(health.mail.configured ? 'configured' : 'not_configured');
+            document.querySelector('#storage-status').innerHTML = statusPill(health.storage.status);
+            if (health.supervisor) {
+                document.querySelector('#supervisor-row').hidden = false;
+                document.querySelector('#supervisor-status').innerHTML = statusPill(health.supervisor.status);
+            }
         }).catch(error => {
             const n = document.querySelector('#notice');
             n.textContent = error.message;

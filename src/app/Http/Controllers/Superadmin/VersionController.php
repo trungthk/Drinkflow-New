@@ -18,7 +18,7 @@ class VersionController extends Controller
      */
     public function index(): JsonResponse
     {
-        return response()->json(['data' => Version::query()->latest('release_date')->paginate(20)]);
+        return response()->json(['data' => Version::query()->latest('release_date')->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)]);
     }
     /**
      * Handle the store operation.

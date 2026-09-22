@@ -33,7 +33,7 @@ class AdminController extends Controller
             $query->where('role', $request->string('role')->toString());
         if ($request->filled('status'))
             $query->where('status', $request->string('status')->toString());
-        return response()->json(['data' => $query->paginate(20)]);
+        return response()->json(['data' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)]);
     }
 
     /**

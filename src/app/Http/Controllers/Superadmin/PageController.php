@@ -29,12 +29,19 @@ class PageController extends Controller
      */
     public function rooms(Request $request): View
     {
-        $query = Room::query()->withCount(['roomUsers', 'campaigns', 'admins'])->latest();
+        $query = Room::query()->withCount(['roomUsers', 'campaigns', 'admins']);
         $search = trim($request->string('q')->toString());
         if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
         $status = $request->string('status')->toString();
         if ($status !== '') $query->where('status', $status);
-        return view('superadmin.rooms', ['rooms' => $query->paginate(20)->withQueryString(), 'filters' => compact('search', 'status')]);
+        $sort = $request->string('sort')->toString();
+        match ($sort) {
+            'name' => $query->orderBy('name'),
+            'members' => $query->orderByDesc('room_users_count'),
+            'campaigns' => $query->orderByDesc('campaigns_count'),
+            default => $query->latest(),
+        };
+        return view('superadmin.rooms', ['rooms' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search', 'status', 'sort')]);
     }
     /**
      * Handle the room operation.
@@ -57,7 +64,7 @@ class PageController extends Controller
         $status = $request->string('status')->toString();
         if ($role !== '') $query->where('role', $role);
         if ($status !== '') $query->where('status', $status);
-        return view('superadmin.admins', ['admins' => $query->paginate(20)->withQueryString(), 'filters' => compact('search', 'role', 'status')]);
+        return view('superadmin.admins', ['admins' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search', 'role', 'status')]);
     }
     /**
      * Handle the admin operation.
@@ -78,7 +85,7 @@ class PageController extends Controller
         if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('normalized_name', 'like', "%".strtoupper($search)."%")->orWhere('email', 'like', "%{$search}%"));
         $status = $request->string('status')->toString();
         if ($status !== '') $query->where('status', $status);
-        return view('superadmin.users', ['users' => $query->paginate(20)->withQueryString(), 'filters' => compact('search', 'status')]);
+        return view('superadmin.users', ['users' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search', 'status')]);
     }
     /**
      * Handle the user operation.
@@ -99,7 +106,7 @@ class PageController extends Controller
         if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('restaurant', 'like', "%{$search}%"));
         $status = $request->string('status')->toString();
         if ($status !== '') $query->where('status', $status);
-        return view('superadmin.campaigns', ['campaigns' => $query->paginate(20)->withQueryString(), 'filters' => compact('search', 'status')]);
+        return view('superadmin.campaigns', ['campaigns' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search', 'status')]);
     }
     /**
      * Handle the debts operation.
@@ -112,7 +119,7 @@ class PageController extends Controller
         if ($search !== '') $query->where(fn ($q) => $q->whereHas('campaign', fn ($c) => $c->where('name', 'like', "%{$search}%"))->orWhereHas('roomUser.globalUser', fn ($u) => $u->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")));
         $status = DebtStatus::tryFrom($request->string('status')->toString());
         if ($status !== null) $query->where('status', $status->value);
-        $debts = $query->paginate(20)->withQueryString();
+        $debts = $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString();
         return view('superadmin.debts', ['debts' => $debts, 'filters' => ['search' => $search, 'status' => $status?->value ?? ''], 'totalDebt' => (int) Debt::whereIn('status', DebtStatus::outstandingValues())->sum('remaining_amount')]);
     }
     /**
@@ -124,7 +131,7 @@ class PageController extends Controller
         $query = SystemNotificationChannel::query()->latest();
         $search = trim($request->string('q')->toString());
         if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('type', 'like', "%{$search}%"));
-        return view('superadmin.notifications', ['channels' => $query->paginate(20)->withQueryString(), 'filters' => compact('search')]);
+        return view('superadmin.notifications', ['channels' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search')]);
     }
     /**
      * Handle the system operation.
@@ -143,7 +150,16 @@ class PageController extends Controller
         $query = AuditLog::query()->with('room:id,name')->latest('created_at');
         $event = trim($request->string('event')->toString());
         if ($event !== '') $query->where('event', 'like', "%{$event}%");
-        return view('superadmin.audit', ['audits' => $query->paginate(20)->withQueryString(), 'filters' => ['event' => $event]]);
+        $actorType = $request->string('actor_type')->toString();
+        if ($actorType !== '') $query->where('actor_type', $actorType);
+        $dateFrom = $request->string('date_from')->toString();
+        $dateTo = $request->string('date_to')->toString();
+        if ($dateFrom !== '') $query->whereDate('created_at', '>=', $dateFrom);
+        if ($dateTo !== '') $query->whereDate('created_at', '<=', $dateTo);
+        return view('superadmin.audit', [
+            'audits' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(),
+            'filters' => ['event' => $event, 'actor_type' => $actorType, 'date_from' => $dateFrom, 'date_to' => $dateTo],
+        ]);
     }
     /**
      * Handle the security operation.
@@ -156,7 +172,12 @@ class PageController extends Controller
         if ($search !== '') $query->where(fn ($q) => $q->where('type', 'like', "%{$search}%")->orWhere('ip_address', 'like', "%{$search}%"));
         $severity = $request->string('severity')->toString();
         if ($severity !== '') $query->where('severity', $severity);
-        return view('superadmin.security', ['events' => $query->paginate(20)->withQueryString(), 'filters' => ['search' => $search, 'severity' => $severity]]);
+        $actorType = $request->string('actor_type')->toString();
+        if ($actorType !== '') $query->where('actor_type', $actorType);
+        return view('superadmin.security', [
+            'events' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(),
+            'filters' => ['search' => $search, 'severity' => $severity, 'actor_type' => $actorType],
+        ]);
     }
     /**
      * Handle the socket operation.
@@ -175,7 +196,7 @@ class PageController extends Controller
         $query = DB::table('failed_jobs')->latest('failed_at');
         $search = trim($request->string('q')->toString());
         if ($search !== '') $query->where(fn ($q) => $q->where('queue', 'like', "%{$search}%")->orWhere('uuid', 'like', "%{$search}%"));
-        return view('superadmin.queue', ['jobs' => $query->paginate(20)->withQueryString(), 'filters' => compact('search')]);
+        return view('superadmin.queue', ['jobs' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search')]);
     }
     /**
      * Handle the versions operation.
@@ -186,7 +207,7 @@ class PageController extends Controller
         $query = Version::query()->latest('release_date');
         $search = trim($request->string('q')->toString());
         if ($search !== '') $query->where(fn ($q) => $q->where('version', 'like', "%{$search}%")->orWhere('title', 'like', "%{$search}%"));
-        return view('superadmin.versions', ['versions' => $query->paginate(20)->withQueryString(), 'filters' => compact('search')]);
+        return view('superadmin.versions', ['versions' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search')]);
     }
 
     /**
@@ -215,7 +236,7 @@ class PageController extends Controller
         }
 
         return view('superadmin.feedbacks', [
-            'feedbacks' => $query->paginate(20)->withQueryString(),
+            'feedbacks' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(),
             'filters' => ['status' => $status, 'rating' => $rating >= 1 && $rating <= 5 ? $rating : null, 'search' => $search],
             'pendingCount' => Feedback::query()->where('status', FeedbackStatus::Inactive->value)->count(),
         ]);

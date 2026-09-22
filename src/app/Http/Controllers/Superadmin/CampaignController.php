@@ -28,7 +28,7 @@ class CampaignController extends Controller
             $query->where('status', $request->string('status')->toString());
         if ($request->filled('q'))
             $query->where(fn($q) => $q->where('name', 'like', '%' . $request->string('q') . '%')->orWhere('restaurant', 'like', '%' . $request->string('q') . '%'));
-        return response()->json(['data' => $query->paginate(20)]);
+        return response()->json(['data' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)]);
     }
 
     /**

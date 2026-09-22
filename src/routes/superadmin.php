@@ -50,6 +50,7 @@ Route::middleware(['auth:admin', 'superadmin'])->prefix('superadmin')->group(fun
     Route::get('/system/maintenance', [\App\Http\Controllers\Superadmin\SystemController::class, 'maintenance'])->name('superadmin.system.maintenance');
     Route::put('/system/maintenance', [\App\Http\Controllers\Superadmin\SystemController::class, 'maintenance'])->name('superadmin.system.maintenance.update');
     Route::post('/system/reset', [\App\Http\Controllers\Superadmin\SystemController::class, 'reset'])->name('superadmin.system.reset');
+    Route::post('/system/mail/test', [\App\Http\Controllers\Superadmin\SystemController::class, 'sendTestMail'])->middleware('throttle:5,1')->name('superadmin.system.mail-test');
     Route::get('/audit-logs/page', [\App\Http\Controllers\Superadmin\PageController::class, 'audit'])->name('superadmin.audit.page');
     Route::get('/audit-logs', [\App\Http\Controllers\Superadmin\AuditController::class, 'index'])->name('superadmin.audit-logs.index');
     Route::get('/security-events/page', [\App\Http\Controllers\Superadmin\PageController::class, 'security'])->name('superadmin.security.page');

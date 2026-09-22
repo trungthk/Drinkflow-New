@@ -1,8 +1,0 @@
-{
-    "chat.tools.terminal.autoApprove": {
-        "/^Set-Location 'C:\\\\laragon\\\\www\\\\Drinkflow-New\\\\src'; php artisan tinker --execute=\"echo json_encode\\(app\\(App\\\\Services\\\\FoodCrawler\\\\Contracts\\\\BrowserTransportInterface::class\\)->networkData\\('https://shopeefood\\.vn/ha-noi/highlands-coffee-keangnam-tower'\\)\\);\"$/": {
-            "approve": true,
-            "matchCommandLine": true
-        }
-    }
-}

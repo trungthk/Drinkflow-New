@@ -35,7 +35,7 @@ class RoomController extends Controller
             $query->where(fn($q) => $q->where('name', 'like', '%' . $request->string('q') . '%')->orWhere('slug', 'like', '%' . $request->string('q') . '%'));
         if ($request->filled('status'))
             $query->where('status', $request->string('status')->toString());
-        return response()->json(['data' => $query->paginate(20)]);
+        return response()->json(['data' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)]);
     }
 
     /**

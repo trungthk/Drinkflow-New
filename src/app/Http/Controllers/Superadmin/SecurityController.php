@@ -22,6 +22,6 @@ class SecurityController extends Controller
         foreach (['type', 'severity', 'room_id', 'actor_type'] as $field)
             if ($request->filled($field))
                 $query->where($field, $request->input($field));
-        return response()->json(['data' => $query->paginate(20)]);
+        return response()->json(['data' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)]);
     }
 }
