@@ -25,6 +25,31 @@
     favoriteItems: [],
     favoriteLoading: false,
     favoriteError: false,
+    campaignModalOpen: false,
+    campaignLoading: false,
+    campaignData: null,
+    async openCampaignDetail(campaignId) {
+      if (!campaignId) return;
+      this.campaignModalOpen = true;
+      this.campaignLoading = true;
+      this.campaignData = null;
+      try {
+        const url = '{{ route('user.campaigns.details', ['room' => $room->slug, 'campaign' => ':id']) }}'.replace(':id', campaignId);
+        const res = await fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+        if (res.ok) {
+          const data = await res.json();
+          this.campaignData = data.data;
+        } else {
+          window.notify?.('{{ __('global.common.error') }}', 'error');
+          this.campaignModalOpen = false;
+        }
+      } catch (e) {
+        window.notify?.('{{ __('room.orders.connection_error') }}', 'error');
+        this.campaignModalOpen = false;
+      } finally {
+        this.campaignLoading = false;
+      }
+    },
     favoriteItemsUrl: {{ Js::from($activeCampaign ? route('user.campaigns.favorite-items', [$room, $activeCampaign]) : '') }},
     favoriteRankLabel: {{ Js::from(__('room.dashboard.rank_label', ['rank' => ':rank'])) }},
     {{-- Giữ đồng bộ bảng màu với components/room/rank-medal.blade.php --}}
@@ -593,6 +618,10 @@
 
           <!-- Search Bar with Clear Button -->
           <div class="flex w-full sm:w-auto items-center gap-2">
+          <button type="button" @click="openCampaignDetail({{ $activeCampaign->id }})" class="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-sky-200 bg-sky-50 px-3 text-xs font-bold text-sky-800 transition-colors hover:bg-sky-100">
+            <span class="material-symbols-outlined text-[17px]">receipt_long</span>
+            <span>{{ __('room.campaign.view_room_orders_button') }}</span>
+          </button>
           <button type="button" @click="openFavorites()" class="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100">
             <span class="material-symbols-outlined text-[17px]">favorite</span>
             <span>{{ __('room.campaign.favorite_items_button') }}</span>
@@ -712,6 +741,9 @@
           </div>
         </div>
       </template>
+
+      <!-- Room Orders Modal: xem đơn của tất cả thành viên trong phòng cho chiến dịch này -->
+      <x-room.campaign-orders-modal />
 
       @if($canOrderCampaign && !$activeUserOrder)
       <!-- 3. Modal Tùy chỉnh món (Item Customization Modal) -->

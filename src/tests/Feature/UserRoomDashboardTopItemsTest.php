@@ -138,6 +138,80 @@ class UserRoomDashboardTopItemsTest extends TestCase
     }
 
     /**
+     * Sponsors are ranked by total sponsor_amount received, highest first, excluding cancelled orders.
+     *
+     * @return void
+     */
+    public function test_dashboard_ranks_top_sponsors_by_total_sponsor_amount(): void
+    {
+        $room = Room::create(['name' => 'Technology', 'slug' => 'technology-top-sponsors', 'status' => RoomStatus::Active]);
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Sponsored coffee',
+            'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active,
+        ]);
+
+        $topSponsor = $this->member($room, $this->user('top-sponsor@example.test'), 'TOPSPONSOR');
+        $topSponsor->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+            'subtotal' => 100000, 'sponsor_amount' => 80000, 'final_amount' => 20000, 'status' => OrderStatus::Submitted,
+        ]);
+
+        $secondSponsor = $this->member($room, $this->user('second-sponsor@example.test'), 'SECONDSPONSOR');
+        $secondSponsor->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+            'subtotal' => 60000, 'sponsor_amount' => 30000, 'final_amount' => 30000, 'status' => OrderStatus::Submitted,
+        ]);
+
+        // A cancelled order's sponsor amount must not count toward the ranking.
+        $cancelledSponsor = $this->member($room, $this->user('cancelled-sponsor@example.test'), 'CANCELLEDSPONSOR');
+        $cancelledSponsor->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+            'subtotal' => 500000, 'sponsor_amount' => 500000, 'final_amount' => 0, 'status' => OrderStatus::Cancelled,
+        ]);
+
+        $data = app(UserRoomDashboardService::class)->getDashboardData($room, $topSponsor, null);
+
+        $this->assertSame(['Member', 'Member'], array_column($data['topSponsors'], 'name'));
+        $this->assertSame([80000, 30000], array_column($data['topSponsors'], 'amount'));
+    }
+
+    /**
+     * The 7-day trend aggregates daily item count and order value, oldest day first, today last.
+     *
+     * @return void
+     */
+    public function test_dashboard_weekly_trend_aggregates_items_and_value_per_day(): void
+    {
+        $room = Room::create(['name' => 'Technology', 'slug' => 'technology-weekly-trend', 'status' => RoomStatus::Active]);
+        $campaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Trend campaign',
+            'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active,
+        ]);
+        $member = $this->member($room, $this->user('trend@example.test'), 'TREND');
+
+        $todayOrder = $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+            'subtotal' => 50000, 'final_amount' => 50000, 'status' => OrderStatus::Submitted,
+        ]);
+        $todayOrder->items()->create([
+            'item_name' => 'Drink today', 'unit_price' => 25000, 'quantity' => 2, 'line_subtotal' => 50000,
+        ]);
+
+        $data = app(UserRoomDashboardService::class)->getDashboardData($room, $member, null);
+        $trend = $data['weeklyItemTrend'];
+
+        $this->assertCount(7, $trend);
+        $today = $trend[6];
+        $this->assertSame(2, $today['items_count']);
+        $this->assertSame(50000, $today['value_amount']);
+        $this->assertSame(0, $trend[0]['items_count']);
+    }
+
+    /**
      * Create an active global account.
      *
      * @param string $email Unique account email.

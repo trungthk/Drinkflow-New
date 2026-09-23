@@ -107,4 +107,31 @@ class RoomProfileCompletedOrdersTest extends TestCase
             ->assertOk()
             ->assertSee('data-user-notification-badge', false);
     }
+
+    /**
+     * The room profile header must expose an edit button redirecting to the global profile page.
+     *
+     * @return void
+     */
+    public function test_room_profile_page_has_edit_button_linking_to_global_profile(): void
+    {
+        $user = GlobalUser::create([
+            'name' => 'Edit Button Member',
+            'normalized_name' => 'EDIT BUTTON MEMBER',
+            'email' => 'edit-button-member@company.com',
+            'status' => 'active',
+        ]);
+        $room = Room::create([
+            'name' => 'Marketing',
+            'slug' => 'marketing',
+            'status' => 'active',
+        ]);
+        app(JoinRoomAction::class)->execute($user, $room, 'Chrome', 'edit-button-hash');
+
+        $response = $this->actingAs($user, 'web')->get('/rooms/marketing/profile');
+
+        $response->assertOk()
+            ->assertSee(route('user.me.profile'), false)
+            ->assertSee(__('room.profile.edit_profile'));
+    }
 }

@@ -109,8 +109,8 @@
 
     @if($roomsCount > 0)
       <!-- Section: Room Gần Đây -->
-      <section class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs">
-        <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+      <section>
+        <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-5">
           <div class="flex items-center gap-2.5">
             <span class="w-8 h-8 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center">
               <span class="material-symbols-outlined text-[18px]">group_work</span>
@@ -322,8 +322,8 @@
     @endif
 
     <!-- Section: Lối tắt nhanh -->
-    <section class="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs">
-      <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+    <section>
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
         <div class="flex items-center gap-2">
           <span class="w-8 h-8 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center">
             <span class="material-symbols-outlined text-[18px]">bolt</span>

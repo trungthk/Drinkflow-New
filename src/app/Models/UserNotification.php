@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class UserNotification extends Model
 {
-    protected $fillable = ['global_user_id', 'room_user_id', 'type', 'title', 'body', 'data', 'read_at'];
+    protected $fillable = ['global_user_id', 'room_user_id', 'type', 'title', 'body', 'link', 'data', 'read_at'];
 
     protected function casts(): array
     {
@@ -47,6 +47,27 @@ class UserNotification extends Model
                 };
             }
         });
+    }
+
+    /**
+     * Render the notification body as safe HTML: escape any interpolated
+     * free-text values (campaign name, orderer name, ...) then turn line
+     * breaks and plain URLs into markup, so raw text can never smuggle in
+     * a stored XSS payload while still displaying nicely as HTML.
+     *
+     * @return string Sanitized HTML-safe body.
+     */
+    public function getBodyHtmlAttribute(): string
+    {
+        $escaped = e((string) $this->body);
+
+        $linked = preg_replace_callback(
+            '/(https?:\/\/[^\s<]+)/i',
+            static fn (array $matches): string => '<a href="' . $matches[1] . '" target="_blank" rel="noopener noreferrer" class="underline font-medium">' . $matches[1] . '</a>',
+            $escaped
+        );
+
+        return nl2br($linked ?? $escaped, false);
     }
 
     public function globalUser(): BelongsTo

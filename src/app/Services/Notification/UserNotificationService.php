@@ -25,15 +25,16 @@ class UserNotificationService
      * @param  string  $title  Tiêu đề thông báo
      * @param  string|null  $body  Nội dung chi tiết thông báo
      * @param  array<string, mixed>  $data  Dữ liệu bổ sung (metadata/payload)
+     * @param  string|null  $link  Đường dẫn liên kết đính kèm thông báo
      * @return void
      */
-    public function toRoom(Room $room, string $type, string $title, ?string $body = null, array $data = []): void
+    public function toRoom(Room $room, string $type, string $title, ?string $body = null, array $data = [], ?string $link = null): void
     {
         $room->roomUsers()
             ->where('status', RoomUserStatus::Active->value)
             ->whereHas('globalUser', static fn ($query) => $query->where('status', GlobalUserStatus::Active->value))
-            ->each(function (RoomUser $roomUser) use ($type, $title, $body, $data): void {
-            $this->toRoomUser($roomUser, $type, $title, $body, $data);
+            ->each(function (RoomUser $roomUser) use ($type, $title, $body, $data, $link): void {
+            $this->toRoomUser($roomUser, $type, $title, $body, $data, $link);
             });
     }
 
@@ -45,9 +46,10 @@ class UserNotificationService
      * @param  string  $title  Tiêu đề thông báo
      * @param  string|null  $body  Nội dung chi tiết
      * @param  array<string, mixed>  $data  Dữ liệu bổ sung
+     * @param  string|null  $link  Đường dẫn liên kết đính kèm thông báo
      * @return \App\Models\UserNotification  Bản ghi thông báo vừa tạo
      */
-    public function toRoomUser(RoomUser $roomUser, string $type, string $title, ?string $body = null, array $data = []): UserNotification
+    public function toRoomUser(RoomUser $roomUser, string $type, string $title, ?string $body = null, array $data = [], ?string $link = null): UserNotification
     {
         $notification = UserNotification::create([
             'global_user_id' => $roomUser->global_user_id,
@@ -55,6 +57,7 @@ class UserNotificationService
             'type' => $type,
             'title' => $title,
             'body' => $body,
+            'link' => $link,
             'data' => $data,
         ]);
         UserNotificationCreated::dispatch($notification);
@@ -70,9 +73,10 @@ class UserNotificationService
      * @param  string  $title  Tiêu đề thông báo
      * @param  string|null  $body  Nội dung chi tiết
      * @param  array<string, mixed>  $data  Dữ liệu bổ sung
+     * @param  string|null  $link  Đường dẫn liên kết đính kèm thông báo
      * @return \App\Models\UserNotification  Bản ghi thông báo vừa tạo
      */
-    public function toGlobalUser(GlobalUser $user, string $type, string $title, ?string $body = null, array $data = []): UserNotification
+    public function toGlobalUser(GlobalUser $user, string $type, string $title, ?string $body = null, array $data = [], ?string $link = null): UserNotification
     {
         $notification = UserNotification::create([
             'global_user_id' => $user->id,
@@ -80,6 +84,7 @@ class UserNotificationService
             'type' => $type,
             'title' => $title,
             'body' => $body,
+            'link' => $link,
             'data' => $data,
         ]);
         UserNotificationCreated::dispatch($notification);
@@ -103,10 +108,12 @@ class UserNotificationService
         $unreadCount = (clone $baseQuery)->whereNull('read_at')->count();
         $roomOrderTypes = [NotificationType::CampaignCreated->value, NotificationType::OrderStatus->value, NotificationType::OrderProxyReceived->value, NotificationType::RoomInvite->value];
         $paymentTypes = [NotificationType::PaymentDue->value, NotificationType::PaymentConfirmed->value, NotificationType::DebtReminder->value];
-        $securityTypes = [NotificationType::SecurityAlert->value, NotificationType::DeviceNew->value];
+        $profileTypes = [NotificationType::SecurityAlert->value, NotificationType::DeviceNew->value];
+        $otherTypes = [NotificationType::AdminBroadcast->value, NotificationType::NotificationTest->value];
         $roomOrderCount = (clone $baseQuery)->whereIn('type', $roomOrderTypes)->count();
         $paymentCount = (clone $baseQuery)->whereIn('type', $paymentTypes)->count();
-        $securityCount = (clone $baseQuery)->whereIn('type', $securityTypes)->count();
+        $profileCount = (clone $baseQuery)->whereIn('type', $profileTypes)->count();
+        $otherCount = (clone $baseQuery)->whereIn('type', $otherTypes)->count();
 
         // Query by active tab
         $query = (clone $baseQuery)->latest();
@@ -116,8 +123,10 @@ class UserNotificationService
             $query->whereIn('type', $roomOrderTypes);
         } elseif ($tab === 'payment') {
             $query->whereIn('type', $paymentTypes);
-        } elseif ($tab === 'security') {
-            $query->whereIn('type', $securityTypes);
+        } elseif ($tab === 'profile') {
+            $query->whereIn('type', $profileTypes);
+        } elseif ($tab === 'other') {
+            $query->whereIn('type', $otherTypes);
         }
 
         $notifications = $query->paginate(15)->appends(['tab' => $tab]);
@@ -134,7 +143,8 @@ class UserNotificationService
             'unreadCount',
             'roomOrderCount',
             'paymentCount',
-            'securityCount',
+            'profileCount',
+            'otherCount',
             'notifications',
             'breadcrumbs'
         );

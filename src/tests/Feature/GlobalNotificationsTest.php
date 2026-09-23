@@ -63,7 +63,7 @@ class GlobalNotificationsTest extends TestCase
             'read_at' => now(),
         ]);
 
-        $response = $this->actingAs($user, 'web')->get('/me/notifications?tab=security');
+        $response = $this->actingAs($user, 'web')->get('/me/notifications?tab=profile');
         $response->assertOk();
         $response->assertSee('Đăng nhập từ thiết bị mới');
 
@@ -233,6 +233,76 @@ class GlobalNotificationsTest extends TestCase
             ->assertSee('data-unread-count', false)
             ->assertSee('data-header-notification-id="'.$unread->id.'"', false)
             ->assertSee('data-user-notification-new-badge', false);
+    }
+
+    /**
+     * Users can filter notifications by the "Khác" (other) category.
+     *
+     * @return void
+     */
+    public function test_user_can_filter_notifications_by_other_tab(): void
+    {
+        $user = GlobalUser::create(['name' => 'Trung Lê', 'normalized_name' => 'TRUNG LE', 'email' => 'other-tab@company.com', 'status' => 'active']);
+
+        $other = UserNotification::create(['global_user_id' => $user->id, 'type' => 'admin.broadcast', 'title' => 'Thông báo hệ thống', 'body' => 'Bảo trì định kỳ']);
+        $excluded = UserNotification::create(['global_user_id' => $user->id, 'type' => 'campaign.created', 'title' => 'Chiến dịch mới', 'body' => 'Nội dung']);
+
+        $response = $this->actingAs($user, 'web')->get('/me/notifications?tab=other');
+
+        // Scope assertions to the tab-filtered list card (not the header bell widget,
+        // which independently shows the latest unread notifications regardless of tab).
+        $response->assertOk()
+            ->assertSee('data-notification-card data-notification-id="'.$other->id.'"', false)
+            ->assertDontSee('data-notification-card data-notification-id="'.$excluded->id.'"', false);
+    }
+
+    /**
+     * The body must render as escaped/auto-linked HTML: free-text values (e.g. a display
+     * name flowing into a proxy-order body) can never smuggle in a stored XSS payload.
+     *
+     * @return void
+     */
+    public function test_notification_body_is_rendered_as_safe_html(): void
+    {
+        $user = GlobalUser::create(['name' => 'Trung Lê', 'normalized_name' => 'TRUNG LE', 'email' => 'safe-html@company.com', 'status' => 'active']);
+
+        UserNotification::create([
+            'global_user_id' => $user->id,
+            'type' => 'campaign.created',
+            'title' => 'Thông báo test',
+            'body' => "Xem tại https://drinkflow.test/order\n<script>alert(1)</script>",
+        ]);
+
+        $response = $this->actingAs($user, 'web')->get('/me/notifications');
+
+        $response->assertOk()
+            ->assertDontSee('<script>alert(1)</script>', false)
+            ->assertSee('<a href="https://drinkflow.test/order"', false)
+            ->assertSee('&lt;script&gt;', false);
+    }
+
+    /**
+     * When a notification carries a link, the page shows a clickable "view details" action.
+     *
+     * @return void
+     */
+    public function test_notification_with_link_shows_view_detail_action(): void
+    {
+        $user = GlobalUser::create(['name' => 'Trung Lê', 'normalized_name' => 'TRUNG LE', 'email' => 'notif-link@company.com', 'status' => 'active']);
+
+        UserNotification::create([
+            'global_user_id' => $user->id,
+            'type' => 'campaign.created',
+            'title' => 'Thông báo test',
+            'body' => 'Nội dung',
+            'link' => '/rooms/marketing/campaigns',
+        ]);
+
+        $response = $this->actingAs($user, 'web')->get('/me/notifications');
+
+        $response->assertOk()
+            ->assertSee('href="/rooms/marketing/campaigns"', false)
+            ->assertSee(__('global.notifications.view_detail'));
     }
 }
 

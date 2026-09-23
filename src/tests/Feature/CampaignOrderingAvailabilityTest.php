@@ -62,6 +62,25 @@ class CampaignOrderingAvailabilityTest extends TestCase
     }
 
     /**
+     * The campaign page must let a member open a modal listing every room member's orders for
+     * the live campaign, reusing the same JSON endpoint and modal as the debts page.
+     *
+     * @return void
+     */
+    public function test_campaign_page_shows_room_orders_button_and_modal(): void
+    {
+        [$user, $room] = $this->createRoomMember('room-orders');
+        [$campaign] = $this->createCampaignWithItem($room, CampaignStatus::Active, now()->addHour());
+
+        $this->actingAs($user, 'web')
+            ->get(route('user.campaigns.index', $room))
+            ->assertOk()
+            ->assertSee('openCampaignDetail('.$campaign->id.')', false)
+            ->assertSee(__('room.campaign.view_room_orders_button'))
+            ->assertSee('campaignModalOpen', false);
+    }
+
+    /**
      * Verify that the campaign banner renders persisted policy and payment details.
      *
      * @return void

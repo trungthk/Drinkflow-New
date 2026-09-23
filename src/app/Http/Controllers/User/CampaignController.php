@@ -72,6 +72,7 @@ class CampaignController extends Controller
             ->with([
                 'roomUser.globalUser',
                 'items.toppings',
+                'items.campaignItem',
             ])
             ->where('status', '!=', OrderStatus::Cancelled->value);
 
@@ -97,6 +98,7 @@ class CampaignController extends Controller
                 return [
                     'id' => $item->id,
                     'item_name' => $item->item_name,
+                    'image_url' => $item->campaignItem?->image_url,
                     'size_name' => $item->size_name,
                     'unit_price' => (int) $item->unit_price,
                     'quantity' => (int) $item->quantity,

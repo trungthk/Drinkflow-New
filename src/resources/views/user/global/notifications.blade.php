@@ -71,12 +71,20 @@
                 <span class="px-1.5 py-0.2 rounded-full text-[11px] {{ $tab === 'payment' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">{{ $paymentCount }}</span>
             </a>
 
-            <a 
-                href="{{ route('user.me.notifications', ['tab' => 'security']) }}" 
-                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 transition-colors {{ $tab === 'security' ? 'bg-[#006948] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100' }}"
+            <a
+                href="{{ route('user.me.notifications', ['tab' => 'profile']) }}"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 transition-colors {{ $tab === 'profile' ? 'bg-[#006948] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100' }}"
             >
-                <span>{{ __('global.notifications.tab_security') }}</span>
-                <span class="px-1.5 py-0.2 rounded-full text-[11px] {{ $tab === 'security' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">{{ $securityCount }}</span>
+                <span>{{ __('global.notifications.tab_profile') }}</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[11px] {{ $tab === 'profile' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">{{ $profileCount }}</span>
+            </a>
+
+            <a
+                href="{{ route('user.me.notifications', ['tab' => 'other']) }}"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap flex items-center gap-1.5 transition-colors {{ $tab === 'other' ? 'bg-[#006948] text-white shadow-xs' : 'text-slate-600 hover:bg-slate-100' }}"
+            >
+                <span>{{ __('global.notifications.tab_other') }}</span>
+                <span class="px-1.5 py-0.2 rounded-full text-[11px] {{ $tab === 'other' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600' }}">{{ $otherCount }}</span>
             </a>
         </div>
 
@@ -120,12 +128,18 @@
                                     <span data-status-badge class="inline-flex items-center px-2 py-0.2 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500">{{ __('global.notifications.badge_read') }}</span>
                                 @endif
                             </div>
-                            <p class="text-xs text-slate-600 leading-relaxed [overflow-wrap:anywhere]">{{ $notif->body }}</p>
+                            <div class="text-xs text-slate-600 leading-relaxed [overflow-wrap:anywhere]">{!! $notif->body_html !!}</div>
                             <div class="flex items-center gap-4 text-xs text-slate-400 pt-0.5">
                                 <span class="flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[13px]">schedule</span>
                                     {{ $notif->created_at->diffForHumans() }}
                                 </span>
+                                @if(!empty($notif->link))
+                                    <a href="{{ $notif->link }}" class="flex items-center gap-1 text-[#006948] font-semibold hover:underline">
+                                        <span class="material-symbols-outlined text-[13px]">open_in_new</span>
+                                        {{ __('global.notifications.view_detail') }}
+                                    </a>
+                                @endif
                             </div>
                         </div>
                     </div>

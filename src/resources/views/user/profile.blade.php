@@ -40,6 +40,13 @@
                     </div>
                 </div>
 
+                <a
+                    href="{{ route('user.me.profile') }}"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-outline-variant/40 bg-surface-container-low hover:bg-surface-container text-on-surface text-xs font-semibold transition-colors shrink-0"
+                >
+                    <span class="material-symbols-outlined text-[16px]">edit</span>
+                    <span>{{ __('room.profile.edit_profile') }}</span>
+                </a>
             </div>
 
             <!-- Quick Stats Metric Band -->

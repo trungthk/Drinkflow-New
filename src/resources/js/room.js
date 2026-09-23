@@ -11,6 +11,7 @@ import { initGlobalLoading } from './global/loading';
 import { initRoomRealtime } from './room/realtime';
 import { initCampaignDecline } from './room/campaign-decline';
 import { initRoomHeader } from './room/header';
+import { initRoomDashboardCharts } from './room/dashboard-charts';
 
 document.addEventListener('DOMContentLoaded', () => {
     initToastNotifications();
@@ -21,4 +22,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initRoomRealtime();
     initCampaignDecline();
     initRoomHeader();
+    initRoomDashboardCharts();
 });
