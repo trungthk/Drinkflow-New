@@ -46,9 +46,16 @@ class RoomController extends Controller
      */
     public function store(StoreRoomRequest $request, ManageRoomAction $action, AuditService $audit): JsonResponse
     {
-        $room = $action->create($request->validated());
-        $audit->record('room.created', 'room', $room->id, $room->id, [], $room->only(['name', 'slug', 'status']));
-        return response()->json(['data' => $room], 201);
+        $data = $request->validated();
+        $adminIds = $data['admin_ids'] ?? [];
+        unset($data['admin_ids']);
+
+        $room = $action->create($data);
+        if ($adminIds !== []) {
+            $room = $action->syncAdmins($room, $adminIds);
+        }
+        $audit->record('room.created', 'room', $room->id, $room->id, [], $room->only(['name', 'slug', 'status']) + ['admin_ids' => $adminIds]);
+        return response()->json(['data' => $room->load('admins:id,name,email,role,status')], 201);
     }
 
     /**
@@ -71,9 +78,16 @@ class RoomController extends Controller
     public function update(UpdateRoomRequest $request, Room $room, ManageRoomAction $action, AuditService $audit): JsonResponse
     {
         $before = $room->only(['name', 'slug', 'status']);
-        $result = $action->update($room, $request->validated());
+        $data = $request->validated();
+        $adminIds = $data['admin_ids'] ?? null;
+        unset($data['admin_ids']);
+
+        $result = $action->update($room, $data);
+        if ($adminIds !== null) {
+            $result = $action->syncAdmins($result, $adminIds);
+        }
         $audit->record('room.updated', 'room', $room->id, $room->id, $before, $result->fresh()->only(array_keys($before)));
-        return response()->json(['data' => $result]);
+        return response()->json(['data' => $result->load('admins:id,name,email,role,status')]);
     }
 
     /**
@@ -85,7 +99,7 @@ class RoomController extends Controller
      */
     public function status(SetStatusRequest $request, Room $room, ManageRoomAction $action, AuditService $audit): JsonResponse
     {
-        abort_unless(in_array($request->validated('status'), ['active', 'disabled', 'archived'], true), 422);
+        abort_unless(in_array($request->validated('status'), ['active', 'inactive', 'archived'], true), 422);
         $before = ['status' => $room->status?->value ?? (string) $room->status];
         $result = $action->setStatus($room, $request->validated('status'));
         $audit->record('room.status_changed', 'room', $room->id, $room->id, $before, ['status' => $request->validated('status')]);

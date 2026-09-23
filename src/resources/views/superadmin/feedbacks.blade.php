@@ -1,69 +1,133 @@
 @extends('superadmin.layout', ['title' => __('superadmin.feedbacks.title'), 'active' => 'feedbacks'])
 @section('content')
-<div class="superadmin-heading"><div><p class="superadmin-eyebrow">{{ __('superadmin.common.platform_data') }}</p><h1>{{ __('superadmin.feedbacks.title') }}</h1><p>{{ __('superadmin.feedbacks.description', ['rating' => \App\Models\Feedback::MIN_VISIBLE_RATING]) }}</p></div></div>
-<div id="notice" class="sa-notice"></div>
-<section class="sa-card sa-section">
-    <div class="sa-section-header">
-        <div><h2>{{ __('superadmin.feedbacks.queue') }}</h2><p>{{ __('superadmin.feedbacks.pending_count', ['count' => $pendingCount]) }} · {{ __('superadmin.common.records_count', ['count' => $feedbacks->total()]) }}</p></div>
-        <form method="GET" class="superadmin-actions">
-            <input name="q" value="{{ $filters['search'] }}" class="sa-input" placeholder="{{ __('superadmin.feedbacks.search') }}">
-            <select name="status" class="sa-input">
-                <option value="all" @selected($filters['status'] === 'all')>{{ __('superadmin.common.all_statuses') }}</option>
-                <option value="inactive" @selected($filters['status'] === 'inactive')>{{ __('superadmin.feedbacks.status_inactive') }}</option>
-                <option value="active" @selected($filters['status'] === 'active')>{{ __('superadmin.feedbacks.status_active') }}</option>
-            </select>
-            <select name="rating" class="sa-input">
-                <option value="">{{ __('superadmin.feedbacks.all_ratings') }}</option>
-                @for ($stars = 5; $stars >= 1; $stars--)
-                    <option value="{{ $stars }}" @selected($filters['rating'] === $stars)>{{ $stars }} ★</option>
-                @endfor
-            </select>
-            <button class="sa-button">{{ __('superadmin.common.filter') }}</button>
-        </form>
+    <div class="superadmin-heading">
+        <div>
+            <p class="superadmin-eyebrow">{{ __('superadmin.common.platform_data') }}</p>
+            <h1>{{ __('superadmin.feedbacks.title') }}</h1>
+            <p>{{ __('superadmin.feedbacks.description', ['rating' => \App\Models\Feedback::MIN_VISIBLE_RATING]) }}</p>
+        </div>
     </div>
-    <div class="sa-table-wrap"><table class="sa-table"><thead><tr>
-        <th>{{ __('superadmin.common.user') }}</th><th>{{ __('superadmin.feedbacks.rating') }}</th><th>{{ __('superadmin.feedbacks.content') }}</th><th>{{ __('superadmin.common.time') }}</th><th>{{ __('superadmin.common.status') }}</th><th>{{ __('superadmin.common.actions') }}</th>
-    </tr></thead><tbody>
-    @forelse($feedbacks as $feedback)
-        @php
-            $isActive = $feedback->status === \App\Enums\FeedbackStatus::Active;
-            $belowMinimum = $feedback->rating < \App\Models\Feedback::MIN_VISIBLE_RATING;
-        @endphp
-        <tr>
-            <td><strong>{{ $feedback->user_display_name ?: __('global.feedback.anonymous_user') }}</strong><br><small>{{ $feedback->globalUser?->email }}{{ $feedback->department_name ? ' · '.$feedback->department_name : '' }}</small></td>
-            <td><strong>{{ $feedback->rating }} ★</strong><br><small>{{ $feedback->subsystem_label }}</small></td>
-            <td style="max-width: 28rem; white-space: pre-line; word-break: break-word;">{{ $feedback->content }}</td>
-            <td>{{ $feedback->created_at?->format('H:i d/m/Y') }}</td>
-            <td>
-                <span class="status-pill {{ $isActive ? 'status-active' : 'status-pending' }}"><span class="status-dot"></span>{{ $isActive ? __('superadmin.feedbacks.status_active') : __('superadmin.feedbacks.status_inactive') }}</span>
-                @if ($isActive && $belowMinimum)
-                    <br><small>{{ __('superadmin.feedbacks.hidden_low_rating', ['rating' => \App\Models\Feedback::MIN_VISIBLE_RATING]) }}</small>
-                @endif
-            </td>
-            <td>
-                @if ($isActive)
-                    <button class="sa-button" onclick="setFeedbackStatus({{ $feedback->id }}, 'inactive', this)">{{ __('superadmin.feedbacks.deactivate') }}</button>
-                @else
-                    <button class="sa-button" onclick="setFeedbackStatus({{ $feedback->id }}, 'active', this)">{{ __('superadmin.feedbacks.approve') }}</button>
-                @endif
-            </td>
-        </tr>
-    @empty
-        <tr><td colspan="6" class="sa-empty">{{ __('superadmin.feedbacks.empty') }}</td></tr>
-    @endforelse
-    </tbody></table></div>
-    <div class="mt-4">{{ $feedbacks->links() }}</div>
-</section>
+    <div id="notice" class="sa-notice"></div>
+    <section class="sa-card sa-section">
+        <div class="sa-section-header">
+            <div>
+                <h2>{{ __('superadmin.feedbacks.queue') }}</h2>
+                <p>{{ __('superadmin.feedbacks.pending_count', ['count' => $pendingCount]) }} · {{ __('superadmin.common.records_count', ['count' => $feedbacks->total()]) }}</p>
+            </div>
+            <form method="GET" class="superadmin-actions">
+                <input name="q" value="{{ $filters['search'] }}" class="sa-input" placeholder="{{ __('superadmin.feedbacks.search') }}">
+                <select name="status" class="sa-input" aria-label="{{ __('superadmin.common.status') }}">
+                    <option value="all" @selected($filters['status'] === 'all')>{{ __('superadmin.common.all_statuses') }}</option>
+                    <option value="inactive" @selected($filters['status'] === 'inactive')>{{ __('superadmin.feedbacks.status_inactive') }}</option>
+                    <option value="active" @selected($filters['status'] === 'active')>{{ __('superadmin.feedbacks.status_active') }}</option>
+                </select>
+                <select name="rating" class="sa-input" aria-label="{{ __('superadmin.feedbacks.rating') }}">
+                    <option value="">{{ __('superadmin.feedbacks.all_ratings') }}</option>
+                    @for ($stars = 5; $stars >= 1; $stars--)
+                        <option value="{{ $stars }}" @selected($filters['rating'] === $stars)>{{ $stars }} ★</option>
+                    @endfor
+                </select>
+                <button class="sa-button secondary" type="submit"><span class="material-symbols-outlined text-[16px]">filter_list</span>{{ __('superadmin.common.filter') }}</button>
+            </form>
+        </div>
+        <div class="sa-table-wrap">
+            <table class="sa-table">
+                <thead>
+                    <tr>
+                        <th>{{ __('superadmin.common.user') }}</th>
+                        <th class="whitespace-nowrap">{{ __('superadmin.feedbacks.rating') }}</th>
+                        <th>{{ __('superadmin.feedbacks.content') }}</th>
+                        <th class="whitespace-nowrap">{{ __('superadmin.common.time') }}</th>
+                        <th>{{ __('superadmin.common.status') }}</th>
+                        <th class="text-right">{{ __('superadmin.common.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($feedbacks as $feedback)
+                        @php
+                            $isActive = $feedback->status === \App\Enums\FeedbackStatus::Active;
+                            $belowMinimum = $feedback->rating < \App\Models\Feedback::MIN_VISIBLE_RATING;
+                            $displayName = $feedback->user_display_name ?: __('global.feedback.anonymous_user');
+                            $userMeta = collect([$feedback->globalUser?->email, $feedback->department_name])->filter()->join(' · ');
+                        @endphp
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <span class="superadmin-avatar shrink-0">{{ mb_strtoupper(mb_substr($displayName, 0, 1)) }}</span>
+                                    <span class="min-w-0">
+                                        <strong class="block truncate">{{ $displayName }}</strong>
+                                        @if ($userMeta !== '')<small class="block truncate text-outline">{{ $userMeta }}</small>@endif
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="whitespace-nowrap">
+                                <span class="block text-[14px] leading-none tracking-wide" role="img" aria-label="{{ __('superadmin.feedbacks.rating_value', ['rating' => $feedback->rating]) }}">
+                                    @for ($star = 1; $star <= 5; $star++)<span class="{{ $star <= $feedback->rating ? 'text-amber-500' : 'text-slate-300' }}" aria-hidden="true">★</span>@endfor
+                                </span>
+                                @if ($feedback->subsystem_label)<small class="block mt-1 text-outline">{{ $feedback->subsystem_label }}</small>@endif
+                            </td>
+                            <td class="min-w-[16rem] max-w-md whitespace-pre-line break-words leading-relaxed">{{ $feedback->content }}</td>
+                            <td class="whitespace-nowrap">
+                                <span class="block">{{ $feedback->created_at?->format('d/m/Y') }}</span>
+                                <small class="block text-outline">{{ $feedback->created_at?->format('H:i') }}</small>
+                            </td>
+                            <td>
+                                <span class="status-pill whitespace-nowrap {{ $isActive ? 'status-active' : 'status-pending' }}"><span class="status-dot"></span>{{ $isActive ? __('superadmin.feedbacks.status_active') : __('superadmin.feedbacks.status_inactive') }}</span>
+                                @if ($isActive && $belowMinimum)
+                                    <small class="mt-1 flex items-center gap-1 text-outline"><span class="material-symbols-outlined text-[14px]" aria-hidden="true">visibility_off</span>{{ __('superadmin.feedbacks.hidden_low_rating', ['rating' => \App\Models\Feedback::MIN_VISIBLE_RATING]) }}</small>
+                                @endif
+                            </td>
+                            <td>
+                                <div class="flex items-center justify-end whitespace-nowrap">
+                                    @if ($isActive)
+                                        <button class="sa-button warning" type="button" data-action="feedback-status" data-feedback-id="{{ $feedback->id }}" data-status="inactive"><span class="material-symbols-outlined text-[16px]">unpublished</span>{{ __('superadmin.feedbacks.deactivate') }}</button>
+                                    @else
+                                        <button class="sa-button" type="button" data-action="feedback-status" data-feedback-id="{{ $feedback->id }}" data-status="active"><span class="material-symbols-outlined text-[16px]">check_circle</span>{{ __('superadmin.feedbacks.approve') }}</button>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        @php($isDefaultQueue = $filters['status'] === 'inactive' && $filters['search'] === '' && $filters['rating'] === null)
+                        <tr>
+                            <td colspan="6">
+                                @if ($isDefaultQueue)
+                                    <x-superadmin.empty-state icon="task_alt" :title="__('superadmin.feedbacks.no_pending_title')" :description="__('superadmin.feedbacks.no_pending_description')" />
+                                @else
+                                    <x-superadmin.empty-state icon="rate_review" :title="__('superadmin.feedbacks.empty_title')" :description="__('superadmin.feedbacks.empty_description')" />
+                                @endif
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-4">{{ $feedbacks->links() }}</div>
+    </section>
 @endsection
-@push('scripts')<script>
-async function setFeedbackStatus(id, status, button) {
-    button.disabled = true;
-    try {
-        await dfApi(`/superadmin/feedbacks/${id}/status`, { method: 'PATCH', body: { status } });
-        window.location.reload();
-    } catch (error) {
-        alert(error.message);
-        button.disabled = false;
-    }
-}
-</script>@endpush
+@push('scripts')
+    <script>
+        const feedbackNotice = (message, type = 'success') => {
+            const n = document.querySelector('#notice');
+            n.textContent = message;
+            n.className = `sa-notice ${type} is-visible`;
+        };
+
+        document.addEventListener('click', async (event) => {
+            const button = event.target.closest('[data-action="feedback-status"]');
+            if (!button || button.disabled) return;
+            const originalHtml = button.innerHTML;
+            button.disabled = true;
+            window.renderSubmitLoading(button);
+            try {
+                await dfApi(`/superadmin/feedbacks/${button.dataset.feedbackId}/status`, { method: 'PATCH', body: { status: button.dataset.status } });
+                feedbackNotice(@js(__('superadmin.feedbacks.status_updated')));
+                window.setTimeout(() => window.location.reload(), 500);
+            } catch (error) {
+                feedbackNotice(error.message, 'error');
+                button.disabled = false;
+                button.innerHTML = originalHtml;
+            }
+        });
+    </script>
+@endpush

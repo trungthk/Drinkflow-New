@@ -21,7 +21,7 @@ class CampaignController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Campaign::query()->with(['room:id,name,slug', 'paymentAccount:id,room_id,bank_name,account_name'])->withCount(['orders', 'debts'])->latest();
+        $query = Campaign::query()->with(['room:id,name,slug', 'paymentAccount:id,room_id,bank_name,account_name'])->withCount('orders')->latest();
         if ($request->filled('room_id'))
             $query->where('room_id', $request->integer('room_id'));
         if ($request->filled('status'))

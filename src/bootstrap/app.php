@@ -34,6 +34,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\EnsureActiveAdmin::class,
             \App\Http\Middleware\SecurityHeaders::class,
+            // Needs the session, the admin guard and the matched route (superadmin bypass, login
+            // routes), so it lives in the web group rather than the global stack.
+            \App\Http\Middleware\CheckMaintenanceMode::class,
         ]);
         // Apply the session locale right after the session starts and before route model binding,
         // so a 404 thrown by a missing {room}/{campaign} model is rendered in the user's language.
@@ -42,7 +45,6 @@ return Application::configure(basePath: dirname(__DIR__))
             prepend: \App\Http\Middleware\SetLocale::class,
         );
         $middleware->append(\App\Http\Middleware\SanitizeInputStrings::class);
-        $middleware->append(\App\Http\Middleware\CheckMaintenanceMode::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

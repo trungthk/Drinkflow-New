@@ -293,6 +293,8 @@
 
     <!-- ================= MAIN CONTENT WORKSPACE ================= -->
     <div id="admin-main-wrapper" class="flex-1 lg:pl-64 flex flex-col min-w-0 min-h-screen">
+        {{-- Superadmins bypass maintenance; remind them when it is on (renders nothing for room admins). --}}
+        <x-superadmin.maintenance-banner />
         <!-- Top Navigation Bar -->
         <header
             class="flex justify-between items-center gap-2 w-full px-3 sm:px-6 py-2 h-14 bg-surface-container-lowest border-b border-outline-variant sticky top-0 z-20">
@@ -473,6 +475,9 @@
 
     <!-- Admin Logout Confirmation Modal -->
     <x-admin.logout-modal />
+
+    <!-- Shared Admin Alert Modal (replaces native alert() popups) -->
+    <x-admin.alert-modal />
 
     <!-- Admin Page Navigation & Submit Loading Overlay -->
     <x-admin.loading />

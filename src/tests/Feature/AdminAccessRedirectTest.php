@@ -82,4 +82,33 @@ class AdminAccessRedirectTest extends TestCase
             $this->get('/admin/login')->assertOk();
         }
     }
+
+    /**
+     * Ensure an admin blocked while signed in loses the session on admin and superadmin routes.
+     *
+     * @return void
+     */
+    public function test_blocked_admin_session_is_signed_out_on_admin_and_superadmin_routes(): void
+    {
+        $admin = AdminAccount::create([
+            'name' => 'Admin', 'email' => 'blocked@example.test', 'password' => 'secret',
+            'role' => AdminRole::Admin, 'status' => AdminStatus::Active,
+        ]);
+        $superadmin = AdminAccount::create([
+            'name' => 'Root', 'email' => 'blocked-root@example.test', 'password' => 'secret',
+            'role' => AdminRole::SuperAdmin, 'status' => AdminStatus::Active,
+        ]);
+
+        $this->actingAs($admin, 'admin')->get('/admin/profile')->assertOk();
+        $admin->update(['status' => AdminStatus::Blocked]);
+        $this->get('/admin/profile')->assertRedirect(route('admin.login.page'));
+        $this->assertGuest('admin');
+
+        $this->actingAs($superadmin, 'admin')->get('/superadmin')->assertOk();
+        $superadmin->update(['status' => AdminStatus::Blocked]);
+        $this->get('/superadmin')->assertRedirect(route('admin.login.page'));
+        $this->assertGuest('admin');
+
+        $this->actingAs($superadmin->refresh(), 'admin')->getJson('/superadmin/admins')->assertForbidden();
+    }
 }

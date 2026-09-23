@@ -99,6 +99,19 @@ return [
         'contact_it' => 'Liên hệ hỗ trợ IT',
     ],
 
+    'maintenance' => [
+        'page_title' => 'Đang bảo trì hệ thống | DrinkFlow',
+        'badge' => 'ĐANG BẢO TRÌ',
+        'title' => 'DrinkFlow đang được bảo trì',
+        'description' => 'Hệ thống tạm ngưng phục vụ để bảo trì và nâng cấp. Dữ liệu của bạn vẫn được giữ an toàn; vui lòng quay lại sau.',
+        'window_title' => 'Thời gian bảo trì',
+        'starts_at' => 'Bắt đầu', 'ends_at' => 'Dự kiến kết thúc', 'not_scheduled' => 'Chưa xác định',
+        'back_at' => 'Hệ thống dự kiến hoạt động trở lại lúc :time.',
+        'no_end' => 'Thời gian kết thúc chưa được thông báo. Trang sẽ tự kiểm tra lại định kỳ.',
+        'refresh' => 'Kiểm tra lại', 'auto_retry_in' => 'Tự động kiểm tra lại sau',
+        'admin_login' => 'Đăng nhập dành cho siêu quản trị viên',
+        'json_message' => 'Hệ thống đang bảo trì. Vui lòng thử lại sau.',
+    ],
     '503' => [
         'page_title' => '503 - Dịch vụ tạm thời gián đoạn | DrinkFlow Enterprise',
         'badge_main' => 'MÃ LỖI HTTP: 503 - SERVICE UNAVAILABLE',

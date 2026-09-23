@@ -6,7 +6,6 @@ namespace App\Actions\Superadmin;
 
 use App\Enums\AdminRole;
 use App\Enums\AdminStatus;
-use App\Enums\GlobalUserStatus;
 use App\Models\AdminAccount;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\DB;
@@ -55,8 +54,8 @@ class ManageAdminAction
     public function setStatus(AdminAccount $admin, string $status): AdminAccount
     {
         return DB::transaction(function () use ($admin, $status): AdminAccount {
-            if (GlobalUserStatus::tryFrom($status) === null) throw ValidationException::withMessages(['status' => __('superadmin.actions.invalid_admin_status')]);
-            if ($status !== GlobalUserStatus::Active->value && $admin->isSuperadmin()) $this->ensureAnotherSuperadmin($admin);
+            if (AdminStatus::tryFrom($status) === null) throw ValidationException::withMessages(['status' => __('superadmin.actions.invalid_admin_status')]);
+            if ($status !== AdminStatus::Active->value && $admin->isSuperadmin()) $this->ensureAnotherSuperadmin($admin);
             $before = ['status' => $admin->status];
             $admin->update(['status' => $status]);
             app(AuditService::class)->record('admin.status_updated', 'admin', $admin->id, null, $before, ['status' => $status]);

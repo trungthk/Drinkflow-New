@@ -129,6 +129,27 @@ class FeedbackModerationTest extends TestCase
             ->assertOk()->assertSee('Đang chờ duyệt')->assertSee('Đã được duyệt');
     }
 
+    /** The moderation table shows icon actions per status and an empty state when nothing matches. */
+    public function test_superadmin_feedback_page_renders_actions_and_empty_states(): void
+    {
+        $root = $this->superadmin();
+
+        $this->actingAs($root, 'admin')->get(route('superadmin.feedbacks.page'))
+            ->assertOk()->assertSee(__('superadmin.feedbacks.no_pending_title'));
+
+        $pending = $this->feedback('Chờ duyệt', 4, 'inactive');
+        $approved = $this->feedback('Đã duyệt', 5, 'active');
+
+        $this->actingAs($root, 'admin')->get(route('superadmin.feedbacks.page', ['status' => 'all']))
+            ->assertOk()
+            ->assertSee('data-feedback-id="'.$pending->id.'" data-status="active"', false)
+            ->assertSee('data-feedback-id="'.$approved->id.'" data-status="inactive"', false)
+            ->assertSee(__('superadmin.feedbacks.rating_value', ['rating' => 4]));
+
+        $this->actingAs($root, 'admin')->get(route('superadmin.feedbacks.page', ['status' => 'all', 'q' => 'không-tồn-tại']))
+            ->assertOk()->assertSee(__('superadmin.feedbacks.empty_title'));
+    }
+
     private function user(string $email): GlobalUser
     {
         return GlobalUser::create(['name' => 'Feedback User', 'normalized_name' => 'FEEDBACK USER', 'email' => $email, 'status' => 'active']);

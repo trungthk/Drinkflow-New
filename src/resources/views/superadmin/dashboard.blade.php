@@ -13,7 +13,7 @@
                 {{ __('superadmin.dashboard.system_settings') }}</a></div>
     </div>
     <div id="notice" class="sa-notice"></div>
-    <section class="sa-grid kpis">
+    <section class="sa-grid kpis kpis-4">
         <article class="sa-card sa-kpi"><span class="label">{{ __('superadmin.dashboard.total_rooms') }}</span><strong id="total-rooms"
                 class="value">—</strong><span id="active-rooms" class="hint">{{ __('superadmin.common.loading') }}</span></article>
         <article class="sa-card sa-kpi"><span class="label">{{ __('superadmin.dashboard.global_users') }}</span><strong id="total-users"
@@ -22,8 +22,6 @@
                 class="value">—</strong><span class="hint">{{ __('superadmin.dashboard.system_admins') }}</span></article>
         <article class="sa-card sa-kpi"><span class="label">{{ __('superadmin.dashboard.orders_today') }}</span><strong id="orders-today"
                 class="value">—</strong><span class="hint">{{ __('superadmin.dashboard.non_cancelled_orders') }}</span></article>
-        <article class="sa-card sa-kpi"><span class="label">{{ __('superadmin.dashboard.outstanding_debt') }}</span><strong id="debt"
-                class="value">—</strong><span class="hint">{{ __('superadmin.dashboard.remaining_debt') }}</span></article>
     </section>
     <div class="sa-split">
         <section class="sa-card sa-section">
@@ -92,7 +90,6 @@
             document.querySelector('#active-users').textContent = @js(__('superadmin.dashboard.active_users', ['count' => '__COUNT__'])).replace('__COUNT__', data.active_global_users);
             document.querySelector('#total-admins').textContent = data.total_admins;
             document.querySelector('#orders-today').textContent = data.orders_today;
-            document.querySelector('#debt').textContent = money(data.outstanding_debt);
             const health = data.system_health;
             document.querySelector('#database-status').innerHTML = statusPill(health.database.status);
             document.querySelector('#queue-status').textContent =

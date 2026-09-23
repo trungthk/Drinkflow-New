@@ -4,6 +4,7 @@
         <div>
             <p class="superadmin-eyebrow">{{ __('superadmin.common.platform_data') }}</p>
             <h1>{{ __('superadmin.audit.title') }}</h1>
+            <p>{{ __('superadmin.audit.description') }}</p>
         </div>
     </div>
     <section class="sa-card sa-section">
@@ -13,21 +14,26 @@
                 <p>{{ __('superadmin.common.events_count', ['count' => $audits->total()]) }}</p>
             </div>
             <form method="GET" class="superadmin-actions">
-                <input name="event" value="{{ $filters['event'] ?? '' }}" class="sa-input" placeholder="{{ __('superadmin.audit.filter') }}">
-                <select name="actor_type" class="sa-input">
-                    <option value="">{{ __('superadmin.common.all_actors') }}</option>
-                    <option value="admin" @selected(($filters['actor_type'] ?? '') === 'admin')>{{ __('superadmin.common.actor_admin') }}</option>
-                    <option value="user" @selected(($filters['actor_type'] ?? '') === 'user')>{{ __('superadmin.common.actor_user') }}</option>
+                <select name="event" class="sa-input" aria-label="{{ __('superadmin.audit.event') }}">
+                    <option value="">{{ __('superadmin.audit.all_events') }}</option>
+                    @foreach ($eventOptions as $value => $label)
+                        <option value="{{ $value }}" @selected($filters['event'] === $value)>{{ $label }}</option>
+                    @endforeach
                 </select>
-                <x-admin.date-range-filter id="audit-date-range" :dateFrom="$filters['date_from'] ?? ''" :dateTo="$filters['date_to'] ?? ''" />
-                <button class="sa-button secondary" type="submit">{{ __('superadmin.common.filter') }}</button>
+                <select name="actor_type" class="sa-input" aria-label="{{ __('superadmin.audit.actor') }}">
+                    <option value="">{{ __('superadmin.common.all_actors') }}</option>
+                    <option value="{{ \App\Models\AuditLog::ACTOR_ADMIN }}" @selected($filters['actor_type'] === \App\Models\AuditLog::ACTOR_ADMIN)>{{ __('superadmin.common.actor_admin') }}</option>
+                    <option value="{{ \App\Models\AuditLog::ACTOR_SUPERADMIN }}" @selected($filters['actor_type'] === \App\Models\AuditLog::ACTOR_SUPERADMIN)>{{ __('superadmin.common.actor_superadmin') }}</option>
+                </select>
+                <x-admin.date-range-filter id="audit-date-range" :dateFrom="$filters['date_from']" :dateTo="$filters['date_to']" />
+                <button class="sa-button secondary" type="submit"><span class="material-symbols-outlined text-[16px]">filter_list</span>{{ __('superadmin.common.filter') }}</button>
             </form>
         </div>
         <div class="sa-table-wrap">
             <table class="sa-table">
                 <thead>
                     <tr>
-                        <th>{{ __('superadmin.common.time') }}</th>
+                        <th class="whitespace-nowrap">{{ __('superadmin.common.time') }}</th>
                         <th>{{ __('superadmin.audit.actor') }}</th>
                         <th>{{ __('superadmin.audit.event') }}</th>
                         <th>{{ __('superadmin.audit.target') }}</th>
@@ -36,15 +42,44 @@
                 </thead>
                 <tbody>
                     @forelse($audits as $audit)
+                        @php
+                            $isSuperadminActor = $audit->actor_type === \App\Models\AuditLog::ACTOR_SUPERADMIN;
+                            $actorName = $audit->actorAdmin?->name;
+                        @endphp
                         <tr>
-                            <td>{{ $audit->created_at }}</td>
-                            <td>{{ $audit->actor_type }} #{{ $audit->actor_id ?: __('superadmin.common.system') }}</td>
-                            <td><strong>{{ $audit->event }}</strong></td>
-                            <td>{{ $audit->target_type }} #{{ $audit->target_id ?: '—' }}</td>
+                            <td class="whitespace-nowrap">
+                                <span class="block">{{ $audit->created_at?->format('d/m/Y') }}</span>
+                                <small class="block text-outline">{{ $audit->created_at?->format('H:i:s') }}</small>
+                            </td>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <span class="superadmin-avatar shrink-0">{{ $actorName ? mb_strtoupper(mb_substr($actorName, 0, 1)) : '#' }}</span>
+                                    <span class="min-w-0">
+                                        <strong class="block truncate">{{ $actorName ?? '#'.$audit->actor_id }}</strong>
+                                        <small class="flex items-center gap-1 text-outline">
+                                            <span class="material-symbols-outlined text-[14px]" aria-hidden="true">{{ $isSuperadminActor ? 'shield_person' : 'person' }}</span>{{ $isSuperadminActor ? __('superadmin.common.actor_superadmin') : __('superadmin.common.actor_admin') }}
+                                        </small>
+                                    </span>
+                                </div>
+                            </td>
+                            <td>
+                                <strong class="block">{{ $audit->eventLabel() }}</strong>
+                                <small class="block font-mono text-outline">{{ $audit->event }}</small>
+                            </td>
+                            <td class="whitespace-nowrap">{{ $audit->targetLabel() }} <span class="text-outline">#{{ $audit->target_id ?: '—' }}</span></td>
                             <td>{{ $audit->room?->name ?? __('superadmin.common.global') }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="sa-empty">{{ __('superadmin.audit.no_events') }}</td></tr>
+                        @php($isFiltered = $filters['event'] !== '' || $filters['actor_type'] !== '' || $filters['date_from'] !== '' || $filters['date_to'] !== '')
+                        <tr>
+                            <td colspan="5">
+                                @if ($isFiltered)
+                                    <x-superadmin.empty-state icon="manage_search" :title="__('superadmin.audit.no_results_title')" :description="__('superadmin.audit.no_results_description')" />
+                                @else
+                                    <x-superadmin.empty-state icon="history_toggle_off" :title="__('superadmin.audit.no_events_title')" :description="__('superadmin.audit.no_events_description')" />
+                                @endif
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>

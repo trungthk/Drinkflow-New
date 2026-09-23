@@ -173,6 +173,8 @@ return [
         'status' => 'Status',
         'room_ids' => 'Room list',
         'room_ids.*' => 'Room ID',
+        'admin_ids' => 'Responsible admins',
+        'admin_ids.*' => 'Admin ID',
         'url' => 'URL',
         'source_url' => 'Source URL',
         'preview_id' => 'Preview ID',

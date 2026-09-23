@@ -43,6 +43,24 @@ class ManageRoomAction
     }
 
     /**
+     * Replace the set of admins responsible for a room.
+     *
+     * @param Room $room Room entity.
+     * @param array<int, int> $adminIds Admin account IDs to assign; any admin not in this list is unassigned.
+     * @return Room Room with its fresh admin list loaded.
+     */
+    public function syncAdmins(Room $room, array $adminIds): Room
+    {
+        return DB::transaction(function () use ($room, $adminIds): Room {
+            $before = $room->admins()->pluck('admin_accounts.id')->sort()->values()->all();
+            $room->admins()->sync($adminIds);
+            $after = $room->admins()->pluck('admin_accounts.id')->sort()->values()->all();
+            app(AuditService::class)->record('room.admins_updated', 'room', $room->id, $room->id, ['admin_ids' => $before], ['admin_ids' => $after]);
+            return $room->fresh('admins');
+        });
+    }
+
+    /**
      * Handle the set status operation.
      * @param Room $room Parameter value.
      * @param string $status Parameter value.

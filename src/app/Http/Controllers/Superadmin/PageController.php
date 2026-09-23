@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
-use App\Enums\DebtStatus;
+use App\Enums\CampaignStatus;
 use App\Enums\FeedbackStatus;
 use App\Models\Feedback;
 use App\Models\AdminAccount;
 use App\Models\AuditLog;
 use App\Models\Campaign;
-use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\SecurityEvent;
@@ -96,31 +95,28 @@ class PageController extends Controller
         return view('superadmin.user-detail');
     }
     /**
-     * Handle the campaigns operation.
-     * @return View Result of the operation.
+     * List campaigns across every room, filtered by keyword, room and status.
+     *
+     * Unknown status values and non-numeric room ids are ignored rather than matched literally.
+     *
+     * @param Request $request Query string: q, room_id, status.
+     * @return View Campaign registry page with the room list for the room filter.
      */
     public function campaigns(Request $request): View
     {
-        $query = Campaign::query()->with('room:id,name')->withCount(['orders', 'debts'])->latest();
+        $query = Campaign::query()->with('room:id,name,slug')->withCount('orders')->latest();
         $search = trim($request->string('q')->toString());
         if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('restaurant', 'like', "%{$search}%"));
-        $status = $request->string('status')->toString();
-        if ($status !== '') $query->where('status', $status);
-        return view('superadmin.campaigns', ['campaigns' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search', 'status')]);
-    }
-    /**
-     * Handle the debts operation.
-     * @return View Result of the operation.
-     */
-    public function debts(Request $request): View
-    {
-        $query = Debt::query()->with(['room:id,name', 'campaign:id,name', 'roomUser.globalUser:id,name,email'])->latest();
-        $search = trim($request->string('q')->toString());
-        if ($search !== '') $query->where(fn ($q) => $q->whereHas('campaign', fn ($c) => $c->where('name', 'like', "%{$search}%"))->orWhereHas('roomUser.globalUser', fn ($u) => $u->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%")));
-        $status = DebtStatus::tryFrom($request->string('status')->toString());
+        $roomId = filter_var($request->query('room_id'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: null;
+        if ($roomId !== null) $query->where('room_id', $roomId);
+        $status = CampaignStatus::tryFrom($request->string('status')->toString());
         if ($status !== null) $query->where('status', $status->value);
-        $debts = $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString();
-        return view('superadmin.debts', ['debts' => $debts, 'filters' => ['search' => $search, 'status' => $status?->value ?? ''], 'totalDebt' => (int) Debt::whereIn('status', DebtStatus::outstandingValues())->sum('remaining_amount')]);
+
+        return view('superadmin.campaigns', [
+            'campaigns' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(),
+            'rooms' => Room::query()->orderBy('name')->get(['id', 'name']),
+            'filters' => ['search' => $search, 'room_id' => $roomId, 'status' => $status?->value ?? ''],
+        ]);
     }
     /**
      * Handle the notifications operation.
@@ -134,30 +130,51 @@ class PageController extends Controller
         return view('superadmin.notifications', ['channels' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search')]);
     }
     /**
-     * Handle the system operation.
-     * @return View Result of the operation.
+     * Render the system settings & maintenance page.
+     *
+     * @return View Page with the reset confirmation phrase the reset modal asks the superadmin to type.
      */
     public function system(): View
     {
-        return view('superadmin.system');
+        return view('superadmin.system', ['resetPhrase' => \App\Actions\Superadmin\ResetSystemAction::CONFIRMATION_PHRASE]);
     }
     /**
-     * Handle the audit operation.
-     * @return View Result of the operation.
+     * List audit logs written through the admin console only (room admins and superadmins).
+     *
+     * End-user and system entries are excluded. The event filter matches an exact event key chosen
+     * from the events that actually exist for admin actors, and the actor filter only accepts
+     * admin/superadmin.
+     *
+     * @param Request $request Query string: event, actor_type, date_from, date_to.
+     * @return View Audit log page with translated event options.
      */
     public function audit(Request $request): View
     {
-        $query = AuditLog::query()->with('room:id,name')->latest('created_at');
+        $query = AuditLog::query()
+            ->whereIn('actor_type', AuditLog::ADMIN_ACTOR_TYPES)
+            ->with(['room:id,name', 'actorAdmin:id,name,email'])
+            ->latest('created_at')
+            ->latest('id');
         $event = trim($request->string('event')->toString());
-        if ($event !== '') $query->where('event', 'like', "%{$event}%");
+        if ($event !== '') $query->where('event', $event);
         $actorType = $request->string('actor_type')->toString();
+        if (! in_array($actorType, AuditLog::ADMIN_ACTOR_TYPES, true)) $actorType = '';
         if ($actorType !== '') $query->where('actor_type', $actorType);
         $dateFrom = $request->string('date_from')->toString();
         $dateTo = $request->string('date_to')->toString();
         if ($dateFrom !== '') $query->whereDate('created_at', '>=', $dateFrom);
         if ($dateTo !== '') $query->whereDate('created_at', '<=', $dateTo);
+
+        $eventOptions = AuditLog::query()
+            ->whereIn('actor_type', AuditLog::ADMIN_ACTOR_TYPES)
+            ->distinct()
+            ->pluck('event')
+            ->mapWithKeys(fn (string $key): array => [$key => AuditLog::labelForEvent($key)])
+            ->sort();
+
         return view('superadmin.audit', [
             'audits' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(),
+            'eventOptions' => $eventOptions,
             'filters' => ['event' => $event, 'actor_type' => $actorType, 'date_from' => $dateFrom, 'date_to' => $dateTo],
         ]);
     }

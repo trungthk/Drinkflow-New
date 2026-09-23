@@ -25,9 +25,19 @@
                     <option value="admin" @selected(($filters['actor_type'] ?? '') === 'admin')>{{ __('superadmin.common.actor_admin') }}</option>
                     <option value="user" @selected(($filters['actor_type'] ?? '') === 'user')>{{ __('superadmin.common.actor_user') }}</option>
                 </select>
-                <button class="sa-button secondary" type="submit">{{ __('superadmin.common.filter') }}</button>
+                <button class="sa-button secondary" type="submit"><span class="material-symbols-outlined text-[16px]">filter_list</span>{{ __('superadmin.common.filter') }}</button>
             </form>
         </div>
+        @php
+            $securityTypeIcons = [
+                'failed_login' => 'lock',
+                'password_reset_otp_requested' => 'mail',
+                'password_reset_otp_unknown_account' => 'person_off',
+                'password_reset_completed' => 'lock_reset',
+                'google_oauth_failure' => 'error',
+                'invalid_company_domain' => 'domain_disabled',
+            ];
+        @endphp
         <div class="sa-table-wrap">
             <table class="sa-table">
                 <thead>
@@ -41,15 +51,27 @@
                 </thead>
                 <tbody>
                     @forelse($events as $event)
+                        @php
+                            $typeKey = 'superadmin.security.types.'.$event->type;
+                            $typeLabel = __($typeKey) === $typeKey ? $event->type : __($typeKey);
+                        @endphp
                         <tr>
-                            <td>{{ $event->created_at }}</td>
-                            <td><strong>{{ $event->type }}</strong></td>
+                            <td class="whitespace-nowrap">{{ $event->created_at }}</td>
+                            <td class="whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1 font-semibold">
+                                    <span class="material-symbols-outlined text-[16px]">{{ $securityTypeIcons[$event->type] ?? 'shield_question' }}</span>{{ $typeLabel }}
+                                </span>
+                            </td>
                             <td><x-superadmin.status-pill :status="$event->severity" /></td>
-                            <td>{{ $event->ip_address ?: '—' }}</td>
+                            <td class="whitespace-nowrap">{{ $event->ip_address ?: '—' }}</td>
                             <td><small>{{ json_encode($event->metadata ?? []) }}</small></td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="sa-empty">{{ __('superadmin.security.no_events') }}</td></tr>
+                        <tr>
+                            <td colspan="5">
+                                <x-superadmin.empty-state icon="shield" :title="__('superadmin.security.no_events_title')" :description="__('superadmin.security.no_events_description')" />
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>

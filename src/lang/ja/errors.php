@@ -99,6 +99,19 @@ return [
         'contact_it' => 'ITサポートへ連絡',
     ],
 
+    'maintenance' => [
+        'page_title' => 'メンテナンス中 | DrinkFlow',
+        'badge' => 'メンテナンス中',
+        'title' => 'DrinkFlow はメンテナンス中です',
+        'description' => 'メンテナンスとアップグレードのため、一時的にサービスを停止しています。データは安全に保持されています。しばらくしてから再度アクセスしてください。',
+        'window_title' => 'メンテナンス期間',
+        'starts_at' => '開始', 'ends_at' => '終了予定', 'not_scheduled' => '未定',
+        'back_at' => ':time に再開予定です。',
+        'no_end' => '終了時刻はまだ告知されていません。このページは定期的に再確認します。',
+        'refresh' => '再確認', 'auto_retry_in' => '自動再確認まで',
+        'admin_login' => 'スーパー管理者ログイン',
+        'json_message' => 'システムはメンテナンス中です。しばらくしてから再度お試しください。',
+    ],
     '503' => [
         'page_title' => '503 - サービス一時利用不可 | DrinkFlow Enterprise',
         'badge_main' => 'HTTPエラーコード: 503 - SERVICE UNAVAILABLE',

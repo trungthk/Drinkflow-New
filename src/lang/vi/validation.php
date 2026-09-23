@@ -173,6 +173,8 @@ return [
         'status' => 'Trạng thái',
         'room_ids' => 'Danh sách phòng',
         'room_ids.*' => 'Mã phòng',
+        'admin_ids' => 'Danh sách admin phụ trách',
+        'admin_ids.*' => 'Mã admin',
         'url' => 'Đường dẫn URL',
         'source_url' => 'Đường dẫn nguồn dữ liệu',
         'preview_id' => 'Mã bản xem trước',

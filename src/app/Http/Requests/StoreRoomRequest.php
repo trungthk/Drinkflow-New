@@ -34,10 +34,12 @@ class StoreRoomRequest extends FormRequest
             'slug' => ['required', 'string', 'max:255', 'alpha_dash', 'unique:rooms,slug'],
             'description' => ['nullable', 'string'],
             'avatar_url' => ['nullable', 'url', 'max:2048'],
-            'status' => ['sometimes', Rule::in(['active', 'disabled', 'archived'])],
+            'status' => ['sometimes', Rule::in(['active', 'inactive', 'archived'])],
             'timezone' => ['sometimes', 'timezone'],
             'language' => ['sometimes', 'string', 'max:10'],
             'settings' => ['sometimes', 'array'],
+            'admin_ids' => ['sometimes', 'array'],
+            'admin_ids.*' => ['integer', 'exists:admin_accounts,id'],
         ];
     }
 
@@ -57,6 +59,8 @@ class StoreRoomRequest extends FormRequest
             'timezone' => __('validation.attributes.timezone'),
             'language' => __('validation.attributes.language'),
             'settings' => __('validation.attributes.settings'),
+            'admin_ids' => __('validation.attributes.admin_ids'),
+            'admin_ids.*' => __('validation.attributes.admin_ids.*'),
         ];
     }
 

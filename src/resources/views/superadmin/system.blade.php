@@ -1,10 +1,10 @@
-@extends('superadmin.layout', ['title' => 'System Settings & Maintenance', 'active' => 'system'])
+@extends('superadmin.layout', ['title' => __('superadmin.system.title'), 'active' => 'system'])
 @section('content')
     <div class="superadmin-heading">
         <div>
-            <p class="superadmin-eyebrow">Infra &amp; Security</p>
-            <h1>System Settings &amp; Maintenance</h1>
-            <p>Cấu hình authentication cấp hệ thống, giới hạn mặc định và chế độ bảo trì.</p>
+            <p class="superadmin-eyebrow">{{ __('superadmin.common.infra_security') }}</p>
+            <h1>{{ __('superadmin.system.title') }}</h1>
+            <p>{{ __('superadmin.system.description') }}</p>
         </div>
     </div>
     <div id="notice" class="sa-notice"></div>
@@ -16,51 +16,91 @@
             </div>
             <form id="mail-test-form" method="post" action="{{ route('superadmin.system.mail-test') }}">
                 @csrf
-                <button class="sa-button secondary" type="submit">{{ __('superadmin.system.send_test_mail') }}</button>
+                <button class="sa-button secondary" type="submit"><span class="material-symbols-outlined text-[16px]">outgoing_mail</span>{{ __('superadmin.system.send_test_mail') }}</button>
             </form>
         </div>
-        <div id="system-health" class="sa-health-list"></div>
+        <div id="system-health" class="sa-health-list">
+            <x-superadmin.empty-state loading :title="__('superadmin.common.loading_title')" :description="__('superadmin.common.loading_description')" />
+        </div>
     </section>
-    <div class="sa-split">
-        <section class="sa-card sa-section">
-            <div class="sa-section-header">
-                <div>
-                    <h2>Maintenance mode</h2>
-                    <p>Bật ngay hoặc lập lịch theo timezone hệ thống.</p>
-                </div>
-            </div>
-            <form id="maintenance-form" class="sa-health-list"><label class="sa-health-row"><span><strong>Enable
-                            maintenance</strong><small>Superadmin vẫn được truy cập.</small></span><input
-                        id="maintenance-enabled" type="checkbox"></label><label>Starts at<input id="maintenance-starts"
-                        class="sa-input" type="datetime-local"></label><label>Ends at<input id="maintenance-ends"
-                        class="sa-input" type="datetime-local"></label><button class="sa-button" type="submit">Save
-                    maintenance</button></form>
-        </section>
-        <section class="sa-card sa-section">
-            <div class="sa-section-header">
-                <div>
-                    <h2>Typed settings</h2>
-                    <p>Secret chỉ hiển thị trạng thái configured.</p>
-                </div>
-            </div>
-            <form id="settings-form" class="sa-health-list"></form>
-        </section>
-    </div>
     <section class="sa-card sa-section">
         <div class="sa-section-header">
             <div>
-                <h2>Danger zone</h2>
-                <p>System reset xóa dữ liệu vận hành và giữ lại superadmin.</p>
+                <h2>{{ __('superadmin.system.maintenance_mode') }}</h2>
+                <p>{{ __('superadmin.system.maintenance_description') }}</p>
             </div>
-        </div><button class="sa-button danger" onclick="resetSystem()">Reset DrinkFlow</button>
+        </div>
+        {{-- data-no-loading: the spinner belongs to the confirm modal, not to this form's first submit. --}}
+        <form id="maintenance-form" class="sa-health-list" data-no-loading>
+            <label class="sa-health-row">
+                <span><strong>{{ __('superadmin.system.enable_maintenance') }}</strong><small>{{ __('superadmin.system.superadmin_access') }}</small></span>
+                <input id="maintenance-enabled" type="checkbox">
+            </label>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:max-w-xl">
+                <label for="maintenance-starts" class="flex flex-col gap-1 text-xs font-semibold">{{ __('superadmin.system.starts_at') }}
+                    <input id="maintenance-starts" class="sa-input !min-w-0 w-full !py-2" type="datetime-local">
+                </label>
+                <label for="maintenance-ends" class="flex flex-col gap-1 text-xs font-semibold">{{ __('superadmin.system.ends_at') }}
+                    <input id="maintenance-ends" class="sa-input !min-w-0 w-full !py-2" type="datetime-local">
+                </label>
+            </div>
+            <div>
+                <button class="sa-button" type="submit"><span class="material-symbols-outlined text-[16px]">construction</span>{{ __('superadmin.system.save_maintenance') }}</button>
+            </div>
+        </form>
     </section>
+    <section class="sa-card sa-section">
+        <div class="sa-section-header">
+            <div>
+                <h2>{{ __('superadmin.system.danger_zone') }}</h2>
+                <p>{{ __('superadmin.system.reset_description') }}</p>
+            </div>
+            <button class="sa-button danger" type="button" data-modal-open="reset-system-modal"><span class="material-symbols-outlined text-[16px]">restart_alt</span>{{ __('superadmin.system.reset') }}</button>
+        </div>
+    </section>
+
+    <x-superadmin.modal id="reset-system-modal" icon="restart_alt" :title="__('superadmin.system.reset')" :description="__('superadmin.system.reset_modal_description')" max-width="max-w-md">
+        <form id="reset-system-form" class="space-y-4">
+            @csrf
+            <div class="flex items-start gap-2 rounded-lg p-2.5 bg-error-container/60 border border-error/30 text-error text-xs leading-relaxed">
+                <span class="material-symbols-outlined text-[16px] shrink-0" aria-hidden="true">warning</span>
+                <span>{{ __('superadmin.system.reset_warning') }}</span>
+            </div>
+            <div>
+                <label for="reset-system-password" class="block text-xs font-semibold text-on-surface mb-1">{{ __('superadmin.system.reset_password_label') }} <span class="text-error">*</span></label>
+                <x-superadmin.password-input id="reset-system-password" name="password" autocomplete="current-password" required />
+            </div>
+            <div>
+                <label for="reset-system-phrase" class="block text-xs font-semibold text-on-surface mb-1">{{ __('superadmin.system.reset_phrase_label', ['phrase' => $resetPhrase]) }} <span class="text-error">*</span></label>
+                <input type="text" id="reset-system-phrase" name="phrase" required autocomplete="off" spellcheck="false" placeholder="{{ $resetPhrase }}"
+                    class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-mono text-on-surface focus:outline-none focus:border-error">
+            </div>
+            <div class="pt-2 flex items-center justify-end gap-2.5 border-t border-outline-variant">
+                <button type="button" class="px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors cursor-pointer" data-modal-close>{{ __('superadmin.common.cancel') }}</button>
+                <button type="submit" disabled class="px-4 py-2 rounded-lg bg-error hover:opacity-90 text-white text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span class="material-symbols-outlined text-[16px]">restart_alt</span>{{ __('superadmin.system.reset') }}
+                </button>
+            </div>
+        </form>
+    </x-superadmin.modal>
+
+    {{-- Empty states cloned by the page script, so every string stays translated through __(). --}}
+    <template id="tpl-load-failed"><x-superadmin.empty-state icon="error" :title="__('superadmin.common.load_failed_title')" description="" /></template>
 @endsection
 @push('scripts')
     <script>
+        const resetPhrase = @json($resetPhrase);
         const systemNotice = (message, type = 'success') => {
             const n = document.querySelector('#notice');
             n.textContent = message;
             n.className = `sa-notice ${type} is-visible`;
+        };
+        // Clone one of the <template> empty states, optionally overriding its description.
+        const emptyStateHtml = (templateId, description = null) => {
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = document.getElementById(templateId).innerHTML;
+            if (description !== null) wrapper.querySelector('[data-empty-description]').textContent = description;
+            return wrapper.innerHTML;
         };
         async function loadSystem() {
             const {
@@ -70,8 +110,6 @@
             document.querySelector('#maintenance-enabled').checked = maintenance.enabled;
             document.querySelector('#maintenance-starts').value = toDateTimeLocal(maintenance.starts_at);
             document.querySelector('#maintenance-ends').value = toDateTimeLocal(maintenance.ends_at);
-            document.querySelector('#settings-form').innerHTML = data.settings.length ? data.settings.map(setting => setting.is_secret ?
-                `<div class="sa-health-row"><div><strong>${escapeHtml(setting.key)}</strong><small>Secret · ${setting.configured ? 'Configured' : 'Not configured'}</small></div><span>••••••••</span></div>` : settingControl(setting)).join('') + (data.settings.length ? '<button class="sa-button" type="submit"><span class="material-symbols-outlined">save</span>Save settings</button>' : '') : '<div class="sa-empty">Chưa có system setting.</div>';
             renderHealth(data.health);
         };
         const healthLabels = {!! json_encode(['database' => __('superadmin.dashboard.database'), 'queue' => __('superadmin.dashboard.queue'), 'socket' => 'Socket.IO', 'mail' => __('superadmin.dashboard.mail'), 'storage' => __('superadmin.dashboard.storage'), 'supervisor' => __('superadmin.dashboard.supervisor')], JSON_UNESCAPED_UNICODE) !!};
@@ -87,11 +125,6 @@
             document.querySelector('#system-health').innerHTML = rows.map(([key, markup]) =>
                 `<div class="sa-health-row"><div><strong>${escapeHtml(healthLabels[key] || key)}</strong></div>${markup}</div>`
             ).join('');
-        };
-        const settingControl = setting => {
-            const value = setting.type === 'json' ? JSON.stringify(setting.value ?? {}, null, 2) : setting.value ?? '';
-            if (setting.type === 'boolean') return `<label class="sa-health-row"><span><strong>${escapeHtml(setting.key)}</strong><small>Boolean</small></span><input data-setting-key="${escapeHtml(setting.key)}" data-setting-type="boolean" type="checkbox" ${setting.value ? 'checked' : ''}></label>`;
-            return `<label><strong>${escapeHtml(setting.key)}</strong><textarea data-setting-key="${escapeHtml(setting.key)}" data-setting-type="${escapeHtml(setting.type)}" class="sa-input sa-setting-value" rows="${setting.type === 'json' ? 3 : 1}" ${setting.type === 'integer' ? 'inputmode="numeric"' : ''}>${escapeHtml(value)}</textarea></label>`;
         };
         const toDateTimeLocal = value => {
             if (!value) return '';
@@ -110,23 +143,26 @@
             button.classList.remove('opacity-75', 'cursor-wait');
             if (button.dataset.originalHtml) button.innerHTML = button.dataset.originalHtml;
         };
-        document.querySelector('#maintenance-form').addEventListener('submit', async e => {
+        document.querySelector('#maintenance-form').addEventListener('submit', e => {
             e.preventDefault();
-            try {
-                await dfApi('{{ route('superadmin.system.maintenance.update') }}', {
-                    method: 'PUT',
-                    body: {
-                        enabled: document.querySelector('#maintenance-enabled').checked,
-                        starts_at: document.querySelector('#maintenance-starts').value || null,
-                        ends_at: document.querySelector('#maintenance-ends').value || null
-                    }
-                });
-                systemNotice('Đã lưu maintenance settings.');
-            } catch (error) {
-                systemNotice(error.message, 'error');
-            } finally {
-                restoreSubmitButton(e.target);
-            }
+            const enabled = document.querySelector('#maintenance-enabled').checked;
+            openSuperadminConfirm({
+                message: enabled ? @js(__('superadmin.system.confirm_maintenance_enable')) : @js(__('superadmin.system.confirm_maintenance_disable')),
+                description: enabled ? @js(__('superadmin.system.maintenance_enable_description')) : @js(__('superadmin.system.maintenance_disable_description')),
+                confirmLabel: @js(__('superadmin.system.save_maintenance')),
+                confirmIcon: 'construction',
+                onConfirm: async () => {
+                    await dfApi('{{ route('superadmin.system.maintenance.update') }}', {
+                        method: 'PUT',
+                        body: {
+                            enabled,
+                            starts_at: document.querySelector('#maintenance-starts').value || null,
+                            ends_at: document.querySelector('#maintenance-ends').value || null
+                        }
+                    });
+                    systemNotice(@js(__('superadmin.system.maintenance_saved')));
+                },
+            });
         });
         document.querySelector('#mail-test-form').addEventListener('submit', async e => {
             e.preventDefault();
@@ -139,41 +175,39 @@
                 restoreSubmitButton(e.target);
             }
         });
-        document.querySelector('#settings-form').addEventListener('submit', async e => {
+        const resetForm = document.querySelector('#reset-system-form');
+        const resetSubmit = resetForm.querySelector('button[type="submit"]');
+        // Only allow submitting once the phrase is typed exactly; the server re-checks it anyway.
+        const syncResetSubmit = () => {
+            resetSubmit.disabled = resetForm.phrase.value !== resetPhrase || resetForm.password.value === '';
+        };
+        resetForm.phrase.addEventListener('input', syncResetSubmit);
+        resetForm.password.addEventListener('input', syncResetSubmit);
+        resetForm.addEventListener('submit', async e => {
             e.preventDefault();
-            try {
-                const settings = [...document.querySelectorAll('[data-setting-key]')].map(input => ({
-                    key: input.dataset.settingKey,
-                    type: input.dataset.settingType,
-                    value: input.type === 'checkbox' ? input.checked : input.value
-                }));
-                await dfApi('{{ route('superadmin.system.settings') }}', { method: 'PUT', body: { settings } });
-                systemNotice('Đã lưu system settings.');
-                await loadSystem();
-            } catch (error) {
-                systemNotice(error.message, 'error');
-                restoreSubmitButton(e.target);
-            }
-        });
-        async function resetSystem() {
-            const password = prompt('Nhập mật khẩu superadmin');
-            if (!password) return;
-            const phrase = prompt('Nhập chính xác RESET DRINKFLOW');
-            if (!phrase) return;
-            if (!confirm('Thao tác này không thể hoàn tác. Tiếp tục?')) return;
+            const errorBox = document.querySelector('#reset-system-modal-error');
+            errorBox.classList.add('hidden');
             try {
                 await dfApi('{{ route('superadmin.system.reset') }}', {
                     method: 'POST',
-                    body: {
-                        password,
-                        phrase
-                    }
+                    body: { password: resetForm.password.value, phrase: resetForm.phrase.value }
                 });
-                systemNotice('Đã reset hệ thống.');
+                resetForm.reset();
+                window.closeSuperadminModal('reset-system-modal');
+                systemNotice(@js(__('superadmin.system.reset_complete')));
+                loadSystem().catch(() => {});
             } catch (error) {
-                systemNotice(error.message, 'error');
+                errorBox.textContent = error.message;
+                errorBox.classList.remove('hidden');
+            } finally {
+                restoreSubmitButton(resetForm);
+                syncResetSubmit();
             }
-        }
-        loadSystem();
+        });
+
+        loadSystem().catch(error => {
+            systemNotice(error.message, 'error');
+            document.querySelector('#system-health').innerHTML = emptyStateHtml('tpl-load-failed', error.message);
+        });
     </script>
 @endpush

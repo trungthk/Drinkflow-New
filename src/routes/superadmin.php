@@ -36,13 +36,12 @@ Route::middleware(['auth:admin', 'superadmin'])->prefix('superadmin')->group(fun
     Route::get('/campaigns', [\App\Http\Controllers\Superadmin\CampaignController::class, 'index'])->name('superadmin.campaigns.index');
     Route::post('/campaigns/{campaign}/force-close', [\App\Http\Controllers\Superadmin\CampaignController::class, 'forceClose'])->name('superadmin.campaigns.force-close');
     Route::post('/campaigns/{campaign}/force-cancel', [\App\Http\Controllers\Superadmin\CampaignController::class, 'forceCancel'])->name('superadmin.campaigns.force-cancel');
-    Route::get('/debts/page', [\App\Http\Controllers\Superadmin\PageController::class, 'debts'])->name('superadmin.debts.page');
-    Route::get('/debts', [\App\Http\Controllers\Superadmin\DebtController::class, 'index'])->name('superadmin.debts.index');
-    Route::get('/debts/export', [\App\Http\Controllers\Superadmin\DebtController::class, 'export'])->name('superadmin.debts.export');
     Route::get('/notifications/page', [\App\Http\Controllers\Superadmin\PageController::class, 'notifications'])->name('superadmin.notifications.page');
     Route::get('/notifications', [\App\Http\Controllers\Superadmin\NotificationController::class, 'index'])->name('superadmin.notifications.index');
     Route::post('/notifications', [\App\Http\Controllers\Superadmin\NotificationController::class, 'store'])->name('superadmin.notifications.store');
+    Route::get('/notifications/{channel}', [\App\Http\Controllers\Superadmin\NotificationController::class, 'show'])->name('superadmin.notifications.show');
     Route::match(['put', 'patch'], '/notifications/{channel}', [\App\Http\Controllers\Superadmin\NotificationController::class, 'update'])->name('superadmin.notifications.update');
+    Route::post('/notifications/{channel}/test', [\App\Http\Controllers\Superadmin\NotificationController::class, 'test'])->name('superadmin.notifications.test');
     Route::delete('/notifications/{channel}', [\App\Http\Controllers\Superadmin\NotificationController::class, 'destroy'])->name('superadmin.notifications.destroy');
     Route::get('/system/page', [\App\Http\Controllers\Superadmin\PageController::class, 'system'])->name('superadmin.system.page');
     Route::get('/system', [\App\Http\Controllers\Superadmin\SystemController::class, 'index'])->name('superadmin.system.index');

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services\System;
 
 use App\Models\SystemSetting;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
 
 class SystemSettingsService
@@ -60,6 +62,55 @@ class SystemSettingsService
         $stored = $type === SystemSetting::TYPE_JSON ? json_encode($value, JSON_THROW_ON_ERROR) : ((string) $value);
         if ($secret) $stored = Crypt::encryptString($stored);
         return SystemSetting::updateOrCreate(['key' => $key], ['value' => $stored, 'type' => $type, 'is_secret' => $secret, 'updated_by_admin_id' => $adminId]);
+    }
+
+    /**
+     * Resolve the maintenance window configured by superadmins.
+     *
+     * Maintenance is "active" when it is enabled and the current time is inside the optional
+     * [starts_at, ends_at] window; an enabled window that has not started yet is "scheduled".
+     *
+     * @return array{enabled: bool, active: bool, scheduled: bool, starts_at: ?string, ends_at: ?string, starts: ?CarbonInterface, ends: ?CarbonInterface}
+     */
+    public function maintenanceState(): array
+    {
+        $enabled = (bool) $this->get('maintenance.enabled', false);
+        $startsAt = $this->get('maintenance.starts_at') ?: null;
+        $endsAt = $this->get('maintenance.ends_at') ?: null;
+        $starts = $this->parseDate($startsAt);
+        $ends = $this->parseDate($endsAt);
+        $now = now();
+        $notStarted = $starts !== null && $now->lt($starts);
+        $finished = $ends !== null && $now->gt($ends);
+
+        return [
+            'enabled' => $enabled,
+            'active' => $enabled && ! $notStarted && ! $finished,
+            'scheduled' => $enabled && $notStarted,
+            'starts_at' => $startsAt,
+            'ends_at' => $endsAt,
+            'starts' => $starts,
+            'ends' => $ends,
+        ];
+    }
+
+    /**
+     * Parse a stored maintenance boundary, ignoring values that are not valid dates.
+     *
+     * @param mixed $value Stored setting value (datetime-local string or null).
+     * @return CarbonInterface|null Parsed date in the application timezone.
+     */
+    private function parseDate(mixed $value): ?CarbonInterface
+    {
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public static function clearCache(): void

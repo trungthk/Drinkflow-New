@@ -22,12 +22,14 @@ import { initSuperadminLoading, initSuperadminReloadButtons } from './superadmin
 import { exposeSuperadminGlobals } from './superadmin/shared';
 import { initSuperadminModals, openSuperadminConfirm } from './superadmin/modal';
 import { initDateRangePickers } from './admin/ui-enhancements';
+import { renderSubmitLoading } from './shared/submit-loading';
 
 // Runs before DOMContentLoaded: the inline @push('scripts') blocks in superadmin/*.blade.php
 // call window.dfApi/escapeHtml/statusPill/money/openSuperadminConfirm synchronously as soon as
 // the page script runs (see resources/views/superadmin/layout.blade.php's shim for why).
 exposeSuperadminGlobals();
 window.openSuperadminConfirm = openSuperadminConfirm;
+window.renderSubmitLoading = renderSubmitLoading;
 
 document.addEventListener('DOMContentLoaded', () => {
     // Public Components & Pages

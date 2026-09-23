@@ -1,3 +1,20 @@
+import { renderSubmitLoading } from '../shared/submit-loading';
+
+/**
+ * Show or mask the password input a [data-password-toggle] button points to.
+ *
+ * @param {HTMLElement} button Toggle button (see components/superadmin/password-input.blade.php).
+ * @param {boolean} visible Whether the password should be shown as plain text.
+ */
+const setPasswordVisible = (button, visible) => {
+    const input = document.getElementById(button.dataset.passwordToggle);
+    if (!input) return;
+    input.type = visible ? 'text' : 'password';
+    button.setAttribute('aria-pressed', visible ? 'true' : 'false');
+    const icon = button.querySelector('.material-symbols-outlined');
+    if (icon) icon.textContent = visible ? 'visibility_off' : 'visibility';
+};
+
 /**
  * Generic superadmin modal open/close controller + a shared confirm() replacement.
  *
@@ -14,9 +31,17 @@ export function initSuperadminModals() {
     const closeModal = (modal) => {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
+        // Never leave a typed password visible for the next time the modal opens.
+        modal.querySelectorAll('[data-password-toggle]').forEach((button) => setPasswordVisible(button, false));
     };
 
     document.addEventListener('click', (event) => {
+        const passwordToggle = event.target.closest('[data-password-toggle]');
+        if (passwordToggle) {
+            setPasswordVisible(passwordToggle, passwordToggle.getAttribute('aria-pressed') !== 'true');
+            return;
+        }
+
         const opener = event.target.closest('[data-modal-open]');
         if (opener) {
             const modal = document.getElementById(opener.dataset.modalOpen);
@@ -50,24 +75,36 @@ export function initSuperadminModals() {
  * Show the shared #confirm-modal (see components/superadmin/confirm-modal.blade.php) in place of
  * a native confirm(), and run `onConfirm` when the user confirms.
  *
- * @param {{message: string, confirmLabel?: string, onConfirm: () => Promise<void>|void}} options
+ * `description` adds a highlighted note explaining the consequences; `confirmLabel` / `confirmIcon`
+ * override the default "Delete" button for this call only.
+ *
+ * @param {{message: string, description?: string, confirmLabel?: string, confirmIcon?: string, onConfirm: () => Promise<void>|void}} options
  */
-export function openSuperadminConfirm({ message, confirmLabel, onConfirm }) {
+export function openSuperadminConfirm({ message, description, confirmLabel, confirmIcon, onConfirm }) {
     const modal = document.getElementById('confirm-modal');
     if (!modal) return;
 
     modal.querySelector('#confirm-modal-message').textContent = message;
-    if (confirmLabel) {
-        modal.querySelector('#confirm-modal-submit-label').textContent = confirmLabel;
+    const descriptionBox = modal.querySelector('#confirm-modal-description');
+    if (descriptionBox) {
+        descriptionBox.querySelector('#confirm-modal-description-text').textContent = description || '';
+        descriptionBox.classList.toggle('hidden', !description);
     }
+    modal.querySelector('#confirm-modal-error')?.classList.add('hidden');
+    const label = modal.querySelector('#confirm-modal-submit-label');
+    label.textContent = confirmLabel || label.dataset.default;
+    const icon = modal.querySelector('#confirm-modal-submit-icon');
+    if (icon) icon.textContent = confirmIcon || icon.dataset.default;
 
     const submitButton = modal.querySelector('#confirm-modal-submit');
     const freshButton = submitButton.cloneNode(true); // drop any previous page's listener
     submitButton.replaceWith(freshButton);
 
     freshButton.addEventListener('click', async () => {
+        const originalHtml = freshButton.innerHTML;
         freshButton.disabled = true;
         freshButton.classList.add('opacity-70', 'cursor-wait');
+        renderSubmitLoading(freshButton);
         try {
             await onConfirm();
             window.closeSuperadminModal('confirm-modal');
@@ -80,6 +117,7 @@ export function openSuperadminConfirm({ message, confirmLabel, onConfirm }) {
         } finally {
             freshButton.disabled = false;
             freshButton.classList.remove('opacity-70', 'cursor-wait');
+            freshButton.innerHTML = originalHtml;
         }
     });
 

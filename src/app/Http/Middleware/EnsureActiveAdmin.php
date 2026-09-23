@@ -24,10 +24,10 @@ class EnsureActiveAdmin
     {
         $admin = $request->user('admin');
 
-        if ($request->is('admin', 'admin/*')
-            && in_array('auth:admin', $request->route()?->gatherMiddleware() ?? [], true)
-            && $admin && ! $admin->isActive()) {
+        if ($admin && $this->isAdminRoute($request) && ! $admin->isActive()) {
             Auth::guard('admin')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
             if ($request->expectsJson()) {
                 abort(Response::HTTP_FORBIDDEN);

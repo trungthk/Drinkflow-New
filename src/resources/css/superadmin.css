@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -7,28 +7,41 @@
 @source '../js/**/*.js';
 
 @theme {
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* Kept identical to resources/css/admin.css so both consoles render the same
+       design tokens (Tailwind utility classes like bg-surface-container-lowest,
+       text-on-surface, text-outline resolve to the same colors in both). */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
     --color-primary: #006948;
-    --color-primary-container: #00855d;
+    --color-primary-container: #005137;
     --color-primary-fixed: #85f8c4;
     --color-primary-fixed-dim: #68dba9;
     --color-on-primary: #ffffff;
-    --color-secondary: #006c49;
-    --color-secondary-container: #6cf8bb;
-    --color-secondary-fixed: #6ffbbe;
-    --color-on-secondary-container: #00714d;
-    --color-tertiary: #545c72;
-    --color-background: #f8f9ff;
-    --color-surface: #f8f9ff;
-    --color-on-surface: #0b1c30;
-    --color-on-surface-variant: #3d4a42;
-    --color-surface-container: #eff4ff;
-    --color-surface-container-low: #eff4ff;
-    --color-surface-container-high: #dce9ff;
+    --color-secondary: #475569;
+    --color-secondary-container: #ecfdf5;
+    --color-secondary-fixed: #d1fae5;
+    --color-on-secondary-container: #065f46;
+    --color-tertiary: #006947;
+    --color-tertiary-container: #00855b;
+    --color-tertiary-fixed: #6ffbbe;
+    --color-tertiary-fixed-dim: #4edea3;
+    --color-background: #f8fafc;
+    --color-surface: #f8fafc;
+    --color-surface-dim: #e2e8f0;
+    --color-surface-bright: #ffffff;
+    --color-on-surface: #0f172a;
+    --color-on-surface-variant: #475569;
+    --color-surface-container: #f1f5f9;
+    --color-surface-container-low: #f8fafc;
+    --color-surface-container-high: #e2e8f0;
+    --color-surface-container-highest: #cbd5e1;
     --color-surface-container-lowest: #ffffff;
-    --color-outline: #6d7a72;
-    --color-outline-variant: #bccac0;
+    --color-outline: #64748b;
+    --color-outline-variant: #e2e8f0;
     --color-error: #ba1a1a;
+    --color-error-container: #ffdad6;
+    --color-on-error: #ffffff;
+    --color-on-error-container: #93000a;
 }
 
 html {
@@ -107,6 +120,9 @@ html {
 .sa-button .material-symbols-outlined { font-size: 17px; }
 .sa-grid { display: grid; gap: 16px; }
 .sa-grid.kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+/* Pages with only 4 KPI cards (e.g. room detail) opt into this so the row still spans full width
+   instead of leaving a 5th-column gap. */
+.sa-grid.kpis.kpis-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .sa-card { border: 1px solid #e2e8f0; border-radius: 13px; background: #fff; box-shadow: 0 2px 8px rgba(11, 28, 48, .03); }
 .sa-kpi { padding: 18px; }
 .sa-kpi .label { color: #64748b; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
@@ -153,6 +169,172 @@ html {
 .sa-notice.success { background: #d1fae5; color: #047857; }
 .sa-notice.error { background: #fee2e2; color: #991b1b; }
 
-@media (max-width: 1100px) { .sa-grid.kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .sa-split { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) { .sa-grid.kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .sa-grid.kpis.kpis-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sa-split { grid-template-columns: 1fr; } }
 @media (max-width: 760px) { .superadmin-sidebar { transform: translateX(-100%); transition: transform .2s ease; } .superadmin-sidebar.is-open { transform: translateX(0); } .superadmin-main { padding-left: 0; } .superadmin-topbar { padding: 0 18px; } .superadmin-menu { display: grid; } .superadmin-clearance { display: none; } .superadmin-content { padding: 22px 16px; } .superadmin-heading { align-items: flex-start; flex-direction: column; } .sa-grid.kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .superadmin-profile small { display: none; } }
 @media (max-width: 440px) { .sa-grid.kpis { grid-template-columns: 1fr; } .superadmin-profile strong { display: none; } }
+
+/* ==========================================================================
+   Unified theme - keeps the superadmin console visually aligned with the
+   room admin console (Inter typography, emerald accents, rounder soft-shadow
+   cards, calm uppercase table headers). Scoped to .superadmin-shell so the
+   base .sa-, .superadmin- and .status-pill rules above stay a valid fallback.
+   ========================================================================== */
+
+.superadmin-shell {
+    background: #f8fafc;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'tnum' 1, 'cv05' 1;
+}
+
+.superadmin-shell .superadmin-sidebar {
+    box-shadow: 1px 0 8px rgba(15, 23, 42, 0.04);
+}
+
+.superadmin-shell .superadmin-brand {
+    background: #ecfdf5;
+}
+
+.superadmin-shell .superadmin-logo {
+    background: linear-gradient(135deg, #006948 0%, #047857 100%);
+    color: #ffffff;
+    border-radius: 0.75rem;
+}
+
+.superadmin-shell .superadmin-nav a.is-active {
+    background: #006948;
+    box-shadow: 0 5px 12px rgba(0, 105, 72, 0.18);
+}
+
+.superadmin-shell .superadmin-nav a:hover {
+    background: #ecfdf5;
+    color: #006948;
+}
+
+.superadmin-shell .superadmin-trust {
+    background: #ecfdf5;
+    color: #006948;
+}
+
+.superadmin-shell .superadmin-topbar {
+    background-color: rgba(255, 255, 255, 0.94);
+    border-color: #e2e8f0;
+    backdrop-filter: blur(12px);
+}
+
+.superadmin-shell .superadmin-clearance {
+    background: #006948;
+}
+
+.superadmin-shell .superadmin-clearance .material-symbols-outlined {
+    color: #85f8c4;
+}
+
+.superadmin-shell .status-dot,
+.superadmin-shell .status-active .status-dot,
+.superadmin-shell .status-ok .status-dot {
+    background: #006948;
+}
+
+.superadmin-shell .superadmin-avatar {
+    background: #ecfdf5;
+    color: #006948;
+}
+
+.superadmin-shell .icon-button:hover {
+    color: #006948;
+}
+
+/* Cards: rounder radius + softer shadow, matching the admin console's cards. */
+.superadmin-shell .sa-card {
+    border-radius: 1rem;
+    border-color: rgb(226 232 240 / 0.8);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+}
+
+.superadmin-shell .sa-kpi .hint.good {
+    color: #006948;
+}
+
+.superadmin-shell .superadmin-eyebrow {
+    color: #006948;
+}
+
+/* Buttons: emerald primary action, matching the admin console's CTA color. */
+.superadmin-shell .sa-button {
+    background: #006948;
+    border-radius: 0.75rem;
+}
+
+.superadmin-shell .sa-button:hover {
+    background: #005137;
+}
+
+.superadmin-shell .sa-button.secondary {
+    background: #ecfdf5;
+    color: #006948;
+}
+
+/* The pale pink/dark-red pairing read as too subdued for a destructive action; use a solid
+   red like the admin console's own delete buttons (e.g. the logout confirmation modal). */
+.superadmin-shell .sa-button.danger {
+    background: #ba1a1a;
+    color: #ffffff;
+}
+
+.superadmin-shell .sa-button.danger:hover {
+    background: #93000a;
+}
+
+/* Block (lock) actions: amber so they read differently from red delete and emerald unblock buttons. */
+.superadmin-shell .sa-button.warning {
+    background: #b45309;
+    color: #ffffff;
+}
+
+.superadmin-shell .sa-button.warning:hover {
+    background: #92400e;
+}
+
+/* Inputs: emerald focus ring, rounder radius. */
+.superadmin-shell .sa-input {
+    border-radius: 0.75rem;
+}
+
+.superadmin-shell .sa-input:focus {
+    border-color: #006948;
+    box-shadow: 0 0 0 3px rgba(0, 105, 72, 0.12);
+}
+
+/* Tables: calm uppercase headers and a soft hover tint, matching the admin console. */
+.superadmin-shell .sa-table th {
+    background: #f8fafc;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #64748b;
+}
+
+.superadmin-shell .sa-table tr:hover td {
+    background: #f8fafc;
+    transition: background-color 0.15s ease;
+}
+
+.superadmin-shell .status-pill {
+    background: #f1f5f9;
+}
+
+.superadmin-shell .status-pill.status-active,
+.superadmin-shell .status-pill.status-ok,
+.superadmin-shell .status-pill.status-healthy {
+    background: #ecfdf5;
+    color: #006948;
+}
+
+.superadmin-shell .sa-notice.success {
+    background: #ecfdf5;
+    color: #006948;
+}
+
+/* Empty-state icons/separators otherwise read as the hairline border colour and almost vanish on white. */
+.superadmin-shell .text-outline-variant {
+    color: #cbd5e1;
+}

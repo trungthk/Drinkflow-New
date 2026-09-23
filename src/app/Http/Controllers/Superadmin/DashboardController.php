@@ -5,12 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Superadmin;
 
 use App\Enums\CampaignStatus;
-use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdminAccount;
 use App\Models\Campaign;
-use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\Room;
@@ -43,7 +41,6 @@ class DashboardController extends Controller
                 'total_admins' => AdminAccount::where('role', 'admin')->count(),
                 'active_campaigns' => Campaign::where('status', CampaignStatus::Active)->count(),
                 'orders_today' => Order::whereDate('created_at', $today)->whereNot('status', OrderStatus::Cancelled)->count(),
-                'outstanding_debt' => (int) Debt::whereIn('status', DebtStatus::outstandingValues())->sum('remaining_amount'),
                 'system_health' => $health->snapshot(),
             ]
         ]);

@@ -4,6 +4,7 @@ import { initLazyImages } from './shared/lazy-image';
 
 initLazyImages();
 
+import { initAdminAlertModal } from './admin/alert-modal';
 import { initAdminGoToTop } from './admin/go-to-top';
 import { initUiEnhancements, renderTableSkeleton, debounce, toggleAdminSidebar } from './admin/ui-enhancements';
 import { initAdminAuth } from './admin/auth';
@@ -53,6 +54,9 @@ if (typeof window !== 'undefined') {
 
 document.addEventListener('DOMContentLoaded', () => {
     initToastNotifications();
+    // Runs after initToastNotifications() so this modal-based override wins over the toast-based
+    // `window.alert` it sets: every alert(...) in the admin bundle should open a modal, not a toast.
+    initAdminAlertModal();
     window.__DF_ROOM_SLUG__ = window.__DF_ROOM_SLUG__ || document.querySelector('meta[name="room-slug"]')?.content || document.body?.dataset?.roomSlug || '';
 
     initUiEnhancements();

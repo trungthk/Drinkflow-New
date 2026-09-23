@@ -173,6 +173,8 @@ return [
         'status' => 'ステータス',
         'room_ids' => 'ルーム一覧',
         'room_ids.*' => 'ルームID',
+        'admin_ids' => '担当管理者一覧',
+        'admin_ids.*' => '管理者ID',
         'url' => 'URL',
         'source_url' => 'データ取得元URL',
         'preview_id' => 'プレビューID',

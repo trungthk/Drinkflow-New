@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\AuthorizesUserAndAdmin;
+use App\Support\Security\OutboundUrlGuard;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -32,8 +33,30 @@ class SystemNotificationChannelRequest extends FormRequest
         return [
             'type' => ['required', Rule::in(['chatwork', 'slack', 'telegram', 'webhook'])],
             'name' => ['required', 'string', 'max:255'],
-            'config' => ['required'],
             'status' => ['sometimes', Rule::in(['active', 'disabled'])],
+            'config' => ['sometimes', 'array'],
+            'config.*' => ['nullable', 'string', 'max:2000'],
+            'config.webhook_url' => [
+                'nullable',
+                'string',
+                'max:2000',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! is_string($value) || trim($value) === '') {
+                        return;
+                    }
+                    $guard = app(OutboundUrlGuard::class);
+                    if ($this->input('type') === 'slack' && ! $guard->isSafe($value, ['hooks.slack.com'])) {
+                        $fail(__('admin.slack_webhook_host_invalid'));
+
+                        return;
+                    }
+                    if (! $guard->isSafe($value)) {
+                        $fail(__('admin.webhook_url_unsafe'));
+                    }
+                },
+            ],
+            'config.bot_token' => ['nullable', 'string', 'max:2000', 'regex:/^\d+:[A-Za-z0-9_-]+$/'],
+            'config.room_id' => ['nullable', 'string', 'max:2000', 'regex:/^\d+$/'],
         ];
     }
 

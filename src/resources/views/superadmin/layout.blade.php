@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <link
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400..700,0..1,-50..200&display=block"
@@ -23,6 +23,7 @@
 
 <body data-submit-loading-text="{{ __('global.common.loading') }}" data-status-labels="{{ json_encode([
         'active' => __('superadmin.common.active'), 'disabled' => __('superadmin.common.disabled'),
+        'inactive' => __('superadmin.common.inactive'),
         'archived' => __('superadmin.common.archived'), 'blocked' => __('superadmin.common.blocked'),
         'pending' => __('superadmin.common.pending'), 'scheduled' => __('superadmin.common.scheduled'),
         'closed' => __('superadmin.common.closed'), 'cancelled' => __('superadmin.common.cancelled'),
@@ -54,9 +55,6 @@
             <a class="{{ ($active ?? '') === 'campaigns' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.campaigns.page') }}"><span
                     class="material-symbols-outlined">campaign</span>{{ __('superadmin.layout.global_campaigns') }}</a>
-            <a class="{{ ($active ?? '') === 'debts' ? 'is-active' : '' }}"
-                href="{{ route('superadmin.debts.page') }}"><span
-                    class="material-symbols-outlined">account_balance</span>{{ __('superadmin.layout.global_debts') }}</a>
             <a class="{{ ($active ?? '') === 'feedbacks' ? 'is-active' : '' }}"
                 href="{{ route('superadmin.feedbacks.page') }}"><span
                     class="material-symbols-outlined">rate_review</span>{{ __('superadmin.layout.feedbacks') }}</a>
@@ -85,6 +83,7 @@
         </div>
     </aside>
     <div class="superadmin-main">
+        <x-superadmin.maintenance-banner />
         <header class="superadmin-topbar"><button class="superadmin-menu"
                 onclick="document.getElementById('superadmin-sidebar').classList.toggle('is-open')"><span
                     class="material-symbols-outlined">menu</span></button>

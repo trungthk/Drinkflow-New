@@ -22,7 +22,7 @@
                     @endif
                 </div>
             </div>
-            <button type="button" class="p-1 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors" data-modal-close aria-label="{{ __('superadmin.common.cancel') }}">
+            <button type="button" class="p-1 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors cursor-pointer" data-modal-close aria-label="{{ __('superadmin.common.cancel') }}">
                 <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
         </div>

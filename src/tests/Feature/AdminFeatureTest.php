@@ -289,6 +289,24 @@ class AdminFeatureTest extends TestCase
             ->assertDontSee(__('admin.sign_in_google_workspace'));
     }
 
+    /**
+     * The shared alert modal (replacing native alert() popups) must be present on every admin
+     * page rendered through the main admin layout.
+     *
+     * @return void
+     */
+    public function test_admin_layout_renders_shared_alert_modal(): void
+    {
+        $admin = $this->admin();
+        $room = $this->roomFor($admin);
+
+        $this->actingAs($admin, 'admin')->get("/admin/{$room->slug}/dashboard")
+            ->assertOk()
+            ->assertSee('id="admin-alert-modal"', false)
+            ->assertSee('id="admin-alert-modal-ok"', false)
+            ->assertSee(__('admin.alert_modal_ok'));
+    }
+
     public function test_admin_dashboard_is_limited_to_assigned_room(): void
     {
         $admin = $this->admin();

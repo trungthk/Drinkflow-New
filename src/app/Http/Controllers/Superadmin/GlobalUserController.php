@@ -46,7 +46,10 @@ class GlobalUserController extends Controller
      */
     public function show(GlobalUser $globalUser): JsonResponse
     {
-        return response()->json(['data' => $globalUser->load(['oauthIdentities:id,global_user_id,provider,provider_user_id,provider_email,linked_at,last_login_at', 'roomUsers.room', 'roomUsers.devices'])]);
+        $globalUser->loadCount(['roomUsers', 'orders'])
+            ->load(['oauthIdentities:id,global_user_id,provider,provider_user_id,provider_email,linked_at,last_login_at', 'roomUsers.room', 'roomUsers.devices']);
+
+        return response()->json(['data' => $globalUser]);
     }
 
     /**

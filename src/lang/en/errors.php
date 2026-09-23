@@ -99,6 +99,19 @@ return [
         'contact_it' => 'Contact IT Support',
     ],
 
+    'maintenance' => [
+        'page_title' => 'Under maintenance | DrinkFlow',
+        'badge' => 'UNDER MAINTENANCE',
+        'title' => 'DrinkFlow is under maintenance',
+        'description' => 'The system is temporarily unavailable for maintenance and upgrades. Your data is safe; please come back later.',
+        'window_title' => 'Maintenance window',
+        'starts_at' => 'Started', 'ends_at' => 'Expected to end', 'not_scheduled' => 'Not specified',
+        'back_at' => 'The system is expected to be back at :time.',
+        'no_end' => 'The end time has not been announced yet. This page checks again periodically.',
+        'refresh' => 'Check again', 'auto_retry_in' => 'Checking again in',
+        'admin_login' => 'Superadmin sign-in',
+        'json_message' => 'The system is under maintenance. Please try again later.',
+    ],
     '503' => [
         'page_title' => '503 - Service Unavailable | DrinkFlow Enterprise',
         'badge_main' => 'HTTP ERROR CODE: 503 - SERVICE UNAVAILABLE',

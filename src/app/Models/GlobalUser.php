@@ -10,6 +10,7 @@ use App\Models\Concerns\HasStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -96,6 +97,11 @@ class GlobalUser extends Authenticatable
         return $this->belongsToMany(Room::class, 'room_users', 'global_user_id', 'room_id')
             ->withPivot(['id', 'status', 'user_code', 'last_active_at'])
             ->withTimestamps();
+    }
+
+    public function orders(): HasManyThrough
+    {
+        return $this->hasManyThrough(Order::class, RoomUser::class);
     }
 
     public function notifications(): HasMany

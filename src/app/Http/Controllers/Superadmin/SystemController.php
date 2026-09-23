@@ -111,21 +111,15 @@ class SystemController extends Controller
     }
 
     /**
-     * Handle the maintenance state operation.
-     * @param SystemSettingsService $service Parameter value.
-     * @return array Result of the operation.
+     * Maintenance state for the JSON API (without the parsed Carbon instances).
+     *
+     * @param SystemSettingsService $service System settings store.
+     * @return array{enabled: bool, active: bool, starts_at: ?string, ends_at: ?string}
      */
     private function maintenanceState(SystemSettingsService $service): array
     {
-        $enabled = (bool) $service->get('maintenance.enabled', false);
-        $starts = $service->get('maintenance.starts_at');
-        $ends = $service->get('maintenance.ends_at');
-        $now = now();
-        $active = $enabled;
-        if ($starts && $now->lt($starts))
-            $active = false;
-        if ($ends && $now->gt($ends))
-            $active = false;
-        return ['enabled' => $enabled, 'active' => $active, 'starts_at' => $starts, 'ends_at' => $ends];
+        $state = $service->maintenanceState();
+
+        return ['enabled' => $state['enabled'], 'active' => $state['active'], 'starts_at' => $state['starts_at'], 'ends_at' => $state['ends_at']];
     }
 }
