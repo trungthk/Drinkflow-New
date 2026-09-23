@@ -97,7 +97,7 @@ return [
         'top_sponsors_title' => 'トップスポンサー',
         'top_sponsors_subtitle' => 'ルーム内の合計スポンサー金額でランキング',
         'no_sponsor_data' => 'このルームにはまだスポンサーデータがありません。',
-        'sponsored_orders_count' => ':count件のスポンサー注文',
+        'sponsored_campaigns_count' => ':count件のスポンサーキャンペーン',
         'weekly_trend_title' => '直近7日間の注文数と金額',
         'weekly_trend_subtitle' => '1日ごとの注文アイテム数と合計金額の比較',
         'chart_items_label' => '注文数',

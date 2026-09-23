@@ -142,38 +142,59 @@ class UserRoomDashboardTopItemsTest extends TestCase
      *
      * @return void
      */
+    /**
+     * The leaderboard must rank the campaigns' actual sponsors (sponsor_name / sponsor_allocations),
+     * never the members who merely received the subsidy on their own order.
+     *
+     * @return void
+     */
     public function test_dashboard_ranks_top_sponsors_by_total_sponsor_amount(): void
     {
         $room = Room::create(['name' => 'Technology', 'slug' => 'technology-top-sponsors', 'status' => RoomStatus::Active]);
-        $campaign = Campaign::create([
-            'room_id' => $room->id,
-            'name' => 'Sponsored coffee',
-            'restaurant' => 'Test Restaurant',
-            'status' => CampaignStatus::Active,
-        ]);
+        $member = $this->member($room, $this->user('member@example.test'), 'MEMBER');
 
-        $topSponsor = $this->member($room, $this->user('top-sponsor@example.test'), 'TOPSPONSOR');
-        $topSponsor->orders()->create([
-            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+        $topCampaign = Campaign::create([
+            'room_id' => $room->id, 'name' => 'Coffee A', 'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active, 'sponsor_type' => 'per_item', 'sponsor_name' => 'Công ty ABC',
+        ]);
+        $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $topCampaign->id,
             'subtotal' => 100000, 'sponsor_amount' => 80000, 'final_amount' => 20000, 'status' => OrderStatus::Submitted,
         ]);
 
-        $secondSponsor = $this->member($room, $this->user('second-sponsor@example.test'), 'SECONDSPONSOR');
-        $secondSponsor->orders()->create([
-            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+        $secondCampaign = Campaign::create([
+            'room_id' => $room->id, 'name' => 'Coffee B', 'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active, 'sponsor_type' => 'per_item', 'sponsor_name' => 'Phòng Marketing',
+        ]);
+        $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $secondCampaign->id,
             'subtotal' => 60000, 'sponsor_amount' => 30000, 'final_amount' => 30000, 'status' => OrderStatus::Submitted,
         ]);
 
-        // A cancelled order's sponsor amount must not count toward the ranking.
-        $cancelledSponsor = $this->member($room, $this->user('cancelled-sponsor@example.test'), 'CANCELLEDSPONSOR');
-        $cancelledSponsor->orders()->create([
-            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+        // A cancelled order's sponsor amount must not count toward its campaign's sponsor total.
+        $cancelledCampaign = Campaign::create([
+            'room_id' => $room->id, 'name' => 'Coffee C', 'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active, 'sponsor_type' => 'per_item', 'sponsor_name' => 'Ignored Sponsor',
+        ]);
+        $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $cancelledCampaign->id,
             'subtotal' => 500000, 'sponsor_amount' => 500000, 'final_amount' => 0, 'status' => OrderStatus::Cancelled,
         ]);
 
-        $data = app(UserRoomDashboardService::class)->getDashboardData($room, $topSponsor, null);
+        // A member's own order subsidy must never surface them as a "sponsor" without a real
+        // sponsor_name / sponsor_allocations on the campaign.
+        $noSponsorCampaign = Campaign::create([
+            'room_id' => $room->id, 'name' => 'Coffee D', 'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active, 'sponsor_type' => 'none',
+        ]);
+        $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $noSponsorCampaign->id,
+            'subtotal' => 90000, 'sponsor_amount' => 90000, 'final_amount' => 0, 'status' => OrderStatus::Submitted,
+        ]);
 
-        $this->assertSame(['Member', 'Member'], array_column($data['topSponsors'], 'name'));
+        $data = app(UserRoomDashboardService::class)->getDashboardData($room, $member, null);
+
+        $this->assertSame(['Công ty ABC', 'Phòng Marketing'], array_column($data['topSponsors'], 'name'));
         $this->assertSame([80000, 30000], array_column($data['topSponsors'], 'amount'));
     }
 

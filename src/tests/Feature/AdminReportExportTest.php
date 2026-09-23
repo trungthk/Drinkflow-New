@@ -41,7 +41,7 @@ class AdminReportExportTest extends TestCase
                 'user_name' => 'An', 'user_email' => 'an@example.test', 'debt_count' => 1,
                 'total_original' => 142000, 'total_paid' => 71000, 'outstanding_debt' => 71000,
             ]],
-            'sponsors_leaderboard' => [['user_name' => 'Binh', 'user_email' => 'binh@example.test', 'sponsored_orders' => 2, 'total_sponsored' => 142000]],
+            'sponsors_leaderboard' => [['user_name' => 'Binh', 'user_email' => 'binh@example.test', 'sponsored_campaigns' => 2, 'total_sponsored' => 142000]],
             'top_users' => [['user_name' => 'An', 'user_email' => 'an@example.test', 'order_count' => 2, 'total_spent' => 284000]],
         ]))->array();
 

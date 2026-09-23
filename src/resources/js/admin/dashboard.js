@@ -196,12 +196,17 @@ export function initAdminDashboard() {
         bindTrendTooltip(wrapper, rows, points);
 
         if (labelsContainer) {
-            labelsContainer.innerHTML = rows.map(r => `
-                <div class="text-center">
-                    <span class="text-xs font-semibold text-on-surface">${esc(r.day)}</span>
-                    <span class="block text-[10px] font-mono text-outline">${esc(r.date)}</span>
-                </div>
-            `).join('');
+            // Position each label at the same x-percentage as its bar/point above (edge-to-edge,
+            // not equal grid cells), otherwise the first/last labels drift away from their bars.
+            labelsContainer.innerHTML = rows.map((r, idx) => {
+                const percent = rows.length > 1 ? (idx / (rows.length - 1)) * 100 : 50;
+                return `
+                    <div class="absolute top-2 -translate-x-1/2 text-center" style="left:${percent}%">
+                        <span class="text-xs font-semibold text-on-surface whitespace-nowrap">${esc(r.day)}</span>
+                        <span class="block text-[10px] font-mono text-outline whitespace-nowrap">${esc(r.date)}</span>
+                    </div>
+                `;
+            }).join('');
         }
     }
 

@@ -97,7 +97,7 @@ return [
         'top_sponsors_title' => 'Top nhà tài trợ',
         'top_sponsors_subtitle' => 'Xếp hạng theo tổng giá trị tài trợ trong phòng',
         'no_sponsor_data' => 'Chưa có dữ liệu tài trợ nào trong phòng.',
-        'sponsored_orders_count' => ':count đơn được tài trợ',
+        'sponsored_campaigns_count' => ':count chiến dịch đã tài trợ',
         'weekly_trend_title' => 'Số món & giá trị 7 ngày gần nhất',
         'weekly_trend_subtitle' => 'So sánh số lượng món đặt và tổng giá trị đơn hàng mỗi ngày',
         'chart_items_label' => 'Số món',

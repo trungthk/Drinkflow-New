@@ -455,11 +455,17 @@ class AdminFeatureTest extends TestCase
     {
         $admin = $this->admin('report-email@example.test');
         $room = $this->roomFor($admin, 'report-email-room');
-        $campaign = Campaign::create(['room_id' => $room->id, 'name' => 'Lunch', 'restaurant' => 'Cafe', 'status' => 'active']);
         $user = \App\Models\GlobalUser::create(['email' => 'member-report@example.test', 'name' => 'Report Member', 'normalized_name' => 'REPORT MEMBER', 'status' => 'active']);
         $roomUser = \App\Models\RoomUser::create([
             'room_id' => $room->id, 'global_user_id' => $user->id, 'user_code' => 'RPT01',
             'display_name' => 'Report Member', 'normalized_name' => 'REPORT MEMBER', 'status' => 'active',
+        ]);
+        // This member is both the campaign's designated sponsor (full sponsor_allocations) and the orderer,
+        // so the same fixture can assert both tabs expose email instead of user_code.
+        $campaign = Campaign::create([
+            'room_id' => $room->id, 'name' => 'Lunch', 'restaurant' => 'Cafe', 'status' => 'active',
+            'sponsor_type' => Campaign::SPONSOR_TYPE_FULL,
+            'sponsor_allocations' => [['room_user_id' => $roomUser->id, 'percentage' => 100]],
         ]);
         \App\Models\Order::create([
             'room_id' => $room->id, 'campaign_id' => $campaign->id, 'room_user_id' => $roomUser->id,

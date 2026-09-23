@@ -91,7 +91,7 @@ function renderTopSponsorsChart(container, sponsors, labels) {
                 <span class="text-slate-500">${esc(labels.value)}</span>
                 <strong class="font-mono" style="color:${COLOR_ITEMS}">${esc(formatMoney(s.amount))}</strong>
             </div>
-            <div class="mt-0.5 text-slate-400">${esc((labels.sponsoredOrders || ':count').replace(':count', String(s.sponsored_orders || 0)))}</div>
+            <div class="mt-0.5 text-slate-400">${esc((labels.sponsoredCampaigns || ':count').replace(':count', String(s.sponsored_campaigns || 0)))}</div>
         `;
         tooltip.classList.remove('hidden');
 

@@ -131,7 +131,7 @@
                     <div id="platform-telegram" class="platform-config-fields space-y-3">
                         <div>
                             <label class="block font-semibold text-on-surface mb-1">{{ __('admin.telegram_bot_token') }}</label>
-                            <input type="password" id="ch-tg-token" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
+                            <input type="password" id="ch-tg-token" autocomplete="new-password" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
                         </div>
                         <div>
                             <label class="block font-semibold text-on-surface mb-1">{{ __('admin.telegram_chat_id') }}</label>
@@ -151,7 +151,7 @@
                     <div id="platform-chatwork" class="platform-config-fields space-y-3 hidden">
                         <div>
                             <label class="block font-semibold text-on-surface mb-1">{{ __('admin.chatwork_api_token') }}</label>
-                            <input type="password" id="ch-cw-token" placeholder="abcdef0123456789abcdef0123456789" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
+                            <input type="password" id="ch-cw-token" autocomplete="new-password" placeholder="abcdef0123456789abcdef0123456789" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
                         </div>
                         <div>
                             <label class="block font-semibold text-on-surface mb-1">{{ __('admin.chatwork_room_id') }}</label>
@@ -167,7 +167,7 @@
                         </div>
                         <div>
                             <label class="block font-semibold text-on-surface mb-1">{{ __('admin.webhook_secret_token') }} ({{ __('admin.optional') }})</label>
-                            <input type="password" id="ch-wh-secret" placeholder="secret-token-key" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
+                            <input type="password" id="ch-wh-secret" autocomplete="new-password" placeholder="secret-token-key" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono text-xs text-on-surface">
                         </div>
                     </div>
 

@@ -86,7 +86,8 @@
                     </button>
                 </div>
 
-                <!-- Active Workspace Dropdown Trigger -->
+                <!-- Active Workspace Dropdown Trigger (chỉ hiện khi admin quản lý nhiều hơn 1 room) -->
+                @if ($assignedRoomsList->count() > 1)
                 <div class="mb-5 relative" data-admin-workspace-switcher>
                     <label
                         class="text-[10px] font-mono text-outline block mb-1 uppercase tracking-wider font-semibold sidebar-text">{{ __('admin.active_workspace') }}</label>
@@ -131,6 +132,7 @@
                         </a>
                     </div>
                 </div>
+                @endif
 
                 <!-- Main Nav Links -->
                 <nav class="space-y-1 text-xs">

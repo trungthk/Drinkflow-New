@@ -239,7 +239,7 @@ export function initAdminReports() {
                         const rows = data.sponsors_leaderboard.map((s, idx) => [
                             `<span class="w-6 h-6 rounded-full inline-flex items-center justify-center font-bold text-xs ${rankClass(idx)}">${idx + 1}</span>`,
                             memberCellHtml(s.user_name, s.user_email),
-                            `<span class="font-mono font-semibold text-on-surface">${escapeHtml(s.sponsored_orders)}</span>`,
+                            `<span class="font-mono font-semibold text-on-surface">${escapeHtml(s.sponsored_campaigns)}</span>`,
                             `<span class="font-mono font-bold text-emerald-600">${money(s.total_sponsored)}</span>`,
                         ]);
                         sponsorsList.innerHTML = reportTableHtml(columns, rows);

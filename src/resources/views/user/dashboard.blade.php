@@ -184,7 +184,7 @@
         data-chart-labels="{{ \Illuminate\Support\Js::from([
           'items' => __('room.dashboard.chart_items_label'),
           'value' => __('room.dashboard.chart_value_label'),
-          'sponsoredOrders' => __('room.dashboard.sponsored_orders_count'),
+          'sponsoredCampaigns' => __('room.dashboard.sponsored_campaigns_count'),
           'noSponsorData' => __('room.dashboard.no_sponsor_data'),
           'noTrendData' => __('room.dashboard.no_weekly_trend_data'),
         ]) }}"

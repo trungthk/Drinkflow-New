@@ -97,7 +97,7 @@ return [
         'top_sponsors_title' => 'Top sponsors',
         'top_sponsors_subtitle' => 'Ranked by total sponsorship value in this room',
         'no_sponsor_data' => 'No sponsorship data in this room yet.',
-        'sponsored_orders_count' => ':count sponsored orders',
+        'sponsored_campaigns_count' => ':count sponsored campaigns',
         'weekly_trend_title' => 'Items & value in the last 7 days',
         'weekly_trend_subtitle' => 'Daily comparison of ordered item count and total order value',
         'chart_items_label' => 'Items',

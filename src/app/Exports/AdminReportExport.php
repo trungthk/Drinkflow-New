@@ -96,7 +96,7 @@ final class AdminReportExport extends DefaultValueBinder implements FromArray, W
             $index + 1,
             data_get($row, 'user_name'),
             data_get($row, 'user_email'),
-            (int) data_get($row, 'sponsored_orders', 0),
+            (int) data_get($row, 'sponsored_campaigns', 0),
             (int) data_get($row, 'total_sponsored', 0),
         ]);
 

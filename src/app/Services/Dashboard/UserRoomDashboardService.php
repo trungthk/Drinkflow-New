@@ -14,6 +14,7 @@ use App\Models\Order;
 use App\Models\Room;
 use App\Models\RoomUser;
 use App\Services\Campaign\UserRoomCampaignService;
+use App\Services\Reporting\SponsorLeaderboardService;
 use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -22,9 +23,12 @@ class UserRoomDashboardService
 {
     /**
      * @param UserRoomCampaignService $campaignService Nguồn dữ liệu (đã cache) cho Top món được chọn nhiều nhất.
+     * @param SponsorLeaderboardService $sponsorLeaderboard Resolves actual campaign sponsors (not subsidy beneficiaries).
      */
-    public function __construct(private readonly UserRoomCampaignService $campaignService)
-    {
+    public function __construct(
+        private readonly UserRoomCampaignService $campaignService,
+        private readonly SponsorLeaderboardService $sponsorLeaderboard,
+    ) {
     }
 
     /**
@@ -104,34 +108,20 @@ class UserRoomDashboardService
     }
 
     /**
-     * Rank the room's top sponsor contributors by total sponsor subsidy amount.
+     * Rank the room's actual sponsors (people/entities who funded a campaign), not the members
+     * who merely benefited from a sponsored order.
      *
      * @param Room $room Current active room instance.
      * @param int $limit Maximum number of sponsors to return.
-     * @return array<int, array{name: string, amount: int, sponsored_orders: int}> Top sponsors, highest amount first.
+     * @return array<int, array{name: string, amount: int, sponsored_campaigns: int}> Top sponsors, highest amount first.
      */
     private function getTopSponsors(Room $room, int $limit = 5): array
     {
-        return Order::query()
-            ->where('orders.room_id', $room->id)
-            ->where('orders.status', '!=', OrderStatus::Cancelled->value)
-            ->where('orders.sponsor_amount', '>', 0)
-            ->join('room_users', 'room_users.id', '=', 'orders.room_user_id')
-            ->leftJoin('global_users', 'global_users.id', '=', 'room_users.global_user_id')
-            ->selectRaw('
-                orders.room_user_id,
-                COALESCE(global_users.name, room_users.display_name) as user_name,
-                COUNT(orders.id) as sponsored_orders,
-                SUM(orders.sponsor_amount) as total_sponsored
-            ')
-            ->groupBy('orders.room_user_id', 'global_users.name', 'room_users.display_name')
-            ->orderByDesc('total_sponsored')
-            ->limit($limit)
-            ->get()
-            ->map(fn ($row): array => [
-                'name' => (string) $row->user_name,
-                'amount' => (int) $row->total_sponsored,
-                'sponsored_orders' => (int) $row->sponsored_orders,
+        return $this->sponsorLeaderboard->build($room, null, null, $limit)
+            ->map(fn (array $row): array => [
+                'name' => $row['user_name'],
+                'amount' => $row['total_sponsored'],
+                'sponsored_campaigns' => $row['sponsored_campaigns'],
             ])
             ->values()
             ->all();

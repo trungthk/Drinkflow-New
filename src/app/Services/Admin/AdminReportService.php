@@ -11,11 +11,19 @@ use App\Models\Debt;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Room;
+use App\Services\Reporting\SponsorLeaderboardService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AdminReportService
 {
+    /**
+     * @param SponsorLeaderboardService $sponsorLeaderboard Resolves actual campaign sponsors (not subsidy beneficiaries).
+     */
+    public function __construct(private readonly SponsorLeaderboardService $sponsorLeaderboard)
+    {
+    }
+
     /**
      * Compute lightweight KPI summary stats for a room.
      *
@@ -85,7 +93,7 @@ class AdminReportService
                     ->selectRaw('item_name, SUM(quantity) as quantity')
                     ->groupBy('item_name')
                     ->orderByDesc('quantity')
-                    ->limit(10)
+                    ->limit(5)
                     ->get();
 
             $payload['popular_stores'] = (clone $orders)
@@ -93,7 +101,7 @@ class AdminReportService
                 ->selectRaw('campaigns.restaurant, COUNT(orders.id) as orders, SUM(orders.final_amount) as spending')
                 ->groupBy('campaigns.restaurant')
                 ->orderByDesc('orders')
-                ->limit(10)
+                ->limit(5)
                 ->get();
         }
 
@@ -114,29 +122,14 @@ class AdminReportService
                     SUM(CASE WHEN debts.status IN (?, ?) THEN debts.remaining_amount ELSE 0 END) as outstanding_debt
                 ', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])
                 ->groupBy('debts.room_user_id', 'global_users.name', 'room_users.display_name', 'global_users.email')
+                ->having('outstanding_debt', '>', 0)
                 ->orderByDesc('outstanding_debt')
                 ->orderByDesc('total_original')
                 ->get();
         }
 
         if ($tab === 'sponsors' || empty($tab) || $tab === 'all') {
-            $payload['sponsors_leaderboard'] = Order::query()
-                ->where('orders.room_id', $room->id)
-                ->whereBetween('orders.created_at', [$from, $to])
-                ->whereNotIn('orders.status', [OrderStatus::Cancelled->value])
-                ->where('orders.sponsor_amount', '>', 0)
-                ->join('room_users', 'room_users.id', '=', 'orders.room_user_id')
-                ->leftJoin('global_users', 'global_users.id', '=', 'room_users.global_user_id')
-                ->selectRaw('
-                    orders.room_user_id,
-                    COALESCE(global_users.name, room_users.display_name) as user_name,
-                    global_users.email as user_email,
-                    COUNT(orders.id) as sponsored_orders,
-                    SUM(orders.sponsor_amount) as total_sponsored
-                ')
-                ->groupBy('orders.room_user_id', 'global_users.name', 'room_users.display_name', 'global_users.email')
-                ->orderByDesc('total_sponsored')
-                ->get();
+            $payload['sponsors_leaderboard'] = $this->sponsorLeaderboard->build($room, $from, $to);
         }
 
         if ($tab === 'users' || empty($tab) || $tab === 'all') {
