@@ -131,7 +131,7 @@
             <div class="divide-y divide-slate-100 max-h-[380px] overflow-y-auto">
               @forelse($notifications as $notif)
                 @php
-                  $notificationPresentation = $notificationPresentations[$notif->getKey()] ?? ['title' => '', 'body' => '', 'icon' => 'notifications'];
+                  $notificationPresentation = $notificationPresentations[$notif->getKey()] ?? ['title' => '', 'body' => '', 'icon' => 'notifications', 'link' => null];
                 @endphp
                 <div
                   class="p-3.5 flex items-start gap-3 hover:bg-slate-50/80 transition-colors {{ is_null($notif->read_at) ? 'bg-emerald-50/20' : '' }}">
@@ -144,10 +144,17 @@
                   <div class="flex-1 min-w-0">
                     <p class="text-xs font-semibold text-slate-800">{{ $notificationPresentation['title'] }}</p>
                     <p class="text-xs text-slate-500 mt-0.5 line-clamp-2 [overflow-wrap:anywhere]">{{ $notificationPresentation['body'] }}</p>
-                    <span class="text-[11px] text-slate-400 block mt-1 flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[12px]">schedule</span>
-                      {{ $notif->created_at->diffForHumans() }}
-                    </span>
+                    <div class="flex items-center justify-between gap-2 mt-1">
+                      <span class="text-[11px] text-slate-400 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[12px]">schedule</span>
+                        {{ $notif->created_at->diffForHumans() }}
+                      </span>
+                      @if(!empty($notificationPresentation['link']))
+                        <a href="{{ $notificationPresentation['link'] }}" class="text-[11px] font-semibold text-[#006948] hover:underline shrink-0">
+                          {{ __('global.notifications.view_detail') }}
+                        </a>
+                      @endif
+                    </div>
                   </div>
                   @if(is_null($notif->read_at))
                     <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0 mt-2"></span>

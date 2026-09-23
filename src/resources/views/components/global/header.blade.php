@@ -134,10 +134,17 @@
                   <div class="flex-1 min-w-0">
                     <p class="text-xs font-semibold text-slate-800">{{ $notificationPresentation['title'] }}</p>
                     <p class="text-xs text-slate-500 mt-0.5 line-clamp-2 [overflow-wrap:anywhere]">{{ $notificationPresentation['body'] }}</p>
-                    <span class="text-[11px] text-slate-400 block mt-1 flex items-center gap-1">
-                      <span class="material-symbols-outlined text-[12px]">schedule</span>
-                      {{ $notif->created_at->diffForHumans() }}
-                    </span>
+                    <div class="flex items-center justify-between gap-2 mt-1">
+                      <span class="text-[11px] text-slate-400 flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[12px]">schedule</span>
+                        {{ $notif->created_at->diffForHumans() }}
+                      </span>
+                      @if(!empty($notificationPresentation['link']))
+                        <a href="{{ $notificationPresentation['link'] }}" class="text-[11px] font-semibold text-[#006948] hover:underline shrink-0">
+                          {{ __('global.notifications.view_detail') }}
+                        </a>
+                      @endif
+                    </div>
                   </div>
                   @if(is_null($notif->read_at))
                     <span data-header-notification-dot class="w-2 h-2 rounded-full bg-emerald-600 shrink-0 mt-2"></span>

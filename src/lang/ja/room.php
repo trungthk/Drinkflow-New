@@ -95,7 +95,7 @@ return [
         'rank_label' => ':rank位',
         'no_live_item_data' => 'このキャンペーンではまだメニューが選択されていません。',
         'top_sponsors_title' => 'トップスポンサー',
-        'top_sponsors_subtitle' => 'ルーム内の合計スポンサー金額でランキング',
+        'top_sponsors_subtitle' => '直近7日間の合計スポンサー金額でランキング',
         'no_sponsor_data' => 'このルームにはまだスポンサーデータがありません。',
         'sponsored_campaigns_count' => ':count件のスポンサーキャンペーン',
         'weekly_trend_title' => '直近7日間の注文数と金額',
@@ -443,6 +443,9 @@ return [
         'campaign_total_amount' => '合計金額',
         'sponsor_badge_full' => '全額スポンサー (Full)',
         'sponsor_badge_none' => '自己負担 (スポンサーなし)',
+        'column_orderer_name' => '氏名',
+        'column_orderer_email' => 'メール',
+        'column_items_toppings' => 'メニュー・トッピング',
     ],
     'profile' => [
         'page_title' => 'メンバー情報',

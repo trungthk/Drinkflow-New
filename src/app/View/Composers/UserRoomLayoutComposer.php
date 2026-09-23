@@ -132,7 +132,7 @@ class UserRoomLayoutComposer
      * Prepare localized notification content for the room header dropdown.
      *
      * @param Collection<int, mixed> $notifications Notifications shown in the header.
-     * @return array<int|string, array{title: string, body: string, icon: string}> Presentation data by notification ID.
+     * @return array<int|string, array{title: string, body: string, icon: string, link: ?string}> Presentation data by notification ID.
      */
     private function presentNotifications(Collection $notifications): array
     {

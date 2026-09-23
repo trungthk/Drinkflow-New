@@ -203,8 +203,6 @@ return [
         'highlight_sponsor_desc' => 'Automatically apply discount vouchers, split delivery fees, and deduct sponsor/company budgets.',
         'highlight_vietqr' => 'VietQR & Debt Settlement',
         'highlight_vietqr_desc' => 'Scan dynamic QR codes to pay per order or clear accumulated debts instantly and transparently.',
-        'quick_shortcuts' => 'Quick Shortcuts',
-        'shortcuts_desc' => 'Instant actions for your session',
         'shortcut_notifications' => 'Notifications',
         'shortcut_notifications_desc' => 'Latest updates from your rooms',
         'shortcut_help' => 'Help',

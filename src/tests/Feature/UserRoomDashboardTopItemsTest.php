@@ -138,6 +138,37 @@ class UserRoomDashboardTopItemsTest extends TestCase
     }
 
     /**
+     * The "My Orders" page must also let a member open the room-wide orders modal for their
+     * order's campaign, reusing the shared campaign-orders-modal component.
+     *
+     * @return void
+     */
+    public function test_orders_page_shows_room_orders_button_and_modal(): void
+    {
+        $room = Room::create(['name' => 'Technology', 'slug' => 'technology-orders-room-modal', 'status' => RoomStatus::Active]);
+        $campaign = Campaign::create([
+            'room_id' => $room->id, 'name' => 'Live coffee', 'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active,
+        ]);
+        $user = $this->user('room-orders-btn@example.test');
+        $member = $this->member($room, $user, 'RMORDBTN');
+        $order = $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+            'subtotal' => 30000, 'final_amount' => 30000, 'status' => OrderStatus::Submitted,
+        ]);
+        $order->items()->create([
+            'item_name' => 'Milk tea', 'unit_price' => 30000, 'quantity' => 1, 'line_subtotal' => 30000,
+        ]);
+
+        $this->actingAs($user, 'web')
+            ->get(route('user.orders.index', $room->slug))
+            ->assertOk()
+            ->assertSee('openCampaignDetail('.$campaign->id.')', false)
+            ->assertSee(__('room.campaign.view_room_orders_button'))
+            ->assertSee('campaignModalOpen', false);
+    }
+
+    /**
      * Sponsors are ranked by total sponsor_amount received, highest first, excluding cancelled orders.
      *
      * @return void

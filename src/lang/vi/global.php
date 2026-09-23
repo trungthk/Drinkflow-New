@@ -203,8 +203,6 @@ return [
         'highlight_sponsor_desc' => 'Hệ thống tự động áp dụng voucher giảm giá, chia phí ship và trừ trực tiếp ngân sách tài trợ.',
         'highlight_vietqr' => 'Thanh toán VietQR & Công nợ',
         'highlight_vietqr_desc' => 'Quét mã QR chuyển khoản chính xác theo đơn hoặc gạch nợ tích lũy nhanh chóng, minh bạch.',
-        'quick_shortcuts' => 'Lối tắt nhanh',
-        'shortcuts_desc' => 'Thao tác truy cập tức thì cho phiên làm việc',
         'shortcut_notifications' => 'Thông báo',
         'shortcut_notifications_desc' => 'Cập nhật mới từ các room',
         'shortcut_help' => 'Trợ giúp',

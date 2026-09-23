@@ -95,7 +95,7 @@ return [
         'rank_label' => 'Hạng :rank',
         'no_live_item_data' => 'Chưa có món nào được chọn trong chiến dịch này.',
         'top_sponsors_title' => 'Top nhà tài trợ',
-        'top_sponsors_subtitle' => 'Xếp hạng theo tổng giá trị tài trợ trong phòng',
+        'top_sponsors_subtitle' => 'Xếp hạng theo tổng giá trị tài trợ trong 7 ngày gần nhất',
         'no_sponsor_data' => 'Chưa có dữ liệu tài trợ nào trong phòng.',
         'sponsored_campaigns_count' => ':count chiến dịch đã tài trợ',
         'weekly_trend_title' => 'Số món & giá trị 7 ngày gần nhất',
@@ -443,6 +443,9 @@ return [
         'campaign_total_amount' => 'Tổng tiền',
         'sponsor_badge_full' => 'Tài trợ 100% (Full)',
         'sponsor_badge_none' => 'Không tài trợ (Tự túc)',
+        'column_orderer_name' => 'Họ tên',
+        'column_orderer_email' => 'Email',
+        'column_items_toppings' => 'Món & Topping',
     ],
     'profile' => [
         'page_title' => 'Hồ sơ thành viên Room',

@@ -203,8 +203,6 @@ return [
         'highlight_sponsor_desc' => '割引クーポンの適用、配送料の按分、会社やホストによる補助金予算の自動差し引きに対応しています。',
         'highlight_vietqr' => 'VietQR決済＆未払い管理',
         'highlight_vietqr_desc' => '動的QRコードをスキャンして注文ごとに即時決済、または未払い分をまとめて透明かつ迅速に精算できます。',
-        'quick_shortcuts' => 'クイックショートカット',
-        'shortcuts_desc' => 'セッションのクイックアクション',
         'shortcut_notifications' => '通知',
         'shortcut_notifications_desc' => 'ルームからの最新情報',
         'shortcut_help' => 'ヘルプ',

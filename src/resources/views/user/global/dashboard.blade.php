@@ -323,15 +323,6 @@
 
     <!-- Section: Lối tắt nhanh -->
     <section>
-      <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
-        <div class="flex items-center gap-2">
-          <span class="w-8 h-8 rounded-xl bg-emerald-50 text-[#006948] border border-emerald-100 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[18px]">bolt</span>
-          </span>
-          <h2 class="text-base sm:text-lg font-bold text-slate-900">{{ __('global.dashboard.quick_shortcuts') }}</h2>
-        </div>
-        <span class="text-xs text-slate-400 hidden sm:inline">{{ __('global.dashboard.shortcuts_desc') }}</span>
-      </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Action 1: Thông báo -->
           <a class="p-4 rounded-xl border border-slate-200/80 bg-slate-50/40 hover:bg-white hover:border-emerald-400 hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group cursor-pointer text-left w-full" href="{{ route('user.me.notifications') }}">

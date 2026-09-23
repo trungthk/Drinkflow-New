@@ -95,7 +95,7 @@ return [
         'rank_label' => 'Rank :rank',
         'no_live_item_data' => 'No items have been selected in this campaign yet.',
         'top_sponsors_title' => 'Top sponsors',
-        'top_sponsors_subtitle' => 'Ranked by total sponsorship value in this room',
+        'top_sponsors_subtitle' => 'Ranked by total sponsorship value in the last 7 days',
         'no_sponsor_data' => 'No sponsorship data in this room yet.',
         'sponsored_campaigns_count' => ':count sponsored campaigns',
         'weekly_trend_title' => 'Items & value in the last 7 days',
@@ -443,6 +443,9 @@ return [
         'campaign_total_amount' => 'Total Amount',
         'sponsor_badge_full' => '100% Full Sponsor',
         'sponsor_badge_none' => 'Self-Paid (No Sponsor)',
+        'column_orderer_name' => 'Name',
+        'column_orderer_email' => 'Email',
+        'column_items_toppings' => 'Items & toppings',
     ],
     'profile' => [
         'page_title' => 'Room Member Profile',

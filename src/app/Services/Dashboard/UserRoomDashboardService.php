@@ -108,8 +108,8 @@ class UserRoomDashboardService
     }
 
     /**
-     * Rank the room's actual sponsors (people/entities who funded a campaign), not the members
-     * who merely benefited from a sponsored order.
+     * Rank the room's actual sponsors (people/entities who funded a campaign) over the last 7
+     * days, not the members who merely benefited from a sponsored order.
      *
      * @param Room $room Current active room instance.
      * @param int $limit Maximum number of sponsors to return.
@@ -117,7 +117,10 @@ class UserRoomDashboardService
      */
     private function getTopSponsors(Room $room, int $limit = 5): array
     {
-        return $this->sponsorLeaderboard->build($room, null, null, $limit)
+        $from = Carbon::today()->subDays(6)->startOfDay();
+        $to = Carbon::today()->endOfDay();
+
+        return $this->sponsorLeaderboard->build($room, $from, $to, $limit)
             ->map(fn (array $row): array => [
                 'name' => $row['user_name'],
                 'amount' => $row['total_sponsored'],

@@ -14,7 +14,7 @@ class NotificationPresentationService
      * Build locale-aware display data for a notification header item.
      *
      * @param UserNotification|AdminNotification $notification Notification model.
-     * @return array{title: string, body: string, icon: string} Presentation data.
+     * @return array{title: string, body: string, icon: string, link: ?string} Presentation data.
      */
     public function present(UserNotification|AdminNotification $notification): array
     {
@@ -33,6 +33,7 @@ class NotificationPresentationService
             'title' => $title,
             'body' => $body,
             'icon' => $this->icon($type),
+            'link' => $notification instanceof UserNotification ? $notification->link : null,
         ];
     }
 

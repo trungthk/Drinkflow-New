@@ -101,7 +101,7 @@ class AdminLayoutComposer
      * Build presentation data for each unread notification.
      *
      * @param Collection<int, mixed> $notifications Unread notifications.
-     * @return array<int|string, array{title: string, body: string, icon: string}> Presentation keyed by notification id.
+     * @return array<int|string, array{title: string, body: string, icon: string, link: ?string}> Presentation keyed by notification id.
      */
     private function presentNotifications(Collection $notifications): array
     {

@@ -74,6 +74,7 @@ class CampaignDetailsEndpointTest extends TestCase
             ->getJson(route('user.campaigns.details', ['room' => $room->slug, 'campaign' => $campaign->id]));
 
         $response->assertOk()
-            ->assertJsonPath('data.orders.0.items.0.image_url', 'https://cdn.drinkflow.test/items/tra-sua.jpg');
+            ->assertJsonPath('data.orders.0.items.0.image_url', 'https://cdn.drinkflow.test/items/tra-sua.jpg')
+            ->assertJsonPath('data.orders.0.orderer_email', 'debts-member@company.com');
     }
 }

@@ -88,6 +88,7 @@ class CampaignController extends Controller
             $displayName = $roomUser?->display_name ?: ($globalUser?->name ?: __('room.debts.campaign_orderer'));
             $userCode = $roomUser?->user_code ?: '';
             $avatarUrl = $globalUser?->avatar_url ?: null;
+            $email = $globalUser?->email;
 
             $items = $order->items->map(function (OrderItem $item): array {
                 $toppings = $item->toppings->map(fn ($t) => [
@@ -117,6 +118,7 @@ class CampaignController extends Controller
                 'orderer_name' => $displayName,
                 'orderer_code' => $userCode,
                 'orderer_avatar' => $avatarUrl,
+                'orderer_email' => $email,
                 'status' => $order->status instanceof OrderStatus ? $order->status->value : (string) $order->status,
                 'status_label' => $order->status instanceof OrderStatus ? $order->status->label() : (string) $order->status,
                 'subtotal' => (int) $order->subtotal,

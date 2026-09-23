@@ -129,6 +129,31 @@
         openPaymentDetails() {
             this.paymentDetailsModalOpen = true;
         },
+        campaignModalOpen: false,
+        campaignLoading: false,
+        campaignData: null,
+        async openCampaignDetail(campaignId) {
+            if (!campaignId) return;
+            this.campaignModalOpen = true;
+            this.campaignLoading = true;
+            this.campaignData = null;
+            try {
+                const url = '{{ route('user.campaigns.details', ['room' => $room->slug, 'campaign' => ':id']) }}'.replace(':id', campaignId);
+                const res = await fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } });
+                if (res.ok) {
+                    const data = await res.json();
+                    this.campaignData = data.data;
+                } else {
+                    window.notify?.('{{ __('global.common.error') }}', 'error');
+                    this.campaignModalOpen = false;
+                }
+            } catch (e) {
+                window.notify?.('{{ __('room.orders.connection_error') }}', 'error');
+                this.campaignModalOpen = false;
+            } finally {
+                this.campaignLoading = false;
+            }
+        },
         closePaymentConfirm() {
             if (this.isSubmittingPayment) return;
             this.paymentConfirmModalOpen = false;
@@ -393,10 +418,19 @@
                                         {{ __('room.orders.items_list') }}
                                     </h4>
                                 </div>
-                                <span
-                                    class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
-                                    {{ $activeOrder->items->count() }} {{ __('room.orders.items_count_suffix') }}
-                                </span>
+                                <div class="flex items-center gap-2">
+                                    @if($activeOrder->campaign_id)
+                                        <button type="button" @click="openCampaignDetail({{ $activeOrder->campaign_id }})"
+                                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-sky-200 bg-sky-50 text-sky-800 text-[11px] font-bold hover:bg-sky-100 transition-colors">
+                                            <span class="material-symbols-outlined text-[14px]">receipt_long</span>
+                                            <span>{{ __('room.campaign.view_room_orders_button') }}</span>
+                                        </button>
+                                    @endif
+                                    <span
+                                        class="px-2 py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+                                        {{ $activeOrder->items->count() }} {{ __('room.orders.items_count_suffix') }}
+                                    </span>
+                                </div>
                             </div>
 
                             <!-- Items List -->
@@ -969,6 +1003,9 @@
                     </div>
                 </div>
             </template>
+
+            <!-- Room Orders Modal: xem đơn của tất cả thành viên trong phòng cho chiến dịch này -->
+            <x-room.campaign-orders-modal />
         @endif
     </div>
 </x-room.layout>
