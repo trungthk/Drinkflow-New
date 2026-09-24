@@ -46,7 +46,7 @@ return [
         'global_notifications' => 'システム通知', 'versions' => 'バージョン',
         'zero_trust' => 'ゼロトラスト適用済み', 'root_authority' => '最高権限 · 全ルーム',
         'clearance' => 'スーパー管理者権限', 'toggle_sidebar' => 'メニューの折りたたみ / 展開',
-        'root_admin' => 'エンタープライズ最高管理者', 'logout' => 'ログアウト',
+        'logout' => 'ログアウト',
     ],
     'dashboard' => [
         'title' => 'グローバルシステムダッシュボード', 'eyebrow' => 'コアシステム · ライブテレメトリ',
@@ -62,6 +62,7 @@ return [
         'failed_login_events' => 'ログイン失敗とセキュリティイベント', 'global_change_history' => '全体変更履歴',
         'failed_jobs' => '失敗ジョブ', 'failed_jobs_description' => '失敗ジョブの再試行または削除',
         'active_rooms' => ':countルームが稼働中', 'active_users' => ':countユーザーが有効', 'failed_count' => ':count件失敗',
+        'storage_usage' => ':driver · 使用量 :used / :total', 'storage_usage_unknown' => ':driver · 容量を取得できません',
     ],
     'admins' => [
         'title' => '管理者と割り当て', 'description' => '管理者権限、アカウント状態、担当ルーム範囲を管理します。',

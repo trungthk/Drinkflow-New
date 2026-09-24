@@ -106,7 +106,8 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::patch('/campaigns/{campaign}/items/{item}/sizes/{option}', [\App\Http\Controllers\Admin\CampaignController::class, 'updateSize'])->name('admin.campaign-item-sizes.update');
     Route::delete('/campaigns/{campaign}/items/{item}/toppings/{option}', [\App\Http\Controllers\Admin\CampaignController::class, 'deleteTopping'])->name('admin.campaign-item-toppings.delete');
     Route::delete('/campaigns/{campaign}/items/{item}/sizes/{option}', [\App\Http\Controllers\Admin\CampaignController::class, 'deleteSize'])->name('admin.campaign-item-sizes.delete');
-    Route::post('/campaigns/{campaign}/close', [\App\Http\Controllers\Admin\CampaignController::class, 'close'])->name('admin.campaigns.close');
+    Route::get('/campaigns/{campaign}/close-summary', [\App\Http\Controllers\Admin\CampaignController::class, 'closeSummary'])->name('admin.campaigns.close-summary');
+    Route::post('/campaigns/{campaign}/close',[\App\Http\Controllers\Admin\CampaignController::class, 'close'])->name('admin.campaigns.close');
     Route::post('/crawler/preview', [\App\Http\Controllers\Admin\CrawlerController::class, 'preview'])
         ->middleware('throttle:crawler-preview')
         ->name('admin.crawler.preview');

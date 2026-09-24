@@ -9,6 +9,7 @@ import { initPublicLoading } from './public/loading';
 import { initGoToTop } from './public/go-to-top';
 import { initContactPage } from './public/contact';
 import { initTermsPage } from './public/terms';
+import { connectGuestRealtime } from './shared/realtime-reload';
 
 document.addEventListener('DOMContentLoaded', () => {
     initToastNotifications();
@@ -20,4 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initGoToTop();
     initContactPage();
     initTermsPage();
+    // Reload into the maintenance screen when maintenance starts.
+    connectGuestRealtime(document.body.dataset.realtimeUrl, 'public');
 });

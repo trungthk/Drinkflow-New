@@ -109,7 +109,6 @@ return [
         'back_at' => 'Hệ thống dự kiến hoạt động trở lại lúc :time.',
         'no_end' => 'Thời gian kết thúc chưa được thông báo. Trang sẽ tự kiểm tra lại định kỳ.',
         'refresh' => 'Kiểm tra lại', 'auto_retry_in' => 'Tự động kiểm tra lại sau',
-        'admin_login' => 'Đăng nhập dành cho siêu quản trị viên',
         'json_message' => 'Hệ thống đang bảo trì. Vui lòng thử lại sau.',
     ],
     '503' => [

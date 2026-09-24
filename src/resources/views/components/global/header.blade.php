@@ -83,6 +83,8 @@
           </div>
         </div>
 
+        <x-global.desktop-notify-toggle />
+
         <!-- Notification Action -->
         <div class="relative shrink-0">
           <button

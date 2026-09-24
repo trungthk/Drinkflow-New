@@ -36,22 +36,23 @@
                     <div><strong>{{ __('superadmin.dashboard.database') }}</strong><small id="database-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">database</span>
                 </div>
-                <div class="sa-health-row">
+                <a class="sa-health-row" href="{{ route('superadmin.queue.page') }}">
                     <div><strong>{{ __('superadmin.dashboard.queue') }}</strong><small id="queue-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">sync_alt</span>
-                </div>
-                <div class="sa-health-row">
+                </a>
+                <a class="sa-health-row" href="{{ route('superadmin.socket.page') }}">
                     <div><strong>Socket.IO</strong><small id="socket-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">hub</span>
-                </div>
-                <div class="sa-health-row">
+                </a>
+                <a class="sa-health-row" href="{{ route('superadmin.system.page') }}">
                     <div><strong>{{ __('superadmin.dashboard.mail') }}</strong><small id="mail-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">mail</span>
-                </div>
-                <div class="sa-health-row">
-                    <div><strong>{{ __('superadmin.dashboard.storage') }}</strong><small id="storage-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
+                </a>
+                <a class="sa-health-row" href="{{ route('superadmin.system.page') }}">
+                    <div><strong>{{ __('superadmin.dashboard.storage') }}</strong><small id="storage-status">{{ __('superadmin.dashboard.checking') }}</small><small
+                            id="storage-usage" class="sa-health-detail"></small></div><span
                         class="material-symbols-outlined">hard_drive</span>
-                </div>
+                </a>
                 <div class="sa-health-row" id="supervisor-row" hidden>
                     <div><strong>{{ __('superadmin.dashboard.supervisor') }}</strong><small id="supervisor-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">engineering</span>
@@ -81,6 +82,26 @@
 
 @push('scripts')
     <script>
+        const formatBytes = bytes => {
+            const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+            let value = Number(bytes) || 0;
+            let unit = 0;
+            while (value >= 1024 && unit < units.length - 1) {
+                value /= 1024;
+                unit++;
+            }
+            return `${new Intl.NumberFormat(document.documentElement.lang || undefined, { maximumFractionDigits: unit === 0 ? 0 : 1 }).format(value)} ${units[unit]}`;
+        };
+        const storageUsageText = storage => {
+            const driver = storage.driver || storage.disk || '';
+            if (storage.used_bytes == null || storage.total_bytes == null) {
+                return @js(__('superadmin.dashboard.storage_usage_unknown', ['driver' => '__DRIVER__'])).replace('__DRIVER__', driver);
+            }
+            return @js(__('superadmin.dashboard.storage_usage', ['driver' => '__DRIVER__', 'used' => '__USED__', 'total' => '__TOTAL__']))
+                .replace('__DRIVER__', driver)
+                .replace('__USED__', formatBytes(storage.used_bytes))
+                .replace('__TOTAL__', formatBytes(storage.total_bytes));
+        };
         dfApi('{{ route('superadmin.dashboard') }}').then(({
             data
         }) => {
@@ -98,6 +119,7 @@
             document.querySelector('#socket-status').title = health.socket.reason_message || '';
             document.querySelector('#mail-status').innerHTML = statusPill(health.mail.configured ? 'configured' : 'not_configured');
             document.querySelector('#storage-status').innerHTML = statusPill(health.storage.status);
+            document.querySelector('#storage-usage').textContent = storageUsageText(health.storage);
             if (health.supervisor) {
                 document.querySelector('#supervisor-row').hidden = false;
                 document.querySelector('#supervisor-status').innerHTML = statusPill(health.supervisor.status);

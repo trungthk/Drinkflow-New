@@ -59,6 +59,8 @@
 </head>
 <body data-submit-loading-text="{{ __('global.common.loading') }}" class="bg-[#F8FAFC] text-slate-800 antialiased min-h-screen flex flex-col justify-between selection:bg-emerald-100 selection:text-emerald-900"
       data-socket-token-url="{{ route('user.me.socket-token') }}"
+      data-notifications-url="{{ route('user.me.notifications') }}"
+      @if (app()->isLocal()) data-socket-debug @endif
       data-realtime-url="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}">
 
   <!-- Shared Global Header -->

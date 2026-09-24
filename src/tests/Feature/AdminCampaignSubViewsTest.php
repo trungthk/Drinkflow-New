@@ -11,6 +11,7 @@ use App\Enums\OrderStatus;
 use App\Events\CampaignCreated;
 use App\Models\AdminAccount;
 use App\Models\Campaign;
+use App\Models\CampaignParticipant;
 use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -1122,5 +1123,134 @@ class AdminCampaignSubViewsTest extends TestCase
         $this->actingAs($this->admin, 'admin')->postJson($url, ['payment_method' => 'transfer'])->assertOk()->assertJsonPath('data.count', 0);
         $this->assertSame(50000, $debt->fresh()->paid_amount);
         $this->assertSame(1, $debt->payments()->count());
+    }
+
+    /**
+     * Test the close-summary endpoint returns fresh item, money and member totals that ignore cancelled orders.
+     */
+    public function test_close_summary_returns_latest_counts_for_close_modal(): void
+    {
+        $this->campaign->update([
+            'status' => CampaignStatus::Active,
+            'code' => 'CMP-CLOSE',
+            'delivery_fee' => 15000,
+            'discount' => 5000,
+            'sponsor_type' => Campaign::SPONSOR_TYPE_PER_ITEM,
+        ]);
+        $url = "/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/close-summary";
+
+        $makeMember = fn (string $name, string $status = 'active'): RoomUser => RoomUser::create([
+            'room_id' => $this->room->id,
+            'global_user_id' => GlobalUser::create(['name' => $name, 'email' => str($name)->slug().'@example.test'])->id,
+            'display_name' => $name,
+            'status' => $status,
+        ]);
+        $alice = $makeMember('Alice');
+        $bob = $makeMember('Bob');
+        $carol = $makeMember('Carol');
+        $dave = $makeMember('Dave');
+        $makeMember('Erin');
+        $makeMember('Removed Member', 'removed');
+
+        $this->actingAs($this->admin, 'admin')->getJson($url)
+            ->assertOk()
+            ->assertJsonPath('data.code', 'CMP-CLOSE')
+            ->assertJsonPath('data.is_closable', true)
+            ->assertJsonPath('data.total_items', 0)
+            ->assertJsonPath('data.orders_count', 0)
+            ->assertJsonPath('data.ordered_users_count', 0)
+            ->assertJsonPath('data.pending_users_count', 5)
+            ->assertJsonPath('data.declined_users_count', 0)
+            ->assertJsonPath('data.total_users_count', 5);
+
+        // Orders placed after the page was rendered must show up the next time the modal opens.
+        $aliceOrder = Order::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id, 'room_user_id' => $alice->id,
+            'subtotal' => 100000, 'sponsor_amount' => 20000, 'final_amount' => 80000, 'status' => OrderStatus::Submitted,
+        ]);
+        $aliceOrder->items()->create(['item_name' => 'Trà đào', 'unit_price' => 30000, 'quantity' => 2, 'line_subtotal' => 60000]);
+        $aliceOrder->items()->create(['item_name' => 'Bánh', 'unit_price' => 40000, 'quantity' => 1, 'line_subtotal' => 40000, 'is_self_paid' => true]);
+        // Proxy order Alice placed for Bob.
+        $proxyOrder = Order::create([
+            'parent_id' => $aliceOrder->id, 'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id, 'room_user_id' => $bob->id,
+            'subtotal' => 90000, 'sponsor_amount' => 10000, 'final_amount' => 80000, 'status' => OrderStatus::Submitted,
+        ]);
+        $proxyOrder->items()->create(['item_name' => 'Trà đào', 'unit_price' => 30000, 'quantity' => 3, 'line_subtotal' => 90000]);
+        // Cancelled orders are ignored.
+        $cancelled = Order::create([
+            'room_id' => $this->room->id, 'campaign_id' => $this->campaign->id, 'room_user_id' => $carol->id,
+            'subtotal' => 30000, 'sponsor_amount' => 5000, 'final_amount' => 25000, 'status' => OrderStatus::Cancelled,
+        ]);
+        $cancelled->items()->create(['item_name' => 'Trà đào', 'unit_price' => 30000, 'quantity' => 1, 'line_subtotal' => 30000]);
+        CampaignParticipant::create([
+            'campaign_id' => $this->campaign->id, 'room_user_id' => $dave->id,
+            'status' => CampaignParticipant::STATUS_DECLINED, 'declined_at' => now(),
+        ]);
+
+        $this->actingAs($this->admin, 'admin')->getJson($url)
+            ->assertOk()
+            ->assertJsonPath('data.own_items', 2)
+            ->assertJsonPath('data.proxy_items', 3)
+            ->assertJsonPath('data.self_paid_items', 1)
+            ->assertJsonPath('data.total_items', 6)
+            ->assertJsonPath('data.gross_subtotal', 190000)
+            ->assertJsonPath('data.discount_total', 5000)
+            ->assertJsonPath('data.extra_fee_total', 15000)
+            ->assertJsonPath('data.sponsor_total', 30000)
+            ->assertJsonPath('data.final_total', 170000)
+            ->assertJsonPath('data.orders_count', 2)
+            ->assertJsonPath('data.ordered_users_count', 2)
+            ->assertJsonPath('data.pending_users_count', 2)
+            ->assertJsonPath('data.declined_users_count', 1)
+            ->assertJsonPath('data.total_users_count', 5);
+
+        $this->campaign->update(['status' => CampaignStatus::Closed]);
+
+        $this->actingAs($this->admin, 'admin')->getJson($url)
+            ->assertOk()
+            ->assertJsonPath('data.is_closable', false);
+    }
+
+    /**
+     * Test the close-summary endpoint cannot read campaigns from another room.
+     */
+    public function test_close_summary_is_scoped_to_the_current_room(): void
+    {
+        $otherRoom = Room::create(['name' => 'Other Room', 'slug' => 'other-room', 'status' => 'active']);
+        $otherCampaign = Campaign::create([
+            'room_id' => $otherRoom->id,
+            'status' => CampaignStatus::Active,
+            'name' => 'Other campaign',
+            'restaurant' => 'Phuc Long',
+        ]);
+
+        $this->actingAs($this->admin, 'admin')
+            ->getJson("/admin/{$this->room->slug}/campaigns/{$otherCampaign->id}/close-summary")
+            ->assertNotFound();
+    }
+
+    /**
+     * Test the info page and the dashboard share the same close-campaign modal.
+     */
+    public function test_info_page_and_dashboard_render_shared_close_campaign_modal(): void
+    {
+        $this->campaign->update(['status' => CampaignStatus::Active, 'deadline' => now()->addHour()]);
+        $summaryUrl = route('admin.campaigns.close-summary', [$this->room, '__CAMPAIGN__']);
+
+        $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/info")
+            ->assertOk()
+            ->assertSee('data-close-campaign-modal', false)
+            ->assertSee('data-summary-url-template="'.$summaryUrl.'"', false)
+            ->assertSee('data-close-campaign-open data-campaign-id="'.$this->campaign->id.'"', false)
+            ->assertDontSee('id="close-confirm-modal"', false);
+
+        $this->actingAs($this->admin, 'admin')
+            ->get("/admin/{$this->room->slug}/dashboard")
+            ->assertOk()
+            ->assertSee('data-close-campaign-modal', false)
+            ->assertSee('data-summary-url-template="'.$summaryUrl.'"', false)
+            ->assertSee(__('admin.close_campaign_confirm_modal_title'))
+            ->assertDontSee('id="close-campaign-modal"', false);
     }
 }

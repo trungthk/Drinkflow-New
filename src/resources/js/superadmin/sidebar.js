@@ -15,9 +15,27 @@ const syncToggleIcons = (collapsed) => {
     });
 };
 
+/**
+ * Keep the collapsed-sidebar tooltip (.superadmin-nav-tooltip, position: fixed) vertically aligned with the
+ * hovered or focused menu link, since the nav itself scrolls.
+ */
+const initNavTooltips = () => {
+    const place = (event) => {
+        const link = event.target.closest?.('.superadmin-nav a');
+        if (!link) return;
+        const rect = link.getBoundingClientRect();
+        link.style.setProperty('--sa-tooltip-top', `${rect.top + rect.height / 2}px`);
+    };
+    const nav = document.querySelector('.superadmin-nav');
+    nav?.addEventListener('mouseover', place);
+    nav?.addEventListener('focusin', place);
+};
+
 export function initSuperadminSidebar() {
     const toggles = document.querySelectorAll('[data-sidebar-toggle]');
     if (toggles.length === 0) return;
+
+    initNavTooltips();
 
     syncToggleIcons(document.documentElement.classList.contains('sa-sidebar-collapsed'));
 

@@ -70,8 +70,9 @@
                 <span class="superadmin-nav-label">{{ $sectionLabel }}</span>
                 @foreach ($links as [$key, $routeName, $icon, $labelKey])
                     <a class="{{ ($active ?? '') === $key ? 'is-active' : '' }}" href="{{ route($routeName) }}"
-                        title="{{ __($labelKey) }}"><span class="material-symbols-outlined">{{ $icon }}</span><span
-                            class="superadmin-nav-text">{{ __($labelKey) }}</span></a>
+                        aria-label="{{ __($labelKey) }}"><span class="material-symbols-outlined">{{ $icon }}</span><span
+                            class="superadmin-nav-text">{{ __($labelKey) }}</span><span class="superadmin-nav-tooltip"
+                            aria-hidden="true">{{ __($labelKey) }}</span></a>
                 @endforeach
             @endforeach
         </nav>
@@ -91,7 +92,7 @@
             <div class="superadmin-clearance"><span class="material-symbols-outlined">verified</span>{{ __('superadmin.layout.clearance') }}</div>
             <div class="superadmin-profile">
                 <x-superadmin.notification-bell :notifications="$headerNotifications" :presentations="$headerNotificationPresentations" :unread-count="$headerUnreadCount" />
-                <div><strong>{{ request()->user('admin')->name }}</strong><small>{{ __('superadmin.layout.root_admin') }}</small></div>
+                <div><strong>{{ request()->user('admin')->name }}</strong><small>{{ request()->user('admin')->email }}</small></div>
                 <div class="superadmin-avatar">{{ strtoupper(substr(request()->user('admin')->name, 0, 1)) }}</div>
                 <button type="button" title="{{ __('superadmin.layout.logout') }}" aria-label="{{ __('superadmin.layout.logout') }}"
                     class="icon-button" data-modal-open="superadmin-logout-modal"><span class="material-symbols-outlined">logout</span></button>

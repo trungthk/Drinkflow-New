@@ -88,7 +88,6 @@ return [
         'root_authority' => 'Root authority · all rooms',
         'clearance' => 'Superadmin Clearance',
         'toggle_sidebar' => 'Collapse / Expand menu',
-        'root_admin' => 'Enterprise Root Admin',
         'logout' => 'Log out',
     ],
     'dashboard' => [
@@ -121,6 +120,7 @@ return [
         'active_rooms' => ':count rooms active',
         'active_users' => ':count users active',
         'failed_count' => ':count failed',
+        'storage_usage' => ':driver · :used used / :total', 'storage_usage_unknown' => ':driver · Capacity unavailable',
     ],
     'admins' => [
         'title' => 'Admins & Assignments',

@@ -9,12 +9,15 @@ use App\Events\CampaignClosed;
 use App\Events\CampaignCreated;
 use App\Events\CampaignDelivering;
 use App\Events\CampaignUpdated;
+use App\Events\ForceReloadRequested;
+use App\Events\MaintenanceStateChanged;
 use App\Events\OrderCreated;
 use App\Events\OrderDeleted;
 use App\Events\OrderUpdated;
 use App\Events\RoomMembershipUpdated;
 use App\Events\RoomRealtimeEvent;
 use App\Events\UserNotificationCreated;
+use App\Services\System\SystemSettingsService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Http;
@@ -122,6 +125,8 @@ class PublishRealtimeEvent implements ShouldQueue
                     'type' => $event->notification->type,
                     'title' => $event->notification->title,
                     'body' => $event->notification->body,
+                    // Opened when the user clicks the desktop notification (null → the page's notifications list).
+                    'link' => $event->notification->link,
                     'data' => $event->notification->data ?? [],
                 ],
                 'global_user:'.$event->notification->global_user_id,
@@ -135,6 +140,18 @@ class PublishRealtimeEvent implements ShouldQueue
                     'status' => $event->roomUser->status->value,
                 ],
                 'global_user:'.$event->roomUser->global_user_id,
+            ],
+            $event instanceof ForceReloadRequested => [
+                'session.force_reload',
+                0,
+                ['reason' => $event->reason],
+                $event->channel,
+            ],
+            $event instanceof MaintenanceStateChanged => [
+                'system.maintenance',
+                0,
+                $this->maintenancePayload(),
+                null,
             ],
             default => [null, null, [], null],
         };
@@ -163,6 +180,25 @@ class PublishRealtimeEvent implements ShouldQueue
 
             throw $exception;
         }
+    }
+
+    /**
+     * Build the `system.maintenance` payload from the maintenance state at publish time.
+     *
+     * Uses a relative `starts_in` (seconds) instead of a timestamp so clients with a skewed clock or another
+     * timezone still schedule their reload at the right moment.
+     *
+     * @return array{active: bool, scheduled: bool, starts_in: int|null}
+     */
+    private function maintenancePayload(): array
+    {
+        $state = app(SystemSettingsService::class)->maintenanceState();
+
+        return [
+            'active' => $state['active'],
+            'scheduled' => $state['scheduled'],
+            'starts_in' => $state['scheduled'] && $state['starts'] ? max(0, (int) now()->diffInSeconds($state['starts'])) : null,
+        ];
     }
 
     /**

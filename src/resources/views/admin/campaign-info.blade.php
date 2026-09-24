@@ -168,45 +168,6 @@
                 }
             };
 
-            // ----- Close Campaign -----
-            let isClosing = false;
-            window.executeCloseCampaign = async function () {
-                if (isClosing) return;
-                isClosing = true;
-                const allowDebt = document.getElementById('close-campaign-allow-debt')?.checked ?? false;
-                const btn = document.getElementById('execute-close-campaign-btn');
-                if (btn) {
-                    btn.disabled = true;
-                    btn.innerHTML = `<span class="flex items-center gap-2"><svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg><span>{{ __('admin.closing_in_progress') }}</span></span>`;
-                }
-
-                try {
-                    const response = await fetch('{{ route('admin.campaigns.close', [$room, $campaign]) }}', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ allow_debt: allowDebt })
-                    });
-                    const res = await response.json();
-                    if (!response.ok) throw new Error(res.message || '{{ __('admin.close_campaign_failed') }}');
-
-                    if (window.notify) window.notify('{{ __('admin.campaign_closed_success') }}', 'success');
-                    closeModal('close-confirm-modal');
-                    window.location.reload();
-                } catch (err) {
-                    if (window.notify) window.notify(err.message, 'error');
-                    else alert(err.message);
-                    isClosing = false;
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">lock</span><span>{{ __('admin.confirm_close_campaign_btn_text') }}</span>`;
-                    }
-                }
-            };
-
             // ----- Duplicate Campaign -----
             let isDuplicating = false;
             window.executeDuplicateCampaign = async function () {
@@ -542,7 +503,7 @@
                                     <span class="material-symbols-outlined text-[18px]">campaign</span>
                                     <span>{{ __('admin.resend_notification') }}</span>
                                 </button>
-                                <button type="button" onclick="openModal('close-confirm-modal');"
+                                <button type="button" data-close-campaign-open data-campaign-id="{{ $campaign->id }}"
                                     class="w-full h-10 px-4 rounded-xl border border-amber-300 bg-amber-50/60 hover:bg-amber-50 text-amber-700 text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer">
                                     <span class="material-symbols-outlined text-[18px]">lock_clock</span>
                                     <span>{{ __('admin.close_campaign_action') }}</span>
@@ -917,63 +878,9 @@
         </div>
 
         <!-- MODAL: CLOSE CAMPAIGN SUMMARY & CONFIRM -->
-        <div id="close-confirm-modal" class="fixed inset-0 z-50 items-center justify-center p-4 bg-black/50 backdrop-blur-xs" style="display: none;" onclick="closeModalOnBackdrop(event, 'close-confirm-modal')">
-            <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col">
-                <div class="p-5 border-b border-outline-variant/60 flex items-center justify-between bg-surface-container-low">
-                    <div class="flex items-center gap-2.5">
-                        <span class="w-9 h-9 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
-                            <span class="material-symbols-outlined text-[22px]">lock_clock</span>
-                        </span>
-                        <div>
-                            <h3 class="text-base font-bold text-on-surface">{{ __('admin.close_campaign_confirm_modal_title') }}</h3>
-                            <p class="text-xs text-outline font-mono font-code">#{{ $campaign->code }} · {{ $campaign->name }}</p>
-                        </div>
-                    </div>
-                    <button type="button" onclick="closeModal('close-confirm-modal')" class="text-outline hover:text-on-surface cursor-pointer">
-                        <span class="material-symbols-outlined text-[20px]">close</span>
-                    </button>
-                </div>
-
-                <div class="p-5 space-y-4 text-xs">
-                    <div class="bg-surface-container-low border border-outline-variant/60 rounded-xl p-4 space-y-3">
-                        <div class="flex items-center justify-between pb-2 border-b border-outline-variant/40">
-                            <span class="text-outline font-medium">{{ __('admin.restaurant_name') }}</span>
-                            <span class="font-bold text-on-surface">{{ $campaign->restaurant }}</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 py-1">
-                            <div class="flex flex-col">
-                                <span class="text-outline">{{ __('admin.ordered_members_label') }}</span>
-                                <span class="text-sm font-bold text-on-surface mt-0.5">{{ $orderedUsersCount }} / {{ $totalUsersCount }} {{ __('admin.member') }}</span>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-outline">{{ __('admin.total_items_ordered_label') }}</span>
-                                <span class="text-sm font-bold text-primary mt-0.5">{{ collect($aggregatedItems)->sum('quantity') }} {{ __('admin.portions') }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <label class="flex items-start gap-3 p-3 bg-surface rounded-xl border border-outline-variant/60 cursor-pointer hover:bg-surface-container transition-colors select-none">
-                        <input type="checkbox" id="close-campaign-allow-debt" checked class="mt-0.5 rounded border-outline-variant text-primary focus:ring-primary h-4 w-4">
-                        <div class="flex flex-col">
-                            <span class="font-bold text-on-surface">{{ __('admin.auto_record_debts_label') }}</span>
-                            <span class="text-[11px] text-outline mt-0.5 leading-relaxed">{{ __('admin.auto_record_debts_desc') }}</span>
-                        </div>
-                    </label>
-
-                    <div class="pt-3 border-t border-outline-variant/60 flex items-center justify-end gap-2">
-                        <button type="button" onclick="closeModal('close-confirm-modal')"
-                            class="px-4 py-2.5 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors cursor-pointer">
-                            {{ __('admin.cancel') }}
-                        </button>
-                        <button type="button" id="execute-close-campaign-btn" onclick="executeCloseCampaign()"
-                            class="px-4 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold flex items-center gap-2 transition-colors cursor-pointer shadow-xs">
-                            <span class="material-symbols-outlined text-[18px]">lock</span>
-                            <span>{{ __('admin.confirm_close_campaign_btn_text') }}</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @if ($isCampaignLive)
+            <x-admin.close-campaign-modal :room="$room" />
+        @endif
 
         <!-- MODAL: CONFIRM ITEMS ARRIVED -->
         <div id="confirm-delivery-modal" class="fixed inset-0 z-50 items-center justify-center p-4 bg-black/50 backdrop-blur-xs" style="display: none;" onclick="closeModalOnBackdrop(event, 'confirm-delivery-modal')">

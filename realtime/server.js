@@ -41,8 +41,13 @@ const secret = process.env.SOCKET_TOKEN_SECRET || process.env.APP_KEY || '';
 const internalSecret = process.env.REALTIME_INTERNAL_SECRET || '';
 if (!secret) throw new Error('SOCKET_TOKEN_SECRET or APP_KEY is required (check .env in realtime/ or src/)');
 const maxBodyBytes = 256 * 1024;
-// Events addressed to a single user (see PublishRealtimeEvent): delivered on user_channel only.
-const privateEvents = new Set(['notification.created', 'room.membership.updated']);
+// Events addressed to a single user or trusted device (see PublishRealtimeEvent): delivered on user_channel only.
+const privateEvents = new Set(['notification.created', 'room.membership.updated', 'session.force_reload']);
+// Events for every connected page, including anonymous public visitors: delivered on the `public` channel only.
+const broadcastEvents = new Set(['system.maintenance']);
+// Events that are not tied to a room, so they are sent with room_id 0.
+const roomlessEvents = new Set(['notification.created', 'session.force_reload', 'system.maintenance']);
+const userChannelPattern = /^(?:(?:user|global_user):\d+|device:[A-Za-z0-9-]{1,128})$/;
 
 const decode = value => Buffer.from(value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - value.length % 4) % 4), 'base64').toString('utf8');
 const verify = token => {
@@ -93,16 +98,21 @@ const httpServer = createServer((req, res) => {
           'campaign.created', 'campaign.updated', 'campaign.deleted', 'campaign.closed',
           'campaign.cancelled', 'campaign.delivering',
           'campaign.menu.updated', 'campaign.menu.deleted', 'campaign.participant.declined', 'campaign.participant.rejoined', 'notification.created',
-          'room.membership.updated'
+          'room.membership.updated', 'session.force_reload', 'system.maintenance'
         ]);
         const roomId = Number(input.room_id);
-        const requiresRoom = input.event !== 'notification.created';
+        const requiresRoom = !roomlessEvents.has(input.event);
         if (!allowedEvents.has(input.event) || typeof input.room_id !== 'number' || !Number.isSafeInteger(roomId) || (requiresRoom && roomId < 1) || (!requiresRoom && roomId < 0)) {
           res.writeHead(422, { 'Content-Type': 'application/json' });
           return res.end(JSON.stringify({ error: 'invalid_event' }));
         }
         const payload = input.payload && typeof input.payload === 'object' && !Array.isArray(input.payload) ? input.payload : {};
-        const userChannel = typeof input.user_channel === 'string' && /^(?:user|global_user):\d+$/.test(input.user_channel) ? input.user_channel : null;
+        const userChannel = typeof input.user_channel === 'string' && userChannelPattern.test(input.user_channel) ? input.user_channel : null;
+        if (broadcastEvents.has(input.event)) {
+          io.to('public').emit(input.event, payload);
+          res.writeHead(202, { 'Content-Type': 'application/json' });
+          return res.end(JSON.stringify({ delivered: true }));
+        }
         // Private events belong to one user only: never fan them out to the whole room, otherwise
         // every member receives other members' notifications / membership changes.
         if (privateEvents.has(input.event)) {
@@ -136,15 +146,17 @@ const httpServer = createServer((req, res) => {
   let connectedUsers = 0;
   let connectedAdmins = 0;
   let connectedSuperadmins = 0;
+  let connectedGuests = 0;
   for (const socket of io?.of('/').sockets.values() || []) {
     const claims = socket.data.claims || {};
     if (claims.actor_type === 'user') connectedUsers += 1;
     if (claims.actor_type === 'admin') connectedAdmins += 1;
     if (claims.actor_type === 'superadmin') connectedSuperadmins += 1;
+    if (claims.actor_type === 'guest') connectedGuests += 1;
     for (const roomId of claims.room_ids || (claims.room_id ? [claims.room_id] : [])) connectionsByRoom[roomId] = (connectionsByRoom[roomId] || 0) + 1;
   }
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ connected_users: connectedUsers, connected_admins: connectedAdmins, connected_superadmins: connectedSuperadmins, connections_by_room: connectionsByRoom, recent_disconnects: recentDisconnects, authentication_failures: authenticationFailures }));
+  res.end(JSON.stringify({ connected_users: connectedUsers, connected_admins: connectedAdmins, connected_superadmins: connectedSuperadmins, connected_guests: connectedGuests, connected_guests: connectedGuests, connections_by_room: connectionsByRoom, recent_disconnects: recentDisconnects, authentication_failures: authenticationFailures }));
 });
 const io = new Server(httpServer, { cors: { origin: process.env.CORS_ORIGIN || '*', credentials: true } });
 
@@ -156,7 +168,11 @@ function secretsMatch(candidate) {
 }
 
 io.use((socket, next) => {
-  const claims = verify(socket.handshake.auth?.token || socket.handshake.headers.authorization?.replace(/^Bearer\s+/i, ''));
+  const rawToken = socket.handshake.auth?.token || socket.handshake.headers.authorization?.replace(/^Bearer\s+/i, '');
+  // No token at all: an anonymous visitor (public pages, admin pages without a room) that may only
+  // join the `public` channel, which carries nothing but system-wide notices such as maintenance.
+  if (!rawToken) { socket.data.claims = { actor_type: 'guest' }; return next(); }
+  const claims = verify(rawToken);
   if (!claims) { authenticationFailures += 1; return next(new Error('Invalid or expired socket token')); }
   socket.data.claims = claims;
   next();
@@ -165,8 +181,11 @@ io.use((socket, next) => {
 io.on('connection', socket => {
   const claims = socket.data.claims;
   const allowed = new Set();
+  // Everyone except superadmins (who bypass maintenance) hears system-wide notices.
+  if (claims.actor_type !== 'superadmin') allowed.add('public');
   if (claims.actor_type === 'user' && Number.isInteger(Number(claims.room_user_id))) allowed.add(`user:${claims.room_user_id}`);
   if (claims.actor_type === 'user' && Number.isInteger(Number(claims.global_user_id))) allowed.add(`global_user:${claims.global_user_id}`);
+  if (claims.actor_type === 'user' && typeof claims.device_uuid === 'string' && /^[A-Za-z0-9-]{1,128}$/.test(claims.device_uuid)) allowed.add(`device:${claims.device_uuid}`);
   if (claims.actor_type === 'admin') allowed.add(`admin:${claims.admin_id}`);
   if (claims.actor_type === 'superadmin') { allowed.add('superadmin'); allowed.add('system'); }
   for (const roomId of claims.room_ids || (claims.room_id ? [claims.room_id] : [])) allowed.add(`room:${roomId}`);

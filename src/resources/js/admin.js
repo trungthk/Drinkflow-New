@@ -12,6 +12,7 @@ import { initAdminAudit } from './admin/audit';
 import { initAdminCampaigns } from './admin/campaigns';
 import { campaignCreateComponent } from './admin/campaign-create';
 import { initAdminCampaignDetail } from './admin/campaign-detail';
+import { initCloseCampaignModal } from './admin/close-campaign-modal';
 import { initAdminDashboard } from './admin/dashboard';
 import { initAdminDebts } from './admin/debts';
 import { initAdminNotifications } from './admin/notifications';
@@ -20,6 +21,7 @@ import { initAdminReports } from './admin/reports';
 import { initAdminSettings } from './admin/settings';
 import { initAdminUsers } from './admin/users';
 import { initAdminLoading, initAdminReloadButtons } from './admin/loading';
+import { connectGuestRealtime } from './shared/realtime-reload';
 
 export {
     initAdminGoToTop,
@@ -32,6 +34,7 @@ export {
     initAdminCampaigns,
     campaignCreateComponent,
     initAdminCampaignDetail,
+    initCloseCampaignModal,
     initAdminDashboard,
     initAdminDebts,
     initAdminNotifications,
@@ -65,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminAudit();
     initAdminCampaigns();
     initAdminCampaignDetail();
+    initCloseCampaignModal();
     initAdminDashboard();
     initAdminDebts();
     initAdminNotifications();
@@ -74,4 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminUsers();
     initAdminLoading();
     initAdminReloadButtons();
+    // Every admin page (not only the dashboard) reloads into the maintenance screen when it starts.
+    connectGuestRealtime(document.body.dataset.maintenanceRealtimeUrl, 'admin');
 });

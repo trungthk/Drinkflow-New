@@ -9,6 +9,7 @@ import { initCampaignOrder } from './room/campaign-order';
 import { initGlobalGoToTop } from './global/go-to-top';
 import { initGlobalLoading } from './global/loading';
 import { initRoomRealtime } from './room/realtime';
+import { initDesktopNotifications } from './global/desktop-notification';
 import { initCampaignDecline } from './room/campaign-decline';
 import { initRoomHeader } from './room/header';
 import { initRoomDashboardCharts } from './room/dashboard-charts';
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCampaignOrder();
     initGlobalGoToTop();
     initGlobalLoading();
+    initDesktopNotifications();
     initRoomRealtime();
     initCampaignDecline();
     initRoomHeader();

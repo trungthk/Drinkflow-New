@@ -1,5 +1,13 @@
-/** Connect room pages to data-changing realtime events and refresh stale server-rendered views. */
+/**
+ * Connect room pages to realtime events. Most events never reload the page: user notifications show a desktop
+ * notification, and data events are re-dispatched as a window `realtime-event` for pages that update in place.
+ * Only access changes reload (device revoked, account deleted, blocked/removed from a room, maintenance).
+ */
 import { showDesktopNotification } from '../global/desktop-notification';
+import { attachSocketDebugLogger } from '../shared/socket-debug';
+import { connectGuestRealtime, listenForcedReload } from '../shared/realtime-reload';
+
+const RELOAD_MEMBERSHIP_STATUSES = ['blocked', 'removed'];
 
 export function initRoomRealtime() {
     if (!window.io) return;
@@ -10,17 +18,23 @@ export function initRoomRealtime() {
 
     fetch(tokenUrl, { headers: { Accept: 'application/json' }, credentials: 'same-origin' })
         .then(async (response) => ({ ok: response.ok, payload: await response.json() }))
+        .catch(() => ({ ok: false, payload: null }))
         .then(({ ok, payload }) => {
             const token = payload?.data?.token;
-            if (!ok || !token) return;
+            // No room token: still hear maintenance notices.
+            if (!ok || !token) {
+                connectGuestRealtime(realtimeUrl, 'room');
+                return;
+            }
 
             const socket = window.io(realtimeUrl, { auth: { token }, transports: ['websocket', 'polling'] });
-            const refresh = () => window.location.reload();
+            attachSocketDebugLogger(socket, 'room');
+            listenForcedReload(socket);
             [
                 'campaign.created', 'campaign.updated', 'campaign.deleted', 'campaign.closed',
-                'campaign.menu.updated', 'campaign.menu.deleted'
-            ].forEach((event) => socket.on(event, refresh));
-            ['debt.payment_approved', 'order.payment_approved'].forEach((event) => {
+                'campaign.menu.updated', 'campaign.menu.deleted',
+                'debt.payment_approved', 'order.payment_approved',
+            ].forEach((event) => {
                 socket.on(event, (eventPayload) => {
                     window.dispatchEvent(new CustomEvent('realtime-event', {
                         detail: { name: event, payload: eventPayload }
@@ -29,14 +43,8 @@ export function initRoomRealtime() {
             });
             socket.on('notification.created', showDesktopNotification);
             socket.on('room.membership.updated', (payload) => {
-                if (payload?.status === 'removed') {
-                    socket.disconnect();
-                    window.location.assign('/me');
-                    return;
-                }
-
-                refresh();
+                // Blocked/removed members lose access: reload so the server shows the right page.
+                if (RELOAD_MEMBERSHIP_STATUSES.includes(payload?.status)) window.location.reload();
             });
-        })
-        .catch(() => undefined);
+        });
 }

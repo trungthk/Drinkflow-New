@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\Admin;
 
+use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\Campaign;
 use App\Models\CampaignParticipant;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Room;
 
 class AdminCampaignDetailService
@@ -228,6 +230,78 @@ class AdminCampaignDetailService
             'paidViaQr' => $paidViaQr,
             'memberDebt' => $memberDebt,
             'sponsorsList' => $sponsorsList,
+        ];
+    }
+
+    /**
+     * Build the fresh summary shown in the close-campaign confirmation modal.
+     *
+     * Uses the same rules as getCampaignViewData() (cancelled orders excluded, only active room members
+     * counted, same sponsor/total formulas) but only loads the columns it needs, because the modal
+     * re-fetches it every time an admin opens it.
+     *
+     * Item groups do not overlap: proxy items live in child orders (parent_id set) and can never be
+     * self-paid, self-paid items are flagged per item, and own items are everything else.
+     *
+     * @param Room $room Room that owns the campaign.
+     * @param Campaign $campaign Campaign about to be closed.
+     * @return array<string, int|string|bool|null> Campaign identity, item/member counts and money totals (VND).
+     */
+    public function getCloseSummary(Room $room, Campaign $campaign): array
+    {
+        $campaign->refresh();
+
+        $orders = $campaign->orders()
+            ->where('status', '!=', OrderStatus::Cancelled->value)
+            ->whereNull('cancelled_at')
+            ->get(['id', 'parent_id', 'room_user_id', 'subtotal', 'sponsor_amount']);
+        $proxyOrderIds = $orders->whereNotNull('parent_id')->pluck('id')->all();
+        $items = OrderItem::query()
+            ->whereIn('order_id', $orders->pluck('id'))
+            ->get(['order_id', 'quantity', 'is_self_paid']);
+
+        $proxyItems = (int) $items->whereIn('order_id', $proxyOrderIds)->sum('quantity');
+        $selfPaidItems = (int) $items->whereNotIn('order_id', $proxyOrderIds)->where('is_self_paid', true)->sum('quantity');
+        $totalItems = (int) $items->sum('quantity');
+
+        $activeRoomUserIds = $room->roomUsers()->where('status', RoomUserStatus::Active)->pluck('id');
+        $orderedUserIds = $orders->pluck('room_user_id')->filter()->unique();
+        $declinedUsersCount = CampaignParticipant::query()
+            ->where('campaign_id', $campaign->id)
+            ->where('status', CampaignParticipant::STATUS_DECLINED)
+            ->whereIn('room_user_id', $activeRoomUserIds)
+            ->whereNotIn('room_user_id', $orderedUserIds)
+            ->distinct()
+            ->count('room_user_id');
+        $pendingUsersCount = max(0, $activeRoomUserIds->diff($orderedUserIds)->count() - $declinedUsersCount);
+
+        $grossSubtotal = (int) $orders->sum('subtotal');
+        $deliveryFee = (int) ($campaign->delivery_fee ?? 0);
+        $discount = (int) ($campaign->discount ?? 0);
+        $grossTotal = max(0, $grossSubtotal + $deliveryFee - $discount);
+        $sponsorTotal = $campaign->sponsor_type === Campaign::SPONSOR_TYPE_FULL
+            ? $grossTotal
+            : (int) $orders->sum('sponsor_amount');
+
+        return [
+            'id' => (int) $campaign->id,
+            'code' => $campaign->code,
+            'name' => (string) $campaign->name,
+            'is_closable' => in_array($campaign->status, [CampaignStatus::Active, CampaignStatus::Closing], true),
+            'own_items' => $totalItems - $proxyItems - $selfPaidItems,
+            'proxy_items' => $proxyItems,
+            'self_paid_items' => $selfPaidItems,
+            'total_items' => $totalItems,
+            'gross_subtotal' => $grossSubtotal,
+            'discount_total' => $discount,
+            'extra_fee_total' => $deliveryFee,
+            'sponsor_total' => $sponsorTotal,
+            'final_total' => max(0, $grossTotal - $sponsorTotal),
+            'orders_count' => $orders->count(),
+            'ordered_users_count' => $orderedUserIds->count(),
+            'pending_users_count' => $pendingUsersCount,
+            'declined_users_count' => $declinedUsersCount,
+            'total_users_count' => $activeRoomUserIds->count(),
         ];
     }
 

@@ -46,6 +46,17 @@ class GlobalNotificationsTest extends TestCase
         $response->assertSee('Chiến dịch mới mở: Friday Coffee');
     }
 
+    public function test_global_header_renders_translated_desktop_notification_toggle(): void
+    {
+        $user = GlobalUser::create(['name' => 'Toggle User', 'normalized_name' => 'TOGGLE USER', 'email' => 'toggle@company.com', 'status' => 'active']);
+
+        $this->actingAs($user, 'web')->get('/me/notifications')
+            ->assertOk()
+            ->assertSee('data-desktop-notify-toggle', false)
+            ->assertSee(__('global.header.desktop_notify_enable'))
+            ->assertSee('data-notifications-url="'.route('user.me.notifications').'"', false);
+    }
+
     public function test_user_can_filter_notifications_by_tab(): void
     {
         $user = GlobalUser::create([

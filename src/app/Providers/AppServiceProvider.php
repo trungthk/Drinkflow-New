@@ -18,6 +18,8 @@ use App\Events\OrderDeleted;
 use App\Events\RoomRealtimeEvent;
 use App\Events\RoomMembershipUpdated;
 use App\Events\UserNotificationCreated;
+use App\Events\ForceReloadRequested;
+use App\Events\MaintenanceStateChanged;
 use App\Listeners\CreateOrderNotification;
 use App\Listeners\NotifyProxyOrderRecipients;
 use App\Listeners\CreateOrderStatusNotification;
@@ -80,6 +82,8 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(RoomRealtimeEvent::class, PublishRealtimeEvent::class);
         Event::listen(RoomMembershipUpdated::class, PublishRealtimeEvent::class);
         Event::listen(UserNotificationCreated::class, PublishRealtimeEvent::class);
+        Event::listen(ForceReloadRequested::class, PublishRealtimeEvent::class);
+        Event::listen(MaintenanceStateChanged::class, PublishRealtimeEvent::class);
 
         \Illuminate\Support\Facades\RateLimiter::for('campaign-resend-notification', function (\Illuminate\Http\Request $request) {
             $campaign = $request->route('campaign');

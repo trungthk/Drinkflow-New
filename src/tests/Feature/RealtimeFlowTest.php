@@ -104,6 +104,21 @@ class RealtimeFlowTest extends TestCase
             && $request['payload']['id'] === $notification->id);
     }
 
+    /** The desktop notification opens the notification's own link, so it must travel in the socket payload. */
+    public function test_user_notification_realtime_payload_carries_its_link(): void
+    {
+        config()->set('services.realtime.url', 'http://realtime.test');
+        config()->set('services.realtime.internal_secret', 'test-secret');
+        Http::fake(['http://realtime.test/internal/emit' => Http::response(['delivered' => true], 202)]);
+        $user = GlobalUser::create(['name' => 'Linked', 'normalized_name' => 'LINKED', 'email' => 'linked@example.com']);
+        $notification = UserNotification::create(['global_user_id' => $user->id, 'type' => 'admin.broadcast', 'title' => 'News', 'body' => 'Hi', 'link' => '/me/orders', 'data' => []]);
+
+        app(PublishRealtimeEvent::class)->handle(new UserNotificationCreated($notification));
+
+        Http::assertSent(fn ($request): bool => $request['event'] === 'notification.created'
+            && $request['payload']['link'] === '/me/orders');
+    }
+
     /** A room-scoped notification must still never be fanned out to the room channel (other members). */
     public function test_room_scoped_user_notification_is_not_sent_to_the_room_channel(): void
     {

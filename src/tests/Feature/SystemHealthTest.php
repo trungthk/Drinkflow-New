@@ -32,6 +32,27 @@ class SystemHealthTest extends TestCase
 
         $this->assertSame('ok', $result['status']);
         $this->assertSame(config('filesystems.default'), $result['disk']);
+        $this->assertSame(config('filesystems.disks.'.config('filesystems.default').'.driver'), $result['driver']);
+    }
+
+    public function test_storage_health_check_reports_capacity_of_a_local_disk(): void
+    {
+        $result = app(StorageHealthService::class)->check();
+
+        $this->assertIsInt($result['total_bytes']);
+        $this->assertGreaterThan(0, $result['total_bytes']);
+        $this->assertSame($result['total_bytes'], $result['used_bytes'] + $result['free_bytes']);
+    }
+
+    public function test_dashboard_health_rows_link_to_their_detail_pages(): void
+    {
+        $this->actingAs($this->superadmin(), 'admin')
+            ->get(route('superadmin.dashboard'))
+            ->assertOk()
+            ->assertSee('<a class="sa-health-row" href="'.route('superadmin.queue.page').'">', false)
+            ->assertSee('<a class="sa-health-row" href="'.route('superadmin.socket.page').'">', false)
+            ->assertSee('<a class="sa-health-row" href="'.route('superadmin.system.page').'">', false)
+            ->assertSee('id="storage-usage"', false);
     }
 
     public function test_mail_health_check_reports_not_configured_for_the_log_driver(): void

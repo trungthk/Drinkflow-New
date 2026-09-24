@@ -16,14 +16,19 @@ use Illuminate\Support\Str;
 
 class SocketTokenService
 {
+    /** Trusted device UUIDs accepted in tokens (also enforced by the realtime server's `device:` channel). */
+    private const DEVICE_UUID_PATTERN = '/^[A-Za-z0-9-]{1,128}$/';
+
     /**
      * Issue a realtime socket authentication token for a room user.
      *
      * @param  RoomUser  $roomUser  The room user entity requesting the token.
      * @param  int  $ttlSeconds  Time-to-live for the token in seconds.
+     * @param  string|null  $deviceUuid  Trusted device UUID; when valid, the socket also joins `device:{uuid}`
+     *                                   so revoking that device can force its open room pages to reload.
      * @return string Signed HMAC token string.
      */
-    public function issue(RoomUser $roomUser, int $ttlSeconds = 300): string
+    public function issue(RoomUser $roomUser, int $ttlSeconds = 300, ?string $deviceUuid = null): string
     {
         abort_unless(
             $roomUser->globalUser?->status === GlobalUserStatus::Active
@@ -39,6 +44,9 @@ class SocketTokenService
             'exp' => now()->addSeconds($ttlSeconds)->timestamp,
             'jti' => (string) Str::uuid(),
         ];
+        if ($deviceUuid !== null && preg_match(self::DEVICE_UUID_PATTERN, $deviceUuid) === 1) {
+            $payload['device_uuid'] = $deviceUuid;
+        }
         $encoded = $this->encode($payload);
 
         return $encoded . '.' . hash_hmac('sha256', $encoded, $this->signingSecret());
@@ -47,7 +55,7 @@ class SocketTokenService
     /** Issue a realtime token scoped to one trusted user device. */
     public function issueForDevice(GlobalUser $user, string $deviceUuid, int $ttlSeconds = 300): string
     {
-        abort_unless($user->status === GlobalUserStatus::Active && preg_match('/^[A-Za-z0-9-]{1,128}$/', $deviceUuid) === 1, 403);
+        abort_unless($user->status === GlobalUserStatus::Active && preg_match(self::DEVICE_UUID_PATTERN, $deviceUuid) === 1, 403);
 
         $payload = [
             'actor_type' => 'user',

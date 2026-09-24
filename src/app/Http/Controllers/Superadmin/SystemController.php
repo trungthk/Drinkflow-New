@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Superadmin;
 
 use App\Actions\Superadmin\ResetSystemAction;
+use App\Events\MaintenanceStateChanged;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SendTestMailRequest;
 use App\Http\Requests\SystemResetRequest;
@@ -99,6 +100,7 @@ class SystemController extends Controller
         $service->set('maintenance.starts_at', $data['starts_at'] ?? null, 'string', false, $request->user('admin')->id);
         $service->set('maintenance.ends_at', $data['ends_at'] ?? null, 'string', false, $request->user('admin')->id);
         $audit->record('maintenance.updated', 'system_setting', 0, null, [], ['enabled' => $data['enabled'], 'starts_at' => $data['starts_at'] ?? null, 'ends_at' => $data['ends_at'] ?? null]);
+        MaintenanceStateChanged::dispatch();
         return response()->json(['data' => $this->maintenanceState($service)]);
     }
 

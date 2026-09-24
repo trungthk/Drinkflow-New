@@ -25,7 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'user.active_room' => \App\Http\Middleware\EnsureUserHasActiveRoom::class,
         ]);
         $middleware->redirectGuestsTo(function (Request $request): string {
-            return $request->is('admin', 'admin/*', 'superadmin/*')
+            return $request->is('admin', 'admin/*', 'superadmin', 'superadmin/*')
                 ? route('admin.login.page')
                 : route('auth.google');
         });

@@ -46,7 +46,7 @@ return [
         'system_settings' => 'Cài đặt hệ thống', 'global_notifications' => 'Thông báo hệ thống',
         'versions' => 'Phiên bản', 'zero_trust' => 'Đã áp dụng Zero Trust',
         'root_authority' => 'Quyền cao nhất · tất cả phòng', 'clearance' => 'Quyền siêu quản trị',
-        'toggle_sidebar' => 'Thu gọn / Mở rộng menu', 'root_admin' => 'Quản trị viên cao nhất', 'logout' => 'Đăng xuất',
+        'toggle_sidebar' => 'Thu gọn / Mở rộng menu', 'logout' => 'Đăng xuất',
     ],
     'dashboard' => [
         'title' => 'Tổng quan hệ thống', 'eyebrow' => 'Hệ thống cốt lõi · Dữ liệu trực tiếp',
@@ -64,6 +64,7 @@ return [
         'global_change_history' => 'Lịch sử thay đổi toàn cục', 'failed_jobs' => 'Tác vụ lỗi',
         'failed_jobs_description' => 'Thử lại hoặc xóa tác vụ lỗi', 'active_rooms' => ':count phòng đang hoạt động',
         'active_users' => ':count người dùng đang hoạt động', 'failed_count' => ':count lỗi',
+        'storage_usage' => ':driver · Đã dùng :used / :total', 'storage_usage_unknown' => ':driver · Không đọc được dung lượng',
     ],
     'admins' => [
         'title' => 'Quản trị viên & Phân công',

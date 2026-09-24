@@ -53,8 +53,10 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
 </head>
 
-<body data-submit-loading-text="{{ __('global.common.loading') }}" data-room-slug="{{ $room?->slug }}"
+<body data-submit-loading-text="{{ __('global.common.loading') }}" data-room-slug="{{ $room?->slug }}" @if (app()->isLocal()) data-socket-debug @endif
     data-processing-text="{{ __('admin.processing') }}"
+    {{-- Room admins reload into the maintenance page when it starts; superadmins bypass maintenance here. --}}
+    @unless (auth('admin')->user()?->isSuperadmin()) data-maintenance-realtime-url="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}" @endunless
     class="admin-shell bg-surface text-on-surface font-sans min-h-screen flex antialiased selection:bg-emerald-100 selection:text-emerald-900">
     <!-- ================= LEFT SIDEBAR ================= -->
     <aside id="admin-sidebar"

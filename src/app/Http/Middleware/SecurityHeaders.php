@@ -78,7 +78,10 @@ class SecurityHeaders
             $realtimeOrigin,
             ...$viteDevOrigins,
         ]);
-        $connectSrc = array_filter(["'self'", $realtimeOrigin, $realtimeWsOrigin, ...$viteDevOrigins, ...$viteDevWsOrigins]);
+        // Locally, let DevTools fetch source maps (*.js.map) of the CDN scripts above. Kept out of other
+        // environments: jsDelivr serves arbitrary npm/GitHub content, so it must not be a connect target there.
+        $devToolsOrigins = app()->isLocal() ? ['https://cdn.jsdelivr.net'] : [];
+        $connectSrc = array_filter(["'self'", $realtimeOrigin, $realtimeWsOrigin, ...$viteDevOrigins, ...$viteDevWsOrigins, ...$devToolsOrigins]);
         $styleSrc = array_filter(["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdn.tailwindcss.com', ...$viteDevOrigins]);
         $fontSrc = ["'self'", 'https://fonts.gstatic.com', 'data:'];
         $imgSrc = ["'self'", 'data:', 'https:'];

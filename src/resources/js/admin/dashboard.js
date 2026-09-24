@@ -1,4 +1,5 @@
 import { formatMoney } from '../shared/money';
+import { attachSocketDebugLogger } from '../shared/socket-debug';
 
 /**
  * Admin Dashboard Live Monitor & Realtime Controller
@@ -10,24 +11,20 @@ export function initAdminDashboard() {
     const dashboardUrl = dashboardEl.dataset.dashboardUrl || '';
     const socketTokenUrl = dashboardEl.dataset.tokenUrl || '';
     const realtimeUrl = dashboardEl.dataset.realtimeUrl || 'http://localhost:3001';
-    const closeUrlTemplate = dashboardEl.dataset.closeUrlTemplate || '';
     const timeExpiredText = dashboardEl.dataset.timeExpiredText || 'Time expired';
     const noDeadlineText = dashboardEl.dataset.noDeadlineText || 'No deadline';
     const openedAtText = dashboardEl.dataset.openedAtText || '';
     const todayText = dashboardEl.dataset.todayText || '';
     const acrossMembersText = dashboardEl.dataset.acrossMembersText || ':count';
-    const membersOrderedText = dashboardEl.dataset.membersOrderedText || ':count';
     const pendingUsersText = dashboardEl.dataset.pendingUsersText || ':count';
     const storeLabelText = dashboardEl.dataset.storeLabelText || '';
     const roomFundText = dashboardEl.dataset.roomFundText || '';
     const liveCampaignText = dashboardEl.dataset.liveCampaignText || '';
     const secondaryCampaignText = dashboardEl.dataset.secondaryCampaignText || '';
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
 
     const money = formatMoney;
     const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[c]));
     let timerInterval = null;
-    let activeCampaignId = null;
 
     function renderCountdown(deadline) {
         if (timerInterval) clearInterval(timerInterval);
@@ -330,7 +327,6 @@ export function initAdminDashboard() {
                 }
             }
 
-            activeCampaignId = hero.id;
             const heroTitle = document.querySelector('#hero-campaign-title');
             const heroCode = document.querySelector('#hero-campaign-code');
             const heroTime = document.querySelector('#hero-campaign-time');
@@ -362,15 +358,8 @@ export function initAdminDashboard() {
 
             renderCountdown(hero.deadline);
 
-            const modalCampaignName = document.querySelector('#modal-campaign-name');
-            const modalMembersCount = document.querySelector('#modal-members-count');
-            const modalSubtotalVal = document.querySelector('#modal-subtotal-val');
-            const modalTitle = document.querySelector('#modal-title');
-
-            if (modalCampaignName) modalCampaignName.textContent = hero.name;
-            if (modalMembersCount) modalMembersCount.textContent = membersOrderedText.replace(':count', String(participants));
-            if (modalSubtotalVal) modalSubtotalVal.textContent = money(gross);
-            if (modalTitle) modalTitle.textContent = `#${hero.code || hero.id}`;
+            const closeCampaignBtn = document.querySelector('#btn-open-close-modal');
+            if (closeCampaignBtn) closeCampaignBtn.dataset.campaignId = String(hero.id);
 
             if (heroSponsorNames) {
                 heroSponsorNames.innerHTML = `
@@ -469,58 +458,10 @@ export function initAdminDashboard() {
 
     loadDashboard();
 
-    // Close Modal Controls
-    const modal = document.querySelector('#close-campaign-modal');
-    const btnOpen = document.querySelector('#btn-open-close-modal');
-    const btnCancel = document.querySelector('#btn-cancel-modal');
-    const btnCloseIcon = document.querySelector('#btn-close-modal-icon');
-    const backdrop = document.querySelector('#modal-backdrop');
-    const btnConfirm = document.querySelector('#btn-confirm-close');
-
-    function openModal() {
-        modal?.classList.remove('hidden');
-        modal?.classList.add('flex');
-    }
-    function closeModal() {
-        modal?.classList.remove('flex');
-        modal?.classList.add('hidden');
-    }
-
-    btnOpen?.addEventListener('click', openModal);
-    btnCancel?.addEventListener('click', closeModal);
-    btnCloseIcon?.addEventListener('click', closeModal);
-    backdrop?.addEventListener('click', closeModal);
-
-    btnConfirm?.addEventListener('click', async () => {
-        if (!activeCampaignId) return;
-        btnConfirm.disabled = true;
-        btnConfirm.textContent = 'Closing...';
-
-        const url = closeUrlTemplate.replace(':id', activeCampaignId);
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken
-                },
-                body: JSON.stringify({ allow_debt: true })
-            });
-
-            if (res.ok) {
-                closeModal();
-                loadDashboard();
-            } else {
-                const err = await res.json().catch(() => ({}));
-                alert(err.message || 'Error closing campaign');
-            }
-        } catch (err) {
-            alert('Error closing campaign');
-        } finally {
-            btnConfirm.disabled = false;
-            btnConfirm.innerHTML = `<span class="material-symbols-outlined text-[16px]">lock</span><span>Confirm</span>`;
-        }
+    // The shared close-campaign modal re-fetches its own summary; after closing, refresh the dashboard in place.
+    window.addEventListener('admin:campaign-closed', event => {
+        event.preventDefault();
+        loadDashboard();
     });
 
     // Socket.IO Realtime
@@ -533,6 +474,7 @@ export function initAdminDashboard() {
                     auth: { token: data.token },
                     transports: ['websocket', 'polling']
                 });
+                attachSocketDebugLogger(socket, 'admin');
 
                 socket.on('connect', () => {
                     const stateEl = document.querySelector('#socket-state');

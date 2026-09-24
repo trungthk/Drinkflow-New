@@ -109,7 +109,6 @@ return [
         'back_at' => 'The system is expected to be back at :time.',
         'no_end' => 'The end time has not been announced yet. This page checks again periodically.',
         'refresh' => 'Check again', 'auto_retry_in' => 'Checking again in',
-        'admin_login' => 'Superadmin sign-in',
         'json_message' => 'The system is under maintenance. Please try again later.',
     ],
     '503' => [

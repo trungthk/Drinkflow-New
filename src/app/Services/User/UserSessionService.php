@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Services\User;
 
 use App\Enums\RoomUserStatus;
+use App\Events\ForceReloadRequested;
 use App\Models\GlobalUser;
 use App\Models\RoomUserDevice;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class UserSessionService
@@ -133,23 +133,15 @@ class UserSessionService
         $this->publishRevocations($deviceUuids);
     }
 
-    /** Publish logout commands to revoked trusted devices without affecting the completed revocation. */
+    /**
+     * Force pages still open on the revoked trusted devices to reload, so they are signed out immediately.
+     *
+     * @param list<string> $deviceUuids Revoked device UUIDs.
+     */
     private function publishRevocations(array $deviceUuids): void
     {
-        $url = (string) config('services.realtime.url');
-        if ($url === '') return;
-
         foreach (array_unique($deviceUuids) as $deviceUuid) {
-            try {
-                Http::timeout(2)->withHeaders(['X-Realtime-Secret' => (string) config('services.realtime.internal_secret')])
-                    ->post(rtrim($url, '/').'/internal/emit', [
-                        'event' => 'user.session_revoked',
-                        'device_channel' => 'device:'.$deviceUuid,
-                        'payload' => ['device_uuid' => $deviceUuid],
-                    ]);
-            } catch (\Throwable) {
-                // The middleware still blocks the revoked device on its next request.
-            }
+            event(ForceReloadRequested::forDevice($deviceUuid, ForceReloadRequested::REASON_DEVICE_REVOKED));
         }
     }
 

@@ -10,6 +10,7 @@ import { initGlobalFooterNav } from './global/footer';
 import { initGlobalFeedback } from './global/feedback';
 import { initGlobalNotifications } from './global/notifications';
 import { initSessionRevocation } from './global/session-revocation';
+import { initDesktopNotifications } from './global/desktop-notification';
 
 document.addEventListener('DOMContentLoaded', () => {
     initToastNotifications();
@@ -21,5 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initGlobalFooterNav();
     initGlobalFeedback();
     initGlobalNotifications();
+    initDesktopNotifications();
     initSessionRevocation();
 });

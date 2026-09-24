@@ -82,6 +82,21 @@ class AdminSecurityHardeningTest extends TestCase
         }
     }
 
+    public function test_csp_allows_cdn_source_maps_only_in_local_environment(): void
+    {
+        $connectSrc = function (): string {
+            $policy = (string) $this->get('/admin/login')->headers->get('Content-Security-Policy');
+            preg_match('/connect-src ([^;]*)/', $policy, $matches);
+
+            return $matches[1] ?? '';
+        };
+
+        $this->assertStringNotContainsString('https://cdn.jsdelivr.net', $connectSrc());
+
+        $this->app['env'] = 'local';
+        $this->assertStringContainsString('https://cdn.jsdelivr.net', $connectSrc());
+    }
+
     public function test_outbound_url_guard_rejects_internal_and_non_https_targets(): void
     {
         $guard = app(OutboundUrlGuard::class);

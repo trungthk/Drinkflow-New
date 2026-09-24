@@ -609,6 +609,21 @@ class CampaignController extends Controller
     }
 
     /**
+     * Return the latest participation summary shown in the close-campaign confirmation modal.
+     *
+     * @param Room $room Current room.
+     * @param Campaign $campaign Campaign about to be closed.
+     * @param \App\Services\Admin\AdminCampaignDetailService $detailService Campaign detail service.
+     * @return JsonResponse Fresh member and item counts for the campaign.
+     */
+    public function closeSummary(Room $room, Campaign $campaign, \App\Services\Admin\AdminCampaignDetailService $detailService): JsonResponse
+    {
+        $this->assertCampaign($campaign);
+
+        return response()->json(['data' => $detailService->getCloseSummary($room, $campaign)]);
+    }
+
+    /**
      * Handle the split bill operation.
      * @param SplitBillRequest $request Parameter value.
      * @param Room $room Parameter value.

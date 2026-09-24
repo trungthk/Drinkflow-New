@@ -111,6 +111,9 @@
         }
     </script>
 
+    {{-- Socket.IO client (window.io): public pages only listen for maintenance notices. Deferred scripts still
+         run before DOMContentLoaded, when public.js connects. --}}
+    <script defer src="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}/socket.io/socket.io.js"></script>
     @if (file_exists(public_path('build/manifest.json')) || app()->isLocal())
         @vite(['resources/css/public.css', 'resources/js/public.js'])
     @endif
@@ -120,7 +123,7 @@
     @endif
 </head>
 
-<body data-submit-loading-text="{{ __('global.common.loading') }}" class="bg-[#f8f9ff] text-[#0b1c30] min-h-full flex flex-col font-sans antialiased selection:bg-[#006948] selection:text-white">
+<body data-submit-loading-text="{{ __('global.common.loading') }}" data-realtime-url="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}" @if (app()->isLocal()) data-socket-debug @endif class="bg-[#f8f9ff] text-[#0b1c30] min-h-full flex flex-col font-sans antialiased selection:bg-[#006948] selection:text-white">
 
     <!-- SHARED TOP NAVBAR -->
     <x-public.header

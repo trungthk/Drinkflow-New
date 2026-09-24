@@ -25,7 +25,7 @@ class SocketTokenController extends Controller
         $roomUser = $request->attributes->get('room_user');
 
         return response()->json(['data' => [
-            'token' => $tokens->issue($roomUser),
+            'token' => $tokens->issue($roomUser, deviceUuid: (string) $request->cookie('drinkflow_device_uuid', '')),
             'channels' => ['user:'.$roomUser->id, 'room:'.$roomUser->room_id],
             'expires_in' => 300,
         ]]);

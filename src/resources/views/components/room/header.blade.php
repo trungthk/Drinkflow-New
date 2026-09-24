@@ -91,6 +91,8 @@
           </div>
         </div>
 
+        <x-global.desktop-notify-toggle />
+
         <!-- Notifications Action & Dropdown -->
         <div class="relative shrink-0">
           <button @click="showNotifDropdown = !showNotifDropdown; showRoomDropdown = false; showLangDropdown = false"

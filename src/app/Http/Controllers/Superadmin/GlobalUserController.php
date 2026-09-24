@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Superadmin;
 
 use App\Actions\User\SetGlobalUserStatusAction;
+use App\Events\ForceReloadRequested;
 use App\Events\RoomMembershipUpdated;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\SetStatusRequest;
@@ -126,6 +127,8 @@ class GlobalUserController extends Controller
 
             $audit->record('global_user.deleted', 'global_user', $userId, null, ['name' => $userName], []);
         });
+        // Pages the deleted user still has open reload and land on the sign-in flow right away.
+        event(ForceReloadRequested::forGlobalUser($globalUser->id, ForceReloadRequested::REASON_ACCOUNT_DELETED));
 
         return response()->json(['data' => ['deleted' => true]]);
     }

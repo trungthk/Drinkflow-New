@@ -4,12 +4,10 @@
         data-dashboard-url="{{ route('admin.dashboard', $room) }}"
         data-token-url="{{ route('admin.socket-token', $room) }}"
         data-realtime-url="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}"
-        data-close-url-template="{{ url('admin/' . $room->id . '/campaigns/:id/close') }}"
         data-time-expired-text="{{ __('admin.time_expired') }}"
         data-no-deadline-text="{{ __('admin.no_deadline_set') }}"
         data-opened-at-text="{{ __('admin.dashboard_opened_at') }}"
         data-today-text="{{ __('admin.dashboard_today') }}"
-        data-members-ordered-text="{{ __('admin.members_ordered_unit', ['count' => ':count']) }}"
         data-across-members-text="{{ __('admin.across_members', ['count' => ':count']) }}"
         data-pending-users-text="{{ __('admin.pending_users', ['count' => ':count']) }}"
         data-store-label-text="{{ __('admin.dashboard_store_label') }}"
@@ -215,7 +213,7 @@
                             <span>{{ __('admin.adjust_campaign') }}</span>
                         </a>
                     </div>
-                    <button type="button" id="btn-open-close-modal" class="text-error hover:bg-error-container/60 border border-error/30 rounded-lg px-3 py-2 text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer">
+                    <button type="button" id="btn-open-close-modal" data-close-campaign-open data-campaign-id="{{ ($activeCampaign ?? null)?->id }}" class="text-error hover:bg-error-container/60 border border-error/30 rounded-lg px-3 py-2 text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer">
                         <span class="material-symbols-outlined text-[16px]">lock_clock</span>
                         <span>{{ __('admin.close_campaign_early') }}</span>
                     </button>
@@ -360,46 +358,7 @@
             @endif
         </div>
 
-        <!-- Close Campaign Early Modal -->
-        <div id="close-campaign-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-            <div id="modal-backdrop" class="absolute inset-0"></div>
-            <div class="relative z-10 w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-xl p-6 space-y-4 shadow-2xl">
-                <div class="flex items-start justify-between gap-3">
-                    <div class="flex items-center gap-2.5 text-error">
-                        <span class="material-symbols-outlined text-[24px]">warning</span>
-                        <h3 id="modal-title" class="text-lg font-bold text-on-surface">{{ __('admin.close_early_title', ['code' => '#CMP']) }}</h3>
-                    </div>
-                    <button type="button" id="btn-close-modal-icon" class="text-outline hover:text-on-surface p-1 rounded hover:bg-surface-container-low transition-colors cursor-pointer">
-                        <span class="material-symbols-outlined text-[20px]">close</span>
-                    </button>
-                </div>
-                <div class="text-xs text-outline space-y-2">
-                    <p class="font-medium text-on-surface">{{ __('admin.campaigns') }}: <strong id="modal-campaign-name" class="text-primary font-bold">—</strong></p>
-                    <p class="leading-relaxed text-on-surface-variant">{{ __('admin.close_early_confirm') }}</p>
-                </div>
-                <div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant/60 flex items-center justify-between text-xs font-mono">
-                    <div class="flex items-center gap-1.5 text-on-surface-variant font-medium">
-                        <span class="material-symbols-outlined text-[16px] text-primary">check_circle</span>
-                        <span id="modal-members-count">{{ __('admin.members_ordered_unit', ['count' => 0]) }}</span>
-                    </div>
-                    <strong id="modal-subtotal-val" class="font-bold text-primary">{{ __('admin.subtotal_label') }} 0đ</strong>
-                </div>
-                <div class="pt-1">
-                    <label class="flex items-center gap-2.5 cursor-pointer text-xs text-on-surface-variant select-none">
-                        <input type="checkbox" id="modal-notify-slack" checked class="rounded border-outline-variant text-primary focus:ring-primary w-4 h-4">
-                        <span class="font-medium">{{ __('admin.close_early_notify_slack') }}</span>
-                    </label>
-                </div>
-                <div class="flex items-center justify-end gap-2 pt-3 border-t border-outline-variant">
-                    <button type="button" id="btn-cancel-modal" class="px-4 py-2 border border-outline-variant text-on-surface hover:bg-surface-container-low rounded-lg text-xs font-semibold transition-colors cursor-pointer">
-                        {{ __('admin.cancel') }}
-                    </button>
-                    <button type="button" id="btn-confirm-close" class="px-4 py-2 bg-error hover:bg-error-container text-on-error hover:text-on-error-container border border-error/30 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer">
-                        <span class="material-symbols-outlined text-[16px]">lock</span>
-                        <span>{{ __('admin.confirm_close_now') }}</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+        <!-- Close Campaign Modal (shared with the campaign info page) -->
+        <x-admin.close-campaign-modal :room="$room" />
     </div>
 </x-admin.layout>

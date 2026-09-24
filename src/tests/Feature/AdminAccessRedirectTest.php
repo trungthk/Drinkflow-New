@@ -23,7 +23,7 @@ class AdminAccessRedirectTest extends TestCase
      */
     public function test_guest_pages_redirect_to_admin_login(): void
     {
-        foreach (['/admin', '/admin/profile', '/admin/example/dashboard'] as $path) {
+        foreach (['/admin', '/admin/profile', '/admin/example/dashboard', '/superadmin', '/superadmin/rooms/page'] as $path) {
             $this->get($path)->assertRedirect(route('admin.login.page'));
         }
 

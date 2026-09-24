@@ -2,6 +2,7 @@
 
 namespace App\Services\Auth;
 
+use App\Events\ForceReloadRequested;
 use App\Models\RoomUser;
 use App\Models\RoomUserDevice;
 use Illuminate\Support\Str;
@@ -42,13 +43,14 @@ class DeviceTrustService
     }
 
     /**
-     * Handle the revoke operation.
-     * @param RoomUserDevice $device Parameter value.
-     * @return void Result of the operation.
+     * Revoke a trusted device and force its open pages to reload, so the device is signed out immediately.
+     * @param RoomUserDevice $device Trusted device to revoke.
+     * @return void
      */
     public function revoke(RoomUserDevice $device): void
     {
         $device->update(['revoked_at' => now()]);
+        event(ForceReloadRequested::forDevice($device->device_uuid, ForceReloadRequested::REASON_DEVICE_REVOKED));
     }
 
     /**

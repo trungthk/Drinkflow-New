@@ -132,6 +132,8 @@ class RoomProfileCompletedOrdersTest extends TestCase
 
         $response->assertOk()
             ->assertSee(route('user.me.profile'), false)
-            ->assertSee(__('room.profile.edit_profile'));
+            ->assertSee(__('room.profile.edit_profile'))
+            ->assertSee('data-desktop-notify-toggle', false)
+            ->assertSee('data-notifications-url="'.route('user.rooms.notifications', 'marketing').'"', false);
     }
 }

@@ -32,7 +32,10 @@ class MaintenanceModeTest extends TestCase
         $this->get('/')
             ->assertStatus(503)
             ->assertHeader('Retry-After')
-            ->assertSee(__('errors.maintenance.title'));
+            ->assertSee(__('errors.maintenance.title'))
+            ->assertDontSee('<header', false)
+            ->assertDontSee('<footer', false)
+            ->assertDontSee('<a ', false);
 
         $user = GlobalUser::create(['name' => 'User', 'normalized_name' => 'USER', 'email' => 'user-maint@drinkflow.test', 'status' => 'active']);
         $this->actingAs($user, 'web')->get('/')->assertStatus(503);
