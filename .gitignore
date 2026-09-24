@@ -37,3 +37,7 @@ codex.json
 # Claude Code local settings and Playwright MCP output
 .claude/settings.local.json
 .playwright-mcp/
+
+# Deploy script và log riêng của server
+deploy-native.sh
+logs/
