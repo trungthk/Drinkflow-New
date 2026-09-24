@@ -30,18 +30,7 @@ class SystemSettingsService
             if (!$setting) {
                 return self::$cache[$key] = $default;
             }
-            $value = $setting->value;
-            if ($setting->is_secret && $value !== null) {
-                $value = Crypt::decryptString($value);
-            }
-            $result = match ($setting->type) {
-                SystemSetting::TYPE_BOOLEAN => filter_var($value, FILTER_VALIDATE_BOOLEAN),
-                SystemSetting::TYPE_INTEGER => (int) $value,
-                SystemSetting::TYPE_JSON => json_decode($value, true),
-                SystemSetting::TYPE_STRING => (string) $value,
-                default => $value
-            };
-            return self::$cache[$key] = $result;
+            return self::$cache[$key] = $this->decode($setting);
         } catch (\Throwable $e) {
             return $default;
         }
@@ -62,6 +51,42 @@ class SystemSettingsService
         $stored = $type === SystemSetting::TYPE_JSON ? json_encode($value, JSON_THROW_ON_ERROR) : ((string) $value);
         if ($secret) $stored = Crypt::encryptString($stored);
         return SystemSetting::updateOrCreate(['key' => $key], ['value' => $stored, 'type' => $type, 'is_secret' => $secret, 'updated_by_admin_id' => $adminId]);
+    }
+
+    /**
+     * Load several settings with a single query, decoded the same way as get().
+     *
+     * Only keys that exist in the database are returned, so callers can tell "not configured"
+     * (missing key) apart from a stored value. Results are also written to the per-process cache.
+     *
+     * @param array<int, string> $keys Setting keys to load.
+     * @return array<string, mixed> Decoded values keyed by setting key.
+     */
+    public function many(array $keys): array
+    {
+        $values = [];
+        foreach (SystemSetting::query()->whereIn('key', $keys)->get() as $setting) {
+            try {
+                $values[$setting->key] = self::$cache[$setting->key] = $this->decode($setting);
+            } catch (\Throwable) {
+                // An undecryptable secret (e.g. after an APP_KEY change) is treated as not configured.
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * Delete a setting so readers fall back to their default value again.
+     *
+     * @param string $key Setting key to remove.
+     * @return bool True when a stored setting was deleted.
+     */
+    public function forget(string $key): bool
+    {
+        unset(self::$cache[$key]);
+
+        return SystemSetting::query()->where('key', $key)->delete() > 0;
     }
 
     /**
@@ -111,6 +136,28 @@ class SystemSettingsService
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    /**
+     * Decrypt (when secret) and cast a stored setting to its declared type.
+     *
+     * @param SystemSetting $setting Stored setting row.
+     * @return mixed Typed value.
+     */
+    private function decode(SystemSetting $setting): mixed
+    {
+        $value = $setting->value;
+        if ($setting->is_secret && $value !== null) {
+            $value = Crypt::decryptString($value);
+        }
+
+        return match ($setting->type) {
+            SystemSetting::TYPE_BOOLEAN => filter_var($value, FILTER_VALIDATE_BOOLEAN),
+            SystemSetting::TYPE_INTEGER => (int) $value,
+            SystemSetting::TYPE_JSON => json_decode($value, true),
+            SystemSetting::TYPE_STRING => (string) $value,
+            default => $value
+        };
     }
 
     public static function clearCache(): void

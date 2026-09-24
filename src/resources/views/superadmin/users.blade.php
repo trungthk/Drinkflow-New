@@ -16,6 +16,12 @@
             </div>
             <form method="get" class="sa-filters">
                 <x-superadmin.search-input :value="request('q')" placeholder="{{ __('superadmin.users.search') }}" />
+                <select name="status" class="sa-input" aria-label="{{ __('superadmin.common.status') }}">
+                    <option value="">{{ __('superadmin.common.all_statuses') }}</option>
+                    @foreach (\App\Enums\GlobalUserStatus::cases() as $statusOption)
+                        <option value="{{ $statusOption->value }}" @selected(($filters['status'] ?? '') === $statusOption->value)>{{ __('superadmin.common.'.$statusOption->value) }}</option>
+                    @endforeach
+                </select>
                 <button class="sa-button secondary" type="submit"><span class="material-symbols-outlined text-[16px]">filter_list</span>{{ __('superadmin.common.filter') }}</button>
             </form>
         </div>
@@ -34,7 +40,8 @@
                     @forelse($users as $user)
                         @php
                             $statusValue = $user->status?->value ?? (string) $user->status;
-                            $isBlocked = $statusValue === 'blocked';
+                            $isBlocked = $statusValue === \App\Enums\GlobalUserStatus::Blocked->value;
+                            $isDeleted = $statusValue === \App\Enums\GlobalUserStatus::Deleted->value;
                         @endphp
                         <tr>
                             <td>
@@ -52,10 +59,12 @@
                             <td>
                                 <div class="flex items-center justify-end gap-2 whitespace-nowrap">
                                     <a class="sa-button secondary" href="{{ route('superadmin.global-users.detail.page', $user) }}"><span class="material-symbols-outlined text-[16px]">visibility</span>{{ __('superadmin.common.details') }}</a>
+                                    @unless ($isDeleted)
                                     <button class="sa-button {{ $isBlocked ? '' : 'warning' }}" type="button" data-action="toggle-user-status" data-user-id="{{ $user->id }}" data-user-name="{{ $user->name }}" data-current-status="{{ $statusValue }}">
                                         <span class="material-symbols-outlined text-[16px]">{{ $isBlocked ? 'lock_open' : 'lock' }}</span>{{ $isBlocked ? __('superadmin.common.unblock') : __('superadmin.common.block') }}
                                     </button>
                                     <button class="sa-button danger" type="button" data-action="delete-user" data-user-id="{{ $user->id }}" data-user-name="{{ $user->name }}"><span class="material-symbols-outlined text-[16px]">delete</span>{{ __('superadmin.common.delete') }}</button>
+                                    @endunless
                                 </div>
                             </td>
                         </tr>

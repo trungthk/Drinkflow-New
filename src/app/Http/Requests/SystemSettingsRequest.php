@@ -31,7 +31,8 @@ class SystemSettingsRequest extends FormRequest
     {
         return [
             'settings' => ['required', 'array', 'min:1'],
-            'settings.*.key' => ['required', 'string', 'max:150'],
+            // Mail/storage keys are managed by their own endpoints (typed, validated, secrets encrypted).
+            'settings.*.key' => ['required', 'string', 'max:150', 'not_regex:/^(mail|storage)\./'],
             'settings.*.value' => ['nullable'],
             'settings.*.type' => ['sometimes', Rule::in(['string', 'boolean', 'integer', 'json'])],
             'settings.*.is_secret' => ['sometimes', 'boolean'],

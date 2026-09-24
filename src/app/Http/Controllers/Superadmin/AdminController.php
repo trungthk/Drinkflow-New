@@ -13,7 +13,6 @@ use App\Http\Requests\SetStatusRequest;
 use App\Http\Requests\StoreAdminRequest;
 use App\Http\Requests\UpdateAdminRequest;
 use App\Models\AdminAccount;
-use App\Services\Audit\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -42,7 +41,7 @@ class AdminController extends Controller
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function store(StoreAdminRequest $request, ManageAdminAction $action, AuditService $audit): JsonResponse
+    public function store(StoreAdminRequest $request, ManageAdminAction $action): JsonResponse
     {
         $data = $request->validated();
         $roomIds = $data['room_ids'] ?? [];
@@ -50,7 +49,6 @@ class AdminController extends Controller
         $admin = $action->create($data);
         if ($roomIds !== [])
             $admin = $action->syncRooms($admin, $roomIds);
-        $audit->record('admin.created', 'admin', $admin->id, null, [], $admin->only(['name', 'email', 'role', 'status']), ['room_ids' => $roomIds]);
         return response()->json(['data' => $admin->load('rooms')], 201);
     }
 
@@ -71,9 +69,8 @@ class AdminController extends Controller
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function update(UpdateAdminRequest $request, AdminAccount $admin, ManageAdminAction $action, AuditService $audit): JsonResponse
+    public function update(UpdateAdminRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse
     {
-        $before = $admin->only(['name', 'email', 'role', 'status']);
         $data = $request->validated();
         $roomIds = $data['room_ids'] ?? null;
         unset($data['room_ids']);
@@ -82,7 +79,6 @@ class AdminController extends Controller
         $admin = $action->update($admin, $data);
         if ($roomIds !== null)
             $admin = $action->syncRooms($admin, $roomIds);
-        $audit->record('admin.updated', 'admin', $admin->id, null, $before, $admin->fresh()->only(array_keys($before)), ['room_ids' => $roomIds]);
         return response()->json(['data' => $admin->load('rooms')]);
     }
 
@@ -93,11 +89,9 @@ class AdminController extends Controller
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function status(SetStatusRequest $request, AdminAccount $admin, ManageAdminAction $action, AuditService $audit): JsonResponse
+    public function status(SetStatusRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse
     {
-        $before = ['status' => $admin->status?->value ?? (string) $admin->status];
         $result = $action->setStatus($admin, $request->validated('status'));
-        $audit->record('admin.status_changed', 'admin', $admin->id, null, $before, ['status' => $request->validated('status')]);
         return response()->json(['data' => $result]);
     }
 
@@ -108,11 +102,9 @@ class AdminController extends Controller
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function role(AdminRoleRequest $request, AdminAccount $admin, ManageAdminAction $action, AuditService $audit): JsonResponse
+    public function role(AdminRoleRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse
     {
-        $before = ['role' => $admin->role instanceof \BackedEnum ? $admin->role->value : (string) $admin->role];
         $result = $action->setRole($admin, $request->validated('role'));
-        $audit->record('admin.role_changed', 'admin', $admin->id, null, $before, ['role' => $request->validated('role')]);
         return response()->json(['data' => $result]);
     }
 
@@ -123,11 +115,10 @@ class AdminController extends Controller
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function rooms(AdminRoomsRequest $request, AdminAccount $admin, ManageAdminAction $action, AuditService $audit): JsonResponse
+    public function rooms(AdminRoomsRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse
     {
         $roomIds = $request->validated('room_ids');
         $result = $action->syncRooms($admin, $roomIds);
-        $audit->record('admin.rooms_synced', 'admin', $admin->id, null, [], [], ['room_ids' => $roomIds]);
         return response()->json(['data' => $result]);
     }
 
@@ -138,10 +129,9 @@ class AdminController extends Controller
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function resetPassword(AdminPasswordRequest $request, AdminAccount $admin, ManageAdminAction $action, AuditService $audit): JsonResponse
+    public function resetPassword(AdminPasswordRequest $request, AdminAccount $admin, ManageAdminAction $action): JsonResponse
     {
         $action->resetPassword($admin, $request->validated('password'));
-        $audit->record('admin.password_reset', 'admin', $admin->id, null, [], [], ['password_reset' => true]);
         return response()->json(['data' => ['reset' => true]]);
     }
 
@@ -151,11 +141,9 @@ class AdminController extends Controller
      * @param ManageAdminAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function destroy(AdminAccount $admin, ManageAdminAction $action, AuditService $audit): JsonResponse
+    public function destroy(AdminAccount $admin, ManageAdminAction $action): JsonResponse
     {
-        $before = $admin->only(['name', 'email', 'role', 'status']);
         $action->delete($admin);
-        $audit->record('admin.deleted', 'admin', $admin->id, null, $before, []);
         return response()->json(['data' => ['deleted' => true]]);
     }
 }

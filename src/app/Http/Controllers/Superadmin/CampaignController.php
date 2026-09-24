@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Superadmin;
 
+use App\Actions\Superadmin\ForceArchiveCampaignAction;
 use App\Actions\Campaign\CloseCampaignAction;
 use App\Http\Controllers\Controller;
 use App\Models\Campaign;
@@ -46,21 +47,15 @@ class CampaignController extends Controller
     }
 
     /**
-     * Handle the force cancel operation.
-     * @param Campaign $campaign Parameter value.
-     * @param AuditService $audit Parameter value.
-     * @return JsonResponse Result of the operation.
+     * Force-cancel a campaign from the superadmin console by archiving it (no notifications,
+     * orders and debts untouched). Audit logging happens in the action.
+     *
+     * @param Campaign $campaign Campaign to archive.
+     * @param ForceArchiveCampaignAction $action Archive action enforcing the allowed source states.
+     * @return JsonResponse The archived campaign.
      */
-    public function forceCancel(Campaign $campaign, AuditService $audit): JsonResponse
+    public function forceCancel(Campaign $campaign, ForceArchiveCampaignAction $action): JsonResponse
     {
-        return response()->json([
-            'data' => DB::transaction(function () use ($campaign, $audit): Campaign {
-                $before = ['status' => $campaign->status?->value];
-                abort_if($campaign->status?->value === 'closed', 422, __('superadmin.actions.campaign_already_closed'));
-                $campaign->update(['status' => 'cancelled', 'closed_at' => now()]);
-                $audit->record('campaign.force_cancelled', 'campaign', $campaign->id, $campaign->room_id, $before, ['status' => 'cancelled']);
-                return $campaign->fresh();
-            })
-        ]);
+        return response()->json(['data' => $action->execute($campaign)]);
     }
 }

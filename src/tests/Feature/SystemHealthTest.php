@@ -51,7 +51,8 @@ class SystemHealthTest extends TestCase
             ->assertOk()
             ->assertSee('<a class="sa-health-row" href="'.route('superadmin.queue.page').'">', false)
             ->assertSee('<a class="sa-health-row" href="'.route('superadmin.socket.page').'">', false)
-            ->assertSee('<a class="sa-health-row" href="'.route('superadmin.system.page').'">', false)
+            ->assertSee('<a class="sa-health-row" href="'.route('superadmin.system.page').'#mail">', false)
+            ->assertSee('<a class="sa-health-row" href="'.route('superadmin.system.page').'#storage">', false)
             ->assertSee('id="storage-usage"', false);
     }
 

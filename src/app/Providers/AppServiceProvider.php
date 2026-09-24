@@ -47,6 +47,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(BrowserTransportInterface::class, PuppeteerBrowserTransport::class);
+        // Singleton so the .env-based mail/storage config is captured once, before overrides.
+        $this->app->singleton(\App\Services\System\SystemConfigService::class);
         $this->app->singleton(ProviderResolver::class, function (): ProviderResolver {
             $providers = array_map(
                 fn(string $provider): FoodCrawlerProviderInterface => $this->app->make($provider),
@@ -62,6 +64,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Superadmin mail/storage settings override the .env values (empty fields keep .env).
+        $this->app->make(\App\Services\System\SystemConfigService::class)->apply();
+
         Event::listen(OrderCreated::class, CreateOrderNotification::class);
         Event::listen(ProxyOrdersCreated::class, NotifyProxyOrderRecipients::class);
         Event::listen(OrderUpdated::class, CreateOrderStatusNotification::class);

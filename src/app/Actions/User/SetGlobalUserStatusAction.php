@@ -28,6 +28,14 @@ class SetGlobalUserStatusAction
             ]);
         }
 
+        // "deleted" is only reached through DeleteGlobalUserAction (memberships removed, devices
+        // revoked), and a deleted account cannot be switched back from here.
+        if ($status === GlobalUserStatus::Deleted->value || $user->status === GlobalUserStatus::Deleted) {
+            throw ValidationException::withMessages([
+                'status' => __('superadmin.users.deleted_status_locked'),
+            ]);
+        }
+
         if ($status === GlobalUserStatus::Disabled->value && $user->hasOutstandingDebts()) {
             throw ValidationException::withMessages([
                 'status' => __('admin.cannot_delete_user_with_outstanding_debt'),

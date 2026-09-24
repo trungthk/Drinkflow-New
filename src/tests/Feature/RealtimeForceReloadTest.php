@@ -47,7 +47,8 @@ class RealtimeForceReloadTest extends TestCase
 
         $this->actingAs($this->superadmin(), 'admin')->deleteJson("/superadmin/global-users/{$userId}")->assertOk();
 
-        $this->assertDatabaseMissing('global_users', ['id' => $userId]);
+        // Soft delete: the row stays (order/debt history) but the account is marked deleted.
+        $this->assertDatabaseHas('global_users', ['id' => $userId, 'status' => 'deleted']);
         Event::assertDispatched(ForceReloadRequested::class, fn (ForceReloadRequested $event): bool => $event->channel === 'global_user:'.$userId
             && $event->reason === ForceReloadRequested::REASON_ACCOUNT_DELETED);
     }

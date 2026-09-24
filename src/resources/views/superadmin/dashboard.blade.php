@@ -9,8 +9,7 @@
         </div>
         <div class="superadmin-actions"><a class="sa-button secondary" href="{{ route('superadmin.socket.page') }}"><span
                     class="material-symbols-outlined">hub</span>{{ __('superadmin.dashboard.live_monitoring') }}</a><a class="sa-button"
-                href="{{ route('superadmin.system.page') }}"><span class="material-symbols-outlined">build_circle</span>System
-                {{ __('superadmin.dashboard.system_settings') }}</a></div>
+                href="{{ route('superadmin.system.page') }}"><span class="material-symbols-outlined">build_circle</span>{{ __('superadmin.dashboard.system_settings') }}</a></div>
     </div>
     <div id="notice" class="sa-notice"></div>
     <section class="sa-grid kpis kpis-4">
@@ -19,7 +18,7 @@
         <article class="sa-card sa-kpi"><span class="label">{{ __('superadmin.dashboard.global_users') }}</span><strong id="total-users"
                 class="value">—</strong><span id="active-users" class="hint">{{ __('superadmin.common.loading') }}</span></article>
         <article class="sa-card sa-kpi"><span class="label">{{ __('superadmin.dashboard.admins') }}</span><strong id="total-admins"
-                class="value">—</strong><span class="hint">{{ __('superadmin.dashboard.system_admins') }}</span></article>
+                class="value">—</strong><span class="hint">{{ __('superadmin.dashboard.room_admins') }}</span></article>
         <article class="sa-card sa-kpi"><span class="label">{{ __('superadmin.dashboard.orders_today') }}</span><strong id="orders-today"
                 class="value">—</strong><span class="hint">{{ __('superadmin.dashboard.non_cancelled_orders') }}</span></article>
     </section>
@@ -44,11 +43,11 @@
                     <div><strong>Socket.IO</strong><small id="socket-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">hub</span>
                 </a>
-                <a class="sa-health-row" href="{{ route('superadmin.system.page') }}">
+                <a class="sa-health-row" href="{{ route('superadmin.system.page') }}#mail">
                     <div><strong>{{ __('superadmin.dashboard.mail') }}</strong><small id="mail-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">mail</span>
                 </a>
-                <a class="sa-health-row" href="{{ route('superadmin.system.page') }}">
+                <a class="sa-health-row" href="{{ route('superadmin.system.page') }}#storage">
                     <div><strong>{{ __('superadmin.dashboard.storage') }}</strong><small id="storage-status">{{ __('superadmin.dashboard.checking') }}</small><small
                             id="storage-usage" class="sa-health-detail"></small></div><span
                         class="material-symbols-outlined">hard_drive</span>
@@ -97,7 +96,10 @@
             if (storage.used_bytes == null || storage.total_bytes == null) {
                 return @js(__('superadmin.dashboard.storage_usage_unknown', ['driver' => '__DRIVER__'])).replace('__DRIVER__', driver);
             }
-            return @js(__('superadmin.dashboard.storage_usage', ['driver' => '__DRIVER__', 'used' => '__USED__', 'total' => '__TOTAL__']))
+            const template = storage.limit === 'quota'
+                ? @js(__('superadmin.dashboard.storage_usage_quota', ['driver' => '__DRIVER__', 'used' => '__USED__', 'total' => '__TOTAL__']))
+                : @js(__('superadmin.dashboard.storage_usage', ['driver' => '__DRIVER__', 'used' => '__USED__', 'total' => '__TOTAL__']));
+            return template
                 .replace('__DRIVER__', driver)
                 .replace('__USED__', formatBytes(storage.used_bytes))
                 .replace('__TOTAL__', formatBytes(storage.total_bytes));

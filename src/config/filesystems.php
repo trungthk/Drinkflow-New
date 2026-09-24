@@ -17,6 +17,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Storage Quota
+    |--------------------------------------------------------------------------
+    |
+    | Optional capacity (in MB) the superadmin dashboard compares the default
+    | disk's usage against. When empty, the volume's own size is used instead.
+    | Superadmins can override it (and the default disk) from System settings.
+    |
+    */
+
+    'quota_mb' => env('STORAGE_QUOTA_MB'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

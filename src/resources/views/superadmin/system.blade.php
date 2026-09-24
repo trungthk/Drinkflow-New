@@ -20,6 +20,114 @@
             <x-superadmin.empty-state loading :title="__('superadmin.common.loading_title')" :description="__('superadmin.common.loading_description')" />
         </div>
     </section>
+    @php
+        $fieldLabel = 'flex flex-col gap-1 text-xs font-semibold';
+        $fieldInput = 'sa-input !min-w-0 w-full !py-2';
+        $fieldHint = 'text-[11px] font-normal text-outline';
+    @endphp
+    {{-- Mail & storage overrides: a filled field wins, an empty field keeps the .env value. The page
+         script fills values, placeholders and the per-field source hint ([data-config-hint]). --}}
+    <section class="sa-card sa-section">
+        <div class="sa-section-header">
+            <div>
+                <h2>{{ __('superadmin.system.service_config_title') }}</h2>
+                <p>{{ __('superadmin.system.service_config_description') }}</p>
+            </div>
+        </div>
+        {{-- Tabs: the active one is kept in the URL hash (#mail / #storage) so links can open a tab directly. --}}
+        <div class="sa-tabs" role="tablist" aria-label="{{ __('superadmin.system.service_config_title') }}" data-config-tabs>
+            <button type="button" class="sa-tab" role="tab" id="config-tab-mail" aria-controls="config-panel-mail" aria-selected="true" data-tab="mail">
+                <span class="material-symbols-outlined">mail</span>{{ __('superadmin.system.mail_config_title') }}
+            </button>
+            <button type="button" class="sa-tab" role="tab" id="config-tab-storage" aria-controls="config-panel-storage" aria-selected="false" tabindex="-1" data-tab="storage">
+                <span class="material-symbols-outlined">hard_drive</span>{{ __('superadmin.system.storage_config_title') }}
+            </button>
+        </div>
+        <div class="sa-tab-panel" role="tabpanel" id="config-panel-mail" aria-labelledby="config-tab-mail">
+        <p class="sa-tab-description">{{ __('superadmin.system.mail_config_description') }}</p>
+        <form id="mail-config-form" class="space-y-4" data-config-form="{{ route('superadmin.system.mail') }}">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <label class="{{ $fieldLabel }}">{{ __('superadmin.system.mail_config_mailer') }}
+                    <select name="mailer" class="{{ $fieldInput }}">
+                        <option value="" data-env-option>{{ __('superadmin.system.config_use_env') }}</option>
+                        @foreach (\App\Services\System\SystemConfigService::MAILERS as $mailer)
+                            <option value="{{ $mailer }}">{{ __('superadmin.system.mail_config_mailer_'.$mailer) }}</option>
+                        @endforeach
+                    </select>
+                    <span class="{{ $fieldHint }}" data-config-hint="mailer"></span>
+                </label>
+                <label class="{{ $fieldLabel }}">{{ __('superadmin.system.mail_config_host') }}
+                    <input name="host" type="text" maxlength="255" autocomplete="off" class="{{ $fieldInput }}">
+                    <span class="{{ $fieldHint }}" data-config-hint="host"></span>
+                </label>
+                <label class="{{ $fieldLabel }}">{{ __('superadmin.system.mail_config_port') }}
+                    <input name="port" type="number" min="1" max="65535" class="{{ $fieldInput }}">
+                    <span class="{{ $fieldHint }}" data-config-hint="port"></span>
+                </label>
+                <label class="{{ $fieldLabel }}">{{ __('superadmin.system.mail_config_scheme') }}
+                    <select name="scheme" class="{{ $fieldInput }}">
+                        <option value="" data-env-option>{{ __('superadmin.system.config_use_env') }}</option>
+                        @foreach (\App\Services\System\SystemConfigService::SMTP_SCHEMES as $scheme)
+                            <option value="{{ $scheme }}">{{ __('superadmin.system.mail_config_scheme_'.$scheme) }}</option>
+                        @endforeach
+                    </select>
+                    <span class="{{ $fieldHint }}" data-config-hint="scheme"></span>
+                </label>
+                <label class="{{ $fieldLabel }}">{{ __('superadmin.system.mail_config_username') }}
+                    <input name="username" type="text" maxlength="255" autocomplete="off" class="{{ $fieldInput }}">
+                    <span class="{{ $fieldHint }}" data-config-hint="username"></span>
+                </label>
+                <div class="{{ $fieldLabel }}">
+                    <label for="mail-config-password">{{ __('superadmin.system.mail_config_password') }}</label>
+                    <x-superadmin.password-input id="mail-config-password" name="password" autocomplete="new-password" maxlength="255"
+                        placeholder="{{ __('superadmin.system.mail_config_password_keep') }}" />
+                    <span class="{{ $fieldHint }}" data-config-hint="password"></span>
+                    <label class="hidden items-center gap-1.5 font-normal text-[11px] text-on-surface-variant" data-clear-secret="password">
+                        <input type="checkbox" name="clear_password" value="1">{{ __('superadmin.system.mail_config_password_clear') }}
+                    </label>
+                </div>
+                <label class="{{ $fieldLabel }}">{{ __('superadmin.system.mail_config_from_address') }}
+                    <input name="from_address" type="email" maxlength="255" autocomplete="off" class="{{ $fieldInput }}">
+                    <span class="{{ $fieldHint }}" data-config-hint="from_address"></span>
+                </label>
+                <label class="{{ $fieldLabel }}">{{ __('superadmin.system.mail_config_from_name') }}
+                    <input name="from_name" type="text" maxlength="255" autocomplete="off" class="{{ $fieldInput }}">
+                    <span class="{{ $fieldHint }}" data-config-hint="from_name"></span>
+                </label>
+            </div>
+            <p class="hidden text-xs font-semibold text-error" data-config-error></p>
+            <div class="flex flex-wrap items-center gap-2">
+                <button class="sa-button" type="submit"><span class="material-symbols-outlined text-[16px]">save</span>{{ __('superadmin.system.save_mail_config') }}</button>
+                <button class="sa-button secondary" type="button" data-modal-open="mail-test-modal"><span class="material-symbols-outlined text-[16px]">outgoing_mail</span>{{ __('superadmin.system.send_test_mail') }}</button>
+            </div>
+        </form>
+        </div>
+        <div class="sa-tab-panel" role="tabpanel" id="config-panel-storage" aria-labelledby="config-tab-storage" hidden>
+        <p class="sa-tab-description">{{ __('superadmin.system.storage_config_description') }}</p>
+        <form id="storage-config-form" class="space-y-4" data-config-form="{{ route('superadmin.system.storage') }}">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:max-w-2xl">
+                <label class="{{ $fieldLabel }}">{{ __('superadmin.system.storage_config_disk') }}
+                    <select name="disk" class="{{ $fieldInput }}">
+                        <option value="" data-env-option>{{ __('superadmin.system.config_use_env') }}</option>
+                        @foreach ($storageDisks as $disk)
+                            <option value="{{ $disk }}">{{ $disk }}</option>
+                        @endforeach
+                    </select>
+                    <span class="{{ $fieldHint }}" data-config-hint="disk"></span>
+                </label>
+                <label class="{{ $fieldLabel }}">{{ __('superadmin.system.storage_config_quota') }}
+                    <input name="quota_mb" type="number" min="1" max="{{ \App\Http\Requests\UpdateStorageSettingsRequest::QUOTA_MAX_MB }}" class="{{ $fieldInput }}">
+                    <span class="{{ $fieldHint }}" data-config-hint="quota_mb"></span>
+                    <span class="{{ $fieldHint }}">{{ __('superadmin.system.storage_config_quota_hint') }}</span>
+                </label>
+            </div>
+            <p class="hidden text-xs font-semibold text-error" data-config-error></p>
+            <div>
+                <button class="sa-button" type="submit"><span class="material-symbols-outlined text-[16px]">save</span>{{ __('superadmin.system.save_storage_config') }}</button>
+            </div>
+        </form>
+        </div>
+    </section>
     <section class="sa-card sa-section">
         <div class="sa-section-header">
             <div>
@@ -132,7 +240,97 @@
             document.querySelector('#maintenance-starts').value = toDateTimeLocal(maintenance.starts_at);
             document.querySelector('#maintenance-ends').value = toDateTimeLocal(maintenance.ends_at);
             renderHealth(data.health);
+            renderConfigForm(document.querySelector('#mail-config-form'), data.mail_config);
+            renderConfigForm(document.querySelector('#storage-config-form'), data.storage_config);
         };
+        const configTexts = @js([
+            'system' => __('superadmin.system.config_source_system'),
+            'env' => __('superadmin.system.config_source_env'),
+            'envValue' => __('superadmin.system.config_env_value', ['value' => '__VALUE__']),
+            'envEmpty' => __('superadmin.system.config_env_empty'),
+            'envSecretSet' => __('superadmin.system.config_env_secret_set'),
+            'envSecretEmpty' => __('superadmin.system.config_env_secret_empty'),
+            'useEnv' => __('superadmin.system.config_use_env'),
+        ]);
+        // Fill a mail/storage settings form: saved values, the .env value as placeholder, and which source is in effect.
+        const renderConfigForm = (form, fields) => {
+            if (!form || !fields) return;
+            Object.entries(fields).forEach(([name, info]) => {
+                const input = form.elements[name];
+                if (!input) return;
+                const envText = info.secret
+                    ? (info.env_configured ? configTexts.envSecretSet : configTexts.envSecretEmpty)
+                    : (info.env_configured ? configTexts.envValue.replace('__VALUE__', info.env_value) : configTexts.envEmpty);
+                if (input.tagName === 'SELECT') {
+                    const envOption = input.querySelector('[data-env-option]');
+                    if (envOption) envOption.textContent = info.env_configured ? `${configTexts.useEnv} (${info.env_value})` : configTexts.useEnv;
+                    input.value = info.value ?? '';
+                } else if (info.secret) {
+                    input.value = '';
+                } else {
+                    input.value = info.value ?? '';
+                    input.placeholder = info.env_configured ? String(info.env_value) : '';
+                }
+                const hint = form.querySelector(`[data-config-hint="${name}"]`);
+                if (hint) {
+                    hint.innerHTML = `<span class="sa-config-source is-${info.source}">${escapeHtml(configTexts[info.source])}</span>${escapeHtml(envText)}`;
+                }
+                const clear = form.querySelector(`[data-clear-secret="${name}"]`);
+                if (clear) {
+                    clear.classList.toggle('hidden', !info.configured);
+                    clear.classList.toggle('flex', info.configured);
+                    clear.querySelector('input').checked = false;
+                }
+            });
+        };
+        // Email / storage tabs (arrow keys move between tabs, the hash keeps the choice on reload).
+        const configTabs = Array.from(document.querySelectorAll('[data-config-tabs] [role="tab"]'));
+        const selectConfigTab = (name, focus = false) => {
+            const tab = configTabs.find(t => t.dataset.tab === name) || configTabs[0];
+            configTabs.forEach(t => {
+                const selected = t === tab;
+                t.setAttribute('aria-selected', String(selected));
+                t.tabIndex = selected ? 0 : -1;
+                document.getElementById(t.getAttribute('aria-controls')).hidden = !selected;
+            });
+            if (focus) tab.focus();
+            return tab.dataset.tab;
+        };
+        configTabs.forEach((tab, index) => {
+            tab.addEventListener('click', () => history.replaceState(null, '', `#${selectConfigTab(tab.dataset.tab)}`));
+            tab.addEventListener('keydown', e => {
+                if (!['ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+                e.preventDefault();
+                const next = configTabs[(index + (e.key === 'ArrowRight' ? 1 : -1) + configTabs.length) % configTabs.length];
+                history.replaceState(null, '', `#${selectConfigTab(next.dataset.tab, true)}`);
+            });
+        });
+        selectConfigTab(location.hash.slice(1));
+        window.addEventListener('hashchange', () => selectConfigTab(location.hash.slice(1)));
+        document.querySelectorAll('[data-config-form]').forEach(form => {
+            form.addEventListener('submit', async e => {
+                e.preventDefault();
+                const errorBox = form.querySelector('[data-config-error]');
+                errorBox.classList.add('hidden');
+                const body = {};
+                Array.from(form.elements).forEach(el => {
+                    if (!el.name) return;
+                    if (el.type === 'checkbox') body[el.name] = el.checked;
+                    else if (el.type === 'number') body[el.name] = el.value === '' ? null : Number(el.value);
+                    else body[el.name] = el.value.trim() === '' ? null : el.value.trim();
+                });
+                try {
+                    const result = await dfApi(form.dataset.configForm, { method: 'PUT', body });
+                    systemNotice(result.message);
+                    await loadSystem();
+                } catch (error) {
+                    errorBox.textContent = error.message;
+                    errorBox.classList.remove('hidden');
+                } finally {
+                    restoreSubmitButton(form);
+                }
+            });
+        });
         const healthLabels = {!! json_encode(['database' => __('superadmin.dashboard.database'), 'queue' => __('superadmin.dashboard.queue'), 'socket' => 'Socket.IO', 'mail' => __('superadmin.dashboard.mail'), 'storage' => __('superadmin.dashboard.storage'), 'supervisor' => __('superadmin.dashboard.supervisor')], JSON_UNESCAPED_UNICODE) !!};
         const renderHealth = health => {
             const rows = [

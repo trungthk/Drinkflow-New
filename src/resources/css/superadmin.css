@@ -98,7 +98,7 @@ html {
 .icon-button, .superadmin-menu { display: grid; place-items: center; border: 0; background: transparent; color: #64748b; cursor: pointer; }
 .icon-button:hover { color: #0b1c30; }
 .superadmin-menu { display: none; }
-.superadmin-content { width: 100%; max-width: 1500px; margin: 0 auto; padding: 34px; }
+.superadmin-content { width: 100%; padding: 34px; }
 .superadmin-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
 .superadmin-eyebrow { margin: 0 0 6px; color: #006c49; font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
 .superadmin-heading h1 { margin: 0; font-size: clamp(24px, 3vw, 32px); letter-spacing: -.04em; }
@@ -458,3 +458,19 @@ a.sa-health-row:focus-visible { outline: 2px solid #10b981; outline-offset: 2px;
 .sa-inbox-text small a { color: #006948; font-weight: 600; text-decoration: none; }
 .sa-inbox-text small a:hover { text-decoration: underline; }
 @media (max-width: 640px) { .sa-inbox-row { flex-wrap: wrap; } .sa-inbox-row > .sa-button { margin-left: 38px; } }
+
+/* Source badge under each mail/storage setting: which value is in effect (system settings vs .env). */
+.sa-config-source { display: inline-flex; align-items: center; gap: 5px; margin-right: 4px; border-radius: 99px; padding: 2px 8px; font-size: 10px; font-weight: 700; }
+.sa-config-source::before { content: ''; width: 6px; height: 6px; border-radius: 99px; background: currentColor; }
+.sa-config-source.is-system { background: #ecfdf5; color: #006948; }
+.sa-config-source.is-env { background: #eef2f7; color: #475569; }
+
+/* Tab bar inside a card (System settings: Email / Storage). Panels use the [hidden] attribute. */
+.sa-tabs { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-bottom: 18px; border-radius: 12px; background: #eff4ff; padding: 4px; }
+.sa-tab { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 9px; background: transparent; padding: 8px 14px; color: #64748b; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; transition: background-color .15s ease, color .15s ease; }
+.sa-tab .material-symbols-outlined { font-size: 18px; }
+.sa-tab:hover { color: #0b1c30; }
+.sa-tab[aria-selected="true"] { background: #006948; color: #fff; box-shadow: 0 1px 2px rgba(15, 23, 42, .12); }
+.sa-tab[aria-selected="true"]:hover { color: #fff; }
+.sa-tab:focus-visible { outline: 2px solid #10b981; outline-offset: 2px; }
+.sa-tab-panel > p.sa-tab-description { margin: 0 0 14px; color: #64748b; font-size: 11px; }

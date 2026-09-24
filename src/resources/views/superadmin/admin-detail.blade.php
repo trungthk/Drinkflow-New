@@ -1,6 +1,4 @@
-@extends('superadmin.layout', ['active' => 'admins'])
-
-@section('title', __('superadmin.admins.profile'))
+@extends('superadmin.layout', ['active' => 'admins', 'title' => __('superadmin.admins.profile')])
 
 @section('content')
     <div class="superadmin-heading">

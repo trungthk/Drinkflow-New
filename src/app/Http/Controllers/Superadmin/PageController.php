@@ -84,8 +84,11 @@ class PageController extends Controller
         $query = GlobalUser::query()->withCount('roomUsers')->latest();
         $search = trim($request->string('q')->toString());
         if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('normalized_name', 'like', "%".strtoupper($search)."%")->orWhere('email', 'like', "%{$search}%"));
-        $status = $request->string('status')->toString();
-        if ($status !== '') $query->where('status', $status);
+        $status = \App\Enums\GlobalUserStatus::tryFrom($request->string('status')->toString())?->value ?? '';
+        // Soft-deleted accounts only show up when explicitly filtered for.
+        $status !== ''
+            ? $query->where('status', $status)
+            : $query->where('status', '!=', \App\Enums\GlobalUserStatus::Deleted->value);
         return view('superadmin.users', ['users' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search', 'status')]);
     }
     /**
@@ -162,11 +165,14 @@ class PageController extends Controller
     /**
      * Render the system settings & maintenance page.
      *
-     * @return View Page with the reset confirmation phrase the reset modal asks the superadmin to type.
+     * @return View Page with the reset confirmation phrase and the local disks the storage settings can pick.
      */
     public function system(): View
     {
-        return view('superadmin.system', ['resetPhrase' => \App\Actions\Superadmin\ResetSystemAction::CONFIRMATION_PHRASE]);
+        return view('superadmin.system', [
+            'resetPhrase' => \App\Actions\Superadmin\ResetSystemAction::CONFIRMATION_PHRASE,
+            'storageDisks' => app(\App\Services\System\SystemConfigService::class)->localDisks(),
+        ]);
     }
     /**
      * List audit logs written through the admin console only (room admins and superadmins).

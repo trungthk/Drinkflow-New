@@ -31,6 +31,7 @@
         'active' => __('superadmin.common.active'), 'disabled' => __('superadmin.common.disabled'),
         'inactive' => __('superadmin.common.inactive'),
         'archived' => __('superadmin.common.archived'), 'blocked' => __('superadmin.common.blocked'),
+        'deleted' => __('superadmin.common.deleted'), 'removed' => __('superadmin.common.removed'),
         'pending' => __('superadmin.common.pending'), 'scheduled' => __('superadmin.common.scheduled'),
         'closed' => __('superadmin.common.closed'), 'cancelled' => __('superadmin.common.cancelled'),
         'draft' => __('admin.status_draft'), 'closing' => __('admin.status_closing'),

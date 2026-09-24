@@ -64,6 +64,13 @@ class AdminAddRoomUserAction
                     'status' => GlobalUserStatus::Active,
                 ]);
             } else {
+                // A superadmin soft-deleted this account; it must not be brought back into a room silently.
+                if ($globalUser->status === GlobalUserStatus::Deleted) {
+                    throw ValidationException::withMessages([
+                        'email' => __('admin.user_account_deleted'),
+                    ]);
+                }
+
                 $updateData = [];
                 if ($phone && empty($globalUser->phone)) {
                     $updateData['phone'] = $phone;

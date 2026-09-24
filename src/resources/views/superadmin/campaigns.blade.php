@@ -48,7 +48,7 @@
                             $status = $campaign->status instanceof \App\Enums\CampaignStatus ? $campaign->status : \App\Enums\CampaignStatus::tryFrom((string) $campaign->status);
                             // Mirrors CloseCampaignAction (active/closing only) and CampaignController::forceCancel.
                             $canForceClose = in_array($status, [\App\Enums\CampaignStatus::Active, \App\Enums\CampaignStatus::Closing], true);
-                            $canForceCancel = $status !== null && ! in_array($status, [\App\Enums\CampaignStatus::Closed, \App\Enums\CampaignStatus::Cancelled, \App\Enums\CampaignStatus::Archived], true);
+                            $canForceCancel = in_array($status, \App\Actions\Superadmin\ForceArchiveCampaignAction::ARCHIVABLE_STATUSES, true);
                         @endphp
                         <tr>
                             <td>

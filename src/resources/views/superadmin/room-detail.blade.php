@@ -1,6 +1,4 @@
-@extends('superadmin.layout', ['active' => 'rooms'])
-
-@section('title', 'Room profile')
+@extends('superadmin.layout', ['active' => 'rooms', 'title' => __('superadmin.rooms.profile')])
 
 @section('content')
     <div class="superadmin-heading">
@@ -107,6 +105,7 @@
             return wrapper.innerHTML;
         };
         const emptyRow = (html) => `<tr><td colspan="3">${html}</td></tr>`;
+        const roleLabels = @js(collect(\App\Enums\AdminRole::cases())->mapWithKeys(fn ($role) => [$role->value => __('superadmin.admins.role_'.$role->value)]));
         async function loadRoom() {
             const {
                 data: room
@@ -133,7 +132,7 @@
                     </td>
                     <td class="whitespace-nowrap">
                         <span class="inline-flex items-center gap-1 font-semibold">
-                            <span class="material-symbols-outlined text-[16px]">${admin.role === 'superadmin' ? 'shield_person' : 'person'}</span>${escapeHtml(admin.role)}
+                            <span class="material-symbols-outlined text-[16px]">${admin.role === 'superadmin' ? 'shield_person' : 'person'}</span>${escapeHtml(roleLabels[admin.role] || admin.role)}
                         </span>
                     </td>
                     <td class="whitespace-nowrap">${statusPill(admin.status)}</td>
@@ -141,7 +140,7 @@
             `).join('') || emptyRow(emptyStateHtml('tpl-no-admins'));
             const statusBtn = document.querySelector('#room-status-action');
             const willEnable = room.status !== 'active';
-            statusBtn.innerHTML = `<span class="material-symbols-outlined text-[16px]">${willEnable ? 'toggle_on' : 'toggle_off'}</span>${willEnable ? 'Enable room' : 'Disable room'}`;
+            statusBtn.innerHTML = `<span class="material-symbols-outlined text-[16px]">${willEnable ? 'toggle_on' : 'toggle_off'}</span>${willEnable ? @js(__('superadmin.rooms.enable_room')) : @js(__('superadmin.rooms.disable_room'))}`;
             statusBtn.disabled = false;
             statusBtn.classList.remove('opacity-75', 'cursor-wait');
             delete statusBtn.dataset.originalHtml;
@@ -231,7 +230,7 @@
                         status
                     }
                 });
-                roomNotice('Đã cập nhật trạng thái Room.');
+                roomNotice(@js(__('superadmin.rooms.status_updated')));
                 await loadRoom();
             } catch (error) {
                 roomNotice(error.message, 'error');

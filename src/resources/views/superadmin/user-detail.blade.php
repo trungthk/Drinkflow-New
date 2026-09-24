@@ -1,6 +1,4 @@
-@extends('superadmin.layout', ['active' => 'users'])
-
-@section('title', 'Global user profile')
+@extends('superadmin.layout', ['active' => 'users', 'title' => __('superadmin.users.profile')])
 
 @section('content')
     <div class="superadmin-heading">
@@ -118,7 +116,12 @@
                     </td>
                 </tr>
             `).join('') || emptyRow(emptyStateHtml('tpl-no-memberships'));
+            // A soft-deleted account is read-only: no status change, delete or membership removal.
+            const isDeleted = user.status === 'deleted';
+            document.querySelector('#user-delete-action').hidden = isDeleted;
+            document.querySelectorAll('[data-action="remove-membership"]').forEach(btn => { btn.hidden = isDeleted; });
             const statusBtn = document.querySelector('#user-status-action');
+            statusBtn.hidden = isDeleted;
             const isBlocked = user.status === 'blocked';
             statusBtn.innerHTML = `<span class="material-symbols-outlined text-[16px]">${isBlocked ? 'lock_open' : 'lock'}</span>${isBlocked ? @js(__('superadmin.common.unblock')) : @js(__('superadmin.common.block'))}`;
             statusBtn.className = `sa-button ${isBlocked ? '' : 'warning'}`;

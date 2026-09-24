@@ -10,10 +10,14 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\SendTestMailRequest;
 use App\Http\Requests\SystemResetRequest;
 use App\Http\Requests\SystemSettingsRequest;
+use App\Http\Requests\UpdateMailSettingsRequest;
 use App\Http\Requests\UpdateMaintenanceRequest;
+use App\Http\Requests\UpdateStorageSettingsRequest;
 use App\Models\SystemSetting;
 use App\Services\Audit\AuditService;
 use App\Services\System\MailHealthService;
+use App\Services\System\StorageHealthService;
+use App\Services\System\SystemConfigService;
 use App\Services\System\SystemHealthService;
 use App\Services\System\SystemSettingsService;
 use Illuminate\Http\JsonResponse;
@@ -24,9 +28,10 @@ class SystemController extends Controller
      * Handle the index operation.
      * @param SystemSettingsService $settings Parameter value.
      * @param SystemHealthService $health Infrastructure health snapshot service.
+     * @param SystemConfigService $config Mail/storage overrides with their .env fallbacks.
      * @return JsonResponse Result of the operation.
      */
-    public function index(SystemSettingsService $settings, SystemHealthService $health): JsonResponse
+    public function index(SystemSettingsService $settings, SystemHealthService $health, SystemConfigService $config): JsonResponse
     {
         $items = SystemSetting::query()->orderBy('key')->get()->map(fn(SystemSetting $setting) => [
             'key' => $setting->key,
@@ -39,7 +44,49 @@ class SystemController extends Controller
             'settings' => $items,
             'maintenance' => $this->maintenanceState($settings),
             'health' => $health->snapshot(),
+            'mail_config' => $config->describe(SystemConfigService::GROUP_MAIL),
+            'storage_config' => $config->describe(SystemConfigService::GROUP_STORAGE),
         ]]);
+    }
+
+    /**
+     * Save the system mail transport; empty fields fall back to the .env values.
+     *
+     * @param UpdateMailSettingsRequest $request Validated mail fields (active superadmin only).
+     * @param SystemConfigService $config Mail/storage override store.
+     * @param MailHealthService $mail Mail health check, re-run against the new config.
+     * @param AuditService $audit Audit trail (field names only, never values or passwords).
+     * @return JsonResponse Updated field sources and the resulting mail health.
+     */
+    public function mailSettings(UpdateMailSettingsRequest $request, SystemConfigService $config, MailHealthService $mail, AuditService $audit): JsonResponse
+    {
+        $changed = $config->save(SystemConfigService::GROUP_MAIL, $request->validated(), $request->user('admin')->id);
+        $audit->record('system.mail_config_updated', 'system', 0, null, [], [], ['fields' => $changed]);
+
+        return response()->json([
+            'data' => ['fields' => $config->describe(SystemConfigService::GROUP_MAIL), 'health' => $mail->check()],
+            'message' => __('superadmin.system.mail_config_saved'),
+        ]);
+    }
+
+    /**
+     * Save the storage settings (default disk, quota); empty fields fall back to the .env values.
+     *
+     * @param UpdateStorageSettingsRequest $request Validated storage fields (active superadmin only).
+     * @param SystemConfigService $config Mail/storage override store.
+     * @param StorageHealthService $storage Storage health check, re-run against the new config.
+     * @param AuditService $audit Audit trail of the changed field names.
+     * @return JsonResponse Updated field sources and the resulting storage health.
+     */
+    public function storageSettings(UpdateStorageSettingsRequest $request, SystemConfigService $config, StorageHealthService $storage, AuditService $audit): JsonResponse
+    {
+        $changed = $config->save(SystemConfigService::GROUP_STORAGE, $request->validated(), $request->user('admin')->id);
+        $audit->record('system.storage_config_updated', 'system', 0, null, [], [], ['fields' => $changed]);
+
+        return response()->json([
+            'data' => ['fields' => $config->describe(SystemConfigService::GROUP_STORAGE), 'health' => $storage->check()],
+            'message' => __('superadmin.system.storage_config_saved'),
+        ]);
     }
 
     /**
@@ -110,10 +157,9 @@ class SystemController extends Controller
      * @param ResetSystemAction $action Parameter value.
      * @return JsonResponse Result of the operation.
      */
-    public function reset(SystemResetRequest $request, ResetSystemAction $action, AuditService $audit): JsonResponse
+    public function reset(SystemResetRequest $request, ResetSystemAction $action): JsonResponse
     {
         $result = $action->execute(request()->user('admin'), $request->validated('password'), $request->validated('phrase'));
-        $audit->record('system.reset', 'system', 0, null, [], [], ['confirmation' => true]);
         return response()->json(['data' => $result]);
     }
 

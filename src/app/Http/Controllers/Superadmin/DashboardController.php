@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Superadmin;
 
+use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
+use App\Enums\GlobalUserStatus;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\AdminAccount;
@@ -36,9 +38,9 @@ class DashboardController extends Controller
             'data' => [
                 'total_rooms' => Room::count(),
                 'active_rooms' => Room::active()->count(),
-                'total_global_users' => GlobalUser::count(),
+                'total_global_users' => GlobalUser::where('status', '!=', GlobalUserStatus::Deleted->value)->count(),
                 'active_global_users' => GlobalUser::active()->count(),
-                'total_admins' => AdminAccount::where('role', 'admin')->count(),
+                'total_admins' => AdminAccount::where('role', AdminRole::Admin->value)->count(),
                 'active_campaigns' => Campaign::where('status', CampaignStatus::Active)->count(),
                 'orders_today' => Order::whereDate('created_at', $today)->whereNot('status', OrderStatus::Cancelled)->count(),
                 'system_health' => $health->snapshot(),
