@@ -305,6 +305,7 @@
 
         <!-- Luôn hiển thị Đánh giá -->
         <a class="{{ $tabClasses($activeTab === 'feedback') }}" href="{{ route('user.me.feedback') }}">
+          <span class="material-symbols-outlined text-[16px] sm:text-[17px]">rate_review</span>
           <span>{{ __('global.header.feedback') }}</span>
         </a>
       </nav>

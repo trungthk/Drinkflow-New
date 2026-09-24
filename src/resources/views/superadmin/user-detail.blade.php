@@ -133,6 +133,8 @@
             const nextStatus = isBlocked ? 'active' : 'blocked';
             openSuperadminConfirm({
                 message: (isBlocked ? @js(__('superadmin.users.confirm_unblock')) : @js(__('superadmin.users.confirm_block'))).replace(':name', currentUser.name),
+                description: isBlocked ? @js(__('superadmin.users.unblock_description')) : @js(__('superadmin.users.block_description')),
+                confirmIcon: isBlocked ? 'lock_open' : 'lock',
                 confirmLabel: isBlocked ? @js(__('superadmin.common.unblock')) : @js(__('superadmin.common.block')),
                 onConfirm: async () => {
                     await dfApi(`/superadmin/global-users/${globalUserId}/status`, { method: 'PATCH', body: { status: nextStatus } });

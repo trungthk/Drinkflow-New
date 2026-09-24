@@ -788,6 +788,7 @@ return [
     'audit_event_system_setting_updated' => 'System setting updated',
     'audit_event_maintenance_updated' => 'Maintenance mode updated',
     'audit_event_system_reset' => 'System reset',
+    'audit_event_system_mail_test' => 'Sent a test email',
     'audit_event_version_created' => 'Version created',
     'audit_event_version_updated' => 'Version updated',
     'audit_event_version_deleted' => 'Version deleted',

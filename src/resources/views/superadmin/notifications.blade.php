@@ -10,6 +10,58 @@
         </button>
     </div>
     <div id="notice" class="sa-notice"></div>
+    {{-- Inbox: only notifications addressed to the signed-in admin account (PageController::notifications). --}}
+    <section id="inbox" class="sa-card sa-section" data-sa-inbox>
+        <div class="sa-section-header">
+            <div>
+                <h2>{{ __('superadmin.inbox.title') }}</h2>
+                <p>{{ __('superadmin.inbox.description', ['count' => $inboxUnreadCount]) }}</p>
+            </div>
+            <div class="superadmin-actions">
+                <form method="GET" action="{{ route('superadmin.notifications.page') }}#inbox" class="superadmin-actions">
+                    @if(($filters['search'] ?? '') !== '')<input type="hidden" name="q" value="{{ $filters['search'] }}">@endif
+                    <select name="inbox_status" class="sa-input" aria-label="{{ __('superadmin.common.status') }}">
+                        <option value="">{{ __('superadmin.inbox.status_all') }}</option>
+                        <option value="{{ \App\Services\Notification\AdminNotificationService::FILTER_UNREAD }}" @selected($filters['inboxStatus'] === \App\Services\Notification\AdminNotificationService::FILTER_UNREAD)>{{ __('superadmin.inbox.status_unread') }}</option>
+                        <option value="{{ \App\Services\Notification\AdminNotificationService::FILTER_READ }}" @selected($filters['inboxStatus'] === \App\Services\Notification\AdminNotificationService::FILTER_READ)>{{ __('superadmin.inbox.status_read') }}</option>
+                    </select>
+                    <x-superadmin.search-input name="inbox_q" :value="$filters['inboxSearch']" placeholder="{{ __('superadmin.inbox.search') }}" />
+                    <button class="sa-button secondary" type="submit"><span class="material-symbols-outlined text-[16px]">filter_alt</span>{{ __('superadmin.common.filter') }}</button>
+                </form>
+                @if($inboxUnreadCount > 0)
+                    <button class="sa-button secondary" type="button" data-sa-inbox-mark-all><span class="material-symbols-outlined text-[16px]">done_all</span>{{ __('superadmin.inbox.mark_all_read') }}</button>
+                @endif
+            </div>
+        </div>
+        <div class="sa-inbox-list">
+            @forelse($inbox as $notification)
+                @php($presentation = $inboxPresentations[$notification->id] ?? ['title' => $notification->title, 'body' => $notification->body, 'icon' => 'notifications'])
+                <div class="sa-inbox-row" data-sa-inbox-row data-id="{{ $notification->id }}" @if(!$notification->read_at) data-unread @endif>
+                    <span class="sa-bell-icon"><span class="material-symbols-outlined">{{ $presentation['icon'] }}</span></span>
+                    <div class="sa-inbox-text">
+                        <strong>{{ $presentation['title'] }}</strong>
+                        @if($presentation['body'])<p>{{ $presentation['body'] }}</p>@endif
+                        <small>
+                            @if($notification->room)
+                                <a href="{{ route('superadmin.rooms.detail.page', $notification->room) }}">{{ $notification->room->name }}</a> ·
+                            @endif
+                            <time datetime="{{ $notification->created_at?->toIso8601String() }}" title="{{ $notification->created_at?->format('d/m/Y H:i') }}">{{ $notification->created_at?->diffForHumans() }}</time>
+                        </small>
+                    </div>
+                    @if(!$notification->read_at)
+                        <button class="sa-button secondary" type="button" data-sa-inbox-read><span class="material-symbols-outlined text-[16px]">done</span>{{ __('superadmin.inbox.mark_read') }}</button>
+                    @endif
+                </div>
+            @empty
+                @if($filters['inboxStatus'] !== '' || $filters['inboxSearch'] !== '')
+                    <x-superadmin.empty-state icon="search_off" :title="__('superadmin.inbox.no_results_title')" :description="__('superadmin.inbox.no_results_description')" />
+                @else
+                    <x-superadmin.empty-state icon="notifications_off" :title="__('superadmin.inbox.empty_title')" :description="__('superadmin.inbox.empty_description')" />
+                @endif
+            @endforelse
+        </div>
+        <div class="mt-4">{{ $inbox->fragment('inbox')->links() }}</div>
+    </section>
     <section class="sa-card sa-section">
         <div class="sa-section-header">
             <div>
@@ -17,8 +69,10 @@
                 <p>{{ __('superadmin.common.accounts_count', ['count' => $channels->total()]) }}</p>
             </div>
             <form method="GET" class="superadmin-actions">
-                <input name="q" value="{{ $filters['search'] ?? '' }}" class="sa-input" placeholder="{{ __('superadmin.rooms.search') }}">
-                <button class="sa-button secondary" type="submit">{{ __('superadmin.common.filter') }}</button>
+                @if($filters['inboxStatus'] !== '')<input type="hidden" name="inbox_status" value="{{ $filters['inboxStatus'] }}">@endif
+                @if($filters['inboxSearch'] !== '')<input type="hidden" name="inbox_q" value="{{ $filters['inboxSearch'] }}">@endif
+                <x-superadmin.search-input :value="$filters['search'] ?? ''" placeholder="{{ __('superadmin.notifications.search') }}" />
+                <button class="sa-button secondary" type="submit"><span class="material-symbols-outlined text-[16px]">filter_alt</span>{{ __('superadmin.common.filter') }}</button>
             </form>
         </div>
         <div class="sa-table-wrap">
@@ -42,7 +96,13 @@
                             <td><button class="sa-button danger" type="button" data-action="delete-channel" data-channel-id="{{ $channel->id }}">{{ __('superadmin.common.delete') }}</button></td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="sa-empty">{{ __('superadmin.notifications.no_channels') }}</td></tr>
+                        <tr><td colspan="5">
+                            @if(($filters['search'] ?? '') !== '')
+                                <x-superadmin.empty-state icon="search_off" :bordered="false" :title="__('superadmin.notifications.no_results_title')" :description="__('superadmin.notifications.no_results_description')" />
+                            @else
+                                <x-superadmin.empty-state icon="notifications_off" :bordered="false" :title="__('superadmin.notifications.no_channels_title')" :description="__('superadmin.notifications.no_channels_description')" />
+                            @endif
+                        </td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -104,6 +104,41 @@ class UserRoomDashboardTopItemsTest extends TestCase
     }
 
     /**
+     * The sponsorship box shows the campaign's real policy, per-product cap and sponsored amount (no hardcoded budget).
+     *
+     * @return void
+     */
+    public function test_dashboard_sponsor_box_uses_campaign_policy(): void
+    {
+        $room = Room::create(['name' => 'Technology', 'slug' => 'technology-sponsor-box', 'status' => RoomStatus::Active]);
+        $campaign = Campaign::create([
+            'room_id' => $room->id, 'name' => 'Live coffee', 'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active, 'sponsor_type' => Campaign::SPONSOR_TYPE_PER_ITEM, 'max_budget' => 45000,
+        ]);
+        $user = $this->user('sponsor-box@example.test');
+        $member = $this->member($room, $user, 'SPONSOR');
+        $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id, 'subtotal' => 30000,
+            'final_amount' => 30000, 'sponsor_amount' => 30000, 'status' => OrderStatus::Submitted,
+        ]);
+        $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id, 'subtotal' => 50000,
+            'final_amount' => 50000, 'sponsor_amount' => 50000, 'status' => OrderStatus::Cancelled,
+        ]);
+
+        $this->actingAs($user, 'web')->get(route('user.dashboard', $room->slug))->assertOk()
+            ->assertSee(__('room.campaign.sponsor_type_per_item'))
+            ->assertSee(__('room.dashboard.sponsor_item_cap', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency(45000)]))
+            ->assertSee(__('room.dashboard.sponsor_used_total', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency(30000)]))
+            ->assertDontSee('20.000');
+
+        $campaign->update(['sponsor_type' => Campaign::SPONSOR_TYPE_NONE, 'max_budget' => null]);
+        $this->actingAs($user, 'web')->get(route('user.dashboard', $room->slug))->assertOk()
+            ->assertSee(__('room.campaign.sponsor_type_none'))
+            ->assertDontSee(__('room.dashboard.sponsor_used_total', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency(30000)]));
+    }
+
+    /**
      * The orders page renders a submitted order whose items carry toppings (priced by unit_price).
      *
      * @return void

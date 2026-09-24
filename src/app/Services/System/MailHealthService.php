@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\System;
 
-use App\Models\AdminAccount;
 use Illuminate\Mail\Message;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -34,18 +33,27 @@ class MailHealthService
     }
 
     /**
-     * Send a real test email to the given administrator to actively verify the mail transport.
+     * Send a real test email to actively verify the mail transport.
      *
-     * @param AdminAccount $admin Administrator who requested the test (also the recipient).
+     * The optional message is plain text typed by the superadmin: it is HTML-escaped and only its
+     * line breaks are kept, so it can never inject markup into the email.
+     *
+     * @param string $recipient Validated email address to send the test message to.
+     * @param string|null $message Optional custom body; the default test sentence is used when empty.
      * @return bool True when the mailer accepted the message without throwing.
      */
-    public function sendTest(AdminAccount $admin): bool
+    public function sendTest(string $recipient, ?string $message = null): bool
     {
+        $message = trim((string) $message);
+        $body = $message !== ''
+            ? nl2br(e($message), false)
+            : e(__('superadmin.system.mail_test_body', ['app' => config('app.name')]));
+
         try {
             Mail::html(
-                '<p>'.__('superadmin.system.mail_test_body', ['app' => config('app.name')]).'</p>',
-                function (Message $message) use ($admin): void {
-                    $message->to($admin->email)
+                '<p>'.$body.'</p>',
+                function (Message $mail) use ($recipient): void {
+                    $mail->to($recipient)
                         ->subject(__('superadmin.system.mail_test_subject'));
                 }
             );

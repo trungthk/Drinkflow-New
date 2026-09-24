@@ -9,6 +9,7 @@ use App\Http\Requests\VersionRequest;
 use App\Models\Version;
 use App\Services\Audit\AuditService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class VersionController extends Controller
 {
@@ -45,6 +46,21 @@ class VersionController extends Controller
         $version->update($request->validated());
         $audit->record('version.updated', 'version', $version->id, null, $before, $version->fresh()->only(array_keys($before)));
         return response()->json(['data' => $version->fresh()]);
+    }
+    /**
+     * Render changelog Markdown to HTML for the release editor's preview tab.
+     *
+     * Raw HTML in the source is escaped and unsafe links (javascript:, data:, …) are dropped,
+     * so the returned markup is safe to inject into the superadmin page.
+     *
+     * @param Request $request Body: changelog (Markdown source).
+     * @return JsonResponse Rendered HTML under data.html.
+     */
+    public function preview(Request $request): JsonResponse
+    {
+        $validated = $request->validate(['changelog' => ['nullable', 'string', 'max:'.VersionRequest::CHANGELOG_MAX_LENGTH]]);
+
+        return response()->json(['data' => ['html' => Version::renderMarkdown((string) ($validated['changelog'] ?? ''))]]);
     }
     /**
      * Handle the destroy operation.

@@ -788,6 +788,7 @@ return [
     'audit_event_system_setting_updated' => 'システム設定を更新しました',
     'audit_event_maintenance_updated' => 'メンテナンス設定を更新しました',
     'audit_event_system_reset' => 'システムを初期化しました',
+    'audit_event_system_mail_test' => 'テストメールを送信しました',
     'audit_event_version_created' => 'バージョンを作成しました',
     'audit_event_version_updated' => 'バージョンを更新しました',
     'audit_event_version_deleted' => 'バージョンを削除しました',

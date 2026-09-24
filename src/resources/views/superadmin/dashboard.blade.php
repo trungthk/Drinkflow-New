@@ -95,6 +95,7 @@
             document.querySelector('#queue-status').textContent =
                 `${health.queue.connection} · ${@js(__('superadmin.dashboard.failed_count', ['count' => '__COUNT__'])).replace('__COUNT__', health.queue.failed_jobs)}`;
             document.querySelector('#socket-status').innerHTML = statusPill(health.socket.status);
+            document.querySelector('#socket-status').title = health.socket.reason_message || '';
             document.querySelector('#mail-status').innerHTML = statusPill(health.mail.configured ? 'configured' : 'not_configured');
             document.querySelector('#storage-status').innerHTML = statusPill(health.storage.status);
             if (health.supervisor) {

@@ -77,7 +77,8 @@ class SystemHealthTest extends TestCase
         Config::set('mail.default', 'log');
         $root = $this->superadmin();
 
-        $this->actingAs($root, 'admin')->postJson('/superadmin/system/mail/test')
+        // The recipient is now typed in the "send test email" modal (SendTestMailRequest).
+        $this->actingAs($root, 'admin')->postJson('/superadmin/system/mail/test', ['email' => $root->email])
             ->assertOk()
             ->assertJsonPath('data.sent', true);
     }

@@ -113,11 +113,9 @@ class RoomController extends Controller
      * @param ManageRoomAction $action Room management action.
      * @return JsonResponse Result of the operation.
      */
-    public function destroy(Room $room, ManageRoomAction $action, AuditService $audit): JsonResponse
+    public function destroy(Room $room, ManageRoomAction $action): JsonResponse
     {
-        $before = $room->only(['name', 'slug', 'status']);
         $action->delete($room);
-        $audit->record('room.deleted', 'room', $room->id, $room->id, $before, []);
 
         return response()->json(['data' => ['deleted' => true]]);
     }

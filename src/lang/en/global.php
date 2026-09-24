@@ -148,7 +148,6 @@ return [
         'stat_sponsor_hint' => 'Saved :percent% of total bills',
         'recent_rooms' => 'Recent Rooms',
         'recent_rooms_desc' => 'Monitor real-time group order status across your teams',
-        'view_all_rooms' => 'View All (:count)',
         'campaign_active' => 'Active Campaign',
         'campaign_open' => 'Open',
         'campaign_expired' => 'Expired',

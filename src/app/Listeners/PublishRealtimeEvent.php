@@ -114,7 +114,9 @@ class PublishRealtimeEvent implements ShouldQueue
             ],
             $event instanceof UserNotificationCreated => [
                 'notification.created',
-                $event->notification->roomUser?->room_id ?? 0,
+                // Private: never target the room channel, or every member would receive
+                // other members' notifications (e.g. their payment reminders).
+                0,
                 [
                     'id' => $event->notification->id,
                     'type' => $event->notification->type,

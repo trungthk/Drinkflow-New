@@ -15,7 +15,7 @@
                 <p>{{ __('superadmin.common.campaigns_count', ['count' => $campaigns->total()]) }}</p>
             </div>
             <form method="GET" class="superadmin-actions">
-                <input name="q" value="{{ $filters['search'] }}" class="sa-input" placeholder="{{ __('superadmin.campaigns.search') }}">
+                <x-superadmin.search-input :value="$filters['search']" placeholder="{{ __('superadmin.campaigns.search') }}" />
                 <select name="room_id" class="sa-input" aria-label="{{ __('superadmin.common.room') }}">
                     <option value="">{{ __('superadmin.campaigns.all_rooms') }}</option>
                     @foreach ($rooms as $room)

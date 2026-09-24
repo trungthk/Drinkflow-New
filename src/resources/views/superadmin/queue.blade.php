@@ -15,7 +15,7 @@
                 <p>{{ __('superadmin.common.failed_jobs_count', ['count' => $jobs->total()]) }}</p>
             </div>
             <form method="GET" class="superadmin-actions">
-                <input name="q" value="{{ $filters['search'] ?? '' }}" class="sa-input" placeholder="{{ __('superadmin.queue.search') }}">
+                <x-superadmin.search-input :value="$filters['search'] ?? ''" placeholder="{{ __('superadmin.queue.search') }}" />
                 <button class="sa-button secondary" type="submit"><span class="material-symbols-outlined text-[16px]">filter_list</span>{{ __('superadmin.common.filter') }}</button>
             </form>
         </div>

@@ -6,6 +6,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
 class Version extends Model
 {
@@ -72,6 +73,26 @@ class Version extends Model
                 return (string) config('app.version', 'v2.3.0');
             }
         });
+    }
+
+    /**
+     * Chuyển Markdown của changelog sang HTML an toàn để hiển thị.
+     *
+     * HTML thô trong nội dung bị escape và các liên kết không an toàn (javascript:, data:, …) bị loại bỏ.
+     *
+     * @param string $markdown Nội dung Markdown.
+     * @return string HTML đã render.
+     */
+    public static function renderMarkdown(string $markdown): string
+    {
+        if (trim($markdown) === '') {
+            return '';
+        }
+
+        return (string) Str::markdown($markdown, [
+            'html_input' => 'escape',
+            'allow_unsafe_links' => false,
+        ]);
     }
 
     /**

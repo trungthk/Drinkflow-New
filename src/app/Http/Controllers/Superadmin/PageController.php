@@ -16,6 +16,8 @@ use App\Models\Room;
 use App\Models\SecurityEvent;
 use App\Models\SystemNotificationChannel;
 use App\Models\Version;
+use App\Services\Notification\AdminNotificationService;
+use App\Services\Notification\NotificationPresentationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Contracts\View\View;
@@ -119,15 +121,43 @@ class PageController extends Controller
         ]);
     }
     /**
-     * Handle the notifications operation.
-     * @return View Result of the operation.
+     * Render the notifications page: the signed-in account's own inbox, then the system alert channels.
+     *
+     * The inbox only lists admin_notifications addressed to the current admin account, never other
+     * admins' or end users' notifications. Both lists paginate independently (`inbox_page` / `page`).
+     *
+     * @param Request $request Query string: inbox_status (all|unread|read), inbox_q, q (channel search).
+     * @param AdminNotificationService $notifications Admin notification service.
+     * @param NotificationPresentationService $presentation Localized title/body/icon for each notification.
+     * @return View Notifications page.
      */
-    public function notifications(Request $request): View
+    public function notifications(Request $request, AdminNotificationService $notifications, NotificationPresentationService $presentation): View
     {
+        /** @var AdminAccount $admin */
+        $admin = $request->user('admin');
+        $inboxStatus = in_array($request->query('inbox_status'), [AdminNotificationService::FILTER_UNREAD, AdminNotificationService::FILTER_READ], true)
+            ? (string) $request->query('inbox_status')
+            : '';
+        $inboxSearch = trim($request->string('inbox_q')->toString());
+        $inbox = $notifications
+            ->paginateForAdmin($admin, ['status' => $inboxStatus, 'search' => $inboxSearch], \App\Constants\Pagination::ADMIN_PER_PAGE, 'inbox_page')
+            ->withQueryString();
+        $inboxPresentations = [];
+        foreach ($inbox as $notification) {
+            $inboxPresentations[$notification->id] = $presentation->present($notification);
+        }
+
         $query = SystemNotificationChannel::query()->latest();
         $search = trim($request->string('q')->toString());
         if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('type', 'like', "%{$search}%"));
-        return view('superadmin.notifications', ['channels' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search')]);
+
+        return view('superadmin.notifications', [
+            'channels' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(),
+            'filters' => compact('search', 'inboxStatus', 'inboxSearch'),
+            'inbox' => $inbox,
+            'inboxPresentations' => $inboxPresentations,
+            'inboxUnreadCount' => $notifications->unreadCountForAdmin($admin),
+        ]);
     }
     /**
      * Render the system settings & maintenance page.

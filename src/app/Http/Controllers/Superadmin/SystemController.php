@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Superadmin;
 
 use App\Actions\Superadmin\ResetSystemAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\SendTestMailRequest;
 use App\Http\Requests\SystemResetRequest;
 use App\Http\Requests\SystemSettingsRequest;
 use App\Http\Requests\UpdateMaintenanceRequest;
@@ -15,7 +16,6 @@ use App\Services\System\MailHealthService;
 use App\Services\System\SystemHealthService;
 use App\Services\System\SystemSettingsService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class SystemController extends Controller
 {
@@ -42,19 +42,24 @@ class SystemController extends Controller
     }
 
     /**
-     * Send a real test email to the current superadmin to actively verify the mail transport.
+     * Send a real test email to the address typed in the modal to actively verify the mail transport.
      *
-     * @param Request $request Incoming request (authenticated superadmin only, see routes/superadmin.php).
+     * @param SendTestMailRequest $request Validated recipient email and optional message (active superadmin only).
      * @param MailHealthService $mail Mail health-check service.
+     * @param AuditService $audit Audit trail, so every outbound test (and its recipient) is traceable.
      * @return JsonResponse Whether the mailer accepted the test message.
      */
-    public function sendTestMail(Request $request, MailHealthService $mail): JsonResponse
+    public function sendTestMail(SendTestMailRequest $request, MailHealthService $mail, AuditService $audit): JsonResponse
     {
-        $sent = $mail->sendTest($request->user('admin'));
+        $recipient = (string) $request->validated('email');
+        $sent = $mail->sendTest($recipient, $request->validated('message'));
+        $audit->record('system.mail_test', 'system', 0, null, [], [], ['recipient' => $recipient, 'sent' => $sent]);
 
         return response()->json([
             'data' => ['sent' => $sent],
-            'message' => $sent ? __('superadmin.system.mail_test_sent') : __('superadmin.system.mail_test_failed'),
+            'message' => $sent
+                ? __('superadmin.system.mail_test_sent_to', ['email' => $recipient])
+                : __('superadmin.system.mail_test_failed'),
         ], $sent ? 200 : 422);
     }
 

@@ -41,6 +41,8 @@ const secret = process.env.SOCKET_TOKEN_SECRET || process.env.APP_KEY || '';
 const internalSecret = process.env.REALTIME_INTERNAL_SECRET || '';
 if (!secret) throw new Error('SOCKET_TOKEN_SECRET or APP_KEY is required (check .env in realtime/ or src/)');
 const maxBodyBytes = 256 * 1024;
+// Events addressed to a single user (see PublishRealtimeEvent): delivered on user_channel only.
+const privateEvents = new Set(['notification.created', 'room.membership.updated']);
 
 const decode = value => Buffer.from(value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - value.length % 4) % 4), 'base64').toString('utf8');
 const verify = token => {
@@ -58,7 +60,9 @@ const verify = token => {
 let authenticationFailures = 0;
 const recentDisconnects = [];
 const httpServer = createServer((req, res) => {
-  if (req.method === 'POST' && req.url === '/internal/emit') {
+  // Match on the path only, so a trailing slash or query string (e.g. from a proxy or uptime checker) still hits the route.
+  const pathname = new URL(req.url || '/', 'http://localhost').pathname.replace(/\/+$/, '') || '/';
+  if (req.method === 'POST' && pathname === '/internal/emit') {
     if (!secretsMatch(req.headers['x-realtime-secret'])) {
       res.writeHead(401, { 'Content-Type': 'application/json' });
       return res.end(JSON.stringify({ error: 'unauthorized' }));
@@ -98,9 +102,18 @@ const httpServer = createServer((req, res) => {
           return res.end(JSON.stringify({ error: 'invalid_event' }));
         }
         const payload = input.payload && typeof input.payload === 'object' && !Array.isArray(input.payload) ? input.payload : {};
-        io.to(`room:${roomId}`).emit(input.event, payload);
-        if (typeof input.user_channel === 'string' && /^(?:user|global_user):\d+$/.test(input.user_channel)) {
-          io.to(input.user_channel).emit(input.event, payload);
+        const userChannel = typeof input.user_channel === 'string' && /^(?:user|global_user):\d+$/.test(input.user_channel) ? input.user_channel : null;
+        // Private events belong to one user only: never fan them out to the whole room, otherwise
+        // every member receives other members' notifications / membership changes.
+        if (privateEvents.has(input.event)) {
+          if (!userChannel) {
+            res.writeHead(422, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'user_channel_required' }));
+          }
+          io.to(userChannel).emit(input.event, payload);
+        } else {
+          // One emit to the union of channels, so a socket in both rooms gets the event once.
+          io.to(userChannel ? [`room:${roomId}`, userChannel] : `room:${roomId}`).emit(input.event, payload);
         }
         res.writeHead(202, { 'Content-Type': 'application/json' });
         return res.end(JSON.stringify({ delivered: true }));
@@ -111,11 +124,11 @@ const httpServer = createServer((req, res) => {
     });
     return;
   }
-  if (req.url === '/health' && !secretsMatch(req.headers['x-realtime-secret'])) {
+  if (pathname === '/health' && !secretsMatch(req.headers['x-realtime-secret'])) {
     res.writeHead(401, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ error: 'unauthorized' }));
   }
-  if (req.url !== '/health') {
+  if (pathname !== '/health') {
     res.writeHead(404);
     return res.end();
   }

@@ -84,7 +84,11 @@ class ManageRoomAction
     }
 
     /**
-     * Delete a room if no members have outstanding debts.
+     * Delete a room and its room-scoped data if no members have outstanding debts.
+     *
+     * Debts, orders, campaigns, payment accounts and memberships reference the room
+     * with RESTRICT foreign keys, so they are removed explicitly (children first)
+     * before the room itself; their own children cascade at database level.
      *
      * @param Room $room Room entity instance.
      * @return void
@@ -100,9 +104,18 @@ class ManageRoomAction
 
         DB::transaction(function () use ($room): void {
             $roomId = $room->id;
-            $roomName = $room->name;
+            $before = $room->only(['name', 'slug', 'status']);
+
+            $room->debts()->delete();
+            $room->orders()->whereNotNull('parent_id')->delete();
+            $room->orders()->delete();
+            $room->campaigns()->delete();
+            $room->paymentAccounts()->delete();
+            $room->roomUsers()->delete();
             $room->delete();
-            app(AuditService::class)->record('room.deleted', 'room', $roomId, $roomId, ['name' => $roomName], []);
+
+            // The room row no longer exists, so the audit log must not reference it via room_id.
+            app(AuditService::class)->record('room.deleted', 'room', $roomId, null, $before, []);
         });
     }
 }

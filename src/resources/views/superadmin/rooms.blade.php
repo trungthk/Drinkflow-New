@@ -17,7 +17,7 @@
                 <p>{{ __('superadmin.common.rooms_count', ['count' => $rooms->total()]) }}</p>
             </div>
             <form method="GET" class="superadmin-actions">
-                <input name="q" value="{{ $filters['search'] ?? '' }}" class="sa-input" placeholder="{{ __('superadmin.rooms.search') }}">
+                <x-superadmin.search-input :value="$filters['search'] ?? ''" placeholder="{{ __('superadmin.rooms.search') }}" />
                 <select name="status" class="sa-input">
                     <option value="">{{ __('superadmin.common.all_statuses') }}</option>
                     @foreach (['active', 'inactive', 'archived'] as $value)

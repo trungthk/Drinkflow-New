@@ -9,7 +9,7 @@
     </div>
     <section class="sa-grid kpis kpis-4">
         <article class="sa-card sa-kpi"><span class="label">{{ __('superadmin.socket.gateway') }}</span><strong id="gateway-status"
-                class="value">—</strong><span class="hint">{{ __('superadmin.socket.gateway_health') }}</span></article>
+                class="value">—</strong><span class="hint" id="gateway-reason">{{ __('superadmin.socket.gateway_health') }}</span></article>
         <article class="sa-card sa-kpi"><span class="label">{{ __('superadmin.socket.users_online') }}</span><strong id="connected-users"
                 class="value">—</strong><span class="hint">{{ __('superadmin.socket.live_connections') }}</span></article>
         <article class="sa-card sa-kpi"><span class="label">{{ __('superadmin.socket.admins_online') }}</span><strong id="connected-admins"
@@ -44,7 +44,9 @@
             const {
                 data
             } = await dfApi('{{ route('superadmin.socket.index') }}');
-            document.querySelector('#gateway-status').textContent = data.status;
+            document.querySelector('#gateway-status').innerHTML = statusPill(data.status);
+            // When the check fails, the server explains why (wrong secret, gateway down, ...) — see SocketHealthReason.
+            document.querySelector('#gateway-reason').textContent = data.reason_message || @js(__('superadmin.socket.gateway_health'));
             document.querySelector('#connected-users').textContent = data.connected_users ?? '—';
             document.querySelector('#connected-admins').textContent = (data.connected_admins ?? 0) + (data
                 .connected_superadmins ?? 0);

@@ -8,6 +8,7 @@ use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\RoomStatus;
 use App\Enums\OrderStatus;
+use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -47,10 +48,11 @@ class UserRoomDashboardService
 
         $campaignData = null;
         if ($activeCampaign) {
-            $sponsorUsed = (int) Order::where('campaign_id', $activeCampaign->id)->sum('sponsor_amount');
-            $sponsorBudget = 200000;
-            $sponsorRemaining = max(0, $sponsorBudget - $sponsorUsed);
-            $sponsorPercent = $sponsorBudget > 0 ? min(100.0, round(($sponsorUsed / $sponsorBudget) * 100, 1)) : 0.0;
+            // Campaigns have no total sponsorship budget: only a policy (sponsor_type) and an optional
+            // per-product cap (max_budget), the same values the campaign menu page shows.
+            $sponsorUsed = (int) Order::where('campaign_id', $activeCampaign->id)
+                ->where('status', '!=', OrderStatus::Cancelled->value)
+                ->sum('sponsor_amount');
             $popularItems = $this->campaignService->getFavoriteItems($activeCampaign, (int) $roomUser->global_user_id);
 
             $campaignData = [
@@ -62,10 +64,9 @@ class UserRoomDashboardService
                 'deadline' => $activeCampaign->deadline,
                 'time_remaining' => $activeCampaign->deadline ? ($activeCampaign->deadline->isFuture() ? $activeCampaign->deadline->diffForHumans(['parts' => 2, 'short' => true]) : '00:00') : '14:22',
                 'deadline_formatted' => $activeCampaign->deadline ? FormatHelper::formatDateTime($activeCampaign->deadline, 'H:i') : '10:30',
-                'sponsor_budget' => $sponsorBudget,
-                'sponsor_remaining' => $sponsorRemaining,
+                'sponsor_type' => $activeCampaign->sponsor_type ?: Campaign::SPONSOR_TYPE_NONE,
+                'max_budget' => (int) ($activeCampaign->max_budget ?? 0),
                 'sponsor_used' => $sponsorUsed,
-                'sponsor_percent' => $sponsorPercent,
                 'popular_items' => $popularItems,
                 'order_url' => route('user.campaigns.order-page', [$room->slug, $activeCampaign->id]),
                 'has_ordered' => $roomUser->orders()

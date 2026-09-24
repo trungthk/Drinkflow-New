@@ -88,7 +88,6 @@ html {
 .superadmin-topbar { position: sticky; top: 0; z-index: 20; display: flex; min-height: 72px; align-items: center; gap: 14px; border-bottom: 1px solid #e2e8f0; background: rgba(248, 249, 255, .92); padding: 0 32px; backdrop-filter: blur(16px); }
 .superadmin-clearance { display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; background: #0b1c30; padding: 7px 13px; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .superadmin-clearance .material-symbols-outlined { color: #6ffbbe; font-size: 16px; }
-.superadmin-top-status { display: flex; align-items: center; gap: 7px; color: #64748b; font-size: 11px; font-weight: 600; }
 .status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; }
 .status-dot, .status-active .status-dot, .status-ok .status-dot { background: #10b981; }
 .superadmin-profile { display: flex; margin-left: auto; align-items: center; gap: 11px; }
@@ -338,3 +337,103 @@ html {
 .superadmin-shell .text-outline-variant {
     color: #cbd5e1;
 }
+
+/* Search box with clear (x) button: resources/views/components/superadmin/search-input.blade.php */
+.sa-search { position: relative; display: inline-flex; align-items: center; }
+.sa-search .sa-input { width: 100%; padding-right: 34px; }
+.sa-search .sa-input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.sa-search-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border: 0; border-radius: 999px; background: transparent; color: #64748b; cursor: pointer; }
+.sa-search-clear:hover { background: #f1f5f9; color: #0b1c30; }
+.sa-search-clear[hidden] { display: none; }
+
+/* Sidebar collapse / expand (desktop), toggled by resources/js/superadmin/sidebar.js. */
+.superadmin-collapse-toggle { display: grid; width: 34px; height: 34px; place-items: center; border: 0; border-radius: 8px; background: transparent; color: #64748b; cursor: pointer; transition: background .15s ease, color .15s ease; }
+.superadmin-collapse-toggle:hover { background: #ecfdf5; color: #006948; }
+.superadmin-collapse-toggle .material-symbols-outlined { font-size: 20px; }
+.superadmin-sidebar, .superadmin-main { transition: width .2s ease, padding-left .2s ease; }
+@media (min-width: 761px) {
+    html.sa-sidebar-collapsed .superadmin-sidebar { width: 76px; }
+    html.sa-sidebar-collapsed .superadmin-main { padding-left: 76px; }
+    html.sa-sidebar-collapsed .superadmin-brand { justify-content: center; padding: 0; }
+    html.sa-sidebar-collapsed .superadmin-brand-text,
+    html.sa-sidebar-collapsed .superadmin-nav-text,
+    html.sa-sidebar-collapsed .superadmin-trust-text { display: none; }
+    html.sa-sidebar-collapsed .superadmin-nav { padding: 18px 12px; overflow-x: hidden; }
+    html.sa-sidebar-collapsed .superadmin-nav-label { height: 1px; margin: 12px 6px; overflow: hidden; background: #e2e8f0; color: transparent; }
+    html.sa-sidebar-collapsed .superadmin-nav a { justify-content: center; padding: 11px 0; }
+    html.sa-sidebar-collapsed .superadmin-trust { justify-content: center; margin: 12px; padding: 12px 0; }
+}
+@media (max-width: 760px) { .superadmin-collapse-toggle { display: none; } }
+
+/* Release notes Markdown editor (resources/views/superadmin/versions.blade.php). */
+.sa-md-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 99px; background: #f1f5f9; padding: 3px 8px; color: #64748b; font-size: 10px; font-weight: 700; }
+.sa-md-editor { overflow: hidden; border: 1px solid #e2e8f0; border-radius: 10px; background: #fff; }
+.sa-md-editor:focus-within { border-color: #006948; }
+.sa-md-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; padding: 6px 8px; }
+.sa-md-tabs { display: flex; gap: 4px; }
+.sa-md-tabs button { display: inline-flex; align-items: center; gap: 5px; border: 0; border-radius: 7px; background: transparent; padding: 6px 10px; color: #64748b; cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; }
+.sa-md-tabs button:hover { color: #0b1c30; }
+.sa-md-tabs button.is-active { background: #fff; color: #006948; box-shadow: 0 1px 2px rgba(15, 23, 42, .08); }
+.sa-md-actions { display: flex; flex-wrap: wrap; gap: 2px; }
+.sa-md-actions.is-hidden { visibility: hidden; }
+.sa-md-actions button { display: grid; width: 30px; height: 30px; place-items: center; border: 0; border-radius: 7px; background: transparent; color: #64748b; cursor: pointer; }
+.sa-md-actions button:hover { background: #ecfdf5; color: #006948; }
+.sa-md-textarea { display: block; width: 100%; min-height: 280px; resize: vertical; border: 0; outline: 0; background: #fff; padding: 12px 14px; color: #0b1c30; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; line-height: 1.6; }
+.sa-md-preview { min-height: 280px; max-height: 420px; overflow-y: auto; padding: 14px 16px; }
+
+/* Rendered Markdown (server-side via Version::renderMarkdown()). */
+.sa-markdown { color: #334155; font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }
+.sa-markdown > :first-child { margin-top: 0; }
+.sa-markdown h1, .sa-markdown h2, .sa-markdown h3, .sa-markdown h4 { margin: 1.1em 0 .5em; color: #0b1c30; font-weight: 700; line-height: 1.3; }
+.sa-markdown h1 { font-size: 20px; } .sa-markdown h2 { font-size: 17px; } .sa-markdown h3 { font-size: 15px; } .sa-markdown h4 { font-size: 13px; }
+.sa-markdown p, .sa-markdown ul, .sa-markdown ol, .sa-markdown blockquote, .sa-markdown pre, .sa-markdown table { margin: 0 0 .8em; }
+.sa-markdown ul { list-style: disc; padding-left: 1.4em; }
+.sa-markdown ol { list-style: decimal; padding-left: 1.4em; }
+.sa-markdown li + li { margin-top: .25em; }
+.sa-markdown a { color: #006948; text-decoration: underline; }
+.sa-markdown strong { color: #0b1c30; }
+.sa-markdown blockquote { border-left: 3px solid #a7f3d0; background: #f0fdf4; padding: 6px 12px; color: #475569; }
+.sa-markdown code { border-radius: 4px; background: #f1f5f9; padding: 1px 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+.sa-markdown pre { overflow-x: auto; border-radius: 8px; background: #0f172a; padding: 12px 14px; color: #e2e8f0; }
+.sa-markdown pre code { background: transparent; padding: 0; color: inherit; }
+.sa-markdown hr { margin: 1.2em 0; border: 0; border-top: 1px solid #e2e8f0; }
+.sa-markdown table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.sa-markdown th, .sa-markdown td { border: 1px solid #e2e8f0; padding: 6px 8px; text-align: left; }
+
+/* Header notification bell: resources/views/components/superadmin/notification-bell.blade.php */
+.sa-bell { position: relative; }
+.sa-bell-toggle { position: relative; width: 34px; height: 34px; border-radius: 10px; }
+.sa-bell-toggle:hover { background: #f1f5f9; }
+.sa-bell-badge { position: absolute; top: 2px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 99px; background: #dc2626; color: #fff; font-size: 9px; font-weight: 700; line-height: 16px; text-align: center; box-shadow: 0 0 0 2px #fff; }
+.sa-bell-badge[hidden], .sa-bell-menu[hidden], .sa-bell-link[hidden], [data-sa-notifications-empty][hidden] { display: none; }
+.sa-bell-menu { position: absolute; top: calc(100% + 8px); right: -8px; z-index: 40; width: min(340px, calc(100vw - 24px)); overflow: hidden; border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; box-shadow: 0 18px 40px rgba(15, 23, 42, .14); }
+.sa-bell-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid #f1f5f9; padding: 11px 14px; font-size: 12px; }
+.sa-bell-link { border: 0; background: transparent; color: #006948; font-size: 11px; font-weight: 600; cursor: pointer; }
+.sa-bell-link:hover { text-decoration: underline; }
+.sa-bell-list { max-height: 320px; overflow-y: auto; }
+.sa-bell-item { display: flex; width: 100%; gap: 10px; border: 0; border-bottom: 1px solid #f8fafc; background: transparent; padding: 10px 14px; text-align: left; cursor: pointer; }
+.sa-bell-item:hover { background: #f8fafc; }
+.sa-bell-icon { display: grid; flex-shrink: 0; width: 26px; height: 26px; place-items: center; border-radius: 50%; background: #ecfdf5; color: #006948; }
+.sa-bell-icon .material-symbols-outlined { font-size: 15px; }
+.sa-bell-text { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+/* Beat the right-aligned / mobile-hidden `.superadmin-profile strong|small` rules, since the bell sits inside the profile block. */
+.superadmin-profile .sa-bell strong, .superadmin-profile .sa-bell small { display: block; margin: 0; text-align: left; }
+.sa-bell-text strong { color: #0b1c30; font-size: 12px; font-weight: 600; line-height: 1.35; }
+.sa-bell-text small { color: #64748b; font-size: 11px; line-height: 1.4; }
+.sa-bell-text em { color: #94a3b8; font-size: 10px; font-style: normal; }
+.sa-bell-footer { display: block; border-top: 1px solid #f1f5f9; background: #f8fafc; padding: 9px 14px; color: #006948; font-size: 11px; font-weight: 600; text-align: center; text-decoration: none; }
+.sa-bell-footer:hover { background: #f1f5f9; }
+
+/* Notifications page inbox (resources/views/superadmin/notifications.blade.php, [data-sa-inbox]). */
+.sa-inbox-list { display: flex; flex-direction: column; gap: 8px; }
+.sa-inbox-row { display: flex; align-items: flex-start; gap: 12px; border: 1px solid #eef2f7; border-radius: 12px; background: #fff; padding: 12px 14px; }
+.sa-inbox-row[data-unread] { border-color: #bbf7d0; background: #f0fdf4; }
+.sa-inbox-row > .sa-button { flex-shrink: 0; margin-left: auto; }
+.sa-inbox-text { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 3px; }
+.sa-inbox-text strong { color: #0b1c30; font-size: 12px; }
+.sa-inbox-row[data-unread] .sa-inbox-text strong::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; background: #10b981; vertical-align: middle; }
+.sa-inbox-text p { margin: 0; color: #475569; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+.sa-inbox-text small { color: #94a3b8; font-size: 11px; }
+.sa-inbox-text small a { color: #006948; font-weight: 600; text-decoration: none; }
+.sa-inbox-text small a:hover { text-decoration: underline; }
+@media (max-width: 640px) { .sa-inbox-row { flex-wrap: wrap; } .sa-inbox-row > .sa-button { margin-left: 38px; } }

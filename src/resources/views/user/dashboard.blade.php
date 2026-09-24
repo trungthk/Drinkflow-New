@@ -122,26 +122,26 @@
                 </div>
               </div>
 
-              <!-- Sponsor Budget Info Box -->
+              <!-- Sponsorship policy (same data as the campaign menu page: sponsor_type + per-product cap) -->
+              @php($dashSponsored = $activeCampaign['sponsor_type'] !== \App\Models\Campaign::SPONSOR_TYPE_NONE)
               <div class="bg-slate-50/80 border border-slate-100 rounded-lg p-3 space-y-1.5">
                 <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
                   <div class="flex flex-wrap items-center gap-1.5 text-slate-600">
                     <span class="material-symbols-outlined text-[15px] text-[#006948]">savings</span>
-                    <span class="font-medium">{{ __('room.dashboard.sponsor_budget_title') }}</span>
-                    <span class="font-bold font-mono text-slate-900">{{ \App\Support\Helpers\FormatHelper::formatCurrency($activeCampaign['sponsor_budget']) }}</span>
+                    <span class="font-medium">{{ __('room.campaign.policy_sponsor_title') }}:</span>
+                    <span class="font-bold text-slate-900">{{ __('room.campaign.sponsor_type_'.$activeCampaign['sponsor_type']) }}</span>
                   </div>
-                  <div class="text-[11px] font-semibold text-[#006948]">
-                    {{ __('room.dashboard.sponsor_remaining', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($activeCampaign['sponsor_remaining'])]) }}
+                  @if($dashSponsored)
+                    <div class="text-[11px] font-semibold text-[#006948]">
+                      {{ __('room.dashboard.sponsor_used_total', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($activeCampaign['sponsor_used'])]) }}
+                    </div>
+                  @endif
+                </div>
+                @if($activeCampaign['max_budget'] > 0)
+                  <div class="text-[10px] text-slate-400">
+                    {{ __('room.dashboard.sponsor_item_cap', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($activeCampaign['max_budget'])]) }}
                   </div>
-                </div>
-                <!-- Progress Bar -->
-                <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                  <div class="bg-[#006948] h-full rounded-full transition-all duration-300" style="width: {{ $activeCampaign['sponsor_percent'] }}%"></div>
-                </div>
-                <div class="flex items-center justify-between text-[10px] text-slate-400">
-                  <span>{{ __('room.dashboard.sponsor_used', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($activeCampaign['sponsor_used']), 'percent' => $activeCampaign['sponsor_percent']]) }}</span>
-                  <span>{{ __('room.dashboard.sponsor_limit', ['amount' => '20.000đ']) }}</span>
-                </div>
+                @endif
               </div>
 
               <!-- Campaign CTA Buttons -->

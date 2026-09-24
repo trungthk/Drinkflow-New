@@ -45,6 +45,8 @@
         })();
     </script>
 
+    {{-- Socket.IO client (window.io) for admin realtime updates; must load before admin.js runs. --}}
+    <script src="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}/socket.io/socket.io.js"></script>
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
     <!-- Alpine.js Plugins & Core -->
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.14.8/dist/cdn.min.js"></script>

@@ -230,6 +230,8 @@
         function confirmBlock() {
             openSuperadminConfirm({
                 message: @js(__('superadmin.admins.confirm_block')).replace(':name', currentAdmin?.name || ''),
+                description: @js(__('superadmin.admins.block_description')),
+                confirmIcon: 'lock',
                 confirmLabel: @js(__('superadmin.admins.block_account')),
                 onConfirm: () => updateAdminStatus('blocked', true),
             });

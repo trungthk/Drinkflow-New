@@ -14,10 +14,7 @@
                 <h2>{{ __('superadmin.dashboard.system_health') }}</h2>
                 <p>{{ __('superadmin.dashboard.health_description') }}</p>
             </div>
-            <form id="mail-test-form" method="post" action="{{ route('superadmin.system.mail-test') }}">
-                @csrf
-                <button class="sa-button secondary" type="submit"><span class="material-symbols-outlined text-[16px]">outgoing_mail</span>{{ __('superadmin.system.send_test_mail') }}</button>
-            </form>
+            <button class="sa-button secondary" type="button" data-modal-open="mail-test-modal"><span class="material-symbols-outlined text-[16px]">outgoing_mail</span>{{ __('superadmin.system.send_test_mail') }}</button>
         </div>
         <div id="system-health" class="sa-health-list">
             <x-superadmin.empty-state loading :title="__('superadmin.common.loading_title')" :description="__('superadmin.common.loading_description')" />
@@ -58,6 +55,30 @@
             <button class="sa-button danger" type="button" data-modal-open="reset-system-modal"><span class="material-symbols-outlined text-[16px]">restart_alt</span>{{ __('superadmin.system.reset') }}</button>
         </div>
     </section>
+
+    <x-superadmin.modal id="mail-test-modal" icon="outgoing_mail" :title="__('superadmin.system.send_test_mail')" :description="__('superadmin.system.mail_test_modal_description', ['driver' => config('mail.default')])" max-width="max-w-md">
+        <form id="mail-test-form" class="space-y-4">
+            @csrf
+            <div>
+                <label for="mail-test-email" class="block text-xs font-semibold text-on-surface mb-1">{{ __('superadmin.system.mail_test_email') }} <span class="text-error">*</span></label>
+                <input type="email" id="mail-test-email" name="email" required maxlength="255" autocomplete="email" value="{{ request()->user('admin')->email }}"
+                    class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+            </div>
+            <div>
+                <label for="mail-test-message" class="block text-xs font-semibold text-on-surface mb-1">{{ __('superadmin.system.mail_test_message') }}</label>
+                <textarea id="mail-test-message" name="message" rows="5" maxlength="{{ \App\Http\Requests\SendTestMailRequest::MESSAGE_MAX_LENGTH }}"
+                    placeholder="{{ __('superadmin.system.mail_test_body', ['app' => config('app.name')]) }}"
+                    class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary"></textarea>
+                <p class="mt-1 text-[11px] text-outline">{{ __('superadmin.system.mail_test_message_hint') }}</p>
+            </div>
+            <div class="pt-2 flex items-center justify-end gap-2.5 border-t border-outline-variant">
+                <button type="button" class="px-4 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-xs font-semibold transition-colors cursor-pointer" data-modal-close>{{ __('superadmin.common.cancel') }}</button>
+                <button type="submit" class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer">
+                    <span class="material-symbols-outlined text-[16px]">send</span>{{ __('superadmin.system.mail_test_send') }}
+                </button>
+            </div>
+        </form>
+    </x-superadmin.modal>
 
     <x-superadmin.modal id="reset-system-modal" icon="restart_alt" :title="__('superadmin.system.reset')" :description="__('superadmin.system.reset_modal_description')" max-width="max-w-md">
         <form id="reset-system-form" class="space-y-4">
@@ -117,13 +138,13 @@
             const rows = [
                 ['database', statusPill(health.database.status)],
                 ['queue', `<small>${escapeHtml(health.queue.connection)} · ${health.queue.failed_jobs}</small>`],
-                ['socket', statusPill(health.socket.status)],
+                ['socket', statusPill(health.socket.status), health.socket.reason_message],
                 ['mail', statusPill(health.mail.configured ? 'configured' : 'not_configured')],
                 ['storage', statusPill(health.storage.status)],
             ];
             if (health.supervisor) rows.push(['supervisor', statusPill(health.supervisor.status)]);
-            document.querySelector('#system-health').innerHTML = rows.map(([key, markup]) =>
-                `<div class="sa-health-row"><div><strong>${escapeHtml(healthLabels[key] || key)}</strong></div>${markup}</div>`
+            document.querySelector('#system-health').innerHTML = rows.map(([key, markup, hint]) =>
+                `<div class="sa-health-row"><div><strong>${escapeHtml(healthLabels[key] || key)}</strong>${hint ? `<small>${escapeHtml(hint)}</small>` : ''}</div>${markup}</div>`
             ).join('');
         };
         const toDateTimeLocal = value => {
@@ -164,15 +185,25 @@
                 },
             });
         });
-        document.querySelector('#mail-test-form').addEventListener('submit', async e => {
+        const mailTestForm = document.querySelector('#mail-test-form');
+        mailTestForm.addEventListener('submit', async e => {
             e.preventDefault();
+            const errorBox = document.querySelector('#mail-test-modal-error');
+            errorBox.classList.add('hidden');
             try {
-                const result = await dfApi('{{ route('superadmin.system.mail-test') }}', { method: 'POST' });
+                const result = await dfApi('{{ route('superadmin.system.mail-test') }}', {
+                    method: 'POST',
+                    body: { email: mailTestForm.email.value, message: mailTestForm.message.value }
+                });
+                mailTestForm.message.value = '';
+                window.closeSuperadminModal('mail-test-modal');
                 systemNotice(result.message);
             } catch (error) {
-                systemNotice(error.message, 'error');
+                // Keep the modal open with what was typed so the address can be corrected and resent.
+                errorBox.textContent = error.message;
+                errorBox.classList.remove('hidden');
             } finally {
-                restoreSubmitButton(e.target);
+                restoreSubmitButton(mailTestForm);
             }
         });
         const resetForm = document.querySelector('#reset-system-form');

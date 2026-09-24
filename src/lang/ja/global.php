@@ -148,7 +148,6 @@ return [
         'stat_sponsor_hint' => '請求総額の :percent% を節約',
         'recent_rooms' => '最近のルーム',
         'recent_rooms_desc' => '各チームでのリアルタイム注文状況を確認',
-        'view_all_rooms' => 'すべて表示 (:count)',
         'campaign_active' => '注文受付中',
         'campaign_open' => '受付中',
         'campaign_expired' => '期限切れ',

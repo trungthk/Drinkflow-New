@@ -148,7 +148,6 @@ return [
         'stat_sponsor_hint' => 'Tiết kiệm :percent% tổng bill',
         'recent_rooms' => 'Room gần đây',
         'recent_rooms_desc' => 'Theo dõi trạng thái gom đơn thời gian thực tại các nhóm làm việc',
-        'view_all_rooms' => 'Xem tất cả (:count)',
         'campaign_active' => 'Chiến dịch đang mở',
         'campaign_open' => 'Đang mở',
         'campaign_expired' => 'Đã hết hạn',

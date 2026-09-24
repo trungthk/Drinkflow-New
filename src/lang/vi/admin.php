@@ -797,6 +797,7 @@ return [
     'audit_event_system_setting_updated' => 'Đã cập nhật cấu hình hệ thống',
     'audit_event_maintenance_updated' => 'Đã cập nhật bảo trì hệ thống',
     'audit_event_system_reset' => 'Đã đặt lại toàn bộ hệ thống',
+    'audit_event_system_mail_test' => 'Đã gửi email thử nghiệm',
     'audit_event_version_created' => 'Đã tạo phiên bản phát hành',
     'audit_event_version_updated' => 'Đã cập nhật phiên bản phát hành',
     'audit_event_version_deleted' => 'Đã xóa phiên bản phát hành',

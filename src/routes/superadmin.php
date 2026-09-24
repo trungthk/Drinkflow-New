@@ -37,6 +37,8 @@ Route::middleware(['auth:admin', 'superadmin'])->prefix('superadmin')->group(fun
     Route::post('/campaigns/{campaign}/force-close', [\App\Http\Controllers\Superadmin\CampaignController::class, 'forceClose'])->name('superadmin.campaigns.force-close');
     Route::post('/campaigns/{campaign}/force-cancel', [\App\Http\Controllers\Superadmin\CampaignController::class, 'forceCancel'])->name('superadmin.campaigns.force-cancel');
     Route::get('/notifications/page', [\App\Http\Controllers\Superadmin\PageController::class, 'notifications'])->name('superadmin.notifications.page');
+    Route::post('/admin-notifications/read-all', [\App\Http\Controllers\Superadmin\AdminNotificationController::class, 'markAllRead'])->name('superadmin.admin-notifications.read-all');
+    Route::patch('/admin-notifications/{notification}/read', [\App\Http\Controllers\Superadmin\AdminNotificationController::class, 'read'])->whereNumber('notification')->name('superadmin.admin-notifications.read');
     Route::get('/notifications', [\App\Http\Controllers\Superadmin\NotificationController::class, 'index'])->name('superadmin.notifications.index');
     Route::post('/notifications', [\App\Http\Controllers\Superadmin\NotificationController::class, 'store'])->name('superadmin.notifications.store');
     Route::get('/notifications/{channel}', [\App\Http\Controllers\Superadmin\NotificationController::class, 'show'])->name('superadmin.notifications.show');
@@ -66,6 +68,7 @@ Route::middleware(['auth:admin', 'superadmin'])->prefix('superadmin')->group(fun
     Route::get('/versions/page', [\App\Http\Controllers\Superadmin\PageController::class, 'versions'])->name('superadmin.versions.page');
     Route::get('/versions', [\App\Http\Controllers\Superadmin\VersionController::class, 'index'])->name('superadmin.versions.index');
     Route::post('/versions', [\App\Http\Controllers\Superadmin\VersionController::class, 'store'])->name('superadmin.versions.store');
+    Route::post('/versions/preview', [\App\Http\Controllers\Superadmin\VersionController::class, 'preview'])->name('superadmin.versions.preview');
     Route::match(['put', 'patch'], '/versions/{version}', [\App\Http\Controllers\Superadmin\VersionController::class, 'update'])->name('superadmin.versions.update');
     Route::delete('/versions/{version}', [\App\Http\Controllers\Superadmin\VersionController::class, 'destroy'])->name('superadmin.versions.destroy');
 });

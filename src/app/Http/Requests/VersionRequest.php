@@ -11,6 +11,9 @@ class VersionRequest extends FormRequest
 {
     use AuthorizesUserAndAdmin;
 
+    /** Upper bound for the changelog Markdown, kept under the 64 KB MySQL TEXT column. */
+    public const CHANGELOG_MAX_LENGTH = 20000;
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -31,7 +34,7 @@ class VersionRequest extends FormRequest
         return [
             'version' => ['required', 'string', 'max:50'],
             'title' => ['required', 'string', 'max:255'],
-            'changelog' => ['nullable', 'string'],
+            'changelog' => ['nullable', 'string', 'max:'.self::CHANGELOG_MAX_LENGTH],
             'release_date' => ['nullable', 'date'],
             'force_refresh' => ['sometimes', 'boolean'],
             'important' => ['sometimes', 'boolean'],

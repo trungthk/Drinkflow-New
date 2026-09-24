@@ -120,9 +120,8 @@
               <span class="text-xs text-slate-500 hidden sm:inline">{{ __('global.dashboard.recent_rooms_desc') }}</span>
             </div>
           </div>
-          <a class="text-[#006948] hover:text-emerald-700 text-xs sm:text-sm font-medium flex items-center gap-1 group" href="{{ route('user.me.rooms') }}">
-            <span>{{ __('global.dashboard.view_all_rooms', ['count' => $roomsCount]) }}</span>
-            <span class="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">chevron_right</span>
+          <a class="min-w-8 h-8 px-2.5 rounded-full bg-emerald-50 border border-emerald-100 text-[#006948] hover:bg-emerald-100 text-xs sm:text-sm font-bold flex items-center justify-center transition-colors" href="{{ route('user.me.rooms') }}">
+            {{ $roomsCount }}
           </a>
         </div>
 

@@ -13,7 +13,7 @@
                 <p>{{ __('superadmin.common.events_count', ['count' => $events->total()]) }}</p>
             </div>
             <form method="GET" class="superadmin-actions">
-                <input name="q" value="{{ $filters['search'] ?? '' }}" class="sa-input" placeholder="{{ __('superadmin.audit.filter') }}">
+                <x-superadmin.search-input :value="$filters['search'] ?? ''" placeholder="{{ __('superadmin.audit.filter') }}" />
                 <select name="severity" class="sa-input">
                     <option value="">{{ __('superadmin.security.all_severities') }}</option>
                     @foreach(['high','medium','low'] as $value)

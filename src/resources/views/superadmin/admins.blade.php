@@ -18,7 +18,7 @@
                 <p>{{ __('superadmin.common.accounts_count', ['count' => $admins->total()]) }}</p>
             </div>
             <form method="GET" class="superadmin-actions">
-                <input name="q" value="{{ $filters['search'] ?? '' }}" class="sa-input" placeholder="{{ __('superadmin.admins.search') }}">
+                <x-superadmin.search-input :value="$filters['search'] ?? ''" placeholder="{{ __('superadmin.admins.search') }}" />
                 <select name="role" class="sa-input">
                     <option value="">{{ __('superadmin.admins.all_roles') }}</option>
                     @foreach (['admin', 'superadmin'] as $value)
@@ -213,6 +213,8 @@
             if (!blockBtn) return;
             openSuperadminConfirm({
                 message: @js(__('superadmin.admins.confirm_block')).replace(':name', blockBtn.dataset.adminName),
+                description: @js(__('superadmin.admins.block_description')),
+                confirmIcon: 'lock',
                 confirmLabel: @js(__('superadmin.admins.block_account')),
                 onConfirm: async () => {
                     await dfApi(`/superadmin/admins/${blockBtn.dataset.adminId}/status`, { method: 'PATCH', body: { status: 'blocked' } });

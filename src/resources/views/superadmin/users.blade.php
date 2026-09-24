@@ -15,7 +15,7 @@
                 <p>{{ trans_choice('superadmin.common.global_users_count', $users->total(), ['count' => $users->total()]) }}</p>
             </div>
             <form method="get" class="sa-filters">
-                <input name="q" class="sa-input" value="{{ request('q') }}" placeholder="{{ __('superadmin.users.search') }}">
+                <x-superadmin.search-input :value="request('q')" placeholder="{{ __('superadmin.users.search') }}" />
                 <button class="sa-button secondary" type="submit"><span class="material-symbols-outlined text-[16px]">filter_list</span>{{ __('superadmin.common.filter') }}</button>
             </form>
         </div>
@@ -87,6 +87,8 @@
                 const nextStatus = isBlocked ? 'active' : 'blocked';
                 openSuperadminConfirm({
                     message: (isBlocked ? @js(__('superadmin.users.confirm_unblock')) : @js(__('superadmin.users.confirm_block'))).replace(':name', toggleBtn.dataset.userName),
+                    description: isBlocked ? @js(__('superadmin.users.unblock_description')) : @js(__('superadmin.users.block_description')),
+                    confirmIcon: isBlocked ? 'lock_open' : 'lock',
                     confirmLabel: isBlocked ? @js(__('superadmin.common.unblock')) : @js(__('superadmin.common.block')),
                     onConfirm: async () => {
                         await dfApi(`/superadmin/global-users/${toggleBtn.dataset.userId}/status`, { method: 'PATCH', body: { status: nextStatus } });

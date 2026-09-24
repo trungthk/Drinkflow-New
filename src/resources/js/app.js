@@ -21,6 +21,10 @@ import { initGlobalGoToTop } from './global/go-to-top';
 import { initSuperadminLoading, initSuperadminReloadButtons } from './superadmin/loading';
 import { exposeSuperadminGlobals } from './superadmin/shared';
 import { initSuperadminModals, openSuperadminConfirm } from './superadmin/modal';
+import { initSuperadminSearchClear } from './superadmin/search-clear';
+import { initSuperadminNotifications } from './superadmin/notifications';
+import { initSuperadminSidebar } from './superadmin/sidebar';
+import { initSuperadminVersions } from './superadmin/versions';
 import { initDateRangePickers } from './admin/ui-enhancements';
 import { renderSubmitLoading } from './shared/submit-loading';
 
@@ -51,5 +55,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initSuperadminLoading();
     initSuperadminReloadButtons();
     initSuperadminModals();
+    initSuperadminSearchClear();
+    initSuperadminNotifications();
+    initSuperadminSidebar();
+    initSuperadminVersions();
     initDateRangePickers();
 });

@@ -29,6 +29,7 @@ use App\Listeners\NotifyCampaignUpdated;
 use App\Listeners\NotifyOrderDeleted;
 use App\Listeners\PublishRealtimeEvent;
 use App\View\Composers\AdminLayoutComposer;
+use App\View\Composers\SuperadminLayoutComposer;
 use App\View\Composers\UserGlobalLayoutComposer;
 use App\View\Composers\UserRoomLayoutComposer;
 use App\View\Composers\PublicLayoutComposer;
@@ -191,6 +192,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer(['components.global.*', 'user.global.*'], UserGlobalLayoutComposer::class);
         View::composer(['components.room.*', 'user.room.*', 'user.orders'], UserRoomLayoutComposer::class);
         View::composer(['components.public.*', 'public.*'], PublicLayoutComposer::class);
+        View::composer('superadmin.layout', SuperadminLayoutComposer::class);
         View::share('locales', \App\Constants\AppLocale::SUPPORTED);
 
         \Illuminate\Support\Facades\Blade::directive('formatDate', function ($expression) {

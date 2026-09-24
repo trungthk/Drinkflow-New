@@ -15,7 +15,7 @@
                 <p>{{ __('superadmin.feedbacks.pending_count', ['count' => $pendingCount]) }} · {{ __('superadmin.common.records_count', ['count' => $feedbacks->total()]) }}</p>
             </div>
             <form method="GET" class="superadmin-actions">
-                <input name="q" value="{{ $filters['search'] }}" class="sa-input" placeholder="{{ __('superadmin.feedbacks.search') }}">
+                <x-superadmin.search-input :value="$filters['search']" placeholder="{{ __('superadmin.feedbacks.search') }}" />
                 <select name="status" class="sa-input" aria-label="{{ __('superadmin.common.status') }}">
                     <option value="all" @selected($filters['status'] === 'all')>{{ __('superadmin.common.all_statuses') }}</option>
                     <option value="inactive" @selected($filters['status'] === 'inactive')>{{ __('superadmin.feedbacks.status_inactive') }}</option>

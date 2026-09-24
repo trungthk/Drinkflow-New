@@ -4,12 +4,15 @@ namespace Tests\Feature;
 
 use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
+use App\Enums\DebtStatus;
 use App\Models\AdminAccount;
 use App\Models\AuditLog;
 use App\Models\Campaign;
+use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\OAuthIdentity;
 use App\Models\Room;
+use App\Models\RoomUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -117,6 +120,47 @@ class SuperadminFeatureTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'inactive');
         $this->assertDatabaseHas('rooms', ['id' => $room->id, 'status' => 'inactive']);
+    }
+
+    /**
+     * Deleting a room must also remove its RESTRICT-linked data (members, campaigns, settled debts)
+     * and must not write an audit log that points at the deleted room.
+     *
+     * @return void
+     */
+    public function test_superadmin_can_delete_room_with_members_campaigns_and_settled_debts(): void
+    {
+        $root = $this->superadmin();
+        $room = Room::create(['name' => 'Legacy', 'slug' => 'legacy', 'status' => 'active']);
+        $roomUser = RoomUser::create([
+            'room_id' => $room->id,
+            'global_user_id' => GlobalUser::create(['name' => 'Member', 'email' => 'member-legacy@example.test'])->id,
+            'display_name' => 'Member',
+            'status' => 'active',
+        ]);
+        $campaign = Campaign::create(['room_id' => $room->id, 'status' => CampaignStatus::Active, 'name' => 'Old lunch', 'restaurant' => 'Shop', 'type' => 'food', 'deadline_at' => now()->addHour()]);
+        Debt::create([
+            'room_id' => $room->id,
+            'campaign_id' => $campaign->id,
+            'room_user_id' => $roomUser->id,
+            'original_amount' => 50000,
+            'sponsor_amount' => 0,
+            'sponsor_type' => 'full',
+            'adjustment_amount' => 0,
+            'paid_amount' => 50000,
+            'remaining_amount' => 0,
+            'status' => DebtStatus::Paid,
+        ]);
+
+        $this->actingAs($root, 'admin')->deleteJson("/superadmin/rooms/{$room->id}")
+            ->assertOk()
+            ->assertJsonPath('data.deleted', true);
+
+        $this->assertDatabaseMissing('rooms', ['id' => $room->id]);
+        $this->assertDatabaseMissing('room_users', ['id' => $roomUser->id]);
+        $this->assertDatabaseMissing('campaigns', ['id' => $campaign->id]);
+        $this->assertDatabaseMissing('debts', ['room_id' => $room->id]);
+        $this->assertSame(1, AuditLog::where('event', 'room.deleted')->where('target_id', $room->id)->whereNull('room_id')->count());
     }
 
     public function test_last_superadmin_cannot_be_demoted_or_blocked(): void
@@ -331,6 +375,75 @@ class SuperadminFeatureTest extends TestCase
             ->assertDontSee('id="settings-form"', false)
             ->assertSee(__('superadmin.common.loading_title'))
             ->assertDontSee('prompt(', false);
+    }
+
+    public function test_layout_confirms_logout_and_offers_sidebar_toggle(): void
+    {
+        $root = $this->superadmin();
+
+        $this->actingAs($root, 'admin')->get('/superadmin/versions/page')
+            ->assertOk()
+            ->assertSee('id="superadmin-logout-modal"', false)
+            ->assertSee('data-modal-open="superadmin-logout-modal"', false)
+            ->assertSee('data-sidebar-toggle', false)
+            ->assertSee(__('superadmin.layout.toggle_sidebar'))
+            ->assertDontSee('id="top-socket-status"', false);
+    }
+
+    public function test_versions_page_uses_modal_editor_and_empty_states(): void
+    {
+        $root = $this->superadmin();
+
+        $this->actingAs($root, 'admin')->get('/superadmin/versions/page')
+            ->assertOk()
+            ->assertSee('id="version-modal"', false)
+            ->assertSee('id="version-md-upload"', false)
+            ->assertSee('data-md-tab="preview"', false)
+            ->assertSee(__('superadmin.versions.no_releases_title'))
+            ->assertDontSee('prompt(', false);
+
+        $this->actingAs($root, 'admin')->get('/superadmin/versions/page?q=missing')
+            ->assertOk()
+            ->assertSee(__('superadmin.versions.no_results_title'));
+
+        \App\Models\Version::create(['version' => 'v9.9.9', 'title' => 'Big release', 'changelog' => '## Notes', 'release_date' => '2026-09-24', 'important' => true]);
+
+        $this->actingAs($root, 'admin')->get('/superadmin/versions/page')
+            ->assertOk()
+            ->assertSee('data-action="edit-release"', false)
+            ->assertSee('data-action="delete-release"', false)
+            ->assertSee('2026-09-24');
+    }
+
+    public function test_version_changelog_preview_renders_safe_markdown(): void
+    {
+        $root = $this->superadmin();
+
+        $html = $this->actingAs($root, 'admin')->postJson('/superadmin/versions/preview', [
+            'changelog' => "## Features\n- **Fast**\n\n<script>alert(1)</script>\n\n[bad](javascript:alert(1))",
+        ])->assertOk()->json('data.html');
+
+        $this->assertStringContainsString('<h2>Features</h2>', $html);
+        $this->assertStringContainsString('<strong>Fast</strong>', $html);
+        $this->assertStringNotContainsString('<script>', $html);
+        $this->assertStringNotContainsString('javascript:', $html);
+
+        $this->actingAs($root, 'admin')->postJson('/superadmin/versions/preview', [
+            'changelog' => str_repeat('a', \App\Http\Requests\VersionRequest::CHANGELOG_MAX_LENGTH + 1),
+        ])->assertStatus(422);
+    }
+
+    public function test_superadmin_can_update_version_with_markdown_changelog(): void
+    {
+        $root = $this->superadmin();
+        $version = \App\Models\Version::create(['version' => 'v1.0.0', 'title' => 'First']);
+
+        $this->actingAs($root, 'admin')->putJson("/superadmin/versions/{$version->id}", [
+            'version' => 'v1.0.1', 'title' => 'First fix', 'changelog' => "## Fixes\n- Bug", 'release_date' => '2026-09-24',
+            'important' => false, 'force_refresh' => true,
+        ])->assertOk()->assertJsonPath('data.version', 'v1.0.1');
+
+        $this->assertDatabaseHas('versions', ['id' => $version->id, 'title' => 'First fix', 'changelog' => "## Fixes\n- Bug", 'force_refresh' => true]);
     }
 
     public function test_superadmin_page_routes_render_for_active_superadmin(): void

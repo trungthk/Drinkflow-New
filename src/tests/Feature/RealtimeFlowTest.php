@@ -104,6 +104,24 @@ class RealtimeFlowTest extends TestCase
             && $request['payload']['id'] === $notification->id);
     }
 
+    /** A room-scoped notification must still never be fanned out to the room channel (other members). */
+    public function test_room_scoped_user_notification_is_not_sent_to_the_room_channel(): void
+    {
+        config()->set('services.realtime.url', 'http://realtime.test');
+        config()->set('services.realtime.internal_secret', 'test-secret');
+        Http::fake(['http://realtime.test/internal/emit' => Http::response(['delivered' => true], 202)]);
+        $user = GlobalUser::create(['name' => 'Debtor', 'normalized_name' => 'DEBTOR', 'email' => 'debtor@example.com']);
+        $room = Room::create(['name' => 'Finance', 'slug' => 'finance']);
+        $roomUser = RoomUser::create(['room_id' => $room->id, 'global_user_id' => $user->id, 'user_code' => 'FIN-001', 'display_name' => 'Debtor', 'normalized_name' => 'DEBTOR', 'status' => 'active']);
+        $notification = UserNotification::create(['global_user_id' => $user->id, 'room_user_id' => $roomUser->id, 'type' => 'payment.reminder', 'title' => 'Pay', 'body' => '66.000đ', 'data' => ['debt_id' => 5]]);
+
+        app(PublishRealtimeEvent::class)->handle(new UserNotificationCreated($notification));
+
+        Http::assertSent(fn ($request): bool => $request['event'] === 'notification.created'
+            && $request['room_id'] === 0
+            && $request['user_channel'] === 'global_user:'.$user->id);
+    }
+
     /** Verify a membership status update is sent only to the affected global user. */
     public function test_room_membership_status_update_dispatches_private_realtime_event(): void
     {
