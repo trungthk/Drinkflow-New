@@ -96,14 +96,27 @@ class Room extends Model
     }
 
     /**
-     * Check if the room currently has any live active campaign.
+     * Check if the room currently has a running (active or closing) campaign.
      *
-     * @return bool True if an active campaign exists in the room, false otherwise.
+     * @return bool True if a running campaign exists in the room, false otherwise.
      */
     public function hasActiveCampaign(): bool
     {
         return $this->campaigns()
-            ->where('status', \App\Enums\CampaignStatus::Active)
+            ->whereIn('status', \App\Enums\CampaignStatus::running())
             ->exists();
+    }
+
+    /**
+     * Resolve the campaign whose orders the admin currently manages: the newest running campaign,
+     * or the most recently closed one when nothing is running. Drafts, scheduled, cancelled and
+     * archived campaigns are ignored.
+     *
+     * @return Campaign|null Latest ordering campaign, or null when the room has none yet.
+     */
+    public function latestOrderCampaign(): ?Campaign
+    {
+        return $this->campaigns()->whereIn('status', \App\Enums\CampaignStatus::running())->latest()->latest('id')->first()
+            ?? $this->campaigns()->where('status', \App\Enums\CampaignStatus::Closed)->latest()->latest('id')->first();
     }
 }

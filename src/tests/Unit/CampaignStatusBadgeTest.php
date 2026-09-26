@@ -11,16 +11,20 @@ use Tests\TestCase;
 class CampaignStatusBadgeTest extends TestCase
 {
     /**
-     * Every campaign status must have a badge and dot style, and each status must look distinct.
+     * Every campaign status must have a badge style and icon, and each status must look distinct.
      */
     public function test_every_status_has_a_distinct_badge_style(): void
     {
         $badges = [];
+        $icons = [];
         foreach (CampaignStatus::cases() as $status) {
             $this->assertNotSame('', $status->badgeClass());
-            $this->assertNotSame('', $status->dotClass());
+            $this->assertNotSame('', $status->icon());
             $badges[] = $status->badgeClass();
+            $icons[] = $status->icon();
         }
+        $icons[] = CampaignStatus::Active->icon(true);
+        $this->assertSame($icons, array_values(array_unique($icons)), 'Two campaign statuses share the same badge icon.');
 
         $expired = CampaignStatus::Active->badgeClass(true);
         $this->assertNotContains($expired, $badges);
@@ -44,7 +48,7 @@ class CampaignStatusBadgeTest extends TestCase
             $html = Blade::render('<x-admin.campaign-status-badge :status="$status" />', ['status' => $status]);
 
             $this->assertStringContainsString($status->badgeClass(), $html);
-            $this->assertStringContainsString($status->dotClass(), $html);
+            $this->assertStringContainsString($status->icon(), $html);
             $this->assertStringContainsString($status->label(), $html);
         }
     }

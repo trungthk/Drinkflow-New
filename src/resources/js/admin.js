@@ -20,7 +20,7 @@ import { initAdminOrders } from './admin/orders';
 import { initAdminReports } from './admin/reports';
 import { initAdminSettings } from './admin/settings';
 import { initAdminUsers } from './admin/users';
-import { initAdminLoading, initAdminReloadButtons } from './admin/loading';
+import { initAdminLoading, initAdminReloadButtons, initFilterFormSkeletons } from './admin/loading';
 import { connectGuestRealtime } from './shared/realtime-reload';
 
 export {
@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminUsers();
     initAdminLoading();
     initAdminReloadButtons();
+    initFilterFormSkeletons();
     // Every admin page (not only the dashboard) reloads into the maintenance screen when it starts.
     connectGuestRealtime(document.body.dataset.maintenanceRealtimeUrl, 'admin');
 });

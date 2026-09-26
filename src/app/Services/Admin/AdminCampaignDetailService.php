@@ -258,10 +258,13 @@ class AdminCampaignDetailService
         $proxyOrderIds = $orders->whereNotNull('parent_id')->pluck('id')->all();
         $items = OrderItem::query()
             ->whereIn('order_id', $orders->pluck('id'))
-            ->get(['order_id', 'quantity', 'is_self_paid']);
+            ->get(['order_id', 'quantity', 'line_subtotal', 'is_self_paid']);
 
         $proxyItems = (int) $items->whereIn('order_id', $proxyOrderIds)->sum('quantity');
-        $selfPaidItems = (int) $items->whereNotIn('order_id', $proxyOrderIds)->where('is_self_paid', true)->sum('quantity');
+        $selfPaidLines = $items->whereNotIn('order_id', $proxyOrderIds)->where('is_self_paid', true);
+        $selfPaidItems = (int) $selfPaidLines->sum('quantity');
+        // Same base as CloseCampaignAction::splitSelfPaidSubtotal(): line subtotals before fee/discount split.
+        $selfPaidTotal = (int) $selfPaidLines->sum('line_subtotal');
         $totalItems = (int) $items->sum('quantity');
 
         $activeRoomUserIds = $room->roomUsers()->where('status', RoomUserStatus::Active)->pluck('id');
@@ -296,6 +299,7 @@ class AdminCampaignDetailService
             'discount_total' => $discount,
             'extra_fee_total' => $deliveryFee,
             'sponsor_total' => $sponsorTotal,
+            'self_paid_total' => $selfPaidTotal,
             'final_total' => max(0, $grossTotal - $sponsorTotal),
             'orders_count' => $orders->count(),
             'ordered_users_count' => $orderedUserIds->count(),

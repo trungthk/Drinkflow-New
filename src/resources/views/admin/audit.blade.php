@@ -7,7 +7,7 @@
     </div>
 
     <!-- Filter Toolbar -->
-    <form id="audit-filter-form" method="GET" action="{{ route('admin.audit.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-xs mb-4">
+    <form id="audit-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.audit.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 shadow-xs mb-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
             <!-- Event Filter -->
             <div>
@@ -56,9 +56,8 @@
                 <span class="material-symbols-outlined text-[14px]" data-reset-icon>refresh</span>
                 <span data-reset-label>{{ __('admin.filter_reset') }}</span>
             </a>
-            <button type="submit" class="px-4 py-1.5 bg-primary hover:bg-primary/90 text-on-primary rounded text-xs font-semibold shadow-xs transition-colors flex items-center gap-1 cursor-pointer">
-                <span class="material-symbols-outlined text-[14px]">filter_alt</span>
-                <span>{{ __('admin.filter_apply') }}</span>
+            <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="text-xs font-semibold h-8.5 w-8.5 shrink-0 bg-primary hover:bg-primary/90 text-on-primary rounded shadow-xs transition-colors inline-flex items-center justify-center cursor-pointer">
+                <span class="material-symbols-outlined text-[16px]" aria-hidden="true">filter_alt</span>
             </button>
             <x-admin.reload-button :compact="true" />
         </div>
@@ -68,7 +67,7 @@
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
             {{-- Compact fixed-width columns; the event column has no width so it takes all remaining space. --}}
-            <table class="table-colgroup w-full min-w-[50rem] table-fixed text-left text-xs border-collapse">
+            <table data-skeleton="table" class="table-colgroup w-full min-w-[50rem] table-fixed text-left text-xs border-collapse">
                 <colgroup>
                     <col class="w-24">
                     <col>

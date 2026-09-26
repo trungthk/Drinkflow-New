@@ -115,10 +115,12 @@
                 <div class="flex items-center gap-3.5 min-w-0">
                     <div class="relative w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
                         <span class="material-symbols-outlined text-[24px]">storefront</span>
-                        <span class="absolute -top-1 -right-1 flex h-3 w-3">
-                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                        </span>
+                        @if($activeCampaign->status instanceof \App\Enums\CampaignStatus && $activeCampaign->status->isRunning())
+                            <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                            </span>
+                        @endif
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
@@ -251,7 +253,7 @@
     @php
         $hasOrderFilters = trim((string) ($filters['search'] ?? '')) !== '' || ((string) ($filters['status'] ?? 'all') !== '' && (string) ($filters['status'] ?? 'all') !== 'all');
     @endphp
-    <form id="orders-filter-form" method="GET" action="{{ route('admin.orders.page', $room) }}" class="my-4 flex flex-wrap items-center justify-between gap-3 bg-surface-container-low p-3 rounded-xl border border-outline-variant/60">
+    <form id="orders-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.orders.page', $room) }}" class="my-4 flex flex-wrap items-center justify-between gap-3 bg-surface-container-low p-3 rounded-xl border border-outline-variant/60">
         <div class="flex flex-1 min-w-[260px] items-center gap-2">
             <div class="relative flex-1">
                 <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
@@ -276,9 +278,8 @@
             </div>
         </div>
         <div class="flex items-center gap-2">
-            <button type="submit" class="h-9 inline-flex items-center gap-1.5 px-3.5 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary/90 transition-colors shadow-2xs">
-                <span class="material-symbols-outlined text-[16px]">filter_alt</span>
-                {{ __('admin.filter_apply') }}
+            <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="text-xs font-semibold h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-2xs">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">filter_alt</span>
             </button>
             @if($hasOrderFilters)
                 <a href="{{ route('admin.orders.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-secondary text-xs font-semibold hover:bg-surface-container transition-colors">
@@ -294,7 +295,7 @@
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
             {{-- Fixed-width side columns; the items-detail column takes the remaining space. --}}
-            <table class="table-colgroup w-full min-w-[64rem] table-fixed text-left text-xs border-collapse">
+            <table data-skeleton="table" class="table-colgroup w-full min-w-[64rem] table-fixed text-left text-xs border-collapse">
                 <colgroup>
                     <col class="w-10">
                     <col class="w-44">

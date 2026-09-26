@@ -1,8 +1,11 @@
 <x-admin.layout :title="__('admin.campaigns_management_title')" active="campaigns" :room="$room">
     <!-- Header & Action Ribbon -->
-    <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
-        <div>
+    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-outline-variant/40">
+        <div class="flex flex-wrap items-center gap-3">
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.campaigns_management_title') }}</h1>
+            <span id="campaigns-total-badge" class="px-3 py-1 bg-surface-container rounded-full text-xs font-mono font-semibold text-secondary">
+                {{ __('admin.total_campaigns_badge', ['count' => $campaigns->total()]) }}
+            </span>
         </div>
         @if (!($hasLiveCampaign ?? false))
             <div class="flex items-center gap-2.5">
@@ -16,9 +19,20 @@
 
     <!-- Notice Notification Banner -->
     <div id="notice" class="hidden mb-4 rounded-xl px-4 py-3 text-xs font-medium"></div>
+    @if (session('error'))
+        <div class="my-4 flex items-center gap-2 rounded-xl border border-error/30 bg-error-container/40 px-4 py-3 text-xs font-medium text-on-error-container" role="alert">
+            <span class="material-symbols-outlined text-[18px] text-error" aria-hidden="true">error</span>
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
 
     <!-- Campaigns Search & Filter Toolbar -->
-    <form id="campaigns-filter-form" method="GET" action="{{ route('admin.campaigns.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+    @php
+        $hasCampaignFilters = trim((string) ($filters['search'] ?? '')) !== ''
+            || ($filters['status'] ?? 'all') !== 'all'
+            || ($filters['sponsor_type'] ?? 'all') !== 'all';
+    @endphp
+    <form id="campaigns-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.campaigns.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
             <x-admin.search-input id="campaign-search" name="search" :value="$filters['search'] ?? ''" placeholder="{{ __('admin.search_campaigns_placeholder') }}" containerClass="relative w-full max-w-md" />
         </div>
@@ -29,11 +43,16 @@
                     <option value="{{ $statusFilter['value'] }}" {{ ($filters['status'] ?? '') === $statusFilter['value'] ? 'selected' : '' }}>{{ $statusFilter['label'] }}</option>
                 @endforeach
             </select>
-            <button type="submit" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary-container transition-colors">
-                <span class="material-symbols-outlined text-[16px]">filter_alt</span>
-                {{ __('admin.filter_apply') }}
+            <select id="campaign-sponsor-type-select" name="sponsor_type" aria-label="{{ __('admin.sponsor_type_label') }}" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                <option value="all" {{ ($filters['sponsor_type'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all_sponsor_types') }}</option>
+                @foreach($sponsorTypeFilters as $sponsorTypeFilter)
+                    <option value="{{ $sponsorTypeFilter['value'] }}" {{ ($filters['sponsor_type'] ?? '') === $sponsorTypeFilter['value'] ? 'selected' : '' }}>{{ $sponsorTypeFilter['label'] }}</option>
+                @endforeach
+            </select>
+            <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="text-xs font-semibold h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">filter_alt</span>
             </button>
-            @if(trim((string) ($filters['search'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all')
+            @if($hasCampaignFilters)
                 <a id="campaign-clear-filters" href="{{ route('admin.campaigns.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
                     <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
                     {{ __('admin.filter_clear') }}
@@ -47,7 +66,7 @@
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
             {{-- Fixed-width side columns; the campaign/restaurant column takes the remaining space. --}}
-            <table class="table-colgroup w-full min-w-[56rem] table-fixed text-left text-xs border-collapse">
+            <table data-skeleton="table" class="table-colgroup w-full min-w-[56rem] table-fixed text-left text-xs border-collapse">
                 <colgroup>
                     <col>
                     <col class="w-44">
@@ -75,9 +94,20 @@
                         @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors">
                             <td class="py-3.5 px-4">
+                                @php
+                                    $isSponsored = ($camp->sponsor_type ?? \App\Models\Campaign::SPONSOR_TYPE_NONE) !== \App\Models\Campaign::SPONSOR_TYPE_NONE;
+                                    $sponsorTooltip = $isSponsored
+                                        ? collect([__('admin.sponsor_type_' . $camp->sponsor_type), $camp->sponsor_name])->filter()->implode(' · ')
+                                        : '';
+                                @endphp
                                 <a href="{{ route('admin.campaigns.info', [$room, $camp]) }}" class="font-bold text-on-surface text-sm hover:text-primary hover:underline transition-colors no-underline">
                                     {{ $camp->name }}
                                 </a>
+                                @if($isSponsored)
+                                    <span data-sponsor-icon tabindex="0" data-tooltip="{{ $sponsorTooltip }}" aria-label="{{ $sponsorTooltip }}" class="ml-1 inline-flex items-center justify-center align-middle w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 cursor-help">
+                                        <span class="material-symbols-outlined text-[14px]" aria-hidden="true">volunteer_activism</span>
+                                    </span>
+                                @endif
                                 <div class="text-secondary flex items-center gap-1.5 mt-0.5">
                                     <span class="material-symbols-outlined text-[14px]">storefront</span>
                                     <span>{{ $camp->restaurant }}</span>
@@ -141,7 +171,7 @@
                             <td colspan="6" class="py-12 text-center text-outline">
                                 <div class="flex flex-col items-center gap-2">
                                     <span class="material-symbols-outlined text-4xl text-outline-variant">campaign</span>
-                                    @if(($filters['search'] ?? '') !== '' || ($filters['status'] ?? 'all') !== 'all')
+                                    @if($hasCampaignFilters)
                                         <p class="font-medium text-sm">{{ __('admin.no_campaigns_matching_filters') }}</p>
                                     @else
                                         <p class="font-medium text-sm">{{ __('admin.no_campaigns_found') }}</p>
@@ -191,16 +221,24 @@
     </div>
 
     <!-- Cancel Campaign Confirmation Modal -->
-    <div id="cancel-campaign-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
+    <div id="cancel-campaign-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="cancel-campaign-modal-title" data-error-message="{{ __('admin.cancel_campaign_failed') }}">
         <div class="w-full max-w-sm rounded-xl bg-surface-container-lowest border border-outline-variant p-5 shadow-xl">
-            <div class="flex items-center gap-2 text-error mb-2">
-                <span class="material-symbols-outlined text-[22px]">cancel</span>
-                <h2 class="text-base font-bold text-on-surface">{{ __('admin.confirm_cancel_campaign_title') }}</h2>
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 shrink-0 rounded-full bg-error-container/60 text-error flex items-center justify-center" aria-hidden="true">
+                    <span class="material-symbols-outlined text-[22px]">event_busy</span>
+                </div>
+                <div class="min-w-0">
+                    <h2 id="cancel-campaign-modal-title" class="text-base font-bold text-on-surface">{{ __('admin.confirm_cancel_campaign_title') }}</h2>
+                    <p class="mt-1 text-xs text-outline leading-relaxed">{{ __('admin.confirm_cancel_campaign_desc') }}</p>
+                </div>
             </div>
-            <p class="mt-2 text-xs text-outline leading-relaxed">{{ __('admin.confirm_cancel_campaign_desc') }}</p>
             <div class="mt-5 flex justify-end gap-2">
-                <button type="button" data-cancel-modal-cancel class="px-3 py-2 rounded-lg text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.cancel') }}</button>
+                <button type="button" data-cancel-modal-cancel class="px-3 py-2 rounded-lg text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px]" aria-hidden="true">close</span>
+                    <span>{{ __('admin.cancel') }}</span>
+                </button>
                 <button type="button" data-cancel-modal-confirm class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-error hover:bg-error/90 text-white transition-colors flex items-center gap-1.5 disabled:opacity-60">
+                    <span class="material-symbols-outlined text-[16px]" data-action-icon aria-hidden="true">cancel</span>
                     <span class="material-symbols-outlined text-[16px] animate-spin" data-spinner style="display: none;" aria-hidden="true">progress_activity</span>
                     <span data-label>{{ __('admin.confirm_cancel_campaign_btn') }}</span>
                 </button>

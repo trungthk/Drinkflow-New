@@ -60,18 +60,15 @@ class OrderController extends Controller
      */
     public function page(Request $request, Room $room): View
     {
-        $activeCampaign = Campaign::where('room_id', $room->id)
-            ->where('status', CampaignStatus::Active->value)
-            ->with(['paymentAccount'])
-            ->withCount('orders')
-            ->first();
+        // Only the latest campaign (running, or the last closed one) is managed on this page.
+        $activeCampaign = $room->latestOrderCampaign()?->load('paymentAccount')->loadCount('orders');
 
         $paymentAccount = $activeCampaign?->paymentAccount
             ?? $room->paymentAccounts()->where('is_default', true)->first()
             ?? $room->paymentAccounts()->first();
 
         $query = Order::where('room_id', $room->id)
-            ->inLiveCampaign()
+            ->where('campaign_id', $activeCampaign?->id ?? 0)
             ->with(['roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'items.toppings', 'campaign'])
             ->latest();
 

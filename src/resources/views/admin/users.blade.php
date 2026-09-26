@@ -60,7 +60,7 @@
     </div>
 
     <!-- Search & Filter Toolbar -->
-    <form id="users-filter-form" method="GET" action="{{ route('admin.room-users.page', $room) }}"
+    <form id="users-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.room-users.page', $room) }}"
         class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
             <x-admin.search-input id="user-search" name="q" :value="$filters['q'] ?? ''"
@@ -76,10 +76,8 @@
                     <option value="{{ $statusFilter['value'] }}" {{ ($filters['status'] ?? '') === $statusFilter['value'] ? 'selected' : '' }}>{{ $statusFilter['label'] }}</option>
                 @endforeach
             </select>
-            <button type="submit"
-                class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary-container transition-colors">
-                <span class="material-symbols-outlined text-[16px]">filter_alt</span>
-                {{ __('admin.filter_apply') }}
+            <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="text-xs font-semibold h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">filter_alt</span>
             </button>
             @if(trim((string) ($filters['q'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all')
                 <a id="users-clear-filters" href="{{ route('admin.room-users.page', $room) }}"
@@ -118,7 +116,7 @@
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
             {{-- Fixed-width side columns; the member column takes the remaining space. --}}
-            <table class="table-colgroup w-full min-w-[60rem] table-fixed text-left text-xs border-collapse">
+            <table data-skeleton="table" class="table-colgroup w-full min-w-[60rem] table-fixed text-left text-xs border-collapse">
                 <colgroup>
                     <col class="w-12">
                     <col>

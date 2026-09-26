@@ -21,10 +21,13 @@ class CreateCampaignAction
      * Create the campaign action.
      *
      * @param CreateCampaignItemAction $createItemAction Reusable campaign-item creator.
+     * @param EnsureNoRunningCampaignAction $ensureNoRunningCampaign Guard keeping a single running campaign per room.
      * @return void
      */
-    public function __construct(private readonly CreateCampaignItemAction $createItemAction)
-    {
+    public function __construct(
+        private readonly CreateCampaignItemAction $createItemAction,
+        private readonly EnsureNoRunningCampaignAction $ensureNoRunningCampaign
+    ) {
     }
 
     /**
@@ -34,7 +37,7 @@ class CreateCampaignAction
      * @param array<string, mixed> $data Campaign configuration parameters.
      * @param ?int $adminId Creating admin account ID.
      * @return Campaign Created campaign instance.
-     * @throws ValidationException If payment account does not belong to the room.
+     * @throws ValidationException If payment account does not belong to the room or another campaign is still running.
      */
     public function execute(Room $room, array $data, ?int $adminId = null): Campaign
     {
@@ -87,6 +90,7 @@ class CreateCampaignAction
         unset($data['items']);
 
         $campaign = DB::transaction(function () use ($room, $data, $adminId, $items): Campaign {
+            $this->ensureNoRunningCampaign->execute($room->id);
             $status = $data['status'] ?? CampaignStatus::Draft;
             $statusValue = $status instanceof CampaignStatus ? $status->value : (string) $status;
             $campaign = Campaign::create(array_merge($data, [

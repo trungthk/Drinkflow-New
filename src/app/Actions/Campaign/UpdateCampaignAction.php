@@ -27,11 +27,13 @@ class UpdateCampaignAction
      * @param CreateCampaignItemAction $createItemAction Item creation action.
      * @param AuditService $auditService Audit logger service.
      * @param ImageUploadService $imageUploadService Image upload and storage cleanup service.
+     * @param EnsureNoRunningCampaignAction $ensureNoRunningCampaign Guard keeping a single running campaign per room.
      */
     public function __construct(
         private readonly CreateCampaignItemAction $createItemAction,
         private readonly AuditService $auditService,
-        private readonly ImageUploadService $imageUploadService
+        private readonly ImageUploadService $imageUploadService,
+        private readonly EnsureNoRunningCampaignAction $ensureNoRunningCampaign
     ) {
     }
 
@@ -125,6 +127,9 @@ class UpdateCampaignAction
             $updateData = collect($data)->all();
             if (isset($data['status'])) {
                 $statusValue = $data['status'] instanceof \BackedEnum ? $data['status']->value : (string) $data['status'];
+                if ($statusValue === CampaignStatus::Active->value) {
+                    $this->ensureNoRunningCampaign->execute($campaign->room_id, $campaign->id);
+                }
                 if ($statusValue === CampaignStatus::Active->value && empty($campaign->started_at)) {
                     $updateData['started_at'] = now();
                 }

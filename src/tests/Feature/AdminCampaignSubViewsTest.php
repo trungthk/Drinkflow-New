@@ -1197,6 +1197,7 @@ class AdminCampaignSubViewsTest extends TestCase
             ->assertJsonPath('data.discount_total', 5000)
             ->assertJsonPath('data.extra_fee_total', 15000)
             ->assertJsonPath('data.sponsor_total', 30000)
+            ->assertJsonPath('data.self_paid_total', 40000)
             ->assertJsonPath('data.final_total', 170000)
             ->assertJsonPath('data.orders_count', 2)
             ->assertJsonPath('data.ordered_users_count', 2)

@@ -74,6 +74,13 @@
                             <span class="text-outline">{{ __('admin.close_summary_sponsor_total') }}</span>
                             <span data-close-summary="sponsor_total" data-sign="-" class="font-mono font-semibold text-emerald-700">—</span>
                         </div>
+                        <div class="{{ $statRow }}">
+                            <span class="flex flex-col">
+                                <span class="text-outline">{{ __('admin.close_summary_self_paid_total') }}</span>
+                                <span class="text-[10px] text-outline/80 font-normal">{{ __('admin.close_summary_self_paid_total_hint') }}</span>
+                            </span>
+                            <span data-close-summary="self_paid_total" class="font-mono font-semibold text-violet-700 dark:text-violet-300">—</span>
+                        </div>
                         <div class="{{ $statRow }} pt-2 mt-1 border-t border-outline-variant/40">
                             <span class="flex flex-col">
                                 <span class="text-sm font-bold text-on-surface">{{ __('admin.close_summary_final_total') }}</span>

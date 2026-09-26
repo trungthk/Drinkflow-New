@@ -56,7 +56,7 @@ export function initCloseCampaignModal() {
         errorBox.classList.toggle('hidden', !message);
     }
 
-    const MONEY_FIELDS = ['gross_subtotal', 'discount_total', 'extra_fee_total', 'sponsor_total', 'final_total'];
+    const MONEY_FIELDS = ['gross_subtotal', 'discount_total', 'extra_fee_total', 'sponsor_total', 'self_paid_total', 'final_total'];
     const ITEM_FIELDS = ['own_items', 'proxy_items', 'self_paid_items', 'total_items'];
 
     function formatField(name, data) {

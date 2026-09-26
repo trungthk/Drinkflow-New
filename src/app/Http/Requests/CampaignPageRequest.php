@@ -6,6 +6,7 @@ namespace App\Http\Requests;
 
 use App\Enums\CampaignStatus;
 use App\Http\Requests\Concerns\AuthorizesUserAndAdmin;
+use App\Models\Campaign;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -39,6 +40,7 @@ class CampaignPageRequest extends FormRequest
                     array_map(static fn(CampaignStatus $status): string => $status->value, CampaignStatus::cases())
                 )),
             ],
+            'sponsor_type' => ['nullable', Rule::in(['all', ...Campaign::SPONSOR_TYPES])],
         ];
     }
 
@@ -52,6 +54,7 @@ class CampaignPageRequest extends FormRequest
         return [
             'search' => __('validation.attributes.search'),
             'status' => __('validation.attributes.status'),
+            'sponsor_type' => __('validation.attributes.sponsor_type'),
         ];
     }
 
@@ -66,6 +69,7 @@ class CampaignPageRequest extends FormRequest
             'search.string' => __('validation.string', ['attribute' => __('validation.attributes.search')]),
             'search.max' => __('validation.max.string', ['attribute' => __('validation.attributes.search'), 'max' => 255]),
             'status.in' => __('validation.in', ['attribute' => __('validation.attributes.status')]),
+            'sponsor_type.in' => __('validation.in', ['attribute' => __('validation.attributes.sponsor_type')]),
         ];
     }
 }

@@ -23,6 +23,14 @@ class Campaign extends Model
 
     public const SPONSOR_TYPE_BUDGET = 'budget';
 
+    /** Every sponsor type a campaign can have, in the order they are listed in filters. */
+    public const SPONSOR_TYPES = [
+        self::SPONSOR_TYPE_NONE,
+        self::SPONSOR_TYPE_FULL,
+        self::SPONSOR_TYPE_PER_ITEM,
+        self::SPONSOR_TYPE_BUDGET,
+    ];
+
     /** Nợ trả riêng lấy đúng đơn giá món, không cộng ship và không trừ giảm giá/chiết khấu chung của chiến dịch. */
     public const SELF_PAID_PRICE_BASIS_ORIGINAL = 'original';
 

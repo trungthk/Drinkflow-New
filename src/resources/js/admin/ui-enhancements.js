@@ -1,4 +1,4 @@
-import { renderSubmitLoading } from '../shared/submit-loading';
+import { renderSubmitLoading, restoreSubmitLoading } from '../shared/submit-loading';
 
 /**
  * DrinkFlow Admin UI Enhancements
@@ -421,6 +421,7 @@ export function initFormSubmitLoading() {
                     if (submitBtn.dataset.originalContent) {
                         submitBtn.innerHTML = submitBtn.dataset.originalContent;
                     }
+                    restoreSubmitLoading(submitBtn);
                 }
             }, 8000);
         });

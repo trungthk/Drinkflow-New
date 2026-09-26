@@ -116,11 +116,11 @@
                         <span>{{ __('admin.axis_left_campaigns') }}</span>
                         <span>{{ __('admin.axis_right_spending') }}</span>
                     </div>
-                    <div class="relative h-60 w-full" id="svg-chart-wrapper">
+                    <div class="relative h-80 w-full" id="svg-chart-wrapper">
                         <!-- Dynamic SVG chart injected by script -->
                         <div class="h-full flex items-center justify-center text-outline text-xs font-mono">{{ __('admin.no_weekly_data') }}</div>
                     </div>
-                    <div id="chart-day-labels" class="relative h-10 pt-2 border-t border-outline-variant/60 ml-[45px] mr-[45px]"></div>
+                    <div id="chart-day-labels" class="relative h-12 pt-2 border-t border-outline-variant/60 ml-[60px] mr-[60px]"></div>
                 </div>
             </div>
             <div id="chart-legend" class="flex flex-wrap items-center justify-center gap-4 text-xs font-mono">

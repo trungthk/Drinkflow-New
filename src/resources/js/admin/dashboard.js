@@ -85,7 +85,17 @@ export function initAdminDashboard() {
         return new Intl.NumberFormat(locale, { notation: 'compact', maximumFractionDigits: 1 }).format(Number(value || 0));
     }
 
+    let lastTrendArgs = null;
+    let trendResizeTimer = null;
+    window.addEventListener('resize', () => {
+        clearTimeout(trendResizeTimer);
+        trendResizeTimer = setTimeout(() => {
+            if (lastTrendArgs) renderTrendChart(...lastTrendArgs);
+        }, 150);
+    });
+
     function renderTrendChart(weeklyTrend, totalCampaigns, totalSpending) {
+        lastTrendArgs = [weeklyTrend, totalCampaigns, totalSpending];
         const wrapper = document.querySelector('#svg-chart-wrapper');
         const labelsContainer = document.querySelector('#chart-day-labels');
         if (!wrapper) return;
@@ -114,12 +124,14 @@ export function initAdminDashboard() {
         const maxC = Math.max(4, Math.ceil(Math.max(...rows.map(r => r.count)) / 2) * 2);
         const maxS = niceMax(Math.max(...rows.map(r => r.spend), 100000));
 
-        const width = 700;
-        const height = 210;
-        const topPad = 20;
-        const bottomPad = 180;
-        const leftPad = 45;
-        const rightPad = 655;
+        // Draw in the wrapper's real pixel size so the SVG fills the frame and lines up with the
+        // day labels below (they use the same 60px side margins).
+        const width = Math.max(wrapper.clientWidth, 680);
+        const height = Math.max(wrapper.clientHeight, 240);
+        const topPad = 40;
+        const bottomPad = height - 20;
+        const leftPad = 60;
+        const rightPad = width - 60;
         const midY = (topPad + bottomPad) / 2;
         const stepX = (rightPad - leftPad) / Math.max(rows.length - 1, 1);
         const colW = rows.length > 1 ? stepX : rightPad - leftPad;
@@ -145,8 +157,8 @@ export function initAdminDashboard() {
         const gridY = [topPad, midY, bottomPad];
         const gridHtml = gridY.map((y, i) => `
             <line x1="${leftPad}" y1="${y}" x2="${rightPad}" y2="${y}" stroke="currentColor" class="${i === 2 ? 'text-outline-variant/60' : 'text-outline-variant/30'}" stroke-width="1" ${i === 2 ? '' : 'stroke-dasharray="3 3"'}></line>
-            <text x="${leftPad - 8}" y="${y + 3}" text-anchor="end" font-size="9" font-family="Inter, sans-serif" fill="${COLOR_CAMPAIGNS}">${i === 0 ? maxC : i === 1 ? maxC / 2 : 0}</text>
-            <text x="${rightPad + 8}" y="${y + 3}" text-anchor="start" font-size="9" font-family="Inter, sans-serif" fill="${COLOR_SPENDING}">${compactMoney(i === 0 ? maxS : i === 1 ? maxS / 2 : 0)}</text>
+            <text x="${leftPad - barW / 2 - 6}" y="${y + 3}" text-anchor="end" font-size="9" font-family="Inter, sans-serif" fill="${COLOR_CAMPAIGNS}">${i === 0 ? maxC : i === 1 ? maxC / 2 : 0}</text>
+            <text x="${rightPad + barW / 2 + 6}" y="${y + 3}" text-anchor="start" font-size="9" font-family="Inter, sans-serif" fill="${COLOR_SPENDING}">${compactMoney(i === 0 ? maxS : i === 1 ? maxS / 2 : 0)}</text>
         `).join('');
 
         const peakRow = rows.findIndex(r => r.peak && r.spend > 0);
@@ -249,6 +261,8 @@ export function initAdminDashboard() {
             left = Math.max(0, Math.min(left, box.width - tipW));
             let top = screen.y - box.top - tipH - 14;
             if (top < 0) top = screen.y - box.top + 14;
+            // Keep the tooltip inside the wrapper: the scroll container clips anything below it.
+            top = Math.max(0, Math.min(top, box.height - tipH));
             tooltip.style.left = `${left}px`;
             tooltip.style.top = `${top}px`;
         };

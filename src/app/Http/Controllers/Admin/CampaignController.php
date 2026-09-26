@@ -102,6 +102,11 @@ class CampaignController extends Controller
             $query->where('status', $status);
         }
 
+        $sponsorType = (string) ($validated['sponsor_type'] ?? 'all');
+        if ($sponsorType !== '' && $sponsorType !== 'all') {
+            $query->where('sponsor_type', $sponsorType);
+        }
+
         $campaigns = $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString();
 
         return view('admin.campaigns', [
@@ -119,9 +124,14 @@ class CampaignController extends Controller
                     'value' => $status->value,
                     'label' => __('admin.filter_' . $status->value),
                 ])->values()->all(),
+            'sponsorTypeFilters' => array_map(static fn(string $type): array => [
+                'value' => $type,
+                'label' => __('admin.sponsor_type_' . $type),
+            ], Campaign::SPONSOR_TYPES),
             'filters' => [
                 'search' => $search,
                 'status' => $status !== '' ? $status : 'all',
+                'sponsor_type' => $sponsorType !== '' ? $sponsorType : 'all',
             ],
         ]);
     }
@@ -131,11 +141,17 @@ class CampaignController extends Controller
      *
      * @param Request $request Incoming HTTP request.
      * @param Room $room Room entity.
-     * @return View|JsonResponse Blade view or JSON response.
+     * @return View|JsonResponse|RedirectResponse Blade view, JSON response or redirect when a campaign is still running.
      */
-    public function create(Request $request, Room $room): View|JsonResponse
+    public function create(Request $request, Room $room): View|JsonResponse|RedirectResponse
     {
         $room = $request->attributes->get('room') ?? $room;
+        if ($room->hasActiveCampaign()) {
+            abort_if($request->wantsJson(), 422, __('admin.campaign_running_exists'));
+
+            return redirect()->route('admin.campaigns.page', $room)
+                ->with('error', __('admin.campaign_running_exists'));
+        }
         $paymentAccounts = $room->paymentAccounts()->where('status', PaymentAccountStatus::Active)->get();
         $settings = $room->roomSettings()
             ->whereIn('key', ['campaign_title_template', 'max_campaign_budget', 'default_payment_account_id', 'default_sponsor'])

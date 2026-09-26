@@ -53,7 +53,7 @@
     </div>
 
     <!-- Filter and Search Toolbar -->
-    <form id="debts-filter-form" method="GET" action="{{ route('admin.debts.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+    <form id="debts-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.debts.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
             <x-admin.search-input id="debt-search" name="search" :value="$filters['search'] ?? ''" placeholder="{{ __('admin.search_debts_placeholder') }}" containerClass="relative w-full max-w-md" />
         </div>
@@ -77,9 +77,8 @@
                     <option value="{{ $statusFilter['value'] }}" {{ ($filters['status'] ?? '') === $statusFilter['value'] ? 'selected' : '' }}>{{ $statusFilter['label'] }}</option>
                 @endforeach
             </select>
-            <button type="submit" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary-container transition-colors">
-                <span class="material-symbols-outlined text-[16px]">filter_alt</span>
-                {{ __('admin.filter_apply') }}
+            <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="text-xs font-semibold h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary-container transition-colors">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">filter_alt</span>
             </button>
             @if(trim((string) ($filters['search'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all' || ($filters['user'] ?? '') !== '' || ($filters['date_from'] ?? '') !== '' || ($filters['date_to'] ?? '') !== '')
                 <a id="debt-clear-filters" href="{{ route('admin.debts.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
@@ -94,7 +93,7 @@
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
             {{-- Fixed-width member/amount columns; the origin-campaign column takes the remaining space. --}}
-            <table class="table-colgroup w-full min-w-[68rem] table-fixed text-left text-xs border-collapse">
+            <table data-skeleton="table" class="table-colgroup w-full min-w-[68rem] table-fixed text-left text-xs border-collapse">
                 <colgroup>
                     <col class="w-64">
                     <col>

@@ -22,6 +22,17 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    build: {
+        rollupOptions: {
+            onwarn(warning, warn) {
+                // "use client" của react-toastify chỉ có nghĩa với React Server Components; app render React phía client nên bỏ qua an toàn.
+                if (warning.code === 'MODULE_LEVEL_DIRECTIVE' && warning.message.includes('"use client"')) {
+                    return;
+                }
+                warn(warning);
+            },
+        },
+    },
     server: {
         host: '127.0.0.1',
         watch: {

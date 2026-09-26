@@ -22,11 +22,11 @@
     }
 
     $badgeClass = $statusEnum?->badgeClass($expired) ?? 'bg-surface text-outline border-outline-variant';
-    $dotClass = $statusEnum?->dotClass($expired) ?? 'bg-slate-400';
+    $icon = $statusEnum?->icon($expired) ?? 'task_alt';
     $label = $statusEnum?->label($expired) ?? __('admin.status_closed');
 @endphp
 
-<span {{ $attributes->merge(['class' => "inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border {$badgeClass}"]) }}>
-    <span class="w-1.5 h-1.5 rounded-full shrink-0 {{ $dotClass }}"></span>
+<span {{ $attributes->merge(['class' => "inline-flex items-center gap-1 pl-1.5 pr-2.5 py-0.5 rounded-full text-[11px] font-semibold border whitespace-nowrap {$badgeClass}"]) }}>
+    <span class="material-symbols-outlined text-[14px] leading-none shrink-0" aria-hidden="true">{{ $icon }}</span>
     <span>{{ $label }}</span>
 </span>

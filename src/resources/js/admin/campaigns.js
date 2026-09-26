@@ -148,7 +148,7 @@ export function initAdminCampaigns() {
             });
             if (!res.ok) {
                 const payload = await res.json().catch(() => ({}));
-                throw new Error(payload.message || 'Failed to cancel campaign.');
+                throw new Error(payload.message || cancelModal.dataset.errorMessage || '');
             }
             window.location.reload();
         } catch (error) {

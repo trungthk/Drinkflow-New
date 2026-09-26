@@ -18,6 +18,16 @@ use Illuminate\Validation\ValidationException;
 class TransitionCampaignAction
 {
     /**
+     * Create the action.
+     *
+     * @param EnsureNoRunningCampaignAction $ensureNoRunningCampaign Guard keeping a single running campaign per room.
+     * @return void
+     */
+    public function __construct(private readonly EnsureNoRunningCampaignAction $ensureNoRunningCampaign)
+    {
+    }
+
+    /**
      * Activate a campaign from draft/scheduled state.
      *
      * @param Campaign $campaign Campaign instance to activate.
@@ -33,6 +43,7 @@ class TransitionCampaignAction
                     'campaign' => __('admin.campaign_cannot_activate_state'),
                 ]);
             }
+            $this->ensureNoRunningCampaign->execute($campaign->room_id, $campaign->id);
             if ($campaign->deadline && $campaign->deadline->isPast()) {
                 throw ValidationException::withMessages([
                     'deadline' => __('admin.deadline_must_be_future'),
