@@ -93,20 +93,10 @@ class CampaignNotificationPayloadService
                     ? FormatHelper::formatCurrency((int) $campaign->max_budget)
                     : __('messages.campaign_product_budget_unlimited'),
             ]);
-            if (filled($campaign->sponsor_name)) {
-                $lines[] = __('messages.campaign_sponsorship', [
-                    'sponsor' => $campaign->sponsor_name,
-                    'amount' => $campaign->max_budget
-                        ? FormatHelper::formatCurrency((int) $campaign->max_budget)
-                        : __('messages.campaign_product_budget_unlimited'),
-                ]);
-            } else {
-                // No sponsor: state it plainly, without any amount or description.
-                $lines[] = __('messages.campaign_sponsorship', [
-                    'sponsor' => __('messages.campaign_sponsor_not_set'),
-                    'amount' => '',
-                ]);
-            }
+            $lines[] = __('messages.campaign_sponsorship', [
+                'sponsor' => $this->resolveSponsorshipText($campaign),
+                'amount' => '',
+            ]);
             if ($orderUrl !== null) {
                 $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
             }
@@ -141,5 +131,50 @@ class CampaignNotificationPayloadService
         }
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * Resolve the sponsorship label for the campaign notification.
+     *
+     * @param Campaign $campaign Campaign being notified.
+     * @return string Sponsorship label or fallback "None".
+     */
+    private function resolveSponsorshipText(Campaign $campaign): string
+    {
+        $hasSponsor = ($campaign->sponsor_type && $campaign->sponsor_type !== Campaign::SPONSOR_TYPE_NONE)
+            || filled($campaign->sponsor_name)
+            || filled($campaign->sponsor_description)
+            || ! empty($campaign->sponsor_allocations);
+
+        if (! $hasSponsor) {
+            return __('messages.campaign_sponsor_not_set');
+        }
+
+        $typeLabel = match ($campaign->sponsor_type) {
+            Campaign::SPONSOR_TYPE_FULL => __('admin.sponsor_type_full'),
+            Campaign::SPONSOR_TYPE_PER_ITEM => __('admin.sponsor_type_per_item'),
+            Campaign::SPONSOR_TYPE_BUDGET => __('admin.sponsor_type_budget'),
+            default => '',
+        };
+
+        if (filled($campaign->sponsor_name)) {
+            return $typeLabel !== ''
+                ? "{$campaign->sponsor_name} ({$typeLabel})"
+                : (string) $campaign->sponsor_name;
+        }
+
+        if ($typeLabel !== '') {
+            return $typeLabel;
+        }
+
+        if (filled($campaign->sponsor_description)) {
+            return (string) $campaign->sponsor_description;
+        }
+
+        if (! empty($campaign->sponsor_allocations)) {
+            return __('admin.sponsor_type_custom');
+        }
+
+        return __('admin.sponsor_type_full');
     }
 }

@@ -62,25 +62,59 @@
                 <!-- Orders table -->
                 <template x-if="!campaignLoading && campaignData && campaignData.orders && campaignData.orders.length > 0">
                     <table class="w-full text-xs border-collapse">
-                        <thead class="sticky top-0 bg-surface-container-low text-on-surface-variant text-[10px] uppercase tracking-wider z-10">
+                        <thead class="sticky top-0 bg-surface-container-low text-on-surface-variant text-[10px] uppercase tracking-wider z-10 border-b border-outline-variant/30">
                             <tr>
-                                <th class="text-left px-3.5 py-2 font-semibold">{{ __('room.debts.column_orderer_name') }}</th>
-                                <th class="text-left px-3.5 py-2 font-semibold">{{ __('room.debts.column_orderer_email') }}</th>
+                                <th class="text-left px-3.5 py-2 font-semibold w-2/5 sm:w-1/3">{{ __('room.debts.column_orderer_name') }}</th>
                                 <th class="text-left px-3.5 py-2 font-semibold">{{ __('room.debts.column_items_toppings') }}</th>
                             </tr>
                         </thead>
                         <tbody>
                             <template x-for="order in campaignData.orders" :key="order.id">
                                 <tr class="border-b border-outline-variant/20 hover:bg-surface-container-low/50">
-                                    <td class="px-3.5 py-2 align-top font-semibold text-on-surface whitespace-nowrap" x-text="order.orderer_name"></td>
-                                    <td class="px-3.5 py-2 align-top text-on-surface-variant whitespace-nowrap" x-text="order.orderer_email || '—'"></td>
-                                    <td class="px-3.5 py-2 align-top">
-                                        <div class="flex flex-col gap-0.5">
+                                    <td class="px-3.5 py-2.5 align-top">
+                                        <div class="font-semibold text-on-surface text-xs leading-snug" x-text="order.orderer_name"></div>
+                                        <template x-if="order.orderer_email">
+                                            <div class="text-[11px] text-on-surface-variant font-normal leading-tight mt-0.5 break-all sm:break-normal" x-text="order.orderer_email"></div>
+                                        </template>
+                                    </td>
+                                    <td class="px-3.5 py-2.5 align-top">
+                                        <div class="flex flex-col divide-y divide-outline-variant/10">
                                             <template x-for="item in order.items" :key="item.id">
-                                                <div class="[overflow-wrap:anywhere]">
-                                                    <span class="font-medium text-on-surface" x-text="item.item_name"></span>
-                                                    <template x-if="item.toppings && item.toppings.length > 0">
-                                                        <span class="text-on-surface-variant" x-text="' + ' + item.toppings.map(t => t.name).join(', ')"></span>
+                                                <div class="py-1 first:pt-0 last:pb-0 [overflow-wrap:anywhere]">
+                                                    <div class="font-medium text-on-surface text-xs flex items-center gap-1.5 leading-snug">
+                                                        <span x-text="item.item_name"></span>
+                                                        <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-[#006948]" x-text="'x' + (item.quantity || 1)"></span>
+                                                    </div>
+                                                    <template x-if="item.size_name || (item.toppings && item.toppings.length > 0) || (item.options && item.options.length > 0) || item.sugar_percent || item.ice_percent || item.note">
+                                                        <div class="text-[11px] text-on-surface-variant font-normal leading-relaxed mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                                                            <template x-if="item.size_name">
+                                                                <span class="inline-flex items-center text-slate-600">
+                                                                    <span class="text-slate-400 mr-0.5 text-[10px]">Size:</span>
+                                                                    <span class="font-medium" x-text="item.size_name"></span>
+                                                                </span>
+                                                            </template>
+                                                            <template x-if="item.toppings && item.toppings.length > 0">
+                                                                <span class="inline-flex items-center text-slate-500">
+                                                                    <span class="text-slate-400 mr-0.5 text-[10px]">+</span>
+                                                                    <span x-text="item.toppings.map(t => t.name).join(', ')"></span>
+                                                                </span>
+                                                            </template>
+                                                            <template x-if="item.options && item.options.length > 0 && (!item.toppings || item.toppings.length === 0)">
+                                                                <span class="inline-flex items-center text-slate-500">
+                                                                    <span class="text-slate-400 mr-0.5 text-[10px]">+</span>
+                                                                    <span x-text="item.options.map(o => o.name || o).join(', ')"></span>
+                                                                </span>
+                                                            </template>
+                                                            <template x-if="item.sugar_percent !== null && item.sugar_percent !== undefined && item.sugar_percent !== ''">
+                                                                <span class="text-slate-500" x-text="item.sugar_percent + '% đường'"></span>
+                                                            </template>
+                                                            <template x-if="item.ice_percent !== null && item.ice_percent !== undefined && item.ice_percent !== ''">
+                                                                <span class="text-slate-500" x-text="item.ice_percent + '% đá'"></span>
+                                                            </template>
+                                                            <template x-if="item.note">
+                                                                <span class="italic text-slate-400 text-[10px]" x-text="'(' + item.note + ')'"></span>
+                                                            </template>
+                                                        </div>
                                                     </template>
                                                 </div>
                                             </template>

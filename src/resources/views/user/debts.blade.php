@@ -284,13 +284,13 @@
                 </div>
 
                 <div class="w-full overflow-x-auto">
-                    <table class="w-full text-left text-xs">
+                    <table class="w-full min-w-[42rem] sm:min-w-full text-left text-xs">
                         <thead>
                             <tr
                                 class="bg-surface-container-low text-on-surface-variant text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border-b border-outline-variant/20">
                                 <th class="py-2.5 px-3 whitespace-nowrap">{{ __('room.debts.table_tx_id') }}</th>
                                 <th class="py-2.5 px-2.5 whitespace-nowrap">{{ __('room.debts.table_time') }}</th>
-                                <th class="py-2.5 px-2.5 min-w-[150px]">{{ __('room.debts.table_content_campaign') }}</th>
+                                <th class="py-2.5 px-2.5 min-w-[220px] sm:min-w-[260px]">{{ __('room.debts.table_content_campaign') }}</th>
                                 <th class="py-2.5 px-2.5 text-right whitespace-nowrap">{{ __('room.debts.table_total') }}</th>
                                 <th class="py-2.5 px-2.5 text-center whitespace-nowrap">{{ __('room.debts.table_status') }}</th>
                                 <th class="py-2.5 px-3 text-center whitespace-nowrap">{{ __('room.debts.table_action') }}</th>
@@ -310,7 +310,7 @@
                                     <td class="py-2.5 px-2.5 text-on-surface-variant whitespace-nowrap text-[11px]">
                                         {{ $debt->created_at?->format('d/m/Y H:i') }}
                                     </td>
-                                    <td class="py-2.5 px-2.5 font-medium max-w-sm min-w-[150px]">
+                                    <td class="py-2.5 px-2.5 font-medium max-w-sm min-w-[220px] sm:min-w-[260px]">
                                         <div class="flex flex-col gap-0.5">
                                             <span class="text-on-surface text-xs font-medium leading-snug">
                                                 {{ $debt->note ?: ($debt->sponsor_description ?: __('room.debts.default_debt_content')) }}

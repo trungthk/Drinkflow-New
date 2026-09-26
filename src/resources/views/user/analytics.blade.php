@@ -21,13 +21,13 @@
                         </p>
                     </div>
                 </div>
-                <nav class="flex self-start lg:self-auto items-center gap-1 rounded-lg bg-slate-100 border border-slate-200/70 p-0.5" aria-label="{{ __('room.analytics.period_filter') }}">
+                <nav class="grid grid-cols-3 w-full sm:flex sm:w-auto items-center gap-1 rounded-lg bg-slate-100 border border-slate-200/70 p-0.5" aria-label="{{ __('room.analytics.period_filter') }}">
                     @foreach(\App\Enums\AnalyticsPeriod::cases() as $option)
                         {{-- "Whole year" filter is hidden for now; drop this line to show it again. --}}
                         @continue($option === \App\Enums\AnalyticsPeriod::Year)
                         <a href="{{ route('user.analytics.room', ['room' => $room->slug, 'period' => $option->value]) }}"
                            @if($period === $option) aria-current="page" @endif
-                           class="px-2.5 sm:px-3 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-colors {{ $period === $option ? 'bg-[#006948] text-white shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-white/60' }}">
+                           class="text-center justify-center flex items-center px-2.5 sm:px-3 py-1.5 sm:py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-colors {{ $period === $option ? 'bg-[#006948] text-white shadow-2xs' : 'text-slate-500 hover:text-slate-900 hover:bg-white/60' }}">
                             {{ __('room.analytics.filter_' . $option->value) }}
                         </a>
                     @endforeach

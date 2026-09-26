@@ -207,6 +207,9 @@ class UserGuideService
             'allow_unsafe_links' => false,
         ]);
 
-        return (string) $converter->convert($content);
+        $html = (string) $converter->convert($content);
+
+        // Bổ sung loading="lazy" cho tất cả thẻ <img> trong bài viết hướng dẫn
+        return preg_replace('/<img\b(?![^>]*\bloading=)/i', '<img loading="lazy"', $html) ?? $html;
     }
 }

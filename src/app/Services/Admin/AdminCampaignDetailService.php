@@ -68,8 +68,9 @@ class AdminCampaignDetailService
                     ->filter(static fn (string $label): bool => trim($label) !== '')
                     ->sort()
                     ->values();
-                // Different toppings / ice / sugar are different drinks for the store, so they get their own line.
-                $key = implode('|', [$item->item_name, $item->size_name ?? '', $toppingLabels->join(';'), $item->ice_percent ?? '', $item->sugar_percent ?? '']);
+                $note = trim((string) ($item->note ?? ''));
+                // Different toppings / ice / sugar / note are different drinks for the store, so they get their own line.
+                $key = implode('|', [$item->item_name, $item->size_name ?? '', $toppingLabels->join(';'), $item->ice_percent ?? '', $item->sugar_percent ?? '', $note]);
                 if (! $aggregatedItems->has($key)) {
                     $aggregatedItems->put($key, [
                         'name' => $item->item_name,
@@ -94,8 +95,8 @@ class AdminCampaignDetailService
                 $memberQuantity['quantity'] += $item->quantity;
                 $curr['member_quantities']->put($memberKey, $memberQuantity);
                 $curr['total_amount'] += $item->line_subtotal;
-                if (! empty($item->note)) {
-                    $curr['notes']->push($item->note);
+                if ($note !== '') {
+                    $curr['notes']->push($note);
                 }
                 $aggregatedItems->put($key, $curr);
             }
@@ -176,8 +177,9 @@ class AdminCampaignDetailService
                     ->filter(static fn (string $label): bool => trim($label) !== '')
                     ->sort()
                     ->values();
-                // Same rule as the aggregated list: other toppings / ice / sugar mean a separate line.
-                $itemKey = implode('|', [$item->item_name, $item->size_name ?? '', $toppingLabels->join(';'), $item->ice_percent ?? '', $item->sugar_percent ?? '']);
+                $note = trim((string) ($item->note ?? ''));
+                // Same rule as the aggregated list: other toppings / ice / sugar / note mean a separate line.
+                $itemKey = implode('|', [$item->item_name, $item->size_name ?? '', $toppingLabels->join(';'), $item->ice_percent ?? '', $item->sugar_percent ?? '', $note]);
                 if (! $dept['items']->has($itemKey)) {
                     $dept['items']->put($itemKey, [
                         'name' => $item->item_name,
@@ -195,8 +197,8 @@ class AdminCampaignDetailService
                 $deptItem = $dept['items']->get($itemKey);
                 $deptItem['quantity'] += $item->quantity;
                 $deptItem['total_amount'] += $item->line_subtotal;
-                if (! empty($item->note)) {
-                    $deptItem['notes']->push($item->note);
+                if ($note !== '') {
+                    $deptItem['notes']->push($note);
                 }
                 $memberName = $user?->display_name ?? __('admin.member');
                 $deptItem['members']->push($memberName . ($item->quantity > 1 ? " (x{$item->quantity})" : ''));

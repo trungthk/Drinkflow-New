@@ -93,14 +93,14 @@
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
             {{-- Fixed-width member/amount columns; the origin-campaign column takes the remaining space. --}}
-            <table data-skeleton="table" class="table-colgroup w-full min-w-[68rem] table-fixed text-left text-xs border-collapse">
+            <table data-skeleton="table" class="table-colgroup w-full min-w-[72rem] table-fixed text-left text-xs border-collapse">
                 <colgroup>
-                    <col class="w-64">
-                    <col>
-                    <col class="w-32">
+                    <col class="w-56">
+                    <col class="min-w-[18rem]">
+                    <col class="w-28">
                     <col class="w-32">
                     <col class="w-36">
-                    <col class="w-52">
+                    <col class="w-48">
                 </colgroup>
                 <thead>
                     <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">

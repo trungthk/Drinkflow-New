@@ -616,25 +616,30 @@
             @endif
           </div>
 
-          <!-- Search Bar with Clear Button -->
-          <div class="flex w-full sm:w-auto items-center gap-2">
-          <button type="button" @click="openCampaignDetail({{ $activeCampaign->id }})" class="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-sky-200 bg-sky-50 px-3 text-xs font-bold text-sky-800 transition-colors hover:bg-sky-100">
-            <span class="material-symbols-outlined text-[17px]">receipt_long</span>
-            <span>{{ __('room.campaign.view_room_orders_button') }}</span>
-          </button>
-          <button type="button" @click="openFavorites()" class="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100">
-            <span class="material-symbols-outlined text-[17px]">favorite</span>
-            <span>{{ __('room.campaign.favorite_items_button') }}</span>
-          </button>
-          <div class="relative w-full sm:w-72">
-            <span class="absolute left-0 top-0 bottom-0 flex w-10 items-center justify-center text-slate-400 pointer-events-none">
-              <span class="material-symbols-outlined text-[18px]">search</span>
-            </span>
-            <input x-model="searchInput" @input="debounceSearch($event.target.value)" type="text" class="w-full pl-9 pr-8 h-10 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#006948] focus:ring-1 focus:ring-[#006948] outline-none transition-all" placeholder="{{ __('room.campaign.search_placeholder') }}">
-            <button x-show="searchInput.length > 0" x-cloak type="button" @click="searchInput = ''; searchQuery = ''" class="absolute right-0 top-0 bottom-0 flex w-9 items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer">
-              <span class="material-symbols-outlined text-[16px]">close</span>
-            </button>
-          </div>
+          <!-- Search Bar & Action Buttons -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+            <!-- Search bar (1 line on mobile) -->
+            <div class="relative w-full sm:w-64 lg:w-72 order-1 sm:order-2">
+              <span class="absolute left-0 top-0 bottom-0 flex w-10 items-center justify-center text-slate-400 pointer-events-none">
+                <span class="material-symbols-outlined text-[18px]">search</span>
+              </span>
+              <input x-model="searchInput" @input="debounceSearch($event.target.value)" type="text" class="w-full pl-9 pr-8 h-10 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 placeholder:text-slate-400 focus:border-[#006948] focus:ring-1 focus:ring-[#006948] outline-none transition-all" placeholder="{{ __('room.campaign.search_placeholder') }}">
+              <button x-show="searchInput.length > 0" x-cloak type="button" @click="searchInput = ''; searchQuery = ''" class="absolute right-0 top-0 bottom-0 flex w-9 items-center justify-center text-slate-400 hover:text-slate-700 cursor-pointer">
+                <span class="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </div>
+
+            <!-- Button xem đơn cả phòng & Top món yêu thích (cùng 1 line trên mobile) -->
+            <div class="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center order-2 sm:order-1">
+              <button type="button" @click="openCampaignDetail({{ $activeCampaign->id }})" class="inline-flex h-10 items-center justify-center sm:justify-start gap-1.5 rounded-xl border border-sky-200 bg-sky-50 px-3 text-xs font-bold text-sky-800 transition-colors hover:bg-sky-100 whitespace-nowrap">
+                <span class="material-symbols-outlined text-[17px] shrink-0">receipt_long</span>
+                <span class="truncate">{{ __('room.campaign.view_room_orders_button') }}</span>
+              </button>
+              <button type="button" @click="openFavorites()" class="inline-flex h-10 items-center justify-center sm:justify-start gap-1.5 rounded-xl border border-amber-200 bg-amber-50 px-3 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100 whitespace-nowrap">
+                <span class="material-symbols-outlined text-[17px] shrink-0">favorite</span>
+                <span class="truncate">{{ __('room.campaign.favorite_items_button') }}</span>
+              </button>
+            </div>
           </div>
         </div>
         @if((int) ($activeCampaign->max_budget ?? 0) > 0)
