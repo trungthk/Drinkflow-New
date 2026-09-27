@@ -243,7 +243,6 @@ return [
         'force_refresh' => '強制リフレッシュ',
         'important' => '重要マーク',
         'attachment_note' => '添付ファイルの備考',
-        'allow_debt' => '債務を許可',
         'minutes' => '延長分数',
         'delivery_location' => '配達場所',
         'desk_location' => '部署 / チーム',

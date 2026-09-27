@@ -22,7 +22,6 @@ class CloseCampaignRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'allow_debt' => ['sometimes', 'boolean'],
             'reason' => ['nullable', 'string', 'max:1000'],
         ];
     }
@@ -35,9 +34,6 @@ class CloseCampaignRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'allow_debt.boolean' => __('validation.boolean', [
-                'attribute' => __('validation.attributes.allow_debt'),
-            ]),
             'reason.max' => __('validation.max.string', [
                 'attribute' => __('validation.attributes.reason'),
                 'max' => 1000,

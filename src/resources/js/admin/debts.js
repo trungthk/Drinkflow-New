@@ -215,8 +215,28 @@ export function initAdminDebts() {
             ? rows.map(renderRow).join('')
             : `<div class="px-3 py-3 text-[11px] text-outline">${escapeHtml(emptyText)}</div>`;
     };
+    /** Show one tab of the detail modal ("basic" info or payment/adjustment "history"). */
+    const activeTabClasses = ['border-primary', 'text-primary'];
+    const inactiveTabClasses = ['border-transparent', 'text-outline', 'hover:text-on-surface'];
+    const switchDetailTab = (name) => {
+        detailModal?.querySelectorAll('[data-debt-detail-tab]').forEach((tab) => {
+            const active = tab.dataset.debtDetailTab === name;
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+            tab.classList.remove(...(active ? inactiveTabClasses : activeTabClasses));
+            tab.classList.add(...(active ? activeTabClasses : inactiveTabClasses));
+        });
+        detailModal?.querySelectorAll('[data-debt-detail-panel]').forEach((panel) => {
+            panel.classList.toggle('hidden', panel.dataset.debtDetailPanel !== name);
+        });
+    };
+    detailModal?.querySelectorAll('[data-debt-detail-tab]').forEach((tab) => {
+        tab.addEventListener('click', () => switchDetailTab(tab.dataset.debtDetailTab));
+    });
     const openDebtDetail = (detail) => {
         if (!detailModal) return;
+        switchDetailTab('basic');
+        const historyCount = detailModal.querySelector('[data-debt-detail-history-count]');
+        if (historyCount) historyCount.textContent = String((detail.payments || []).length + (detail.adjustments || []).length);
         detailModal.querySelectorAll('[data-debt-detail-field]').forEach((el) => {
             el.textContent = detail[el.dataset.debtDetailField] || (el.dataset.debtDetailField === 'sponsor_type' ? '' : '—');
         });

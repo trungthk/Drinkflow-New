@@ -243,7 +243,6 @@ return [
         'force_refresh' => 'Bắt buộc làm mới',
         'important' => 'Đánh dấu quan trọng',
         'attachment_note' => 'Ghi chú tệp đính kèm',
-        'allow_debt' => 'Cho phép ghi nợ',
         'minutes' => 'Số phút gia hạn',
         'delivery_location' => 'Địa điểm nhận hàng',
         'desk_location' => 'Phòng ban / Đội nhóm',

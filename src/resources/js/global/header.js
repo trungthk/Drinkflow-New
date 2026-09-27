@@ -1,8 +1,12 @@
+import { initHeaderNotificationRead } from '../shared/header-notification-read';
+
 /**
  * Global User Header Interactive Module
  * Handles Language dropdown, Profile menu, and Notification dropdown
  */
 export function initGlobalHeader() {
+    initHeaderNotificationRead();
+
     // Language dropdown toggle
     const langBtn = document.getElementById('global-lang-btn');
     const langMenu = document.getElementById('global-lang-menu');

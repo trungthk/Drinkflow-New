@@ -49,7 +49,7 @@ Mọi sự kiện đều được broadcast **theo Room** trước, một số k
 
 ## 8.4. Kênh webhook ngoài (Slack/Telegram/Chatwork/Webhook)
 
-Song song với push nội bộ, `RoomNotificationChannelDispatcher` gửi cùng nội dung ra các kênh chat ngoài mà Admin đã kết nối ([bài 9 – hướng dẫn Admin](../guildes/admin/09-kenh-thong-bao-broadcast.md)), dùng cho các sự kiện quan trọng như mở chiến dịch mới hoặc nhắc nợ.
+Song song với push nội bộ, `RoomNotificationChannelDispatcher` gửi cùng nội dung ra các kênh chat ngoài mà Admin đã kết nối ([bài 9 – hướng dẫn Admin](../guides/admin/09-kenh-thong-bao-broadcast.md)), dùng cho các sự kiện quan trọng như mở chiến dịch mới hoặc nhắc nợ.
 
 ## Tham chiếu mã nguồn
 

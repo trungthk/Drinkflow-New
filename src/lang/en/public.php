@@ -3,7 +3,7 @@
 return [
     'brand_name' => 'DrinkFlow',
     'meta' => [
-        'title' => 'DrinkFlow - Corporate Drink Ordering & Internal Campaign Platform',
+        'title' => 'DrinkFlow - Group Drink Ordering & Auto Bill Splitting',
         'description' => 'A platform for corporate team drink ordering campaigns, order tracking, and transparent automatic bill splitting.',
         'keywords' => 'DrinkFlow, office drink order, corporate group order, automatic bill split, VietQR, Google Workspace SSO',
         'og_title' => 'DrinkFlow - Quick & Easy Group Drink Ordering',
@@ -12,6 +12,7 @@ return [
     'contact_support' => 'Contact & Support',
     'header' => [
         'about' => 'About',
+        'guides' => 'Guides',
         'terms' => 'Terms',
         'versions' => 'Changelog',
         'contact' => 'Contact',
@@ -114,6 +115,7 @@ return [
         'copyright' => '© :year DrinkFlow Enterprise.',
         'version' => 'Version :version',
         'about' => 'About',
+        'guides' => 'User Guides',
         'terms' => 'Operating Terms',
         'versions' => 'Changelog',
         'contact' => 'Contact Support',

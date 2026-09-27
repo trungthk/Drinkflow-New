@@ -5,7 +5,7 @@
             <h1 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.reports_analytics_title') }}</h1>
         </div>
         <div class="flex items-center gap-3">
-            <x-admin.date-range-filter id="report-date-range" />
+            <x-admin.date-range-filter id="report-date-range" :date-from="$dateFrom" :date-to="$dateTo" />
             <button type="button" onclick="exportReportCSV()" class="px-3.5 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant text-on-surface rounded text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors">
                 <span class="material-symbols-outlined text-[16px] text-primary">download</span>
                 <span>{{ __('admin.export_excel_csv') }}</span>

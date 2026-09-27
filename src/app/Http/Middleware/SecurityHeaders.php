@@ -36,6 +36,10 @@ class SecurityHeaders
             'Content-Security-Policy' => $this->buildContentSecurityPolicy(),
         ];
 
+        if ($request->is('admin', 'admin/*', 'superadmin', 'superadmin/*', 'me', 'me/*', 'rooms', 'rooms/*', 'auth/*', 'check-order/*', 'lang/*', 'logout', 'dev/*')) {
+            $headers['X-Robots-Tag'] = 'noindex, nofollow, noarchive';
+        }
+
         if ($request->isSecure()) {
             $headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains';
         }

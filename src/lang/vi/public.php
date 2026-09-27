@@ -3,8 +3,8 @@
 return [
     'brand_name' => 'DrinkFlow',
     'meta' => [
-        'title' => 'DrinkFlow - Nền tảng đặt đồ uống & quản lý campaign nội bộ doanh nghiệp',
-        'description' => 'Nền tảng tổ chức campaign đặt đồ uống, quản lý order và chia bill cho team minh bạch, nhanh chóng và tự động hoá.',
+        'title' => 'DrinkFlow - Đặt đồ uống nhóm & chia bill tự động cho team',
+        'description' => 'Nền tảng tổ chức campaign đặt đồ uống nhóm, quản lý order và chia bill tự động qua VietQR cho team, doanh nghiệp: minh bạch, nhanh chóng.',
         'keywords' => 'DrinkFlow, đặt đồ uống văn phòng, group order, chia bill tự động, VietQR, Google Workspace SSO, order trà sữa doanh nghiệp',
         'og_title' => 'DrinkFlow - Order cùng team nhanh và dễ dàng',
         'og_description' => 'Nền tảng tổ chức campaign đặt đồ uống, quản lý order và chia bill cho team.',
@@ -12,6 +12,7 @@ return [
     'contact_support' => 'Liên hệ & Hỗ trợ',
     'header' => [
         'about' => 'Giới thiệu',
+        'guides' => 'Hướng dẫn',
         'terms' => 'Điều khoản',
         'versions' => 'Phiên bản',
         'contact' => 'Liên hệ',
@@ -114,6 +115,7 @@ return [
         'copyright' => '© :year DrinkFlow Enterprise.',
         'version' => 'Phiên bản :version',
         'about' => 'Giới thiệu',
+        'guides' => 'Hướng dẫn sử dụng',
         'terms' => 'Điều khoản vận hành',
         'versions' => 'Lịch sử phiên bản',
         'contact' => 'Liên hệ hỗ trợ',

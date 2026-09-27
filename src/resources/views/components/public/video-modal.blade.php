@@ -34,7 +34,8 @@
                    class="w-full h-full object-contain"
                    controls
                    playsinline
-                   preload="metadata">
+                   poster="{{ asset('images/home-intro.jpg') }}"
+                   preload="none">
                 <source src="{{ asset('files/about-drinkflow.mp4') }}" type="video/mp4">
                 {{ __('public.video_modal.yt_title') }}
             </video>

@@ -12,4 +12,11 @@ return [
     'view_list' => 'List',
     'read_more' => 'Read guide',
     'back_to_list' => 'Back to guide list',
+    'lightbox_title' => 'Guide image viewer',
+    'lightbox_close' => 'Close',
+    'lightbox_prev' => 'Previous image',
+    'lightbox_next' => 'Next image',
+    'lightbox_counter' => 'Image :current / :total',
+    'public_meta_title' => 'DrinkFlow User Guides - Group Drink Ordering & Bill Splitting',
+    'public_meta_description' => 'DrinkFlow how-to guides: sign in with Google Workspace, join a room, order in group campaigns, pay via VietQR and track debts.',
 ];

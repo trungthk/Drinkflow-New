@@ -7,6 +7,8 @@
     'ogType' => 'website',
     'ogImage' => null,
     'canonicalUrl' => null,
+    'robots' => 'index, follow',
+    'jsonLd' => [],
     'activeTab' => 'about',
     'version' => null,
     'termsUrl' => null,
@@ -30,7 +32,7 @@
     <meta name="description" content="{{ $pageDescription }}"/>
     <meta name="keywords" content="{{ $pageKeywords }}"/>
     <meta name="author" content="DrinkFlow"/>
-    <meta name="robots" content="index, follow"/>
+    <meta name="robots" content="{{ $robots }}"/>
     <link rel="canonical" href="{{ $currentUrl }}"/>
 
     <!-- Open Graph / Facebook / Zalo / LinkedIn -->
@@ -40,6 +42,7 @@
     <meta property="og:title" content="{{ $pageOgTitle }}"/>
     <meta property="og:description" content="{{ $pageOgDescription }}"/>
     <meta property="og:image" content="{{ $pageOgImage }}"/>
+    <meta property="og:image:alt" content="{{ $pageOgTitle }}"/>
     <meta property="og:locale" content="{{ $ogLocale }}"/>
 
     <!-- Twitter Card -->
@@ -49,67 +52,78 @@
     <meta name="twitter:description" content="{{ $pageOgDescription }}"/>
     <meta name="twitter:image" content="{{ $pageOgImage }}"/>
 
+    @foreach($alternateUrls as $altCode => $altUrl)
+        <link rel="alternate" hreflang="{{ $altCode }}" href="{{ $altUrl }}"/>
+    @endforeach
+    @if(!empty($alternateUrls))
+        <link rel="alternate" hreflang="x-default" href="{{ $alternateUrls[\App\Constants\AppLocale::DEFAULT] }}"/>
+    @endif
+    @foreach($alternateUrls as $altCode => $altUrl)
+        @if($altCode !== $locale)
+            <meta property="og:locale:alternate" content="{{ match ($altCode) { 'vi' => 'vi_VN', 'ja' => 'ja_JP', default => 'en_US' } }}"/>
+        @endif
+    @endforeach
+    <meta name="theme-color" content="#006948"/>
+    <link rel="apple-touch-icon" href="{{ asset('images/drinkflow-logo.png') }}"/>
+
     <!-- Schema.org JSON-LD Structured Data for Rich Search Results -->
-    <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@@type": "WebApplication",
-      "name": "DrinkFlow",
-      "url": "{{ url('/') }}",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "All",
-      "description": "{{ $pageDescription }}",
-      "offers": {
-        "@@type": "Offer",
-        "price": "0",
-        "priceCurrency": "VND"
-      }
-    }
-    </script>
+    @php
+        $siteUrl = \App\Support\Helpers\LocaleUrl::url('/');
+        $orgNode = [
+            '@type' => 'Organization',
+            '@id' => url('/').'#organization',
+            'name' => 'DrinkFlow',
+            'url' => url('/'),
+            'logo' => asset('images/drinkflow-logo.png'),
+        ];
+        $siteNode = [
+            '@type' => 'WebSite',
+            '@id' => url('/').'#website',
+            'name' => 'DrinkFlow',
+            'url' => $siteUrl,
+            'inLanguage' => $locale,
+            'publisher' => ['@id' => url('/').'#organization'],
+        ];
+        $graph = [$orgNode, $siteNode];
+        if ($basePath === '/' && !empty($alternateUrls)) {
+            $graph[] = [
+                '@type' => 'SoftwareApplication',
+                'name' => 'DrinkFlow',
+                'url' => $currentUrl,
+                'applicationCategory' => 'BusinessApplication',
+                'operatingSystem' => 'Web',
+                'inLanguage' => $locale,
+                'description' => $pageDescription,
+                'image' => $pageOgImage,
+                'offers' => ['@type' => 'Offer', 'price' => '0', 'priceCurrency' => 'VND'],
+            ];
+        } elseif (!empty($alternateUrls)) {
+            $crumbName = match (true) {
+                str_starts_with($basePath, '/terms') => __('public.header.terms'),
+                str_starts_with($basePath, '/versions') => __('public.header.versions'),
+                default => __('public.header.contact'),
+            };
+            $graph[] = ['@type' => 'WebPage', 'name' => $pageTitle, 'url' => $currentUrl, 'inLanguage' => $locale, 'isPartOf' => ['@id' => url('/').'#website']];
+            $graph[] = [
+                '@type' => 'BreadcrumbList',
+                'itemListElement' => [
+                    ['@type' => 'ListItem', 'position' => 1, 'name' => __('public.header.about'), 'item' => $siteUrl],
+                    ['@type' => 'ListItem', 'position' => 2, 'name' => $crumbName, 'item' => $currentUrl],
+                ],
+            ];
+        }
+        foreach ($jsonLd as $extraNode) {
+            $graph[] = $extraNode;
+        }
+        $structuredData = ['@context' => 'https://schema.org', '@graph' => $graph];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($structuredData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) !!}</script>
 
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com"/>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"/>
-
-    <!-- Tailwind CSS Engine & Custom Config -->
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "primary": "#006948",
-                        "primary-container": "#00855d",
-                        "primary-fixed": "#85f8c4",
-                        "primary-fixed-dim": "#68dba9",
-                        "on-primary": "#ffffff",
-                        "secondary": "#006c49",
-                        "secondary-container": "#6cf8bb",
-                        "secondary-fixed": "#6ffbbe",
-                        "on-secondary-container": "#00714d",
-                        "tertiary": "#545c72",
-                        "background": "#f8f9ff",
-                        "surface": "#f8f9ff",
-                        "on-surface": "#0b1c30",
-                        "on-surface-variant": "#3d4a42",
-                        "surface-container": "#eff4ff",
-                        "surface-container-low": "#eff4ff",
-                        "surface-container-high": "#dce9ff",
-                        "surface-container-lowest": "#ffffff",
-                        "outline": "#6d7a72",
-                        "outline-variant": "#bccac0",
-                        "error": "#ba1a1a"
-                    },
-                    fontFamily: {
-                        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"]
-                    }
-                }
-            }
-        }
-    </script>
 
     {{-- Socket.IO client (window.io): public pages only listen for maintenance notices. Deferred scripts still
          run before DOMContentLoaded, when public.js connects. --}}

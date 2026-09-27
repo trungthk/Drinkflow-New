@@ -411,51 +411,6 @@ export function initAdminDashboard() {
             if (pBank) pBank.textContent = `${acc.bank_name || acc.bank_code} (${acc.account_name || roomFundText})`;
             if (pMasked) pMasked.textContent = acc.account_number_masked || '•••• •••• ••••';
         }
-
-        // Orders Table & Section Visibility
-        const ordersSection = document.querySelector('#recent-orders-section');
-        const ordersStreamContainer = document.querySelector('#orders-stream-container');
-        const sideStreamContainer = document.querySelector('#side-stream-container');
-        const tbody = document.querySelector('#orders-tbody');
-        const orders = data.recent_orders || [];
-
-        if (orders && orders.length > 0) {
-            if (ordersSection) ordersSection.classList.remove('hidden');
-            if (ordersStreamContainer) {
-                ordersStreamContainer.classList.add('xl:grid-cols-[1.6fr_.9fr]');
-            }
-            if (sideStreamContainer) {
-                sideStreamContainer.classList.remove('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-4', 'space-y-0');
-                sideStreamContainer.classList.add('space-y-4');
-            }
-            if (tbody) {
-                tbody.innerHTML = orders.map(o => `
-                    <tr class="hover:bg-surface-container-low/50 transition-colors">
-                        <td class="py-2.5 px-3 font-mono text-outline">#${o.id}</td>
-                        <td class="py-2.5 px-3 font-semibold text-on-surface">${esc(o.room_user?.global_user?.name || o.room_user?.display_name || 'Member')}</td>
-                        <td class="py-2.5 px-3 text-outline">${esc(o.campaign?.name || 'Campaign')}</td>
-                        <td class="py-2.5 px-3 text-right font-mono font-bold text-on-surface">${money(o.final_amount)}</td>
-                        <td class="py-2.5 px-3 text-center">
-                            <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold ${o.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700' : (o.status === 'cancelled' ? 'bg-rose-50 text-rose-700' : 'bg-blue-50 text-blue-700')}">
-                                ${esc(o.status)}
-                            </span>
-                        </td>
-                    </tr>
-                `).join('');
-            }
-        } else {
-            if (ordersSection) ordersSection.classList.add('hidden');
-            if (ordersStreamContainer) {
-                ordersStreamContainer.classList.remove('xl:grid-cols-[1.6fr_.9fr]');
-            }
-            if (sideStreamContainer) {
-                sideStreamContainer.classList.remove('space-y-4');
-                sideStreamContainer.classList.add('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-4', 'space-y-0');
-            }
-            if (tbody) {
-                tbody.innerHTML = '';
-            }
-        }
     }
 
     async function loadDashboard() {

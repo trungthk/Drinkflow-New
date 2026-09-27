@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Campaign;
 use App\Models\Room;
 use App\Services\Admin\AdminReportService;
+use App\Support\Helpers\DateRangeHelper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -66,11 +67,18 @@ class ReportController extends Controller
         $roomMembersCount = $room->roomUsers()->count();
         $stats = $reportService->getReportStats($request, $room);
 
+        // First visit (no range in the URL): pre-fill the picker with the service's default, the last 7 days.
+        [$dateFrom, $dateTo] = $request->hasAny(['date_from', 'date_to', 'from', 'to', 'period'])
+            ? [(string) $request->input('date_from', ''), (string) $request->input('date_to', '')]
+            : DateRangeHelper::lastDays();
+
         return view('admin.reports', [
             'room' => $room,
             'campaigns' => $campaigns,
             'roomMembersCount' => $roomMembersCount,
             'stats' => $stats,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
         ]);
     }
 }

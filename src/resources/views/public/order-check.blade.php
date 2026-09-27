@@ -4,6 +4,7 @@
     :ogTitle="__('public.order_check_title')"
     :ogDescription="__('public.order_check_desc')"
     activeTab="about"
+    robots="noindex, nofollow"
 >
     <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-12 sm:py-16">
         <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" data-order-check data-lookup-url="{{ $lookupUrl }}">

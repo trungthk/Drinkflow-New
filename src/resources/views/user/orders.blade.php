@@ -33,8 +33,11 @@
     $orderSponsorAmount = $isFullSponsor ? $orderGrossTotal : (int) ($activeOrder?->sponsor_amount ?? 0);
     $orderFinalAmount = max(0, $orderGrossTotal - $orderSponsorAmount);
     $formattedOrderAmount = \App\Support\Helpers\FormatHelper::formatCurrency($orderFinalAmount);
+    $orderTransferContent = $orderCode !== ''
+        ? app(\App\Services\Payment\VietQrService::class)->transferContent((string) $orderCode, $roomUser->payerName())
+        : '';
     $initialQrPayload = $campaignAccount && $accountNumber
-        ? app(\App\Services\Payment\VietQrService::class)->generate($campaignAccount, $orderFinalAmount, (string) $orderCode)
+        ? app(\App\Services\Payment\VietQrService::class)->generate($campaignAccount, $orderFinalAmount, $orderTransferContent)
         : '';
 
     $orderSponsorAllocations = collect($orderCampaign?->sponsor_allocations ?? []);
@@ -89,7 +92,7 @@
             accountName: {{ Js::from($accountName) }},
             amount: {{ $orderFinalAmount }},
             formattedAmount: {{ Js::from($formattedOrderAmount) }},
-            transferContent: {{ Js::from($orderCode) }},
+            transferContent: {{ Js::from($orderTransferContent) }},
             qrPayload: {{ Js::from($initialQrPayload) }},
             qrDataUrl: ''
         },
@@ -640,7 +643,7 @@
                                                                                                                                                                             {{ $activeOrder->id }},
                                                                                                                                                                             {{ (int) $orderFinalAmount }},
                                                                                                                                                                             '{{ $formattedOrderAmount }}',
-                                                                                                                                                                            {{ Js::from($orderCode) }},
+                                                                                                                                                                            {{ Js::from($orderTransferContent) }},
                                                                                                                                                                             {{ Js::from($bankCode) }},
                                                                                                                                                                             {{ Js::from($bankName) }},
                                                                                                                                                                             {{ Js::from($accountNumber) }},

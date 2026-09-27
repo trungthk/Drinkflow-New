@@ -15,6 +15,13 @@ class SetLocale
     {
         $locale = session('locale', \App\Constants\AppLocale::DEFAULT);
 
+        // Public pages are also served under /en and /ja: the URL wins over the session so each language has its own address.
+        $segment = $request->segment(1);
+        if (is_string($segment) && in_array($segment, \App\Support\Helpers\LocaleUrl::prefixedLocales(), true)) {
+            $locale = $segment;
+            session(['locale' => $locale]);
+        }
+
         if (!\App\Constants\AppLocale::isValid($locale)) {
             $locale = \App\Constants\AppLocale::DEFAULT;
         }

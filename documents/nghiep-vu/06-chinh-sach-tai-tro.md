@@ -11,7 +11,7 @@ Model `Campaign` định nghĩa **4 kiểu tài trợ** (`Campaign::SPONSOR_TYPE
 | `SPONSOR_TYPE_PER_ITEM` | `per_item` | Trợ giá cố định trên mỗi đơn (ví dụ "hỗ trợ tối đa 20.000đ/đơn") |
 | `SPONSOR_TYPE_BUDGET` | `budget` | Trích từ **một quỹ chung có hạn mức**, ai đặt trước dùng trước |
 
-> **Ghi chú kỹ thuật**: màn hình **"Tạo Chiến Dịch Nhanh"** hiện tại của Admin chỉ có 2 lựa chọn khả dụng trong dropdown là *Không tài trợ* và *Tài trợ toàn bộ* (xem [Hướng dẫn Admin – bài 4](../guildes/admin/04-quan-ly-chien-dich.md#43-chính-sách-tài-trợ-sponsor)); `per_item` và `budget` **có logic tính toán đầy đủ ở tầng backend** (`CreateOrderAction`) nhưng chưa có UI để Admin chọn trực tiếp trong luồng tạo nhanh — cần xác nhận với đội phát triển UI/API nào đang set 2 giá trị này trước khi coi là tính năng "đã hoàn thiện end-to-end".
+> **Ghi chú kỹ thuật**: màn hình **"Tạo Chiến Dịch Nhanh"** hiện tại của Admin chỉ có 2 lựa chọn khả dụng trong dropdown là *Không tài trợ* và *Tài trợ toàn bộ* (xem [Hướng dẫn Admin – bài 4](../guides/admin/04-quan-ly-chien-dich.md#43-chính-sách-tài-trợ-sponsor)); `per_item` và `budget` **có logic tính toán đầy đủ ở tầng backend** (`CreateOrderAction`) nhưng chưa có UI để Admin chọn trực tiếp trong luồng tạo nhanh — cần xác nhận với đội phát triển UI/API nào đang set 2 giá trị này trước khi coi là tính năng "đã hoàn thiện end-to-end".
 
 ## 6.1. Công thức tính sponsor **lúc đặt món** (`CreateOrderAction`)
 

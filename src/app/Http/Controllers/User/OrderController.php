@@ -194,11 +194,11 @@ class OrderController extends Controller
             ?? $room->paymentAccounts()->first();
         abort_unless($account && $account->status === PaymentAccountStatus::Active, 404);
 
-        $amount = (int) $order->final_amount;
-        $content = $order->code;
-
         /** @var VietQrService $vietQr */
         $vietQr = app(VietQrService::class);
+
+        $amount = (int) $order->final_amount;
+        $content = $vietQr->transferContent((string) $order->code, $roomUser->payerName());
 
         return response()->json([
             'data' => [

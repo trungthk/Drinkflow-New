@@ -158,6 +158,9 @@ class AdminReportService
     /**
      * Compute date period bounds based on request parameters.
      *
+     * Explicit date_from/date_to win; otherwise the `period` preset is used, defaulting to the last
+     * 7 days (today included). `period=all` covers the whole history.
+     *
      * @param Request $request Incoming request.
      * @param string $timezone Timezone string.
      * @return array{0: Carbon, 1: Carbon} Start and end dates.
@@ -180,7 +183,7 @@ class AdminReportService
             return [$start, $end];
         }
 
-        $start = match ($request->string('period', 'month')->toString()) {
+        $start = match ($request->string('period', '7days')->toString()) {
             'today' => $now->copy()->startOfDay(),
             'yesterday' => $now->copy()->subDay()->startOfDay(),
             '7days', 'last_7_days', 'week' => $now->copy()->subDays(6)->startOfDay(),

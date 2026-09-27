@@ -268,11 +268,27 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         },
 
         addSponsor() {
-            this.sponsors.push({ user_id: '', percentage: 100, search: '', open: false });
+            this.sponsors.push({ user_id: '', percentage: 0, search: '', open: false });
+            this.distributeSponsorPercentages();
         },
 
         removeSponsor(index) {
             this.sponsors.splice(index, 1);
+            this.distributeSponsorPercentages();
+        },
+
+        /**
+         * Split 100% evenly across the sponsors in whole percents; the leftover goes to the first
+         * sponsor (1 → 100, 2 → 50/50, 3 → 34/33/33).
+         */
+        distributeSponsorPercentages() {
+            const count = this.sponsors.length;
+            if (count === 0) return;
+            const base = Math.floor(100 / count);
+            const remainder = 100 - base * count;
+            this.sponsors.forEach((sponsor, index) => {
+                sponsor.percentage = base + (index === 0 ? remainder : 0);
+            });
         },
 
         clampSponsorPercentage(sponsor) {

@@ -138,6 +138,13 @@
     selectedToppings: [],
     note: '',
     isSelfPaid: false,
+    quantity: 1,
+    /** Clamp the chosen quantity to a whole number between 1 and the budget-derived maximum. */
+    normalizeQuantity(value) {
+      const parsed = Number.parseInt(String(value ?? '').replace(/\D/g, ''), 10);
+      const max = Math.max(1, this.maxQuantity);
+      return Number.isFinite(parsed) ? Math.min(max, Math.max(1, parsed)) : 1;
+    },
     defaultNote: {{ Js::from($user?->default_order_note ?? '') }},
     sampleNotes: [
       '{{ __('room.campaign.sample_note_less_sweet') }}',
@@ -157,11 +164,16 @@
       }
       return total;
     },
+    /** Largest quantity whose line total stays within the per-product budget cap (and the 1–99 range). */
+    get maxQuantity() {
+      if (this.maxBudget <= 0 || this.calculatedPrice <= 0) return 99;
+      return Math.min(99, Math.floor(this.maxBudget / this.calculatedPrice));
+    },
     get isCustomItemExceeded() {
-      return this.maxBudget > 0 && this.calculatedPrice > this.maxBudget;
+      return this.maxBudget > 0 && this.calculatedPrice * this.normalizeQuantity(this.quantity) > this.maxBudget;
     },
     isItemExceeded(item) {
-      return this.maxBudget > 0 && Number(item.unit_price) > this.maxBudget;
+      return this.maxBudget > 0 && Number(item.unit_price) * Number(item.quantity) > this.maxBudget;
     },
     hasExceededItems() {
       return this.cartItems.some(item => this.isItemExceeded(item));
@@ -175,6 +187,7 @@
       this.selectedToppings = [];
       this.note = this.defaultNote;
       this.isSelfPaid = false;
+      this.quantity = 1;
       this.showCustomModal = true;
     },
     closeCustomModal() {
@@ -182,6 +195,7 @@
       this.selectedToppings = [];
       this.selectedSize = null;
       this.isSelfPaid = false;
+      this.quantity = 1;
     },
     async addToCart() {
       if (this.isCustomItemExceeded) {
@@ -201,7 +215,7 @@
             item_id: this.selectedItem.id,
             size_id: this.selectedSize?.id || null,
             topping_ids: this.selectedToppings.map(top => top.id),
-            quantity: 1,
+            quantity: this.normalizeQuantity(this.quantity),
             note: this.note,
             is_self_paid: this.isSelfPaid,
             proxy_user_code: null
@@ -554,7 +568,15 @@
         </div>
       @endif
 
-      @if(!$activeCampaign?->isOrderable() && !$activeUserOrder && !$hasDeclined)
+      @if($activeCampaign?->isOpenForOrders() && $activeCampaign->isOrderingLocked())
+        <div data-ordering-locked-banner class="flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <span class="material-symbols-outlined text-[20px]">lock</span>
+          <div>
+            <p class="font-bold">{{ __('room.campaign.ordering_locked_title') }}</p>
+            <p class="mt-0.5 text-xs leading-relaxed text-amber-800">{{ __('room.campaign.ordering_locked') }}</p>
+          </div>
+        </div>
+      @elseif(!$activeCampaign?->isOrderable() && !$activeUserOrder && !$hasDeclined)
         <div class="flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           <span class="material-symbols-outlined text-[20px]">event_busy</span>
           <div>
@@ -787,7 +809,6 @@
               @csrf
               <input type="hidden" name="campaign_item_id" :value="selectedItem?.id">
               <input type="hidden" name="campaign_item_size_id" :value="selectedSize?.id">
-              <input type="hidden" name="quantity" value="1">
 
               <!-- Size Options -->
               <template x-if="selectedItem?.sizes && selectedItem.sizes.length > 0">
@@ -829,6 +850,38 @@
                   </div>
                 </div>
               </template>
+
+              <!-- Quantity -->
+              <div class="space-y-1.5">
+                <label for="custom-item-quantity" class="text-xs font-bold uppercase tracking-wider text-slate-700 block">{{ __('room.campaign.quantity_label') }}</label>
+                <div class="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50 overflow-hidden">
+                  <button type="button"
+                          @click="quantity = Math.max(1, normalizeQuantity(quantity) - 1)"
+                          :disabled="normalizeQuantity(quantity) <= 1"
+                          class="w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-100 hover:text-[#006948] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          title="{{ __('room.campaign.quantity_decrease') }}" aria-label="{{ __('room.campaign.quantity_decrease') }}">
+                    <span class="material-symbols-outlined text-[18px]">remove</span>
+                  </button>
+                  <input id="custom-item-quantity" name="quantity" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2"
+                         x-model="quantity"
+                         x-effect="if (Number(quantity) > Math.max(1, maxQuantity)) quantity = Math.max(1, maxQuantity)"
+                         @input="const digits = $event.target.value.replace(/\D/g, ''); const cap = Math.max(1, maxQuantity); $event.target.value = digits !== '' && Number(digits) > cap ? String(cap) : digits; quantity = $event.target.value"
+                         @blur="quantity = normalizeQuantity(quantity); $event.target.value = quantity"
+                         class="w-14 h-10 border-x border-slate-200 bg-white text-center text-sm font-bold font-mono text-slate-900 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-[#006948]"
+                         aria-label="{{ __('room.campaign.quantity_label') }}">
+                  <button type="button"
+                          @click="quantity = normalizeQuantity(normalizeQuantity(quantity) + 1)"
+                          :disabled="normalizeQuantity(quantity) >= maxQuantity"
+                          class="w-10 h-10 flex items-center justify-center text-slate-600 hover:bg-slate-100 hover:text-[#006948] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                          title="{{ __('room.campaign.quantity_increase') }}" aria-label="{{ __('room.campaign.quantity_increase') }}">
+                    <span class="material-symbols-outlined text-[18px]">add</span>
+                  </button>
+                </div>
+                <template x-if="maxBudget > 0 && maxQuantity >= 1 && maxQuantity < 99">
+                  <p class="text-[11px] text-slate-500"
+                     x-text="{{ Js::from(__('room.campaign.quantity_budget_hint', ['max' => ':max', 'limit' => \App\Support\Helpers\FormatHelper::formatCurrency((int) ($activeCampaign?->max_budget ?? 0))])) }}.replace(':max', maxQuantity)"></p>
+                </template>
+              </div>
 
               <!-- Special Note -->
               <div class="space-y-1.5">

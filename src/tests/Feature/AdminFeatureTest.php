@@ -827,7 +827,25 @@ class AdminFeatureTest extends TestCase
         $this->assertCount(1, Storage::disk('public')->allFiles('uploads/campaigns'));
     }
 
-    public function test_admin_can_close_campaign_with_automatic_debt_creation(): void
+    /**
+     * Payloads a client might send when closing; debts must be created for every one of them.
+     *
+     * @return array<string, array{0: array<string, mixed>}>
+     */
+    public static function closeCampaignPayloads(): array
+    {
+        return [
+            'no flag' => [[]],
+            'legacy allow_debt true' => [['allow_debt' => true]],
+            'legacy allow_debt false is ignored' => [['allow_debt' => false]],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload Close request body.
+     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('closeCampaignPayloads')]
+    public function test_admin_can_close_campaign_with_automatic_debt_creation(array $payload): void
     {
         $admin = $this->admin('closedebt@example.test');
         $room = $this->roomFor($admin, 'closedebt-room');
@@ -866,9 +884,7 @@ class AdminFeatureTest extends TestCase
             'status' => 'submitted',
         ]);
 
-        $response = $this->actingAs($admin, 'admin')->postJson("/admin/{$room->id}/campaigns/{$campaign->id}/close", [
-            'allow_debt' => true,
-        ]);
+        $response = $this->actingAs($admin, 'admin')->postJson("/admin/{$room->id}/campaigns/{$campaign->id}/close", $payload);
 
         $response->assertOk()->assertJsonPath('data.status', 'closed');
 

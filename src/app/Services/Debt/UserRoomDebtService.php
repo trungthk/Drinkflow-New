@@ -68,13 +68,16 @@ class UserRoomDebtService
         }
 
         $qrPayloads = [];
+        $transferContents = [];
+        $payerName = $roomUser->payerName();
         foreach ($debts->getCollection() as $debt) {
+            $transferContents[$debt->id] = $this->vietQr->transferContent((string) $debt->code, $payerName);
             $account = $debt->campaign?->paymentAccount ?? $paymentAccount;
             if ($account && (int) $debt->remaining_amount > 0) {
                 $qrPayloads[$debt->id] = $this->vietQr->generate(
                     $account,
                     (int) $debt->remaining_amount,
-                    (string) $debt->code,
+                    $transferContents[$debt->id],
                 );
             }
         }
@@ -101,6 +104,7 @@ class UserRoomDebtService
             'totalSponsorAmount' => (int) (clone $baseDebtsQuery)->sum('sponsor_amount'),
             'vietqrData' => $vietqrData,
             'qrPayloads' => $qrPayloads,
+            'transferContents' => $transferContents,
             'activeCampaign' => $activeCampaign ? [
                 'name' => $activeCampaign->name,
                 'time_remaining' => $activeCampaign->deadline ? ($activeCampaign->deadline->isFuture() ? $activeCampaign->deadline->diffForHumans(['parts' => 2, 'short' => true]) : '00:00') : '14:22',
@@ -113,6 +117,10 @@ class UserRoomDebtService
     /**
      * Build the room-user debt query while excluding debts backed only by cancelled orders.
      *
+     * A debt stays visible when the member has a live order in the campaign, or when the member
+     * has no order there at all: that is a sponsor debt (the sponsor pays for orders placed by
+     * others, including orders placed on the sponsor's behalf) and must not be hidden.
+     *
      * @param Room $room Current room.
      * @param RoomUser $roomUser Current room member.
      * @return Builder<Debt> Visible debt query.
@@ -122,10 +130,16 @@ class UserRoomDebtService
         return Debt::query()
             ->where('room_id', $room->id)
             ->where('room_user_id', $roomUser->id)
-            ->whereHas('campaign.orders', static function (Builder $orderQuery) use ($roomUser): void {
-                $orderQuery
-                    ->where('room_user_id', $roomUser->id)
-                    ->where('status', '!=', OrderStatus::Cancelled->value);
+            ->where(static function (Builder $query) use ($roomUser): void {
+                $query
+                    ->whereHas('campaign.orders', static function (Builder $orderQuery) use ($roomUser): void {
+                        $orderQuery
+                            ->where('room_user_id', $roomUser->id)
+                            ->where('status', '!=', OrderStatus::Cancelled->value);
+                    })
+                    ->orWhereDoesntHave('campaign.orders', static function (Builder $orderQuery) use ($roomUser): void {
+                        $orderQuery->where('room_user_id', $roomUser->id);
+                    });
             });
     }
 }

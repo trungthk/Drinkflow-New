@@ -44,4 +44,4 @@ Server **luôn** tính lại `subtotal`/`sponsor_amount`/`final_amount` từ d�
 
 ## Tham chiếu mã nguồn
 
-`App\Models\Order`, `OrderItem`, `OrderItemTopping` · `App\Enums\OrderStatus` · `App\Actions\Order\UpdateOrderAction`, `UpdateOrderStatusAction`, `DeleteOrderAction`, `ConfirmOrderPaymentAction` · `App\Events\OrderCreated/Updated/Deleted` · Xem thao tác UI ở [Hướng dẫn Admin – bài 5](../guildes/admin/05-quan-ly-don-hang.md) và [Hướng dẫn User – bài 4](../guildes/user/04-theo-doi-don-hang.md).
+`App\Models\Order`, `OrderItem`, `OrderItemTopping` · `App\Enums\OrderStatus` · `App\Actions\Order\UpdateOrderAction`, `UpdateOrderStatusAction`, `DeleteOrderAction`, `ConfirmOrderPaymentAction` · `App\Events\OrderCreated/Updated/Deleted` · Xem thao tác UI ở [Hướng dẫn Admin – bài 5](../guides/admin/05-quan-ly-don-hang.md) và [Hướng dẫn User – bài 4](../guides/user/04-theo-doi-don-hang.md).

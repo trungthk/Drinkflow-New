@@ -13,12 +13,17 @@ class UserGuideService
     /**
      * Thư mục (tương đối trong public/) chứa các file Markdown hướng dẫn sử dụng cho User.
      */
-    private const GUIDES_DIR = 'guildes/user';
+    private const GUIDES_DIR = 'guide-content/user';
 
     /**
      * Slug không được xem là một bài hướng dẫn thật sự (file mục lục nội bộ).
      */
     private const INDEX_SLUG = 'README';
+
+    /**
+     * Bài hướng dẫn liên quan tới bảo mật thiết bị / tài khoản bị khoá: chỉ hiển thị sau đăng nhập, không mở công khai.
+     */
+    private const NON_PUBLIC_PREFIXES = ['08-', '11-'];
 
     /**
      * Lấy danh sách bài hướng dẫn (đã sắp xếp theo số thứ tự trong tên file) để hiển thị dạng lưới.
@@ -58,6 +63,53 @@ class UserGuideService
         usort($articles, static fn (array $a, array $b): int => $a['number'] <=> $b['number'] ?: $a['slug'] <=> $b['slug']);
 
         return $articles;
+    }
+
+    /**
+     * Danh sách bài hướng dẫn được phép hiển thị công khai (không cần đăng nhập, cho SEO).
+     *
+     * @return array<int, array{slug: string, number: int, title: string, excerpt: string}>
+     */
+    public function listPublic(): array
+    {
+        return array_values(array_filter(
+            $this->list(),
+            fn (array $article): bool => $this->isPublicSlug($article['slug'])
+        ));
+    }
+
+    /**
+     * Đọc một bài hướng dẫn công khai; trả về null nếu bài không thuộc nhóm được mở công khai.
+     *
+     * @param string $slug Định danh bài viết lấy từ URL.
+     * @param string $indexUrl URL trang danh sách công khai (gốc cho các liên kết nội bộ).
+     * @return array{slug: string, title: string, html: string, excerpt: string}|null Dữ liệu bài viết hoặc null.
+     */
+    public function findPublic(string $slug, string $indexUrl): ?array
+    {
+        if (! $this->isPublicSlug($slug)) {
+            return null;
+        }
+
+        $article = $this->find($slug, $indexUrl);
+        if ($article === null) {
+            return null;
+        }
+
+        $raw = File::get(public_path(self::GUIDES_DIR . '/' . $slug . '.md'));
+
+        return $article + ['excerpt' => $this->extractExcerpt($raw)];
+    }
+
+    /**
+     * Kiểm tra slug có thuộc nhóm bài được mở công khai hay không.
+     *
+     * @param string $slug Tên file không có phần mở rộng.
+     * @return bool True nếu được phép hiển thị công khai.
+     */
+    public function isPublicSlug(string $slug): bool
+    {
+        return ! Str::startsWith($slug, self::NON_PUBLIC_PREFIXES);
     }
 
     /**
@@ -186,7 +238,7 @@ class UserGuideService
     {
         $content = $this->stripNavBlock($raw);
 
-        // Ảnh tương đối "images/xxx.png" -> đường dẫn tuyệt đối tới thư mục public/guildes/user/images.
+        // Ảnh tương đối "images/xxx.png" -> đường dẫn tuyệt đối tới thư mục public/guide-content/user/images.
         $content = str_replace('](images/', '](/' . self::GUIDES_DIR . '/images/', $content);
 
         // Liên kết nội bộ tới các bài khác ("12-slug.md" hoặc "12-slug.md#anchor") -> route trang chi tiết tương ứng.

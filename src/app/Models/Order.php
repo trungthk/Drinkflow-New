@@ -79,6 +79,16 @@ class Order extends Model
     }
 
     /**
+     * Room admin who placed this order on behalf of the member (null when the member ordered).
+     *
+     * @return BelongsTo<AdminAccount, Order>
+     */
+    public function placedByAdmin(): BelongsTo
+    {
+        return $this->belongsTo(AdminAccount::class, 'placed_by_admin_id');
+    }
+
+    /**
      * The parent order (null if this is already a parent order).
      *
      * @return BelongsTo<Order, Order>

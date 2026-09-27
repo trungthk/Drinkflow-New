@@ -10,6 +10,7 @@ import { initGoToTop } from './public/go-to-top';
 import { initContactPage } from './public/contact';
 import { initTermsPage } from './public/terms';
 import { connectGuestRealtime } from './shared/realtime-reload';
+import { initGuideLightbox } from './shared/guide-lightbox';
 
 document.addEventListener('DOMContentLoaded', () => {
     initToastNotifications();
@@ -21,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initGoToTop();
     initContactPage();
     initTermsPage();
+    initGuideLightbox();
     // Reload into the maintenance screen when maintenance starts.
     connectGuestRealtime(document.body.dataset.realtimeUrl, 'public');
 });

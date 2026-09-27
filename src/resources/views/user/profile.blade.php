@@ -73,7 +73,7 @@
                     <div class="flex flex-col min-w-0">
                         <span class="text-[10px] sm:text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">{{ __('room.profile.total_debt') }}</span>
                         <div class="flex items-baseline gap-1">
-                            <span class="text-sm sm:text-base font-tabular-nums text-primary font-bold font-mono">{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalDebt) }}</span>
+                            <span class="text-sm sm:text-base font-tabular-nums text-rose-600 dark:text-rose-400 font-bold font-mono">{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalDebt) }}</span>
                         </div>
                     </div>
                 </div>
@@ -86,7 +86,7 @@
                     <div class="flex flex-col min-w-0">
                         <span class="text-[10px] sm:text-[11px] text-on-surface-variant uppercase tracking-wider font-semibold">{{ __('room.profile.total_spent') }}</span>
                         <div class="flex items-baseline gap-1">
-                            <span class="text-sm sm:text-base font-tabular-nums text-on-surface font-bold font-mono">{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSpent) }}</span>
+                            <span class="text-sm sm:text-base font-tabular-nums text-emerald-600 dark:text-emerald-400 font-bold font-mono">{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalSpent) }}</span>
                             <span class="text-[10px] text-secondary font-semibold ml-1">{{ __('room.profile.accumulated') }}</span>
                         </div>
                     </div>

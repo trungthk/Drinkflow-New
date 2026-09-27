@@ -279,6 +279,29 @@ class VietQrService
     // =========================================================================
 
     /**
+     * Build the transfer content "{reference} {SENDER}" so the receiver can tell who paid.
+     *
+     * The sender name is stripped of accents and spaces and upper-cased; the whole content is
+     * kept within the 25-char NAPAS limit by shortening the sender part, never the reference.
+     *
+     * @param  string       $reference  Order/debt code identifying what is being paid.
+     * @param  string|null  $senderName Payer display name.
+     * @return string                   Sanitized, ASCII-safe, ≤ 25-char transfer content.
+     */
+    public function transferContent(string $reference, ?string $senderName): string
+    {
+        $reference = $this->sanitizeReference($reference);
+        $sender = strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', $this->removeAccents((string) $senderName)));
+        $room = 25 - mb_strlen($reference, 'UTF-8') - 1;
+
+        if ($sender === '' || $room <= 0) {
+            return $reference;
+        }
+
+        return $reference . ' ' . substr($sender, 0, $room);
+    }
+
+    /**
      * Sanitize a transfer reference / memo string for embedding in the QR payload.
      *
      * Steps:

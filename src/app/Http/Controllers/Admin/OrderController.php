@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Actions\Debt\ApproveDebtPaymentAction;
 use App\Actions\Order\DeleteOrderAction;
+use App\Actions\Order\PlaceOrderOnBehalfAction;
 use App\Actions\Order\UpdateOrderAction;
 use App\Actions\Order\UpdateOrderStatusAction;
 use App\Enums\CampaignStatus;
@@ -14,12 +15,14 @@ use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BulkCancelOrdersRequest;
 use App\Http\Requests\BulkUpdateOrderStatusRequest;
+use App\Http\Requests\PlaceOrderOnBehalfRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\Order;
 use App\Models\Room;
+use App\Services\Admin\AdminOrderOnBehalfService;
 use App\Services\Audit\AuditService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -37,7 +40,7 @@ class OrderController extends Controller
     public function index(Request $request): JsonResponse
     {
         $room = $request->attributes->get('room');
-        $query = Order::where('room_id', $room->id)->whereNull('parent_id')->with(['roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'items.toppings', 'campaign'])->latest();
+        $query = Order::where('room_id', $room->id)->whereNull('parent_id')->with(['roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'items.toppings', 'campaign', 'placedByAdmin:id,name'])->latest();
         if ($request->filled('status')) {
             $filterStatus = OrderStatus::tryFrom($request->string('status')->toString());
             if ($filterStatus !== null) {
@@ -56,9 +59,10 @@ class OrderController extends Controller
      *
      * @param Request $request Incoming request.
      * @param Room $room Room entity.
+     * @param AdminOrderOnBehalfService $onBehalf Builds the "order on behalf" modal data.
      * @return View Blade view.
      */
-    public function page(Request $request, Room $room): View
+    public function page(Request $request, Room $room, AdminOrderOnBehalfService $onBehalf): View
     {
         // Only the latest campaign (running, or the last closed one) is managed on this page.
         $activeCampaign = $room->latestOrderCampaign()?->load('paymentAccount')->loadCount('orders');
@@ -69,7 +73,7 @@ class OrderController extends Controller
 
         $query = Order::where('room_id', $room->id)
             ->where('campaign_id', $activeCampaign?->id ?? 0)
-            ->with(['roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'items.toppings', 'campaign'])
+            ->with(['roomUser.globalUser', 'parent.roomUser.globalUser', 'children.roomUser.globalUser', 'items.toppings', 'campaign', 'placedByAdmin:id,name'])
             ->latest();
 
         $search = trim($request->string('search')->toString());
@@ -119,6 +123,7 @@ class OrderController extends Controller
             'orders' => $orders,
             'activeCampaign' => $activeCampaign,
             'paymentAccount' => $paymentAccount,
+            'onBehalfData' => $onBehalf->formData($room, $activeCampaign),
             'statusFilters' => collect(OrderStatus::cases())->map(static fn (OrderStatus $status): array => [
                 'value' => $status->value,
                 'label' => __('admin.status_'.match ($status) {
@@ -132,6 +137,31 @@ class OrderController extends Controller
                 'status' => $selectedStatus,
             ],
         ]);
+    }
+
+    /**
+     * Place an order for a room member on their behalf (admin "đặt dùm").
+     *
+     * @param PlaceOrderOnBehalfRequest $request Validated request (campaign_id, room_user_id, items[], note).
+     * @param Room $room Current room.
+     * @param PlaceOrderOnBehalfAction $action Domain action creating the member's order.
+     * @return JsonResponse Created order summary.
+     */
+    public function storeOnBehalf(PlaceOrderOnBehalfRequest $request, Room $room, PlaceOrderOnBehalfAction $action): JsonResponse
+    {
+        $data = $request->validated();
+        $campaign = $room->campaigns()->findOrFail((int) $data['campaign_id']);
+        $member = $room->roomUsers()->with('globalUser')->findOrFail((int) $data['room_user_id']);
+
+        $order = $action->execute($room, $campaign, $member, $request->user('admin'), $data);
+
+        return response()->json([
+            'message' => __('admin.on_behalf_success', [
+                'code' => $order->code,
+                'member' => $member->payerName(),
+            ]),
+            'data' => ['id' => $order->id, 'code' => $order->code],
+        ], 201);
     }
 
     /**

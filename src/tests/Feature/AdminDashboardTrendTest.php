@@ -134,4 +134,37 @@ class AdminDashboardTrendTest extends TestCase
             ->assertOk()
             ->assertSee(__('admin.across_members', ['count' => 2]));
     }
+
+    /**
+     * The dashboard no longer shows the "recently received orders" table, even when orders exist.
+     */
+    public function test_dashboard_has_no_recent_orders_table(): void
+    {
+        $admin = AdminAccount::create([
+            'name' => 'Room Admin',
+            'email' => 'recent-orders-admin@example.test',
+            'password' => Hash::make('secret'),
+            'role' => AdminRole::Admin,
+            'status' => 'active',
+        ]);
+        $room = Room::create(['name' => 'Recent Room', 'slug' => 'recent-room', 'status' => 'active']);
+        $admin->rooms()->attach($room);
+        $campaign = Campaign::create(['room_id' => $room->id, 'name' => 'Trà chiều', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Active]);
+        $globalUser = GlobalUser::create(['name' => 'Member', 'email' => 'recent-member@example.test']);
+        $roomUser = RoomUser::create(['room_id' => $room->id, 'global_user_id' => $globalUser->id, 'display_name' => 'Member', 'status' => 'active']);
+        $order = Order::create([
+            'room_id' => $room->id,
+            'campaign_id' => $campaign->id,
+            'room_user_id' => $roomUser->id,
+            'subtotal' => 30000,
+            'final_amount' => 30000,
+            'status' => OrderStatus::Submitted,
+        ]);
+
+        $this->actingAs($admin, 'admin')
+            ->get("/admin/{$room->slug}/dashboard")
+            ->assertOk()
+            ->assertDontSee('recent-orders-section', false)
+            ->assertDontSee('#' . $order->code);
+    }
 }

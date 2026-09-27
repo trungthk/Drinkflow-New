@@ -104,8 +104,8 @@ trait SendsNotificationChannelPayloads
                 continue;
             }
 
-            if (str_contains($line, ':')) {
-                [$label, $val] = explode(':', $line, 2);
+            if (($parts = $this->splitLabelValue($line)) !== null) {
+                [$label, $val] = $parts;
                 $escapedLabel = htmlspecialchars(trim($label), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                 $escapedVal = htmlspecialchars(trim($val), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
                 $lineIcon = $this->fieldIcon(trim($label));
@@ -150,8 +150,8 @@ trait SendsNotificationChannelPayloads
                 continue;
             }
 
-            if (str_contains($line, ':')) {
-                [$label, $val] = explode(':', $line, 2);
+            if (($parts = $this->splitLabelValue($line)) !== null) {
+                [$label, $val] = $parts;
                 $lineIcon = $this->fieldIcon(trim($label));
                 $lines[] = "{$lineIcon} *".trim($label).":* ".trim($val);
             } else {
@@ -193,8 +193,8 @@ trait SendsNotificationChannelPayloads
                 continue;
             }
 
-            if (str_contains($line, ':')) {
-                [$label, $val] = explode(':', $line, 2);
+            if (($parts = $this->splitLabelValue($line)) !== null) {
+                [$label, $val] = $parts;
                 $lineIcon = $this->fieldIcon(trim($label));
                 $bodyLines[] = "{$lineIcon} ".trim($label).": ".trim($val);
             } else {
@@ -290,6 +290,27 @@ trait SendsNotificationChannelPayloads
             $event === 'notification.test' => '🧪',
             default => '🔔',
         };
+    }
+
+    /**
+     * Split a "Label: value" detail line, ignoring colons that belong to a URL scheme
+     * so a line such as "… => https://example.test/x" is never cut into "https: //…".
+     *
+     * @param string $line Detail line.
+     * @return array{0: string, 1: string}|null Label and value, or null when the line has no label.
+     */
+    private function splitLabelValue(string $line): ?array
+    {
+        $colon = strpos($line, ':');
+        if ($colon === false) {
+            return null;
+        }
+
+        if (preg_match('~[a-z][a-z0-9+.-]*://~i', $line, $match, PREG_OFFSET_CAPTURE) === 1 && $match[0][1] <= $colon) {
+            return null;
+        }
+
+        return explode(':', $line, 2);
     }
 
     /**

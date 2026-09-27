@@ -68,4 +68,4 @@ Mọi điều chỉnh đều tạo một bản ghi `DebtAdjustment` (lưu vết 
 
 ## Tham chiếu mã nguồn
 
-`App\Models\Debt`, `DebtPayment`, `DebtAdjustment` · `App\Enums\DebtStatus`, `DebtAdjustmentType`, `PaymentStatus`, `PaymentMethod`, `BillSplitMethod` · `App\Actions\Debt\*` · `App\Services\Debt\DebtSettlementService`, `DebtReminderService` · Xem thao tác UI ở [Hướng dẫn Admin – bài 6](../guildes/admin/06-quan-ly-cong-no.md) và [Hướng dẫn User – bài 5](../guildes/user/05-thanh-toan-cong-no.md).
+`App\Models\Debt`, `DebtPayment`, `DebtAdjustment` · `App\Enums\DebtStatus`, `DebtAdjustmentType`, `PaymentStatus`, `PaymentMethod`, `BillSplitMethod` · `App\Actions\Debt\*` · `App\Services\Debt\DebtSettlementService`, `DebtReminderService` · Xem thao tác UI ở [Hướng dẫn Admin – bài 6](../guides/admin/06-quan-ly-cong-no.md) và [Hướng dẫn User – bài 5](../guides/user/05-thanh-toan-cong-no.md).

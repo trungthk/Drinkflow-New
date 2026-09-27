@@ -56,18 +56,52 @@ class Campaign extends Model
 
     protected function casts(): array
     {
-        return ['deadline' => 'datetime', 'started_at' => 'datetime', 'closed_at' => 'datetime', 'status' => CampaignStatus::class, 'sponsor_allocations' => 'array'];
+        return ['deadline' => 'datetime', 'started_at' => 'datetime', 'closed_at' => 'datetime', 'ordering_locked_at' => 'datetime', 'status' => CampaignStatus::class, 'sponsor_allocations' => 'array'];
     }
 
     /**
-     * Determine whether this campaign currently accepts new orders.
+     * Determine whether members can currently place orders in this campaign.
      *
-     * @return bool True when the campaign is live and its ordering deadline has not passed.
+     * @return bool True when the campaign is live, its deadline has not passed and an admin has not locked ordering.
      */
     public function isOrderable(): bool
     {
+        return $this->isOpenForOrders() && ! $this->isOrderingLocked();
+    }
+
+    /**
+     * Determine whether the campaign is live and before its deadline, ignoring an admin ordering lock.
+     *
+     * Room admins may still place orders on a member's behalf while members are locked out.
+     *
+     * @return bool True when the campaign is active and its ordering deadline has not passed.
+     */
+    public function isOpenForOrders(): bool
+    {
         return $this->status === CampaignStatus::Active
             && ($this->deadline === null || $this->deadline->isFuture());
+    }
+
+    /**
+     * Determine whether an admin has locked ordering for members ("khóa chiến dịch").
+     *
+     * @return bool True when member ordering is locked.
+     */
+    public function isOrderingLocked(): bool
+    {
+        return $this->ordering_locked_at !== null;
+    }
+
+    /**
+     * Message explaining why a member cannot order right now.
+     *
+     * @return string Translated "locked" or "ordering closed" message.
+     */
+    public function orderingClosedMessage(): string
+    {
+        return $this->isOpenForOrders() && $this->isOrderingLocked()
+            ? __('room.campaign.ordering_locked')
+            : __('room.campaign.ordering_closed');
     }
 
     /**

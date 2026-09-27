@@ -257,62 +257,11 @@
             </div>
         </div>
 
-        <!-- Live Stream Activity & Orders Table -->
-        <div id="orders-stream-container" class="grid grid-cols-1 {{ count($liveOrders ?? []) > 0 ? 'xl:grid-cols-[1.6fr_.9fr]' : '' }} gap-4">
-            <!-- Left: Recent Orders Table -->
-            <section id="recent-orders-section" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-2xs space-y-4 {{ count($liveOrders ?? []) > 0 ? '' : 'hidden' }}">
-                <div class="flex items-center justify-between pb-3 border-b border-outline-variant">
-                    <div>
-                        <h3 class="text-base font-bold text-on-surface">{{ __('admin.recent_orders_title') }}</h3>
-                        <p class="text-xs text-outline mt-0.5">{{ __('admin.recent_orders_desc') }}</p>
-                    </div>
-                    <a href="{{ route('admin.orders.page', $room) }}" class="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
-                        <span>{{ __('admin.open_orders_list') }}</span>
-                        <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
-                    </a>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="table-colgroup w-full min-w-[36rem] table-fixed text-xs text-left">
-                        <colgroup>
-                            <col class="w-28">
-                            <col class="w-40">
-                            <col>
-                            <col class="w-32">
-                            <col class="w-32">
-                        </colgroup>
-                        <thead>
-                            <tr class="border-b border-outline-variant/60 text-outline uppercase font-mono text-[10px]">
-                                <th class="py-2.5 px-3">{{ __('admin.order_code') }}</th>
-                                <th class="py-2.5 px-3">{{ __('admin.placed_by') }}</th>
-                                <th class="py-2.5 px-3">{{ __('admin.campaigns') }}</th>
-                                <th class="py-2.5 px-3 text-right">{{ __('admin.net_payable') }}</th>
-                                <th class="py-2.5 px-3 text-center">{{ __('admin.order_status') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody id="orders-tbody" class="divide-y divide-outline-variant/30">
-                            @if(isset($liveOrders) && $liveOrders instanceof \Illuminate\Support\Collection)
-                                @foreach($liveOrders as $order)
-                                    <tr class="hover:bg-surface-container-low/50 transition-colors">
-                                        <td class="py-2.5 px-3 font-mono font-code text-outline">#{{ $order->code }}</td>
-                                        <td class="py-2.5 px-3 font-semibold text-on-surface">{{ $order->roomUser?->globalUser?->name ?? $order->roomUser?->display_name ?? __('global.common.member') }}</td>
-                                        <td class="py-2.5 px-3 text-outline">{{ $order->campaign?->name ?? __('global.common.campaign') }}</td>
-                                        <td class="py-2.5 px-3 text-right font-mono font-bold text-on-surface">{{ \App\Support\Helpers\FormatHelper::formatCurrency($order->final_amount ?? 0) }}</td>
-                                        <td class="py-2.5 px-3 text-center">
-                                            <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold {{ ($order->status instanceof \BackedEnum ? $order->status->value : $order->status) === 'confirmed' ? 'bg-emerald-50 text-emerald-700' : (($order->status instanceof \BackedEnum ? $order->status->value : $order->status) === 'cancelled' ? 'bg-rose-50 text-rose-700' : 'bg-blue-50 text-blue-700') }}">
-                                                {{ $order->status instanceof \BackedEnum ? $order->status->value : ($order->status ?? 'pending') }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            @endif
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            @if(false)
+        {{-- Realtime stream & VietQR side panel (currently disabled). --}}
+        @if(false)
+        <div id="orders-stream-container" class="grid grid-cols-1 gap-4">
             <!-- Right: Realtime Stream Feed & VietQR Reconciliation -->
-            <div id="side-stream-container" class="{{ count($liveOrders ?? []) > 0 ? 'space-y-4' : 'grid grid-cols-1 md:grid-cols-2 gap-4 space-y-0' }}">
+            <div id="side-stream-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- VietQR Card -->
                 <section class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-2xs">
                     <div class="flex items-center justify-between mb-3">
@@ -355,8 +304,8 @@
                     </div>
                 </section>
             </div>
-            @endif
         </div>
+        @endif
 
         <!-- Close Campaign Modal (shared with the campaign info page) -->
         <x-admin.close-campaign-modal :room="$room" />

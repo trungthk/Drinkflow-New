@@ -96,6 +96,12 @@
             <span class="px-3 py-1 bg-surface-container rounded-full text-xs font-mono font-semibold text-secondary">
                 {{ __('admin.total_orders_badge', ['count' => $orders->total()]) }}
             </span>
+            @if($onBehalfData)
+                <button type="button" data-on-behalf-open class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-semibold shadow-xs hover:opacity-90 transition-opacity">
+                    <span class="material-symbols-outlined text-[16px]">person_add</span>
+                    <span>{{ __('admin.on_behalf_button') }}</span>
+                </button>
+            @endif
         </div>
     </div>
 
@@ -142,6 +148,19 @@
                 </div>
 
                 <div class="flex items-center gap-2">
+                    @if($activeCampaign->isOpenForOrders())
+                        @php
+                            $isLockedOrdering = $activeCampaign->isOrderingLocked();
+                        @endphp
+                        <button type="button" data-ordering-lock-toggle
+                            data-mode="{{ $isLockedOrdering ? 'unlock' : 'lock' }}"
+                            data-url="{{ route($isLockedOrdering ? 'admin.campaigns.unlock-ordering' : 'admin.campaigns.lock-ordering', [$room, $activeCampaign]) }}"
+                            title="{{ __('admin.campaign_ordering_locked_hint') }}"
+                            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors shadow-2xs disabled:opacity-50 disabled:cursor-wait {{ $isLockedOrdering ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-surface-container-high hover:bg-surface-container-highest text-on-surface border-outline-variant/60' }}">
+                            <span class="material-symbols-outlined text-[16px] {{ $isLockedOrdering ? '' : 'text-amber-600' }}">{{ $isLockedOrdering ? 'lock_open' : 'lock' }}</span>
+                            <span>{{ $isLockedOrdering ? __('admin.campaign_unlock_action') : __('admin.campaign_lock_action') }}</span>
+                        </button>
+                    @endif
                     <a href="{{ route('admin.campaigns.info', [$room, $activeCampaign]) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold border border-outline-variant/60 transition-colors shadow-2xs">
                         <span class="material-symbols-outlined text-[16px]">campaign</span>
                         <span>{{ __('admin.campaign_menu') }}</span>
@@ -387,6 +406,15 @@
                                             <div class="mt-0.5 flex items-center gap-1 text-[10px] text-violet-700 truncate" title="{{ $proxyInfo }}">
                                                 <span class="material-symbols-outlined text-[12px] shrink-0">account_tree</span>
                                                 <span class="truncate">{{ __('admin.ordered_by') }}: {{ $proxyBy }}</span>
+                                            </div>
+                                        @endif
+                                        @if($ord->placedByAdmin)
+                                            @php
+                                                $placedBy = __('admin.on_behalf_placed_by', ['admin' => $ord->placedByAdmin->name]);
+                                            @endphp
+                                            <div class="mt-0.5 flex items-center gap-1 text-[10px] text-sky-700 dark:text-sky-300 truncate" title="{{ $placedBy }}">
+                                                <span class="material-symbols-outlined text-[12px] shrink-0">support_agent</span>
+                                                <span class="truncate">{{ $placedBy }}</span>
                                             </div>
                                         @endif
                                     </div>
@@ -654,5 +682,12 @@
             </div>
         </div>
     </div>
+
+    @if($onBehalfData)
+        @include('admin.partials.order-on-behalf-modal', ['room' => $room, 'data' => $onBehalfData])
+    @endif
+    @if(isset($activeCampaign) && $activeCampaign && $activeCampaign->isOpenForOrders())
+        <x-admin.campaign-ordering-lock-modal />
+    @endif
     </div>
 </x-admin.layout>

@@ -42,6 +42,7 @@ use App\Models\CampaignItem;
 use App\Models\CampaignItemSize;
 use App\Models\CampaignItemTopping;
 use App\Models\Room;
+use App\Services\Admin\PreviousCampaignMenuService;
 use App\Services\Audit\AuditService;
 use App\Services\Order\PublicOrderCheckService;
 use App\Services\Media\ImageUploadService;
@@ -141,9 +142,10 @@ class CampaignController extends Controller
      *
      * @param Request $request Incoming HTTP request.
      * @param Room $room Room entity.
+     * @param PreviousCampaignMenuService $previousMenus Supplies the first page of closed campaigns for menu reuse.
      * @return View|JsonResponse|RedirectResponse Blade view, JSON response or redirect when a campaign is still running.
      */
-    public function create(Request $request, Room $room): View|JsonResponse|RedirectResponse
+    public function create(Request $request, Room $room, PreviousCampaignMenuService $previousMenus): View|JsonResponse|RedirectResponse
     {
         $room = $request->attributes->get('room') ?? $room;
         if ($room->hasActiveCampaign()) {
@@ -174,21 +176,14 @@ class CampaignController extends Controller
             $campaignDefaults['payment_account_id'] = (int) ($paymentAccounts->first()?->id ?? 0);
         }
         $roomUsers = $room->roomUsers()->with('globalUser')->where('status', RoomUserStatus::Active)->get();
-        $previousCampaigns = Campaign::query()
-            ->where('room_id', $room->id)
-            ->where('status', CampaignStatus::Closed)
-            ->whereHas('items')
-            ->with(['items.sizes', 'items.toppings'])
-            ->latest()
-            ->take(10)
-            ->get();
+        $previousPage = $previousMenus->page($room);
 
         if ($request->wantsJson()) {
             return response()->json([
                 'room' => $room,
                 'payment_accounts' => $paymentAccounts,
                 'room_users' => $roomUsers,
-                'previous_campaigns' => $previousCampaigns,
+                'previous_campaigns' => $previousPage['campaigns'],
                 'campaign_defaults' => $campaignDefaults,
             ]);
         }
@@ -197,29 +192,39 @@ class CampaignController extends Controller
             'room' => $room,
             'paymentAccounts' => $paymentAccounts,
             'roomUsers' => $roomUsers,
-            'previousCampaigns' => $previousCampaigns,
+            'previousCampaigns' => $previousPage['campaigns'],
+            'previousCampaignsHasMore' => $previousPage['has_more'],
             'campaignDefaults' => $campaignDefaults,
         ]);
     }
 
     /**
-     * Retrieve previous campaigns with menu items for fast reuse.
+     * Retrieve a page of previous (closed) campaigns with menu items for fast reuse ("Xem thêm").
      *
+     * @param Request $request Query: offset (default 0), limit (default 4, max 20), exclude (campaign ID being edited).
      * @param Room $room Room entity.
-     * @return JsonResponse List of previous campaigns and their menu items.
+     * @param PreviousCampaignMenuService $previousMenus Paginates the room's closed campaigns.
+     * @return JsonResponse Campaigns under `data`, plus `meta.has_more` and `meta.next_offset`.
      */
-    public function previousMenus(Room $room): JsonResponse
+    public function previousMenus(Request $request, Room $room, PreviousCampaignMenuService $previousMenus): JsonResponse
     {
-        $campaigns = Campaign::query()
-            ->where('room_id', $room->id)
-            ->where('status', CampaignStatus::Closed)
-            ->whereHas('items')
-            ->with(['items.sizes', 'items.toppings'])
-            ->latest()
-            ->take(15)
-            ->get();
+        $validated = $request->validate([
+            'offset' => ['nullable', 'integer', 'min:0'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:'.PreviousCampaignMenuService::MAX_PAGE_SIZE],
+            'exclude' => ['nullable', 'integer'],
+        ]);
 
-        return response()->json(['data' => $campaigns]);
+        $page = $previousMenus->page(
+            $room,
+            (int) ($validated['offset'] ?? 0),
+            (int) ($validated['limit'] ?? PreviousCampaignMenuService::PAGE_SIZE),
+            isset($validated['exclude']) ? (int) $validated['exclude'] : null,
+        );
+
+        return response()->json([
+            'data' => $page['campaigns'],
+            'meta' => ['has_more' => $page['has_more'], 'next_offset' => $page['next_offset']],
+        ]);
     }
 
     /**
@@ -359,9 +364,10 @@ class CampaignController extends Controller
      * @param Request $request Incoming HTTP request.
      * @param Room $room Room entity.
      * @param Campaign $campaign Campaign entity.
+     * @param PreviousCampaignMenuService $previousMenus Supplies the first page of closed campaigns for menu reuse.
      * @return View|JsonResponse|RedirectResponse Blade view, JSON response or redirect when the campaign is locked.
      */
-    public function edit(Request $request, Room $room, Campaign $campaign): View|JsonResponse|RedirectResponse
+    public function edit(Request $request, Room $room, Campaign $campaign, PreviousCampaignMenuService $previousMenus): View|JsonResponse|RedirectResponse
     {
         $this->assertCampaign($campaign);
         if ($campaign->isLocked()) {
@@ -379,15 +385,8 @@ class CampaignController extends Controller
             ->keyBy('key');
         $maxBudget = (int) ($settings->get('max_campaign_budget')?->value ?? 70_000);
         $roomUsers = $room->roomUsers()->with('globalUser')->where('status', RoomUserStatus::Active)->get();
-        $previousCampaigns = Campaign::query()
-            ->where('room_id', $room->id)
-            ->where('id', '!=', $campaign->id)
-            ->where('status', CampaignStatus::Closed)
-            ->whereHas('items')
-            ->with(['items.sizes', 'items.toppings'])
-            ->latest()
-            ->take(10)
-            ->get();
+        $previousPage = $previousMenus->page($room, 0, PreviousCampaignMenuService::PAGE_SIZE, $campaign->id);
+        $previousCampaigns = $previousPage['campaigns'];
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -406,6 +405,7 @@ class CampaignController extends Controller
             'paymentAccounts' => $paymentAccounts,
             'roomUsers' => $roomUsers,
             'previousCampaigns' => $previousCampaigns,
+            'previousCampaignsHasMore' => $previousPage['has_more'],
             'maxBudget' => $maxBudget,
         ]);
     }
@@ -526,6 +526,40 @@ class CampaignController extends Controller
     }
 
     /**
+     * Lock member ordering on a running campaign ("khóa chiến dịch").
+     *
+     * @param \App\Http\Requests\CampaignOrderingLockRequest $request Validated request (notify flag).
+     * @param Room $room Current room.
+     * @param Campaign $campaign Target campaign.
+     * @param \App\Actions\Campaign\SetCampaignOrderingLockAction $action Lock action.
+     * @return JsonResponse Operation response.
+     */
+    public function lockOrdering(\App\Http\Requests\CampaignOrderingLockRequest $request, Room $room, Campaign $campaign, \App\Actions\Campaign\SetCampaignOrderingLockAction $action): JsonResponse
+    {
+        $this->assertCampaign($campaign);
+        $updated = $action->execute($campaign, true, $request->user('admin')?->id, $request->boolean('notify'));
+
+        return response()->json(['message' => __('admin.campaign_lock_success'), 'data' => $updated]);
+    }
+
+    /**
+     * Reopen member ordering on a locked running campaign.
+     *
+     * @param \App\Http\Requests\CampaignOrderingLockRequest $request Validated request (notify flag).
+     * @param Room $room Current room.
+     * @param Campaign $campaign Target campaign.
+     * @param \App\Actions\Campaign\SetCampaignOrderingLockAction $action Lock action.
+     * @return JsonResponse Operation response.
+     */
+    public function unlockOrdering(\App\Http\Requests\CampaignOrderingLockRequest $request, Room $room, Campaign $campaign, \App\Actions\Campaign\SetCampaignOrderingLockAction $action): JsonResponse
+    {
+        $this->assertCampaign($campaign);
+        $updated = $action->execute($campaign, false, $request->user('admin')?->id, $request->boolean('notify'));
+
+        return response()->json(['message' => __('admin.campaign_unlock_success'), 'data' => $updated]);
+    }
+
+    /**
      * Mark all orders in campaign as delivering and broadcast pick-up notifications.
      *
      * @param Room $room Current room.
@@ -606,7 +640,7 @@ class CampaignController extends Controller
     }
 
     /**
-     * Handle the close campaign operation with optional allow_debt.
+     * Close the campaign; debt records are always generated for members who still owe money.
      *
      * @param Request $request Incoming HTTP request.
      * @param Room $room Room entity.
@@ -618,10 +652,9 @@ class CampaignController extends Controller
     {
         $this->assertCampaign($campaign);
         $data = $request->validated();
-        $allowDebt = (bool) ($data['allow_debt'] ?? true);
         $reason = $data['reason'] ?? null;
         $reasonString = is_string($reason) && trim($reason) !== '' ? trim($reason) : null;
-        return response()->json(['data' => $action->execute($campaign, $allowDebt, $reasonString)]);
+        return response()->json(['data' => $action->execute($campaign, true, $reasonString)]);
     }
 
     /**

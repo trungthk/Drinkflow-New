@@ -33,7 +33,7 @@ class NotifyCampaignClosed implements ShouldQueue
         app(UserNotificationService::class)->toRoom($campaign->room, 'campaign.closed', $payload['title'], $payload['message'], ['campaign_id' => $campaign->id, 'room_id' => $campaign->room_id]);
         app(RoomNotificationChannelDispatcher::class)->dispatch($campaign->room, $payload);
         $campaign->debts()->with('roomUser')->where('remaining_amount', '>', 0)->each(function (Debt $debt): void {
-            app(UserNotificationService::class)->toRoomUser($debt->roomUser, 'payment.reminder', __('messages.payment_reminder'), 'Số tiền cần thanh toán: '.FormatHelper::formatCurrency((int) $debt->remaining_amount), ['debt_id' => $debt->id, 'campaign_id' => $debt->campaign_id]);
+            app(UserNotificationService::class)->toRoomUser($debt->roomUser, 'payment.reminder', __('messages.payment_reminder_with_code', ['code' => $debt->code]), 'Số tiền cần thanh toán: '.FormatHelper::formatCurrency((int) $debt->remaining_amount), ['debt_id' => $debt->id, 'debt_code' => $debt->code, 'campaign_id' => $debt->campaign_id]);
         });
     }
 }

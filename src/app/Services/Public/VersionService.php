@@ -42,7 +42,7 @@ class VersionService
             'latestVersion' => $latestVersion,
             'nextVersion' => $nextVersion,
             'prevVersion' => $prevVersion,
-            'landingUrl' => route('landing'),
+            'landingUrl' => \App\Support\Helpers\LocaleUrl::url('/'),
         ];
     }
 

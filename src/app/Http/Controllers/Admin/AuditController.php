@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Room;
+use App\Support\Helpers\DateRangeHelper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,8 +63,13 @@ class AuditController extends Controller
             });
         }
 
-        $dateFrom = $request->input('date_from', $request->input('from'));
-        $dateTo = $request->input('date_to', $request->input('to'));
+        // No date parameter at all (first visit) → last 7 days. An explicitly empty range ("Tất cả") shows everything.
+        if (! $request->hasAny(['date_from', 'date_to', 'from', 'to'])) {
+            [$dateFrom, $dateTo] = DateRangeHelper::lastDays();
+        } else {
+            $dateFrom = $request->input('date_from', $request->input('from'));
+            $dateTo = $request->input('date_to', $request->input('to'));
+        }
         if ($dateFrom) $query->whereDate('created_at', '>=', $dateFrom);
         if ($dateTo) $query->whereDate('created_at', '<=', $dateTo);
 

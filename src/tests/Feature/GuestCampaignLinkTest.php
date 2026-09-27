@@ -114,5 +114,13 @@ class GuestCampaignLinkTest extends TestCase
             __('messages.campaign_closed_sponsored_body'),
             app(RoomNotificationChannelDispatcher::class)->formatTelegramMessage($withSponsor)
         );
+
+        // The order-check link must survive every channel formatter intact (no "https: //").
+        $dispatcher = app(RoomNotificationChannelDispatcher::class);
+        $checkUrl = $withSponsor['campaign']['order_check_url'];
+        $this->assertStringContainsString($checkUrl, $dispatcher->formatChatworkMessage($withSponsor));
+        $this->assertStringContainsString($checkUrl, $dispatcher->formatSlackMessage($withSponsor));
+        $this->assertStringContainsString(htmlspecialchars($checkUrl, ENT_QUOTES), $dispatcher->formatTelegramMessage($withSponsor));
+        $this->assertStringNotContainsString('https: //', $dispatcher->formatChatworkMessage($withSponsor));
     }
 }

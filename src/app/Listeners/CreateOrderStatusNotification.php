@@ -62,11 +62,12 @@ class CreateOrderStatusNotification
             NotificationType::OrderStatus->value,
             __('messages.order_status_updated'),
             __('messages.order_status_updated_body', [
-                'order_id' => $order->id,
+                'order_code' => $order->code,
                 'status' => $statusLabel,
             ]),
             [
                 'order_id' => $order->id,
+                'order_code' => $order->code,
                 'status' => $order->status->value,
                 'room_id' => $order->room_id,
             ]

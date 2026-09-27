@@ -11,6 +11,7 @@ import { initGlobalFeedback } from './global/feedback';
 import { initGlobalNotifications } from './global/notifications';
 import { initSessionRevocation } from './global/session-revocation';
 import { initDesktopNotifications } from './global/desktop-notification';
+import { initGuideLightbox } from './shared/guide-lightbox';
 
 document.addEventListener('DOMContentLoaded', () => {
     initToastNotifications();
@@ -24,4 +25,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initGlobalNotifications();
     initDesktopNotifications();
     initSessionRevocation();
+    initGuideLightbox();
 });

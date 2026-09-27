@@ -23,6 +23,8 @@
                 {{ __('admin.preset_all_time') }}
             @elseif(!empty($dateFrom) && !empty($dateTo) && $dateFrom === $dateTo && $dateFrom === date('Y-m-d'))
                 {{ __('admin.preset_today') }}
+            @elseif(!empty($dateFrom) && !empty($dateTo) && [$dateFrom, $dateTo] === \App\Support\Helpers\DateRangeHelper::lastDays())
+                {{ __('admin.preset_last_7_days') }}: {{ \Illuminate\Support\Carbon::parse($dateFrom)->format('d/m') }} ~ {{ \Illuminate\Support\Carbon::parse($dateTo)->format('d/m') }}
             @elseif(!empty($dateFrom) && !empty($dateTo))
                 {{ $dateFrom }} ~ {{ $dateTo }}
             @elseif(!empty($dateFrom))

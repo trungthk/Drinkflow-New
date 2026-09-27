@@ -119,7 +119,7 @@
               <div class="flex items-center gap-2">
                 <h3 class="text-sm font-semibold text-slate-900">{{ __('global.header.notifications') }}</h3>
                 @if($unreadNotificationsCount > 0)
-                  <span
+                  <span data-user-notification-new-badge data-template="{{ __('global.header.new_badge', ['count' => ':count']) }}"
                     class="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200/60">{{ __('global.header.new_badge', ['count' => $unreadNotificationsCount]) }}</span>
                 @endif
               </div>
@@ -135,8 +135,10 @@
                 @php
                   $notificationPresentation = $notificationPresentations[$notif->getKey()] ?? ['title' => '', 'body' => '', 'icon' => 'notifications', 'link' => null];
                 @endphp
-                <div
-                  class="p-3.5 flex items-start gap-3 hover:bg-slate-50/80 transition-colors {{ is_null($notif->read_at) ? 'bg-emerald-50/20' : '' }}">
+                <div data-header-notification-id="{{ $notif->id }}"
+                  data-read-url="{{ route('user.notifications.read', $notif) }}"
+                  data-unread="{{ is_null($notif->read_at) ? '1' : '0' }}"
+                  class="p-3.5 flex items-start gap-3 cursor-pointer hover:bg-slate-50/80 transition-colors {{ is_null($notif->read_at) ? 'bg-emerald-50/20' : '' }}">
                   <span
                     class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100">
                     <span class="material-symbols-outlined text-[17px]">
@@ -159,7 +161,7 @@
                     </div>
                   </div>
                   @if(is_null($notif->read_at))
-                    <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0 mt-2"></span>
+                    <span data-header-notification-dot class="w-2 h-2 rounded-full bg-emerald-600 shrink-0 mt-2"></span>
                   @endif
                 </div>
               @empty
@@ -188,10 +190,10 @@
             <span class="text-xs font-semibold text-slate-800 truncate max-w-[130px]">
               {{ $user->name ?? __('global.common.user') }}
             </span>
-            @if($roomUser && $roomUser->user_code)
-              <span class="text-[10px] font-mono font-bold text-[#006948] truncate max-w-[130px]"
-                title="{{ __('room.header.user_code') }}">
-                {{ $roomUser->user_code }}
+            @if(!empty($user?->email))
+              <span class="text-[10px] font-medium text-slate-500 truncate max-w-[130px]"
+                title="{{ $user->email }}">
+                {{ $user->email }}
               </span>
             @endif
           </span>

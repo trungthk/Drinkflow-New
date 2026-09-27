@@ -41,6 +41,12 @@ export function initRoomRealtime() {
                     }));
                 });
             });
+            socket.on('campaign.updated', (eventPayload) => {
+                // An admin locked/unlocked ordering: reload campaign pages so the order form matches the server.
+                if (typeof eventPayload?.ordering_locked === 'boolean' && /\/campaigns(\/|$)/.test(window.location.pathname)) {
+                    window.location.reload();
+                }
+            });
             socket.on('notification.created', showDesktopNotification);
             socket.on('room.membership.updated', (payload) => {
                 // Blocked/removed members lose access: reload so the server shows the right page.

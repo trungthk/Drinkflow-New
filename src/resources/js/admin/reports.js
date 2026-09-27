@@ -131,6 +131,8 @@ export function initAdminReports() {
             if (tabId) queryParams.set('tab', tabId);
             if (dateFrom) queryParams.set('date_from', dateFrom);
             if (dateTo) queryParams.set('date_to', dateTo);
+            // An empty range is the "Tất cả" preset; without this the server would fall back to its 7-day default.
+            if (!dateFrom && !dateTo) queryParams.set('period', 'all');
             const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
 
             const res = await fetch(`/admin/${roomSlug}/reports${queryString}`, {
@@ -290,6 +292,7 @@ export function initAdminReports() {
         const dateTo = dateRangePicker?.querySelector('.date-to-hidden')?.value || '';
         if (dateFrom) queryParams.set('date_from', dateFrom);
         if (dateTo) queryParams.set('date_to', dateTo);
+        if (!dateFrom && !dateTo) queryParams.set('period', 'all');
         const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
 
         window.location.assign(`/admin/${roomSlug}/reports/export${queryString}`);

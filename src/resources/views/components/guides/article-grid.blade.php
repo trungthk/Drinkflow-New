@@ -22,8 +22,8 @@
   }"
 >
   <!-- Search bar + View mode toggle (nằm ngang) -->
-  <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
-    <div class="relative flex-1 max-w-md">
+  <div class="flex flex-row items-center gap-2 sm:gap-3 mb-4">
+    <div class="relative flex-1 min-w-0 max-w-md">
       <span class="absolute inset-y-0 left-3 flex items-center text-slate-400 pointer-events-none">
         <span class="material-symbols-outlined text-[18px]">search</span>
       </span>
@@ -47,7 +47,7 @@
     </div>
 
     <!-- View mode toggle: Grid / List -->
-    <div class="inline-flex p-1 bg-slate-100 rounded-lg border border-slate-200 shrink-0 self-start sm:self-auto" role="tablist">
+    <div class="inline-flex p-1 bg-slate-100 rounded-lg border border-slate-200 shrink-0" role="tablist">
       <button
         type="button"
         @click="viewMode = 'grid'"

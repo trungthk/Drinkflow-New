@@ -60,4 +60,4 @@ Song song với Order, hệ thống theo dõi trạng thái tham gia của **t�
 
 ## Tham chiếu mã nguồn
 
-`App\Models\Campaign`, `CampaignItem`, `CampaignParticipant` · `App\Enums\CampaignStatus`, `CampaignItemStatus` · `App\Actions\Campaign\*` (14 action) · `App\Events\CampaignCreated/Updated/Closed/Cancelled/Delivering` · Xem thao tác UI ở [Hướng dẫn Admin – bài 4](../guildes/admin/04-quan-ly-chien-dich.md).
+`App\Models\Campaign`, `CampaignItem`, `CampaignParticipant` · `App\Enums\CampaignStatus`, `CampaignItemStatus` · `App\Actions\Campaign\*` (14 action) · `App\Events\CampaignCreated/Updated/Closed/Cancelled/Delivering` · Xem thao tác UI ở [Hướng dẫn Admin – bài 4](../guides/admin/04-quan-ly-chien-dich.md).

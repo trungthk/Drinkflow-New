@@ -839,16 +839,17 @@ class AdminCampaignSubViewsTest extends TestCase
     }
 
     /**
-     * Test the close-campaign modal pre-checks "auto create debt records".
+     * Debt records are always created on close, so the modal no longer offers an opt-out checkbox.
      */
-    public function test_close_modal_auto_debt_checkbox_is_checked_by_default(): void
+    public function test_close_modal_has_no_auto_debt_checkbox(): void
     {
         $this->campaign->update(['status' => CampaignStatus::Active, 'deadline' => now()->addHour()]);
 
         $this->actingAs($this->admin, 'admin')
             ->get("/admin/{$this->room->slug}/campaigns/{$this->campaign->id}/info")
             ->assertOk()
-            ->assertSee('id="close-campaign-allow-debt" checked', false);
+            ->assertSee('data-close-campaign-open', false)
+            ->assertDontSee('close-campaign-allow-debt', false);
     }
 
     /**

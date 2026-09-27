@@ -17,6 +17,8 @@ import { initAdminDashboard } from './admin/dashboard';
 import { initAdminDebts } from './admin/debts';
 import { initAdminNotifications } from './admin/notifications';
 import { initAdminOrders } from './admin/orders';
+import { initAdminOrderOnBehalf } from './admin/order-on-behalf';
+import { initCampaignOrderingLock } from './admin/campaign-ordering-lock';
 import { initAdminReports } from './admin/reports';
 import { initAdminSettings } from './admin/settings';
 import { initAdminUsers } from './admin/users';
@@ -39,6 +41,8 @@ export {
     initAdminDebts,
     initAdminNotifications,
     initAdminOrders,
+    initAdminOrderOnBehalf,
+    initCampaignOrderingLock,
     initAdminReports,
     initAdminSettings,
     initAdminUsers,
@@ -73,6 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminDebts();
     initAdminNotifications();
     initAdminOrders();
+    initAdminOrderOnBehalf();
+    initCampaignOrderingLock();
     initAdminReports();
     initAdminSettings();
     initAdminUsers();

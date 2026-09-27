@@ -2,7 +2,7 @@
 
 return [
     'meta' => [
-        'title' => 'Liên hệ với chúng tôi | DrinkFlow Enterprise',
+        'title' => 'Liên hệ hỗ trợ - DrinkFlow',
         'description' => 'Liên hệ đội ngũ DrinkFlow để được hỗ trợ triển khai hệ thống đặt đồ uống nhóm, giải đáp thắc mắc tài chính VietQR hoặc hợp tác doanh nghiệp.',
     ],
     'hero' => [

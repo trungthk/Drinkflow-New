@@ -1,7 +1,11 @@
+import { initHeaderNotificationRead } from '../shared/header-notification-read';
+
 /**
  * Room Header Notification & Menu Interactions
  */
 export function initRoomHeader() {
+    initHeaderNotificationRead();
+
     const markAllReadBtn = document.getElementById('room-mark-all-read-btn');
     if (markAllReadBtn) {
         markAllReadBtn.addEventListener('click', async function() {

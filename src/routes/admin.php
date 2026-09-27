@@ -74,6 +74,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/orders', [\App\Http\Controllers\Admin\OrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/orders/aggregate', [\App\Http\Controllers\Admin\CampaignController::class, 'aggregate'])->name('admin.orders.aggregate');
     Route::get('/orders/aggregate/export', [\App\Http\Controllers\Admin\CampaignController::class, 'exportAggregate'])->middleware('throttle:admin-export')->name('admin.orders.aggregate.export');
+    Route::post('/orders/on-behalf', [\App\Http\Controllers\Admin\OrderController::class, 'storeOnBehalf'])->middleware('throttle:30,1')->name('admin.orders.on-behalf');
     Route::get('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'show'])->name('admin.orders.show');
     Route::patch('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'update'])->name('admin.orders.update');
     Route::patch('/orders/{order}/status', [\App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('admin.orders.status');
@@ -89,6 +90,8 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::delete('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'destroy'])->name('admin.campaigns.destroy');
     Route::post('/campaigns/{campaign}/activate', [\App\Http\Controllers\Admin\CampaignController::class, 'activate'])->name('admin.campaigns.activate');
     Route::post('/campaigns/{campaign}/extend-deadline', [\App\Http\Controllers\Admin\CampaignController::class, 'extendDeadline'])->name('admin.campaigns.extend-deadline');
+    Route::post('/campaigns/{campaign}/lock-ordering', [\App\Http\Controllers\Admin\CampaignController::class, 'lockOrdering'])->name('admin.campaigns.lock-ordering');
+    Route::post('/campaigns/{campaign}/unlock-ordering', [\App\Http\Controllers\Admin\CampaignController::class, 'unlockOrdering'])->name('admin.campaigns.unlock-ordering');
     Route::post('/campaigns/{campaign}/mark-delivering', [\App\Http\Controllers\Admin\CampaignController::class, 'markDelivering'])->name('admin.campaigns.mark-delivering');
     Route::post('/campaigns/{campaign}/resend-notification', [\App\Http\Controllers\Admin\CampaignController::class, 'resendNotification'])->middleware('throttle:campaign-resend-notification')->name('admin.campaigns.resend-notification');
     Route::post('/campaigns/{campaign}/cancel', [\App\Http\Controllers\Admin\CampaignController::class, 'cancel'])->name('admin.campaigns.cancel');

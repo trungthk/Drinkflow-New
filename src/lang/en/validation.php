@@ -243,7 +243,6 @@ return [
         'force_refresh' => 'Force refresh',
         'important' => 'Mark as important',
         'attachment_note' => 'Attachment note',
-        'allow_debt' => 'Allow debt',
         'minutes' => 'Extension minutes',
         'delivery_location' => 'Delivery location',
         'desk_location' => 'Department / Team',

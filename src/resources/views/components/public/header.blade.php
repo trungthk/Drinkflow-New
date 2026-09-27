@@ -17,7 +17,7 @@
     <div class="w-full max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
         <!-- Brand Logo -->
         <div class="flex items-center gap-8">
-            <a class="text-headline-md font-headline-md font-semibold text-on-surface flex items-center gap-2 tracking-tight text-[#0F172A] hover:opacity-90 transition-opacity" href="{{ route('landing') }}">
+            <a class="text-headline-md font-headline-md font-semibold text-on-surface flex items-center gap-2 tracking-tight text-[#0F172A] hover:opacity-90 transition-opacity" href="{{ \App\Support\Helpers\LocaleUrl::url('/') }}">
                 <span class="w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-sm shrink-0"
                       style="background: linear-gradient(135deg, #006948 0%, #047857 100%); background-color: #006948; border: 1px solid #005137;">
                     <svg class="w-4.5 h-4.5 text-white fill-current" viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px; fill: #ffffff; color: #ffffff;">
@@ -28,8 +28,11 @@
             </a>
             <!-- Desktop Navigation Links -->
             <nav class="hidden md:flex items-center gap-6 pt-1" aria-label="Public Navigation">
-                <a class="{{ $activeTab === 'about' ? 'text-[#006948] border-b-2 border-[#006948] font-semibold' : 'text-[#545c72] hover:text-[#0b1c30]' }} pb-1 transition-colors text-sm font-medium" href="{{ route('landing') }}">
+                <a class="{{ $activeTab === 'about' ? 'text-[#006948] border-b-2 border-[#006948] font-semibold' : 'text-[#545c72] hover:text-[#0b1c30]' }} pb-1 transition-colors text-sm font-medium" href="{{ \App\Support\Helpers\LocaleUrl::url('/') }}">
                     {{ __('public.header.about') }}
+                </a>
+                <a class="{{ $activeTab === 'guides' ? 'text-[#006948] border-b-2 border-[#006948] font-semibold' : 'text-[#545c72] hover:text-[#0b1c30]' }} pb-1 transition-colors text-sm font-medium" href="{{ url('/guides') }}">
+                    {{ __('public.header.guides') }}
                 </a>
                 <a class="{{ $activeTab === 'terms' ? 'text-[#006948] border-b-2 border-[#006948] font-semibold' : 'text-[#545c72] hover:text-[#0b1c30]' }} pb-1 transition-colors text-sm font-medium" href="{{ $termsUrl }}">
                     {{ __('public.header.terms') }}
@@ -61,7 +64,7 @@
                 <div id="public-lang-menu"
                      class="hidden absolute right-0 mt-1.5 w-36 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-50 animate-fadeIn">
                     @foreach($locales as $code => $meta)
-                        <a href="{{ route('locale.switch', $code) }}"
+                        <a href="{{ $localeUrls[$code] ?? route('locale.switch', $code) }}"
                            class="flex items-center justify-between px-3 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-[#006948] transition-colors {{ $currentLocale === $code ? 'font-semibold text-[#006948] bg-emerald-50/50' : '' }}">
                             <div class="flex items-center gap-2">
                                 <span>{{ $meta['flag'] }}</span>
@@ -105,9 +108,13 @@
     <!-- Mobile Navigation Drawer -->
     <div id="mobile-nav-menu" class="hidden md:hidden border-t border-slate-200 bg-white/98 backdrop-blur-md px-6 py-4 shadow-lg animate-fadeIn">
         <nav class="flex flex-col space-y-2" aria-label="Mobile Navigation">
-            <a class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ $activeTab === 'about' ? 'text-[#006948] bg-emerald-50/80 font-semibold' : 'text-[#545c72] hover:bg-slate-50 hover:text-[#0b1c30]' }}" href="{{ route('landing') }}">
+            <a class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ $activeTab === 'about' ? 'text-[#006948] bg-emerald-50/80 font-semibold' : 'text-[#545c72] hover:bg-slate-50 hover:text-[#0b1c30]' }}" href="{{ \App\Support\Helpers\LocaleUrl::url('/') }}">
                 <span>{{ __('public.header.about') }}</span>
                 <span class="material-symbols-outlined text-[18px] opacity-60">info</span>
+            </a>
+            <a class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ $activeTab === 'guides' ? 'text-[#006948] bg-emerald-50/80 font-semibold' : 'text-[#545c72] hover:bg-slate-50 hover:text-[#0b1c30]' }}" href="{{ url('/guides') }}">
+                <span>{{ __('public.header.guides') }}</span>
+                <span class="material-symbols-outlined text-[18px] opacity-60">menu_book</span>
             </a>
             <a class="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium transition-colors {{ $activeTab === 'terms' ? 'text-[#006948] bg-emerald-50/80 font-semibold' : 'text-[#545c72] hover:bg-slate-50 hover:text-[#0b1c30]' }}" href="{{ $termsUrl }}">
                 <span>{{ __('public.header.terms') }}</span>

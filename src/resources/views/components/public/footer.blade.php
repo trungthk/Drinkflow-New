@@ -10,8 +10,13 @@
     $menuItems = [
         'about' => [
             'label' => __('public.footer.about'),
-            'url' => route('landing'),
+            'url' => \App\Support\Helpers\LocaleUrl::url('/'),
             'icon' => 'info',
+        ],
+        'guides' => [
+            'label' => __('public.footer.guides'),
+            'url' => url('/guides'),
+            'icon' => 'menu_book',
         ],
         'terms' => [
             'label' => __('public.footer.terms'),

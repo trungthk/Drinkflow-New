@@ -29,7 +29,6 @@ export function initCloseCampaignModal() {
     const fields = modal.querySelectorAll('[data-close-summary]');
     const loading = modal.querySelector('[data-close-summary-loading]');
     const errorBox = modal.querySelector('[data-close-summary-error]');
-    const allowDebt = modal.querySelector('#close-campaign-allow-debt');
     const confirmBtn = modal.querySelector('[data-close-campaign-confirm]');
     const dismissBtns = modal.querySelectorAll('[data-close-campaign-dismiss]');
     const confirmBtnHtml = confirmBtn?.innerHTML || '';
@@ -130,7 +129,6 @@ export function initCloseCampaignModal() {
         if (!id || isClosing) return;
         campaignId = id;
         resetSummary();
-        if (allowDebt) allowDebt.checked = true;
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         loadSummary();
@@ -152,7 +150,7 @@ export function initCloseCampaignModal() {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
                 },
-                body: JSON.stringify({ allow_debt: allowDebt?.checked ?? true }),
+                body: JSON.stringify({}),
             });
             const json = await res.json().catch(() => ({}));
             if (!res.ok) throw new Error(json.message || i18n.closeFailed);

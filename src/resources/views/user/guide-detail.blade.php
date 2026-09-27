@@ -10,6 +10,7 @@
         {!! $article['html'] !!}
       </div>
     </article>
+    <x-guides.image-lightbox />
 
     <a href="{{ $indexUrl }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#006948] hover:text-[#005137] transition-colors">
       <span class="material-symbols-outlined text-[16px]">arrow_back</span>

@@ -50,8 +50,9 @@ class UpdateOrderAction
                         // Calculate toppings sum
                         $toppingsSum = (int) $orderItem->toppings()->sum('subtotal');
                         $campaign = Campaign::query()->lockForUpdate()->findOrFail($order->campaign_id);
-                        $unitWithToppings = $newPrice + intdiv($toppingsSum, max(1, (int) $orderItem->quantity));
-                        if ((int) $campaign->max_budget > 0 && $unitWithToppings > (int) $campaign->max_budget) {
+                        // The per-product cap applies to the whole line (unit price × quantity, toppings included).
+                        $newLineTotal = ($newPrice * (int) $orderItem->quantity) + $toppingsSum;
+                        if ((int) $campaign->max_budget > 0 && $newLineTotal > (int) $campaign->max_budget) {
                             throw ValidationException::withMessages([
                                 'items' => __('admin.item_budget_limit_exceeded', [
                                     'limit' => FormatHelper::formatCurrency((int) $campaign->max_budget),

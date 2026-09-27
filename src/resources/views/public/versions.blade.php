@@ -4,6 +4,7 @@
     :ogTitle="__('versions.meta_title', ['version' => $currentVersion->version])"
     :ogDescription="$currentVersion->title"
     ogType="article"
+    :canonicalUrl="$currentVersion->version === $latestVersion->version ? $versionsUrl : $versionsUrl . '/' . $currentVersion->version"
     activeTab="versions"
     :version="$appVersion"
     :termsUrl="$termsUrl"

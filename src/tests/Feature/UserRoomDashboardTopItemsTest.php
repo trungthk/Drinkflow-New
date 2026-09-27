@@ -287,15 +287,37 @@ class UserRoomDashboardTopItemsTest extends TestCase
         $todayOrder->items()->create([
             'item_name' => 'Drink today', 'unit_price' => 25000, 'quantity' => 2, 'line_subtotal' => 50000,
         ]);
+        // A fully sponsored order still counts at its full order value.
+        $sponsoredCampaign = Campaign::create([
+            'room_id' => $room->id,
+            'name' => 'Sponsored trend campaign',
+            'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Closed,
+        ]);
+        $sponsoredOrder = $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $sponsoredCampaign->id,
+            'subtotal' => 30000, 'sponsor_amount' => 30000, 'final_amount' => 0, 'status' => OrderStatus::Submitted,
+        ]);
+        $sponsoredOrder->items()->create([
+            'item_name' => 'Sponsored drink', 'unit_price' => 30000, 'quantity' => 1, 'line_subtotal' => 30000,
+        ]);
 
         $data = app(UserRoomDashboardService::class)->getDashboardData($room, $member, null);
         $trend = $data['weeklyItemTrend'];
 
         $this->assertCount(7, $trend);
         $today = $trend[6];
-        $this->assertSame(2, $today['items_count']);
-        $this->assertSame(50000, $today['value_amount']);
+        $this->assertSame(3, $today['items_count']);
+        $this->assertSame(80000, $today['value_amount']);
         $this->assertSame(0, $trend[0]['items_count']);
+
+        // The chart data attributes must hold plain JSON that the browser can JSON.parse().
+        $html = $this->actingAs($member->globalUser, 'web')->get(route('user.dashboard', $room->slug))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/data-weekly-trend="([^"]*)"/', $html);
+        preg_match('/data-weekly-trend="([^"]*)"/', $html, $matches);
+        $decoded = json_decode(html_entity_decode($matches[1], ENT_QUOTES), true);
+        $this->assertIsArray($decoded);
+        $this->assertSame(80000, $decoded[6]['value_amount']);
     }
 
     /**

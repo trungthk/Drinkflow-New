@@ -159,36 +159,7 @@
                 <!-- Tab 1: Reuse Previous Campaign -->
                 <div x-show="menuTab === 'reuse'" x-cloak class="space-y-3">
                     <div class="text-xs text-outline">{{ __('admin.copy_previous_menu_desc') }}</div>
-                    @if($previousCampaigns->isNotEmpty())
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
-                        @foreach($previousCampaigns as $prev)
-                        <div class="p-3 min-w-0 rounded-lg border transition-all cursor-pointer flex flex-col justify-between"
-                             :class="selectedPreviousCampaignId === {{ $prev->id }} ? 'border-primary bg-primary/5 ring-1 ring-primary/40' : 'border-outline-variant bg-surface hover:border-primary'"
-                             :aria-pressed="selectedPreviousCampaignId === {{ $prev->id }} ? 'true' : 'false'"
-                             @click="loadPreviousCampaign({{ $prev->toJson() }})">
-                            <div class="font-bold text-xs text-on-surface flex items-center gap-1.5 min-w-0">
-                                <span x-show="selectedPreviousCampaignId === {{ $prev->id }}" x-cloak
-                                    class="material-symbols-outlined text-[16px] text-primary shrink-0"
-                                    style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                                <span class="truncate" title="{{ $prev->name }}">{{ $prev->name }}</span>
-                            </div>
-                            <div class="text-[11px] text-outline mt-1 truncate" title="{{ $prev->restaurant }}">{{ $prev->restaurant }}</div>
-                            <div class="mt-2 flex items-center justify-between gap-2">
-                                <div class="text-[10px] font-mono text-primary font-semibold flex items-center gap-1 min-w-0">
-                                    <span class="material-symbols-outlined text-[12px] shrink-0">history</span>
-                                    <span class="truncate">{{ $prev->created_at->format('d/m/Y H:i') }}</span>
-                                </div>
-                                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-surface-container-high text-outline whitespace-nowrap shrink-0">{{ $prev->items->count() }} {{ __('admin.items_unit') }}</span>
-                            </div>
-                        </div>
-                        @endforeach
-                    </div>
-                    @else
-                    <div class="flex flex-col items-center justify-center py-10 px-4 rounded-xl border border-dashed border-outline-variant bg-surface-container-low/30 text-center">
-                        <span class="material-symbols-outlined text-4xl text-outline-variant mb-2">history</span>
-                        <p class="text-xs text-outline font-medium max-w-md">{{ __('admin.no_previous_campaigns') }}</p>
-                    </div>
-                    @endif
+                    <x-admin.previous-campaign-picker :room="$room" :campaigns="$previousCampaigns" :has-more="$previousCampaignsHasMore" />
                 </div>
 
                 <!-- Tab 2: Data Gateway AI Converter -->

@@ -27,10 +27,11 @@ class CreateOrderAction
      * @param array<string, mixed> $data Order items and options payload.
      * @param int|null $parentId Parent order ID when creating a child (proxy) order.
      * @param bool $allowEmpty Whether an empty placeholder parent order is allowed.
+     * @param bool $allowLocked Whether to accept orders while an admin has locked member ordering (admin "order on behalf").
      * @return Order Created order entity with items and toppings loaded.
      * @throws ValidationException If campaign is unavailable, user inactive, or items invalid.
      */
-    public function execute(Campaign $campaign, RoomUser $roomUser, array $data, ?int $parentId = null, bool $allowEmpty = false): Order
+    public function execute(Campaign $campaign, RoomUser $roomUser, array $data, ?int $parentId = null, bool $allowEmpty = false, bool $allowLocked = false): Order
     {
         $campaign->refresh();
         $roomUser->refresh();
@@ -40,18 +41,18 @@ class CreateOrderAction
                 'campaign' => __('admin.campaign_unavailable'),
             ]);
         }
-        $this->ensureCampaignIsOrderable($campaign);
+        $this->ensureCampaignIsOrderable($campaign, $allowLocked);
         if ($roomUser->status !== RoomUserStatus::Active || $roomUser->globalUser->status !== GlobalUserStatus::Active) {
             throw ValidationException::withMessages([
                 'user' => __('admin.account_inactive'),
             ]);
         }
 
-        $order = DB::transaction(function () use ($campaign, $roomUser, $data, $parentId): Order {
+        $order = DB::transaction(function () use ($campaign, $roomUser, $data, $parentId, $allowLocked): Order {
             $campaign = Campaign::query()->lockForUpdate()->findOrFail($campaign->id);
             // Serialize daily order numbering across campaigns in the same room.
             \App\Models\Room::query()->whereKey($campaign->room_id)->lockForUpdate()->firstOrFail();
-            $this->ensureCampaignIsOrderable($campaign);
+            $this->ensureCampaignIsOrderable($campaign, $allowLocked);
             $items = $data['items'] ?? [];
             if ($items === [] && ! $allowEmpty) {
                 throw ValidationException::withMessages([
@@ -87,14 +88,15 @@ class CreateOrderAction
                     ]);
                 }
                 $unit = (int) $item->base_price + (int) ($size?->price_delta ?? 0) + (int) $toppings->sum('price');
-                if ((int) $campaign->max_budget > 0 && $unit > (int) $campaign->max_budget) {
+                $line = $unit * $quantity;
+                // The per-product cap applies to the whole line: unit price × quantity.
+                if ((int) $campaign->max_budget > 0 && $line > (int) $campaign->max_budget) {
                     throw ValidationException::withMessages([
                         'items' => __('admin.item_budget_limit_exceeded', [
                             'limit' => FormatHelper::formatCurrency((int) $campaign->max_budget),
                         ]),
                     ]);
                 }
-                $line = $unit * $quantity;
                 $subtotal += $line;
                 $isSelfPaid = filter_var($input['is_self_paid'] ?? false, FILTER_VALIDATE_BOOLEAN);
                 $snapshots[] = compact('item', 'size', 'toppings', 'quantity', 'unit', 'line', 'input', 'isSelfPaid');
@@ -156,14 +158,16 @@ class CreateOrderAction
      * Ensure that a campaign still accepts orders at the current time.
      *
      * @param Campaign $campaign Campaign being ordered from.
+     * @param bool $allowLocked Whether an admin ordering lock is ignored.
      * @return void
-     * @throws ValidationException When the campaign is not live or its deadline has passed.
+     * @throws ValidationException When the campaign is not live, its deadline has passed or ordering is locked.
      */
-    private function ensureCampaignIsOrderable(Campaign $campaign): void
+    private function ensureCampaignIsOrderable(Campaign $campaign, bool $allowLocked = false): void
     {
-        if (! $campaign->isOrderable()) {
+        $orderable = $allowLocked ? $campaign->isOpenForOrders() : $campaign->isOrderable();
+        if (! $orderable) {
             throw ValidationException::withMessages([
-                'campaign' => __('room.campaign.ordering_closed'),
+                'campaign' => $campaign->orderingClosedMessage(),
             ]);
         }
     }

@@ -12,4 +12,11 @@ return [
     'view_list' => 'Dạng danh sách',
     'read_more' => 'Xem hướng dẫn',
     'back_to_list' => 'Quay lại danh sách hướng dẫn',
+    'lightbox_title' => 'Xem ảnh hướng dẫn',
+    'lightbox_close' => 'Đóng',
+    'lightbox_prev' => 'Ảnh trước',
+    'lightbox_next' => 'Ảnh tiếp theo',
+    'lightbox_counter' => 'Ảnh :current / :total',
+    'public_meta_title' => 'Hướng dẫn sử dụng DrinkFlow - Đặt đồ uống nhóm & chia bill',
+    'public_meta_description' => 'Tổng hợp hướng dẫn sử dụng DrinkFlow: đăng nhập Google Workspace, tham gia room, đặt món chiến dịch gom đơn, thanh toán VietQR và theo dõi công nợ.',
 ];

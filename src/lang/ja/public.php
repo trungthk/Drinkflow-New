@@ -12,6 +12,7 @@ return [
     'contact_support' => 'お問い合わせ・サポート',
     'header' => [
         'about' => '紹介',
+        'guides' => 'ガイド',
         'terms' => '利用規約',
         'versions' => 'バージョン',
         'contact' => 'お問い合わせ',
@@ -114,6 +115,7 @@ return [
         'copyright' => '© :year DrinkFlow Enterprise.',
         'version' => 'バージョン :version',
         'about' => '紹介',
+        'guides' => '利用ガイド',
         'terms' => '利用規約',
         'versions' => '変更履歴',
         'contact' => 'お問い合わせ窓口',

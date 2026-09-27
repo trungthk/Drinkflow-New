@@ -33,4 +33,4 @@ Cả 3 cấp đều hỗ trợ xuất Excel/CSV (`user.me.statistics.export`, `u
 
 ## Tham chiếu mã nguồn
 
-`App\Services\Analytics\UserGlobalAnalyticsService`, `UserRoomAnalyticsService` · `App\Services\Admin\AdminReportService` · `App\Enums\AnalyticsPeriod` · Xem thao tác UI ở [Hướng dẫn User – bài 6](../guildes/user/06-thong-ke-chi-tieu.md) và [Hướng dẫn Admin – bài 10](../guildes/admin/10-bao-cao-thong-ke.md).
+`App\Services\Analytics\UserGlobalAnalyticsService`, `UserRoomAnalyticsService` · `App\Services\Admin\AdminReportService` · `App\Enums\AnalyticsPeriod` · Xem thao tác UI ở [Hướng dẫn User – bài 6](../guides/user/06-thong-ke-chi-tieu.md) và [Hướng dẫn Admin – bài 10](../guides/admin/10-bao-cao-thong-ke.md).

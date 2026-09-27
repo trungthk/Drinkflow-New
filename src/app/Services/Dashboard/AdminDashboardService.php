@@ -38,14 +38,6 @@ class AdminDashboardService
 
         $metrics = $this->getDashboardMetrics($room);
 
-        $liveOrders = Order::query()
-            ->where('room_id', $room->id)
-            ->where('status', '!=', OrderStatus::Cancelled->value)
-            ->with(['roomUser.globalUser', 'items.toppings'])
-            ->latest()
-            ->take(15)
-            ->get();
-
         $activePaymentAccount = PaymentAccount::query()
             ->where('room_id', $room->id)
             ->where('status', PaymentAccountStatus::Active)
@@ -72,7 +64,6 @@ class AdminDashboardService
             'totalWeekCampaigns' => $metrics['weekly_total_campaigns'],
             'totalWeekSpending' => $metrics['weekly_total_spending'],
             'maxSpendingDayIndex' => $metrics['max_spending_day_index'],
-            'liveOrders' => $liveOrders,
             'activePaymentAccount' => $activePaymentAccount,
         ];
     }

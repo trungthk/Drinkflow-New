@@ -424,7 +424,19 @@
                 </button>
             </div>
 
-            <div class="px-6 py-5 space-y-4 overflow-y-auto flex-1 text-xs">
+            <div class="px-6 pt-3 border-b border-outline-variant shrink-0 flex items-center gap-1 text-xs font-semibold" role="tablist" aria-label="{{ __('admin.debt_detail') }}">
+                <button type="button" role="tab" data-debt-detail-tab="basic" aria-selected="true" aria-controls="debt-detail-panel-basic"
+                    class="px-3 py-2 -mb-px border-b-2 border-primary text-primary transition-colors cursor-pointer">
+                    {{ __('admin.debt_detail_tab_basic') }}
+                </button>
+                <button type="button" role="tab" data-debt-detail-tab="history" aria-selected="false" aria-controls="debt-detail-panel-history"
+                    class="px-3 py-2 -mb-px border-b-2 border-transparent text-outline hover:text-on-surface transition-colors cursor-pointer inline-flex items-center gap-1.5">
+                    <span>{{ __('admin.debt_detail_tab_history') }}</span>
+                    <span class="px-1.5 py-0.5 rounded-full bg-surface-container text-[10px] font-mono text-outline" data-debt-detail-history-count>0</span>
+                </button>
+            </div>
+
+            <div id="debt-detail-panel-basic" role="tabpanel" data-debt-detail-panel="basic" class="px-6 py-5 space-y-4 overflow-y-auto flex-1 text-xs">
                 <div class="flex items-start gap-3">
                     <span class="material-symbols-outlined text-[18px] text-outline mt-0.5 shrink-0">account_circle</span>
                     <div class="flex-1 min-w-0">
@@ -486,7 +498,9 @@
                     <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.sponsor_description_label') }}</div>
                     <div class="text-xs text-on-surface break-words whitespace-pre-line" data-debt-detail-field="sponsor_description">—</div>
                 </div>
+            </div>
 
+            <div id="debt-detail-panel-history" role="tabpanel" data-debt-detail-panel="history" class="hidden px-6 py-5 space-y-4 overflow-y-auto flex-1 text-xs">
                 <div class="space-y-2">
                     <div class="text-[11px] font-mono uppercase text-outline tracking-wider">{{ __('admin.debt_detail_payment_history') }}</div>
                     <div class="border border-outline-variant/60 rounded-xl overflow-hidden divide-y divide-outline-variant/40" data-debt-detail-list="payments"></div>

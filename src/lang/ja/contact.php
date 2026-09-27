@@ -2,7 +2,7 @@
 
 return [
     'meta' => [
-        'title' => 'お問い合わせ | DrinkFlow Enterprise',
+        'title' => 'お問い合わせ - DrinkFlow',
         'description' => 'チームドリンク注文システムの導入、VietQR決済照会、または企業向けカスタマイズについてのお問い合わせはこちらから。',
     ],
     'hero' => [

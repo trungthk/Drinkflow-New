@@ -59,6 +59,16 @@ class RoomUser extends Model
         return $this->belongsTo(GlobalUser::class);
     }
 
+    /**
+     * Name identifying this member as the sender of a bank transfer.
+     *
+     * @return string Room display name, falling back to the global account name.
+     */
+    public function payerName(): string
+    {
+        return (string) ($this->display_name ?: $this->globalUser?->name ?? '');
+    }
+
     public function devices(): HasMany
     {
         return $this->hasMany(RoomUserDevice::class);

@@ -150,7 +150,11 @@
                     <p class="text-xs text-on-surface-variant mt-0.5">{{ __('room.debts.subtitle') }}</p>
                 </div>
             </div>
-            @if($totalPayableAmount > 0)
+            {{-- Pay-all button temporarily hidden; flip $showPayAllButton back to true to restore it. --}}
+            @php
+                $showPayAllButton = false;
+            @endphp
+            @if($showPayAllButton && $totalPayableAmount > 0)
                 <button
                     class="px-3.5 py-1.5 rounded-lg bg-[#006948] hover:bg-[#005137] text-white text-xs font-semibold shadow-2xs transition-all inline-flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
                     @click="openQr({{ $totalPayableAmount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}', '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}', '', null, false)">
@@ -362,7 +366,7 @@
                                         @if(!$isPaid && $debt->remaining_amount > 0)
                                             <button
                                                 class="px-2.5 py-1 rounded bg-[#006948] text-white hover:bg-[#005137] transition-all inline-flex items-center gap-1 shadow-2xs cursor-pointer font-medium text-xs"
-                                                @click="openQr({{ (int) $debt->remaining_amount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount) }}', '{{ $debt->code }}', '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }})">
+                                                @click="openQr({{ (int) $debt->remaining_amount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount) }}', {{ Js::from($transferContents[$debt->id] ?? $debt->code) }}, '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }})">
                                                 <span class="material-symbols-outlined text-[14px] text-white">qr_code</span>
                                                 <span class="text-white">{{ __('room.debts.btn_view_qr') }}</span>
                                             </button>

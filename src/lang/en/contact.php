@@ -2,7 +2,7 @@
 
 return [
     'meta' => [
-        'title' => 'Contact Us | DrinkFlow Enterprise',
+        'title' => 'Contact & Support - DrinkFlow',
         'description' => 'Contact the DrinkFlow team for assistance with corporate drink order campaigns, VietQR financial reconciliation, or enterprise customization.',
     ],
     'hero' => [

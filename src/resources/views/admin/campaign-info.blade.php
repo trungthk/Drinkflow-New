@@ -503,6 +503,22 @@
                                     <span class="material-symbols-outlined text-[18px]">campaign</span>
                                     <span>{{ __('admin.resend_notification') }}</span>
                                 </button>
+                                @if (! $campaign->isOpenForOrders())
+                                    {{-- Past the deadline: ordering can no longer be locked or unlocked. --}}
+                                @elseif ($campaign->isOrderingLocked())
+                                    <button type="button" data-ordering-lock-toggle data-mode="unlock" data-url="{{ route('admin.campaigns.unlock-ordering', [$room, $campaign]) }}"
+                                        class="w-full h-10 px-4 rounded-xl border border-emerald-300 bg-emerald-50/60 hover:bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-wait">
+                                        <span class="material-symbols-outlined text-[18px]">lock_open</span>
+                                        <span>{{ __('admin.campaign_unlock_action') }}</span>
+                                    </button>
+                                @else
+                                    <button type="button" data-ordering-lock-toggle data-mode="lock" data-url="{{ route('admin.campaigns.lock-ordering', [$room, $campaign]) }}"
+                                        title="{{ __('admin.campaign_ordering_locked_hint') }}"
+                                        class="w-full h-10 px-4 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container text-on-surface text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-wait">
+                                        <span class="material-symbols-outlined text-[18px] text-amber-600">lock</span>
+                                        <span>{{ __('admin.campaign_lock_action') }}</span>
+                                    </button>
+                                @endif
                                 <button type="button" data-close-campaign-open data-campaign-id="{{ $campaign->id }}"
                                     class="w-full h-10 px-4 rounded-xl border border-amber-300 bg-amber-50/60 hover:bg-amber-50 text-amber-700 text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer">
                                     <span class="material-symbols-outlined text-[18px]">lock_clock</span>
@@ -880,6 +896,9 @@
         <!-- MODAL: CLOSE CAMPAIGN SUMMARY & CONFIRM -->
         @if ($isCampaignLive)
             <x-admin.close-campaign-modal :room="$room" />
+            @if ($campaign->isOpenForOrders())
+                <x-admin.campaign-ordering-lock-modal />
+            @endif
         @endif
 
         <!-- MODAL: CONFIRM ITEMS ARRIVED -->

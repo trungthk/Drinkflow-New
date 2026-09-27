@@ -156,6 +156,12 @@ class AdminFilterControlsTest extends TestCase
             ->assertSee('data-open-debt-detail', false)
             ->assertSee('data-tooltip="'.__('admin.view_debt_detail').'"', false)
             ->assertSee('id="debt-detail-modal"', false)
+            // The detail modal is split into a "basic" tab and a payment/adjustment "history" tab.
+            ->assertSee('data-debt-detail-tab="basic"', false)
+            ->assertSee('data-debt-detail-tab="history"', false)
+            ->assertSee(__('admin.debt_detail_tab_basic'))
+            ->assertSee(__('admin.debt_detail_tab_history'))
+            ->assertSeeInOrder(['data-debt-detail-panel="history"', 'data-debt-detail-list="payments"', 'data-debt-detail-list="adjustments"'], false)
             ->assertViewHas('debtDetails', fn (array $details): bool => count($details) === 1
                 && collect($details)->first()['member'] === 'Pending Member'
                 && collect($details)->first()['campaign'] === 'Debt Campaign'

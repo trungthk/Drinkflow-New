@@ -164,7 +164,7 @@ class CampaignController extends Controller
 
         if (! $campaign->isOrderable()) {
             throw ValidationException::withMessages([
-                'campaign' => __('room.campaign.ordering_closed'),
+                'campaign' => $campaign->orderingClosedMessage(),
             ]);
         }
 
@@ -463,7 +463,7 @@ class CampaignController extends Controller
     {
         if (! $campaign->isOrderable()) {
             throw ValidationException::withMessages([
-                'campaign' => __('room.campaign.ordering_closed'),
+                'campaign' => $campaign->orderingClosedMessage(),
             ]);
         }
     }

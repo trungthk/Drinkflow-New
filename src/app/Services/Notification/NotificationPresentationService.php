@@ -6,6 +6,10 @@ namespace App\Services\Notification;
 
 use App\Enums\NotificationType;
 use App\Models\AdminNotification;
+use App\Models\Campaign;
+use App\Models\Debt;
+use App\Models\Order;
+use App\Models\Room;
 use App\Models\UserNotification;
 
 class NotificationPresentationService
@@ -20,11 +24,28 @@ class NotificationPresentationService
     {
         $type = (string) $notification->type;
         $data = is_array($notification->data) ? $notification->data : [];
+
+        // Messages written by a room admin are shown exactly as they were sent.
+        if ($notification instanceof UserNotification && $this->isAdminBroadcast($type, $data)) {
+            return [
+                'title' => (string) ($notification->title ?: __('global.notifications.default_title')),
+                'body' => (string) ($notification->body ?? ''),
+                'icon' => $this->icon($type),
+                'link' => $notification->link,
+            ];
+        }
+
         $titleKey = $this->titleKey($type, $notification instanceof AdminNotification);
 
         $title = $titleKey !== null ? __($titleKey) : (string) ($notification->title ?? '');
         if ($title === $titleKey || $title === '') {
             $title = (string) ($notification->title ?? __('global.notifications.default_title'));
+        }
+        if ($notification instanceof UserNotification && $this->isPaymentReminder($type)) {
+            $code = $this->paymentCode($data);
+            if ($code !== null) {
+                $title = __('messages.payment_reminder_with_code', ['code' => $code]);
+            }
         }
 
         $body = $this->body($notification, $type, $data);
@@ -33,8 +54,122 @@ class NotificationPresentationService
             'title' => $title,
             'body' => $body,
             'icon' => $this->icon($type),
-            'link' => $notification instanceof UserNotification ? $notification->link : null,
+            'link' => $notification instanceof UserNotification ? $this->link($notification, $type, $data) : null,
         ];
+    }
+
+    /**
+     * Determine whether a user notification was sent manually by a room admin.
+     *
+     * @param string $type Notification type.
+     * @param array<string, mixed> $data Structured notification data.
+     * @return bool True for admin broadcasts, whatever template type the admin picked.
+     */
+    private function isAdminBroadcast(string $type, array $data): bool
+    {
+        return $type === NotificationType::AdminBroadcast->value || ! empty($data['broadcast']);
+    }
+
+    /**
+     * Determine whether a notification asks the member to pay.
+     *
+     * @param string $type Notification type.
+     * @return bool True for payment/debt reminder types.
+     */
+    private function isPaymentReminder(string $type): bool
+    {
+        return in_array($type, [
+            NotificationType::PaymentReminder->value,
+            NotificationType::PaymentDue->value,
+            NotificationType::DebtReminder->value,
+        ], true);
+    }
+
+    /**
+     * Resolve the code shown in a payment reminder: the order code when known, otherwise the debt code.
+     *
+     * @param array<string, mixed> $data Structured notification data.
+     * @return string|null Order/debt code, or null when the notification carries no reference.
+     */
+    private function paymentCode(array $data): ?string
+    {
+        foreach (['order_code', 'debt_code'] as $key) {
+            if (! empty($data[$key])) {
+                return (string) $data[$key];
+            }
+        }
+
+        if (! empty($data['debt_id'])) {
+            $code = Debt::query()->whereKey($data['debt_id'])->value('code');
+
+            return $code !== null ? (string) $code : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Resolve the link of a user notification, deriving it from the payload when none was stored.
+     *
+     * Order notifications open the order page; new-campaign notifications open the campaign
+     * order page only while that campaign still accepts orders.
+     *
+     * @param UserNotification $notification Notification model.
+     * @param string $type Notification type.
+     * @param array<string, mixed> $data Structured notification data.
+     * @return string|null URL, or null when there is nothing to open.
+     */
+    private function link(UserNotification $notification, string $type, array $data): ?string
+    {
+        if ($type === NotificationType::CampaignCreated->value) {
+            return $this->liveCampaignLink($data);
+        }
+
+        if (! empty($notification->link)) {
+            return $notification->link;
+        }
+
+        if ($type === NotificationType::OrderCreated->value && ! empty($data['order_id'])) {
+            return $this->orderLink((int) $data['order_id']);
+        }
+
+        return null;
+    }
+
+    /**
+     * Build the order page URL of an order.
+     *
+     * @param int $orderId Order ID.
+     * @return string|null Order page URL, or null when the order or its room no longer exists.
+     */
+    private function orderLink(int $orderId): ?string
+    {
+        $order = Order::query()->with('room:id,slug')->find($orderId, ['id', 'room_id']);
+        if ($order === null || ! $order->room instanceof Room) {
+            return null;
+        }
+
+        return route('user.orders.page', [$order->room, $order]);
+    }
+
+    /**
+     * Build the campaign order page URL while the campaign is live.
+     *
+     * @param array<string, mixed> $data Structured notification data.
+     * @return string|null Campaign order page URL, or null when the campaign is gone or no longer orderable.
+     */
+    private function liveCampaignLink(array $data): ?string
+    {
+        if (empty($data['campaign_id'])) {
+            return null;
+        }
+
+        $campaign = Campaign::query()->with('room:id,slug')->find($data['campaign_id']);
+        if ($campaign === null || ! $campaign->room instanceof Room || ! $campaign->isOrderable()) {
+            return null;
+        }
+
+        return route('user.campaigns.order-page', [$campaign->room, $campaign]);
     }
 
     /**
@@ -89,14 +224,17 @@ class NotificationPresentationService
         }
 
         $orderId = $data['order_id'] ?? null;
-        $orderCode = $data['order_code'] ?? '';
-
-        if ($type === NotificationType::OrderCreated->value && $orderId !== null) {
-            return __('messages.order_created_body', ['order_id' => $orderId]);
+        $orderCode = (string) ($data['order_code'] ?? '');
+        if ($orderCode === '' && $orderId !== null) {
+            $orderCode = (string) (Order::query()->whereKey($orderId)->value('code') ?? '#' . $orderId);
         }
-        if (in_array($type, [NotificationType::OrderUpdated->value, NotificationType::OrderStatus->value], true) && $orderId !== null) {
+
+        if ($type === NotificationType::OrderCreated->value && $orderCode !== '') {
+            return __('messages.order_created_body', ['order_code' => $orderCode]);
+        }
+        if (in_array($type, [NotificationType::OrderUpdated->value, NotificationType::OrderStatus->value], true) && $orderCode !== '') {
             return __('messages.order_status_updated_body', [
-                'order_id' => $orderId,
+                'order_code' => $orderCode,
                 'status' => (string) ($data['status'] ?? ''),
             ]);
         }

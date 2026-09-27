@@ -120,4 +120,15 @@ class VietQrPayloadTest extends TestCase
         $this->assertSame('Thanh toan don hang so 12', $content);
         $this->assertLessThanOrEqual(25, strlen($content));
     }
+
+    /** The sender name is appended to the reference without accents/spaces and never pushes the content past 25 chars. */
+    public function test_transfer_content_appends_sender_name(): void
+    {
+        $service = app(VietQrService::class);
+
+        $this->assertSame('ORD1-20260926-001 TRUNGLE', $service->transferContent('ORD1-20260926-001', 'Trung Lê'));
+        $this->assertSame('DEB-20260926-OMPY NGUYENV', $service->transferContent('DEB-20260926-OMPY', 'Nguyễn Văn An'));
+        $this->assertSame('DEB-20260926-OMPY', $service->transferContent('DEB-20260926-OMPY', null));
+        $this->assertSame('ORD1-20260926-001', $service->transferContent('ORD1-20260926-001', '  '));
+    }
 }

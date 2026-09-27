@@ -8,10 +8,10 @@
   :user-rooms="$userRooms ?? collect()"
 >
   <!-- Main Canvas Space -->
-  <div class="space-y-4" x-data="{ showAnnouncement: true }">
+  <div class="space-y-4">
 
     <!-- 1. Top Announcement Card -->
-    <div x-show="showAnnouncement" x-cloak class="w-full bg-white rounded-xl border border-slate-200/80 shadow-2xs p-3 sm:p-3.5 flex items-start sm:items-center justify-between gap-3 relative overflow-hidden transition-all">
+    <div class="w-full bg-white rounded-xl border border-slate-200/80 shadow-2xs p-3 sm:p-3.5 flex items-start sm:items-center justify-between gap-3 relative overflow-hidden transition-all">
       <div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-500"></div>
       <div class="flex items-start sm:items-center gap-2.5 pl-1 min-w-0">
         <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 border border-amber-200/70 shrink-0 flex items-center justify-center">
@@ -22,34 +22,7 @@
           {{ __('room.dashboard.announcement_default', ['name' => $room->name]) }}
         </p>
       </div>
-      <div class="flex items-center gap-1 shrink-0">
-        <button type="button" @click="showAnnouncement = false" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer" title="{{ __('room.dashboard.close_announcement') }}">
-          <span class="material-symbols-outlined text-[16px]">close</span>
-        </button>
-      </div>
     </div>
-
-    <!-- 2. Unpaid Debt Warning Banner -->
-    @if($unpaidDebts > 0)
-      <div class="w-full bg-rose-50 border border-rose-200/80 text-rose-900 rounded-xl p-3 sm:p-3.5 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 border border-rose-200 shrink-0 flex items-center justify-center">
-            <span class="material-symbols-outlined text-[18px]">warning</span>
-          </div>
-          <div>
-            <div class="flex flex-wrap items-baseline gap-2">
-              <span class="font-bold text-xs text-rose-950">{{ __('room.dashboard.debt_warning_title') }}</span>
-              <span class="font-bold font-mono text-sm sm:text-base text-rose-700">{{ \App\Support\Helpers\FormatHelper::formatCurrency($unpaidDebts) }}</span>
-            </div>
-            <span class="text-[11px] text-rose-700">{{ __('room.dashboard.debt_warning_hint') }}</span>
-          </div>
-        </div>
-        <a href="{{ route('user.debts.index', $room->slug) }}" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors shadow-2xs shrink-0 cursor-pointer">
-          <span class="material-symbols-outlined text-[16px]">qr_code_2</span>
-          <span>{{ __('room.dashboard.debt_warning_btn') }}</span>
-        </a>
-      </div>
-    @endif
 
     <!-- 3. Main Grid Layout: Left Column (Active Campaign) & Right Column (Overview Summary) -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -179,15 +152,15 @@
       <!-- 4. Sponsor Leaderboard & Weekly Trend Charts -->
       <div class="lg:col-span-12 grid grid-cols-1 lg:grid-cols-12 gap-4"
         data-room-dashboard-charts
-        data-top-sponsors="{{ \Illuminate\Support\Js::from($topSponsors ?? []) }}"
-        data-weekly-trend="{{ \Illuminate\Support\Js::from($weeklyItemTrend ?? []) }}"
-        data-chart-labels="{{ \Illuminate\Support\Js::from([
+        data-top-sponsors="{{ json_encode($topSponsors ?? [], JSON_UNESCAPED_UNICODE) }}"
+        data-weekly-trend="{{ json_encode($weeklyItemTrend ?? [], JSON_UNESCAPED_UNICODE) }}"
+        data-chart-labels="{{ json_encode([
           'items' => __('room.dashboard.chart_items_label'),
           'value' => __('room.dashboard.chart_value_label'),
           'sponsoredCampaigns' => __('room.dashboard.sponsored_campaigns_count'),
           'noSponsorData' => __('room.dashboard.no_sponsor_data'),
           'noTrendData' => __('room.dashboard.no_weekly_trend_data'),
-        ]) }}"
+        ], JSON_UNESCAPED_UNICODE) }}"
       >
         <!-- Top Sponsors Bar Chart -->
         <section class="lg:col-span-5 bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs flex flex-col">

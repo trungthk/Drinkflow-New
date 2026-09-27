@@ -2,7 +2,7 @@
 
 Tài liệu này phân tích DrinkFlow theo **từng nghiệp vụ** (business domain) thay vì theo vai trò người dùng — mục tiêu là hiểu **luồng dữ liệu, quy tắc nghiệp vụ và vòng đời trạng thái** đứng sau các màn hình, để phát triển/bảo trì hệ thống chính xác hơn.
 
-> Khác với tài liệu hướng dẫn thao tác ([`documents/guildes/user/`](../guildes/user/README.md), [`documents/guildes/admin/`](../guildes/admin/README.md)) vốn mô tả **"bấm nút gì"**, tài liệu này mô tả **"hệ thống xử lý ra sao"**: Model, Enum trạng thái, Action/Service, Event và các công thức tính toán thực tế trong mã nguồn.
+> Khác với tài liệu hướng dẫn thao tác ([`documents/guides/user/`](../guides/user/README.md), [`documents/guides/admin/`](../guides/admin/README.md)) vốn mô tả **"bấm nút gì"**, tài liệu này mô tả **"hệ thống xử lý ra sao"**: Model, Enum trạng thái, Action/Service, Event và các công thức tính toán thực tế trong mã nguồn.
 
 ## Ba nhóm tác nhân (Actor)
 

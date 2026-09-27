@@ -5,7 +5,7 @@
         <span role="tooltip" class="absolute right-full mr-3 whitespace-nowrap px-2.5 py-1 rounded-lg bg-slate-900/90 backdrop-blur-xs text-white text-xs font-medium shadow-lg opacity-0 pointer-events-none translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200">
             {{ __('public.contact_support') }}
         </span>
-        <a href="{{ route('contact') }}"
+        <a href="{{ \App\Support\Helpers\LocaleUrl::url('/contact') }}"
            aria-label="{{ __('public.contact_support') }}"
            class="w-11 h-11 rounded-full bg-white hover:bg-emerald-50 text-[#006948] border border-slate-200/90 shadow-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 group-hover:border-[#006948]/40 focus:outline-none focus:ring-2 focus:ring-[#006948] focus:ring-offset-2">
             <span class="material-symbols-outlined text-[22px] transition-transform duration-200 group-hover:scale-110">support_agent</span>

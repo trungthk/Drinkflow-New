@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace App\Services\Dashboard;
 
 use App\Enums\CampaignStatus;
-use App\Enums\DebtStatus;
 use App\Enums\RoomStatus;
 use App\Enums\OrderStatus;
 use App\Models\Campaign;
-use App\Models\Debt;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\Room;
@@ -76,12 +74,6 @@ class UserRoomDashboardService
             ];
         }
 
-        // Unpaid debts in this room
-        $unpaidDebts = Debt::where('room_user_id', $roomUser->id)
-            ->where('room_id', $room->id)
-            ->where('status', DebtStatus::Unpaid->value)
-            ->sum('remaining_amount');
-
         // Recent orders by this user in this room
         $userRecentOrders = $roomUser->orders()->where('status', '!=', OrderStatus::Cancelled->value)->with('items')->latest()->take(5)->get();
 
@@ -99,7 +91,6 @@ class UserRoomDashboardService
             'roomUser' => $roomUser,
             'user' => $user,
             'activeCampaign' => $campaignData,
-            'unpaidDebts' => (int) $unpaidDebts,
             'userRecentOrders' => $userRecentOrders,
             'userRooms' => $userRooms,
             'unreadNotificationsCount' => $unreadCount,
@@ -161,7 +152,8 @@ class UserRoomDashboardService
                 ->whereDate('created_at', $currentDate)
                 ->where('status', '!=', OrderStatus::Cancelled->value);
 
-            $valueAmount = (int) (clone $dayOrders)->sum('final_amount');
+            // Order value before sponsorship, so fully sponsored orders still count.
+            $valueAmount = (int) (clone $dayOrders)->sum('subtotal');
             $itemsCount = (int) DB::table('order_items')
                 ->joinSub((clone $dayOrders)->select('id'), 'day_orders', 'day_orders.id', '=', 'order_items.order_id')
                 ->sum('order_items.quantity');

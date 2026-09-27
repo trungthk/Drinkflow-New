@@ -121,14 +121,6 @@
 
             <p data-close-summary-error class="hidden p-3 rounded-xl border border-error/30 bg-error/5 text-error font-medium"></p>
 
-            <label class="flex items-start gap-3 p-3 bg-surface rounded-xl border border-outline-variant/60 cursor-pointer hover:bg-surface-container transition-colors select-none">
-                <input type="checkbox" id="close-campaign-allow-debt" checked class="mt-0.5 rounded border-outline-variant text-primary focus:ring-primary h-4 w-4">
-                <div class="flex flex-col">
-                    <span class="font-bold text-on-surface">{{ __('admin.auto_record_debts_label') }}</span>
-                    <span class="text-[11px] text-outline mt-0.5 leading-relaxed">{{ __('admin.auto_record_debts_desc') }}</span>
-                </div>
-            </label>
-
             <div class="pt-3 border-t border-outline-variant/60 flex items-center justify-end gap-2">
                 <button type="button" data-close-campaign-dismiss
                     class="px-4 py-2.5 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">

@@ -51,4 +51,4 @@ Giỏ hàng (size, topping, số lượng, ghi chú) được giữ ở phía cl
 
 ## Tham chiếu mã nguồn
 
-`App\Actions\Order\CreateOrderAction`, `CreateProxyOrdersAction` · `App\Services\Order\ProxyOrderPolicy` · `App\Models\CampaignParticipant` · `App\Actions\Campaign\DeclineCampaignAction`, `RejoinCampaignAction` · `App\Events\OrderCreated`, `ProxyOrdersCreated` · Xem thao tác UI ở [Hướng dẫn User – bài 3](../guildes/user/03-dat-mon-chien-dich.md).
+`App\Actions\Order\CreateOrderAction`, `CreateProxyOrdersAction` · `App\Services\Order\ProxyOrderPolicy` · `App\Models\CampaignParticipant` · `App\Actions\Campaign\DeclineCampaignAction`, `RejoinCampaignAction` · `App\Events\OrderCreated`, `ProxyOrdersCreated` · Xem thao tác UI ở [Hướng dẫn User – bài 3](../guides/user/03-dat-mon-chien-dich.md).
