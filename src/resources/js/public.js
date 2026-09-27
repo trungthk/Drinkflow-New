@@ -10,7 +10,7 @@ import { initGoToTop } from './public/go-to-top';
 import { initContactPage } from './public/contact';
 import { initTermsPage } from './public/terms';
 import { connectGuestRealtime } from './shared/realtime-reload';
-import { initGuideLightbox } from './shared/guide-lightbox';
+import { initGuideLightbox } from './shared/image-lightbox';
 
 document.addEventListener('DOMContentLoaded', () => {
     initToastNotifications();

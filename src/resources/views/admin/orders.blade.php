@@ -96,7 +96,7 @@
             <span class="px-3 py-1 bg-surface-container rounded-full text-xs font-mono font-semibold text-secondary">
                 {{ __('admin.total_orders_badge', ['count' => $orders->total()]) }}
             </span>
-            @if($onBehalfData)
+            @if($onBehalfData && $onBehalfData['can_place'])
                 <button type="button" data-on-behalf-open class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-semibold shadow-xs hover:opacity-90 transition-opacity">
                     <span class="material-symbols-outlined text-[16px]">person_add</span>
                     <span>{{ __('admin.on_behalf_button') }}</span>
@@ -270,7 +270,9 @@
 
     <!-- Filter & Search Toolbar -->
     @php
-        $hasOrderFilters = trim((string) ($filters['search'] ?? '')) !== '' || ((string) ($filters['status'] ?? 'all') !== '' && (string) ($filters['status'] ?? 'all') !== 'all');
+        $hasOrderFilters = trim((string) ($filters['search'] ?? '')) !== ''
+            || ((string) ($filters['status'] ?? 'all') !== '' && (string) ($filters['status'] ?? 'all') !== 'all')
+            || (string) ($filters['type'] ?? 'all') !== 'all';
     @endphp
     <form id="orders-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.orders.page', $room) }}" class="my-4 flex flex-wrap items-center justify-between gap-3 bg-surface-container-low p-3 rounded-xl border border-outline-variant/60">
         <div class="flex flex-1 min-w-[260px] items-center gap-2">
@@ -295,6 +297,19 @@
                     @endforeach
                 </select>
             </div>
+            <div class="min-w-[170px]">
+                <select name="type"
+                        id="order-type-filter"
+                        aria-label="{{ __('admin.order_type_filter') }}"
+                        class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20">
+                    <option value="all" {{ ($filters['type'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.order_type_all') }}</option>
+                    @foreach($typeFilters as $typeFilter)
+                        <option value="{{ $typeFilter['value'] }}" {{ ($filters['type'] ?? '') === $typeFilter['value'] ? 'selected' : '' }}>
+                            {{ $typeFilter['label'] }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
         </div>
         <div class="flex items-center gap-2">
             <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="text-xs font-semibold h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-2xs">
@@ -314,11 +329,12 @@
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
             {{-- Fixed-width side columns; the items-detail column takes the remaining space. --}}
-            <table data-skeleton="table" class="table-colgroup w-full min-w-[64rem] table-fixed text-left text-xs border-collapse">
+            <table data-skeleton="table" class="table-colgroup w-full min-w-[72rem] table-fixed text-left text-xs border-collapse">
                 <colgroup>
                     <col class="w-10">
                     <col class="w-44">
-                    <col class="w-44">
+                    {{-- Wide enough for the member's name and email without clipping. --}}
+                    <col class="w-72">
                     <col>
                     <col class="w-32">
                     <col class="w-40">
@@ -354,10 +370,11 @@
                                 'cancelled' => 'bg-rose-50 text-rose-700 border-rose-200 line-through dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800',
                                 default => 'bg-surface-container text-secondary border-outline-variant'
                             };
-                            $itemsSummary = $ord->items->map(function($i) {
-                                $topps = $i->toppings->pluck('name')->implode(', ');
-                                return $i->quantity . 'x ' . $i->item_name . ($i->size ? ' (' . $i->size . ')' : '') . ($topps ? ' [' . $topps . ']' : '');
-                            })->implode(' • ');
+                            // One line per ordered item: "2× Name (Size) + Topping, Topping".
+                            $itemLines = $ord->items->map(function ($i) {
+                                $topps = $i->toppings->pluck('topping_name')->filter()->implode(', ');
+                                return $i->quantity . '× ' . $i->item_name . ($i->size_name ? ' (' . $i->size_name . ')' : '') . ($topps ? ' + ' . $topps : '');
+                            });
                         @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors" data-order-row="{{ $ord->id }}">
                             <td class="py-3.5 px-3 w-10 text-center">
@@ -368,14 +385,26 @@
                                        aria-label="Select order {{ $ord->code ?? 'N/A' }}">
                             </td>
                             <td class="py-3.5 px-4">
-                                <button type="button"
-                                        onclick="openOrderDetailModal({{ $ord->id }})"
-                                        class="font-bold text-on-surface text-sm flex items-center gap-1.5 hover:text-primary transition-colors text-left group">
-                                    <span class="underline decoration-dotted underline-offset-2 group-hover:decoration-solid font-mono font-code">{{ $ord->code ?? 'N/A' }}</span>
-                                    @if($ord->is_locked)
-                                        <span class="material-symbols-outlined text-[14px] text-amber-600" title="{{ __('admin.order_locked_tooltip') }}">lock</span>
+                                <div class="flex items-center gap-1">
+                                    <button type="button"
+                                            onclick="openOrderDetailModal({{ $ord->id }})"
+                                            class="font-bold text-on-surface text-sm flex items-center gap-1.5 hover:text-primary transition-colors text-left group">
+                                        <span class="underline decoration-dotted underline-offset-2 group-hover:decoration-solid font-mono font-code">{{ $ord->code ?? 'N/A' }}</span>
+                                        @if($ord->is_locked)
+                                            <span class="material-symbols-outlined text-[14px] text-amber-600" title="{{ __('admin.order_locked_tooltip') }}">lock</span>
+                                        @endif
+                                    </button>
+                                    @if($ord->code)
+                                        <button type="button" data-copy="{{ $ord->code }}"
+                                            data-copied-message="{{ __('admin.copied') }}"
+                                            data-copy-failed-message="{{ __('admin.copy_failed') }}"
+                                            data-tooltip="{{ __('admin.copy_order_code') }}"
+                                            aria-label="{{ __('admin.copy_order_code') }}"
+                                            class="inline-flex items-center justify-center w-6 h-6 rounded text-outline hover:text-primary hover:bg-surface-container transition-colors cursor-pointer">
+                                            <span class="material-symbols-outlined text-[14px]" aria-hidden="true">content_copy</span>
+                                        </button>
                                     @endif
-                                </button>
+                                </div>
                                 <div class="text-[11px] font-mono text-outline mt-1">
                                     {{ $ord->created_at ? $ord->created_at->format('H:i d/m/Y') : '' }}
                                 </div>
@@ -395,8 +424,8 @@
                                     @endif
                                     <div class="min-w-0">
                                         <div class="font-semibold text-on-surface text-xs truncate" title="{{ $member }}">{{ $member }}</div>
-                                        @if($ord->roomUser?->user_code)
-                                            <div class="text-[10px] font-mono text-outline truncate">{{ $ord->roomUser->user_code }}</div>
+                                        @if($ord->roomUser?->globalUser?->email)
+                                            <div class="text-[10px] font-mono text-outline truncate" title="{{ $ord->roomUser->globalUser->email }}" data-order-member-email>{{ $ord->roomUser->globalUser->email }}</div>
                                         @endif
                                         @if($ord->parent?->roomUser)
                                             @php
@@ -420,8 +449,16 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="py-3.5 px-4 max-w-xs">
-                                <div class="text-on-surface font-medium line-clamp-2" title="{{ $itemsSummary }}">{{ $itemsSummary ?: __('admin.ordered_items') }}</div>
+                            <td class="py-3.5 px-4">
+                                @if($itemLines->isEmpty())
+                                    <div class="text-outline">{{ __('admin.ordered_items') }}</div>
+                                @else
+                                    <ul class="space-y-0.5" data-order-item-lines>
+                                        @foreach($itemLines as $itemLine)
+                                            <li class="text-on-surface font-medium truncate" title="{{ $itemLine }}">{{ $itemLine }}</li>
+                                        @endforeach
+                                    </ul>
+                                @endif
                                 @if($ord->note)
                                     <div class="text-[11px] text-amber-700 italic mt-0.5">📝 {{ $ord->note }}</div>
                                 @endif
@@ -472,6 +509,11 @@
                                                 <span class="material-symbols-outlined text-[20px]">more_vert</span>
                                             </summary>
                                             <div class="absolute right-0 mt-1 w-48 z-20 rounded-xl border border-outline-variant bg-surface-container-lowest shadow-xl p-1.5 space-y-0.5">
+                                                @if($onBehalfData && \App\Enums\OrderStatus::tryFrom($statusValue)?->isActive() &&! in_array($ord->payment_status, [\App\Enums\PaymentStatus::Paid, \App\Enums\PaymentStatus::Pending], true))
+                                                    <button type="button" data-order-edit="{{ $ord->id }}" data-order-code="{{ $ord->code }}" data-order-member="{{ $member }}" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
+                                                        <span class="material-symbols-outlined text-[16px] text-primary">edit_note</span>{{ __('admin.edit_order_btn') }}
+                                                    </button>
+                                                @endif
                                                 <button type="button" onclick="openPriceAdjustmentModal({{ $ord->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
                                                     <span class="material-symbols-outlined text-[16px] text-primary">tune</span>{{ __('admin.adjust_price_btn') }}
                                                 </button>

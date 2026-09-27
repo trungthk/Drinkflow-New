@@ -106,6 +106,27 @@ class RoomAnalyticsPeriodTest extends TestCase
     }
 
     /**
+     * "Tổng chi tiêu" and "Sponsor đã nhận từ Room" use different colors so they are easy to tell apart.
+     *
+     * @return void
+     */
+    public function test_spent_and_sponsor_metrics_have_distinct_colors(): void
+    {
+        $room = Room::create(['name' => 'Tone Room', 'slug' => 'analytics-tone', 'status' => RoomStatus::Active]);
+        $user = GlobalUser::create(['name' => 'Tone Member', 'email' => 'analytics-tone@example.test', 'status' => GlobalUserStatus::Active]);
+        $this->member($room, $user);
+
+        $html = $this->actingAs($user, 'web')->get(route('user.analytics.room', $room->slug))->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/data-metric-tone="spent"[^>]*border-blue-200/', $html);
+        $this->assertMatchesRegularExpression('/data-metric-tone="sponsor"[^>]*border-violet-200/', $html);
+        $spent = (string) str($html)->after('data-metric-tone="spent"')->before('</section>');
+        $sponsor = (string) str($html)->after('data-metric-tone="sponsor"')->before('</section>');
+        $this->assertStringContainsString(__('room.analytics.total_spent'), $spent);
+        $this->assertStringContainsString(__('room.analytics.sponsor_received'), $sponsor);
+    }
+
+    /**
      * Create a membership without trusted device cookies.
      *
      * @param Room $room Target room.

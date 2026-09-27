@@ -2,6 +2,13 @@
 
 return [
     'portal_title' => 'ポータル',
+    'lightbox' => [
+        'title' => '画像ビューア',
+        'close' => '閉じる',
+        'prev' => '前の画像',
+        'next' => '次の画像',
+        'counter' => '画像 :current / :total',
+    ],
     'common' => [
         'error' => 'エラーが発生しました。もう一度お試しください。',
         'room' => 'ルーム',

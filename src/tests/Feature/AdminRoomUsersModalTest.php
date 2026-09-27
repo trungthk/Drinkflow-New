@@ -93,4 +93,43 @@ class AdminRoomUsersModalTest extends TestCase
             ->postJson(route('admin.room-users.restore', [$room->slug, $foreign->id]))
             ->assertNotFound();
     }
+
+    /**
+     * The members table shows a "Tổng đơn hàng" column and when each member joined the room.
+     */
+    public function test_members_table_shows_total_orders_and_joined_at(): void
+    {
+        $admin = AdminAccount::create([
+            'name' => 'Room Admin',
+            'email' => 'joined-admin@example.test',
+            'password' => Hash::make('secret'),
+            'role' => AdminRole::Admin,
+            'status' => 'active',
+        ]);
+        $room = Room::create(['name' => 'Joined Room', 'slug' => 'joined-room', 'status' => 'active']);
+        $admin->rooms()->attach($room);
+        $joinedAt = now()->setDate(2026, 9, 1)->setTime(8, 45);
+        RoomUser::create([
+            'room_id' => $room->id,
+            'global_user_id' => GlobalUser::create(['name' => 'Joined Member', 'email' => 'joined@example.test', 'status' => 'active'])->id,
+            'display_name' => 'Joined Member',
+            'status' => RoomUserStatus::Active,
+            'joined_at' => $joinedAt,
+        ]);
+
+        $html = $this->actingAs($admin, 'admin')
+            ->get(route('admin.room-users.page', $room->slug))
+            ->assertOk()
+            ->assertSee(__('admin.th_total_orders'))
+            ->assertSee(__('admin.th_joined_at'))
+            ->getContent();
+
+        $this->assertSame('Tổng đơn hàng', trans('admin.th_total_orders', [], 'vi'));
+        $this->assertSame('Ngày tham gia', trans('admin.th_joined_at', [], 'vi'));
+        // Only the join date is shown, without the time.
+        $this->assertMatchesRegularExpression('/data-member-joined-at>\s*<span class="text-on-surface">01\/09\/2026<\/span>\s*<\/td>/', $html);
+        $this->assertStringNotContainsString('08:45', $html);
+        // The status badge starts with an icon.
+        $this->assertMatchesRegularExpression('/data-member-status-badge[^>]*>\s*<span class="material-symbols-outlined[^"]*"\s+aria-hidden="true">check_circle<\/span>/', $html);
+    }
 }

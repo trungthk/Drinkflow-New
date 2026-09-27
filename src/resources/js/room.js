@@ -13,7 +13,7 @@ import { initDesktopNotifications } from './global/desktop-notification';
 import { initCampaignDecline } from './room/campaign-decline';
 import { initRoomHeader } from './room/header';
 import { initRoomDashboardCharts } from './room/dashboard-charts';
-import { initGuideLightbox } from './shared/guide-lightbox';
+import { initGroupedImageLightbox, initGuideLightbox } from './shared/image-lightbox';
 
 document.addEventListener('DOMContentLoaded', () => {
     initToastNotifications();
@@ -27,4 +27,5 @@ document.addEventListener('DOMContentLoaded', () => {
     initRoomHeader();
     initRoomDashboardCharts();
     initGuideLightbox();
+    initGroupedImageLightbox();
 });

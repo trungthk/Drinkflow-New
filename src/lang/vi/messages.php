@@ -36,6 +36,8 @@ return [
     'debt_channel_reminder_title' => 'Nhắc thanh toán công nợ',
     'order_price_adjusted_title' => 'Điều chỉnh giá đơn hàng',
     'order_price_adjusted_body' => 'Đơn hàng :order_code đã được điều chỉnh giá thành :amount. Lý do: :reason',
+    'order_items_updated_title' => 'Đơn hàng đã được chỉnh sửa',
+    'order_items_updated_body' => 'Quản trị viên đã sửa món trong đơn :order_code. Tổng mới: :amount.',
     'campaign_updated_title' => 'Cập nhật chiến dịch',
     'campaign_updated_body' => 'Thông tin chiến dịch vừa mới được cập nhật.',
     'campaign_delivering_title' => 'Món đã được giao đến! 🧋',

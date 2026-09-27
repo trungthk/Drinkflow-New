@@ -139,6 +139,14 @@
                                 'unpaid'  => 'bg-amber-50 text-amber-700 border-amber-200 font-bold',
                                 default   => 'bg-surface-container text-secondary border-outline-variant'
                             };
+                            $stIcon = match($debtStatusValue) {
+                                'paid'    => 'check_circle',
+                                'pending' => 'hourglass_top',
+                                'partial' => 'timelapse',
+                                'unpaid'  => 'error',
+                                'waived'  => 'volunteer_activism',
+                                default   => 'help',
+                            };
                         @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors"
                             data-debt-row
@@ -165,14 +173,15 @@
                             <td class="py-3.5 px-4">
                                 @if ($debt->campaign)
                                     <a href="{{ route('admin.campaigns.info', [$room, $debt->campaign]) }}"
-                                        class="font-semibold text-on-surface hover:text-primary hover:underline underline-offset-2 transition-colors no-underline">{{ $debt->campaign->name }}</a>
+                                        class="font-semibold text-on-surface hover:text-primary transition-colors no-underline">{{ $debt->campaign->name }}</a>
                                 @else
                                     <div class="font-semibold text-on-surface">N/A</div>
                                 @endif
                                 <div class="text-[11px] text-outline">{{ $debt->created_at ? $debt->created_at->format('H:i d/m/Y') : '' }}</div>
                             </td>
                             <td class="py-3.5 px-4 text-center">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full whitespace-nowrap text-[11px] font-semibold border {{ $stClass }}">
+                                <span class="inline-flex items-center gap-1 pl-1.5 pr-2.5 py-0.5 rounded-full whitespace-nowrap text-[11px] font-semibold border {{ $stClass }}" data-debt-status-badge>
+                                    <span class="material-symbols-outlined text-[14px]" aria-hidden="true">{{ $stIcon }}</span>
                                     {{ __('admin.status_' . $debtStatusValue) }}
                                 </span>
                             </td>
@@ -214,12 +223,15 @@
                                         </button>
                                     @endif
                                     @if($debt->remaining_amount > 0 && $debtStatusValue !== 'pending')
-                                        <button type="button" onclick="openRecordPaymentModal({{ $debt->id }}, {{ $debt->remaining_amount }}, @js($member))" class="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-[11px] font-semibold flex items-center gap-1 shadow-2xs transition-colors">
+                                        <button type="button" onclick="openRecordPaymentModal({{ $debt->id }}, {{ $debt->remaining_amount }}, @js($member), @js($campaignName))" class="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-[11px] font-semibold flex items-center gap-1 shadow-2xs transition-colors">
                                             <span class="material-symbols-outlined text-[14px]">payments</span>
                                             <span>{{ __('admin.record_payment_btn') }}</span>
                                         </button>
-                                        <button type="button" onclick="openAdjustDebtModal({{ $debt->id }}, {{ $debt->remaining_amount }}, @js($member))" class="p-1 text-secondary hover:text-primary rounded hover:bg-surface-container transition-colors" title="{{ __('admin.adjust_debt_btn') }}">
-                                            <span class="material-symbols-outlined text-[16px]">tune</span>
+                                        <button type="button" onclick="openAdjustDebtModal({{ $debt->id }}, {{ $debt->remaining_amount }}, @js($member), @js($campaignName))"
+                                            data-tooltip="{{ __('admin.adjust_debt_tooltip') }}"
+                                            aria-label="{{ __('admin.adjust_debt_btn') }}"
+                                            class="inline-flex items-center justify-center w-7 h-7 text-secondary hover:text-primary rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+                                            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">tune</span>
                                         </button>
                                     @elseif($debt->remaining_amount <= 0)
                                         <span class="text-[11px] text-emerald-700 font-semibold flex items-center gap-0.5">
@@ -291,21 +303,38 @@
             'settled' => __('admin.settled_badge'),
             'noPayments' => __('admin.debt_detail_no_payments'),
             'noAdjustments' => __('admin.debt_detail_no_adjustments'),
+            'remainingLabel' => __('admin.remaining_debt'),
+            'afterPaymentLabel' => __('admin.debt_modal_after_payment'),
+            'afterAdjustLabel' => __('admin.debt_modal_after_adjust'),
+            'payFull' => __('admin.debt_modal_pay_full'),
+            'referencePlaceholder' => __('admin.debt_modal_reference_placeholder'),
+            'reasonPlaceholder' => __('admin.debt_modal_reason_placeholder'),
+            'adjustDecreaseHint' => __('admin.debt_adjust_decrease_hint'),
+            'adjustIncreaseHint' => __('admin.debt_adjust_increase_hint'),
+            'adjustWaiveHint' => __('admin.debt_adjust_waive_hint'),
+            'adjustCorrectionHint' => __('admin.debt_adjust_correction_hint'),
+            'invalidAmount' => __('admin.debt_modal_invalid_amount'),
+            'reasonRequired' => __('admin.debt_modal_reason_required'),
+            'adjustNegative' => __('admin.adjustment_cannot_negative'),
         ];
     @endphp
     <div id="debt-modal" data-i18n="{{ json_encode($debtModalI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
         <div id="debt-backdrop" class="absolute inset-0"></div>
-        <div class="relative z-10 w-full max-w-md bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-2xl">
-            <div class="flex items-center justify-between pb-3 border-b border-outline-variant mb-4">
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[20px] text-primary" id="debt-modal-icon">payments</span>
+        {{-- Shell shared by the "Thu tiền" and "Điều chỉnh" forms; resources/js/admin/debts.js fills the header and body. --}}
+        <div class="relative z-10 w-full max-w-lg max-h-[92vh] flex flex-col bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="debt-modal-title">
+            <div class="flex items-start gap-3 px-5 py-4 border-b border-outline-variant/60 bg-surface-container-low/60">
+                <span id="debt-modal-icon-wrap" class="w-10 h-10 shrink-0 rounded-xl flex items-center justify-center bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                    <span class="material-symbols-outlined text-[22px]" id="debt-modal-icon" aria-hidden="true">payments</span>
+                </span>
+                <div class="min-w-0 flex-1">
                     <h3 class="font-bold text-base text-on-surface" id="debt-modal-title">{{ __('admin.record_payment') }}</h3>
+                    <p class="text-xs text-outline mt-0.5 truncate" id="debt-modal-subtitle"></p>
                 </div>
-                <button type="button" onclick="closeDebtModal()" class="text-outline hover:text-on-surface">
-                    <span class="material-symbols-outlined text-[20px]">close</span>
+                <button type="button" onclick="closeDebtModal()" class="w-8 h-8 shrink-0 flex items-center justify-center rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors" aria-label="{{ __('admin.close_modal_btn') }}">
+                    <span class="material-symbols-outlined text-[20px]" aria-hidden="true">close</span>
                 </button>
             </div>
-            <div id="debt-modal-body"></div>
+            <div id="debt-modal-body" class="overflow-y-auto"></div>
         </div>
     </div>
 

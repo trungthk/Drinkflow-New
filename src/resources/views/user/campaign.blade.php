@@ -450,11 +450,16 @@
                   </span>
                 </div>
                 <h1 class="text-sm sm:text-base font-bold text-slate-900 tracking-tight mt-0.5">{{ $activeCampaign->name }}</h1>
-                <p class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                <p class="text-[11px] text-slate-500 flex flex-wrap items-center gap-x-1 gap-y-0.5 mt-0.5">
                   <span class="material-symbols-outlined text-[13px] text-[#006948]">storefront</span>
                   <span class="font-semibold text-slate-800">{{ $activeCampaign->restaurant }}</span>
                   <span class="text-slate-300">•</span>
                   <span>{{ __('room.dashboard.created_by', ['name' => $activeCampaign->creator?->name ?? __('global.common.admin')]) }}</span>
+                  <span class="text-slate-300">•</span>
+                  <span class="inline-flex items-center gap-0.5 font-semibold text-[#006948]" data-campaign-ordered-members>
+                    <span class="material-symbols-outlined text-[13px]">group</span>
+                    {{ trans_choice('room.campaign.ordered_members_count', $campaignStats['ordered_members'], ['count' => $campaignStats['ordered_members']]) }}
+                  </span>
                 </p>
               </div>
             </div>
@@ -682,12 +687,17 @@
                   <span class="material-symbols-outlined text-[32px]">local_cafe</span>
                   <template x-if="itemImageUrl({{ Js::from($item) }})">
                     <img x-lazy-src="itemImageUrl({{ Js::from($item) }})"
+                         :data-lightbox-src="itemImageUrl({{ Js::from($item) }})"
                          alt="{{ $item->name }}"
                          data-menu-item-image
+                         data-lightbox="campaign-menu"
+                         tabindex="0"
+                         role="button"
+                         aria-label="{{ __('room.campaign.view_item_image', ['name' => $item->name]) }}"
                          loading="lazy"
                          x-on:load="$el.hidden = false"
                          x-on:error="$el.hidden = true"
-                         class="absolute inset-0 h-full w-full object-cover">
+                         class="absolute inset-0 h-full w-full object-cover cursor-zoom-in">
                   </template>
                   @if($item->category)
                     <span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-semibold text-slate-600 border border-slate-200/60 shadow-2xs">
@@ -771,6 +781,9 @@
 
       <!-- Room Orders Modal: xem đơn của tất cả thành viên trong phòng cho chiến dịch này -->
       <x-room.campaign-orders-modal />
+
+      <!-- Full-screen viewer for menu and cart item images (data-lightbox) -->
+      <x-image-lightbox />
 
       @if($canOrderCampaign && !$activeUserOrder)
       <!-- 3. Modal Tùy chỉnh món (Item Customization Modal) -->
@@ -988,11 +1001,16 @@
                       <span class="material-symbols-outlined text-[20px]">local_cafe</span>
                       <template x-if="itemImageUrl(item)">
                         <img x-lazy-src="itemImageUrl(item)"
+                             :data-lightbox-src="itemImageUrl(item)"
                              :alt="item.item_name || '{{ __('admin.item_image_alt') }}'"
+                             data-lightbox="campaign-cart"
+                             tabindex="0"
+                             role="button"
+                             :aria-label="{{ Js::from(__('room.campaign.view_item_image', ['name' => ':name'])) }}.replace(':name', item.item_name || '')"
                              loading="lazy"
                              x-on:load="$el.hidden = false"
                              x-on:error="$el.hidden = true"
-                             class="absolute inset-0 h-full w-full object-cover">
+                             class="absolute inset-0 h-full w-full object-cover cursor-zoom-in">
                       </template>
                     </div>
                     <div class="min-w-0 flex-1">

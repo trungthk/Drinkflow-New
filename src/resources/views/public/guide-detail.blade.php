@@ -39,6 +39,6 @@
                 {!! $article['html'] !!}
             </div>
         </article>
-        <x-guides.image-lightbox />
+        <x-image-lightbox :title="__('guides.lightbox_title')" />
     </main>
 </x-public.layout>

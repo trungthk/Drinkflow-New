@@ -7,6 +7,7 @@
 @source '../views/components/room/**/*.blade.php';
 @source '../views/user/**/*.blade.php';
 @source '../views/components/global/**/*.blade.php';
+@source '../views/components/*.blade.php';
 @source '../js/**/*.js';
 
 @theme {

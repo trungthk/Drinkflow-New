@@ -62,7 +62,7 @@ class PublicLayoutComposer
             'pageKeywords' => $data['keywords'] ?? __('public.meta.keywords'),
             'pageOgTitle' => $data['ogTitle'] ?? ($title ?? __('public.meta.og_title')),
             'pageOgDescription' => $data['ogDescription'] ?? ($description ?? __('public.meta.og_description')),
-            'pageOgImage' => $data['ogImage'] ?? asset('images/home-intro.jpg'),
+            'pageOgImage' => $data['ogImage'] ?? asset('images/home-intro.webp'),
             'currentUrl' => $data['canonicalUrl'] ?? ($localizable ? $alternates[$locale] : url()->current()),
         ]);
     }

@@ -8,14 +8,17 @@ use App\Actions\Debt\ApproveDebtPaymentAction;
 use App\Actions\Order\DeleteOrderAction;
 use App\Actions\Order\PlaceOrderOnBehalfAction;
 use App\Actions\Order\UpdateOrderAction;
+use App\Actions\Order\UpdateOrderItemsAction;
 use App\Actions\Order\UpdateOrderStatusAction;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
+use App\Enums\OrderPlacementType;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BulkCancelOrdersRequest;
 use App\Http\Requests\BulkUpdateOrderStatusRequest;
 use App\Http\Requests\PlaceOrderOnBehalfRequest;
+use App\Http\Requests\UpdateOrderItemsRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Http\Requests\UpdateOrderStatusRequest;
 use App\Models\Campaign;
@@ -116,6 +119,11 @@ class OrderController extends Controller
             $selectedStatus = 'all';
         }
 
+        $placementType = OrderPlacementType::tryFrom($request->string('type')->toString());
+        if ($placementType !== null) {
+            $query->ofPlacementType($placementType);
+        }
+
         $orders = $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString();
 
         return view('admin.orders', [
@@ -132,9 +140,14 @@ class OrderController extends Controller
                     default => $status->value,
                 }),
             ])->values()->all(),
+            'typeFilters' => collect(OrderPlacementType::cases())->map(static fn (OrderPlacementType $type): array => [
+                'value' => $type->value,
+                'label' => $type->label(),
+            ])->values()->all(),
             'filters' => [
                 'search' => $search,
                 'status' => $selectedStatus,
+                'type' => $placementType?->value ?? 'all',
             ],
         ]);
     }
@@ -189,6 +202,26 @@ class OrderController extends Controller
     {
         $this->assertRoom($order);
         return response()->json(['data' => $action->execute($order, $request->validated())]);
+    }
+
+    /**
+     * Replace the items of a member's order (admin "sửa đơn"): quantities, sizes, toppings, self-paid flags and note.
+     *
+     * @param UpdateOrderItemsRequest $request Validated request (items[], note).
+     * @param Room $room Current room.
+     * @param Order $order Order being edited.
+     * @param UpdateOrderItemsAction $action Domain action re-pricing and saving the items.
+     * @return JsonResponse Updated order.
+     */
+    public function updateItems(UpdateOrderItemsRequest $request, Room $room, Order $order, UpdateOrderItemsAction $action): JsonResponse
+    {
+        $this->assertRoom($order);
+        $order = $action->execute($order, $request->user('admin'), $request->validated());
+
+        return response()->json([
+            'message' => __('admin.edit_order_success', ['code' => $order->code]),
+            'data' => $order,
+        ]);
     }
 
     /**

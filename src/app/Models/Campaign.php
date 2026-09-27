@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\CampaignStatus;
+use App\Enums\OrderStatus;
 use App\Models\Concerns\BelongsToRoom;
 use App\Models\Concerns\HasStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Campaign extends Model
 {
@@ -122,6 +124,40 @@ class Campaign extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Order lines of every order in this campaign (main items; toppings are stored per line).
+     *
+     * @return HasManyThrough<OrderItem, Order, $this>
+     */
+    public function orderItems(): HasManyThrough
+    {
+        return $this->hasManyThrough(OrderItem::class, Order::class);
+    }
+
+    /**
+     * Gross total paid to the restaurant: order subtotals plus delivery fee minus discount (before sponsorship).
+     *
+     * @param int $grossSubtotal Sum of the non-cancelled orders' subtotals.
+     * @return int Gross total in VND.
+     */
+    public function grossTotal(int $grossSubtotal): int
+    {
+        return max(0, $grossSubtotal + (int) ($this->delivery_fee ?? 0) - (int) ($this->discount ?? 0));
+    }
+
+    /**
+     * Count the distinct members who currently have a (non-cancelled) order in this campaign.
+     *
+     * @return int Number of members who have ordered.
+     */
+    public function orderedMembersCount(): int
+    {
+        return $this->orders()
+            ->where('status', '!=', OrderStatus::Cancelled->value)
+            ->distinct()
+            ->count('room_user_id');
     }
 
     public function debts(): HasMany

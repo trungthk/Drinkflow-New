@@ -123,6 +123,8 @@ return [
         'reviews_count' => '(:count+ reviews)',
         'deadline_info' => 'Locks at :time',
         'auto_lock_notice' => 'Orders automatically close at the deadline',
+        'ordered_members_count' => '{0} No one has ordered yet|{1} 1 person has ordered|[2,*] :count people have ordered',
+        'view_item_image' => 'View image of :name',
         'policy_sponsor_title' => 'Sponsorship Policy',
         'policy_sponsor_val' => 'Subsidies up to :amount/person',
         'sponsor_type_none' => 'No sponsorship',

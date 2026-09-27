@@ -27,15 +27,47 @@ export function initAdminReports() {
     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
     })[char]);
+
+    // Gold / silver / bronze medals for the top 3; ranks 4+ keep a plain number.
+    const MEDAL_TONES = [
+        'bg-amber-100 text-amber-500 ring-1 ring-amber-300 dark:bg-amber-950/50 dark:ring-amber-700',
+        'bg-slate-100 text-slate-400 ring-1 ring-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-600',
+        'bg-orange-100 text-orange-700 ring-1 ring-orange-300 dark:bg-orange-950/50 dark:text-orange-400 dark:ring-orange-800',
+    ];
+    /**
+     * Rank marker for the top drinks / top stores lists.
+     *
+     * @param {number} idx Zero-based position in the list.
+     * @returns {string} HTML of the medal icon (top 3) or the rank number.
+     */
+    const rankBadge = (idx) => {
+        const label = escapeHtml(`${i18n.rank || ''} ${idx + 1}`.trim());
+        if (idx < MEDAL_TONES.length) {
+            return `<span data-rank-medal="${idx + 1}" title="${label}" aria-label="${label}" class="w-6 h-6 shrink-0 rounded-full flex items-center justify-center ${MEDAL_TONES[idx]}"><span class="material-symbols-outlined text-[17px]" aria-hidden="true">military_tech</span></span>`;
+        }
+
+        return `<span title="${label}" class="w-6 h-6 shrink-0 rounded-full bg-surface-container-high text-outline font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>`;
+    };
     const ALIGN_CLASS = { left: 'text-left', center: 'text-center', right: 'text-right' };
 
     /**
-     * Render the member identity cell: display name with the account email underneath.
+     * Render the member identity cell: display name with the account email (and a copy button) underneath.
+     * Copying is handled by the shared [data-copy] helper (ui-enhancements.js).
      */
     function memberCellHtml(name, email) {
+        const copyButton = email ? `
+            <button type="button" data-copy="${escapeHtml(email)}"
+                data-copied-message="${escapeHtml(i18n.copied || '')}"
+                data-copy-failed-message="${escapeHtml(i18n.copyFailed || '')}"
+                data-tooltip="${escapeHtml(i18n.copyEmail || '')}"
+                aria-label="${escapeHtml(i18n.copyEmail || '')}"
+                class="inline-flex shrink-0 items-center text-outline hover:text-primary transition-colors cursor-pointer">
+                <span class="material-symbols-outlined text-[14px]" aria-hidden="true">content_copy</span>
+            </button>` : '';
+
         return `
             <div class="font-semibold text-on-surface truncate">${escapeHtml(name || i18n.member)}</div>
-            ${email ? `<div class="text-[11px] text-outline truncate">${escapeHtml(email)}</div>` : ''}
+            ${email ? `<div class="flex items-center gap-1 min-w-0 text-[11px] text-outline"><span class="truncate">${escapeHtml(email)}</span>${copyButton}</div>` : ''}
         `;
     }
 
@@ -163,7 +195,7 @@ export function initAdminReports() {
                         drinksList.innerHTML = data.popular_drinks.map((d, idx) => `
                             <div class="flex items-center justify-between p-2.5 bg-surface-container-low rounded border border-outline-variant/60">
                                 <div class="flex items-center gap-2">
-                                    <span class="w-5 h-5 rounded-full bg-primary/10 text-primary font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
+                                    ${rankBadge(idx)}
                                     <span class="font-bold text-on-surface">${escapeHtml(d.item_name)}</span>
                                 </div>
                                 <span class="font-mono font-bold text-primary">${escapeHtml(d.quantity)}</span>
@@ -179,7 +211,7 @@ export function initAdminReports() {
                         storesList.innerHTML = data.popular_stores.map((s, idx) => `
                             <div class="flex items-center justify-between p-2.5 bg-surface-container-low rounded border border-outline-variant/60">
                                 <div class="flex items-center gap-2">
-                                    <span class="w-5 h-5 rounded-full bg-secondary/10 text-secondary font-bold flex items-center justify-center text-[10px]">${idx + 1}</span>
+                                    ${rankBadge(idx)}
                                     <span class="font-bold text-on-surface">${escapeHtml(s.restaurant)}</span>
                                 </div>
                                 <span class="font-mono font-bold text-on-surface">${escapeHtml(s.orders)} (${money(s.spending)})</span>

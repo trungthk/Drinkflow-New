@@ -6,6 +6,7 @@
 @source '../../storage/framework/views/*.php';
 @source '../views/user/global/**/*.blade.php';
 @source '../views/components/global/**/*.blade.php';
+@source '../views/components/*.blade.php';
 @source '../js/global/**/*.js';
 @source '../js/global.js';
 

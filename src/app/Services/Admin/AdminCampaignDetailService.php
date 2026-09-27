@@ -283,7 +283,7 @@ class AdminCampaignDetailService
         $grossSubtotal = (int) $orders->sum('subtotal');
         $deliveryFee = (int) ($campaign->delivery_fee ?? 0);
         $discount = (int) ($campaign->discount ?? 0);
-        $grossTotal = max(0, $grossSubtotal + $deliveryFee - $discount);
+        $grossTotal = $campaign->grossTotal($grossSubtotal);
         $sponsorTotal = $campaign->sponsor_type === Campaign::SPONSOR_TYPE_FULL
             ? $grossTotal
             : (int) $orders->sum('sponsor_amount');

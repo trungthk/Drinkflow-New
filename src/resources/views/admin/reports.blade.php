@@ -39,6 +39,9 @@
             'noSponsorsDesc' => __('admin.no_sponsors_found_desc'),
             'noUsersTitle' => __('admin.no_users_analytics_found'),
             'noUsersDesc' => __('admin.no_users_analytics_found_desc'),
+            'copied' => __('admin.copied'),
+            'copyFailed' => __('admin.copy_failed'),
+            'copyEmail' => __('admin.copy_email'),
         ];
     @endphp
     <!-- 5 Report Tabs Navigation -->
@@ -113,8 +116,10 @@
                     <h2 class="font-bold text-sm text-on-surface">{{ __('admin.participation_ratio_heading') }}</h2>
                     <p class="text-[11px] text-outline">{{ __('admin.total_room_members_label') }} {{ $roomMembersCount ?? 0 }}</p>
                 </div>
-                <div class="flex items-center gap-3 text-[11px] font-semibold">
-                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-primary inline-block"></span> {{ __('admin.participating') }}</span>
+                <div class="flex flex-wrap items-center gap-3 text-[11px] font-semibold">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span> {{ __('admin.participation_low') }}</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span> {{ __('admin.participation_medium') }}</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span> {{ __('admin.participation_high') }}</span>
                     <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-surface-container-high inline-block"></span> {{ __('admin.not_participating') }}</span>
                 </div>
             </div>
@@ -124,14 +129,21 @@
                     @php
                         $ordersCount = (int) $c->orders_count;
                         $pct = $roomMembersCount > 0 ? min(100, round(($ordersCount / $roomMembersCount) * 100, 1)) : 0;
+                        // Participation bands: < 50% low (rose), < 80% medium (amber), otherwise high (emerald).
+                        $band = $pct < 50 ? 'low' : ($pct < 80 ? 'medium' : 'high');
+                        [$barClass, $pctClass] = match ($band) {
+                            'low' => ['bg-rose-500', 'text-rose-600 dark:text-rose-400'],
+                            'medium' => ['bg-amber-500', 'text-amber-600 dark:text-amber-400'],
+                            default => ['bg-emerald-500', 'text-emerald-600 dark:text-emerald-400'],
+                        };
                     @endphp
-                    <div>
+                    <div data-participation-band="{{ $band }}">
                         <div class="flex justify-between items-center mb-1 text-on-surface">
                             <span class="font-bold text-xs">{{ $c->name ?? $c->title }} ({{ $c->restaurant }})</span>
-                            <span class="font-mono text-outline">{{ $ordersCount }} ({{ $pct }}%)</span>
+                            <span class="font-mono text-outline">{{ $ordersCount }} (<span class="font-bold {{ $pctClass }}">{{ $pct }}%</span>)</span>
                         </div>
                         <div class="w-full h-2.5 bg-surface-container-high rounded-full flex overflow-hidden">
-                            <div class="bg-primary rounded-full hover:opacity-90 transition-all" style="width: {{ $pct }}%" title="{{ $ordersCount }}"></div>
+                            <div class="{{ $barClass }} rounded-full hover:opacity-90 transition-all" style="width: {{ $pct }}%" title="{{ $ordersCount }}"></div>
                         </div>
                     </div>
                 @empty

@@ -139,6 +139,49 @@ class UserRoomDashboardTopItemsTest extends TestCase
     }
 
     /**
+     * Dashboard and campaign page show how many members have ordered, counting each member once and ignoring cancelled orders.
+     *
+     * @return void
+     */
+    public function test_dashboard_and_campaign_page_show_ordered_members_count(): void
+    {
+        $room = Room::create(['name' => 'Technology', 'slug' => 'technology-ordered-count', 'status' => RoomStatus::Active]);
+        $campaign = Campaign::create([
+            'room_id' => $room->id, 'name' => 'Live coffee', 'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active, 'deadline' => now()->addHour(),
+        ]);
+        $user = $this->user('ordered-count@example.test');
+        $member = $this->member($room, $user, 'COUNTA');
+        $noOne = trans_choice('room.campaign.ordered_members_count', 0, ['count' => 0]);
+
+        $this->actingAs($user, 'web')->get(route('user.dashboard', $room->slug))->assertOk()->assertSee($noOne);
+        $this->actingAs($user, 'web')->get(route('user.campaigns.index', $room->slug))->assertOk()->assertSee($noOne);
+
+        // A member who cancelled and re-ordered is counted once.
+        foreach ([OrderStatus::Cancelled, OrderStatus::Submitted] as $status) {
+            $member->orders()->create([
+                'room_id' => $room->id, 'campaign_id' => $campaign->id,
+                'subtotal' => 30000, 'final_amount' => 30000, 'status' => $status,
+            ]);
+        }
+        $other = $this->member($room, $this->user('ordered-count-b@example.test'), 'COUNTB');
+        $other->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+            'subtotal' => 30000, 'final_amount' => 30000, 'status' => OrderStatus::Submitted,
+        ]);
+        $cancelled = $this->member($room, $this->user('ordered-count-c@example.test'), 'COUNTC');
+        $cancelled->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+            'subtotal' => 30000, 'final_amount' => 30000, 'status' => OrderStatus::Cancelled,
+        ]);
+
+        $two = trans_choice('room.campaign.ordered_members_count', 2, ['count' => 2]);
+        $this->assertSame(2, $campaign->orderedMembersCount());
+        $this->actingAs($user, 'web')->get(route('user.dashboard', $room->slug))->assertOk()->assertSee($two);
+        $this->actingAs($user, 'web')->get(route('user.campaigns.index', $room->slug))->assertOk()->assertSee($two);
+    }
+
+    /**
      * The orders page renders a submitted order whose items carry toppings (priced by unit_price).
      *
      * @return void

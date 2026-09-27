@@ -57,7 +57,7 @@ class CheckMaintenanceMode
             return response()->json(['message' => __('errors.maintenance.json_message')], Response::HTTP_SERVICE_UNAVAILABLE, $headers);
         }
 
-        return response()->view('errors.maintenance', ['maintenance' => $state], Response::HTTP_SERVICE_UNAVAILABLE, $headers);
+        return response()->view('errors.503', ['maintenance' => $state], Response::HTTP_SERVICE_UNAVAILABLE, $headers);
     }
 
     /**

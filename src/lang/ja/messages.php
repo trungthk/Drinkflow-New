@@ -35,6 +35,8 @@ return [
     'debt_channel_reminder_title' => '未払い清算リマインダー',
     'order_price_adjusted_title' => '注文価格の調整',
     'order_price_adjusted_body' => '注文番号 :order_code の価格が :amount に調整されました。理由: :reason',
+    'order_items_updated_title' => '注文が編集されました',
+    'order_items_updated_body' => '管理者が注文 :order_code の商品を編集しました。新しい合計: :amount。',
     'campaign_updated_title' => 'キャンペーン更新',
     'campaign_updated_body' => 'キャンペーン情報が更新されました。',
     'campaign_delivering_title' => '商品が届きました！ 🧋',

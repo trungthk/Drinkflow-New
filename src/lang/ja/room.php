@@ -123,6 +123,8 @@ return [
         'reviews_count' => '(:count+ 件の評価)',
         'deadline_info' => ':time に締切',
         'auto_lock_notice' => '締切時刻になると自動的に注文が締め切られます',
+        'ordered_members_count' => '{0} まだ注文した人はいません|[1,*] :count人が注文済み',
+        'view_item_image' => ':nameの画像を表示',
         'policy_sponsor_title' => '補助金ポリシー',
         'policy_sponsor_val' => '1人あたり最大:amount補助',
         'sponsor_type_none' => '補助なし',

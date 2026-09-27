@@ -168,7 +168,7 @@ class AdminFeatureTest extends TestCase
     }
 
     /**
-     * Campaign listing searches on the backend and renders the persisted order window.
+     * Campaign listing searches on the backend and renders the persisted start time beside the restaurant.
      *
      * @return void
      */
@@ -194,8 +194,9 @@ class AdminFeatureTest extends TestCase
         $response->assertOk()
             ->assertSee('Highlands Morning')
             ->assertDontSee('Other Campaign')
-            ->assertSee('From: '.$startedAt->format('H:i d/m/Y'))
-            ->assertSee('Until: '.$deadline->format('H:i d/m/Y'));
+            ->assertSee($startedAt->format('H:i d/m/Y'))
+            // The order-window column was replaced by the total items column.
+            ->assertDontSee($deadline->format('H:i d/m/Y'));
     }
 
     public function test_guest_cannot_access_admin_profile(): void

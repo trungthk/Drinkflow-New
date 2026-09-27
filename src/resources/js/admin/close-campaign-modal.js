@@ -1,4 +1,5 @@
 import { formatMoney } from '../shared/money';
+import { setLoadingOverlay } from '../shared/loading-overlay';
 
 /**
  * Shared "End orders & finalize campaign" modal (x-admin.close-campaign-modal).
@@ -45,8 +46,7 @@ export function initCloseCampaignModal() {
     }
 
     function setLoading(on) {
-        loading?.classList.toggle('hidden', !on);
-        loading?.classList.toggle('flex', on);
+        setLoadingOverlay(loading, on);
     }
 
     function setError(message) {

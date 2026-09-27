@@ -490,36 +490,85 @@
     <x-admin.go-to-top />
 
     @if ($room)
+        @php
+            $broadcastTypes = [
+                ['value' => 'admin.broadcast', 'icon' => 'campaign', 'label' => __('admin.broadcast_general'), 'title' => __('admin.broadcast_sample_title'), 'body' => __('admin.broadcast_sample_body')],
+                ['value' => 'campaign.created', 'icon' => 'local_cafe', 'label' => __('admin.broadcast_campaign'), 'title' => __('admin.broadcast_campaign_title'), 'body' => __('admin.broadcast_campaign_body')],
+                ['value' => 'payment.reminder', 'icon' => 'payments', 'label' => __('admin.broadcast_payment'), 'title' => __('admin.broadcast_payment_title'), 'body' => __('admin.broadcast_payment_body')],
+            ];
+            $broadcastField = 'w-full rounded-xl border border-outline-variant bg-surface px-3 text-xs text-on-surface transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20';
+        @endphp
         <div id="admin-broadcast-modal" class="hidden fixed inset-0 z-[70] items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-            <div class="w-full max-w-lg rounded-2xl border border-outline-variant bg-surface-container-lowest p-5 shadow-2xl" role="dialog" aria-modal="true">
-                <div class="mb-4 flex items-center justify-between border-b border-outline-variant pb-3">
-                    <h3 class="flex items-center gap-2 text-sm font-bold text-on-surface"><span class="material-symbols-outlined text-secondary">campaign</span>{{ __('admin.broadcast_notification') }}</h3>
-                    <button type="button" id="admin-broadcast-close" class="text-outline hover:text-on-surface"><span class="material-symbols-outlined">close</span></button>
+            <div data-broadcast-backdrop class="absolute inset-0"></div>
+            <div class="relative z-10 flex max-h-[92vh] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-lowest shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="admin-broadcast-heading">
+                <div class="flex items-start gap-3 border-b border-outline-variant/60 bg-surface-container-low/60 px-5 py-4">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-secondary/20 bg-secondary/10 text-secondary">
+                        <span class="material-symbols-outlined text-[22px]" aria-hidden="true">campaign</span>
+                    </span>
+                    <div class="min-w-0 flex-1">
+                        <h3 id="admin-broadcast-heading" class="text-base font-bold text-on-surface">{{ __('admin.broadcast_notification') }}</h3>
+                        <p class="mt-0.5 text-xs text-outline">{{ __('admin.broadcast_subtitle', ['room' => $room->name]) }}</p>
+                    </div>
+                    <button type="button" id="admin-broadcast-close" class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-outline transition-colors hover:bg-surface-container hover:text-on-surface" aria-label="{{ __('admin.close_modal_btn') }}">
+                        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">close</span>
+                    </button>
                 </div>
-                <form id="admin-broadcast-form" data-url="{{ route('admin.notifications.broadcast', $room) }}" class="space-y-3" novalidate>
-                    <label class="block text-xs font-semibold text-on-surface">
-                        <span>{{ __('admin.broadcast_type') }}<span class="ml-0.5 text-red-600" aria-hidden="true">*</span></span>
-                        <select id="admin-broadcast-type" required aria-required="true" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface">
-                            <option value="admin.broadcast" data-title="{{ __('admin.broadcast_sample_title') }}" data-body="{{ __('admin.broadcast_sample_body') }}">{{ __('admin.broadcast_general') }}</option>
-                            <option value="campaign.created" data-title="{{ __('admin.broadcast_campaign_title') }}" data-body="{{ __('admin.broadcast_campaign_body') }}">{{ __('admin.broadcast_campaign') }}</option>
-                            <option value="payment.reminder" data-title="{{ __('admin.broadcast_payment_title') }}" data-body="{{ __('admin.broadcast_payment_body') }}">{{ __('admin.broadcast_payment') }}</option>
-                        </select>
-                        <span data-broadcast-error="type" class="mt-1 hidden text-[11px] font-medium text-red-600"></span>
-                    </label>
-                    <label class="block text-xs font-semibold text-on-surface">
-                        <span>{{ __('admin.broadcast_title') }}<span class="ml-0.5 text-red-600" aria-hidden="true">*</span></span>
-                        <input id="admin-broadcast-title" required aria-required="true" maxlength="160" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface">
-                        <span data-broadcast-error="title" class="mt-1 hidden text-[11px] font-medium text-red-600"></span>
-                    </label>
-                    <label class="block text-xs font-semibold text-on-surface">
-                        <span>{{ __('admin.broadcast_content') }}</span>
-                        <textarea id="admin-broadcast-body" rows="4" maxlength="2000" class="mt-1 w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-xs text-on-surface"></textarea>
-                        <span data-broadcast-error="body" class="mt-1 hidden text-[11px] font-medium text-red-600"></span>
-                    </label>
-                    <p id="admin-broadcast-notice" class="hidden rounded-lg px-3 py-2 text-xs"></p>
-                    <div class="flex justify-end gap-2 border-t border-outline-variant pt-3">
-                        <button type="button" id="admin-broadcast-cancel" class="rounded-lg border border-outline-variant px-4 py-2 text-xs font-semibold">{{ __('admin.cancel') }}</button>
-                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60">
+                <form id="admin-broadcast-form" data-url="{{ route('admin.notifications.broadcast', $room) }}" class="flex min-h-0 flex-1 flex-col text-xs" novalidate>
+                    <div class="space-y-4 overflow-y-auto p-5">
+                        <fieldset>
+                            <legend class="mb-1.5 font-semibold text-on-surface">{{ __('admin.broadcast_type') }}<span class="ml-0.5 text-red-600" aria-hidden="true">*</span></legend>
+                            {{-- The select stays the source of truth (validation + sample texts); the cards only drive it. --}}
+                            <select id="admin-broadcast-type" required aria-required="true" class="sr-only" tabindex="-1" aria-hidden="true">
+                                @foreach ($broadcastTypes as $broadcastType)
+                                    <option value="{{ $broadcastType['value'] }}" data-title="{{ $broadcastType['title'] }}" data-body="{{ $broadcastType['body'] }}">{{ $broadcastType['label'] }}</option>
+                                @endforeach
+                            </select>
+                            <div class="grid grid-cols-1 gap-2 sm:grid-cols-3" role="radiogroup" aria-label="{{ __('admin.broadcast_type') }}">
+                                @foreach ($broadcastTypes as $broadcastType)
+                                    <button type="button" role="radio" aria-checked="false" data-broadcast-type-card="{{ $broadcastType['value'] }}"
+                                        class="flex items-center gap-2 rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-left font-semibold text-on-surface transition-colors hover:border-primary/50 aria-checked:border-primary aria-checked:bg-primary/5 aria-checked:ring-2 aria-checked:ring-primary/15">
+                                        <span class="material-symbols-outlined text-[20px] text-outline" data-broadcast-type-icon aria-hidden="true">{{ $broadcastType['icon'] }}</span>
+                                        <span class="min-w-0 leading-snug">{{ $broadcastType['label'] }}</span>
+                                    </button>
+                                @endforeach
+                            </div>
+                            <span data-broadcast-error="type" class="mt-1 hidden text-[11px] font-medium text-red-600"></span>
+                        </fieldset>
+                        <div>
+                            <div class="mb-1.5 flex items-center justify-between">
+                                <label for="admin-broadcast-title" class="font-semibold text-on-surface">{{ __('admin.broadcast_title') }}<span class="ml-0.5 text-red-600" aria-hidden="true">*</span></label>
+                                <span class="font-mono text-[10px] text-outline" data-broadcast-count="title">0/160</span>
+                            </div>
+                            <input id="admin-broadcast-title" required aria-required="true" maxlength="160" class="{{ $broadcastField }} h-10">
+                            <span data-broadcast-error="title" class="mt-1 hidden text-[11px] font-medium text-red-600"></span>
+                        </div>
+                        <div>
+                            <div class="mb-1.5 flex items-center justify-between">
+                                <label for="admin-broadcast-body" class="font-semibold text-on-surface">{{ __('admin.broadcast_content') }}</label>
+                                <span class="font-mono text-[10px] text-outline" data-broadcast-count="body">0/2000</span>
+                            </div>
+                            <textarea id="admin-broadcast-body" rows="4" maxlength="2000" class="{{ $broadcastField }} py-2.5 leading-relaxed"></textarea>
+                            <span data-broadcast-error="body" class="mt-1 hidden text-[11px] font-medium text-red-600"></span>
+                        </div>
+                        {{-- Live preview of the notification members will receive. --}}
+                        <div>
+                            <div class="mb-1.5 font-semibold text-on-surface">{{ __('admin.broadcast_preview') }}</div>
+                            <div class="flex items-start gap-3 rounded-xl border border-outline-variant/70 bg-surface-container-low p-3">
+                                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                    <span class="material-symbols-outlined text-[18px]" data-broadcast-preview-icon aria-hidden="true">campaign</span>
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="break-words font-bold text-on-surface" data-broadcast-preview-title>—</p>
+                                    <p class="mt-0.5 whitespace-pre-line break-words leading-relaxed text-secondary line-clamp-4" data-broadcast-preview-body></p>
+                                    <p class="mt-1 text-[10px] text-outline">{{ $room->name }} · {{ __('admin.broadcast_preview_now') }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p id="admin-broadcast-notice" class="hidden rounded-lg px-3 py-2 text-xs"></p>
+                    </div>
+                    <div class="flex items-center justify-end gap-2 border-t border-outline-variant/60 bg-surface-container-low/60 px-5 py-3.5">
+                        <button type="button" id="admin-broadcast-cancel" class="rounded-xl border border-outline-variant px-4 py-2 font-semibold text-on-surface transition-colors hover:bg-surface-container">{{ __('admin.cancel') }}</button>
+                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 font-semibold text-white shadow-xs transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60">
                             <span class="material-symbols-outlined text-[16px]">send</span>
                             <span>{{ __('admin.broadcast_confirm') }}</span>
                         </button>
@@ -567,11 +616,49 @@
                 const title = document.getElementById('admin-broadcast-title');
                 const body = document.getElementById('admin-broadcast-body');
                 const notice = document.getElementById('admin-broadcast-notice');
-                const open = () => { modal?.classList.remove('hidden'); modal?.classList.add('flex'); type?.dispatchEvent(new Event('change')); };
-                const close = () => { modal?.classList.add('hidden'); modal?.classList.remove('flex'); };
+                const cards = Array.from(modal?.querySelectorAll('[data-broadcast-type-card]') || []);
+                const previewTitle = modal?.querySelector('[data-broadcast-preview-title]');
+                const previewBody = modal?.querySelector('[data-broadcast-preview-body]');
+                const previewIcon = modal?.querySelector('[data-broadcast-preview-icon]');
+                const counters = { title: modal?.querySelector('[data-broadcast-count="title"]'), body: modal?.querySelector('[data-broadcast-count="body"]') };
+                const submitButton = form?.querySelector('button[type="submit"]');
+                const submitIcon = submitButton?.querySelector('.material-symbols-outlined');
+                const submitLabel = submitButton?.querySelector('span:last-child');
+                const submitText = submitLabel?.textContent || '';
+                const isOpen = () => modal && !modal.classList.contains('hidden');
+                let sending = false;
+                // Keep the type cards, character counters and live preview in sync with the form fields.
+                const syncCards = () => cards.forEach((card) => {
+                    const active = card.dataset.broadcastTypeCard === type.value;
+                    card.setAttribute('aria-checked', active ? 'true' : 'false');
+                    card.querySelector('[data-broadcast-type-icon]')?.classList.toggle('text-primary', active);
+                    card.querySelector('[data-broadcast-type-icon]')?.classList.toggle('text-outline', !active);
+                    if (active && previewIcon) previewIcon.textContent = card.querySelector('[data-broadcast-type-icon]')?.textContent || 'campaign';
+                });
+                const syncPreview = () => {
+                    if (counters.title) counters.title.textContent = `${title.value.length}/160`;
+                    if (counters.body) counters.body.textContent = `${body.value.length}/2000`;
+                    if (previewTitle) previewTitle.textContent = title.value.trim() || '—';
+                    if (previewBody) previewBody.textContent = body.value.trim();
+                };
+                const setSending = (on) => {
+                    sending = on;
+                    if (submitButton) submitButton.disabled = on;
+                    if (submitIcon) { submitIcon.textContent = on ? 'progress_activity' : 'send'; submitIcon.classList.toggle('animate-spin', on); }
+                    if (submitLabel) submitLabel.textContent = on ? @js(__('admin.broadcast_sending')) : submitText;
+                };
+                const open = () => { modal?.classList.remove('hidden'); modal?.classList.add('flex'); type?.dispatchEvent(new Event('change')); title?.focus(); };
+                const close = () => { if (sending) return; modal?.classList.add('hidden'); modal?.classList.remove('flex'); };
                 document.getElementById('admin-broadcast-open')?.addEventListener('click', open);
                 document.getElementById('admin-broadcast-close')?.addEventListener('click', close);
                 document.getElementById('admin-broadcast-cancel')?.addEventListener('click', close);
+                modal?.querySelector('[data-broadcast-backdrop]')?.addEventListener('click', close);
+                document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && isOpen()) close(); });
+                cards.forEach((card) => card.addEventListener('click', () => {
+                    type.value = card.dataset.broadcastTypeCard;
+                    type.dispatchEvent(new Event('change'));
+                }));
+                [title, body].forEach((field) => field?.addEventListener('input', syncPreview));
                 const messages = @js([
                     'typeRequired' => __('validation.required', ['attribute' => __('validation.attributes.type')]),
                     'typeInvalid' => __('validation.in', ['attribute' => __('validation.attributes.type')]),
@@ -610,22 +697,24 @@
                 };
                 ['type', 'title', 'body'].forEach((name) => fields[name]?.addEventListener('input', () => setError(name, '')));
 
-                type?.addEventListener('change', () => { const option = type.options[type.selectedIndex]; title.value = option.dataset.title || ''; body.value = option.dataset.body || ''; clearErrors(); });
+                type?.addEventListener('change', () => { const option = type.options[type.selectedIndex]; title.value = option.dataset.title || ''; body.value = option.dataset.body || ''; clearErrors(); syncCards(); syncPreview(); });
                 form?.addEventListener('submit', async (event) => {
                     event.preventDefault();
+                    if (sending) return;
                     clearErrors();
                     const clientErrors = validate();
                     if (Object.keys(clientErrors).length) { showErrors(clientErrors); return; }
-                    const button = form.querySelector('button[type="submit"]');
-                    button.disabled = true;
+                    setSending(true);
                     try {
                         const response = await window.dfApi(form.dataset.url, { method: 'POST', body: { type: type.value, title: title.value.trim(), body: body.value.trim() } });
-                        notice.textContent = response.message || '{{ __('admin.broadcast_sent', ['count' => ':count']) }}'; notice.className = 'rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700'; notice.classList.remove('hidden');
-                        window.setTimeout(close, 700);
+                        notice.textContent = response.message || '{{ __('admin.broadcast_sent', ['count' => ':count']) }}'; notice.className = 'flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700'; notice.classList.remove('hidden');
+                        setSending(false);
+                        window.setTimeout(close, 900);
                     } catch (error) {
+                        setSending(false);
                         if (error.status === 422 && error.errors && Object.keys(error.errors).length) { showErrors(error.errors); }
-                        else { notice.textContent = error.message || '{{ __('admin.broadcast_failed') }}'; notice.className = 'rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700'; notice.classList.remove('hidden'); }
-                    } finally { button.disabled = false; }
+                        else { notice.textContent = error.message || '{{ __('admin.broadcast_failed') }}'; notice.className = 'rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700'; notice.classList.remove('hidden'); }
+                    }
                 });
             })();
         </script>

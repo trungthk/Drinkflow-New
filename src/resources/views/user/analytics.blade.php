@@ -2,8 +2,14 @@
     @php
         $metrics = [
             ['label' => __('room.analytics.orders_placed'), 'icon' => 'receipt_long', 'value' => $totalOrders, 'detail' => __('room.analytics.orders_unit', ['cups' => $totalCups]) . ' · ' . __('room.analytics.participation_rate', ['percent' => $participationRate])],
-            ['label' => __('room.analytics.total_spent'), 'icon' => 'payments', 'value' => \App\Support\Helpers\FormatHelper::formatCurrency($totalAmount), 'detail' => __('room.analytics.weekly_avg', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($weeklyAverage)])],
-            ['label' => __('room.analytics.sponsor_received'), 'icon' => 'redeem', 'value' => \App\Support\Helpers\FormatHelper::formatCurrency($sponsorReceived), 'detail' => __('room.analytics.savings_percent', ['percent' => $savingsPercent])],
+            ['label' => __('room.analytics.total_spent'), 'icon' => 'payments', 'tone' => 'spent', 'value' => \App\Support\Helpers\FormatHelper::formatCurrency($totalAmount), 'detail' => __('room.analytics.weekly_avg', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($weeklyAverage)])],
+            ['label' => __('room.analytics.sponsor_received'), 'icon' => 'redeem', 'tone' => 'sponsor', 'value' => \App\Support\Helpers\FormatHelper::formatCurrency($sponsorReceived), 'detail' => __('room.analytics.savings_percent', ['percent' => $savingsPercent])],
+        ];
+        // Distinct colors so spending and received sponsorship are not confused; other metrics stay neutral.
+        $metricTones = [
+            'spent' => ['card' => 'border-blue-200/80 bg-blue-50/40', 'icon' => 'text-blue-600', 'value' => 'text-blue-700'],
+            'sponsor' => ['card' => 'border-violet-200/80 bg-violet-50/40', 'icon' => 'text-violet-600', 'value' => 'text-violet-700'],
+            'default' => ['card' => 'border-slate-200/80 bg-white', 'icon' => 'text-[#006948]', 'value' => 'text-slate-900'],
         ];
     @endphp
     <div class="space-y-4">
@@ -36,13 +42,14 @@
         </section>
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
             @foreach($metrics as $metric)
-                <section class="rounded-xl border border-slate-200/80 bg-white p-3.5 sm:p-4 shadow-2xs flex flex-col justify-between">
+                @php($tone = $metricTones[$metric['tone'] ?? 'default'])
+                <section data-metric-tone="{{ $metric['tone'] ?? 'default' }}" class="rounded-xl border {{ $tone['card'] }} p-3.5 sm:p-4 shadow-2xs flex flex-col justify-between">
                     <div class="flex items-center justify-between gap-2">
                         <h2 class="text-xs font-semibold text-slate-500">{{ $metric['label'] }}</h2>
-                        <span class="material-symbols-outlined text-[#006948] text-[18px]" aria-hidden="true">{{ $metric['icon'] }}</span>
+                        <span class="material-symbols-outlined {{ $tone['icon'] }} text-[18px]" aria-hidden="true">{{ $metric['icon'] }}</span>
                     </div>
                     <div class="mt-2.5">
-                        <p class="text-lg sm:text-xl font-bold font-mono text-slate-900 tabular-nums break-words">{{ $metric['value'] }}</p>
+                        <p class="text-lg sm:text-xl font-bold font-mono {{ $tone['value'] }} tabular-nums break-words">{{ $metric['value'] }}</p>
                         <p class="text-[11px] text-slate-500 mt-1">{{ $metric['detail'] }}</p>
                     </div>
                 </section>

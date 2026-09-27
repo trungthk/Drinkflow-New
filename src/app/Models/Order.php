@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\CampaignStatus;
+use App\Enums\OrderPlacementType;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Concerns\BelongsToRoom;
@@ -118,6 +119,22 @@ class Order extends Model
     {
         return $query
             ->whereHas('campaign', static fn (Builder $campaignQuery): Builder => $campaignQuery->where('status', CampaignStatus::Active->value));
+    }
+
+    /**
+     * Limit the query to one order type: placed by the member, by a room admin, or by another member (proxy).
+     *
+     * @param Builder<Order> $query Order query being scoped.
+     * @param OrderPlacementType $type Order type to keep.
+     * @return Builder<Order> Scoped query.
+     */
+    public function scopeOfPlacementType(Builder $query, OrderPlacementType $type): Builder
+    {
+        return match ($type) {
+            OrderPlacementType::Admin => $query->whereNotNull('placed_by_admin_id'),
+            OrderPlacementType::Proxy => $query->whereNull('placed_by_admin_id')->whereNotNull('parent_id'),
+            OrderPlacementType::Self => $query->whereNull('placed_by_admin_id')->whereNull('parent_id'),
+        };
     }
 
     /**

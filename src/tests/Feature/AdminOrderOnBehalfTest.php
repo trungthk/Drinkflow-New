@@ -172,8 +172,8 @@ class AdminOrderOnBehalfTest extends TestCase
             ->getContent();
 
         $modal = (string) str($html)->after('id="order-on-behalf-modal"');
-        $this->assertStringContainsString('<option value="' . $this->member->id . '">', $modal);
-        $this->assertStringNotContainsString('<option value="' . $ordered->id . '">', $modal);
+        $this->assertStringContainsString('<option value="' . $this->member->id . '" data-search=', $modal);
+        $this->assertStringNotContainsString('<option value="' . $ordered->id . '" data-search=', $modal);
     }
 
     public function test_orders_page_hides_button_when_campaign_closed(): void

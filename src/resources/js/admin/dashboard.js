@@ -1,5 +1,6 @@
 import { formatMoney } from '../shared/money';
 import { attachSocketDebugLogger } from '../shared/socket-debug';
+import { setLoadingOverlay } from '../shared/loading-overlay';
 
 /**
  * Admin Dashboard Live Monitor & Realtime Controller
@@ -368,7 +369,14 @@ export function initAdminDashboard() {
             const percent = data.participation_percent || Math.min(100, Math.round((participants / totalMembers) * 100));
 
             if (heroPartText) heroPartText.textContent = `${participants} / ${totalMembers} (${percent}%)`;
-            if (heroBar) heroBar.style.width = `${percent}%`;
+            if (heroBar) {
+                heroBar.style.width = `${percent}%`;
+                // Same bands as the reports' participation ratio: < 50% rose, < 80% amber, otherwise emerald.
+                const band = percent < 50 ? 'low' : (percent < 80 ? 'medium' : 'high');
+                heroBar.classList.remove('bg-primary', 'bg-rose-500', 'bg-amber-500', 'bg-emerald-500');
+                heroBar.classList.add({ low: 'bg-rose-500', medium: 'bg-amber-500', high: 'bg-emerald-500' }[band]);
+                heroBar.dataset.participationBand = band;
+            }
 
             renderCountdown(hero.deadline);
 
@@ -413,8 +421,14 @@ export function initAdminDashboard() {
         }
     }
 
+    const trendLoading = document.querySelector('[data-trend-loading]');
+
     async function loadDashboard() {
-        if (!dashboardUrl) return;
+        if (!dashboardUrl) {
+            setLoadingOverlay(trendLoading, false);
+            return;
+        }
+        setLoadingOverlay(trendLoading, true);
         try {
             const res = await fetch(dashboardUrl, { headers: { Accept: 'application/json' } });
             if (!res.ok) throw new Error('Failed to load dashboard data');
@@ -422,6 +436,8 @@ export function initAdminDashboard() {
             renderDashboard(json.data || {});
         } catch (e) {
             console.error('Dashboard load error', e);
+        } finally {
+            setLoadingOverlay(trendLoading, false);
         }
     }
 

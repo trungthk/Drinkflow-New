@@ -75,10 +75,7 @@
                             <span data-close-summary="sponsor_total" data-sign="-" class="font-mono font-semibold text-emerald-700">—</span>
                         </div>
                         <div class="{{ $statRow }}">
-                            <span class="flex flex-col">
-                                <span class="text-outline">{{ __('admin.close_summary_self_paid_total') }}</span>
-                                <span class="text-[10px] text-outline/80 font-normal">{{ __('admin.close_summary_self_paid_total_hint') }}</span>
-                            </span>
+                            <span class="text-outline">{{ __('admin.close_summary_self_paid_total') }}</span>
                             <span data-close-summary="self_paid_total" class="font-mono font-semibold text-violet-700 dark:text-violet-300">—</span>
                         </div>
                         <div class="{{ $statRow }} pt-2 mt-1 border-t border-outline-variant/40">
@@ -113,10 +110,7 @@
                         </div>
                     </div>
                 </div>
-                <div data-close-summary-loading class="absolute inset-0 hidden items-center justify-center gap-2 rounded-xl bg-surface-container-low/85 text-outline font-medium">
-                    <svg class="animate-spin h-4 w-4 text-primary" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span>{{ __('admin.close_summary_loading') }}</span>
-                </div>
+                <x-loading-overlay data-close-summary-loading :label="__('admin.close_summary_loading')" />
             </div>
 
             <p data-close-summary-error class="hidden p-3 rounded-xl border border-error/30 bg-error/5 text-error font-medium"></p>

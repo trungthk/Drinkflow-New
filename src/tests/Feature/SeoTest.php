@@ -58,7 +58,7 @@ class SeoTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('<meta name="robots" content="index, follow"/>', false)
-            ->assertSee('images/home-intro.jpg', false);
+            ->assertSee('images/home-intro.webp', false);
     }
 
     /**

@@ -2,6 +2,13 @@
 
 return [
     'portal_title' => 'Portal',
+    'lightbox' => [
+        'title' => 'Image viewer',
+        'close' => 'Close',
+        'prev' => 'Previous image',
+        'next' => 'Next image',
+        'counter' => 'Image :current / :total',
+    ],
     'common' => [
         'error' => 'Something went wrong. Please try again.',
         'room' => 'Room',

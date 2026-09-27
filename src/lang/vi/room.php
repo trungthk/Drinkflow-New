@@ -123,6 +123,8 @@ return [
         'reviews_count' => '(:count+ đánh giá)',
         'deadline_info' => 'Chốt đơn lúc :time',
         'auto_lock_notice' => 'Hệ thống tự động khóa đơn sau hạn chót',
+        'ordered_members_count' => '{0} Chưa có ai đặt món|[1,*] Đã có :count người đặt món',
+        'view_item_image' => 'Xem ảnh món :name',
         'policy_sponsor_title' => 'Chính sách tài trợ',
         'policy_sponsor_val' => 'Hỗ trợ tối đa :amount/người',
         'sponsor_type_none' => 'Không tài trợ',

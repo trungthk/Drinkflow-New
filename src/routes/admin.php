@@ -77,6 +77,7 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::post('/orders/on-behalf', [\App\Http\Controllers\Admin\OrderController::class, 'storeOnBehalf'])->middleware('throttle:30,1')->name('admin.orders.on-behalf');
     Route::get('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'show'])->name('admin.orders.show');
     Route::patch('/orders/{order}', [\App\Http\Controllers\Admin\OrderController::class, 'update'])->name('admin.orders.update');
+    Route::put('/orders/{order}/items', [\App\Http\Controllers\Admin\OrderController::class, 'updateItems'])->middleware('throttle:30,1')->name('admin.orders.items.update');
     Route::patch('/orders/{order}/status', [\App\Http\Controllers\Admin\OrderController::class, 'updateStatus'])->name('admin.orders.status');
     Route::post('/orders/bulk-status', [\App\Http\Controllers\Admin\OrderController::class, 'bulkStatus'])->middleware('throttle:admin-bulk')->name('admin.orders.bulk-status');
     Route::post('/orders/bulk-cancel', [\App\Http\Controllers\Admin\OrderController::class, 'bulkCancel'])->middleware('throttle:admin-bulk')->name('admin.orders.bulk-cancel');

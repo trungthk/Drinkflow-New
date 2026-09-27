@@ -1,6 +1,10 @@
-{{-- Admin "order on behalf of a member" modal; driven by resources/js/admin/order-on-behalf.js --}}
+{{-- Admin order modal, driven by resources/js/admin/order-on-behalf.js. Two modes sharing one menu/cart UI:
+     "order on behalf of a member" (create) and "edit order" (replace an existing order's items).
+     Neither mode supports ordering for someone else: every line is billed to the order's member. --}}
 <div id="order-on-behalf-modal"
      data-url="{{ route('admin.orders.on-behalf', $room) }}"
+     data-edit-url="{{ route('admin.orders.items.update', [$room, '__ORDER__']) }}"
+     data-show-url="{{ route('admin.orders.show', [$room, '__ORDER__']) }}"
      data-campaign-id="{{ $data['campaign_id'] }}"
      data-items="{{ json_encode($data['items'], JSON_UNESCAPED_UNICODE) }}"
      data-i18n="{{ json_encode([
@@ -10,6 +14,17 @@
          'remove' => __('admin.on_behalf_remove'),
          'selfPaid' => __('admin.on_behalf_self_paid'),
          'itemPlaceholder' => __('admin.on_behalf_item_placeholder'),
+         'decrease' => __('admin.on_behalf_decrease'),
+         'increase' => __('admin.on_behalf_increase'),
+         'editTitle' => __('admin.edit_order_title', ['code' => ':code']),
+         'editSubmit' => __('admin.edit_order_submit'),
+         'editSubmitting' => __('admin.edit_order_submitting'),
+         'editFailed' => __('admin.edit_order_failed'),
+         'editRequired' => __('admin.edit_order_required'),
+         'unavailable' => __('admin.edit_order_unavailable'),
+         'hasUnavailable' => __('admin.edit_order_has_unavailable'),
+         'loadFailed' => __('admin.load_order_failed'),
+         'loading' => __('admin.edit_order_loading'),
      ], JSON_UNESCAPED_UNICODE) }}"
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs"
      role="dialog" aria-modal="true" aria-labelledby="order-on-behalf-title">
@@ -17,11 +32,11 @@
     <div class="relative z-10 w-full max-w-2xl max-h-[calc(100vh-2rem)] flex flex-col bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl overflow-hidden">
         <div class="flex items-start gap-3.5 p-5 border-b border-outline-variant/60">
             <div class="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center shrink-0">
-                <span class="material-symbols-outlined text-[22px]">person_add</span>
+                <span data-on-behalf-icon class="material-symbols-outlined text-[22px]" data-edit-icon="edit_note">person_add</span>
             </div>
             <div class="flex-1 min-w-0">
                 <h3 id="order-on-behalf-title" class="font-bold text-base text-on-surface">{{ __('admin.on_behalf_title') }}</h3>
-                <p class="text-xs text-outline mt-1">{{ __('admin.on_behalf_subtitle') }}</p>
+                <p data-on-behalf-subtitle data-edit-text="{{ __('admin.edit_order_subtitle') }}" class="text-xs text-outline mt-1">{{ __('admin.on_behalf_subtitle') }}</p>
             </div>
             <button type="button" data-on-behalf-close class="text-outline hover:text-on-surface p-1 rounded-lg hover:bg-surface-container transition-colors" aria-label="{{ __('admin.close_modal_btn') }}">
                 <span class="material-symbols-outlined text-[20px]">close</span>
@@ -29,13 +44,21 @@
         </div>
 
         <form data-on-behalf-form class="flex-1 overflow-y-auto p-5 space-y-4 text-xs" novalidate>
-            <label class="block">
+            <div data-on-behalf-member-fixed class="hidden">
+                <span class="font-semibold text-on-surface">{{ __('admin.on_behalf_member') }}</span>
+                <p data-on-behalf-member-name class="mt-1 rounded-lg bg-surface-container-low px-3 py-2 font-semibold text-on-surface"></p>
+            </div>
+            <label data-on-behalf-member-wrap class="block">
                 <span class="font-semibold text-on-surface">{{ __('admin.on_behalf_member') }}<span class="ml-0.5 text-red-600" aria-hidden="true">*</span></span>
                 @if(count($data['members']) > 0)
-                    <select data-on-behalf-member required class="mt-1 w-full h-9 rounded-lg border border-outline-variant bg-surface px-2.5 text-xs text-on-surface">
+                    <select data-on-behalf-member required data-searchable="true"
+                            data-placeholder="{{ __('admin.on_behalf_search_placeholder') }}"
+                            data-empty-text="{{ __('admin.on_behalf_search_empty') }}"
+                            aria-label="{{ __('admin.on_behalf_member') }}"
+                            class="mt-1 w-full h-9 rounded-lg border border-outline-variant bg-surface px-2.5 text-xs text-on-surface">
                         <option value="">{{ __('admin.on_behalf_member_placeholder') }}</option>
                         @foreach($data['members'] as $member)
-                            <option value="{{ $member['id'] }}">{{ $member['name'] }}{{ $member['email'] ? ' — ' . $member['email'] : '' }}</option>
+                            <option value="{{ $member['id'] }}" data-search="{{ $member['email'] }}">{{ $member['name'] }}{{ $member['email'] ? ' — ' . $member['email'] : '' }}</option>
                         @endforeach
                     </select>
                 @else
@@ -47,7 +70,11 @@
                 <div class="grid grid-cols-1 sm:grid-cols-[1fr_6rem] gap-3">
                     <label class="block min-w-0">
                         <span class="font-semibold text-on-surface">{{ __('admin.on_behalf_item') }}</span>
-                        <select data-on-behalf-item class="mt-1 w-full h-9 rounded-lg border border-outline-variant bg-surface px-2.5 text-xs text-on-surface"></select>
+                        <select data-on-behalf-item data-searchable="true"
+                                data-placeholder="{{ __('admin.on_behalf_search_placeholder') }}"
+                                data-empty-text="{{ __('admin.on_behalf_search_empty') }}"
+                                aria-label="{{ __('admin.on_behalf_item') }}"
+                                class="mt-1 w-full h-9 rounded-lg border border-outline-variant bg-surface px-2.5 text-xs text-on-surface"></select>
                     </label>
                     <label class="block">
                         <span class="font-semibold text-on-surface">{{ __('admin.on_behalf_quantity') }}</span>

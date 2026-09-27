@@ -167,4 +167,34 @@ class AdminDashboardTrendTest extends TestCase
             ->assertDontSee('recent-orders-section', false)
             ->assertDontSee('#' . $order->code);
     }
+
+    public function test_campaign_order_and_debt_metrics_link_to_their_pages(): void
+    {
+        $admin = AdminAccount::create([
+            'name' => 'Room Admin',
+            'email' => 'metric-links-admin@example.test',
+            'password' => Hash::make('secret'),
+            'role' => AdminRole::Admin,
+            'status' => 'active',
+        ]);
+        $room = Room::create(['name' => 'Metric Links Room', 'slug' => 'metric-links-room', 'status' => 'active']);
+        $admin->rooms()->attach($room);
+
+        $html = $this->actingAs($admin, 'admin')
+            ->get("/admin/{$room->slug}/dashboard")
+            ->assertOk()
+            ->getContent();
+
+        $links = [
+            route('admin.campaigns.page', [$room, 'status' => CampaignStatus::Active->value]) => 'metric-live-campaigns',
+            route('admin.orders.page', $room) => 'metric-orders-today',
+            route('admin.debts.page', $room) => 'metric-unpaid-debt',
+        ];
+        foreach ($links as $url => $metricId) {
+            // The metric value sits inside the card link pointing to its management page.
+            $pattern = '/<a href="' . preg_quote(e($url), '/') . '" data-dashboard-metric-link(?:(?!<\/a>).)*id="' . $metricId . '"/s';
+            $this->assertMatchesRegularExpression($pattern, $html);
+        }
+        $this->assertSame(3, substr_count($html, 'data-dashboard-metric-link'));
+    }
 }

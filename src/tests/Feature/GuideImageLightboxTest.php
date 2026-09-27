@@ -24,10 +24,11 @@ class GuideImageLightboxTest extends TestCase
 
         $this->actingAs($user, 'web')->get(route('user.me.guides.show', $slug))
             ->assertOk()
-            ->assertSee('data-guide-lightbox', false)
-            ->assertSee('data-guide-lightbox-prev', false)
-            ->assertSee('data-guide-lightbox-next', false)
-            ->assertSee(__('guides.lightbox_close'))
-            ->assertSee(__('guides.lightbox_next'));
+            ->assertSee('data-image-lightbox', false)
+            ->assertSee('data-image-lightbox-prev', false)
+            ->assertSee('data-image-lightbox-next', false)
+            ->assertSee(__('guides.lightbox_title'))
+            ->assertSee(__('global.lightbox.close'))
+            ->assertSee(__('global.lightbox.next'));
     }
 }

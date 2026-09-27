@@ -89,4 +89,31 @@ class AdminBroadcastNotificationTest extends TestCase
         $this->assertStringContainsString('data-tooltip="'.__('admin.toggle_sidebar').'"', $html);
         $this->assertStringNotContainsString('title="'.__('admin.toggle_sidebar').'"', $html);
     }
+
+    /**
+     * The redesigned modal offers type cards, character counters and a live preview, and the dashboard
+     * participation bar is colored by band in dashboard.js.
+     */
+    public function test_redesigned_broadcast_modal_and_participation_bar(): void
+    {
+        $html = $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.dashboard.page', $this->room->slug))
+            ->assertOk()
+            ->assertSee(__('admin.broadcast_subtitle', ['room' => 'Broadcast Room']))
+            ->assertSee(__('admin.broadcast_preview'))
+            ->getContent();
+
+        $modal = (string) str($html)->after('id="admin-broadcast-modal"')->before('Global Admin API Fetch Helper');
+        foreach (['admin.broadcast', 'campaign.created', 'payment.reminder'] as $type) {
+            $this->assertStringContainsString('data-broadcast-type-card="'.$type.'"', $modal);
+            // Every card still maps to an option of the validated select.
+            $this->assertStringContainsString('<option value="'.$type.'"', $modal);
+        }
+        $this->assertStringContainsString('data-broadcast-count="title"', $modal);
+        $this->assertStringContainsString('data-broadcast-preview-title', $modal);
+
+        $this->assertStringContainsString('id="hero-progress-bar"', $html);
+        $script = file_get_contents(resource_path('js/admin/dashboard.js'));
+        $this->assertStringContainsString("percent < 50 ? 'low' : (percent < 80 ? 'medium' : 'high')", $script);
+    }
 }

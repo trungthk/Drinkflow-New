@@ -65,6 +65,18 @@ class CampaignCartQuantityTest extends TestCase
         );
     }
 
+    public function test_menu_and_cart_item_images_open_in_lightbox(): void
+    {
+        $this->actingAs($this->user, 'web')
+            ->get(route('user.campaigns.index', $this->room))
+            ->assertOk()
+            ->assertSee('data-image-lightbox', false)
+            ->assertSee('data-lightbox="campaign-menu"', false)
+            ->assertSee('data-lightbox="campaign-cart"', false)
+            ->assertSee(__('room.campaign.view_item_image', ['name' => 'Trà sữa']))
+            ->assertSee(__('global.lightbox.close'));
+    }
+
     public function test_cart_stores_chosen_quantity(): void
     {
         $this->actingAs($this->user, 'web')

@@ -2,6 +2,13 @@
 
 return [
     'portal_title' => 'Cổng thông tin',
+    'lightbox' => [
+        'title' => 'Xem ảnh',
+        'close' => 'Đóng',
+        'prev' => 'Ảnh trước',
+        'next' => 'Ảnh tiếp theo',
+        'counter' => 'Ảnh :current / :total',
+    ],
     'common' => [
         'error' => 'Đã xảy ra lỗi. Vui lòng thử lại.',
         'room' => 'Room',

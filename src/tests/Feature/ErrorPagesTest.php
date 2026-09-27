@@ -55,9 +55,11 @@ class ErrorPagesTest extends TestCase
         $this->assertStringContainsString('429', $view429);
         $this->assertStringContainsString('RATE LIMIT EXCEEDED', $view429);
 
+        // 503 shares the maintenance page; it must render without the $maintenance state (e.g. `php artisan down`).
         $view503 = view('errors.503')->render();
-        $this->assertStringContainsString('503', $view503);
-        $this->assertStringContainsString('SERVICE UNAVAILABLE', $view503);
+        $this->assertStringContainsString(e(__('errors.maintenance.title')), $view503);
+        $this->assertStringContainsString(e(__('errors.maintenance.not_scheduled')), $view503);
+        $this->assertStringContainsString('id="mt-refresh"', $view503);
 
         $view419 = view('errors.419')->render();
         $this->assertStringContainsString('419', $view419);

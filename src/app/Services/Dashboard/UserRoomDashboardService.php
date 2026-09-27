@@ -66,6 +66,7 @@ class UserRoomDashboardService
                 'max_budget' => (int) ($activeCampaign->max_budget ?? 0),
                 'sponsor_used' => $sponsorUsed,
                 'popular_items' => $popularItems,
+                'ordered_members' => $activeCampaign->orderedMembersCount(),
                 'order_url' => route('user.campaigns.order-page', [$room->slug, $activeCampaign->id]),
                 'has_ordered' => $roomUser->orders()
                     ->where('campaign_id', $activeCampaign->id)

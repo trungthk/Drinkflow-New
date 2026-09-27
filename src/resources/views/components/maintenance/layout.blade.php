@@ -93,6 +93,23 @@
         }
         .mt-refresh:hover { background: #00855c; }
         .mt-refresh:focus-visible { outline: 2px solid #006948; outline-offset: 3px; }
+        .mt-refresh:disabled { cursor: wait; opacity: .85; }
+        .mt-refresh:disabled:hover { background: #006948; }
+        .mt-spinner {
+            display: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, .35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: mt-spin .7s linear infinite;
+        }
+        @keyframes mt-spin { to { transform: rotate(360deg); } }
+        .mt-refresh-loading { display: none; }
+        .mt-refresh.is-loading .mt-refresh-icon,
+        .mt-refresh.is-loading .mt-refresh-label { display: none; }
+        .mt-refresh.is-loading .mt-spinner,
+        .mt-refresh.is-loading .mt-refresh-loading { display: inline-block; }
         .mt-retry { margin: 12px 0 0; color: #64748b; font-size: 12px; }
         .mt-retry strong { color: #0b1c30; }
         @media (max-width: 480px) {
@@ -100,7 +117,7 @@
             .mt-title { font-size: 22px; }
             .mt-window { grid-template-columns: 1fr; }
         }
-        @media (prefers-reduced-motion: reduce) { .mt-dot { animation: none; } }
+        @media (prefers-reduced-motion: reduce) { .mt-dot { animation: none; } .mt-spinner { animation-duration: 1.6s; } }
     </style>
 </head>
 <body>

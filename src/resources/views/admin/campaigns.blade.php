@@ -69,19 +69,19 @@
             <table data-skeleton="table" class="table-colgroup w-full min-w-[56rem] table-fixed text-left text-xs border-collapse">
                 <colgroup>
                     <col>
-                    <col class="w-44">
                     <col class="w-28">
                     <col class="w-24">
+                    <col class="w-36">
                     <col class="w-32">
-                    <col class="w-28">
+                    <col class="w-24">
                 </colgroup>
                 <thead>
                     <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
                         <th class="py-3 px-4">{{ __('admin.th_campaign_restaurant') }}</th>
-                        <th class="py-3 px-4">{{ __('admin.th_order_window') }}</th>
-                        <th class="py-3 px-4 text-center">{{ __('admin.th_status') }}</th>
+                        <th class="py-3 px-4 text-right">{{ __('admin.th_total_items') }}</th>
                         <th class="py-3 px-4 text-right">{{ __('admin.th_orders_count') }}</th>
-                        <th class="py-3 px-4 text-right">{{ __('admin.th_store_total') }}</th>
+                        <th class="py-3 px-4 text-right" title="{{ __('admin.th_store_total_hint') }}">{{ __('admin.th_store_total') }}</th>
+                        <th class="py-3 px-4 text-center">{{ __('admin.th_status') }}</th>
                         <th class="py-3 px-4 text-center">{{ __('admin.th_actions') }}</th>
                     </tr>
                 </thead>
@@ -89,8 +89,6 @@
                     @forelse($campaigns as $camp)
                         @php
                             $statusValue = $camp->status instanceof \BackedEnum ? $camp->status->value : (string) $camp->status;
-                            $windowStart = $camp->started_at;
-                            $windowEnd = $camp->deadline ?? $camp->closed_at;
                         @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors">
                             <td class="py-3.5 px-4">
@@ -111,23 +109,27 @@
                                 <div class="text-secondary flex items-center gap-1.5 mt-0.5">
                                     <span class="material-symbols-outlined text-[14px]">storefront</span>
                                     <span>{{ $camp->restaurant }}</span>
+                                    <span class="text-outline-variant" aria-hidden="true">•</span>
+                                    <span class="inline-flex items-center gap-0.5 font-mono text-[11px] text-outline" data-campaign-started-at title="{{ __('admin.campaign_started_at') }}">
+                                        <span class="material-symbols-outlined text-[13px]" aria-hidden="true">schedule</span>
+                                        {{ $camp->started_at ? $camp->started_at->format('H:i d/m/Y') : __('admin.order_window_not_started') }}
+                                    </span>
                                     @if($camp->source_url)
                                         <a href="{{ $camp->source_url }}" target="_blank" class="text-primary hover:underline text-[11px]">🔗 {{ __('admin.store_link') }}</a>
                                     @endif
                                 </div>
                             </td>
-                            <td class="py-3.5 px-4 font-mono text-secondary">
-                                <div>{{ $windowStart ? __('admin.time_from', ['time' => $windowStart->format('H:i d/m/Y')]) : __('admin.order_window_not_started') }}</div>
-                                <div class="text-[11px] text-outline">{{ __('admin.time_until', ['time' => $windowEnd?->format('H:i d/m/Y') ?? '—']) }}</div>
-                            </td>
-                            <td class="py-3.5 px-4 text-center">
-                                <x-admin.campaign-status-badge :campaign="$camp" />
+                            <td class="py-3.5 px-4 text-right font-mono font-bold text-on-surface" data-campaign-total-items>
+                                {{ (int) ($camp->total_items ?? 0) }} {{ __('admin.items_unit') }}
                             </td>
                             <td class="py-3.5 px-4 text-right font-mono font-bold text-on-surface">
                                 {{ __('admin.orders_unit', ['count' => $camp->orders_count ?? 0]) }}
                             </td>
                             <td class="py-3.5 px-4 text-right font-mono font-bold text-primary">
-                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($camp->subtotal_amount ?? 0) }}
+                                {{ \App\Support\Helpers\FormatHelper::formatCurrency($camp->grossTotal((int) ($camp->gross_subtotal ?? 0))) }}
+                            </td>
+                            <td class="py-3.5 px-4 text-center">
+                                <x-admin.campaign-status-badge :campaign="$camp" />
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <details class="relative inline-block text-left">
@@ -150,7 +152,7 @@
                                             <span>{{ __('admin.edit') }}</span>
                                         </a>
                                         @if(in_array($statusValue, ['active', 'closing'], true))
-                                            <button type="button" onclick="window.openCloseCampaignModal({{ $camp->id }}); this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
+                                            <button type="button" data-close-campaign-open data-campaign-id="{{ $camp->id }}" onclick="this.closest('details').open = false" class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left">
                                                 <span class="material-symbols-outlined text-[16px]">lock</span>{{ __('admin.close_campaign_early') }}
                                             </button>
                                         @endif
@@ -202,23 +204,8 @@
         </div>
     </div>
 
-    <!-- Close Campaign Confirmation Modal -->
-    <div id="close-campaign-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4">
-        <div class="w-full max-w-sm rounded-xl bg-surface-container-lowest border border-outline-variant p-5 shadow-xl">
-            <div class="flex items-center gap-2 text-amber-600 mb-2">
-                <span class="material-symbols-outlined text-[22px]">lock</span>
-                <h2 class="text-base font-bold text-on-surface">{{ __('admin.confirm_close_campaign_title') }}</h2>
-            </div>
-            <p class="mt-2 text-xs text-outline leading-relaxed">{{ __('admin.confirm_close_campaign_desc') }}</p>
-            <div class="mt-5 flex justify-end gap-2">
-                <button type="button" data-close-cancel class="px-3 py-2 rounded-lg text-xs font-semibold bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">{{ __('admin.cancel') }}</button>
-                <button type="button" data-close-confirm class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-container text-on-primary transition-colors flex items-center gap-1.5 disabled:opacity-60">
-                    <span class="material-symbols-outlined text-[16px] animate-spin" data-spinner style="display: none;" aria-hidden="true">progress_activity</span>
-                    <span data-label>{{ __('admin.confirm_close_btn') }}</span>
-                </button>
-            </div>
-        </div>
-    </div>
+    <!-- Shared close-campaign modal (same as the campaign detail page and dashboard) -->
+    <x-admin.close-campaign-modal :room="$room" />
 
     <!-- Cancel Campaign Confirmation Modal -->
     <div id="cancel-campaign-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="cancel-campaign-modal-title" data-error-message="{{ __('admin.cancel_campaign_failed') }}">

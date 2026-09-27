@@ -145,7 +145,7 @@ export function initAdminOrders() {
 
                 return '<tr class="border-b border-outline-variant/40 hover:bg-surface-container-low/50 transition-colors">'
                     + '<td class="py-2 px-3 text-on-surface">'
-                    +   '<div class="font-bold text-xs">' + escape(item.item_name) + (item.size ? ' <span class="text-primary font-normal">(' + escape(item.size) + ')</span>' : '') + '</div>'
+                    +   '<div class="font-bold text-xs">' + escape(item.item_name) + (item.size_name ? ' <span class="text-primary font-normal">(' + escape(item.size_name) + ')</span>' : '') + '</div>'
                     +   toppingsHtml
                     +   itemNoteHtml
                     +   selfPaidHtml

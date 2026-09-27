@@ -45,160 +45,259 @@ export function initAdminDebts() {
     });
     searchInput?.addEventListener('admin:search-cleared', () => filterForm?.requestSubmit());
 
-    window.openRecordPaymentModal = function(debtId, remaining, memberName) {
-        const titleEl = document.querySelector('#debt-modal-title');
-        if (titleEl) titleEl.textContent = t('confirmTitle', { member: memberName });
-        if (modalBody) {
-            modalBody.innerHTML = `
-                <form id="record-pay-form" class="space-y-3 text-xs">
-                    <div>
-                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('paymentAmount'))} <span class="text-error">*</span>:</label>
-                        <input type="text" inputmode="numeric" id="pay-amount" value="${Number(remaining).toLocaleString('vi-VN')}" data-max="${remaining}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono font-bold text-base text-primary" required>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('paymentMethod'))} <span class="text-error">*</span>:</label>
-                        <select id="pay-method" required class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface">
-                            <option value="vietqr">${escapeHtml(t('methodVietqr'))}</option>
-                            <option value="cash">${escapeHtml(t('methodCash'))}</option>
-                            <option value="room_fund">${escapeHtml(t('methodRoomFund'))}</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('reference'))}:</label>
-                        <input type="text" id="pay-ref" placeholder="..." class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface">
-                    </div>
-                    <div class="pt-3 border-t border-outline-variant flex items-center justify-end gap-2">
-                        <button type="button" onclick="closeDebtModal()" class="px-4 py-2 bg-surface-container text-on-surface rounded font-semibold">${escapeHtml(t('cancel'))}</button>
-                        <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-semibold inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">payments</span>${escapeHtml(t('confirmPayment'))}</button>
-                    </div>
-                </form>
-            `;
-        }
+    // ── Record payment ("Thu tiền") & adjust ("Điều chỉnh") modal ─────────
+    const modalTitle = document.querySelector('#debt-modal-title');
+    const modalSubtitle = document.querySelector('#debt-modal-subtitle');
+    const modalIcon = document.querySelector('#debt-modal-icon');
+    const modalIconWrap = document.querySelector('#debt-modal-icon-wrap');
+    const ICON_TONES = {
+        payment: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+        adjust: 'bg-primary/10 text-primary border-primary/20',
+    };
+
+    /**
+     * Fill the modal header and show it.
+     *
+     * @param {'payment'|'adjust'} kind Which form is shown.
+     * @param {string} memberName Debtor's name.
+     * @param {string} campaignName Origin campaign name.
+     * @returns {void}
+     */
+    const showDebtModal = (kind, memberName, campaignName) => {
+        if (modalTitle) modalTitle.textContent = t(kind === 'payment' ? 'confirmTitle' : 'adjustTitle');
+        if (modalSubtitle) modalSubtitle.textContent = [memberName, campaignName].filter(Boolean).join(' · ');
+        if (modalIcon) modalIcon.textContent = kind === 'payment' ? 'payments' : 'tune';
+        if (modalIconWrap) modalIconWrap.className = `w-10 h-10 shrink-0 rounded-xl flex items-center justify-center border ${ICON_TONES[kind]}`;
         modal?.classList.remove('hidden');
         modal?.classList.add('flex');
+    };
 
-        document.querySelector('#pay-amount')?.addEventListener('input', (event) => formatMoneyInput(event.target));
+    const inputClass = 'w-full h-10 px-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors';
 
-        document.querySelector('#record-pay-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const origBtnHtml = submitBtn ? submitBtn.innerHTML : '';
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                renderSubmitLoading(submitBtn);
-            }
+    /** Summary card with the current outstanding amount and the amount left after the action. */
+    const summaryCard = (remaining, afterLabel) => `
+        <div class="grid grid-cols-2 gap-2">
+            <div class="rounded-xl border border-amber-200 bg-amber-50/70 px-3.5 py-3 dark:border-amber-800 dark:bg-amber-950/30">
+                <div class="text-[10px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-300">${escapeHtml(t('remainingLabel'))}</div>
+                <div class="mt-0.5 font-mono text-lg font-bold text-amber-700 dark:text-amber-300">${escapeHtml(formatMoney(remaining))}</div>
+            </div>
+            <div class="rounded-xl border border-outline-variant/70 bg-surface-container-low px-3.5 py-3">
+                <div class="text-[10px] font-semibold uppercase tracking-wider text-outline">${escapeHtml(afterLabel)}</div>
+                <div class="mt-0.5 font-mono text-lg font-bold text-on-surface" data-debt-after>—</div>
+            </div>
+        </div>`;
 
-            const amount = numericValue('#pay-amount');
-            const method = document.querySelector('#pay-method')?.value;
-            const ref = document.querySelector('#pay-ref')?.value;
-            if (amount > Number(remaining)) {
-                alert(t('amountExceeds', { max: Number(remaining).toLocaleString('vi-VN') }));
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = origBtnHtml;
-                }
+    /** Amount field with the currency suffix and optional quick-fill button. */
+    const amountField = (id, label, value, quickLabel = '') => `
+        <div data-amount-field>
+            <div class="flex items-center justify-between mb-1.5">
+                <label for="${id}" class="font-semibold text-on-surface">${escapeHtml(label)} <span class="text-error">*</span></label>
+                ${quickLabel ? `<button type="button" data-fill-amount class="text-[11px] font-semibold text-primary hover:underline">${escapeHtml(quickLabel)}</button>` : ''}
+            </div>
+            <div class="relative">
+                <input type="text" inputmode="numeric" id="${id}" value="${Number(value).toLocaleString('vi-VN')}" autocomplete="off"
+                    class="${inputClass} pr-9 font-mono font-bold text-base text-primary" required>
+                <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 font-mono font-bold text-outline">đ</span>
+            </div>
+        </div>`;
+
+    /** Card-style radio group (payment method / adjustment type). */
+    const choiceGroup = (name, legend, options, columns) => `
+        <fieldset>
+            <legend class="font-semibold text-on-surface mb-1.5">${escapeHtml(legend)} <span class="text-error">*</span></legend>
+            <div class="grid ${columns} gap-2">
+                ${options.map((option, index) => `
+                    <label class="relative flex cursor-pointer items-start gap-2.5 rounded-xl border border-outline-variant bg-surface px-3 py-2.5 transition-colors hover:border-primary/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5 has-[:checked]:ring-2 has-[:checked]:ring-primary/15">
+                        <input type="radio" name="${name}" value="${option.value}" class="sr-only peer" ${index === 0 ? 'checked' : ''}>
+                        <span class="material-symbols-outlined text-[20px] text-outline peer-checked:text-primary" aria-hidden="true">${option.icon}</span>
+                        <span class="min-w-0">
+                            <span class="block font-semibold text-on-surface">${escapeHtml(option.label)}</span>
+                            ${option.hint ? `<span class="block text-[11px] text-outline leading-snug mt-0.5">${escapeHtml(option.hint)}</span>` : ''}
+                        </span>
+                    </label>`).join('')}
+            </div>
+        </fieldset>`;
+
+    const errorBox = '<p data-debt-form-error role="alert" class="hidden rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300"></p>';
+
+    const footer = (submitIcon, submitLabel, submitClass) => `
+        <div class="flex items-center justify-end gap-2 border-t border-outline-variant/60 bg-surface-container-low/60 px-5 py-3.5">
+            <button type="button" onclick="closeDebtModal()" class="px-4 py-2 rounded-xl border border-outline-variant text-on-surface font-semibold hover:bg-surface-container transition-colors">${escapeHtml(t('cancel'))}</button>
+            <button type="submit" class="px-4 py-2 rounded-xl text-white font-semibold inline-flex items-center gap-1.5 shadow-xs transition-colors disabled:opacity-60 ${submitClass}">
+                <span class="material-symbols-outlined text-[16px]" aria-hidden="true">${submitIcon}</span>${escapeHtml(submitLabel)}
+            </button>
+        </div>`;
+
+    /**
+     * Submit a debt form as JSON, showing errors inline and keeping the loading state until reload.
+     *
+     * @param {HTMLFormElement} form Submitted form.
+     * @param {string} url Endpoint.
+     * @param {object} body JSON payload.
+     * @param {string} fallbackError Message when the server gives none.
+     * @returns {Promise<void>}
+     */
+    const submitDebtForm = async (form, url, body, fallbackError) => {
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalHtml = submitBtn?.innerHTML || '';
+        const showError = (message) => {
+            const box = form.querySelector('[data-debt-form-error]');
+            if (!box) return;
+            box.textContent = message || '';
+            box.classList.toggle('hidden', !message);
+        };
+        showError('');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            renderSubmitLoading(submitBtn);
+        }
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            if (res.ok) {
+                window.location.reload();
                 return;
             }
+            const payload = await res.json().catch(() => ({}));
+            showError(Object.values(payload.errors || {}).flat()[0] || payload.message || fallbackError);
+        } catch (error) {
+            console.error(error);
+            showError(t('serverError'));
+        }
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalHtml;
+        }
+    };
 
-            try {
-                const res = await fetch(`/admin/${roomSlug}/debts/${debtId}/payments`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify({ amount: Number(amount), payment_method: method, reference: ref })
-                });
-                if (res.ok) {
-                    window.location.reload();
-                } else {
-                    const errorPayload = await res.json().catch(() => ({}));
-                    alert(errorPayload.message || errorPayload.errors?.amount?.[0] || t('paymentError'));
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = origBtnHtml;
-                    }
-                }
-            } catch(e) {
-                console.error(e);
-                alert(t('serverError'));
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = origBtnHtml;
-                }
-            }
+    const formError = (form, message) => {
+        const box = form.querySelector('[data-debt-form-error]');
+        if (!box) return;
+        box.textContent = message;
+        box.classList.remove('hidden');
+    };
+
+    window.openRecordPaymentModal = function(debtId, remaining, memberName, campaignName = '') {
+        remaining = Number(remaining) || 0;
+        if (modalBody) {
+            modalBody.innerHTML = `
+                <form id="record-pay-form" class="text-xs" novalidate>
+                    <div class="space-y-4 p-5">
+                        ${summaryCard(remaining, t('afterPaymentLabel'))}
+                        ${amountField('pay-amount', t('paymentAmount'), remaining, t('payFull'))}
+                        ${choiceGroup('pay-method', t('paymentMethod'), [
+                            { value: 'vietqr', icon: 'qr_code_2', label: t('methodVietqr') },
+                            { value: 'cash', icon: 'payments', label: t('methodCash') },
+                            { value: 'room_fund', icon: 'savings', label: t('methodRoomFund') },
+                        ], 'grid-cols-3')}
+                        <div>
+                            <label for="pay-ref" class="block font-semibold text-on-surface mb-1.5">${escapeHtml(t('reference'))}</label>
+                            <input type="text" id="pay-ref" maxlength="120" placeholder="${escapeHtml(t('referencePlaceholder'))}" class="${inputClass}">
+                        </div>
+                        ${errorBox}
+                    </div>
+                    ${footer('payments', t('confirmPayment'), 'bg-emerald-600 hover:bg-emerald-700')}
+                </form>`;
+        }
+        showDebtModal('payment', memberName, campaignName);
+
+        const form = document.querySelector('#record-pay-form');
+        const amountInput = form?.querySelector('#pay-amount');
+        const afterEl = form?.querySelector('[data-debt-after]');
+        const refresh = () => {
+            const amount = numericValue('#pay-amount');
+            if (afterEl) afterEl.textContent = formatMoney(Math.max(0, remaining - amount));
+        };
+        amountInput?.addEventListener('input', (event) => {
+            formatMoneyInput(event.target);
+            refresh();
+        });
+        form?.querySelector('[data-fill-amount]')?.addEventListener('click', () => {
+            amountInput.value = remaining.toLocaleString('vi-VN');
+            refresh();
+        });
+        refresh();
+        amountInput?.focus();
+        amountInput?.select();
+
+        form?.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const amount = numericValue('#pay-amount');
+            if (amount <= 0) return formError(form, t('invalidAmount'));
+            if (amount > remaining) return formError(form, t('amountExceeds', { max: remaining.toLocaleString('vi-VN') }));
+            submitDebtForm(form, `/admin/${roomSlug}/debts/${debtId}/payments`, {
+                amount,
+                payment_method: form.querySelector('input[name="pay-method"]:checked')?.value,
+                reference: form.querySelector('#pay-ref')?.value.trim() || null,
+            }, t('paymentError'));
         });
     };
 
-    window.openAdjustDebtModal = function(debtId, remaining, memberName) {
-        const titleEl = document.querySelector('#debt-modal-title');
-        if (titleEl) titleEl.textContent = t('adjustTitle', { member: memberName });
+    window.openAdjustDebtModal = function(debtId, remaining, memberName, campaignName = '') {
+        remaining = Number(remaining) || 0;
         if (modalBody) {
             modalBody.innerHTML = `
-                <form id="adjust-debt-form" class="space-y-3 text-xs">
-                    <div>
-                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('adjustType'))} <span class="text-error">*</span>:</label>
-                        <select id="adj-type" required class="w-full h-9 px-3 bg-surface border border-outline-variant rounded text-on-surface">
-                            <option value="decrease">${escapeHtml(t('adjustDecrease'))}</option>
-                            <option value="increase">${escapeHtml(t('adjustIncrease'))}</option>
-                            <option value="waive">${escapeHtml(t('adjustWaive'))}</option>
-                            <option value="correction">${escapeHtml(t('adjustCorrection'))}</option>
-                        </select>
+                <form id="adjust-debt-form" class="text-xs" novalidate>
+                    <div class="space-y-4 p-5">
+                        ${summaryCard(remaining, t('afterAdjustLabel'))}
+                        ${choiceGroup('adj-type', t('adjustType'), [
+                            { value: 'decrease', icon: 'trending_down', label: t('adjustDecrease'), hint: t('adjustDecreaseHint') },
+                            { value: 'increase', icon: 'trending_up', label: t('adjustIncrease'), hint: t('adjustIncreaseHint') },
+                            { value: 'waive', icon: 'volunteer_activism', label: t('adjustWaive'), hint: t('adjustWaiveHint') },
+                            { value: 'correction', icon: 'edit_note', label: t('adjustCorrection'), hint: t('adjustCorrectionHint') },
+                        ], 'grid-cols-2')}
+                        ${amountField('adj-amount', t('amount'), 0)}
+                        <div>
+                            <label for="adj-reason" class="block font-semibold text-on-surface mb-1.5">${escapeHtml(t('reason'))} <span class="text-error">*</span></label>
+                            <textarea id="adj-reason" rows="2" maxlength="255" placeholder="${escapeHtml(t('reasonPlaceholder'))}" class="w-full p-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors" required></textarea>
+                        </div>
+                        ${errorBox}
                     </div>
-                    <div>
-                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('amount'))} <span class="text-error">*</span>:</label>
-                        <input type="text" inputmode="numeric" id="adj-amount" value="${Number(remaining).toLocaleString('vi-VN')}" class="w-full h-9 px-3 bg-surface border border-outline-variant rounded font-mono font-bold text-on-surface" required>
-                    </div>
-                    <div>
-                        <label class="block font-semibold text-on-surface mb-1">${escapeHtml(t('reason'))} <span class="text-error">*</span>:</label>
-                        <textarea id="adj-reason" rows="2" placeholder="..." class="w-full p-2.5 bg-surface border border-outline-variant rounded text-on-surface" required></textarea>
-                    </div>
-                    <div class="pt-3 border-t border-outline-variant flex items-center justify-end gap-2">
-                        <button type="button" onclick="closeDebtModal()" class="px-4 py-2 bg-surface-container text-on-surface rounded font-semibold">${escapeHtml(t('cancel'))}</button>
-                        <button type="submit" class="px-4 py-2 bg-primary hover:bg-primary/90 text-on-primary rounded font-semibold inline-flex items-center gap-1.5"><span class="material-symbols-outlined text-[16px]">save</span>${escapeHtml(t('saveAdjustment'))}</button>
-                    </div>
-                </form>
-            `;
+                    ${footer('save', t('saveAdjustment'), 'bg-primary hover:bg-primary/90')}
+                </form>`;
         }
-        modal?.classList.remove('hidden');
-        modal?.classList.add('flex');
+        showDebtModal('adjust', memberName, campaignName);
 
-        document.querySelector('#adj-amount')?.addEventListener('input', (event) => formatMoneyInput(event.target));
-
-        document.querySelector('#adjust-debt-form')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const origBtnHtml = submitBtn ? submitBtn.innerHTML : '';
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                renderSubmitLoading(submitBtn);
+        const form = document.querySelector('#adjust-debt-form');
+        const amountWrap = form?.querySelector('[data-amount-field]');
+        const afterEl = form?.querySelector('[data-debt-after]');
+        const selectedType = () => form?.querySelector('input[name="adj-type"]:checked')?.value || 'decrease';
+        // Mirrors AdjustDebtAction: the new outstanding amount for each adjustment type.
+        const afterAmount = (type, amount) => ({
+            decrease: remaining - amount,
+            increase: remaining + amount,
+            waive: 0,
+            correction: amount,
+        })[type];
+        const refresh = () => {
+            const type = selectedType();
+            // Waiving clears the whole remaining amount, so no amount is entered.
+            amountWrap?.classList.toggle('hidden', type === 'waive');
+            const after = afterAmount(type, numericValue('#adj-amount'));
+            if (afterEl) {
+                afterEl.textContent = after < 0 ? '—' : formatMoney(after);
+                afterEl.classList.toggle('text-rose-600', after < 0);
             }
+        };
+        form?.querySelectorAll('input[name="adj-type"]').forEach((input) => input.addEventListener('change', refresh));
+        form?.querySelector('#adj-amount')?.addEventListener('input', (event) => {
+            formatMoneyInput(event.target);
+            refresh();
+        });
+        refresh();
 
-            const type = document.querySelector('#adj-type')?.value;
-            const amount = numericValue('#adj-amount');
-            const reason = document.querySelector('#adj-reason')?.value;
-
-            try {
-                const res = await fetch(`/admin/${roomSlug}/debts/${debtId}/adjust`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: JSON.stringify({ type, amount: Number(amount), reason })
-                });
-                if (res.ok) {
-                    window.location.reload();
-                } else {
-                    const errorPayload = await res.json().catch(() => ({}));
-                    alert(errorPayload.message || Object.values(errorPayload.errors || {}).flat()[0] || t('adjustError'));
-                    if (submitBtn) {
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = origBtnHtml;
-                    }
-                }
-            } catch(e) {
-                console.error(e);
-                alert(t('serverError'));
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = origBtnHtml;
-                }
-            }
+        form?.addEventListener('submit', (event) => {
+            event.preventDefault();
+            const type = selectedType();
+            const amount = type === 'waive' ? 0 : numericValue('#adj-amount');
+            const reason = form.querySelector('#adj-reason')?.value.trim() || '';
+            if (type !== 'waive' && type !== 'correction' && amount <= 0) return formError(form, t('invalidAmount'));
+            if (afterAmount(type, amount) < 0) return formError(form, t('adjustNegative'));
+            if (!reason) return formError(form, t('reasonRequired'));
+            submitDebtForm(form, `/admin/${roomSlug}/debts/${debtId}/adjust`, { type, amount, reason }, t('adjustError'));
         });
     };
 

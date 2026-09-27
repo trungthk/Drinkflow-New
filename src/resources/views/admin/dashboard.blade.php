@@ -41,8 +41,14 @@
                 <div id="metric-rooms-hint" class="text-[11px] text-outline mt-1 font-mono">{{ __('admin.across_members', ['count' => $activeRoomUsers ?? $room->roomUsers()->where('status', 'active')->count()]) }}</div>
             </div>
 
-            <!-- Metric 2: Live Campaigns -->
-            <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between shadow-2xs">
+            @php
+                $metricLinkClass = 'bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between shadow-2xs transition-colors hover:border-primary/60 hover:bg-surface-container-low/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40';
+            @endphp
+
+            <!-- Metric 2: Live Campaigns (links to the running campaigns list) -->
+            <a href="{{ route('admin.campaigns.page', [$room, 'status' => \App\Enums\CampaignStatus::Active->value]) }}" data-dashboard-metric-link
+               title="{{ __('admin.dashboard_metric_view', ['label' => __('admin.live_campaigns')]) }}"
+               class="{{ $metricLinkClass }}">
                 <div class="flex items-center justify-between text-outline mb-1">
                     <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.live_campaigns') }}</span>
                     <span class="px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap shrink-0 bg-error-container text-on-error-container font-bold">{{ __('admin.active_now') }}</span>
@@ -55,10 +61,12 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-error status-dot-pulse"></span>
                     <span id="metric-campaign-closing-text">{{ __('admin.closing_in', ['time' => '--:--']) }}</span>
                 </div>
-            </div>
+            </a>
 
-            <!-- Metric 3: Today's Orders -->
-            <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between shadow-2xs">
+            <!-- Metric 3: Today's Orders (links to the orders management page) -->
+            <a href="{{ route('admin.orders.page', $room) }}" data-dashboard-metric-link
+               title="{{ __('admin.dashboard_metric_view', ['label' => __('admin.todays_orders')]) }}"
+               class="{{ $metricLinkClass }}">
                 <div class="flex items-center justify-between text-outline mb-1">
                     <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.todays_orders') }}</span>
                     <span class="material-symbols-outlined text-[18px]">shopping_bag</span>
@@ -68,7 +76,7 @@
                     <span class="material-symbols-outlined text-[14px]">trending_up</span>
                     <span id="metric-orders-growth-val">+{{ $ordersGrowth ?? 0 }}% {{ __('admin.vs_yesterday') }}</span>
                 </div>
-            </div>
+            </a>
 
             <!-- Metric 4: Total Value Today -->
             <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between shadow-2xs">
@@ -80,15 +88,17 @@
                 <div id="metric-sponsors-val" class="text-[11px] text-outline mt-1 font-mono">{{ __('admin.sponsors_today', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($todaySponsorValue ?? 0)]) }}</div>
             </div>
 
-            <!-- Metric 5: Unpaid Debt -->
-            <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 flex flex-col justify-between shadow-2xs">
+            <!-- Metric 5: Unpaid Debt (links to the debt ledger; unfiltered so unpaid and partial debts are both listed) -->
+            <a href="{{ route('admin.debts.page', $room) }}" data-dashboard-metric-link
+               title="{{ __('admin.dashboard_metric_view', ['label' => __('admin.unpaid_debt')]) }}"
+               class="{{ $metricLinkClass }}">
                 <div class="flex items-center justify-between text-outline mb-1">
                     <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.unpaid_debt') }}</span>
                     <span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-amber-100 text-amber-800 font-bold border border-amber-200">{{ __('admin.needs_settlement') }}</span>
                 </div>
                 <div id="metric-unpaid-debt" class="text-2xl font-bold text-amber-700 truncate">{{ \App\Support\Helpers\FormatHelper::formatCurrency($outstandingDebtsTotal ?? 0) }}</div>
                 <div id="metric-debt-users" class="text-[11px] text-amber-700 mt-1 font-semibold font-mono">{{ __('admin.pending_users', ['count' => $pendingDebtUsersCount ?? 0]) }}</div>
-            </div>
+            </a>
         </section>
 
         <!-- Weekly Trend Chart Section -->
@@ -111,6 +121,7 @@
 
             <!-- SVG Trend Chart Container -->
             <div class="relative w-full overflow-x-auto">
+                <x-loading-overlay data-trend-loading :visible="true" :label="__('admin.loading_data')" />
                 <div class="min-w-[680px]">
                     <div class="flex justify-between items-center text-[10px] font-mono text-outline px-1 pb-1">
                         <span>{{ __('admin.axis_left_campaigns') }}</span>
@@ -175,7 +186,8 @@
                                 <span id="hero-participation-text" class="font-bold text-on-surface">0 / {{ $room->roomUsers()->where('status', 'active')->count() }}</span>
                             </div>
                             <div class="w-full bg-surface-container h-2.5 rounded-full overflow-hidden">
-                                <div id="hero-progress-bar" class="bg-primary h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                                {{-- Color follows the participation band set by dashboard.js (< 50% / < 80% / ≤ 100%). --}}
+                                <div id="hero-progress-bar" class="bg-rose-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
                             </div>
                         </div>
                         <!-- Net Summary -->

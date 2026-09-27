@@ -36,6 +36,8 @@ return [
     'debt_channel_reminder_title' => 'Debt Payment Reminder',
     'order_price_adjusted_title' => 'Order Price Adjusted',
     'order_price_adjusted_body' => 'Order :order_code price has been adjusted to :amount. Reason: :reason',
+    'order_items_updated_title' => 'Order updated',
+    'order_items_updated_body' => 'An admin edited the items of order :order_code. New total: :amount.',
     'campaign_updated_title' => 'Campaign Updated',
     'campaign_updated_body' => 'The campaign information has just been updated.',
     'campaign_delivering_title' => 'Items have arrived! 🧋',

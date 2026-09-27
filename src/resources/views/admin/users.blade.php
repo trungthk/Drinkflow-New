@@ -60,7 +60,8 @@
     </div>
 
     <!-- Search & Filter Toolbar -->
-    <form id="users-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.room-users.page', $room) }}"
+    <form id="users-filter-form" data-skeleton-on-submit method="GET"
+        action="{{ route('admin.room-users.page', $room) }}"
         class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
         <div class="flex items-center gap-3 flex-1 min-w-[280px]">
             <x-admin.search-input id="user-search" name="q" :value="$filters['q'] ?? ''"
@@ -72,14 +73,18 @@
                 <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>
                     {{ __('admin.filter_all') }}
                 </option>
-                @foreach($statusFilters as $statusFilter)
-                    <option value="{{ $statusFilter['value'] }}" {{ ($filters['status'] ?? '') === $statusFilter['value'] ? 'selected' : '' }}>{{ $statusFilter['label'] }}</option>
+                @foreach ($statusFilters as $statusFilter)
+                    <option value="{{ $statusFilter['value'] }}"
+                        {{ ($filters['status'] ?? '') === $statusFilter['value'] ? 'selected' : '' }}>
+                        {{ $statusFilter['label'] }}</option>
                 @endforeach
             </select>
-            <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="text-xs font-semibold h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary-container transition-colors">
+            <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}"
+                aria-label="{{ __('admin.filter_apply') }}"
+                class="text-xs font-semibold h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary-container transition-colors">
                 <span class="material-symbols-outlined text-[18px]" aria-hidden="true">filter_alt</span>
             </button>
-            @if(trim((string) ($filters['q'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all')
+            @if (trim((string) ($filters['q'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all')
                 <a id="users-clear-filters" href="{{ route('admin.room-users.page', $room) }}"
                     class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
                     <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
@@ -98,7 +103,8 @@
         <div class="flex flex-wrap items-center gap-2">
             <button type="button" data-bulk-user-action="active"
                 class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
-                <span class="material-symbols-outlined text-[16px]">lock_open</span>{{ __('admin.bulk_approve_users') }}
+                <span
+                    class="material-symbols-outlined text-[16px]">lock_open</span>{{ __('admin.bulk_approve_users') }}
             </button>
             <button type="button" data-bulk-user-action="blocked"
                 class="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700">
@@ -116,15 +122,17 @@
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
             {{-- Fixed-width side columns; the member column takes the remaining space. --}}
-            <table data-skeleton="table" class="table-colgroup w-full min-w-[60rem] table-fixed text-left text-xs border-collapse">
+            <table data-skeleton="table"
+                class="table-colgroup w-full min-w-[72rem] table-fixed text-left text-xs border-collapse">
                 <colgroup>
                     <col class="w-12">
                     <col>
                     <col class="w-32">
-                    <col class="w-40">
-                    <col class="w-28">
+                    <col class="w-36">
                     <col class="w-32">
-                    <col class="w-24">
+                    <col class="w-40">
+                    <col class="w-32">
+                    <col class="w-32">
                 </colgroup>
                 <thead>
                     <tr
@@ -135,7 +143,8 @@
                         <th class="py-3 px-4 text-left">{{ __('admin.th_user_member') }}</th>
                         <th class="py-3 px-4 text-center">{{ __('admin.th_user_role') }}</th>
                         <th class="py-3 px-4 text-center">{{ __('admin.th_trusted_devices') }}</th>
-                        <th class="py-3 px-4 text-right">{{ __('admin.th_orders_placed_count') }}</th>
+                        <th class="py-3 px-4 text-right">{{ __('admin.th_total_orders') }}</th>
+                        <th class="py-3 px-4 text-center">{{ __('admin.th_joined_at') }}</th>
                         <th class="py-3 px-4 text-center">{{ __('admin.th_status') }}</th>
                         <th class="py-3 px-4 text-center">{{ __('admin.th_actions') }}</th>
                     </tr>
@@ -143,20 +152,31 @@
                 <tbody id="users-tbody" class="divide-y divide-outline-variant/50">
                     @forelse($roomUsers as $ru)
                         @php
-                            $name = $ru->globalUser?->name ?? $ru->display_name ?? 'Member #' . $ru->id;
+                            $name = $ru->globalUser?->name ?? ($ru->display_name ?? 'Member #' . $ru->id);
                             $email = $ru->globalUser?->email ?? __('global.common.not_available');
-                            $statusVal = $ru->status instanceof \BackedEnum ? $ru->status->value : (string) ($ru->status ?? 'active');
-                            $roleVal = $ru->role instanceof \BackedEnum ? $ru->role->value : (string) ($ru->role ?? 'member');
+                            $statusVal =
+                                $ru->status instanceof \BackedEnum
+                                    ? $ru->status->value
+                                    : (string) ($ru->status ?? 'active');
+                            $statusIcon = match ($statusVal) {
+                                'active' => 'check_circle',
+                                'blocked' => 'block',
+                                'removed' => 'person_remove',
+                                default => 'help',
+                            };
+                            $joinedAt = $ru->joined_at ?? $ru->created_at;
+                            $roleVal =
+                                $ru->role instanceof \BackedEnum ? $ru->role->value : (string) ($ru->role ?? 'member');
                             $roleClass = match ($roleVal) {
                                 'owner' => 'bg-amber-50 text-amber-800 border-amber-300 font-bold',
                                 'admin' => 'bg-purple-50 text-purple-700 border-purple-200 font-semibold',
-                                default => 'bg-surface-container text-secondary border-outline-variant'
+                                default => 'bg-surface-container text-secondary border-outline-variant',
                             };
                         @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors" data-user-row
                             data-status="{{ $statusVal }}">
                             <td class="py-3.5 px-4 text-left w-10">
-                                @if($statusVal !== 'removed')
+                                @if ($statusVal !== 'removed')
                                     <input type="checkbox" data-user-select data-room-user-id="{{ $ru->id }}"
                                         class="h-4 w-4 cursor-pointer rounded border-outline-variant text-primary focus:ring-primary"
                                         aria-label="{{ $name }}">
@@ -164,7 +184,8 @@
                             </td>
                             <td class="py-3.5 px-4 text-left">
                                 <div class="group/user">
-                                    <button type="button" data-open-user-detail data-room-user-id="{{ $ru->id }}"
+                                    <button type="button" data-open-user-detail
+                                        data-room-user-id="{{ $ru->id }}"
                                         class="flex items-center gap-1.5 text-left cursor-pointer focus:outline-none bg-transparent border-0 p-0 font-bold text-on-surface text-sm group-hover/user:text-primary transition-colors">
                                         <span>{{ $name }}</span>
                                         <span
@@ -172,7 +193,7 @@
                                     </button>
                                     <div class="flex items-center gap-1 text-[11px] text-outline">
                                         <span>{{ $email }}</span>
-                                        @if($ru->globalUser?->email)
+                                        @if ($ru->globalUser?->email)
                                             <button type="button" data-copy="{{ $ru->globalUser->email }}"
                                                 data-copied-message="{{ __('admin.copied') }}"
                                                 data-copy-failed-message="{{ __('admin.copy_failed') }}"
@@ -203,16 +224,26 @@
                             <td class="py-3.5 px-4 text-right font-mono font-bold text-on-surface">
                                 {{ __('admin.orders_unit', ['count' => $ru->orders_count ?? 0]) }}
                             </td>
+                            <td class="py-3.5 px-4 text-center font-mono text-secondary" data-member-joined-at>
+                                @if ($joinedAt)
+                                    <span class="text-on-surface">{{ $joinedAt->format('d/m/Y') }}</span>
+                                @else
+                                    <span class="text-outline">—</span>
+                                @endif
+                            </td>
                             <td class="py-3.5 px-4 text-center">
-                                <span
-                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full whitespace-nowrap text-[11px] font-semibold border {{ $statusVal === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}">
+                                <span data-member-status-badge
+                                    class="inline-flex items-center gap-1 pl-1.5 pr-2.5 py-0.5 rounded-full whitespace-nowrap text-[11px] font-semibold border {{ $statusVal === 'active' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200' }}">
+                                    <span class="material-symbols-outlined text-[14px]"
+                                        aria-hidden="true">{{ $statusIcon }}</span>
                                     {{ __('admin.status_' . $statusVal) }}
                                 </span>
                             </td>
                             <td class="py-3.5 px-4 text-center">
                                 <div class="flex items-center justify-center gap-1.5">
-                                    @if($statusVal !== 'removed')
-                                        <button type="button" data-toggle-user-status data-room-user-id="{{ $ru->id }}"
+                                    @if ($statusVal !== 'removed')
+                                        <button type="button" data-toggle-user-status
+                                            data-room-user-id="{{ $ru->id }}"
                                             data-new-status="{{ $statusVal === 'active' ? 'blocked' : 'active' }}"
                                             class="group relative p-1 rounded hover:bg-surface-container transition-colors {{ $statusVal === 'active' ? 'text-secondary hover:text-rose-600' : 'text-emerald-600' }}"
                                             title="{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.approve_user') }}"
@@ -223,18 +254,21 @@
                                                 class="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ $statusVal === 'active' ? __('admin.btn_block_user') : __('admin.approve_user') }}</span>
                                         </button>
                                     @endif
-                                    @if($statusVal === 'removed')
-                                        <button type="button" data-restore-room-user data-room-user-id="{{ $ru->id }}"
+                                    @if ($statusVal === 'removed')
+                                        <button type="button" data-restore-room-user
+                                            data-room-user-id="{{ $ru->id }}"
                                             class="group relative p-1 rounded text-emerald-600 hover:text-emerald-700 hover:bg-surface-container transition-colors"
                                             title="{{ __('admin.restore_user_to_room') }}"
                                             aria-label="{{ __('admin.restore_user_to_room') }}">
-                                            <span class="material-symbols-outlined text-[16px]">restore_from_trash</span>
+                                            <span
+                                                class="material-symbols-outlined text-[16px]">restore_from_trash</span>
                                             <span role="tooltip"
                                                 class="pointer-events-none absolute bottom-full right-0 z-20 mb-2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-[10px] font-medium text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">{{ __('admin.restore_user_to_room') }}</span>
                                         </button>
                                     @endif
-                                    @if($statusVal !== 'removed')
-                                        <button type="button" data-remove-room-user data-room-user-id="{{ $ru->id }}"
+                                    @if ($statusVal !== 'removed')
+                                        <button type="button" data-remove-room-user
+                                            data-room-user-id="{{ $ru->id }}"
                                             class="group relative p-1 rounded text-secondary hover:text-rose-600 hover:bg-surface-container transition-colors"
                                             title="{{ __('admin.remove_user_from_room') }}"
                                             aria-label="{{ __('admin.remove_user_from_room') }}">
@@ -248,7 +282,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="py-12 text-center text-outline">
+                            <td colspan="8" class="py-12 text-center text-outline">
                                 <div class="flex flex-col items-center gap-2">
                                     <span class="material-symbols-outlined text-4xl text-outline-variant">group</span>
                                     <p class="font-medium text-sm">{{ __('admin.no_users_found') }}</p>
@@ -259,7 +293,7 @@
                 </tbody>
             </table>
         </div>
-        @if($roomUsers->hasPages())
+        @if ($roomUsers->hasPages())
             <div class="p-4 border-t border-outline-variant">
                 {{ $roomUsers->links() }}
             </div>
@@ -303,14 +337,13 @@
         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog"
         aria-modal="true" data-status-title="{{ __('admin.toggle_user_status') }}"
         data-remove-title="{{ __('admin.remove_user_from_room') }}"
-         data-restore-title="{{ __('admin.restore_user_to_room') }}"
-         data-restore-message="{{ __('admin.confirm_restore_user') }}"
-         data-block-message="{{ __('admin.confirm_block_user') }}"
-         data-unblock-message="{{ __('admin.confirm_unblock_user') }}"
-         data-remove-message="{{ __('admin.confirm_remove_user') }}"
-         data-bulk-title="{{ __('admin.bulk_user_action_title') }}"
-         data-processing-label="{{ __('admin.processing') }}"
-         data-confirm-label="{{ __('admin.confirm_action') }}">
+        data-restore-title="{{ __('admin.restore_user_to_room') }}"
+        data-restore-message="{{ __('admin.confirm_restore_user') }}"
+        data-block-message="{{ __('admin.confirm_block_user') }}"
+        data-unblock-message="{{ __('admin.confirm_unblock_user') }}"
+        data-remove-message="{{ __('admin.confirm_remove_user') }}"
+        data-bulk-title="{{ __('admin.bulk_user_action_title') }}"
+        data-processing-label="{{ __('admin.processing') }}" data-confirm-label="{{ __('admin.confirm_action') }}">
         <div
             class="relative z-10 w-full max-w-sm bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-2xl">
             <div class="flex items-start gap-3">
@@ -319,7 +352,8 @@
                     <span id="user-action-icon" class="material-symbols-outlined text-[22px]">manage_accounts</span>
                 </span>
                 <div class="min-w-0">
-                    <h3 id="user-action-title" class="font-bold text-base text-on-surface">{{ __('admin.toggle_user_status') }}
+                    <h3 id="user-action-title" class="font-bold text-base text-on-surface">
+                        {{ __('admin.toggle_user_status') }}
                     </h3>
                     <p id="user-action-message" class="mt-1.5 text-xs text-outline leading-relaxed"></p>
                 </div>
@@ -372,7 +406,8 @@
                     <label for="create-user-email" class="block text-xs font-semibold text-on-surface mb-1">
                         {{ __('admin.user_email_label') }} <span class="text-error">*</span>
                     </label>
-                    <input type="email" id="create-user-email" name="email" required placeholder="example@thk-hd.vn"
+                    <input type="email" id="create-user-email" name="email" required
+                        placeholder="example@thk-hd.vn"
                         class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                     <p class="mt-1 text-[11px] text-outline leading-relaxed">{{ __('admin.user_email_hint') }}</p>
                 </div>
@@ -382,7 +417,8 @@
                         <label for="create-user-name" class="block text-xs font-semibold text-on-surface mb-1">
                             {{ __('admin.user_name_label') }} <span class="text-error">*</span>
                         </label>
-                        <input type="text" id="create-user-name" name="name" required placeholder="Nguyen Van A"
+                        <input type="text" id="create-user-name" name="name" required
+                            placeholder="Nguyen Van A"
                             class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
                     </div>
                     <div>
@@ -422,7 +458,8 @@
     <div id="user-detail-modal"
         class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-4 backdrop-blur-xs" role="dialog"
         aria-modal="true" aria-labelledby="user-detail-name" data-status-active="{{ __('admin.status_active') }}"
-        data-status-blocked="{{ __('admin.status_blocked') }}" data-status-pending="{{ __('admin.status_pending') }}"
+        data-status-blocked="{{ __('admin.status_blocked') }}"
+        data-status-pending="{{ __('admin.status_pending') }}"
         data-status-removed="{{ __('admin.status_removed') }}" data-role-owner="{{ __('admin.role_owner') }}"
         data-role-admin="{{ __('admin.role_admin') }}" data-role-member="{{ __('admin.role_member') }}">
         <div id="user-detail-backdrop" class="absolute inset-0"></div>
@@ -439,7 +476,8 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-2 flex-wrap">
-                            <h3 id="user-detail-name" class="font-bold text-base text-on-surface tracking-tight">-</h3>
+                            <h3 id="user-detail-name" class="font-bold text-base text-on-surface tracking-tight">-
+                            </h3>
                             <span id="user-detail-role-badge"
                                 class="text-[11px] font-semibold px-2 py-0.5 rounded border">-</span>
                             <span id="user-detail-status-badge"
@@ -457,7 +495,8 @@
                             </button>
                         </div>
                         <p class="mt-0.5 text-[11px] text-outline">
-                            {{ __('admin.member_code') }}: <span id="user-detail-code" class="font-mono font-semibold text-primary">-</span>
+                            {{ __('admin.member_code') }}: <span id="user-detail-code"
+                                class="font-mono font-semibold text-primary">-</span>
                         </p>
                     </div>
                 </div>
@@ -470,7 +509,8 @@
 
             <!-- Loading State -->
             <div id="user-detail-loading" class="py-8 text-center text-outline">
-                <span class="material-symbols-outlined animate-spin text-3xl text-primary mb-2">progress_activity</span>
+                <span
+                    class="material-symbols-outlined animate-spin text-3xl text-primary mb-2">progress_activity</span>
                 <p class="text-xs font-medium">{{ __('admin.loading_user_detail') }}</p>
             </div>
 

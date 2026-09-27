@@ -1,4 +1,5 @@
 import { formatMoney } from '../shared/money';
+import { setLoadingOverlay } from '../shared/loading-overlay';
 
 const COLOR_ITEMS = '#006948';
 const COLOR_VALUE = '#2563eb';
@@ -240,6 +241,11 @@ export function initRoomDashboardCharts() {
     const weeklyTrend = parseJsonAttr(root, 'weeklyTrend', []);
     const labels = parseJsonAttr(root, 'chartLabels', {});
 
-    renderTopSponsorsChart(document.querySelector('#top-sponsors-chart'), topSponsors, labels);
-    renderWeeklyTrendChart(document.querySelector('#weekly-trend-chart'), weeklyTrend, labels);
+    try {
+        renderTopSponsorsChart(document.querySelector('#top-sponsors-chart'), topSponsors, labels);
+        renderWeeklyTrendChart(document.querySelector('#weekly-trend-chart'), weeklyTrend, labels);
+    } finally {
+        // The overlays are shown by the server until the charts have been drawn.
+        root.querySelectorAll('[data-chart-loading]').forEach((overlay) => setLoadingOverlay(overlay, false));
+    }
 }

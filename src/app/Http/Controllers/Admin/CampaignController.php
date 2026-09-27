@@ -18,6 +18,7 @@ use App\Actions\Debt\ConfirmCampaignDebtsPaidAction;
 use App\Enums\PaymentAccountStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\CampaignStatus;
+use App\Enums\OrderStatus;
 use App\Enums\RoomUserStatus;
 use App\Events\CampaignUpdated;
 use App\Events\RoomRealtimeEvent;
@@ -83,18 +84,27 @@ class CampaignController extends Controller
     public function page(CampaignPageRequest $request, Room $room): View
     {
         $validated = $request->validated();
+        // Same basis as the close summary (AdminCampaignDetailService): only non-cancelled orders count.
+        $validOrders = static fn ($orderQuery) => $orderQuery
+            ->where('status', '!=', OrderStatus::Cancelled->value)
+            ->whereNull('cancelled_at');
         $query = Campaign::query()
             ->where('room_id', $room->id)
             ->withCount('orders')
+            ->withSum(['orders as gross_subtotal' => $validOrders], 'subtotal')
+            ->withSum(['orderItems as total_items' => static fn ($itemQuery) => $itemQuery
+                ->where('orders.status', '!=', OrderStatus::Cancelled->value)
+                ->whereNull('orders.cancelled_at')], 'order_items.quantity')
             ->latest();
 
         $search = trim((string) ($validated['search'] ?? ''));
         if ($search !== '') {
             $normalizedSearch = mb_strtolower($search);
             $query->where(function ($campaignQuery) use ($normalizedSearch): void {
-                $campaignQuery->whereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw('LOWER(restaurant) LIKE ?', ['%' . $normalizedSearch . '%'])
-                    ->orWhereRaw('LOWER(description) LIKE ?', ['%' . $normalizedSearch . '%']);
+                // Only the campaign code, campaign name and restaurant name are searchable.
+                $campaignQuery->whereRaw('LOWER(code) LIKE ?', ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw('LOWER(name) LIKE ?', ['%' . $normalizedSearch . '%'])
+                    ->orWhereRaw('LOWER(restaurant) LIKE ?', ['%' . $normalizedSearch . '%']);
             });
         }
 

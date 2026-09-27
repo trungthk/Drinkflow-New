@@ -80,6 +80,11 @@
                       <span class="font-semibold text-slate-800">{{ $activeCampaign['restaurant'] }}</span>
                       <span class="text-slate-300">•</span>
                       <span>{{ __('room.dashboard.created_by', ['name' => $activeCampaign['creator_name']]) }}</span>
+                      <span class="text-slate-300">•</span>
+                      <span class="inline-flex items-center gap-0.5 font-semibold text-[#006948]" data-campaign-ordered-members>
+                        <span class="material-symbols-outlined text-[13px]">group</span>
+                        {{ trans_choice('room.campaign.ordered_members_count', $activeCampaign['ordered_members'], ['count' => $activeCampaign['ordered_members']]) }}
+                      </span>
                     </p>
                   </div>
                 </div>
@@ -171,7 +176,10 @@
               <p class="text-[10px] text-slate-400 truncate">{{ __('room.dashboard.top_sponsors_subtitle') }}</p>
             </div>
           </div>
-          <div id="top-sponsors-chart" class="flex-1 min-h-[200px]"></div>
+          <div class="relative flex-1 min-h-[200px]">
+            <div id="top-sponsors-chart" class="h-full min-h-[200px]"></div>
+            <x-loading-overlay data-chart-loading :visible="true" />
+          </div>
         </section>
 
         <!-- Weekly Items & Value Combo Chart -->
@@ -189,7 +197,10 @@
               <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>{{ __('room.dashboard.chart_value_label') }}</span>
             </div>
           </div>
-          <div id="weekly-trend-chart" class="flex-1 min-h-[200px]"></div>
+          <div class="relative flex-1 min-h-[200px]">
+            <div id="weekly-trend-chart" class="h-full min-h-[200px]"></div>
+            <x-loading-overlay data-chart-loading :visible="true" />
+          </div>
         </section>
       </div>
 
