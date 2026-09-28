@@ -18,6 +18,13 @@ return [
     'default' => env('CACHE_STORE', 'database'),
 
     /*
+    | Store holding the public "versions" menu (list of releases). Cleared whenever a version is created, updated or
+    | deleted (App\Models\Version). Falls back to reading the database when the store is unreachable.
+    */
+
+    'versions_store' => env('VERSIONS_CACHE_STORE', 'redis'),
+
+    /*
     |--------------------------------------------------------------------------
     | Cache Stores
     |--------------------------------------------------------------------------

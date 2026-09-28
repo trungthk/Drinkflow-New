@@ -43,6 +43,54 @@ class VersionPageTest extends TestCase
         $response->assertStatus(404);
     }
 
+    /**
+     * A stored release's changelog is rendered as Markdown (raw HTML escaped) and no placeholder summary is shown.
+     */
+    public function test_database_release_changelog_renders_markdown_without_placeholder_summary(): void
+    {
+        \App\Models\Version::create([
+            'version' => 'v2.3.1',
+            'title' => 'Bản cập nhật tháng 9',
+            'changelog' => "## Có gì mới\n\n- **Đặt dùm** cho thành viên\n- Sửa lỗi <script>alert(1)</script>",
+            'release_date' => '2026-09-23',
+        ]);
+
+        $response = $this->get('/versions/v2.3.1')->assertOk();
+
+        $response->assertSee('<h2>Có gì mới</h2>', false);
+        $response->assertSee('<strong>Đặt dùm</strong>', false);
+        $response->assertSee('&lt;script&gt;', false);
+        $response->assertDontSee('<script>alert(1)</script>', false);
+        $response->assertDontSee('## Có gì mới');
+        $response->assertDontSee('Thông tin chi tiết về bản cập nhật DrinkFlow');
+    }
+
+    /**
+     * The versions menu is cached in the versions store and the key is cleared on create, update and delete.
+     */
+    public function test_versions_menu_cache_is_cleared_when_versions_change(): void
+    {
+        $store = \Illuminate\Support\Facades\Cache::store(config('cache.versions_store'));
+        $key = \App\Models\Version::MENU_CACHE_KEY;
+
+        $version = \App\Models\Version::create(['version' => 'v2.3.1', 'title' => 'A', 'changelog' => 'x', 'release_date' => '2026-09-23']);
+        $this->get('/versions')->assertOk();
+        $this->assertSame('v2.3.1', $store->get($key)[0]['version']);
+
+        \App\Models\Version::create(['version' => 'v2.3.2', 'title' => 'B', 'changelog' => 'y', 'release_date' => '2026-09-27']);
+        $this->assertFalse($store->has($key), 'Creating a version clears the menu cache.');
+        $this->get('/versions')->assertOk()->assertSee('v2.3.2');
+        $this->assertSame(['v2.3.2', 'v2.3.1'], array_column($store->get($key), 'version'));
+
+        $version->update(['title' => 'A (sửa)']);
+        $this->assertFalse($store->has($key), 'Updating a version clears the menu cache.');
+        $this->get('/versions/v2.3.1')->assertOk()->assertSee('A (sửa)');
+
+        $version->delete();
+        $this->assertFalse($store->has($key), 'Deleting a version clears the menu cache.');
+        $this->get('/versions/v2.3.1')->assertNotFound();
+    }
+
     public function test_authenticated_user_sees_get_started_linking_to_me_dashboard(): void
     {
         $user = \App\Models\GlobalUser::firstOrCreate(

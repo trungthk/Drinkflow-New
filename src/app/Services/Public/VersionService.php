@@ -49,11 +49,13 @@ class VersionService
     /**
      * Lấy toàn bộ danh sách phiên bản, kết hợp giữa database và cấu hình mặc định (fallback).
      *
+     * Dữ liệu database đọc qua Version::menuRows() (cache Redis, bị xoá khi superadmin tạo/sửa/xoá phiên bản).
+     *
      * @return \Illuminate\Support\Collection<int, object>  Bộ sưu tập các phiên bản với đầy đủ thông tin changelog và metadata
      */
     public function getAllVersions(): Collection
     {
-        $versionsQuery = Version::query()->orderByDesc('release_date')->orderByDesc('id')->get();
+        $versionsQuery = collect(Version::menuRows());
 
         if ($versionsQuery->isEmpty()) {
             return collect($this->getDefaultVersions())->map(fn (object $version): object => $this->localizeDefault($version));
@@ -61,26 +63,27 @@ class VersionService
 
         $defaultVersions = collect($this->getDefaultVersions())->keyBy('version');
 
-        return $versionsQuery->map(function ($item) use ($defaultVersions) {
-            $fallback = $defaultVersions->get($item->version);
-            $localized = $this->localizedRelease($item->version);
+        return $versionsQuery->map(function (array $item) use ($defaultVersions) {
+            $fallback = $defaultVersions->get($item['version']);
+            $localized = $this->localizedRelease($item['version']);
 
             $data = (object) [
-                'version' => $item->version,
-                'release_date' => $item->release_date ? FormatHelper::formatDate($item->release_date) : ($fallback->release_date ?? '10/09/2026'),
-                'title' => $item->title ?? ($fallback->title ?? 'Bản cập nhật DrinkFlow'),
+                'version' => $item['version'],
+                'release_date' => $item['release_date'] ? FormatHelper::formatDate($item['release_date']) : ($fallback->release_date ?? '10/09/2026'),
+                'title' => $item['title'] ?? ($fallback->title ?? 'Bản cập nhật DrinkFlow'),
                 'badge' => $fallback->badge ?? 'Release',
-                'important' => (bool) ($item->important ?? ($fallback->important ?? false)),
-                'force_refresh' => (bool) ($item->force_refresh ?? ($fallback->force_refresh ?? false)),
-                'summary' => $fallback->summary ?? 'Thông tin chi tiết về bản cập nhật DrinkFlow.',
-                'commit' => $fallback->commit ?? '#'.substr(md5($item->version), 0, 7),
+                'important' => (bool) ($item['important'] ?? ($fallback->important ?? false)),
+                'force_refresh' => (bool) ($item['force_refresh'] ?? ($fallback->force_refresh ?? false)),
+                // No generic placeholder: releases without their own summary show none.
+                'summary' => $fallback->summary ?? null,
+                'commit' => $fallback->commit ?? '#'.substr(md5($item['version']), 0, 7),
                 'author' => $fallback->author ?? 'DrinkFlow Core Team',
                 'status' => $fallback->status ?? 'Ổn định (Production)',
                 'features' => $fallback->features ?? [],
                 'improvements' => $fallback->improvements ?? [],
                 'bugfixes' => $fallback->bugfixes ?? [],
                 'security' => $fallback->security ?? [],
-                'changelog' => $item->changelog ?? ($fallback->changelog ?? ''),
+                'changelog' => $item['changelog'] ?? ($fallback->changelog ?? ''),
             ];
 
             if ($localized !== []) {
