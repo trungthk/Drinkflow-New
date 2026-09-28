@@ -14,6 +14,9 @@ use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\Room;
+use App\Services\Dashboard\SuperadminDashboardService;
+use App\Services\Dashboard\SuperadminInsightsService;
+use App\Services\Dashboard\SuperadminTrendsService;
 use App\Services\System\SystemHealthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -46,5 +49,41 @@ class DashboardController extends Controller
                 'system_health' => $health->snapshot(),
             ]
         ]);
+    }
+
+    /**
+     * System-wide analytics (KPIs with period deltas, daily series, debt aging, room health, stuck campaigns).
+     *
+     * @param Request $request Current request; `?fresh=1` bypasses the analytics cache.
+     * @param SuperadminDashboardService $dashboard Analytics aggregator.
+     * @return JsonResponse Analytics payload under `data`.
+     */
+    public function analytics(Request $request, SuperadminDashboardService $dashboard): JsonResponse
+    {
+        return response()->json(['data' => $dashboard->analytics($request->boolean('fresh'))]);
+    }
+
+    /**
+     * Secondary analytics (security trends and suspicious IPs, admin activity, order peak-hours heatmap).
+     *
+     * @param Request $request Current request; `?fresh=1` bypasses the insights cache.
+     * @param SuperadminInsightsService $insights Insights aggregator.
+     * @return JsonResponse Insights payload under `data`.
+     */
+    public function insights(Request $request, SuperadminInsightsService $insights): JsonResponse
+    {
+        return response()->json(['data' => $insights->insights($request->boolean('fresh'))]);
+    }
+
+    /**
+     * Long-range trends (signup cohort retention, feedback ratings, contact topics, infrastructure history).
+     *
+     * @param Request $request Current request; `?fresh=1` bypasses the trends cache.
+     * @param SuperadminTrendsService $trends Trends aggregator.
+     * @return JsonResponse Trends payload under `data`.
+     */
+    public function trends(Request $request, SuperadminTrendsService $trends): JsonResponse
+    {
+        return response()->json(['data' => $trends->trends($request->boolean('fresh'))]);
     }
 }

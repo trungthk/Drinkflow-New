@@ -11,6 +11,8 @@
 export async function dfApi(url, options = {}) {
     const headers = {
         Accept: 'application/json',
+        // Marks the call as AJAX so Laravel does not store it as the session's "previous URL" (redirect()->back()).
+        'X-Requested-With': 'XMLHttpRequest',
         ...(options.headers || {}),
     };
     if (options.body && typeof options.body !== 'string') {

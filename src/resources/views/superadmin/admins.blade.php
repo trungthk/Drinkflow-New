@@ -73,8 +73,11 @@
                                     <a class="sa-button secondary" href="{{ route('superadmin.admins.detail.page', $admin) }}"><span class="material-symbols-outlined text-[16px]">visibility</span>{{ __('superadmin.common.details') }}</a>
                                     @if($isSuperadmin)
                                         <span class="status-pill status-active"><span class="material-symbols-outlined text-[14px]">verified_user</span>{{ __('superadmin.common.protected') }}</span>
-                                    @elseif($statusValue === 'active')
-                                        <button class="sa-button warning" type="button" data-action="block-admin" data-admin-id="{{ $admin->id }}" data-admin-name="{{ $admin->name }}"><span class="material-symbols-outlined text-[16px]">lock</span>{{ __('superadmin.common.block') }}</button>
+                                    @else
+                                        @if($statusValue === 'active')
+                                            <button class="sa-button warning" type="button" data-action="block-admin" data-admin-id="{{ $admin->id }}" data-admin-name="{{ $admin->name }}"><span class="material-symbols-outlined text-[16px]">lock</span>{{ __('superadmin.common.block') }}</button>
+                                        @endif
+                                        <button class="sa-button danger" type="button" data-action="delete-admin" data-admin-id="{{ $admin->id }}" data-admin-name="{{ $admin->name }}"><span class="material-symbols-outlined text-[16px]">delete</span>{{ __('superadmin.common.delete') }}</button>
                                     @endif
                                 </div>
                             </td>
@@ -206,6 +209,21 @@
             } catch (error) {
                 showError(error.message);
             }
+        });
+
+        document.addEventListener('click', (event) => {
+            const deleteBtn = event.target.closest('[data-action="delete-admin"]');
+            if (!deleteBtn) return;
+            openSuperadminConfirm({
+                message: @js(__('superadmin.admins.confirm_delete')).replace(':name', deleteBtn.dataset.adminName),
+                description: @js(__('superadmin.admins.delete_description')),
+                confirmLabel: @js(__('superadmin.admins.delete_account')),
+                onConfirm: async () => {
+                    await dfApi(`/superadmin/admins/${deleteBtn.dataset.adminId}`, { method: 'DELETE' });
+                    adminNotice(@js(__('superadmin.admins.deleted')));
+                    window.setTimeout(() => window.location.reload(), 500);
+                },
+            });
         });
 
         document.addEventListener('click', (event) => {

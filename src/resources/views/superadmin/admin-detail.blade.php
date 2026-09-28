@@ -9,6 +9,9 @@
         <div class="superadmin-actions">
             <button class="sa-button secondary" data-modal-open="reset-password-modal" type="button"><span class="material-symbols-outlined text-[16px]">lock_reset</span>{{ __('superadmin.admins.reset_password') }}</button>
             <button class="sa-button warning" id="admin-status" type="button"><span class="material-symbols-outlined text-[16px]">lock</span>{{ __('superadmin.admins.update_status') }}</button>
+            @unless((int) auth('admin')->id() === (int) request()->route('admin'))
+                <button class="sa-button danger" id="admin-delete" type="button"><span class="material-symbols-outlined text-[16px]">delete</span>{{ __('superadmin.admins.delete_account') }}</button>
+            @endunless
         </div>
     </div>
     <div id="notice" class="sa-notice" role="status"></div>
@@ -246,6 +249,20 @@
                 button.innerHTML = originalHtml;
             }
         }
+
+        document.querySelector('#admin-delete')?.addEventListener('click', () => {
+            const name = document.querySelector('#admin-name')?.textContent.trim() || '';
+            openSuperadminConfirm({
+                message: @js(__('superadmin.admins.confirm_delete')).replace(':name', name),
+                description: @js(__('superadmin.admins.delete_description')),
+                confirmLabel: @js(__('superadmin.admins.delete_account')),
+                onConfirm: async () => {
+                    await dfApi(`/superadmin/admins/${adminId}`, { method: 'DELETE' });
+                    adminNotice(@js(__('superadmin.admins.deleted')));
+                    window.setTimeout(() => window.location.href = @js(route('superadmin.admins.page')), 500);
+                },
+            });
+        });
 
         async function updateAdminStatus(status, rethrow = false) {
             try {

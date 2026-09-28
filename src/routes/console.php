@@ -28,3 +28,8 @@ Schedule::command('drinkflow:prune-crawler-and-logs')
 Schedule::command('drinkflow:remind-campaign-deadlines')
     ->everyMinute()
     ->withoutOverlapping();
+
+// 5. Snapshot queue/storage/socket health for the superadmin dashboard history (older snapshots are pruned in the same run)
+Schedule::command('drinkflow:capture-system-metrics')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping();

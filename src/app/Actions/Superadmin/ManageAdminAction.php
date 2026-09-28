@@ -117,11 +117,47 @@ class ManageAdminAction
      */
     public function delete(AdminAccount $admin): void
     {
+        if (request()->user('admin')?->is($admin)) {
+            throw ValidationException::withMessages(['admin' => __('superadmin.actions.cannot_delete_self')]);
+        }
+
         DB::transaction(function () use ($admin): void {
             if ($admin->isSuperadmin()) $this->ensureAnotherSuperadmin($admin);
-            app(AuditService::class)->record('admin.deleted', 'admin', $admin->id, null, $admin->only(['name', 'email', 'role', 'status']));
+            app(AuditService::class)->record('admin.deleted', 'admin', $admin->id, null, $admin->only(['name', 'email', 'role', 'status']), [], [
+                'room_ids' => $admin->rooms()->pluck('rooms.id')->all(),
+            ]);
+            $this->removeRelations($admin);
             $admin->delete();
         });
+    }
+
+    /**
+     * Remove everything tied to an admin account before it is deleted.
+     *
+     * Done explicitly (not only through the foreign keys) so it also holds where FK enforcement is off:
+     * - owned records are deleted: room assignments, audit-log links, notifications, crawler previews;
+     * - "created / placed / updated by" references on shared data are cleared (the data itself is kept);
+     * - audit logs and security events stay as history (actor_type = admin, actor_id = the deleted id).
+     *
+     * @param AdminAccount $admin Admin being deleted.
+     */
+    private function removeRelations(AdminAccount $admin): void
+    {
+        $admin->rooms()->detach();
+        $admin->linkedAuditLogs()->detach();
+        $admin->notifications()->delete();
+        DB::table('crawler_previews')->where('admin_id', $admin->id)->delete();
+
+        foreach ([
+            'campaigns' => 'creator_admin_id',
+            'orders' => 'placed_by_admin_id',
+            'debt_adjustments' => 'admin_id',
+            'debt_payments' => 'created_by_admin_id',
+            'system_settings' => 'updated_by_admin_id',
+            'versions' => 'created_by_admin_id',
+        ] as $table => $column) {
+            DB::table($table)->where($column, $admin->id)->update([$column => null]);
+        }
     }
 
     /**

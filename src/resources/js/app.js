@@ -25,6 +25,7 @@ import { initSuperadminSearchClear } from './superadmin/search-clear';
 import { initSuperadminNotifications } from './superadmin/notifications';
 import { initSuperadminSidebar } from './superadmin/sidebar';
 import { initSuperadminVersions } from './superadmin/versions';
+import { initSuperadminDashboard } from './superadmin/dashboard';
 import { initDateRangePickers } from './admin/ui-enhancements';
 import { renderSubmitLoading } from './shared/submit-loading';
 
@@ -59,5 +60,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initSuperadminNotifications();
     initSuperadminSidebar();
     initSuperadminVersions();
+    initSuperadminDashboard();
     initDateRangePickers();
 });

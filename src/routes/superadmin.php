@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:admin', 'superadmin'])->prefix('superadmin')->group(function () {
     Route::get('/', [\App\Http\Controllers\Superadmin\DashboardController::class, 'index'])->name('superadmin.dashboard');
+    Route::get('/dashboard/analytics', [\App\Http\Controllers\Superadmin\DashboardController::class, 'analytics'])->name('superadmin.dashboard.analytics');
+    Route::get('/dashboard/insights', [\App\Http\Controllers\Superadmin\DashboardController::class, 'insights'])->name('superadmin.dashboard.insights');
+    Route::get('/dashboard/trends', [\App\Http\Controllers\Superadmin\DashboardController::class, 'trends'])->name('superadmin.dashboard.trends');
     Route::get('/rooms/page', [\App\Http\Controllers\Superadmin\PageController::class, 'rooms'])->name('superadmin.rooms.page');
     Route::get('/rooms', [\App\Http\Controllers\Superadmin\RoomController::class, 'index'])->name('superadmin.rooms.index');
     Route::post('/rooms', [\App\Http\Controllers\Superadmin\RoomController::class, 'store'])->name('superadmin.rooms.store');

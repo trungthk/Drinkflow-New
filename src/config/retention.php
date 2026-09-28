@@ -6,4 +6,5 @@ return [
     'read_user_notifications_days' => (int) env('RETENTION_READ_USER_NOTIFICATIONS_DAYS', 30),
     'crawler_previews_days' => (int) env('RETENTION_CRAWLER_PREVIEWS_DAYS', 2),
     'log_files_days' => (int) env('RETENTION_LOG_FILES_DAYS', 14),
+    'system_metrics_days' => (int) env('RETENTION_SYSTEM_METRICS_DAYS', 30),
 ];

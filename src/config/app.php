@@ -68,6 +68,13 @@ return [
     'timezone' => 'UTC',
 
     /*
+    | Timezone used when bucketing system-wide statistics by local hour/weekday (superadmin dashboard
+    | peak-hours heatmap). Timestamps stay stored in `timezone` above.
+    */
+
+    'display_timezone' => env('APP_DISPLAY_TIMEZONE', 'Asia/Ho_Chi_Minh'),
+
+    /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration
     |--------------------------------------------------------------------------

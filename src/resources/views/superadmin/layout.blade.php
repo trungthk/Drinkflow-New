@@ -40,10 +40,15 @@
     ] + __('superadmin.health'), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}" class="superadmin-shell">
     <x-superadmin.loading />
     <aside class="superadmin-sidebar" id="superadmin-sidebar">
-        <div class="superadmin-brand">
-            <div class="superadmin-logo">D</div>
+        {{-- Same brand mark as the room admin console (components/admin/layout.blade.php). --}}
+        <a class="superadmin-brand" href="{{ route('superadmin.dashboard') }}" title="DrinkFlow">
+            <span class="superadmin-logo" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z" />
+                </svg>
+            </span>
             <div class="superadmin-brand-text"><strong>DrinkFlow</strong><span>{{ __('superadmin.layout.enterprise_superadmin') }}</span></div>
-        </div>
+        </a>
         @php
             $navSections = [
                 __('superadmin.common.core_system') => [
@@ -77,9 +82,6 @@
                 @endforeach
             @endforeach
         </nav>
-        <div class="superadmin-trust"><span class="material-symbols-outlined">verified_user</span>
-            <div class="superadmin-trust-text"><strong>{{ __('superadmin.layout.zero_trust') }}</strong><small>{{ __('superadmin.layout.root_authority') }}</small></div>
-        </div>
     </aside>
     <div class="superadmin-main">
         <x-superadmin.maintenance-banner />
@@ -111,7 +113,7 @@
     both be deleted. --}}
     <script>
         window.dfApi = window.dfApi || async function (url, options = {}) {
-            const headers = { Accept: 'application/json', ...(options.headers || {}) };
+            const headers = { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', ...(options.headers || {}) };
             if (options.body && typeof options.body !== 'string') {
                 headers['Content-Type'] = 'application/json';
                 options.body = JSON.stringify(options.body);
