@@ -9,6 +9,7 @@ use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Models\RoomSetting;
 use App\Services\Audit\AuditService;
+use App\Services\Room\RoomAccessPolicy;
 use Illuminate\Support\Facades\DB;
 
 class UpdateRoomSettingsAction
@@ -42,6 +43,21 @@ class UpdateRoomSettingsAction
 
         $updated = DB::transaction(function () use ($room, $data, $dynamicKeys): Room {
             $room->update(collect($data)->only(['name', 'description', 'avatar_url', 'timezone', 'language'])->all());
+
+            // Access-rule lists (email domains / IPs) are stored as normalized JSON arrays; empty = no restriction.
+            foreach (RoomAccessPolicy::LIST_KEYS as $key) {
+                if (array_key_exists($key, $data)) {
+                    $values = (array) ($data[$key] ?? []);
+                    $list = $key === RoomAccessPolicy::ALLOWED_EMAIL_DOMAINS
+                        ? RoomAccessPolicy::normalizeDomains($values)
+                        : RoomAccessPolicy::normalizeIps($values);
+                    RoomSetting::updateOrCreate(
+                        ['room_id' => $room->id, 'key' => $key],
+                        ['value' => json_encode($list), 'type' => RoomSetting::TYPE_JSON, 'is_secret' => false]
+                    );
+                }
+            }
+            app(RoomAccessPolicy::class)->forget($room);
 
             foreach ($dynamicKeys as $key => $type) {
                 if (array_key_exists($key, $data)) {
@@ -80,6 +96,9 @@ class UpdateRoomSettingsAction
                 $val = $val !== null ? (int) $val : null;
             } elseif ($setting->type === RoomSetting::TYPE_BOOLEAN) {
                 $val = filter_var($val, FILTER_VALIDATE_BOOLEAN);
+            } elseif ($setting->type === RoomSetting::TYPE_JSON) {
+                $decoded = json_decode((string) $val, true);
+                $val = is_array($decoded) ? array_values($decoded) : [];
             }
             $extra[$key] = $val;
         }
@@ -92,6 +111,6 @@ class UpdateRoomSettingsAction
             'personal_debt_ceiling' => $settings->get('personal_debt_ceiling')?->value !== null ? (int) $settings->get('personal_debt_ceiling')->value : 150000,
             'auto_lock_on_debt_limit' => $settings->get('auto_lock_on_debt_limit')?->value !== null ? filter_var($settings->get('auto_lock_on_debt_limit')->value, FILTER_VALIDATE_BOOLEAN) : true,
             'is_public' => $settings->get('is_public')?->value !== null ? filter_var($settings->get('is_public')->value, FILTER_VALIDATE_BOOLEAN) : true,
-        ]);
+        ], array_fill_keys(array_diff(RoomAccessPolicy::LIST_KEYS, array_keys($extra)), []));
     }
 }

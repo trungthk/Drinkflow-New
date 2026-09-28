@@ -9,6 +9,7 @@ use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\JoinRoomByCodeRequest;
 use App\Models\GlobalUser;
+use App\Services\Room\RoomAccessPolicy;
 use App\Services\Room\UserRoomsService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -76,6 +77,14 @@ class RoomsController extends Controller
 
         /** @var GlobalUser|null $user */
         $user = $request->attributes->get('global_user') ?? $request->user('web');
+        // Room access rules: report them on the join form instead of sending the member to a 403 page.
+        $policy = app(RoomAccessPolicy::class);
+        if (! $policy->ipAllowed($room, $request->ip())) {
+            return back()->withInput()->withErrors(['room_url' => __('room.access.ip_denied', ['ip' => (string) $request->ip()])]);
+        }
+        if ($user && ! $policy->emailAllowed($room, $user->email)) {
+            return back()->withInput()->withErrors(['room_url' => $policy->emailDeniedMessage($room)]);
+        }
         if ($user) {
             $membership = $user->roomUsers()->where('room_id', $room->id)->first();
             if ($membership) {

@@ -12,6 +12,7 @@ use App\Models\Room;
 use App\Models\RoomUser;
 use App\Models\RoomUserDevice;
 use App\Services\Code\CodeGeneratorService;
+use App\Services\Room\RoomAccessPolicy;
 use Illuminate\Support\Facades\DB;
 
 class JoinRoomAction
@@ -32,6 +33,8 @@ class JoinRoomAction
 
         abort_unless($globalUser->status === GlobalUserStatus::Active, 403);
         abort_unless($room->status === RoomStatus::Active, 404);
+        // Also enforced by the "room.email_domain" middleware; kept here so every join path honours it.
+        app(RoomAccessPolicy::class)->ensureEmailAllowed($room, $globalUser);
 
         return DB::transaction(function () use ($globalUser, $room, $deviceUuid, $deviceTokenHash): RoomUser {
             $roomUser = RoomUser::query()->firstOrCreate(

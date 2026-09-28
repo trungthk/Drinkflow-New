@@ -75,6 +75,47 @@
                 </div>
             </section>
 
+            {{-- 1b. Quy tắc truy cập: domain email được tham gia, IP được phép / bị chặn (App\Services\Room\RoomAccessPolicy) --}}
+            <section class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xs overflow-hidden" data-room-access-rules>
+                <header class="flex items-center gap-3 px-5 py-4 border-b border-outline-variant/60 bg-surface-container-low">
+                    <div class="w-9 h-9 rounded-lg bg-sky-50 text-sky-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]">shield_lock</span>
+                    </div>
+                    <div class="min-w-0">
+                        <h2 class="font-bold text-sm text-on-surface">{{ __('admin.room_access_rules_title') }}</h2>
+                        <p class="text-[11px] text-outline">{{ __('admin.room_access_rules_desc') }}</p>
+                    </div>
+                </header>
+                <div class="p-5 space-y-5">
+                    <x-admin.tags-input id="set-allowed-email-domains" name="allowed_email_domains" validate="domain" icon="alternate_email"
+                        :values="$settings['allowed_email_domains'] ?? []"
+                        :label="__('admin.room_allowed_email_domains')"
+                        :hint="__('admin.room_allowed_email_domains_hint')"
+                        :placeholder="__('admin.room_allowed_email_domains_placeholder')" />
+
+                    <div class="pt-5 border-t border-outline-variant/50">
+                        <x-admin.tags-input id="set-allowed-ips" name="allowed_ips" validate="ip" icon="verified_user"
+                            :values="$settings['allowed_ips'] ?? []"
+                            :label="__('admin.room_allowed_ips')"
+                            :hint="__('admin.room_allowed_ips_hint')"
+                            :placeholder="__('admin.room_allowed_ips_placeholder')" />
+                    </div>
+
+                    <div class="pt-5 border-t border-outline-variant/50">
+                        <x-admin.tags-input id="set-blocked-ips" name="blocked_ips" validate="ip" variant="block" icon="block"
+                            :values="$settings['blocked_ips'] ?? []"
+                            :label="__('admin.room_blocked_ips')"
+                            :hint="__('admin.room_blocked_ips_hint')"
+                            :placeholder="__('admin.room_blocked_ips_placeholder')" />
+                    </div>
+
+                    <p class="flex items-center gap-1.5 rounded-lg bg-surface-container-low px-3 py-2 text-[11px] text-on-surface-variant">
+                        <span class="material-symbols-outlined text-[16px] text-outline">lan</span>
+                        <span>{{ __('admin.room_access_current_ip', ['ip' => request()->ip()]) }}</span>
+                    </p>
+                </div>
+            </section>
+
             {{-- 2. Mặc định chiến dịch --}}
             <section class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xs overflow-hidden">
                 <header class="flex items-center justify-between gap-3 px-5 py-4 border-b border-outline-variant/60 bg-surface-container-low">

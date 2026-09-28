@@ -15,6 +15,9 @@ class RoomSetting extends Model
 
     public const TYPE_BOOLEAN = 'boolean';
 
+    /** JSON-encoded list (e.g. allowed email domains, allowed / blocked IPs). */
+    public const TYPE_JSON = 'json';
+
     protected $fillable = ['room_id', 'key', 'value', 'type', 'is_secret'];
 
     protected function casts(): array

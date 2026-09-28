@@ -1,10 +1,12 @@
 import { formatMoney } from '../shared/money';
+import { collectTagsInputs, initTagsInputs } from './tags-input';
 
 /**
  * Admin Room Settings & Payment Accounts Controller
  */
 export function initAdminSettings() {
     const $ = id => document.getElementById(id);
+    initTagsInputs();
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
     const roomSlug = document.querySelector('meta[name="room-slug"]')?.content
         || document.querySelector('[data-room-slug]')?.dataset.roomSlug
@@ -99,6 +101,8 @@ export function initAdminSettings() {
             personal_debt_ceiling: cleanNumber(debtInput?.value),
             auto_lock_on_debt_limit: $('set-autolock-debt')?.checked ?? true,
             is_public: $('set-room-public')?.checked ?? true,
+            // Access rules (allowed email domains, allowed / blocked IPs); empty lists = no restriction.
+            ...collectTagsInputs(settingsForm),
         };
 
         const submitBtn = $('save-campaign-settings-btn') || document.querySelector('button[type="submit"][form="room-settings-form"]');
@@ -120,7 +124,10 @@ export function initAdminSettings() {
                 const okMsg = settingsForm.dataset.msgSuccess || 'Saved successfully';
                 showNotice(okMsg);
             } else {
-                const errMsg = settingsForm.dataset.msgError || 'An error occurred';
+                // Show the first validation message (e.g. an invalid IP) instead of a generic error.
+                const data = await res.json().catch(() => ({}));
+                const firstError = data?.errors ? Object.values(data.errors).flat()[0] : null;
+                const errMsg = firstError || data?.message || settingsForm.dataset.msgError || 'An error occurred';
                 showNotice(errMsg, 'error');
             }
         } catch (err) {

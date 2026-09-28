@@ -23,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
             'user.has_rooms' => \App\Http\Middleware\EnsureUserHasRooms::class,
             'user.active_room' => \App\Http\Middleware\EnsureUserHasActiveRoom::class,
+            // Per-room access rules configured on the room settings page (App\Services\Room\RoomAccessPolicy).
+            'room.ip' => \App\Http\Middleware\EnsureRoomIpAllowed::class,
+            'room.email_domain' => \App\Http\Middleware\EnsureRoomEmailDomainAllowed::class,
         ]);
         $middleware->redirectGuestsTo(function (Request $request): string {
             return $request->is('admin', 'admin/*', 'superadmin', 'superadmin/*')

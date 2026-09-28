@@ -50,6 +50,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(BrowserTransportInterface::class, PuppeteerBrowserTransport::class);
         // Singleton so the .env-based mail/storage config is captured once, before overrides.
         $this->app->singleton(\App\Services\System\SystemConfigService::class);
+        // One instance per request: middleware and actions share the room lists it has already read.
+        $this->app->scoped(\App\Services\Room\RoomAccessPolicy::class);
         $this->app->singleton(ProviderResolver::class, function (): ProviderResolver {
             $providers = array_map(
                 fn(string $provider): FoodCrawlerProviderInterface => $this->app->make($provider),

@@ -63,6 +63,13 @@
                         <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
                             {{ __('errors.403.description') }}
                         </p>
+                        {{-- Room access rules (IP allow/block list, email domain): show the translated reason. --}}
+                        @if (($exception ?? null) instanceof \App\Exceptions\RoomAccessDeniedException)
+                            <p class="mt-3 inline-flex items-start gap-2 rounded-lg border border-error/30 bg-error-container/60 px-3 py-2 text-sm font-medium text-on-error-container" data-room-access-denied>
+                                <span class="material-symbols-outlined text-[18px] shrink-0">block</span>
+                                <span>{{ $exception->getMessage() }}</span>
+                            </p>
+                        @endif
                     </div>
 
                     <!-- Quick Actions Button Group -->

@@ -515,4 +515,10 @@ return [
         'cups_count' => ':count cups',
         'no_data' => 'No drink analytics data available.',
     ],
+
+    // Room access rules (App\Services\Room\RoomAccessPolicy).
+    'access' => [
+        'ip_denied' => 'The IP address :ip is not allowed to access this room. Please contact the room admin.',
+        'email_domain_denied' => 'This room only accepts accounts with an email from: :domains.',
+    ],
 ];

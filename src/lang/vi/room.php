@@ -515,4 +515,10 @@ return [
         'cups_count' => ':count ly',
         'no_data' => 'Chưa có dữ liệu thống kê đồ uống nào.',
     ],
+
+    // Room access rules (App\Services\Room\RoomAccessPolicy).
+    'access' => [
+        'ip_denied' => 'Địa chỉ IP :ip không được phép truy cập phòng này. Vui lòng liên hệ quản trị viên phòng.',
+        'email_domain_denied' => 'Phòng này chỉ cho phép tài khoản có email thuộc: :domains.',
+    ],
 ];
