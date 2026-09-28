@@ -32,9 +32,7 @@ Các khối thông tin:
 
 - **Thông tin định danh & Công ty (SSO):** tên, phòng ban, mã nhân viên — các trường này do quản trị viên IT quản lý, **không chỉnh sửa được** ở đây.
 - **Số điện thoại nhận hàng** và **Địa điểm nhận hàng mặc định**: nên điền để Shipper/Host dễ liên hệ và giao đồ uống đúng chỗ. Nhập xong bấm **"Lưu thông tin liên hệ"**.
-- **Tài khoản nhận tiền hoàn trả (VietQR):** dùng khi đơn bị quán báo hết món, Host huỷ gom đơn hoặc phát sinh khoản hoàn tiền khuyến mãi — DrinkFlow sẽ tự động hoàn tiền về tài khoản bạn khai báo tại đây. Bấm **"Thiết lập tài khoản ngân hàng"** nếu chưa có, hoặc **"Thay đổi tài khoản"** để cập nhật.
 - **Ghi chú mặc định cho quán đồ uống:** nội dung này sẽ tự động đính kèm vào món của bạn mỗi khi Host xuất đơn gửi quán (ví dụ: "tách đá nếu giao trên 30 phút").
-- **Kênh nhận thông báo:** bật/tắt thông báo gom đơn mới và âm thanh chuông báo khi có đồ uống tới.
 - **Thống kê thành viên & Danh hiệu nội bộ:** tổng số món đã order, tỉ lệ thanh toán đúng hạn, danh hiệu (Hội viên Tiêu chuẩn/Vàng/Kim Cương theo mức độ hoạt động).
 - **Lối tắt & Quản trị bảo mật:** liên kết nhanh tới **Bảo mật & thiết bị** ([bài 8](08-bao-mat-thiet-bi.md)) và **Lịch sử thanh toán & VietQR** ([bài 5](05-thanh-toan-cong-no.md)), **Thống kê chi tiêu** ([bài 6](06-thong-ke-chi-tieu.md)).
 

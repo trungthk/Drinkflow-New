@@ -46,21 +46,6 @@ Nếu đơn còn ở trạng thái **"Chờ thanh toán"**, bạn có thể:
 
 > Nếu đơn được tài trợ 100% hoặc miễn phí, hệ thống sẽ ghi rõ **"Đơn hàng không phát sinh chi phí"** — bạn không cần chuyển khoản.
 
-## 4.3. Lịch sử Order toàn hệ thống (`/me/orders`)
-
-Ngoài xem theo từng Room, bạn có thể xem **gộp tất cả đơn hàng ở mọi Room** tại một chỗ:
-
-1. Vào `/me` → khối "Đơn hàng gần đây" → bấm **"Lịch sử đầy đủ"** (hoặc truy cập trực tiếp `/me/orders`).
-
-![Lịch sử Order & Hóa đơn toàn hệ thống](images/11-lich-su-don-hang.png)
-
-Tại trang này bạn có thể:
-
-- **Lọc** theo Room, theo trạng thái (Đã thanh toán / Chờ thanh toán / Đã hủy), theo thời gian (tháng này, tháng trước, 3 tháng gần nhất, tất cả thời gian).
-- **Tìm kiếm nhanh** theo mã đơn/tên món.
-- Xem nhanh 4 chỉ số: tổng đơn trong tháng, tổng chi cá nhân, tài trợ từ công ty, số đơn đang chờ thanh toán.
-- Bấm **"Chi tiết"** trên từng dòng để mở hộp thoại xem đầy đủ: danh sách món, đơn giá, thành tiền, phần tài trợ và số tiền thực trả.
-
 ---
 
 ⬅️ [Trang trước: 3. Đặt món trong chiến dịch gom đơn](03-dat-mon-chien-dich.md) &nbsp;|&nbsp; [🏠 Mục lục](README.md) &nbsp;|&nbsp; [Trang sau: 5. Thanh toán & Công nợ ➡️](05-thanh-toan-cong-no.md)

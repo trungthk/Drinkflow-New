@@ -80,10 +80,6 @@ Lưu ý: bạn cần có **ít nhất một món cho chính mình** trong giỏ 
 
 Nếu không muốn tham gia đợt gom đơn hiện tại, bấm **"Không tham gia"** và xác nhận — giỏ hàng hiện tại (nếu có) sẽ bị xoá. Nếu đổi ý, bấm **"Tham gia lại"** để tiếp tục chọn món (miễn là chiến dịch chưa hết hạn chốt đơn).
 
-## 3.6. Sửa hoặc huỷ đơn đã gửi
-
-Khi chiến dịch còn đang mở nhận đơn, bạn vẫn có thể **"Sửa món"** hoặc **"Hủy đơn"** đối với đơn mình vừa gửi. Sau khi Host đóng chiến dịch hoặc quá hạn chốt đơn, hệ thống sẽ tự động khoá, không cho chỉnh sửa thêm — màn hình hiển thị **"Đã đóng nhận đơn"**.
-
 ---
 
 ⬅️ [Trang trước: 2. Tham gia & quản lý Room](02-tham-gia-va-quan-ly-room.md) &nbsp;|&nbsp; [🏠 Mục lục](README.md) &nbsp;|&nbsp; [Trang sau: 4. Theo dõi đơn hàng ➡️](04-theo-doi-don-hang.md)

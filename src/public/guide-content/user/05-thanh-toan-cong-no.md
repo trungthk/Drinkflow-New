@@ -38,20 +38,6 @@ Với mỗi khoản nợ, bấm **"Quét mã VietQR"** (hoặc **"Xem QR"**) đ�
 
 > **Quan trọng:** Luôn giữ đúng số tiền và đúng nội dung chuyển khoản hiển thị trên mã QR — sai nội dung có thể khiến hệ thống không tự động gạch nợ được, khi đó hãy dùng nút **"Trợ giúp"** trên trang để liên hệ Quản trị viên Room kèm ảnh chụp giao dịch.
 
-## 5.2. Ví & Thanh toán tổng hợp (`/me/payments`)
-
-Đây là nơi tổng hợp **công nợ từ tất cả các Room** bạn tham gia vào một màn hình duy nhất.
-
-Cách vào: trang **Hồ sơ cá nhân** (`/me/profile`) → mục **"Lối tắt & Quản trị bảo mật"** → **"Lịch sử thanh toán & VietQR"** (hoặc truy cập trực tiếp `/me/payments`).
-
-![Trang Ví & Thanh toán tổng hợp](images/12-vi-thanh-toan.png)
-
-Các chức năng chính:
-
-- Thẻ **"Tổng chưa thanh toán"**: tổng nợ gộp từ mọi Room, kèm nút **"Thanh toán tất cả qua VietQR"**.
-- Thẻ **"Đã thanh toán tháng này"** và **"Tổng tài trợ được nhận"**.
-- Tab lọc **Tất cả / Chưa thanh toán / Đã thanh toán**, sắp xếp theo hạn thanh toán hoặc theo giá trị.
-- **"Xuất sao kê (.xlsx)"**: tải file Excel chi tiết các giao dịch để đối chiếu hoặc lưu trữ cá nhân.
 
 > Nếu bạn để nợ quá hạn thanh toán ở nhiều Room, tài khoản toàn hệ thống của bạn có thể bị tạm khoá — xem [bài 11](11-tai-khoan-bi-khoa.md).
 
