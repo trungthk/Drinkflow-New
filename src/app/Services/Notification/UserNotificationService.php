@@ -106,7 +106,7 @@ class UserNotificationService
         // Calculate counts for filter tabs
         $allCount = (clone $baseQuery)->count();
         $unreadCount = (clone $baseQuery)->whereNull('read_at')->count();
-        $roomOrderTypes = [NotificationType::CampaignCreated->value, NotificationType::OrderStatus->value, NotificationType::OrderProxyReceived->value, NotificationType::RoomInvite->value];
+        $roomOrderTypes = [NotificationType::CampaignCreated->value, NotificationType::CampaignDeadlineReminder->value, NotificationType::OrderStatus->value, NotificationType::OrderProxyReceived->value, NotificationType::RoomInvite->value];
         $paymentTypes = [NotificationType::PaymentDue->value, NotificationType::PaymentConfirmed->value, NotificationType::DebtReminder->value];
         $profileTypes = [NotificationType::SecurityAlert->value, NotificationType::DeviceNew->value];
         $otherTypes = [NotificationType::AdminBroadcast->value, NotificationType::NotificationTest->value];

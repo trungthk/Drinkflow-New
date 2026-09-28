@@ -24,7 +24,7 @@ class Debt extends Model
     {
         static::creating(function (Debt $debt): void {
             if (empty($debt->code)) {
-                $debt->code = \App\Services\Code\CodeGeneratorService::generateDebtCode();
+                $debt->code = \App\Services\Code\CodeGeneratorService::generateDebtCode($debt->room_id !== null ? (int) $debt->room_id : null);
             }
         });
     }

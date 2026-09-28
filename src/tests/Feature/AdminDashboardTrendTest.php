@@ -76,6 +76,78 @@ class AdminDashboardTrendTest extends TestCase
     }
 
     /**
+     * Spending is the campaigns' gross total (order subtotals + delivery fee - discount, before sponsorship),
+     * counted on the day the campaign was created; cancelled campaigns and campaigns without orders spend nothing.
+     */
+    public function test_weekly_trend_spending_uses_campaign_gross_total(): void
+    {
+        $admin = AdminAccount::create([
+            'name' => 'Room Admin',
+            'email' => 'gross-admin@example.test',
+            'password' => Hash::make('secret'),
+            'role' => AdminRole::Admin,
+            'status' => 'active',
+        ]);
+        $room = Room::create(['name' => 'Gross Room', 'slug' => 'gross-room', 'status' => 'active']);
+        $admin->rooms()->attach($room);
+        $globalUser = GlobalUser::create(['name' => 'Member', 'email' => 'gross-member@example.test']);
+        $roomUser = RoomUser::create(['room_id' => $room->id, 'global_user_id' => $globalUser->id, 'display_name' => 'Member', 'status' => 'active']);
+
+        $campaign = Campaign::create([
+            'room_id' => $room->id, 'name' => 'Trà chiều', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Closed,
+            'delivery_fee' => 15000, 'discount' => 5000,
+        ]);
+        foreach ([[OrderStatus::Completed, 40000], [OrderStatus::Cancelled, 90000]] as [$status, $subtotal]) {
+            Order::create([
+                'room_id' => $room->id, 'campaign_id' => $campaign->id, 'room_user_id' => $roomUser->id,
+                'subtotal' => $subtotal, 'sponsor_amount' => 30000, 'final_amount' => $subtotal - 30000, 'status' => $status,
+            ]);
+        }
+        // Delivery fee alone never counts as spending.
+        Campaign::create(['room_id' => $room->id, 'name' => 'Không ai đặt', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Closed, 'delivery_fee' => 20000]);
+        $cancelled = Campaign::create(['room_id' => $room->id, 'name' => 'Đã hủy', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Cancelled, 'delivery_fee' => 20000]);
+        Order::create([
+            'room_id' => $room->id, 'campaign_id' => $cancelled->id, 'room_user_id' => $roomUser->id,
+            'subtotal' => 70000, 'final_amount' => 70000, 'status' => OrderStatus::Completed,
+        ]);
+
+        $response = $this->actingAs($admin, 'admin')
+            ->getJson("/admin/{$room->id}/dashboard/data")
+            ->assertOk()
+            // 40,000 subtotal + 15,000 delivery - 5,000 discount; the sponsored 30,000 is still spending.
+            ->assertJsonPath('data.weekly_total_spending', 50000);
+
+        $this->assertSame(50000, $response->json('data.weekly_trend.6.spending_amount'));
+        $this->assertSame(3, $response->json('data.weekly_trend.6.campaigns_count'));
+    }
+
+    /**
+     * The "running" badge of the open-campaigns card and the "needs settlement" badge of the unpaid-debt card are gone.
+     */
+    public function test_dashboard_metric_cards_have_no_status_badges(): void
+    {
+        $admin = AdminAccount::create([
+            'name' => 'Room Admin',
+            'email' => 'badge-admin@example.test',
+            'password' => Hash::make('secret'),
+            'role' => AdminRole::Admin,
+            'status' => 'active',
+        ]);
+        $room = Room::create(['name' => 'Badge Room', 'slug' => 'badge-room', 'status' => 'active']);
+        $admin->rooms()->attach($room);
+
+        $html = $this->actingAs($admin, 'admin')
+            ->get("/admin/{$room->slug}/dashboard")
+            ->assertOk()
+            ->getContent();
+
+        $grid = substr($html, (int) strpos($html, 'id="metrics-grid"'), 12000);
+        $grid = substr($grid, 0, (int) strpos($grid, '</section>'));
+        $this->assertStringNotContainsString(__('admin.needs_settlement'), $grid);
+        $this->assertStringNotContainsString('Đang chạy', $grid);
+    }
+
+    /**
      * The dashboard page hands the chart its localized labels through data attributes.
      */
     public function test_dashboard_exposes_localized_chart_labels(): void

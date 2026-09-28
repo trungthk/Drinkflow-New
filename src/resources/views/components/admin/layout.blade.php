@@ -57,6 +57,16 @@
     data-processing-text="{{ __('admin.processing') }}"
     {{-- Room admins reload into the maintenance page when it starts; superadmins bypass maintenance here. --}}
     @unless (auth('admin')->user()?->isSuperadmin()) data-maintenance-realtime-url="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}" @endunless
+    {{-- Room admins get an authenticated socket on every page for their private live notifications. --}}
+    @if ($room && ! auth('admin')->user()?->isSuperadmin())
+        data-room-id="{{ $room->id }}"
+        data-admin-socket-token-url="{{ route('admin.socket-token', $room) }}"
+        data-admin-realtime-i18n="{{ json_encode([
+            'deadline_reminder_title' => __('admin.audit_event_campaign_deadline_reminder'),
+            'deadline_reminder_body' => __('admin.campaign_deadline_reminder_body'),
+            'just_now' => __('admin.just_now'),
+        ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
+    @endif
     class="admin-shell bg-surface text-on-surface font-sans min-h-screen flex antialiased selection:bg-emerald-100 selection:text-emerald-900">
     <!-- ================= LEFT SIDEBAR ================= -->
     <aside id="admin-sidebar"

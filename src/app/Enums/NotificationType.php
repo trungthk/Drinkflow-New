@@ -11,6 +11,7 @@ enum NotificationType: string
     case CampaignCancelled = 'campaign.cancelled';
     case CampaignUpdated = 'campaign.updated';
     case CampaignDelivering = 'campaign.delivering';
+    case CampaignDeadlineReminder = 'campaign.deadline_reminder';
     case NotificationTest = 'notification.test';
     case OrderCreated = 'order.created';
     case OrderProxyReceived = 'order.proxy_received';

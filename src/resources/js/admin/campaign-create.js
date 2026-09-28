@@ -239,17 +239,31 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             this.menuTab = 'reuse';
         },
 
+        /**
+         * Replace the menu with imported items. Items without a name are dropped, so a category whose items are all
+         * nameless (e.g. an empty category in an AI/.md/.json result) does not show up: categories come from items.
+         *
+         * @returns {number} Number of items kept.
+         */
         applyMenuItems(items) {
-            this.menuItems = (items || []).map(item => this.normalizeMenuItem(item));
+            this.menuItems = this.importableMenuItems(items);
             this.syncSelectedCategory();
+            return this.menuItems.length;
+        },
+
+        importableMenuItems(items) {
+            return (Array.isArray(items) ? items : [])
+                .filter(item => item && typeof item === 'object')
+                .map(item => this.normalizeMenuItem(item))
+                .filter(item => item.name.trim() !== '');
         },
 
         normalizeMenuItem(item) {
             return {
                 id: item.id || null,
-                name: item.name || '',
+                name: String(item.name ?? '').trim(),
                 price: parseCleanNumber(item.price ?? item.base_price),
-                category: item.category || 'Khác',
+                category: String(item.category ?? '').replace(/\s+/g, ' ').trim() || 'Khác',
                 description: item.description || '',
                 image_url: normalizeImageUrl(item.image_url),
                 image_load_failed: false,
@@ -548,8 +562,8 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         importJson() {
             try {
                 const parsed = JSON.parse(this.rawJson);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    this.menuItems = parsed.map(item => this.normalizeMenuItem(item));
+                if (Array.isArray(parsed) && parsed.length > 0 && this.importableMenuItems(parsed).length > 0) {
+                    this.applyMenuItems(parsed);
                     this.menuTab = 'json';
                     alert(msg('jsonLoaded', { count: this.menuItems.length }));
                 } else {
@@ -586,10 +600,10 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 }
                 const data = response.data || response;
                 if (data.items && data.items.length > 0) {
-                    this.menuItems = data.items.map(item => ({
-                        ...this.normalizeMenuItem(item),
-                        category: item.category || crawlerMenuCategory
-                    }));
+                    this.applyMenuItems(data.items.map(item => ({
+                        ...item,
+                        category: String(item.category ?? '').trim() || crawlerMenuCategory
+                    })));
                     this.form.restaurant = data.restaurant_name || this.form.restaurant || onlineRestaurantName;
                     this.menuTab = 'crawler';
                     this.crawlerMessage = msg('crawlerSuccess', { count: data.items.length });

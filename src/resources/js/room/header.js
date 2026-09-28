@@ -5,6 +5,7 @@ import { initHeaderNotificationRead } from '../shared/header-notification-read';
  */
 export function initRoomHeader() {
     initHeaderNotificationRead();
+    scrollActiveTabIntoView();
 
     const markAllReadBtn = document.getElementById('room-mark-all-read-btn');
     if (markAllReadBtn) {
@@ -42,4 +43,20 @@ export function initRoomHeader() {
             }
         });
     }
+}
+
+/**
+ * On narrow screens the room tab bar scrolls horizontally: bring the active tab into view (centered) on page load.
+ * Only the tab bar's own scrollLeft changes, so the page itself never scrolls vertically.
+ */
+function scrollActiveTabIntoView() {
+    const nav = document.querySelector('[data-room-tabs]');
+    const active = nav?.querySelector('[aria-current="page"]');
+    if (!nav || !active || nav.scrollWidth <= nav.clientWidth) return;
+
+    const navBox = nav.getBoundingClientRect();
+    const tabBox = active.getBoundingClientRect();
+    const tabLeft = tabBox.left - navBox.left + nav.scrollLeft;
+    const target = tabLeft - (nav.clientWidth - tabBox.width) / 2;
+    nav.scrollLeft = Math.max(0, Math.min(target, nav.scrollWidth - nav.clientWidth));
 }

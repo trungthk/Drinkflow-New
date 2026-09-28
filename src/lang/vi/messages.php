@@ -40,6 +40,8 @@ return [
     'order_items_updated_body' => 'Quản trị viên đã sửa món trong đơn :order_code. Tổng mới: :amount.',
     'campaign_updated_title' => 'Cập nhật chiến dịch',
     'campaign_updated_body' => 'Thông tin chiến dịch vừa mới được cập nhật.',
+    'campaign_deadline_reminder_title' => 'Sắp hết giờ đặt món! ⏰',
+    'campaign_deadline_reminder_body' => 'Chiến dịch ":campaign" sẽ chốt đơn lúc :time. Bạn chưa đặt món, hãy đặt ngay kẻo lỡ nhé!',
     'campaign_delivering_title' => 'Món đã được giao đến! 🧋',
     'campaign_delivering_body' => 'Đơn hàng của :restaurant (#:code) đã được giao đến phòng. Mời bạn đến nhận món!',
     'campaign_ordering_locked_title' => 'Chiến dịch đã tạm khóa đặt món',

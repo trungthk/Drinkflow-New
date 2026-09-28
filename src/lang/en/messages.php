@@ -40,6 +40,8 @@ return [
     'order_items_updated_body' => 'An admin edited the items of order :order_code. New total: :amount.',
     'campaign_updated_title' => 'Campaign Updated',
     'campaign_updated_body' => 'The campaign information has just been updated.',
+    'campaign_deadline_reminder_title' => 'Ordering closes soon! ⏰',
+    'campaign_deadline_reminder_body' => 'Campaign ":campaign" stops taking orders at :time. You have not ordered yet, order now so you do not miss out!',
     'campaign_delivering_title' => 'Items have arrived! 🧋',
     'campaign_delivering_body' => 'Orders from :restaurant (#:code) have arrived at the room. Please come pick up your items!',
     'campaign_ordering_locked_title' => 'Campaign ordering locked',

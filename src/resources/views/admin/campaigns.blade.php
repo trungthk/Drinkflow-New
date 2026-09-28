@@ -32,18 +32,20 @@
             || ($filters['status'] ?? 'all') !== 'all'
             || ($filters['sponsor_type'] ?? 'all') !== 'all';
     @endphp
-    <form id="campaigns-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.campaigns.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div class="flex items-center gap-3 flex-1 min-w-[280px]">
-            <x-admin.search-input id="campaign-search" name="search" :value="$filters['search'] ?? ''" placeholder="{{ __('admin.search_campaigns_placeholder') }}" containerClass="relative w-full max-w-md" />
-        </div>
-        <div class="flex items-center gap-2 flex-wrap">
-            <select id="campaign-status-select" name="status" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+    <form id="campaigns-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.campaigns.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-col gap-3 shadow-xs lg:flex-row lg:flex-wrap lg:items-center lg:gap-2">
+        {{-- Mobile: row 1 = search + status, row 2 = sponsor type + buttons, both full width.
+             From lg up both rows dissolve (lg:contents) into one line: search on the left, filters and buttons pushed right. --}}
+        <div class="flex w-full items-center gap-2 lg:contents">
+            <x-admin.search-input id="campaign-search" name="search" :value="$filters['search'] ?? ''" placeholder="{{ __('admin.search_campaigns_placeholder') }}" containerClass="relative min-w-0 flex-1 lg:min-w-[280px] lg:max-w-md" />
+            <select id="campaign-status-select" name="status" class="h-9 min-w-0 flex-1 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface lg:ml-auto lg:flex-none">
                 <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all') }}</option>
                 @foreach($statusFilters as $statusFilter)
                     <option value="{{ $statusFilter['value'] }}" {{ ($filters['status'] ?? '') === $statusFilter['value'] ? 'selected' : '' }}>{{ $statusFilter['label'] }}</option>
                 @endforeach
             </select>
-            <select id="campaign-sponsor-type-select" name="sponsor_type" aria-label="{{ __('admin.sponsor_type_label') }}" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+        </div>
+        <div class="flex w-full items-center gap-2 lg:contents">
+            <select id="campaign-sponsor-type-select" name="sponsor_type" aria-label="{{ __('admin.sponsor_type_label') }}" class="h-9 min-w-0 flex-1 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface lg:flex-none">
                 <option value="all" {{ ($filters['sponsor_type'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all_sponsor_types') }}</option>
                 @foreach($sponsorTypeFilters as $sponsorTypeFilter)
                     <option value="{{ $sponsorTypeFilter['value'] }}" {{ ($filters['sponsor_type'] ?? '') === $sponsorTypeFilter['value'] ? 'selected' : '' }}>{{ $sponsorTypeFilter['label'] }}</option>
@@ -53,7 +55,7 @@
                 <span class="material-symbols-outlined text-[18px]" aria-hidden="true">filter_alt</span>
             </button>
             @if($hasCampaignFilters)
-                <a id="campaign-clear-filters" href="{{ route('admin.campaigns.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
+                <a id="campaign-clear-filters" href="{{ route('admin.campaigns.page', $room) }}" class="h-9 shrink-0 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
                     <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
                     {{ __('admin.filter_clear') }}
                 </a>

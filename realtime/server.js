@@ -41,13 +41,13 @@ const secret = process.env.SOCKET_TOKEN_SECRET || process.env.APP_KEY || '';
 const internalSecret = process.env.REALTIME_INTERNAL_SECRET || '';
 if (!secret) throw new Error('SOCKET_TOKEN_SECRET or APP_KEY is required (check .env in realtime/ or src/)');
 const maxBodyBytes = 256 * 1024;
-// Events addressed to a single user or trusted device (see PublishRealtimeEvent): delivered on user_channel only.
-const privateEvents = new Set(['notification.created', 'room.membership.updated', 'session.force_reload']);
+// Events addressed to a single user, trusted device or admin account (see PublishRealtimeEvent): delivered on user_channel only.
+const privateEvents = new Set(['notification.created', 'admin.notification.created', 'room.membership.updated', 'session.force_reload']);
 // Events for every connected page, including anonymous public visitors: delivered on the `public` channel only.
 const broadcastEvents = new Set(['system.maintenance']);
 // Events that are not tied to a room, so they are sent with room_id 0.
-const roomlessEvents = new Set(['notification.created', 'session.force_reload', 'system.maintenance']);
-const userChannelPattern = /^(?:(?:user|global_user):\d+|device:[A-Za-z0-9-]{1,128})$/;
+const roomlessEvents = new Set(['notification.created', 'admin.notification.created', 'session.force_reload', 'system.maintenance']);
+const userChannelPattern = /^(?:(?:user|global_user|admin):\d+|device:[A-Za-z0-9-]{1,128})$/;
 
 const decode = value => Buffer.from(value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - value.length % 4) % 4), 'base64').toString('utf8');
 const verify = token => {
@@ -98,6 +98,7 @@ const httpServer = createServer((req, res) => {
           'campaign.created', 'campaign.updated', 'campaign.deleted', 'campaign.closed',
           'campaign.cancelled', 'campaign.delivering',
           'campaign.menu.updated', 'campaign.menu.deleted', 'campaign.participant.declined', 'campaign.participant.rejoined', 'notification.created',
+          'admin.notification.created',
           'room.membership.updated', 'session.force_reload', 'system.maintenance'
         ]);
         const roomId = Number(input.room_id);

@@ -90,6 +90,7 @@ return [
         'no_live_item_data' => 'No items have been selected in this campaign yet.',
         'top_sponsors_title' => 'Top sponsors',
         'top_sponsors_subtitle' => 'Ranked by total sponsorship value in the last 7 days',
+        'top_sponsors_total' => 'Total sponsored',
         'no_sponsor_data' => 'No sponsorship data in this room yet.',
         'sponsored_campaigns_count' => ':count sponsored campaigns',
         'weekly_trend_title' => 'Items & value in the last 7 days',

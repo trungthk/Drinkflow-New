@@ -78,7 +78,7 @@ class SeoController extends Controller
             }
         }
         $guides = [['/guides', '0.7', 'monthly']];
-        foreach (app(UserGuideService::class)->listPublic() as $article) {
+        foreach (app(UserGuideService::class)->list() as $article) {
             $guides[] = ['/guides/'.$article['slug'], '0.6', 'monthly'];
         }
         foreach ($guides as [$path, $priority, $freq]) {

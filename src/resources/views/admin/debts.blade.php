@@ -53,12 +53,14 @@
     </div>
 
     <!-- Filter and Search Toolbar -->
-    <form id="debts-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.debts.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+    <form id="debts-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.debts.page', $room) }}" class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-2 shadow-xs lg:gap-3">
+        {{-- Mobile (below lg): search on its own row, then member + status, then date range + filter/clear buttons, each
+             row full width. The filter group uses `contents` there and `order` rearranges its items; lg+ is unchanged. --}}
+        <div class="flex items-center gap-3 flex-1 min-w-[280px] max-lg:basis-full">
             <x-admin.search-input id="debt-search" name="search" :value="$filters['search'] ?? ''" placeholder="{{ __('admin.search_debts_placeholder') }}" containerClass="relative w-full max-w-md" />
         </div>
-        <div class="flex items-center gap-2 flex-wrap">
-            <div class="w-60">
+        <div class="contents lg:flex lg:items-center lg:gap-2 lg:flex-wrap">
+            <div class="order-1 min-w-0 flex-1 basis-[calc(50%-0.25rem)] lg:order-none lg:w-60 lg:flex-none lg:basis-auto">
                 <select id="debt-user-filter" name="user" data-searchable="true"
                     data-placeholder="{{ __('admin.debt_filter_user_search_placeholder') }}"
                     data-empty-text="{{ __('admin.debt_filter_user_empty') }}"
@@ -70,18 +72,21 @@
                     @endforeach
                 </select>
             </div>
-            <x-admin.date-range-filter id="debt-date-range" :date-from="$filters['date_from'] ?? ''" :date-to="$filters['date_to'] ?? ''" form-id="debts-filter-form" />
-            <select id="debt-status-filter" name="status" class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+            <div class="order-4 min-w-0 flex-1 basis-0 lg:order-none lg:flex-none lg:basis-auto max-lg:[&>[data-date-range-picker]]:block max-lg:[&>[data-date-range-picker]]:w-full max-lg:[&_[data-date-range-trigger]]:w-full max-lg:[&_[data-date-range-trigger]]:justify-between max-lg:[&_[data-date-range-label]]:truncate max-lg:[&_[data-date-range-label]]:whitespace-nowrap max-lg:[&_[data-date-range-dropdown]]:left-0 max-lg:[&_[data-date-range-dropdown]]:right-auto">
+                <x-admin.date-range-filter id="debt-date-range" :date-from="$filters['date_from'] ?? ''" :date-to="$filters['date_to'] ?? ''" form-id="debts-filter-form" />
+            </div>
+            <select id="debt-status-filter" name="status" class="order-2 h-9 min-w-0 flex-1 basis-[calc(50%-0.25rem)] px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface lg:order-none lg:flex-none lg:basis-auto">
                 <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>{{ __('admin.filter_all') }}</option>
                 @foreach($statusFilters as $statusFilter)
                     <option value="{{ $statusFilter['value'] }}" {{ ($filters['status'] ?? '') === $statusFilter['value'] ? 'selected' : '' }}>{{ $statusFilter['label'] }}</option>
                 @endforeach
             </select>
-            <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="text-xs font-semibold h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary-container transition-colors">
+            <div class="order-3 basis-full h-0 lg:hidden" aria-hidden="true"></div>
+            <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="order-5 lg:order-none text-xs font-semibold h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary-container transition-colors">
                 <span class="material-symbols-outlined text-[18px]" aria-hidden="true">filter_alt</span>
             </button>
             @if(trim((string) ($filters['search'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all' || ($filters['user'] ?? '') !== '' || ($filters['date_from'] ?? '') !== '' || ($filters['date_to'] ?? '') !== '')
-                <a id="debt-clear-filters" href="{{ route('admin.debts.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
+                <a id="debt-clear-filters" href="{{ route('admin.debts.page', $room) }}" class="order-6 lg:order-none h-9 shrink-0 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
                     <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
                     {{ __('admin.filter_clear') }}
                 </a>

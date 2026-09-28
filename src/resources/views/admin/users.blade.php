@@ -63,13 +63,14 @@
     <form id="users-filter-form" data-skeleton-on-submit method="GET"
         action="{{ route('admin.room-users.page', $room) }}"
         class="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-xs">
-        <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+        {{-- Mobile (below lg): search row, then status + filter / clear / reload sharing one full-width row. --}}
+        <div class="flex items-center gap-3 flex-1 min-w-[280px] max-lg:basis-full">
             <x-admin.search-input id="user-search" name="q" :value="$filters['q'] ?? ''"
                 placeholder="{{ __('admin.search_users_placeholder') }}" containerClass="relative w-full max-w-md" />
         </div>
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-2 max-lg:w-full lg:flex-wrap">
             <select id="user-status-filter" name="status"
-                class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface">
+                class="h-9 px-3 bg-surface border border-outline-variant rounded text-xs text-on-surface max-lg:min-w-0 max-lg:flex-1">
                 <option value="all" {{ ($filters['status'] ?? 'all') === 'all' ? 'selected' : '' }}>
                     {{ __('admin.filter_all') }}
                 </option>
@@ -86,7 +87,7 @@
             </button>
             @if (trim((string) ($filters['q'] ?? '')) !== '' || ($filters['status'] ?? 'all') !== 'all')
                 <a id="users-clear-filters" href="{{ route('admin.room-users.page', $room) }}"
-                    class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
+                    class="h-9 shrink-0 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-on-surface text-xs font-semibold hover:bg-surface-container transition-colors no-underline">
                     <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
                     {{ __('admin.filter_clear') }}
                 </a>
@@ -96,22 +97,22 @@
     </form>
 
     <div id="users-bulk-toolbar"
-        class="hidden items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 shadow-xs"
+        class="hidden items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 p-3 shadow-xs max-lg:flex-col max-lg:items-stretch max-lg:gap-2"
         data-confirm-message="{{ __('admin.confirm_bulk_user_action') }}">
         <span class="text-xs font-semibold text-on-surface"><span id="users-selected-count">0</span>
             {{ __('admin.users_selected') }}</span>
-        <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 max-lg:w-full max-lg:flex-nowrap">
             <button type="button" data-bulk-user-action="active"
-                class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
+                class="inline-flex items-center justify-center gap-1.5 rounded-lg max-lg:min-w-0 max-lg:flex-1 bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-700">
                 <span
                     class="material-symbols-outlined text-[16px]">lock_open</span>{{ __('admin.bulk_approve_users') }}
             </button>
             <button type="button" data-bulk-user-action="blocked"
-                class="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700">
+                class="inline-flex items-center justify-center gap-1.5 rounded-lg max-lg:min-w-0 max-lg:flex-1 bg-amber-600 px-3 py-2 text-xs font-semibold text-white hover:bg-amber-700">
                 <span class="material-symbols-outlined text-[16px]">lock</span>{{ __('admin.bulk_block_users') }}
             </button>
             <button type="button" data-bulk-user-action="removed"
-                class="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-700">
+                class="inline-flex items-center justify-center gap-1.5 rounded-lg max-lg:min-w-0 max-lg:flex-1 bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-700">
                 <span
                     class="material-symbols-outlined text-[16px]">person_remove</span>{{ __('admin.bulk_remove_users') }}
             </button>

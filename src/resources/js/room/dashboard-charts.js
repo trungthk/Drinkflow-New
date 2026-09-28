@@ -23,11 +23,25 @@ function parseJsonAttr(el, attr, fallback) {
     }
 }
 
-/** Render the "Top nhà tài trợ" ranking as a vertical bar chart with a hover tooltip. */
+// Categorical slots in fixed order (validated: adjacent CVD ΔE >= 9.1, normal-vision ΔE >= 19.6 on white).
+// The leaderboard holds at most 5 sponsors; slot i always belongs to rank i.
+const SPONSOR_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4'];
+
+/** Render the "Top nhà tài trợ" ranking as a donut chart with a legend and a hover tooltip. */
 function renderTopSponsorsChart(container, sponsors, labels) {
     if (!container) return;
 
-    if (!sponsors || !sponsors.length) {
+    const rows = (sponsors || [])
+        .map((s, idx) => ({
+            name: s.name || '',
+            amount: Number(s.amount || 0),
+            campaigns: Number(s.sponsored_campaigns || 0),
+            color: SPONSOR_COLORS[idx % SPONSOR_COLORS.length],
+        }))
+        .filter(r => r.amount > 0);
+    const total = rows.reduce((sum, r) => sum + r.amount, 0);
+
+    if (!rows.length || total <= 0) {
         container.innerHTML = `
             <div class="h-full min-h-[200px] flex flex-col items-center justify-center text-center gap-2 text-slate-400">
                 <span class="material-symbols-outlined text-[26px] text-slate-300" aria-hidden="true">volunteer_activism</span>
@@ -37,80 +51,91 @@ function renderTopSponsorsChart(container, sponsors, labels) {
         return;
     }
 
-    const width = 400;
-    const height = 220;
-    const topPad = 26;
-    const bottomPad = 170;
-    const leftPad = 8;
-    const rightPad = 392;
-    const barGap = 18;
-    const barW = Math.min(52, (rightPad - leftPad - barGap * (sponsors.length - 1)) / sponsors.length);
-    const maxAmount = niceMax(Math.max(...sponsors.map(s => Number(s.amount || 0)), 1));
+    const size = 180;
+    const center = size / 2;
+    const radius = 70;
+    const thickness = 26;
+    const circumference = 2 * Math.PI * radius;
+    // 2px surface gap between adjacent slices (none when a single sponsor fills the ring).
+    const gap = rows.length > 1 ? 2 : 0;
+    const percent = amount => Math.round((amount / total) * 1000) / 10;
 
-    const totalBarsWidth = sponsors.length * barW + (sponsors.length - 1) * barGap;
-    const startX = leftPad + Math.max(0, (rightPad - leftPad - totalBarsWidth) / 2);
-
-    const points = sponsors.map((s, idx) => ({
-        x: startX + idx * (barW + barGap),
-        amount: Number(s.amount || 0),
-    }));
-
-    const barsHtml = points.map((p, idx) => {
-        const barH = Math.max(2, (p.amount / maxAmount) * (bottomPad - topPad));
-        const barY = bottomPad - barH;
-        const name = sponsors[idx].name || '';
-        const shortName = name.length > 10 ? name.slice(0, 9) + '…' : name;
-        return `
-            <g data-sponsor-idx="${idx}" class="cursor-pointer">
-                <rect x="${p.x}" y="${barY}" width="${barW}" height="${barH}" rx="4" fill="${COLOR_ITEMS}" opacity="0.85" class="transition-opacity hover:opacity-100"></rect>
-                <text x="${p.x + barW / 2}" y="${barY - 6}" text-anchor="middle" font-size="10" font-family="Inter, sans-serif" font-weight="bold" fill="${COLOR_ITEMS}">${esc(formatMoney(p.amount))}</text>
-                <text x="${p.x + barW / 2}" y="${bottomPad + 16}" text-anchor="middle" font-size="10" font-family="Inter, sans-serif" fill="#64748b">${esc(shortName)}</text>
-                <rect x="${p.x - barGap / 2}" y="0" width="${barW + barGap}" height="${height}" fill="transparent" class="pointer-events-auto"></rect>
-            </g>
+    let offset = 0;
+    const slicesHtml = rows.map((r, idx) => {
+        const length = (r.amount / total) * circumference;
+        const visible = Math.max(0.5, length - gap);
+        // Start at 12 o'clock and go clockwise.
+        const html = `
+            <circle data-sponsor-idx="${idx}" cx="${center}" cy="${center}" r="${radius}" fill="none"
+                stroke="${r.color}" stroke-width="${thickness}"
+                stroke-dasharray="${visible} ${circumference - visible}"
+                stroke-dashoffset="${-offset}"
+                transform="rotate(-90 ${center} ${center})"
+                class="cursor-pointer transition-[stroke-width] duration-150 hover:[stroke-width:30px]"></circle>
         `;
+        offset += length;
+        return html;
     }).join('');
 
+    const legendHtml = rows.map((r, idx) => `
+        <li data-sponsor-idx="${idx}" class="flex items-center gap-2 rounded-md px-1.5 py-1 cursor-default hover:bg-slate-50">
+            <span class="h-2.5 w-2.5 shrink-0 rounded-sm" style="background:${r.color}" aria-hidden="true"></span>
+            <span class="min-w-0 flex-1 truncate text-[11px] text-slate-700" title="${esc(r.name)}">${esc(r.name)}</span>
+            <span class="shrink-0 font-mono text-[11px] font-semibold text-slate-900">${esc(formatMoney(r.amount))}</span>
+            <span class="w-11 shrink-0 text-right font-mono text-[10px] text-slate-400">${percent(r.amount)}%</span>
+        </li>
+    `).join('');
+
     container.innerHTML = `
-        <div class="relative w-full h-full min-h-[200px]">
-            <svg viewBox="0 0 ${width} ${height}" class="w-full h-full overflow-visible">
-                <line x1="${leftPad}" y1="${bottomPad}" x2="${rightPad}" y2="${bottomPad}" stroke="currentColor" class="text-slate-200"></line>
-                ${barsHtml}
-            </svg>
+        <div class="relative flex h-full min-h-[200px] flex-col items-center justify-center gap-4 sm:flex-row">
+            <div class="relative h-[170px] w-[170px] shrink-0">
+                <svg viewBox="0 0 ${size} ${size}" class="h-full w-full" role="img" aria-label="${esc(labels.sponsorTotal)}: ${esc(formatMoney(total))}">
+                    ${slicesHtml}
+                </svg>
+                <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span class="text-[10px] text-slate-500">${esc(labels.sponsorTotal)}</span>
+                    <strong class="font-mono text-sm text-slate-900">${esc(formatMoney(total))}</strong>
+                </div>
+            </div>
+            <ul class="w-full min-w-0 flex-1 space-y-0.5">${legendHtml}</ul>
             <div data-sponsor-tooltip class="pointer-events-none absolute z-20 hidden min-w-[170px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] shadow-lg"></div>
         </div>
     `;
 
-    const svg = container.querySelector('svg');
+    const wrapper = container.firstElementChild;
     const tooltip = container.querySelector('[data-sponsor-tooltip]');
-    if (!svg || !tooltip) return;
+    if (!wrapper || !tooltip) return;
 
-    const show = idx => {
-        const s = sponsors[idx];
+    const show = (idx, event) => {
+        const r = rows[idx];
         tooltip.innerHTML = `
-            <div class="font-semibold text-slate-900 mb-1">${esc(s.name)}</div>
+            <div class="mb-1 flex items-center gap-1.5 font-semibold text-slate-900">
+                <span class="h-2 w-2 shrink-0 rounded-sm" style="background:${r.color}"></span>${esc(r.name)}
+            </div>
             <div class="flex items-center justify-between gap-4">
                 <span class="text-slate-500">${esc(labels.value)}</span>
-                <strong class="font-mono" style="color:${COLOR_ITEMS}">${esc(formatMoney(s.amount))}</strong>
+                <strong class="font-mono text-slate-900">${esc(formatMoney(r.amount))} <span class="font-normal text-slate-400">(${percent(r.amount)}%)</span></strong>
             </div>
-            <div class="mt-0.5 text-slate-400">${esc((labels.sponsoredCampaigns || ':count').replace(':count', String(s.sponsored_campaigns || 0)))}</div>
+            <div class="mt-0.5 text-slate-400">${esc((labels.sponsoredCampaigns || ':count').replace(':count', String(r.campaigns)))}</div>
         `;
         tooltip.classList.remove('hidden');
 
-        const target = svg.querySelector(`[data-sponsor-idx="${idx}"] rect`);
-        const box = container.getBoundingClientRect();
-        const targetBox = target.getBoundingClientRect();
+        const box = wrapper.getBoundingClientRect();
         const tipW = tooltip.offsetWidth;
-        let left = targetBox.left - box.left + targetBox.width / 2 - tipW / 2;
+        const tipH = tooltip.offsetHeight;
+        let left = event.clientX - box.left - tipW / 2;
         left = Math.max(0, Math.min(left, box.width - tipW));
+        let top = event.clientY - box.top - tipH - 12;
+        if (top < 0) top = event.clientY - box.top + 16;
         tooltip.style.left = `${left}px`;
-        tooltip.style.top = `${Math.max(0, targetBox.top - box.top - tooltip.offsetHeight - 8)}px`;
+        tooltip.style.top = `${top}px`;
     };
 
-    svg.querySelectorAll('[data-sponsor-idx]').forEach(group => {
-        const idx = Number(group.dataset.sponsorIdx);
-        group.addEventListener('mouseenter', () => show(idx));
+    wrapper.querySelectorAll('[data-sponsor-idx]').forEach(el => {
+        const idx = Number(el.dataset.sponsorIdx);
+        el.addEventListener('mousemove', event => show(idx, event));
+        el.addEventListener('mouseleave', () => tooltip.classList.add('hidden'));
     });
-    container.addEventListener('mouseleave', () => tooltip.classList.add('hidden'));
 }
 
 /** Render the 7-day combo chart: bars for item count, a line for order value. */
@@ -172,15 +197,16 @@ function renderWeeklyTrendChart(container, trend, labels) {
     `).join('');
 
     container.innerHTML = `
-        <div class="relative w-full h-full min-h-[200px]">
-            <svg viewBox="0 0 ${width} ${height}" class="w-full h-full overflow-visible">
+        <div class="relative flex w-full h-full min-h-[200px] flex-col">
+            <!-- flex-1 (not h-full) so the day labels below stay inside the card instead of overflowing it. -->
+            <svg viewBox="0 0 ${width} ${height}" class="w-full min-h-0 flex-1 overflow-visible">
                 ${gridHtml}
                 ${barsHtml}
                 <path d="${linePath}" fill="none" stroke="${COLOR_VALUE}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"></path>
                 ${hitHtml}
             </svg>
             <div data-trend-tooltip class="pointer-events-none absolute z-20 hidden min-w-[180px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] shadow-lg"></div>
-            <div class="mt-1 flex justify-between px-1">
+            <div class="mt-1 flex justify-between px-1 pb-4">
                 ${rows.map(r => `<span class="text-[10px] font-semibold text-slate-500" style="flex:1;text-align:center">${esc(r.day)}</span>`).join('')}
             </div>
         </div>

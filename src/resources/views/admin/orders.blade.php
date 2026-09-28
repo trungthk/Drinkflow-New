@@ -147,7 +147,8 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-2">
+                {{-- Mobile: "lock campaign" and "campaign & menu" stretch to share the full row. --}}
+                <div class="flex w-full items-center gap-2 lg:w-auto">
                     @if($activeCampaign->isOpenForOrders())
                         @php
                             $isLockedOrdering = $activeCampaign->isOrderingLocked();
@@ -156,12 +157,12 @@
                             data-mode="{{ $isLockedOrdering ? 'unlock' : 'lock' }}"
                             data-url="{{ route($isLockedOrdering ? 'admin.campaigns.unlock-ordering' : 'admin.campaigns.lock-ordering', [$room, $activeCampaign]) }}"
                             title="{{ __('admin.campaign_ordering_locked_hint') }}"
-                            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors shadow-2xs disabled:opacity-50 disabled:cursor-wait {{ $isLockedOrdering ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-surface-container-high hover:bg-surface-container-highest text-on-surface border-outline-variant/60' }}">
+                            class="inline-flex flex-1 justify-center items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-colors shadow-2xs lg:flex-none disabled:opacity-50 disabled:cursor-wait {{ $isLockedOrdering ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-surface-container-high hover:bg-surface-container-highest text-on-surface border-outline-variant/60' }}">
                             <span class="material-symbols-outlined text-[16px] {{ $isLockedOrdering ? '' : 'text-amber-600' }}">{{ $isLockedOrdering ? 'lock_open' : 'lock' }}</span>
                             <span>{{ $isLockedOrdering ? __('admin.campaign_unlock_action') : __('admin.campaign_lock_action') }}</span>
                         </button>
                     @endif
-                    <a href="{{ route('admin.campaigns.info', [$room, $activeCampaign]) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold border border-outline-variant/60 transition-colors shadow-2xs">
+                    <a href="{{ route('admin.campaigns.info', [$room, $activeCampaign]) }}" class="inline-flex flex-1 justify-center items-center gap-1.5 px-3.5 py-2 rounded-xl lg:flex-none bg-surface-container-high hover:bg-surface-container-highest text-on-surface text-xs font-semibold border border-outline-variant/60 transition-colors shadow-2xs">
                         <span class="material-symbols-outlined text-[16px]">campaign</span>
                         <span>{{ __('admin.campaign_menu') }}</span>
                     </a>
@@ -274,9 +275,11 @@
             || ((string) ($filters['status'] ?? 'all') !== '' && (string) ($filters['status'] ?? 'all') !== 'all')
             || (string) ($filters['type'] ?? 'all') !== 'all';
     @endphp
-    <form id="orders-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.orders.page', $room) }}" class="my-4 flex flex-wrap items-center justify-between gap-3 bg-surface-container-low p-3 rounded-xl border border-outline-variant/60">
-        <div class="flex flex-1 min-w-[260px] items-center gap-2">
-            <div class="relative flex-1">
+    <form id="orders-filter-form" data-skeleton-on-submit method="GET" action="{{ route('admin.orders.page', $room) }}" class="my-4 flex flex-wrap items-center gap-2 bg-surface-container-low p-3 rounded-xl border border-outline-variant/60 lg:justify-between lg:gap-3">
+        {{-- Mobile: row 1 = search + status, row 2 = order type + buttons, each full width (the groups use `contents`
+             and the hidden break forces the second row). From lg up the original desktop layout is kept. --}}
+        <div class="contents lg:flex lg:flex-1 lg:min-w-[260px] lg:items-center lg:gap-2">
+            <div class="relative min-w-0 flex-1 basis-0">
                 <span class="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px]">search</span>
                 <input type="search"
                        name="search"
@@ -285,7 +288,7 @@
                        placeholder="{{ __('admin.search_orders_placeholder') }}"
                        class="w-full h-9 pl-9 pr-8 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all">
             </div>
-            <div class="min-w-[150px]">
+            <div class="min-w-0 flex-1 basis-0 lg:min-w-[150px] lg:flex-none lg:basis-auto">
                 <select name="status"
                         id="order-status-filter"
                         class="w-full h-9 px-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20">
@@ -297,7 +300,8 @@
                     @endforeach
                 </select>
             </div>
-            <div class="min-w-[170px]">
+            <div class="basis-full h-0 lg:hidden" aria-hidden="true"></div>
+            <div class="min-w-0 flex-1 basis-0 lg:min-w-[170px] lg:flex-none lg:basis-auto">
                 <select name="type"
                         id="order-type-filter"
                         aria-label="{{ __('admin.order_type_filter') }}"
@@ -311,12 +315,12 @@
                 </select>
             </div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="contents lg:flex lg:items-center lg:gap-2">
             <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="text-xs font-semibold h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-lg bg-primary text-on-primary hover:bg-primary/90 transition-colors shadow-2xs">
                 <span class="material-symbols-outlined text-[18px]" aria-hidden="true">filter_alt</span>
             </button>
             @if($hasOrderFilters)
-                <a href="{{ route('admin.orders.page', $room) }}" class="h-9 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-secondary text-xs font-semibold hover:bg-surface-container transition-colors">
+                <a href="{{ route('admin.orders.page', $room) }}" class="h-9 shrink-0 inline-flex items-center gap-1.5 px-3 rounded-lg border border-outline-variant bg-surface text-secondary text-xs font-semibold hover:bg-surface-container transition-colors">
                     <span class="material-symbols-outlined text-[16px]">filter_alt_off</span>
                     {{ __('admin.filter_clear') }}
                 </a>
@@ -552,37 +556,39 @@
     </div>
 
     <!-- Floating Bulk Actions Toolbar -->
-    <div id="orders-bulk-bar" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-surface-container-highest/95 backdrop-blur-md border border-outline-variant rounded-2xl shadow-2xl p-3 px-5 flex items-center gap-4 text-xs animate-in fade-in slide-in-from-bottom-4 duration-200">
-        <div class="flex items-center gap-2 font-semibold text-on-surface">
+    {{-- Mobile (below lg): pinned to both screen edges and wrapped into rows (count + deselect / status + apply /
+         cancel) instead of one centered row wider than the screen; lg+ unchanged. --}}
+    <div id="orders-bulk-bar" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-surface-container-highest/95 backdrop-blur-md border border-outline-variant rounded-2xl shadow-2xl p-3 px-5 flex items-center gap-4 text-xs animate-in fade-in slide-in-from-bottom-4 duration-200 max-lg:z-[45] max-lg:bottom-3 max-lg:left-3 max-lg:right-3 max-lg:translate-x-0 max-lg:flex-wrap max-lg:gap-2 max-lg:px-3">
+        <div class="flex items-center gap-2 font-semibold text-on-surface max-lg:order-1 max-lg:min-w-0 max-lg:flex-1">
             <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
             <span id="bulk-selected-count">0 {{ __('admin.selected_orders_count', ['count' => 0]) }}</span>
         </div>
 
-        <div class="h-4 w-px bg-outline-variant"></div>
+        <div class="h-4 w-px bg-outline-variant max-lg:hidden"></div>
 
         <!-- Bulk Status Selector & Apply -->
-        <div class="flex items-center gap-1.5">
-            <select id="bulk-status-select" class="h-8 px-2.5 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20">
+        <div class="flex items-center gap-1.5 max-lg:order-3 max-lg:basis-full">
+            <select id="bulk-status-select" class="h-8 px-2.5 max-lg:min-w-0 max-lg:flex-1 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20">
                 <option value="submitted">{{ __('admin.status_submitted') }}</option>
                 <option value="confirmed">{{ __('admin.status_confirmed') }}</option>
                 <option value="completed">{{ __('admin.status_completed') }}</option>
             </select>
-            <button type="button" id="bulk-apply-status-btn" class="h-8 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary/90 transition-colors inline-flex items-center gap-1 shadow-2xs">
+            <button type="button" id="bulk-apply-status-btn" class="h-8 shrink-0 px-3 rounded-lg bg-primary text-on-primary text-xs font-semibold hover:bg-primary/90 transition-colors inline-flex items-center gap-1 shadow-2xs">
                 <span class="material-symbols-outlined text-[15px]" id="bulk-apply-icon">done_all</span>
                 <span id="bulk-apply-text">{{ __('admin.bulk_apply_status') }}</span>
             </button>
         </div>
 
-        <div class="h-4 w-px bg-outline-variant"></div>
+        <div class="h-4 w-px bg-outline-variant max-lg:hidden"></div>
 
         <!-- Bulk Cancel Button -->
-        <button type="button" id="bulk-cancel-btn" class="h-8 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-colors inline-flex items-center gap-1 shadow-2xs">
+        <button type="button" id="bulk-cancel-btn" class="h-8 px-3 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition-colors inline-flex items-center gap-1 shadow-2xs max-lg:order-4 max-lg:basis-full max-lg:justify-center">
             <span class="material-symbols-outlined text-[15px]">cancel</span>
             <span>{{ __('admin.bulk_cancel_orders') }}</span>
         </button>
 
         <!-- Deselect All Button -->
-        <button type="button" id="bulk-deselect-btn" class="text-outline hover:text-on-surface p-1 rounded-lg hover:bg-surface-container transition-colors" title="{{ __('admin.deselect_all') }}">
+        <button type="button" id="bulk-deselect-btn" class="max-lg:order-2 text-outline hover:text-on-surface p-1 rounded-lg hover:bg-surface-container transition-colors" title="{{ __('admin.deselect_all') }}">
             <span class="material-symbols-outlined text-[18px]">close</span>
         </button>
     </div>
@@ -598,7 +604,7 @@
                         <span class="material-symbols-outlined text-[22px]">receipt_long</span>
                     </div>
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-col items-start gap-1 lg:flex-row lg:items-center lg:gap-2">
                             <h3 class="font-bold text-base text-on-surface" id="detail-modal-title">{{ __('admin.order_detail_modal_title', ['id' => '']) }}</h3>
                             <span id="detail-modal-status-badge" class="px-2.5 py-0.5 rounded-md text-[11px] font-semibold border"></span>
                         </div>

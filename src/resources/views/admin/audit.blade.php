@@ -51,21 +51,25 @@
             </div>
         </div>
 
+        {{-- Mobile (below lg): reset / filter / reload share the row equally, each with its text after the icon. --}}
         <div class="mt-3 flex items-center justify-end gap-2 pt-2 border-t border-outline-variant/40">
-            <a href="{{ route('admin.audit.page', $room) }}" data-audit-filter-reset class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant rounded text-xs font-semibold no-underline transition-colors flex items-center gap-1">
+            <a href="{{ route('admin.audit.page', $room) }}" data-audit-filter-reset class="px-3 py-1.5 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant rounded text-xs font-semibold no-underline transition-colors flex items-center gap-1 max-lg:h-8.5 max-lg:min-w-0 max-lg:flex-1 max-lg:justify-center">
                 <span class="material-symbols-outlined text-[14px]" data-reset-icon>refresh</span>
                 <span data-reset-label>{{ __('admin.filter_reset') }}</span>
             </a>
-            <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="text-xs font-semibold h-8.5 w-8.5 shrink-0 bg-primary hover:bg-primary/90 text-on-primary rounded shadow-xs transition-colors inline-flex items-center justify-center cursor-pointer">
+            <button type="submit" data-icon-only data-tooltip="{{ __('admin.filter_apply') }}" aria-label="{{ __('admin.filter_apply') }}" class="text-xs font-semibold h-8.5 w-8.5 shrink-0 bg-primary hover:bg-primary/90 text-on-primary rounded shadow-xs transition-colors inline-flex items-center justify-center gap-1 cursor-pointer max-lg:w-auto max-lg:min-w-0 max-lg:flex-1 max-lg:px-3">
                 <span class="material-symbols-outlined text-[16px]" aria-hidden="true">filter_alt</span>
+                <span class="lg:hidden">{{ __('admin.filter_button') }}</span>
             </button>
-            <x-admin.reload-button :compact="true" />
+            <x-admin.reload-button :compact="true" :label="true" class="gap-1 max-lg:w-auto max-lg:min-w-0 max-lg:flex-1 max-lg:px-3" />
         </div>
     </form>
 
     <!-- Audit Logs Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
-        <div class="overflow-x-auto">
+        {{-- relative: the sr-only labels in the table are absolutely positioned; without a positioned scroller they escape it
+             and widen the whole page on mobile. --}}
+        <div class="relative overflow-x-auto">
             {{-- Compact fixed-width columns; the event column has no width so it takes all remaining space. --}}
             <table data-skeleton="table" class="table-colgroup w-full min-w-[50rem] table-fixed text-left text-xs border-collapse">
                 <colgroup>

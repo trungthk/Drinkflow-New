@@ -51,7 +51,7 @@
                class="{{ $metricLinkClass }}">
                 <div class="flex items-center justify-between text-outline mb-1">
                     <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.live_campaigns') }}</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] whitespace-nowrap shrink-0 bg-error-container text-on-error-container font-bold">{{ __('admin.active_now') }}</span>
+                    <span class="material-symbols-outlined text-[18px]">campaign</span>
                 </div>
                 <div class="text-2xl font-bold text-error flex items-baseline gap-1.5">
                     <span id="metric-live-campaigns">{{ $activeCampaignsCount ?? 0 }}</span>
@@ -94,7 +94,7 @@
                class="{{ $metricLinkClass }}">
                 <div class="flex items-center justify-between text-outline mb-1">
                     <span class="text-[10px] font-mono uppercase tracking-wider font-semibold">{{ __('admin.unpaid_debt') }}</span>
-                    <span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-amber-100 text-amber-800 font-bold border border-amber-200">{{ __('admin.needs_settlement') }}</span>
+                    <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
                 </div>
                 <div id="metric-unpaid-debt" class="text-2xl font-bold text-amber-700 truncate">{{ \App\Support\Helpers\FormatHelper::formatCurrency($outstandingDebtsTotal ?? 0) }}</div>
                 <div id="metric-debt-users" class="text-[11px] text-amber-700 mt-1 font-semibold font-mono">{{ __('admin.pending_users', ['count' => $pendingDebtUsersCount ?? 0]) }}</div>
@@ -155,7 +155,7 @@
                 <div>
                     <!-- Header Row -->
                     <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                        <div class="flex items-center gap-2">
+                        <div class="flex min-w-0 items-start gap-2 sm:items-center">
                             @if ($activeCampaign ?? null)
                                 <x-admin.campaign-status-badge :campaign="$activeCampaign" />
                             @else
@@ -164,8 +164,11 @@
                                     {{ __('admin.live_now') }}
                                 </span>
                             @endif
-                            <h3 id="hero-campaign-title" class="text-lg font-bold text-on-surface">{{ $activeCampaign?->name ?? __('admin.loading_campaign') }}</h3>
-                            <span id="hero-campaign-code" class="text-xs font-mono font-code text-outline">{{ $activeCampaign?->code ?? 'N/A' }}</span>
+                            {{-- Mobile: the code sits under the name; from sm up they share one line. --}}
+                            <div class="flex min-w-0 flex-col sm:flex-row sm:items-baseline sm:gap-2">
+                                <h3 id="hero-campaign-title" class="text-lg font-bold leading-snug text-on-surface">{{ $activeCampaign?->name ?? __('admin.loading_campaign') }}</h3>
+                                <span id="hero-campaign-code" class="text-xs font-mono font-code text-outline">{{ $activeCampaign?->code ?? 'N/A' }}</span>
+                            </div>
                         </div>
                         <div class="flex items-center gap-2 text-xs font-mono text-outline">
                             <span id="hero-campaign-time">{{ __('admin.ready') }}</span>
@@ -212,20 +215,19 @@
                 </div>
 
                 <!-- Bottom Action Buttons -->
-                <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-outline-variant">
-                    <div class="flex flex-wrap items-center gap-2">
-                        <a href="{{ route('admin.orders.page', $room) }}" class="bg-primary hover:bg-primary-container text-on-primary px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs no-underline">
+                {{-- Mobile: "view orders" spans the row, adjust + close share the next row; from sm up one row with close on the right. --}}
+                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-outline-variant sm:flex sm:flex-wrap sm:items-center">
+                        <a href="{{ route('admin.orders.page', $room) }}" class="col-span-2 bg-primary hover:bg-primary-container text-on-primary px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-xs no-underline">
                             <span class="material-symbols-outlined text-[16px]">checklist</span>
                             <span>{{ __('admin.view_orders_adjust') }}</span>
                         </a>
                         <a data-adjust-campaign-link
                             href="{{ ($activeCampaign ?? null) ? route('admin.campaigns.info', [$room, $activeCampaign]) : route('admin.campaigns.page', $room) }}"
-                            class="bg-surface-container-low hover:bg-surface-container border border-outline-variant text-on-surface px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 shadow-xs no-underline">
+                            class="bg-surface-container-low hover:bg-surface-container border border-outline-variant text-on-surface px-4 py-2 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 text-center shadow-xs no-underline">
                             <span class="material-symbols-outlined text-[16px]">tune</span>
                             <span>{{ __('admin.adjust_campaign') }}</span>
                         </a>
-                    </div>
-                    <button type="button" id="btn-open-close-modal" data-close-campaign-open data-campaign-id="{{ ($activeCampaign ?? null)?->id }}" class="text-error hover:bg-error-container/60 border border-error/30 rounded-lg px-3 py-2 text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer">
+                    <button type="button" id="btn-open-close-modal" data-close-campaign-open data-campaign-id="{{ ($activeCampaign ?? null)?->id }}" class="text-error hover:bg-error-container/60 border border-error/30 rounded-lg px-3 py-2 text-xs font-semibold transition-colors flex items-center justify-center gap-1 text-center cursor-pointer sm:ml-auto">
                         <span class="material-symbols-outlined text-[16px]">lock_clock</span>
                         <span>{{ __('admin.close_campaign_early') }}</span>
                     </button>

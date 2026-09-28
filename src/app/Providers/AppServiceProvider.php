@@ -6,6 +6,7 @@ use App\Services\FoodCrawler\Contracts\FoodCrawlerProviderInterface;
 use App\Services\FoodCrawler\Contracts\BrowserTransportInterface;
 use App\Services\FoodCrawler\Browser\PuppeteerBrowserTransport;
 use App\Services\FoodCrawler\ProviderResolver;
+use App\Events\AdminNotificationCreated;
 use App\Events\CampaignClosed;
 use App\Events\CampaignCancelled;
 use App\Events\CampaignCreated;
@@ -87,6 +88,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(RoomRealtimeEvent::class, PublishRealtimeEvent::class);
         Event::listen(RoomMembershipUpdated::class, PublishRealtimeEvent::class);
         Event::listen(UserNotificationCreated::class, PublishRealtimeEvent::class);
+        Event::listen(AdminNotificationCreated::class, PublishRealtimeEvent::class);
         Event::listen(ForceReloadRequested::class, PublishRealtimeEvent::class);
         Event::listen(MaintenanceStateChanged::class, PublishRealtimeEvent::class);
 

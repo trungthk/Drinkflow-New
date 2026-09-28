@@ -8,9 +8,11 @@ use App\Enums\CampaignItemStatus;
 use App\Models\Concerns\BelongsToRoom;
 use App\Models\Concerns\HasNormalizedName;
 use App\Models\Concerns\HasStatus;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class CampaignItem extends Model
 {
@@ -39,6 +41,50 @@ class CampaignItem extends Model
             'sponsor_amount' => 'integer',
             'sort_order' => 'integer',
         ];
+    }
+
+    /**
+     * Store categories trimmed with single spaces, and a blank one as null, so the same category typed or imported
+     * with stray spaces is grouped once and a whitespace-only category never shows up as an empty menu tab.
+     *
+     * @return Attribute<string|null, string|null>
+     */
+    protected function category(): Attribute
+    {
+        // Read the same way, so rows saved before this normalization still match their menu tab.
+        return Attribute::make(
+            get: static fn (?string $value): ?string => self::normalizeCategory($value),
+            set: static fn (?string $value): ?string => self::normalizeCategory($value),
+        );
+    }
+
+    /**
+     * Trim a category name and collapse inner whitespace.
+     *
+     * @param string|null $value Raw category.
+     * @return string|null Normalized category, or null when blank.
+     */
+    private static function normalizeCategory(?string $value): ?string
+    {
+        $normalized = trim((string) preg_replace('/\s+/u', ' ', (string) $value));
+
+        return $normalized === '' ? null : $normalized;
+    }
+
+    /**
+     * Distinct menu categories of the given items, in first-seen order; items without a category are skipped,
+     * so a category is only listed when at least one of these items belongs to it.
+     *
+     * @param iterable<int, self> $items Items shown on the menu (already filtered, e.g. to active ones).
+     * @return Collection<int, string>
+     */
+    public static function categoriesOf(iterable $items): Collection
+    {
+        return collect($items)
+            ->map(static fn (self $item): ?string => $item->category)
+            ->filter()
+            ->unique()
+            ->values();
     }
 
     public function campaign(): BelongsTo

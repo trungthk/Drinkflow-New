@@ -41,7 +41,7 @@
                 <h3 class="text-xs font-bold text-on-surface uppercase tracking-wide flex items-center gap-2">
                     {{ __('admin.data_gateway_title') }}
                     <span
-                        class="rounded-full bg-gradient-to-r from-primary/15 to-secondary/15 px-2 py-0.5 font-mono text-[9px] font-bold text-primary uppercase border border-primary/25">
+                        class="rounded-full bg-gradient-to-r from-primary/15 to-secondary/15 px-2 py-0.5 font-mono text-[9px] font-bold text-primary uppercase border border-primary/25 max-lg:hidden">
                         {{ __('admin.data_gateway_badge') }}
                     </span>
                 </h3>
@@ -173,7 +173,8 @@
 
     <!-- Step 4: AI Result JSON Input & Apply to Menu -->
     <div class="space-y-2 pt-2 border-t border-outline-variant/60">
-        <div class="flex items-center justify-between">
+        {{-- Mobile: the step title sits above its hint instead of beside it. --}}
+        <div class="flex items-center justify-between max-lg:flex-col max-lg:items-start max-lg:gap-0.5">
             <label class="text-xs font-semibold text-on-surface flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-[15px] text-secondary">data_object</span>
                 {{ __('admin.data_gateway_ai_result_label') }}
@@ -188,17 +189,19 @@
             <input type="file" accept=".md,.json,.txt" x-ref="resultFileInput" @change="importResultFile($event)"
                 class="sr-only">
 
-            <div class="flex flex-wrap items-center gap-2">
+            {{-- Mobile: "apply to menu" (short label) and "import result file" share a full-width row. --}}
+            <div class="flex flex-wrap items-center gap-2 max-lg:w-full max-lg:flex-nowrap">
                 <!-- Apply to Menu Button -->
                 <button type="button" @click="applyAiResultToMenu()" :disabled="!aiResultJson.trim()"
-                    class="px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:bg-primary-container shadow-xs transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:bg-primary-container shadow-xs transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed max-lg:min-w-0 max-lg:flex-1 max-lg:px-3">
                     <span class="material-symbols-outlined text-[16px]">playlist_add_check</span>
-                    <span>{{ __('admin.data_gateway_btn_apply_to_menu') }}</span>
+                    <span class="max-lg:hidden">{{ __('admin.data_gateway_btn_apply_to_menu') }}</span>
+                    <span class="lg:hidden">{{ __('admin.data_gateway_btn_apply_to_menu_short') }}</span>
                 </button>
 
                 <!-- Import Result File Button -->
                 <button type="button" @click="$refs.resultFileInput.click()"
-                    class="px-3.5 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-semibold text-on-surface hover:bg-surface-container-low hover:border-secondary shadow-xs transition-all flex items-center gap-1.5 active:scale-98">
+                    class="px-3.5 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-semibold text-on-surface hover:bg-surface-container-low hover:border-secondary shadow-xs transition-all flex items-center justify-center gap-1.5 active:scale-98 max-lg:min-w-0 max-lg:flex-1 max-lg:px-3">
                     <span class="material-symbols-outlined text-[16px] text-secondary">upload_file</span>
                     <span>{{ __('admin.data_gateway_btn_import_file') }}</span>
                 </button>
@@ -456,8 +459,9 @@
                     return;
                 }
 
-                // Clean markdown code blocks if AI wrapped with ```json ... ```
-                raw = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+                // A .md file (or an AI answer) may wrap the JSON in a ```json ... ``` block with text around it.
+                const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
+                raw = (fenced ? fenced[1] : raw).trim();
 
                 let parsed;
                 try {
@@ -495,6 +499,13 @@
                     }
                 }
 
+                if (!itemsList.length) {
+                    this.showToastMessage('{{ __('admin.data_gateway_err_invalid_ai_result') }}', 'error');
+                    return;
+                }
+
+                // Only named items count; a category left without any of them is dropped with them.
+                itemsList = itemsList.filter(item => item && typeof item === 'object' && String(item.name ?? '').trim() !== '');
                 if (!itemsList.length) {
                     this.showToastMessage('{{ __('admin.data_gateway_err_invalid_ai_result') }}', 'error');
                     return;

@@ -58,7 +58,7 @@ class Campaign extends Model
 
     protected function casts(): array
     {
-        return ['deadline' => 'datetime', 'started_at' => 'datetime', 'closed_at' => 'datetime', 'ordering_locked_at' => 'datetime', 'status' => CampaignStatus::class, 'sponsor_allocations' => 'array'];
+        return ['deadline' => 'datetime', 'started_at' => 'datetime', 'closed_at' => 'datetime', 'ordering_locked_at' => 'datetime', 'deadline_reminder_sent_for' => 'datetime', 'status' => CampaignStatus::class, 'sponsor_allocations' => 'array'];
     }
 
     /**

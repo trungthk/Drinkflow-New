@@ -77,12 +77,13 @@ export function initAdminReports() {
      *
      * @param {Array<{label: string, align?: string, width?: string}>} columns Column definitions.
      * @param {Array<Array<string>>} rows Pre-rendered cell HTML per row, in column order.
+     * @param {{minWidth?: string}} [options] minWidth overrides the default minimum table width (it scrolls sideways below it).
      */
-    function reportTableHtml(columns, rows) {
+    function reportTableHtml(columns, rows, options = {}) {
         const cellClass = (column) => `py-3 px-4 align-middle ${ALIGN_CLASS[column.align || 'left']}`;
         return `
             <div class="overflow-x-auto border border-outline-variant/60 rounded-xl">
-                <table class="report-table table-colgroup w-full table-fixed text-left text-xs border-collapse">
+                <table class="report-table table-colgroup w-full table-fixed text-left text-xs border-collapse"${options.minWidth ? ` style="min-width:${options.minWidth}"` : ''}>
                     <colgroup>${columns.map((column) => `<col${column.width ? ` style="width:${column.width}"` : ''}>`).join('')}</colgroup>
                     <thead>
                         <tr class="bg-surface-container-low text-outline uppercase text-[11px] tracking-wide font-semibold border-b border-outline-variant/60">
@@ -228,12 +229,12 @@ export function initAdminReports() {
                 if (debtsList) {
                     if (data.debts_by_user && data.debts_by_user.length > 0) {
                         const columns = [
-                            { label: i18n.member, width: '26%' },
-                            { label: i18n.debtCount, align: 'center', width: '11%' },
-                            { label: i18n.totalOriginal, align: 'right', width: '16%' },
-                            { label: i18n.totalPaid, align: 'right', width: '16%' },
-                            { label: i18n.totalRemaining, align: 'right', width: '16%' },
-                            { label: i18n.status, align: 'center', width: '15%' },
+                            { label: i18n.member, width: '30%' },
+                            { label: i18n.debtCount, align: 'center', width: '9%' },
+                            { label: i18n.totalOriginal, align: 'right', width: '14%' },
+                            { label: i18n.totalPaid, align: 'right', width: '14%' },
+                            { label: i18n.totalRemaining, align: 'right', width: '14%' },
+                            { label: i18n.status, align: 'center', width: '19%' },
                         ];
                         const rows = data.debts_by_user.map((u) => {
                             const remaining = Number(u.outstanding_debt || 0);
@@ -249,7 +250,8 @@ export function initAdminReports() {
                                     : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"><span class="material-symbols-outlined text-[12px]">schedule</span>${escapeHtml(i18n.statusOwing)}</span>`,
                             ];
                         });
-                        debtsList.innerHTML = reportTableHtml(columns, rows);
+                        // Wider member/status columns: keep the money columns readable on narrow screens by scrolling instead.
+                        debtsList.innerHTML = reportTableHtml(columns, rows, { minWidth: '44rem' });
                     } else {
                         debtsList.innerHTML = emptyStateHtml('check_circle', escapeHtml(i18n.noDebtsTitle), escapeHtml(i18n.noDebtsDesc));
                     }

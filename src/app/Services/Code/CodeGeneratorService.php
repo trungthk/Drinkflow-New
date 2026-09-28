@@ -76,18 +76,39 @@ class CodeGeneratorService
     }
 
     /**
-     * Generate a unique debt code formatted as DEB-YYYYMMDD-XXXX.
+     * Generate a unique debt code formatted as <yymmdd><roomId><XXXX>, e.g. 2609281XIAU.
      *
+     * Existing debts keep the codes they were created with (legacy DEB-YYYYMMDD-XXXX).
+     *
+     * @param int|null $roomId Room identifier embedded in the code (omitted when unknown).
+     * @param CarbonInterface|null $date Date embedded in the code (defaults to today).
      * @return string Unique debt code.
      */
-    public static function generateDebtCode(): string
+    public static function generateDebtCode(?int $roomId = null, ?CarbonInterface $date = null): string
     {
-        $prefix = 'DEB-' . date('Ymd') . '-';
+        $prefix = ($date ?? now())->format('ymd') . ($roomId ?? '');
         do {
-            $code = $prefix . strtoupper(Str::random(4));
+            $code = $prefix . self::randomAlphanumeric(4);
         } while (DB::table('debts')->where('code', $code)->exists());
 
         return $code;
+    }
+
+    /**
+     * Generate a random string of uppercase letters and digits (A-Z0-9).
+     *
+     * @param int $length Number of characters.
+     * @return string Random string.
+     */
+    private static function randomAlphanumeric(int $length): string
+    {
+        $alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $result = '';
+        for ($i = 0; $i < $length; $i++) {
+            $result .= $alphabet[random_int(0, strlen($alphabet) - 1)];
+        }
+
+        return $result;
     }
 
     /**

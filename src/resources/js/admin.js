@@ -23,7 +23,7 @@ import { initAdminReports } from './admin/reports';
 import { initAdminSettings } from './admin/settings';
 import { initAdminUsers } from './admin/users';
 import { initAdminLoading, initAdminReloadButtons, initFilterFormSkeletons } from './admin/loading';
-import { connectGuestRealtime } from './shared/realtime-reload';
+import { initAdminRealtime } from './admin/realtime';
 
 export {
     initAdminGoToTop,
@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initAdminLoading();
     initAdminReloadButtons();
     initFilterFormSkeletons();
-    // Every admin page (not only the dashboard) reloads into the maintenance screen when it starts.
-    connectGuestRealtime(document.body.dataset.maintenanceRealtimeUrl, 'admin');
+    // Every admin page (not only the dashboard) reloads into the maintenance screen when it starts, and room
+    // admins also receive their private live notifications (e.g. campaign ordering closes soon).
+    initAdminRealtime();
 });

@@ -115,7 +115,6 @@ return [
     'dashboard_metric_view' => 'View :label',
     'across_members' => 'Across :count members',
     'campaign_runs_unit' => 'runs',
-    'active_now' => 'Active Now',
     'closing_in' => 'closing in :time',
     'vs_yesterday' => 'vs yesterday',
     'sponsors_today' => 'Sponsors: :amount',
@@ -726,6 +725,8 @@ return [
     'update_campaign_failed' => 'Unable to update the campaign.',
     'campaign_cannot_extend_state' => 'Only active or scheduled campaigns can be extended.',
     'campaign_extend_requires_deadline' => 'This campaign has no ordering deadline to extend.',
+    'audit_event_campaign_deadline_reminder' => 'Campaign ordering closes soon',
+    'campaign_deadline_reminder_body' => 'Campaign ":campaign" stops taking orders at :time. :pending/:total members have not ordered yet.',
     'audit_event_campaign_deadline_extended' => 'Campaign deadline extended',
     'audit_event_feedback_status_changed' => 'Feedback status changed',
     'resend_notification' => 'Resend notification',
@@ -857,6 +858,7 @@ return [
     'audit_target_failed_job' => 'Failed job',
     'filter_apply' => 'Apply filter',
     'filter_clear' => 'Clear filters',
+    'filter_button' => 'Filter',
     'filter_reset' => 'Reset',
 
     // Reports & Analytics
@@ -1512,6 +1514,7 @@ return [
     'data_gateway_ai_result_placeholder' => 'Paste normalized JSON block received from ChatGPT or Gemini here (containing dishes or category / items)...',
     'data_gateway_btn_import_file'      => 'Import Result File',
     'data_gateway_btn_apply_to_menu'    => 'Apply to Campaign Menu',
+    'data_gateway_btn_apply_to_menu_short' => 'Apply to Menu',
     'data_gateway_err_empty_origin'     => 'Please paste raw JSON payload from platform before copying prompt.',
     'data_gateway_err_invalid_json'     => 'Raw JSON payload is malformed. Please verify the copied data.',
     'data_gateway_success_copy_prompt'  => 'Complete Prompt copied to Clipboard! Paste it into :ai to get the standardized JSON.',

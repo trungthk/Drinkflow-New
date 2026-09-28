@@ -11,6 +11,8 @@ use App\Models\Debt;
 use App\Models\Order;
 use App\Models\Room;
 use App\Models\UserNotification;
+use App\Services\Campaign\CampaignDeadlineReminderService;
+use Illuminate\Support\Carbon;
 
 class NotificationPresentationService
 {
@@ -121,7 +123,7 @@ class NotificationPresentationService
      */
     private function link(UserNotification $notification, string $type, array $data): ?string
     {
-        if ($type === NotificationType::CampaignCreated->value) {
+        if (in_array($type, [NotificationType::CampaignCreated->value, NotificationType::CampaignDeadlineReminder->value], true)) {
             return $this->liveCampaignLink($data);
         }
 
@@ -190,6 +192,7 @@ class NotificationPresentationService
             NotificationType::CampaignCreated->value => 'messages.campaign_created_title',
             NotificationType::CampaignClosed->value => 'messages.campaign_closed_title',
             NotificationType::CampaignCancelled->value => 'messages.campaign_cancelled_title',
+            NotificationType::CampaignDeadlineReminder->value => 'messages.campaign_deadline_reminder_title',
             NotificationType::OrderCreated->value => 'messages.order_created',
             NotificationType::OrderProxyReceived->value => 'messages.order_proxy_received_title',
             NotificationType::OrderUpdated->value, NotificationType::OrderStatus->value => 'messages.order_status_updated',
@@ -209,6 +212,10 @@ class NotificationPresentationService
      */
     private function body(UserNotification|AdminNotification $notification, string $type, array $data): string
     {
+        if ($type === NotificationType::CampaignDeadlineReminder->value && ! empty($data['deadline'])) {
+            return $this->deadlineReminderBody($notification, $data);
+        }
+
         if ($notification instanceof AdminNotification) {
             if (!empty($notification->body)) {
                 return (string) $notification->body;
@@ -246,6 +253,30 @@ class NotificationPresentationService
     }
 
     /**
+     * Build the "ordering closes soon" body in the current locale from the stored campaign data.
+     *
+     * @param UserNotification|AdminNotification $notification Notification model.
+     * @param array<string, mixed> $data Structured notification data (campaign name, deadline, member counts).
+     * @return string Body text.
+     */
+    private function deadlineReminderBody(UserNotification|AdminNotification $notification, array $data): string
+    {
+        $replace = [
+            'campaign' => (string) ($data['campaign_name'] ?? $data['campaign_code'] ?? ''),
+            'time' => app(CampaignDeadlineReminderService::class)->formatTime(Carbon::parse((string) $data['deadline'])),
+        ];
+
+        if ($notification instanceof AdminNotification) {
+            return __('admin.campaign_deadline_reminder_body', $replace + [
+                'pending' => (int) ($data['pending_count'] ?? 0),
+                'total' => (int) ($data['total_count'] ?? 0),
+            ]);
+        }
+
+        return __('messages.campaign_deadline_reminder_body', $replace);
+    }
+
+    /**
      * Resolve the header icon for a notification type.
      *
      * @param string $type Notification type.
@@ -254,6 +285,7 @@ class NotificationPresentationService
     private function icon(string $type): string
     {
         return match (true) {
+            $type === NotificationType::CampaignDeadlineReminder->value => 'alarm',
             str_starts_with($type, 'campaign.') => 'local_fire_department',
             str_starts_with($type, 'order.') => 'check_circle',
             str_starts_with($type, 'payment.'), str_starts_with($type, 'debt.') => 'payments',

@@ -10,6 +10,7 @@ use App\Enums\OrderStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\Campaign;
+use App\Models\CampaignItem;
 use App\Models\CampaignParticipant;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -176,7 +177,8 @@ class UserRoomCampaignService
                 })
                 ->filter()
                 ->values();
-            $categories      = $activeCampaign->items->pluck('category')->filter()->unique()->values();
+            // Only categories that still have an orderable (active) item become menu tabs.
+            $categories      = CampaignItem::categoriesOf($activeCampaign->items);
             $activeUserOrder = $roomUser
                 ? $roomUser->orders()
                     ->where('campaign_id', $activeCampaign->id)

@@ -9,6 +9,7 @@ use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentAccountStatus;
 use App\Models\AdminAccount;
+use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\Order;
 use App\Models\PaymentAccount;
@@ -129,18 +130,20 @@ class AdminDashboardService
             0 => __('admin.day_sunday'),
         ];
 
+        $weeklyGrossByDay = $this->weeklyGrossSpendingByDay($room, $today->copy()->subDays(6)->startOfDay(), $today->copy()->endOfDay());
+
         for ($i = 6; $i >= 0; $i--) {
             $currentDate = $today->copy()->subDays($i);
             $dayOfWeek = (int) $currentDate->format('w');
             $dayLabel = $i === 0 ? __('admin.day_today') : ($dayLabels[$dayOfWeek] ?? $currentDate->format('D'));
 
             $cCount = $room->campaigns()->whereDate('created_at', $currentDate)->count();
-            $dayOrders = Order::query()
+            $sAmount = (int) ($weeklyGrossByDay[$currentDate->toDateString()] ?? 0);
+            $oCount = Order::query()
                 ->where('room_id', $room->id)
                 ->whereDate('created_at', $currentDate)
-                ->where('status', '!=', OrderStatus::Cancelled->value);
-            $sAmount = (int) (clone $dayOrders)->sum('final_amount');
-            $oCount = (clone $dayOrders)->count();
+                ->where('status', '!=', OrderStatus::Cancelled->value)
+                ->count();
 
             $totalWeekCampaigns += $cCount;
             $totalWeekSpending += $sAmount;
@@ -277,5 +280,35 @@ class AdminDashboardService
                 'users_count' => $debtUsersCount,
             ],
         ];
+    }
+
+    /**
+     * Gross spending per day for the weekly trend: each campaign created in the window adds its gross total
+     * (non-cancelled order subtotals + delivery fee - discount, before sponsorship) to the day it was created.
+     *
+     * Draft/cancelled campaigns and campaigns without any order spend nothing, so a delivery fee is never counted
+     * for a campaign nobody ordered in.
+     *
+     * @param Room $room Room scope.
+     * @param Carbon $from Window start (inclusive).
+     * @param Carbon $to Window end (inclusive).
+     * @return array<string, int> Gross total in VND keyed by Y-m-d.
+     */
+    private function weeklyGrossSpendingByDay(Room $room, Carbon $from, Carbon $to): array
+    {
+        return $room->campaigns()
+            ->whereBetween('created_at', [$from, $to])
+            ->whereNotIn('status', [CampaignStatus::Draft->value, CampaignStatus::Cancelled->value])
+            ->withSum([
+                'orders as gross_subtotal' => static fn (Builder $query): Builder => $query
+                    ->where('status', '!=', OrderStatus::Cancelled->value),
+            ], 'subtotal')
+            ->get()
+            ->filter(static fn (Campaign $campaign): bool => (int) $campaign->gross_subtotal > 0)
+            ->groupBy(static fn (Campaign $campaign): string => $campaign->created_at->toDateString())
+            ->map(static fn ($campaigns): int => (int) $campaigns->sum(
+                static fn (Campaign $campaign): int => $campaign->grossTotal((int) $campaign->gross_subtotal)
+            ))
+            ->all();
     }
 }

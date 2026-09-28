@@ -80,7 +80,7 @@
                     </div>
                     <div>
                         <span class="text-[11px] text-outline font-medium block">{{ __('admin.aggregated_items_list') }}</span>
-                        <span class="text-base font-bold font-mono text-on-surface">{{ count($aggregatedItems ?? []) }} {{ __('admin.item_groups') }}</span>
+                        <span class="text-base font-bold font-mono text-on-surface">{{ count($aggregatedItems ?? []) }}</span>
                     </div>
                 </div>
 
@@ -90,7 +90,7 @@
                     </div>
                     <div>
                         <span class="text-[11px] text-outline font-medium block">{{ __('admin.orders_list_tab') }}</span>
-                        <span class="text-base font-bold font-mono text-on-surface">{{ $orders->count() }} {{ __('admin.orders_placed') }}</span>
+                        <span class="text-base font-bold font-mono text-on-surface">{{ $orders->count() }}</span>
                     </div>
                 </div>
 
@@ -248,11 +248,12 @@
                 </div>
 
                 <div class="overflow-x-auto w-full rounded-xl border border-outline-variant/60">
-                    <table class="table-colgroup w-full min-w-[40rem] text-left border-collapse text-xs table-fixed">
+                    {{-- table-fixed ignores min-width on cells: the table's min width = fixed columns + 200px for the item column. --}}
+                    <table class="table-colgroup w-full min-w-[680px] text-left border-collapse text-xs table-fixed">
                         <thead>
                             <tr class="h-10 bg-surface-container-low border-b border-outline-variant text-outline uppercase font-mono tracking-wider">
                                 <th class="px-4 py-2 w-16 text-left">{{ __('admin.order_no') }}</th>
-                                <th class="px-4 py-2 text-left">{{ __('admin.item_name_customization') }}</th>
+                                <th class="px-4 py-2 text-left min-w-[200px]">{{ __('admin.item_name_customization') }}</th>
                                 <th class="px-4 py-2 w-32 text-center">{{ __('admin.quantity') }}</th>
                                 <th class="px-4 py-2 w-36 text-right">{{ __('admin.unit_price') }}</th>
                                 <th class="px-4 py-2 w-36 text-right">{{ __('admin.total_amount') }}</th>
@@ -344,12 +345,13 @@
                 </div>
 
                 <div class="overflow-x-auto w-full rounded-xl border border-outline-variant/60">
-                    <table class="table-colgroup w-full min-w-[40rem] text-left border-collapse text-xs table-fixed">
+                    {{-- table-fixed ignores min-width on cells: the table's min width = fixed columns + 200px for the item column. --}}
+                    <table class="table-colgroup w-full min-w-[832px] text-left border-collapse text-xs table-fixed">
                         <thead>
                             <tr class="h-10 bg-surface-container-low border-b border-outline-variant text-outline uppercase font-mono tracking-wider">
                                 <th class="px-4 py-2 w-14 text-left">{{ __('admin.order_no') }}</th>
                                 <th class="px-4 py-2 w-48 text-left">{{ __('admin.member') }}</th>
-                                <th class="px-4 py-2 text-left">{{ __('admin.order_items_detail') }}</th>
+                                <th class="px-4 py-2 text-left min-w-[200px]">{{ __('admin.order_items_detail') }}</th>
                                 <th class="px-4 py-2 w-32 text-right">{{ __('admin.payable') }}</th>
                                 <th class="px-4 py-2 w-36 text-center">{{ __('admin.order_confirmed_switch') }}</th>
                                 <th class="px-4 py-2 w-28 text-center">{{ __('admin.action') }}</th>
@@ -551,11 +553,12 @@
                             </div>
 
                             <div class="overflow-x-auto">
-                                <table class="table-colgroup w-full text-left border-collapse text-xs table-fixed">
+                                {{-- table-fixed ignores min-width on cells: the table's min width = fixed columns + 200px for the item column. --}}
+                                <table class="table-colgroup w-full min-w-[688px] text-left border-collapse text-xs table-fixed">
                                     <thead>
                                         <tr class="h-8 bg-surface-container-lowest border-b border-outline-variant/60 text-outline uppercase font-mono tracking-wider text-[11px]">
                                             <th class="px-4 py-2 w-14 text-left">{{ __('admin.order_no') }}</th>
-                                            <th class="px-4 py-2 text-left">{{ __('admin.item_name_customization') }}</th>
+                                            <th class="px-4 py-2 text-left min-w-[200px]">{{ __('admin.item_name_customization') }}</th>
                                             <th class="px-4 py-2 w-48 text-left">{{ __('admin.ordered_by') }}</th>
                                             <th class="px-4 py-2 w-28 text-center">{{ __('admin.quantity') }}</th>
                                             <th class="px-4 py-2 w-32 text-right">{{ __('admin.total_amount') }}</th>
@@ -795,6 +798,16 @@
                                                 <div class="font-semibold text-on-surface">{{ $name }}</div>
                                                 <div class="text-[10px] font-mono text-outline flex items-center gap-1.5 mt-0.5">
                                                     <span>{{ $globalUser->email }}</span>
+                                                    @if ($globalUser->email)
+                                                        <button type="button" data-copy="{{ $globalUser->email }}"
+                                                            data-copied-message="{{ __('admin.copied') }}"
+                                                            data-copy-failed-message="{{ __('admin.copy_failed') }}"
+                                                            data-tooltip="{{ __('admin.copy_email') }}"
+                                                            aria-label="{{ __('admin.copy_email') }}"
+                                                            class="inline-flex items-center text-outline hover:text-primary transition-colors cursor-pointer">
+                                                            <span class="material-symbols-outlined text-[12px]">content_copy</span>
+                                                        </button>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
@@ -871,6 +884,16 @@
                                                 <div class="font-semibold text-on-surface">{{ $name }}</div>
                                                 <div class="text-[10px] font-mono text-outline flex items-center gap-1.5 mt-0.5">
                                                     <span>{{ $globalUser->email }}</span>
+                                                    @if ($globalUser->email)
+                                                        <button type="button" data-copy="{{ $globalUser->email }}"
+                                                            data-copied-message="{{ __('admin.copied') }}"
+                                                            data-copy-failed-message="{{ __('admin.copy_failed') }}"
+                                                            data-tooltip="{{ __('admin.copy_email') }}"
+                                                            aria-label="{{ __('admin.copy_email') }}"
+                                                            class="inline-flex items-center text-outline hover:text-primary transition-colors cursor-pointer">
+                                                            <span class="material-symbols-outlined text-[12px]">content_copy</span>
+                                                        </button>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>

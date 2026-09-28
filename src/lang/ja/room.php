@@ -90,6 +90,7 @@ return [
         'no_live_item_data' => 'このキャンペーンではまだメニューが選択されていません。',
         'top_sponsors_title' => 'トップスポンサー',
         'top_sponsors_subtitle' => '直近7日間の合計スポンサー金額でランキング',
+        'top_sponsors_total' => 'スポンサー合計',
         'no_sponsor_data' => 'このルームにはまだスポンサーデータがありません。',
         'sponsored_campaigns_count' => ':count件のスポンサーキャンペーン',
         'weekly_trend_title' => '直近7日間の注文数と金額',

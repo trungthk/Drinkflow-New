@@ -39,6 +39,8 @@ return [
     'order_items_updated_body' => '管理者が注文 :order_code の商品を編集しました。新しい合計: :amount。',
     'campaign_updated_title' => 'キャンペーン更新',
     'campaign_updated_body' => 'キャンペーン情報が更新されました。',
+    'campaign_deadline_reminder_title' => 'まもなく注文締切です！ ⏰',
+    'campaign_deadline_reminder_body' => 'キャンペーン「:campaign」は :time に注文を締め切ります。まだ注文していません。お早めにご注文ください！',
     'campaign_delivering_title' => '商品が届きました！ 🧋',
     'campaign_delivering_body' => ':restaurant（#:code）の注文が部屋に届きました。商品をお受け取りください！',
     'campaign_order_check' => '注文を確認: :url',

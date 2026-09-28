@@ -23,3 +23,8 @@ Schedule::command('drinkflow:prune-crawler-and-logs')
     ->dailyAt('03:00')
     ->withoutOverlapping();
 
+
+// 4. Remind members who have not ordered yet (and room admins) shortly before a campaign's deadline
+Schedule::command('drinkflow:remind-campaign-deadlines')
+    ->everyMinute()
+    ->withoutOverlapping();

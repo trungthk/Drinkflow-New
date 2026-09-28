@@ -205,9 +205,10 @@
   <!-- Tier 2: Navigation Tabs Bar -->
   <div class="h-11 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center">
-      <nav class="flex items-center h-full gap-1 overflow-x-auto no-scrollbar">
+      <nav data-room-tabs class="flex items-center h-full gap-1 overflow-x-auto no-scrollbar">
         <!-- Tab 1: Tổng quan -->
         <a href="{{ $room ? route('user.dashboard', $room->slug) : '#' }}"
+          @if ($activeTab === 'overview') aria-current="page" @endif
           class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'overview' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
           <span class="material-symbols-outlined text-[16px]">dashboard</span>
           <span>{{ __('room.nav.overview') }}</span>
@@ -216,6 +217,7 @@
         <!-- Tab 2: Chiến dịch & Menu -->
         @if($hasActiveCampaign)
           <a href="{{ $room ? route('user.campaigns.index', $room->slug) : '#' }}"
+            @if ($activeTab === 'campaigns') aria-current="page" @endif
             class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'campaigns' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }} {{ $hasActiveCampaign ? 'bg-amber-50 text-amber-700' : '' }}">
             <span
               class="material-symbols-outlined text-[16px] {{ $hasActiveCampaign ? 'text-amber-600 animate-pulse' : '' }}">restaurant_menu</span>
@@ -228,6 +230,7 @@
         <!-- Tab 3: Đơn hàng của tôi (ẩn khi có chiến dịch đang live mà thành viên chưa đặt món) -->
         @unless($hasUnorderedActiveCampaign ?? false)
           <a href="{{ $room ? route('user.orders.index', $room->slug) : '#' }}"
+            @if ($activeTab === 'orders') aria-current="page" @endif
             class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'orders' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
             <span class="material-symbols-outlined text-[16px]">receipt_long</span>
             <span>{{ __('room.nav.my_orders') }}</span>
@@ -236,6 +239,7 @@
 
         <!-- Tab 4: Thanh toán & Nợ -->
         <a href="{{ $room ? route('user.debts.index', $room->slug) : '#' }}"
+          @if ($activeTab === 'debts') aria-current="page" @endif
           class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'debts' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
           <span class="material-symbols-outlined text-[16px]">account_balance_wallet</span>
           <span>{{ __('room.nav.payment_debts') }}</span>
@@ -247,6 +251,7 @@
 
         <!-- Tab 5: Thống kê Room -->
         <a href="{{ $room ? route('user.analytics.room', $room->slug) : '#' }}"
+          @if ($activeTab === 'analytics') aria-current="page" @endif
           class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'analytics' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
           <span class="material-symbols-outlined text-[16px]">bar_chart</span>
           <span>{{ __('room.nav.room_analytics') }}</span>
@@ -254,6 +259,7 @@
 
         <!-- Tab 6: Thông báo -->
         <a href="{{ $room ? route('user.rooms.notifications', $room->slug) : '#' }}"
+          @if ($activeTab === 'notifications') aria-current="page" @endif
           class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'notifications' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
           <span class="material-symbols-outlined text-[16px]">notifications</span>
           <span>{{ __('room.nav.notifications') }}</span>
@@ -261,6 +267,7 @@
 
         <!-- Tab 7: Hồ sơ -->
         <a href="{{ $room ? route('user.rooms.profile', $room->slug) : '#' }}"
+          @if ($activeTab === 'profile') aria-current="page" @endif
           class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'profile' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
           <span class="material-symbols-outlined text-[16px]">person</span>
           <span>{{ __('room.nav.profile') }}</span>
@@ -268,6 +275,7 @@
 
         <!-- Tab 8: Hướng dẫn sử dụng -->
         <a href="{{ $room ? route('user.rooms.guides', $room->slug) : '#' }}"
+          @if ($activeTab === 'guides') aria-current="page" @endif
           class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'guides' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
           <span class="material-symbols-outlined text-[16px]">menu_book</span>
           <span>{{ __('room.nav.user_guide') }}</span>

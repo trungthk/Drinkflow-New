@@ -90,6 +90,7 @@ return [
         'no_live_item_data' => 'Chưa có món nào được chọn trong chiến dịch này.',
         'top_sponsors_title' => 'Top nhà tài trợ',
         'top_sponsors_subtitle' => 'Xếp hạng theo tổng giá trị tài trợ trong 7 ngày gần nhất',
+        'top_sponsors_total' => 'Tổng tài trợ',
         'no_sponsor_data' => 'Chưa có dữ liệu tài trợ nào trong phòng.',
         'sponsored_campaigns_count' => ':count chiến dịch đã tài trợ',
         'weekly_trend_title' => 'Số món & giá trị 7 ngày gần nhất',

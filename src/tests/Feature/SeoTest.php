@@ -108,7 +108,8 @@ class SeoTest extends TestCase
         $this->get('/guides')
             ->assertOk()
             ->assertSee('03-dat-mon-chien-dich', false)
-            ->assertDontSee('08-bao-mat-thiet-bi', false)
+            ->assertSee('08-bao-mat-thiet-bi', false)
+            ->assertSee('11-tai-khoan-bi-khoa', false)
             ->assertSee('"@type":"CollectionPage"', false);
 
         $this->get('/guides/03-dat-mon-chien-dich')
@@ -117,11 +118,16 @@ class SeoTest extends TestCase
             ->assertSee('"@type":"TechArticle"', false)
             ->assertSee('<link rel="canonical" href="'.url('/guides/03-dat-mon-chien-dich').'"/>', false);
 
-        $this->get('/guides/08-bao-mat-thiet-bi')->assertNotFound();
+        // Every user guide is public, including device security and locked-account help.
+        $this->get('/guides/08-bao-mat-thiet-bi')->assertOk()->assertSee('guide-article', false);
+        $this->get('/guides/11-tai-khoan-bi-khoa')->assertOk()->assertSee('guide-article', false);
         $this->get('/guides/README')->assertNotFound();
+        $this->get('/guides/99-khong-ton-tai')->assertNotFound();
 
         $this->get('/sitemap.xml')
             ->assertSee('<loc>'.url('/guides').'</loc>', false)
-            ->assertSee('<loc>'.url('/guides/03-dat-mon-chien-dich').'</loc>', false);
+            ->assertSee('<loc>'.url('/guides/03-dat-mon-chien-dich').'</loc>', false)
+            ->assertSee('<loc>'.url('/guides/08-bao-mat-thiet-bi').'</loc>', false)
+            ->assertSee('<loc>'.url('/guides/11-tai-khoan-bi-khoa').'</loc>', false);
     }
 }

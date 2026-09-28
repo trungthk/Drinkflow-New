@@ -3,7 +3,7 @@
  * notification, and data events are re-dispatched as a window `realtime-event` for pages that update in place.
  * Only access changes reload (device revoked, account deleted, blocked/removed from a room, maintenance).
  */
-import { showDesktopNotification } from '../global/desktop-notification';
+import { handleRealtimeNotification } from '../global/desktop-notification';
 import { attachSocketDebugLogger } from '../shared/socket-debug';
 import { connectGuestRealtime, listenForcedReload } from '../shared/realtime-reload';
 
@@ -47,7 +47,7 @@ export function initRoomRealtime() {
                     window.location.reload();
                 }
             });
-            socket.on('notification.created', showDesktopNotification);
+            socket.on('notification.created', handleRealtimeNotification);
             socket.on('room.membership.updated', (payload) => {
                 // Blocked/removed members lose access: reload so the server shows the right page.
                 if (RELOAD_MEMBERSHIP_STATUSES.includes(payload?.status)) window.location.reload();

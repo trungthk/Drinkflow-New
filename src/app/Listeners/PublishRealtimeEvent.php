@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Listeners;
 
+use App\Events\AdminNotificationCreated;
 use App\Events\CampaignCancelled;
 use App\Events\CampaignClosed;
 use App\Events\CampaignCreated;
@@ -130,6 +131,20 @@ class PublishRealtimeEvent implements ShouldQueue
                     'data' => $event->notification->data ?? [],
                 ],
                 'global_user:'.$event->notification->global_user_id,
+            ],
+            $event instanceof AdminNotificationCreated => [
+                'admin.notification.created',
+                // Private to one admin account: a room channel would also reach the room's members.
+                0,
+                [
+                    'id' => $event->notification->id,
+                    'type' => $event->notification->type,
+                    'room_id' => $event->notification->room_id,
+                    'title' => $event->notification->title,
+                    'body' => $event->notification->body,
+                    'data' => $event->notification->data ?? [],
+                ],
+                'admin:'.$event->notification->admin_id,
             ],
             $event instanceof RoomMembershipUpdated => [
                 'room.membership.updated',

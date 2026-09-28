@@ -163,11 +163,12 @@
           'items' => __('room.dashboard.chart_items_label'),
           'value' => __('room.dashboard.chart_value_label'),
           'sponsoredCampaigns' => __('room.dashboard.sponsored_campaigns_count'),
+          'sponsorTotal' => __('room.dashboard.top_sponsors_total'),
           'noSponsorData' => __('room.dashboard.no_sponsor_data'),
           'noTrendData' => __('room.dashboard.no_weekly_trend_data'),
         ], JSON_UNESCAPED_UNICODE) }}"
       >
-        <!-- Top Sponsors Bar Chart -->
+        <!-- Top Sponsors Donut Chart -->
         <section class="lg:col-span-5 bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs flex flex-col">
           <div class="flex items-center gap-2 pb-2.5 border-b border-slate-100 mb-2.5">
             <span class="material-symbols-outlined text-[#006948] text-[18px]" aria-hidden="true">military_tech</span>

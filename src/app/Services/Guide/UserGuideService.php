@@ -21,11 +21,6 @@ class UserGuideService
     private const INDEX_SLUG = 'README';
 
     /**
-     * Bài hướng dẫn liên quan tới bảo mật thiết bị / tài khoản bị khoá: chỉ hiển thị sau đăng nhập, không mở công khai.
-     */
-    private const NON_PUBLIC_PREFIXES = ['08-', '11-'];
-
-    /**
      * Lấy danh sách bài hướng dẫn (đã sắp xếp theo số thứ tự trong tên file) để hiển thị dạng lưới.
      *
      * @return array<int, array{slug: string, number: int, title: string, excerpt: string}>
@@ -66,31 +61,14 @@ class UserGuideService
     }
 
     /**
-     * Danh sách bài hướng dẫn được phép hiển thị công khai (không cần đăng nhập, cho SEO).
-     *
-     * @return array<int, array{slug: string, number: int, title: string, excerpt: string}>
-     */
-    public function listPublic(): array
-    {
-        return array_values(array_filter(
-            $this->list(),
-            fn (array $article): bool => $this->isPublicSlug($article['slug'])
-        ));
-    }
-
-    /**
-     * Đọc một bài hướng dẫn công khai; trả về null nếu bài không thuộc nhóm được mở công khai.
+     * Đọc một bài hướng dẫn cho trang công khai, kèm đoạn mô tả ngắn dùng cho thẻ SEO.
      *
      * @param string $slug Định danh bài viết lấy từ URL.
      * @param string $indexUrl URL trang danh sách công khai (gốc cho các liên kết nội bộ).
-     * @return array{slug: string, title: string, html: string, excerpt: string}|null Dữ liệu bài viết hoặc null.
+     * @return array{slug: string, title: string, html: string, excerpt: string}|null Dữ liệu bài viết hoặc null nếu không tìm thấy.
      */
     public function findPublic(string $slug, string $indexUrl): ?array
     {
-        if (! $this->isPublicSlug($slug)) {
-            return null;
-        }
-
         $article = $this->find($slug, $indexUrl);
         if ($article === null) {
             return null;
@@ -99,17 +77,6 @@ class UserGuideService
         $raw = File::get(public_path(self::GUIDES_DIR . '/' . $slug . '.md'));
 
         return $article + ['excerpt' => $this->extractExcerpt($raw)];
-    }
-
-    /**
-     * Kiểm tra slug có thuộc nhóm bài được mở công khai hay không.
-     *
-     * @param string $slug Tên file không có phần mở rộng.
-     * @return bool True nếu được phép hiển thị công khai.
-     */
-    public function isPublicSlug(string $slug): bool
-    {
-        return ! Str::startsWith($slug, self::NON_PUBLIC_PREFIXES);
     }
 
     /**

@@ -3,7 +3,7 @@
  * few events that force a reload (device revoked, account deleted, blocked/removed from a room, maintenance).
  * Other events never reload the page.
  */
-import { showDesktopNotification } from './desktop-notification';
+import { handleRealtimeNotification } from './desktop-notification';
 import { attachSocketDebugLogger } from '../shared/socket-debug';
 import { connectGuestRealtime, listenForcedReload } from '../shared/realtime-reload';
 
@@ -32,7 +32,7 @@ export async function initSessionRevocation() {
     const socket = window.io(realtimeUrl, { auth: { token }, transports: ['websocket', 'polling'] });
     attachSocketDebugLogger(socket, 'user');
     listenForcedReload(socket);
-    socket.on('notification.created', showDesktopNotification);
+    socket.on('notification.created', handleRealtimeNotification);
     socket.on('room.membership.updated', (payload) => {
         if (RELOAD_MEMBERSHIP_STATUSES.includes(payload?.status)) window.location.reload();
     });

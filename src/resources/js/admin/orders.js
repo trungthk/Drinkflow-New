@@ -129,7 +129,6 @@ export function initAdminOrders() {
             }
 
             const member = order.room_user?.global_user?.name || order.room_user?.display_name || ('#' + order.room_user_id);
-            const userCode = order.room_user?.user_code || '';
             const email = order.room_user?.global_user?.email || '';
             const avatarUrl = order.room_user?.global_user?.avatar_url || '';
             const restaurant = order.campaign?.restaurant || '—';
@@ -199,7 +198,7 @@ export function initAdminOrders() {
                             ${avatarUrl ? `<img src="${escape(avatarUrl)}" alt="${escape(member)}" class="w-9 h-9 rounded-full object-cover shrink-0 border border-outline-variant" loading="lazy" onerror="this.src='/images/default-avatar.svg'">` : `<div class="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0">${escape(member.charAt(0))}</div>`}
                             <div class="min-w-0 flex-1">
                                 <div class="font-bold text-on-surface text-sm truncate">${escape(member)}</div>
-                                <div class="text-secondary text-[11px] font-mono mt-0.5">${userCode ? escape(userCode) : ''} ${email ? '• ' + escape(email) : ''}</div>
+                                ${email ? `<div class="text-secondary text-[11px] font-mono mt-0.5 break-all">${escape(email)}</div>` : ''}
                             </div>
                         </div>
                     </div>
@@ -229,10 +228,12 @@ export function initAdminOrders() {
                         </span>
                     </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
+                        <!-- table-colgroup: one real table (not a table per row) so the column width below applies to every row;
+                             table-fixed keeps the equal columns on desktop. Mobile: 200px item column, table scrolls sideways. -->
+                        <table class="table-colgroup w-full table-fixed text-left text-xs max-lg:min-w-[440px]">
                             <thead class="bg-surface-container-lowest text-outline font-mono uppercase text-[10px] border-b border-outline-variant">
                                 <tr>
-                                    <th class="py-2 px-3">${escape(i18n.itemNameCol || '')}</th>
+                                    <th class="py-2 px-3 max-lg:w-[200px]">${escape(i18n.itemNameCol || '')}</th>
                                     <th class="py-2 px-3 text-center">${escape(i18n.itemQtyCol || '')}</th>
                                     <th class="py-2 px-3 text-right">${escape(i18n.itemUnitPriceCol || '')}</th>
                                     <th class="py-2 px-3 text-right">${escape(i18n.itemTotalCol || '')}</th>

@@ -63,32 +63,34 @@
      )">
 
     <!-- Top Action Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-outline-variant">
+    {{-- Mobile (below lg): the campaign name sits under "Edit campaign"; "View details" and "Save changes" share a full-width row. --}}
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-outline-variant">
         <div class="flex items-center gap-3">
             <a href="{{ route('admin.campaigns.page', $room) }}" class="w-9 h-9 rounded-lg border border-outline-variant flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container-low transition-colors">
                 <span class="material-symbols-outlined text-[20px]">arrow_back</span>
             </a>
             <div>
-                <h1 class="text-xl font-bold text-on-surface tracking-tight flex items-center gap-2">
-                    {{ __('admin.edit_campaign') }}: <span class="text-primary">{{ $campaign->name }}</span>
+                <h1 class="text-xl font-bold text-on-surface tracking-tight flex flex-col items-start gap-0.5 lg:flex-row lg:items-center lg:gap-2">
+                    <span>{{ __('admin.edit_campaign') }}<span class="max-lg:hidden">:</span></span>
+                    <span class="text-primary">{{ $campaign->name }}</span>
                 </h1>
                 <p class="text-xs text-outline">{{ __('admin.edit_campaign_subtitle', ['room' => $room->name]) }}</p>
             </div>
         </div>
 
-        <div class="flex items-center gap-2.5 self-end sm:self-auto">
-            <a href="{{ route('admin.campaigns.info', [$room, $campaign]) }}" class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center gap-1.5 no-underline">
+        <div class="flex items-center gap-2.5 max-lg:w-full">
+            <a href="{{ route('admin.campaigns.info', [$room, $campaign]) }}" class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container-low transition-colors flex items-center justify-center gap-1.5 no-underline whitespace-nowrap max-lg:min-w-0 max-lg:flex-1 max-lg:basis-[calc(50%-0.3125rem)]">
                 <span class="material-symbols-outlined text-[16px]">visibility</span>
                 <span>{{ __('admin.view_campaign_details') }}</span>
             </a>
 
             <!-- Save Actions Dropdown -->
-            <div class="relative inline-flex rounded-lg shadow-sm" x-data="{ saveDropdownOpen: false }" @click.outside="saveDropdownOpen = false">
+            <div class="relative inline-flex rounded-lg shadow-sm max-lg:min-w-0 max-lg:flex-1 max-lg:basis-[calc(50%-0.3125rem)]" x-data="{ saveDropdownOpen: false }" @click.outside="saveDropdownOpen = false">
                 <!-- Main button: Lưu thay đổi (giữ nguyên trạng thái) -->
                 <button type="button"
                         @click="saveChanges()"
                         :disabled="submitting || cancelSubmitting"
-                        class="px-4 py-2 rounded-l-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50">
+                        class="px-4 py-2 rounded-l-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap disabled:opacity-50 max-lg:min-w-0 max-lg:flex-1">
                     <span x-show="submitting" class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
                     <span x-show="!submitting" class="material-symbols-outlined text-[16px]">save</span>
                     <span x-text="submitting ? '{{ __('admin.processing') }}' : '{{ __('admin.save_changes') }}'"></span>

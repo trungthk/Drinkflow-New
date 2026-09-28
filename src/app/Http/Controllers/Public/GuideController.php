@@ -21,7 +21,7 @@ class GuideController extends Controller
         $indexUrl = url('/guides');
         $articles = array_map(
             static fn (array $article): array => $article + ['url' => $indexUrl.'/'.$article['slug']],
-            $service->listPublic()
+            $service->list()
         );
 
         return view('public.guides', ['articles' => $articles, 'indexUrl' => $indexUrl]);

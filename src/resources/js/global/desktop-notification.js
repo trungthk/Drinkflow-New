@@ -221,3 +221,20 @@ export function showDesktopNotification(payload) {
         notification.close();
     };
 }
+
+// Time-critical notification types that are also shown as an in-page toast, even with desktop notifications off.
+const IN_PAGE_TOAST_TYPES = ['campaign.deadline_reminder'];
+
+/**
+ * Handle a realtime `notification.created` event: an in-page toast for time-critical types, then the desktop
+ * notification (when enabled).
+ *
+ * @param {{id?: number, type?: string, title?: string, body?: string, link?: string|null}} payload `notification.created` payload.
+ */
+export function handleRealtimeNotification(payload) {
+    if (IN_PAGE_TOAST_TYPES.includes(payload?.type)) {
+        const message = payload?.body ? `${payload.title || ''}: ${payload.body}` : payload?.title;
+        toast(message, 'warning');
+    }
+    showDesktopNotification(payload);
+}

@@ -1,6 +1,8 @@
 @props([
     'compact' => false,
     'header' => false,
+    // Show the "Reload" text after the icon below lg (mobile), where the button stretches to share a row.
+    'label' => false,
 ])
 
 {{-- Icon-only button that reloads the current page (keeping its filters); shows a spinner plus table/chart
@@ -15,4 +17,7 @@
         'h-9.5 w-9.5 rounded' => $header,
     ]) }}>
     <span class="material-symbols-outlined {{ $compact ? 'text-[16px]' : 'text-[18px]' }} {{ $header ? 'text-primary' : '' }}" data-reload-icon aria-hidden="true">refresh</span>
+    @if ($label)
+        <span class="lg:hidden">{{ __('admin.reload') }}</span>
+    @endif
 </button>
