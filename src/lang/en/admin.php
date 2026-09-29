@@ -796,6 +796,7 @@ return [
     'audit_event_notification_channel_disabled' => 'Notification channel disabled',
     'audit_event_notification_channel_deleted' => 'Notification channel deleted',
     'audit_event_admin_logged_in' => 'Admin logged in',
+    'audit_event_superadmin_logged_in' => 'Superadmin logged in',
     'audit_event_admin_created' => 'Admin created',
     'audit_event_admin_updated' => 'Admin updated',
     'audit_event_admin_status_updated' => 'Admin status updated',

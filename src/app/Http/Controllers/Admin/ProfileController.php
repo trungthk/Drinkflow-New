@@ -10,7 +10,7 @@ use App\Http\Requests\UpdateAdminPasswordRequest;
 use App\Http\Requests\UpdateAdminProfileRequest;
 use App\Http\Requests\UpdateAdminTwoFactorRequest;
 use App\Http\Requests\UploadAdminAvatarRequest;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Services\Audit\AuditService;
 use App\Services\Media\ImageUploadService;
 use Illuminate\Contracts\View\View;
@@ -31,7 +31,7 @@ class ProfileController extends Controller
      */
     public function show(Request $request): View
     {
-        /** @var AdminAccount $admin */
+        /** @var Admin $admin */
         $admin = $request->user('admin');
 
         return view('admin.profile', ['admin' => $admin->loadCount('rooms')]);
@@ -46,7 +46,7 @@ class ProfileController extends Controller
      */
     public function update(UpdateAdminProfileRequest $request, AuditService $audit): RedirectResponse
     {
-        /** @var AdminAccount $admin */
+        /** @var Admin $admin */
         $admin = $request->user('admin');
         $data = $request->validated();
 
@@ -75,7 +75,7 @@ class ProfileController extends Controller
         ImageUploadService $imageUploadService
     ): RedirectResponse
     {
-        /** @var AdminAccount $admin */
+        /** @var Admin $admin */
         $admin = $request->user('admin');
         $data = $request->validated();
         $uploaded = $imageUploadService->optimizeAndStore(
@@ -105,7 +105,7 @@ class ProfileController extends Controller
      */
     public function avatar(Request $request): StreamedResponse
     {
-        /** @var AdminAccount $admin */
+        /** @var Admin $admin */
         $admin = $request->user('admin');
         $storedValue = (string) ($admin->avatar_url ?? '');
         $path = str_contains($storedValue, '/storage/')
@@ -128,7 +128,7 @@ class ProfileController extends Controller
      */
     public function updatePassword(UpdateAdminPasswordRequest $request, AuditService $audit): RedirectResponse
     {
-        /** @var AdminAccount $admin */
+        /** @var Admin $admin */
         $admin = $request->user('admin');
         $data = $request->validated();
 
@@ -154,7 +154,7 @@ class ProfileController extends Controller
      */
     public function updateTwoFactor(UpdateAdminTwoFactorRequest $request, AuditService $audit): RedirectResponse
     {
-        /** @var AdminAccount $admin */
+        /** @var Admin $admin */
         $admin = $request->user('admin');
         $data = $request->validated();
 

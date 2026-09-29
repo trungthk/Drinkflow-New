@@ -8,7 +8,7 @@ use App\Enums\GlobalUserStatus;
 use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BroadcastNotificationRequest;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Room;
 use App\Services\Notification\AdminNotificationService;
 use App\Services\Notification\UserNotificationService;
@@ -27,7 +27,7 @@ class NotificationController extends Controller
      */
     public function markAllRead(Request $request, Room $room, AdminNotificationService $notifications): JsonResponse
     {
-        /** @var AdminAccount $admin */
+        /** @var Admin $admin */
         $admin = $request->user('admin');
 
         return response()->json([

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -23,11 +22,10 @@ class DataGatewayConverterTest extends TestCase
      */
     public function test_campaign_create_page_renders_data_gateway_converter_tab_and_instructions(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Gateway Admin',
             'email' => 'gateway-admin@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create([
@@ -61,11 +59,10 @@ class DataGatewayConverterTest extends TestCase
      */
     public function test_campaign_edit_page_renders_data_gateway_converter_tab_and_instructions(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Gateway Admin Edit',
             'email' => 'gateway-admin-edit@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create([
@@ -211,11 +208,10 @@ class DataGatewayConverterTest extends TestCase
      */
     public function test_admin_can_fetch_data_gateway_config(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'API Admin',
             'email' => 'api-admin@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create([
@@ -246,11 +242,10 @@ class DataGatewayConverterTest extends TestCase
      */
     public function test_admin_can_generate_prompt_via_api(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Prompt Admin',
             'email' => 'prompt-admin@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create([
@@ -287,11 +282,10 @@ class DataGatewayConverterTest extends TestCase
      */
     public function test_admin_cannot_generate_prompt_with_invalid_payload(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Validation Admin',
             'email' => 'validation-admin@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create([

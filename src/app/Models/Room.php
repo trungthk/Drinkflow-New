@@ -79,7 +79,7 @@ class Room extends Model
 
     public function admins(): BelongsToMany
     {
-        return $this->belongsToMany(AdminAccount::class, 'admin_rooms', 'room_id', 'admin_id');
+        return $this->belongsToMany(Admin::class, 'admin_rooms', 'room_id', 'admin_id');
     }
 
     /**

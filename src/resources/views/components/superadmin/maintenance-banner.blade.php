@@ -1,8 +1,8 @@
 {{-- Warns a superadmin (who bypasses maintenance) that everyone else currently sees the maintenance page,
      or that maintenance is scheduled. Renders nothing for other admins or when maintenance is off. --}}
 @php
-    $viewer = request()->user('admin');
-    $maintenance = $viewer?->isSuperadmin() ? app(\App\Services\System\SystemSettingsService::class)->maintenanceState() : null;
+    $viewer = request()->user('superadmin');
+    $maintenance = $viewer !== null ? app(\App\Services\System\SystemSettingsService::class)->maintenanceState() : null;
     $dateFormat = 'H:i d/m/Y';
 @endphp
 @if ($maintenance && ($maintenance['active'] || $maintenance['scheduled']))
@@ -16,8 +16,10 @@
                 {{ __('superadmin.maintenance_banner.scheduled', ['time' => $maintenance['starts']->format($dateFormat)]) }}
             @endif
         </span>
+        @can('settings.view')
         <a href="{{ route('superadmin.system.page') }}" class="inline-flex items-center gap-1 underline underline-offset-2 hover:no-underline">
             {{ __('superadmin.maintenance_banner.manage') }}<span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_forward</span>
         </a>
+        @endcan
     </div>
 @endif

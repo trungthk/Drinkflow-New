@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Actions\Debt\ApproveDebtPaymentAction;
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\PaymentStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\DebtPayment;
@@ -41,19 +40,18 @@ class DebtApprovalTest extends TestCase
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     /**
-     * Create an active AdminAccount and a Room that it manages.
+     * Create an active Admin and a Room that it manages.
      *
      * @param string $email Admin email.
      * @param string $slug  Room slug.
-     * @return array{0: AdminAccount, 1: Room}
+     * @return array{0: Admin, 1: Room}
      */
     private function adminWithRoom(string $email, string $slug): array
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name'     => 'Test Admin',
             'email'    => $email,
             'password' => 'secret',
-            'role'     => AdminRole::Admin,
             'status'   => 'active',
         ]);
         $room = Room::create([

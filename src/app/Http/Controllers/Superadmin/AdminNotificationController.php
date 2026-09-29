@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Superadmin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AdminAccount;
+use App\Models\Superadmin;
 use App\Models\AdminNotification;
 use App\Services\Notification\AdminNotificationService;
 use Illuminate\Http\JsonResponse;
@@ -48,12 +48,12 @@ class AdminNotificationController extends Controller
      * Resolve the authenticated admin account (the superadmin middleware already guarantees one).
      *
      * @param Request $request Incoming request.
-     * @return AdminAccount Signed-in account.
+     * @return Superadmin Signed-in account.
      */
-    private function admin(Request $request): AdminAccount
+    private function admin(Request $request): Superadmin
     {
-        /** @var AdminAccount $admin */
-        $admin = $request->user('admin');
+        /** @var Superadmin $admin */
+        $admin = $request->user('superadmin');
 
         return $admin;
     }

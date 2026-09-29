@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Order;
 
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\Room;
@@ -31,12 +31,12 @@ class PlaceOrderOnBehalfAction
      * @param Room $room Room being managed.
      * @param Campaign $campaign Campaign to order from; must belong to the room and accept orders.
      * @param RoomUser $member Member the order is placed for; must belong to the room.
-     * @param AdminAccount $admin Admin placing the order.
+     * @param Admin $admin Admin placing the order.
      * @param array<string, mixed> $data Validated payload (items[], note).
      * @return Order Created order with items loaded.
      * @throws ValidationException When the campaign/member is outside the room or the member already has an active order.
      */
-    public function execute(Room $room, Campaign $campaign, RoomUser $member, AdminAccount $admin, array $data): Order
+    public function execute(Room $room, Campaign $campaign, RoomUser $member, Admin $admin, array $data): Order
     {
         if ($campaign->room_id !== $room->id || $member->room_id !== $room->id) {
             throw ValidationException::withMessages([

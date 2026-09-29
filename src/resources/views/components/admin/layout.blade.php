@@ -55,10 +55,10 @@
 
 <body data-submit-loading-text="{{ __('global.common.loading') }}" data-room-slug="{{ $room?->slug }}" @if (app()->isLocal()) data-socket-debug @endif
     data-processing-text="{{ __('admin.processing') }}"
-    {{-- Room admins reload into the maintenance page when it starts; superadmins bypass maintenance here. --}}
-    @unless (auth('admin')->user()?->isSuperadmin()) data-maintenance-realtime-url="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}" @endunless
+    {{-- Room admins reload into the maintenance page when it starts. --}}
+    data-maintenance-realtime-url="{{ rtrim(config('services.realtime.public_url', 'http://localhost:3001'), '/') }}"
     {{-- Room admins get an authenticated socket on every page for their private live notifications. --}}
-    @if ($room && ! auth('admin')->user()?->isSuperadmin())
+    @if ($room)
         data-room-id="{{ $room->id }}"
         data-admin-socket-token-url="{{ route('admin.socket-token', $room) }}"
         data-admin-realtime-i18n="{{ json_encode([
@@ -282,7 +282,7 @@
                         <span
                             class="text-xs font-semibold text-on-surface truncate leading-tight">{{ $adminUser?->name ?? __('global.common.admin') }}</span>
                         <span
-                            class="text-[10px] text-outline font-mono truncate leading-tight">{{ $adminUser?->email ?? ($adminUser?->isSuperadmin() ? __('admin.super_admin_role') : __('admin.room_dispatcher_role')) }}</span>
+                            class="text-[10px] text-outline font-mono truncate leading-tight">{{ $adminUser?->email ?? __('admin.room_dispatcher_role') }}</span>
                     </div>
                     <div
                         class="sidebar-tooltip pointer-events-none absolute left-full top-1/2 -translate-y-1/2 ml-3 px-2.5 py-1.5 bg-[#0b1c30] text-white text-xs font-semibold rounded-lg shadow-xl whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity hidden">

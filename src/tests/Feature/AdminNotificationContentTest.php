@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AdminNotification;
 use App\Models\Campaign;
 use App\Models\Room;
@@ -18,12 +17,12 @@ class AdminNotificationContentTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function admin(string $email = 'admin@example.test'): AdminAccount
+    private function admin(string $email = 'admin@example.test'): Admin
     {
-        return AdminAccount::create(['name' => 'Room Admin', 'email' => $email, 'password' => Hash::make('secret'), 'role' => AdminRole::Admin, 'status' => 'active']);
+        return Admin::create(['name' => 'Room Admin', 'email' => $email, 'password' => Hash::make('secret'), 'status' => 'active']);
     }
 
-    private function roomFor(AdminAccount $admin, string $slug = 'admin-room'): Room
+    private function roomFor(Admin $admin, string $slug = 'admin-room'): Room
     {
         $room = Room::create(['name' => 'Admin Room', 'slug' => $slug, 'status' => 'active']);
         $admin->rooms()->attach($room);

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
+use App\Models\Superadmin;
 use App\Models\Campaign;
 use App\Models\ContactInquiry;
 use App\Models\Feedback;
@@ -30,7 +30,7 @@ class SuperadminDashboardTrendsTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $root;
+    private Superadmin $root;
     private Room $room;
     private Campaign $campaign;
     private int $sequence = 0;
@@ -42,9 +42,9 @@ class SuperadminDashboardTrendsTest extends TestCase
         SystemSettingsService::clearCache();
         Carbon::setTestNow('2026-09-28 12:00:00');
 
-        $this->root = AdminAccount::create([
+        $this->root = $this->createSuperadmin([
             'name' => 'Root', 'email' => 'root-trends@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::SuperAdmin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
         $this->room = Room::create(['name' => 'Trend Room', 'slug' => 'trend-room', 'status' => 'active']);
         $this->campaign = Campaign::create(['room_id' => $this->room->id, 'status' => CampaignStatus::Closed, 'name' => 'C', 'restaurant' => 'Shop']);
@@ -76,17 +76,17 @@ class SuperadminDashboardTrendsTest extends TestCase
 
     public function test_trends_endpoint_is_superadmin_only(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room admin', 'email' => 'room-admin-trends@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
 
-        $this->actingAs($admin, 'admin')->getJson(route('superadmin.dashboard.trends'))->assertForbidden();
+        $this->actingAs($admin, 'admin')->getJson(route('superadmin.dashboard.trends'))->assertUnauthorized();
     }
 
     public function test_trends_endpoint_returns_payload(): void
     {
-        $this->actingAs($this->root, 'admin')->getJson(route('superadmin.dashboard.trends'))
+        $this->actingAs($this->root, 'superadmin')->getJson(route('superadmin.dashboard.trends'))
             ->assertOk()
             ->assertJsonStructure(['data' => ['cohorts', 'feedback' => ['monthly', 'distribution'], 'contact_topics', 'system_history' => ['points'], 'generated_at']]);
     }

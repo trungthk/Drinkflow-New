@@ -35,7 +35,6 @@
                 <thead>
                     <tr>
                         <th>Admin</th>
-                        <th class="whitespace-nowrap">Role</th>
                         <th class="whitespace-nowrap">Status</th>
                     </tr>
                 </thead>
@@ -104,8 +103,7 @@
             if (description !== null) wrapper.querySelector('[data-empty-description]').textContent = description;
             return wrapper.innerHTML;
         };
-        const emptyRow = (html) => `<tr><td colspan="3">${html}</td></tr>`;
-        const roleLabels = @js(collect(\App\Enums\AdminRole::cases())->mapWithKeys(fn ($role) => [$role->value => __('superadmin.admins.role_'.$role->value)]));
+        const emptyRow = (html) => `<tr><td colspan="2">${html}</td></tr>`;
         async function loadRoom() {
             const {
                 data: room
@@ -129,11 +127,6 @@
                                 <small class="block truncate text-outline">${escapeHtml(admin.email)}</small>
                             </span>
                         </div>
-                    </td>
-                    <td class="whitespace-nowrap">
-                        <span class="inline-flex items-center gap-1 font-semibold">
-                            <span class="material-symbols-outlined text-[16px]">${admin.role === 'superadmin' ? 'shield_person' : 'person'}</span>${escapeHtml(roleLabels[admin.role] || admin.role)}
-                        </span>
                     </td>
                     <td class="whitespace-nowrap">${statusPill(admin.status)}</td>
                 </tr>
@@ -160,7 +153,7 @@
             if (!container) return;
             try {
                 const admins = [];
-                let nextPageUrl = '{{ route('superadmin.admins.index', ['role' => 'admin']) }}';
+                let nextPageUrl = '{{ route('superadmin.admins.index') }}';
                 while (nextPageUrl) {
                     const { data: page } = await dfApi(nextPageUrl);
                     admins.push(...page.data);

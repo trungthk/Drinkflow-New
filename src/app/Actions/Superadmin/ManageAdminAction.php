@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Actions\Superadmin;
 
-use App\Enums\AdminRole;
 use App\Enums\AdminStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -17,28 +16,27 @@ class ManageAdminAction
     /**
      * Handle the create operation.
      * @param array $data Parameter value.
-     * @return AdminAccount Result of the operation.
+     * @return Admin Result of the operation.
      */
-    public function create(array $data): AdminAccount
+    public function create(array $data): Admin
     {
-        return DB::transaction(function () use ($data): AdminAccount {
-            $admin = AdminAccount::create($data);
-            app(AuditService::class)->record('admin.created', 'admin', $admin->id, null, [], $admin->only(['name', 'email', 'role', 'status']));
+        return DB::transaction(function () use ($data): Admin {
+            $admin = Admin::create($data);
+            app(AuditService::class)->record('admin.created', 'admin', $admin->id, null, [], $admin->only(['name', 'email', 'status']));
             return $admin->fresh();
         });
     }
 
     /**
      * Handle the update operation.
-     * @param AdminAccount $admin Parameter value.
+     * @param Admin $admin Parameter value.
      * @param array $data Parameter value.
-     * @return AdminAccount Result of the operation.
+     * @return Admin Result of the operation.
      */
-    public function update(AdminAccount $admin, array $data): AdminAccount
+    public function update(Admin $admin, array $data): Admin
     {
-        return DB::transaction(function () use ($admin, $data): AdminAccount {
-            $this->guardRoleChange($admin, $data['role'] ?? null);
-            $before = $admin->only(['name', 'email', 'role', 'status']);
+        return DB::transaction(function () use ($admin, $data): Admin {
+            $before = $admin->only(['name', 'email', 'status']);
             $admin->update($data);
             app(AuditService::class)->record('admin.updated', 'admin', $admin->id, null, $before, $admin->fresh()->only(array_keys($before)));
             return $admin->fresh();
@@ -47,15 +45,14 @@ class ManageAdminAction
 
     /**
      * Handle the set status operation.
-     * @param AdminAccount $admin Parameter value.
+     * @param Admin $admin Parameter value.
      * @param string $status Parameter value.
-     * @return AdminAccount Result of the operation.
+     * @return Admin Result of the operation.
      */
-    public function setStatus(AdminAccount $admin, string $status): AdminAccount
+    public function setStatus(Admin $admin, string $status): Admin
     {
-        return DB::transaction(function () use ($admin, $status): AdminAccount {
-            if (AdminStatus::tryFrom($status) === null) throw ValidationException::withMessages(['status' => __('superadmin.actions.invalid_admin_status')]);
-            if ($status !== AdminStatus::Active->value && $admin->isSuperadmin()) $this->ensureAnotherSuperadmin($admin);
+        return DB::transaction(function () use ($admin, $status): Admin {
+            if (! in_array($status, AdminStatus::manageableValues(), true)) throw ValidationException::withMessages(['status' => __('superadmin.actions.invalid_admin_status')]);
             $before = ['status' => $admin->status];
             $admin->update(['status' => $status]);
             app(AuditService::class)->record('admin.status_updated', 'admin', $admin->id, null, $before, ['status' => $status]);
@@ -64,29 +61,12 @@ class ManageAdminAction
     }
 
     /**
-     * Handle the set role operation.
-     * @param AdminAccount $admin Parameter value.
-     * @param string $role Parameter value.
-     * @return AdminAccount Result of the operation.
-     */
-    public function setRole(AdminAccount $admin, string $role): AdminAccount
-    {
-        return DB::transaction(function () use ($admin, $role): AdminAccount {
-            $this->guardRoleChange($admin, $role);
-            $before = ['role' => $admin->role?->value];
-            $admin->update(['role' => $role]);
-            app(AuditService::class)->record('admin.role_updated', 'admin', $admin->id, null, $before, ['role' => $role]);
-            return $admin->fresh();
-        });
-    }
-
-    /**
      * Handle the reset password operation.
-     * @param AdminAccount $admin Parameter value.
+     * @param Admin $admin Parameter value.
      * @param string $password Parameter value.
      * @return void Result of the operation.
      */
-    public function resetPassword(AdminAccount $admin, string $password): void
+    public function resetPassword(Admin $admin, string $password): void
     {
         $admin->update(['password' => $password]);
         app(AuditService::class)->record('admin.password_reset', 'admin', $admin->id);
@@ -94,13 +74,13 @@ class ManageAdminAction
 
     /**
      * Handle the sync rooms operation.
-     * @param AdminAccount $admin Parameter value.
+     * @param Admin $admin Parameter value.
      * @param array $roomIds Parameter value.
-     * @return AdminAccount Result of the operation.
+     * @return Admin Result of the operation.
      */
-    public function syncRooms(AdminAccount $admin, array $roomIds): AdminAccount
+    public function syncRooms(Admin $admin, array $roomIds): Admin
     {
-        return DB::transaction(function () use ($admin, $roomIds): AdminAccount {
+        return DB::transaction(function () use ($admin, $roomIds): Admin {
             $before = $admin->rooms()->pluck('rooms.id')->sort()->values()->all();
             $admin->rooms()->sync($roomIds);
             $after = $admin->rooms()->pluck('rooms.id')->sort()->values()->all();
@@ -112,18 +92,13 @@ class ManageAdminAction
 
     /**
      * Handle the delete operation.
-     * @param AdminAccount $admin Parameter value.
+     * @param Admin $admin Parameter value.
      * @return void Result of the operation.
      */
-    public function delete(AdminAccount $admin): void
+    public function delete(Admin $admin): void
     {
-        if (request()->user('admin')?->is($admin)) {
-            throw ValidationException::withMessages(['admin' => __('superadmin.actions.cannot_delete_self')]);
-        }
-
         DB::transaction(function () use ($admin): void {
-            if ($admin->isSuperadmin()) $this->ensureAnotherSuperadmin($admin);
-            app(AuditService::class)->record('admin.deleted', 'admin', $admin->id, null, $admin->only(['name', 'email', 'role', 'status']), [], [
+            app(AuditService::class)->record('admin.deleted', 'admin', $admin->id, null, $admin->only(['name', 'email', 'status']), [], [
                 'room_ids' => $admin->rooms()->pluck('rooms.id')->all(),
             ]);
             $this->removeRelations($admin);
@@ -139,9 +114,9 @@ class ManageAdminAction
      * - "created / placed / updated by" references on shared data are cleared (the data itself is kept);
      * - audit logs and security events stay as history (actor_type = admin, actor_id = the deleted id).
      *
-     * @param AdminAccount $admin Admin being deleted.
+     * @param Admin $admin Admin being deleted.
      */
-    private function removeRelations(AdminAccount $admin): void
+    private function removeRelations(Admin $admin): void
     {
         $admin->rooms()->detach();
         $admin->linkedAuditLogs()->detach();
@@ -158,41 +133,5 @@ class ManageAdminAction
         ] as $table => $column) {
             DB::table($table)->where($column, $admin->id)->update([$column => null]);
         }
-    }
-
-    /**
-     * Handle the guard role change operation.
-     * @param AdminAccount $admin Parameter value.
-     * @param ?string $role Parameter value.
-     * @return void Result of the operation.
-     */
-    private function guardRoleChange(AdminAccount $admin, ?string $role): void
-    {
-        if ($role !== AdminRole::Admin->value || ! $admin->isSuperadmin()) return;
-        $current = request()->user('admin');
-        if ($current?->is($admin) && $this->superadminCount() <= 1) {
-            throw ValidationException::withMessages(['role' => __('superadmin.actions.cannot_demote_last_superadmin')]);
-        }
-        $this->ensureAnotherSuperadmin($admin);
-    }
-
-    /**
-     * Handle the ensure another superadmin operation.
-     * @param AdminAccount $admin Parameter value.
-     * @return void Result of the operation.
-     */
-    private function ensureAnotherSuperadmin(AdminAccount $admin): void
-    {
-        $query = AdminAccount::query()->where('role', AdminRole::SuperAdmin->value)->where('status', AdminStatus::Active)->where('id', '<>', $admin->id);
-        if (! $query->exists()) throw ValidationException::withMessages(['admin' => __('superadmin.actions.must_retain_at_least_one_superadmin')]);
-    }
-
-    /**
-     * Handle the superadmin count operation.
-     * @return int Result of the operation.
-     */
-    private function superadminCount(): int
-    {
-        return AdminAccount::query()->where('role', AdminRole::SuperAdmin->value)->count();
     }
 }

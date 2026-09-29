@@ -25,9 +25,15 @@ class AuditService
     public function record(string $event, string $targetType, int $targetId, ?int $roomId = null, array $before = [], array $after = [], array $metadata = []): AuditLog
     {
         $request = app(Request::class);
-        $admin = $request->user('admin');
-        $actor = $admin ?? $request->user('web');
-        $actorType = $admin ? ($admin->isSuperadmin() ? 'superadmin' : 'admin') : ($actor ? 'user' : 'system');
+        $superadmin = $request->user('superadmin');
+        $admin = $superadmin === null ? $request->user('admin') : null;
+        $actor = $superadmin ?? $admin ?? $request->user('web');
+        $actorType = match (true) {
+            $superadmin !== null => AuditLog::ACTOR_SUPERADMIN,
+            $admin !== null => AuditLog::ACTOR_ADMIN,
+            $actor !== null => 'user',
+            default => 'system',
+        };
         $auditLog = AuditLog::create(['actor_type' => $actorType, 'actor_id' => $actor?->id, 'event' => $event, 'target_type' => $targetType, 'target_id' => $targetId, 'room_id' => $roomId, 'ip_address' => $request->ip(), 'user_agent' => $request->userAgent(), 'before_data' => $before, 'after_data' => $after, 'metadata' => $metadata, 'created_at' => now()]);
 
         if ($admin) {

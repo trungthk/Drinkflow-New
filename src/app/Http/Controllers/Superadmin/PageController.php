@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Superadmin;
 
+use App\Enums\Permission;
+use App\Services\Authorization\AgentScope;
 use App\Http\Controllers\Controller;
 use App\Enums\CampaignStatus;
 use App\Enums\FeedbackStatus;
 use App\Models\Feedback;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
@@ -31,6 +33,7 @@ class PageController extends Controller
     public function rooms(Request $request): View
     {
         $query = Room::query()->withCount(['roomUsers', 'campaigns', 'admins']);
+        app(AgentScope::class)->applyToRooms($query, $request->user('superadmin'), Permission::RoomView);
         $search = trim($request->string('q')->toString());
         if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('slug', 'like', "%{$search}%"));
         $status = $request->string('status')->toString();
@@ -58,14 +61,12 @@ class PageController extends Controller
      */
     public function admins(Request $request): View
     {
-        $query = AdminAccount::query()->withCount('rooms')->latest();
+        $query = Admin::query()->withCount('rooms')->latest()->visibleTo($request->user('superadmin'));
         $search = trim($request->string('q')->toString());
         if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
-        $role = $request->string('role')->toString();
         $status = $request->string('status')->toString();
-        if ($role !== '') $query->where('role', $role);
         if ($status !== '') $query->where('status', $status);
-        return view('superadmin.admins', ['admins' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search', 'role', 'status')]);
+        return view('superadmin.admins', ['admins' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(), 'filters' => compact('search', 'status')]);
     }
     /**
      * Handle the admin operation.
@@ -110,6 +111,7 @@ class PageController extends Controller
     public function campaigns(Request $request): View
     {
         $query = Campaign::query()->with('room:id,name,slug')->withCount('orders')->latest();
+        app(AgentScope::class)->applyToRoomOwned($query, $request->user('superadmin'), Permission::RoomView);
         $search = trim($request->string('q')->toString());
         if ($search !== '') $query->where(fn ($q) => $q->where('name', 'like', "%{$search}%")->orWhere('restaurant', 'like', "%{$search}%"));
         $roomId = filter_var($request->query('room_id'), FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) ?: null;
@@ -119,7 +121,7 @@ class PageController extends Controller
 
         return view('superadmin.campaigns', [
             'campaigns' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(),
-            'rooms' => Room::query()->orderBy('name')->get(['id', 'name']),
+            'rooms' => app(AgentScope::class)->applyToRooms(Room::query(), $request->user('superadmin'), Permission::RoomView)->orderBy('name')->get(['id', 'name']),
             'filters' => ['search' => $search, 'room_id' => $roomId, 'status' => $status?->value ?? ''],
         ]);
     }
@@ -136,8 +138,8 @@ class PageController extends Controller
      */
     public function notifications(Request $request, AdminNotificationService $notifications, NotificationPresentationService $presentation): View
     {
-        /** @var AdminAccount $admin */
-        $admin = $request->user('admin');
+        /** @var \App\Models\Superadmin $admin */
+        $admin = $request->user('superadmin');
         $inboxStatus = in_array($request->query('inbox_status'), [AdminNotificationService::FILTER_UNREAD, AdminNotificationService::FILTER_READ], true)
             ? (string) $request->query('inbox_status')
             : '';
@@ -188,7 +190,7 @@ class PageController extends Controller
     {
         $query = AuditLog::query()
             ->whereIn('actor_type', AuditLog::ADMIN_ACTOR_TYPES)
-            ->with(['room:id,name', 'actorAdmin:id,name,email'])
+            ->with(['room:id,name', 'actorAdmin:id,name,email', 'actorSuperadmin:id,name,email'])
             ->latest('created_at')
             ->latest('id');
         $event = trim($request->string('event')->toString());

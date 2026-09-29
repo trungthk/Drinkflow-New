@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
-use App\Models\AdminAccount;
+use App\Models\Admin;
+use App\Models\Superadmin;
 use App\Models\SystemSetting;
 use App\Services\System\SystemConfigService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,11 +16,11 @@ class SystemConfigSettingsTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function superadmin(): AdminAccount
+    private function superadmin(): Superadmin
     {
-        return AdminAccount::create([
+        return $this->createSuperadmin([
             'name' => 'Root', 'email' => 'root-config@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::SuperAdmin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
     }
 
@@ -30,7 +30,7 @@ class SystemConfigSettingsTest extends TestCase
         $envMailer = config('mail.default');
         $root = $this->superadmin();
 
-        $this->actingAs($root, 'admin')->putJson('/superadmin/system/mail', [
+        $this->actingAs($root, 'superadmin')->putJson('/superadmin/system/mail', [
             'mailer' => 'smtp',
             'host' => 'smtp.example.test',
             'port' => 587,
@@ -56,13 +56,13 @@ class SystemConfigSettingsTest extends TestCase
         $stored = SystemSetting::where('key', 'mail.password')->firstOrFail();
         $this->assertTrue($stored->is_secret);
         $this->assertNotSame('smtp-secret', $stored->value);
-        $this->actingAs($root, 'admin')->getJson('/superadmin/system')
+        $this->actingAs($root, 'superadmin')->getJson('/superadmin/system')
             ->assertOk()
             ->assertJsonPath('data.mail_config.password.value', null)
             ->assertDontSee('smtp-secret');
 
         // Emptying host/mailer falls back to .env; an empty password keeps the saved one.
-        $this->actingAs($root, 'admin')->putJson('/superadmin/system/mail', [
+        $this->actingAs($root, 'superadmin')->putJson('/superadmin/system/mail', [
             'mailer' => null,
             'host' => null,
             'port' => 587,
@@ -77,7 +77,7 @@ class SystemConfigSettingsTest extends TestCase
         $this->assertDatabaseMissing('system_settings', ['key' => 'mail.host']);
 
         // clear_password removes the saved password.
-        $this->actingAs($root, 'admin')->putJson('/superadmin/system/mail', ['clear_password' => true])
+        $this->actingAs($root, 'superadmin')->putJson('/superadmin/system/mail', ['clear_password' => true])
             ->assertOk()
             ->assertJsonPath('data.fields.password.source', 'env');
         $this->assertDatabaseMissing('system_settings', ['key' => 'mail.password']);
@@ -86,7 +86,7 @@ class SystemConfigSettingsTest extends TestCase
 
     public function test_mail_settings_are_validated(): void
     {
-        $this->actingAs($this->superadmin(), 'admin')->putJson('/superadmin/system/mail', [
+        $this->actingAs($this->superadmin(), 'superadmin')->putJson('/superadmin/system/mail', [
             'mailer' => 'postmark',
             'port' => 70000,
             'scheme' => 'tls',
@@ -115,7 +115,7 @@ class SystemConfigSettingsTest extends TestCase
     {
         $root = $this->superadmin();
 
-        $this->actingAs($root, 'admin')->putJson('/superadmin/system/storage', [
+        $this->actingAs($root, 'superadmin')->putJson('/superadmin/system/storage', [
             'disk' => 'public',
             'quota_mb' => 1024,
         ])->assertOk()
@@ -129,17 +129,17 @@ class SystemConfigSettingsTest extends TestCase
         $this->assertDatabaseHas('audit_logs', ['event' => 'system.storage_config_updated']);
 
         // Only local disks can be selected (no S3 adapter is installed).
-        $this->actingAs($root, 'admin')->putJson('/superadmin/system/storage', ['disk' => 's3'])
+        $this->actingAs($root, 'superadmin')->putJson('/superadmin/system/storage', ['disk' => 's3'])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['disk']);
-        $this->actingAs($root, 'admin')->putJson('/superadmin/system/storage', ['quota_mb' => 0])
+        $this->actingAs($root, 'superadmin')->putJson('/superadmin/system/storage', ['quota_mb' => 0])
             ->assertStatus(422)
             ->assertJsonValidationErrors(['quota_mb']);
     }
 
     public function test_generic_settings_endpoint_cannot_write_mail_or_storage_keys(): void
     {
-        $this->actingAs($this->superadmin(), 'admin')->putJson('/superadmin/system/settings', [
+        $this->actingAs($this->superadmin(), 'superadmin')->putJson('/superadmin/system/settings', [
             'settings' => [['key' => 'mail.password', 'value' => 'plain-text']],
         ])->assertStatus(422);
 
@@ -148,19 +148,19 @@ class SystemConfigSettingsTest extends TestCase
 
     public function test_room_admin_cannot_change_mail_or_storage_settings(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Operator', 'email' => 'operator-config@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
 
-        $this->actingAs($admin, 'admin')->putJson('/superadmin/system/mail', ['host' => 'evil.test'])->assertForbidden();
-        $this->actingAs($admin, 'admin')->putJson('/superadmin/system/storage', ['quota_mb' => 1])->assertForbidden();
+        $this->actingAs($admin, 'admin')->putJson('/superadmin/system/mail', ['host' => 'evil.test'])->assertUnauthorized();
+        $this->actingAs($admin, 'admin')->putJson('/superadmin/system/storage', ['quota_mb' => 1])->assertUnauthorized();
         $this->assertDatabaseMissing('system_settings', ['key' => 'mail.host']);
     }
 
     public function test_system_page_renders_mail_and_storage_forms(): void
     {
-        $this->actingAs($this->superadmin(), 'admin')->get('/superadmin/system/page')
+        $this->actingAs($this->superadmin(), 'superadmin')->get('/superadmin/system/page')
             ->assertOk()
             ->assertSee('id="mail-config-form"', false)
             ->assertSee('id="storage-config-form"', false)

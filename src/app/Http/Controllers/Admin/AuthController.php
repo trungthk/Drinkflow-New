@@ -14,12 +14,13 @@ use App\Http\Requests\AdminLoginRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Requests\SendResetOtpRequest;
 use App\Http\Requests\VerifyOtpRequest;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Debt;
 use App\Models\Order;
 use App\Models\Room;
 use App\Services\Audit\AuditService;
 use App\Services\Auth\AdminAuthService;
+use App\Support\Auth\AreaIntendedRedirect;
 use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -52,12 +53,8 @@ class AuthController extends Controller
      */
     public function landing(Request $request): View|RedirectResponse
     {
-        /** @var AdminAccount $admin */
+        /** @var Admin $admin */
         $admin = $request->user('admin');
-
-        if ($admin->isSuperadmin()) {
-            return redirect()->route('superadmin.dashboard');
-        }
 
         $today = Carbon::today();
 
@@ -180,7 +177,7 @@ class AuthController extends Controller
             return response()->json(['data' => $admin]);
         }
 
-        return redirect()->intended(route('admin.landing'));
+        return AreaIntendedRedirect::to($request, 'admin', route('admin.landing'));
     }
 
     /**

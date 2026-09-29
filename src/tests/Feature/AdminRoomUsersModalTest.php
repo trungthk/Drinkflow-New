@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\RoomUserStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
@@ -23,11 +22,10 @@ class AdminRoomUsersModalTest extends TestCase
      */
     public function test_user_action_modal_has_header_and_confirm_icons(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'users-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Users Room', 'slug' => 'users-room', 'status' => 'active']);
@@ -51,11 +49,10 @@ class AdminRoomUsersModalTest extends TestCase
      */
     public function test_admin_can_restore_removed_member(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'restore-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Users Room', 'slug' => 'users-room', 'status' => 'active']);
@@ -99,11 +96,10 @@ class AdminRoomUsersModalTest extends TestCase
      */
     public function test_members_table_shows_total_orders_and_joined_at(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'joined-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Joined Room', 'slug' => 'joined-room', 'status' => 'active']);

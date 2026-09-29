@@ -22,6 +22,7 @@ class CheckMaintenanceMode
         'admin.forgot-password.page', 'admin.forgot-password.send',
         'admin.verify-otp.page', 'admin.verify-otp.submit',
         'admin.reset-password.page', 'admin.reset-password.submit',
+        'superadmin.login.page', 'superadmin.login', 'superadmin.logout',
         'locale.switch',
     ];
 
@@ -70,7 +71,7 @@ class CheckMaintenanceMode
     {
         // The admin session cookie is shared with the public and user areas, so a superadmin only
         // bypasses maintenance in the admin console; public/user pages show maintenance to everyone.
-        if ($request->is('admin', 'admin/*', 'superadmin', 'superadmin/*') && $request->user('admin')?->isSuperadmin()) {
+        if ($request->is('superadmin', 'superadmin/*') && $request->user('superadmin') !== null) {
             return true;
         }
 

@@ -1,6 +1,10 @@
-<x-admin-auth.layout :title="__('admin.login_page_title')">
+{{-- Shared by the admin (/admin/login) and superadmin (/superadmin/login) guards; $superadminLogin switches the form. --}}
+@php
+    $superadminLogin = (bool) ($superadminLogin ?? false);
+@endphp
+<x-admin-auth.layout :title="$superadminLogin ? __('superadmin.auth.login_page_title') : __('admin.login_page_title')">
     @php
-        $googleTwoFactorPending = session()->has('admin_google_2fa_admin_id');
+        $googleTwoFactorPending = ! $superadminLogin && session()->has('admin_google_2fa_admin_id');
     @endphp
 
     <div class="mb-5">
@@ -8,7 +12,7 @@
             <span class="material-symbols-outlined text-[15px]">admin_panel_settings</span>
             <span>{{ __('admin.restricted_access_area') }}</span>
         </div>
-        <h2 class="text-2xl font-bold text-on-surface tracking-tight">{{ __('admin.login_heading') }}</h2>
+        <h2 class="text-2xl font-bold text-on-surface tracking-tight">{{ $superadminLogin ? __('superadmin.auth.login_heading') : __('admin.login_heading') }}</h2>
     </div>
 
     @if ($errors->any() || session('login_error'))
@@ -47,7 +51,7 @@
     @endif
 
     @unless($googleTwoFactorPending)
-    <form method="post" action="{{ route('admin.login') }}" data-loading-form="true" class="space-y-4">
+    <form method="post" action="{{ $superadminLogin ? route('superadmin.login') : route('admin.login') }}" data-loading-form="true" class="space-y-4">
         @csrf
         <div>
             <label for="admin-email" class="block text-xs font-semibold text-on-surface mb-1">
@@ -125,9 +129,11 @@
                 <input name="remember" type="checkbox" value="1" class="rounded border-outline-variant text-primary focus:ring-primary">
                 <span>{{ __('admin.remember_session') }}</span>
             </label>
-            <a href="{{ route('admin.forgot-password.page') }}" class="text-xs font-semibold text-primary hover:underline no-underline">
-                {{ __('admin.forgot_password') }}
-            </a>
+            @unless($superadminLogin)
+                <a href="{{ route('admin.forgot-password.page') }}" class="text-xs font-semibold text-primary hover:underline no-underline">
+                    {{ __('admin.forgot_password') }}
+                </a>
+            @endunless
         </div>
 
         <button type="submit"

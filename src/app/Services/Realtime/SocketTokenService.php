@@ -4,18 +4,23 @@ declare(strict_types=1);
 
 namespace App\Services\Realtime;
 
-use App\Enums\AdminRole;
 use App\Enums\GlobalUserStatus;
 use App\Enums\RoomStatus;
+use App\Enums\SuperadminStatus;
 use App\Enums\RoomUserStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\GlobalUser;
 use App\Models\Room;
+use App\Models\Superadmin;
 use App\Models\RoomUser;
 use Illuminate\Support\Str;
 
 class SocketTokenService
 {
+    /** Actor types understood by the realtime gateway. */
+    public const ACTOR_ADMIN = 'admin';
+    public const ACTOR_SUPERADMIN = 'superadmin';
+
     /** Trusted device UUIDs accepted in tokens (also enforced by the realtime server's `device:` channel). */
     private const DEVICE_UUID_PATTERN = '/^[A-Za-z0-9-]{1,128}$/';
 
@@ -72,31 +77,50 @@ class SocketTokenService
     /**
      * Issue a realtime socket authentication token for an admin account.
      *
-     * @param  AdminAccount  $admin  The admin account instance.
+     * @param  Admin  $admin  The admin account instance.
      * @param  Room|null  $room  Optional specific room context.
      * @param  int  $ttlSeconds  Time-to-live for the token in seconds.
      * @return string Signed HMAC token string.
      */
-    public function issueForAdmin(AdminAccount $admin, ?Room $room = null, int $ttlSeconds = 300): string
+    public function issueForAdmin(Admin $admin, ?Room $room = null, int $ttlSeconds = 300): string
     {
         abort_unless($admin->isActive(), 403);
 
-        $roomIds = $admin->isSuperadmin()
-            ? Room::query()->where('status', RoomStatus::Active->value)->pluck('id')->all()
-            : ($room ? [$room->id] : []);
-
-        if (!$admin->isSuperadmin() && (!$room || !$admin->rooms()->whereKey($room->id)->exists())) {
+        if (!$room || !$admin->rooms()->whereKey($room->id)->exists()) {
             abort(403);
         }
+        $roomIds = [$room->id];
 
         $payload = [
-            'actor_type' => $admin->isSuperadmin() ? AdminRole::SuperAdmin->value : AdminRole::Admin->value,
+            'actor_type' => self::ACTOR_ADMIN,
             'admin_id' => $admin->id,
             'room_ids' => $roomIds,
             'exp' => now()->addSeconds($ttlSeconds)->timestamp,
             'jti' => (string) Str::uuid(),
         ];
         $encoded = $this->encode($payload);
+
+        return $encoded . '.' . hash_hmac('sha256', $encoded, $this->signingSecret());
+    }
+
+    /**
+     * Issue a realtime socket token for a Superadmin: the superadmin and system channels plus every active room.
+     *
+     * @param Superadmin $superadmin Signed-in superadmin.
+     * @param int $ttlSeconds Time-to-live for the token in seconds.
+     * @return string Signed HMAC token string.
+     */
+    public function issueForSuperadmin(Superadmin $superadmin, int $ttlSeconds = 300): string
+    {
+        abort_unless($superadmin->status === SuperadminStatus::Active, 403);
+
+        $encoded = $this->encode([
+            'actor_type' => self::ACTOR_SUPERADMIN,
+            'superadmin_id' => $superadmin->id,
+            'room_ids' => Room::query()->where('status', RoomStatus::Active->value)->pluck('id')->all(),
+            'exp' => now()->addSeconds($ttlSeconds)->timestamp,
+            'jti' => (string) Str::uuid(),
+        ]);
 
         return $encoded . '.' . hash_hmac('sha256', $encoded, $this->signingSecret());
     }

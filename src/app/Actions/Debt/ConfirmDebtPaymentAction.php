@@ -7,7 +7,7 @@ namespace App\Actions\Debt;
 use App\Enums\DebtStatus;
 use App\Enums\PaymentStatus;
 use App\Events\RoomRealtimeEvent;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AdminNotification;
 use App\Models\Debt;
 use App\Models\Order;
@@ -104,7 +104,7 @@ class ConfirmDebtPaymentAction
         $amountFmt = FormatHelper::formatCurrency($totalConfirmedAmount);
 
         // Notify room admins via AdminNotification table
-        $room->admins()->each(function (AdminAccount $admin) use ($room, $userName, $amountFmt, $totalConfirmedAmount, $updatedDebts): void {
+        $room->admins()->each(function (Admin $admin) use ($room, $userName, $amountFmt, $totalConfirmedAmount, $updatedDebts): void {
             AdminNotification::create([
                 'admin_id' => $admin->id,
                 'room_id' => $room->id,

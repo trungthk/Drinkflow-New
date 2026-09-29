@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -28,7 +27,7 @@ class AdminReportsVisualsTest extends TestCase
      */
     public function test_tabs_are_vietnamese_only_and_email_copy_texts_are_provided(): void
     {
-        $admin = AdminAccount::create(['name' => 'Report Admin', 'email' => 'report-tabs@example.test', 'password' => Hash::make('secret'), 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Report Admin', 'email' => 'report-tabs@example.test', 'password' => Hash::make('secret'), 'status' => 'active']);
         $room = Room::create(['name' => 'Report Tabs Room', 'slug' => 'report-tabs-room', 'status' => 'active']);
         $admin->rooms()->attach($room);
 
@@ -56,7 +55,7 @@ class AdminReportsVisualsTest extends TestCase
      */
     public function test_participation_ratio_uses_color_bands(): void
     {
-        $admin = AdminAccount::create(['name' => 'Report Admin', 'email' => 'report-visuals@example.test', 'password' => Hash::make('secret'), 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Report Admin', 'email' => 'report-visuals@example.test', 'password' => Hash::make('secret'), 'status' => 'active']);
         $room = Room::create(['name' => 'Report Room', 'slug' => 'report-visuals-room', 'status' => 'active']);
         $admin->rooms()->attach($room);
 

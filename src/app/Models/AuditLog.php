@@ -34,16 +34,26 @@ class AuditLog extends Model
     /**
      * Get admin accounts linked to this activity record.
      *
-     * @return BelongsToMany<AdminAccount, $this>
+     * @return BelongsToMany<Admin, $this>
      */
     /**
      * Admin account that performed the action; only meaningful when actor_type is admin/superadmin.
      *
-     * @return BelongsTo<AdminAccount, $this>
+     * @return BelongsTo<Admin, $this>
      */
     public function actorAdmin(): BelongsTo
     {
-        return $this->belongsTo(AdminAccount::class, 'actor_id');
+        return $this->belongsTo(Admin::class, 'actor_id');
+    }
+
+    /**
+     * Superadmin who performed the action (entries with actor_type = superadmin).
+     *
+     * @return BelongsTo<Superadmin, $this> Actor relation.
+     */
+    public function actorSuperadmin(): BelongsTo
+    {
+        return $this->belongsTo(Superadmin::class, 'actor_id');
     }
 
     /**
@@ -85,6 +95,6 @@ class AuditLog extends Model
 
     public function admins(): BelongsToMany
     {
-        return $this->belongsToMany(AdminAccount::class, 'admin_audit_logs', 'audit_log_id', 'admin_id');
+        return $this->belongsToMany(Admin::class, 'admin_audit_logs', 'audit_log_id', 'admin_id');
     }
 }

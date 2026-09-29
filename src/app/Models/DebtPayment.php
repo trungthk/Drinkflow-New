@@ -28,10 +28,10 @@ class DebtPayment extends Model
     /**
      * Get the administrator who recorded or approved the payment.
      *
-     * @return BelongsTo<AdminAccount, $this> Administrator relation.
+     * @return BelongsTo<Admin, $this> Administrator relation.
      */
     public function createdByAdmin(): BelongsTo
     {
-        return $this->belongsTo(AdminAccount::class, 'created_by_admin_id');
+        return $this->belongsTo(Admin::class, 'created_by_admin_id');
     }
 }

@@ -42,15 +42,15 @@ class SystemSettingsService
      * @param mixed $value Parameter value.
      * @param string $type Parameter value.
      * @param bool $secret Parameter value.
-     * @param ?int $adminId Parameter value.
+     * @param ?int $superadminId Superadmin making the change.
      * @return SystemSetting Result of the operation.
      */
-    public function set(string $key, mixed $value, string $type = SystemSetting::TYPE_STRING, bool $secret = false, ?int $adminId = null): SystemSetting
+    public function set(string $key, mixed $value, string $type = SystemSetting::TYPE_STRING, bool $secret = false, ?int $superadminId = null): SystemSetting
     {
         unset(self::$cache[$key]);
         $stored = $type === SystemSetting::TYPE_JSON ? json_encode($value, JSON_THROW_ON_ERROR) : ((string) $value);
         if ($secret) $stored = Crypt::encryptString($stored);
-        return SystemSetting::updateOrCreate(['key' => $key], ['value' => $stored, 'type' => $type, 'is_secret' => $secret, 'updated_by_admin_id' => $adminId]);
+        return SystemSetting::updateOrCreate(['key' => $key], ['value' => $stored, 'type' => $type, 'is_secret' => $secret, 'updated_by_superadmin_id' => $superadminId]);
     }
 
     /**

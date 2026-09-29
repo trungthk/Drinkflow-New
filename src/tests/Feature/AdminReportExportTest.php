@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Exports\AdminReportExport;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PhpOffice\PhpSpreadsheet\Cell\Cell;
@@ -79,11 +78,10 @@ class AdminReportExportTest extends TestCase
             $this->markTestSkipped('The zip extension (ZipArchive) is required for XLSX tests.');
         }
 
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Report Admin',
             'email' => 'report-admin@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Report Room', 'slug' => 'report-room', 'status' => 'active']);

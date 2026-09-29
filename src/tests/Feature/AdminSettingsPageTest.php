@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -20,11 +19,10 @@ class AdminSettingsPageTest extends TestCase
      */
     public function test_settings_page_renders_with_all_script_hooks(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'settings-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Settings Room', 'slug' => 'settings-room', 'status' => 'active']);

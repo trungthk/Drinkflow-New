@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Concerns;
 
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
@@ -33,14 +33,14 @@ trait ResolvesCurrentActor
      * Lấy đối tượng Admin hiện tại từ Request.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \App\Models\AdminAccount|null
+     * @return \App\Models\Admin|null
      */
-    protected function currentAdmin(Request $request): ?AdminAccount
+    protected function currentAdmin(Request $request): ?Admin
     {
-        /** @var AdminAccount|null $admin */
+        /** @var Admin|null $admin */
         $admin = $request->user('admin');
 
-        return $admin instanceof AdminAccount ? $admin : null;
+        return $admin instanceof Admin ? $admin : null;
     }
 
     /**

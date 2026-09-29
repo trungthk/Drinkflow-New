@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\GlobalUserStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
@@ -17,7 +16,7 @@ use App\Http\Requests\StoreFeedbackRequest;
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\StoreRoomRequest;
 use App\Http\Requests\UpdateGlobalProfileRequest;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Room;
@@ -32,43 +31,40 @@ class FormRequestAuthorizationTest extends TestCase
 
     public function test_superadmin_request_authorizes_only_active_superadmin(): void
     {
-        $superadmin = AdminAccount::create([
+        $superadmin = $this->createSuperadmin([
             'name' => 'Superadmin User',
             'email' => 'super@drinkflow.test',
             'password' => 'secret123',
-            'role' => AdminRole::SuperAdmin,
             'status' => 'active',
         ]);
 
-        $inactiveSuperadmin = AdminAccount::create([
+        $inactiveSuperadmin = $this->createSuperadmin([
             'name' => 'Inactive Superadmin',
             'email' => 'inactive-super@drinkflow.test',
             'password' => 'secret123',
-            'role' => AdminRole::SuperAdmin,
-            'status' => \App\Enums\AdminStatus::Inactive,
+            'status' => \App\Enums\SuperadminStatus::Suspended,
         ]);
 
-        $regularAdmin = AdminAccount::create([
+        $regularAdmin = Admin::create([
             'name' => 'Regular Admin',
             'email' => 'regular@drinkflow.test',
             'password' => 'secret123',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
 
         // Active superadmin should pass
-        $this->actingAs($superadmin, 'admin');
+        $this->actingAs($superadmin, 'superadmin');
         $request = StoreRoomRequest::create('/superadmin/rooms', 'POST');
         $request->setUserResolver(fn () => $superadmin);
         $this->assertTrue($request->authorize());
 
         // Inactive superadmin should fail
-        $this->actingAs($inactiveSuperadmin, 'admin');
+        $this->actingAs($inactiveSuperadmin, 'superadmin');
         $request2 = StoreRoomRequest::create('/superadmin/rooms', 'POST');
         $request2->setUserResolver(fn () => $inactiveSuperadmin);
         $this->assertFalse($request2->authorize());
 
-        // Regular admin should fail superadmin requests
+        // An Admin session never authorizes superadmin requests (separate guard)
         $this->actingAs($regularAdmin, 'admin');
         $request3 = StoreRoomRequest::create('/superadmin/rooms', 'POST');
         $request3->setUserResolver(fn () => $regularAdmin);
@@ -89,20 +85,18 @@ class FormRequestAuthorizationTest extends TestCase
             'status' => RoomStatus::Inactive->value,
         ]);
 
-        $assignedAdmin = AdminAccount::create([
+        $assignedAdmin = Admin::create([
             'name' => 'Assigned Admin',
             'email' => 'assigned@drinkflow.test',
             'password' => 'secret123',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $assignedAdmin->rooms()->attach($activeRoom->id);
 
-        $unassignedAdmin = AdminAccount::create([
+        $unassignedAdmin = Admin::create([
             'name' => 'Unassigned Admin',
             'email' => 'unassigned@drinkflow.test',
             'password' => 'secret123',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
 

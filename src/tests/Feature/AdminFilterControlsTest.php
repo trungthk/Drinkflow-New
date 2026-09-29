@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\GlobalUser;
@@ -27,11 +26,10 @@ class AdminFilterControlsTest extends TestCase
      */
     public function test_admin_lists_have_clear_filters_and_backend_debt_dropdown(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Filter Admin',
             'email' => 'filter-admin@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create([

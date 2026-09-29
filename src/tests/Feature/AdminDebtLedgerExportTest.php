@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\GlobalUser;
@@ -28,11 +27,10 @@ class AdminDebtLedgerExportTest extends TestCase
     public function test_debt_ledger_csv_has_utf8_bom_and_localized_values(): void
     {
         app()->setLocale('vi');
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Debt Export Admin',
             'email' => 'debt-export-admin@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create([

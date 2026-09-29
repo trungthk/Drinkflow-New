@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AuditLog;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,7 +27,7 @@ class PruneAuditLogsTest extends TestCase
     {
         config()->set('retention.audit_logs_days', 30);
 
-        $admin = AdminAccount::create(['name' => 'Admin', 'email' => 'audit-prune@example.test', 'password' => 'password', 'role' => 'admin', 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Admin', 'email' => 'audit-prune@example.test', 'password' => 'password', 'status' => 'active']);
         $room  = Room::create(['name' => 'Audit Room', 'slug' => 'audit-room', 'status' => 'active']);
 
         $oldAudit   = AuditLog::create(['actor_type' => 'admin', 'actor_id' => $admin->id, 'event' => 'old.event',   'target_type' => 'room', 'room_id' => $room->id, 'created_at' => now()->subDays(31)]);

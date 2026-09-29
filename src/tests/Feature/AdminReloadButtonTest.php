@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -18,11 +17,10 @@ class AdminReloadButtonTest extends TestCase
     /** Verify the reload button sits next to the filter controls on every list page that has filters. */
     public function test_list_pages_render_reload_button(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'reload-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Reload Room', 'slug' => 'reload-room', 'status' => 'active']);

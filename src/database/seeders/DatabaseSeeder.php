@@ -2,8 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Room;
+use App\Models\Superadmin;
+use App\Services\Authorization\PermissionCatalogService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -23,14 +25,16 @@ class DatabaseSeeder extends Seeder
         }
 
         // 1. Core Admins
-        $admin = AdminAccount::updateOrCreate(
+        $admin = Admin::updateOrCreate(
             ['email' => 'admin@drinkflow.local'],
-            ['name' => 'DrinkFlow Admin', 'password' => Hash::make('drinkflow2026'), 'role' => 'admin', 'status' => 'active'],
+            ['name' => 'DrinkFlow Admin', 'password' => Hash::make('drinkflow2026'), 'status' => 'active'],
         );
-        AdminAccount::updateOrCreate(
+        // Platform superadmin signs in on the separate superadmin guard (/superadmin/login).
+        $superadmin = Superadmin::updateOrCreate(
             ['email' => 'superadmin@drinkflow.local'],
-            ['name' => 'DrinkFlow Superadmin', 'password' => Hash::make('drinkflow2026'), 'role' => 'superadmin', 'status' => 'active'],
+            ['name' => 'DrinkFlow Superadmin', 'password' => Hash::make('drinkflow2026'), 'status' => 'active'],
         );
+        app(PermissionCatalogService::class)->grantAll($superadmin);
 
         // 2. Demo Rooms
         $techRoom = Room::updateOrCreate(

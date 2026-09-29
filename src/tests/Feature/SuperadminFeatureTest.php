@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
+use App\Models\Superadmin;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\Debt;
@@ -20,38 +20,38 @@ class SuperadminFeatureTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function superadmin(): AdminAccount
+    private function superadmin(): Superadmin
     {
-        return AdminAccount::create(['name' => 'Root', 'email' => 'root@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::SuperAdmin, 'status' => 'active']);
+        return $this->createSuperadmin(['name' => 'Root', 'email' => 'root@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
     }
 
     public function test_superadmin_can_create_room_and_assign_admin(): void
     {
         $root = $this->superadmin();
         $room = Room::create(['name' => 'IT', 'slug' => 'it']);
-        $response = $this->actingAs($root, 'admin')->postJson('/superadmin/admins', ['name' => 'Operator', 'email' => 'operator@drinkflow.test', 'password' => 'password123', 'room_ids' => [$room->id]]);
+        $response = $this->actingAs($root, 'superadmin')->postJson('/superadmin/admins', ['name' => 'Operator', 'email' => 'operator@drinkflow.test', 'password' => 'password123', 'room_ids' => [$room->id]]);
 
         $response->assertCreated()->assertJsonPath('data.rooms.0.id', $room->id);
         $this->assertDatabaseHas('admin_rooms', ['admin_id' => $response->json('data.id'), 'room_id' => $room->id]);
-        $this->actingAs($root, 'admin')->postJson('/superadmin/rooms', ['name' => 'Marketing', 'slug' => 'marketing'])->assertCreated();
+        $this->actingAs($root, 'superadmin')->postJson('/superadmin/rooms', ['name' => 'Marketing', 'slug' => 'marketing'])->assertCreated();
     }
 
     public function test_superadmin_can_sync_admin_rooms_and_archive_room(): void
     {
         $root = $this->superadmin();
-        $admin = AdminAccount::create(['name' => 'Operator', 'email' => 'operator-rooms@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Operator', 'email' => 'operator-rooms@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
         $room = Room::create(['name' => 'Operations', 'slug' => 'operations', 'status' => 'active']);
 
-        $this->actingAs($root, 'admin')->putJson("/superadmin/admins/{$admin->id}/rooms", ['room_ids' => [$room->id]])
+        $this->actingAs($root, 'superadmin')->putJson("/superadmin/admins/{$admin->id}/rooms", ['room_ids' => [$room->id]])
             ->assertOk()
             ->assertJsonPath('data.id', $admin->id)
             ->assertJsonPath('data.rooms.0.id', $room->id);
         $this->assertDatabaseHas('admin_rooms', ['admin_id' => $admin->id, 'room_id' => $room->id]);
 
-        $this->actingAs($root, 'admin')->patchJson("/superadmin/rooms/{$room->id}", ['name' => 'Operations HQ', 'slug' => 'operations-hq'])
+        $this->actingAs($root, 'superadmin')->patchJson("/superadmin/rooms/{$room->id}", ['name' => 'Operations HQ', 'slug' => 'operations-hq'])
             ->assertOk()
             ->assertJsonPath('data.name', 'Operations HQ');
-        $this->actingAs($root, 'admin')->patchJson("/superadmin/rooms/{$room->id}/status", ['status' => 'archived'])
+        $this->actingAs($root, 'superadmin')->patchJson("/superadmin/rooms/{$room->id}/status", ['status' => 'archived'])
             ->assertOk()
             ->assertJsonPath('data.status', 'archived');
     }
@@ -65,9 +65,9 @@ class SuperadminFeatureTest extends TestCase
     public function test_superadmin_can_create_room_with_status_and_admins(): void
     {
         $root = $this->superadmin();
-        $admin = AdminAccount::create(['name' => 'Room Lead', 'email' => 'room-lead@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Room Lead', 'email' => 'room-lead@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
 
-        $response = $this->actingAs($root, 'admin')->postJson('/superadmin/rooms', [
+        $response = $this->actingAs($root, 'superadmin')->postJson('/superadmin/rooms', [
             'name' => 'Sales', 'slug' => 'sales', 'status' => 'inactive', 'admin_ids' => [$admin->id],
         ]);
 
@@ -86,12 +86,12 @@ class SuperadminFeatureTest extends TestCase
     public function test_superadmin_can_update_room_details_and_reassign_admins(): void
     {
         $root = $this->superadmin();
-        $oldAdmin = AdminAccount::create(['name' => 'Old Lead', 'email' => 'old-lead@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active']);
-        $newAdmin = AdminAccount::create(['name' => 'New Lead', 'email' => 'new-lead@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active']);
+        $oldAdmin = Admin::create(['name' => 'Old Lead', 'email' => 'old-lead@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
+        $newAdmin = Admin::create(['name' => 'New Lead', 'email' => 'new-lead@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
         $room = Room::create(['name' => 'Support', 'slug' => 'support', 'status' => 'active']);
         $room->admins()->sync([$oldAdmin->id]);
 
-        $response = $this->actingAs($root, 'admin')->patchJson("/superadmin/rooms/{$room->id}", [
+        $response = $this->actingAs($root, 'superadmin')->patchJson("/superadmin/rooms/{$room->id}", [
             'name' => 'Customer Support', 'slug' => 'customer-support', 'status' => 'active', 'admin_ids' => [$newAdmin->id],
         ]);
 
@@ -116,7 +116,7 @@ class SuperadminFeatureTest extends TestCase
         $root = $this->superadmin();
         $room = Room::create(['name' => 'Finance', 'slug' => 'finance', 'status' => 'active']);
 
-        $this->actingAs($root, 'admin')->patchJson("/superadmin/rooms/{$room->id}/status", ['status' => 'inactive'])
+        $this->actingAs($root, 'superadmin')->patchJson("/superadmin/rooms/{$room->id}/status", ['status' => 'inactive'])
             ->assertOk()
             ->assertJsonPath('data.status', 'inactive');
         $this->assertDatabaseHas('rooms', ['id' => $room->id, 'status' => 'inactive']);
@@ -152,7 +152,7 @@ class SuperadminFeatureTest extends TestCase
             'status' => DebtStatus::Paid,
         ]);
 
-        $this->actingAs($root, 'admin')->deleteJson("/superadmin/rooms/{$room->id}")
+        $this->actingAs($root, 'superadmin')->deleteJson("/superadmin/rooms/{$room->id}")
             ->assertOk()
             ->assertJsonPath('data.deleted', true);
 
@@ -163,12 +163,16 @@ class SuperadminFeatureTest extends TestCase
         $this->assertSame(1, AuditLog::where('event', 'room.deleted')->where('target_id', $room->id)->whereNull('room_id')->count());
     }
 
-    public function test_last_superadmin_cannot_be_demoted_or_blocked(): void
+    public function test_admins_can_no_longer_be_promoted_to_superadmin(): void
     {
         $root = $this->superadmin();
-        $this->actingAs($root, 'admin')->patchJson("/superadmin/admins/{$root->id}/role", ['role' => 'admin'])->assertStatus(422);
-        $this->actingAs($root, 'admin')->patchJson("/superadmin/admins/{$root->id}/status", ['status' => 'blocked'])->assertStatus(422);
-        $this->assertDatabaseHas('admin_accounts', ['id' => $root->id, 'role' => 'superadmin', 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Agent', 'email' => 'agent-role@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
+
+        // Superadmins are separate accounts: there is no role to switch on an Admin any more.
+        $this->actingAs($root, 'superadmin')->patchJson("/superadmin/admins/{$admin->id}/role", ['role' => 'superadmin'])->assertNotFound();
+        $this->actingAs($root, 'superadmin')->putJson("/superadmin/admins/{$admin->id}", ['role' => 'superadmin'])->assertOk();
+        $this->assertSame(0, \App\Models\Superadmin::query()->where('email', $admin->email)->count());
+        $this->assertFalse(\Illuminate\Support\Facades\Schema::hasColumn('admins', 'role'));
     }
 
     public function test_global_user_detail_exposes_identity_metadata_without_credentials(): void
@@ -177,28 +181,28 @@ class SuperadminFeatureTest extends TestCase
         $user = GlobalUser::create(['name' => 'User', 'normalized_name' => 'USER', 'email' => 'user@drinkflow.test']);
         OAuthIdentity::create(['global_user_id' => $user->id, 'provider' => 'google', 'provider_user_id' => 'google-1', 'provider_email' => $user->email]);
 
-        $this->actingAs($root, 'admin')->getJson("/superadmin/global-users/{$user->id}")
+        $this->actingAs($root, 'superadmin')->getJson("/superadmin/global-users/{$user->id}")
             ->assertOk()->assertJsonPath('data.oauth_identities.0.provider_user_id', 'google-1')->assertJsonMissing(['access_token' => 'secret']);
     }
 
     public function test_secret_system_setting_is_saved_encrypted_and_never_returned(): void
     {
         $root = $this->superadmin();
-        $this->actingAs($root, 'admin')->putJson('/superadmin/system/settings', ['settings' => [['key' => 'oauth.client_secret', 'value' => 'top-secret', 'type' => 'string', 'is_secret' => true]]])->assertOk();
+        $this->actingAs($root, 'superadmin')->putJson('/superadmin/system/settings', ['settings' => [['key' => 'oauth.client_secret', 'value' => 'top-secret', 'type' => 'string', 'is_secret' => true]]])->assertOk();
         $this->assertDatabaseMissing('system_settings', ['value' => 'top-secret']);
-        $this->actingAs($root, 'admin')->getJson('/superadmin/system')->assertOk()->assertJsonPath('data.settings.0.value', null);
+        $this->actingAs($root, 'superadmin')->getJson('/superadmin/system')->assertOk()->assertJsonPath('data.settings.0.value', null);
     }
 
     public function test_typed_non_secret_system_setting_can_be_updated(): void
     {
         $root = $this->superadmin();
 
-        $this->actingAs($root, 'admin')->putJson('/superadmin/system/settings', ['settings' => [
+        $this->actingAs($root, 'superadmin')->putJson('/superadmin/system/settings', ['settings' => [
             ['key' => 'orders.daily_limit', 'value' => 25, 'type' => 'integer', 'is_secret' => false],
             ['key' => 'orders.allow_cash', 'value' => true, 'type' => 'boolean', 'is_secret' => false],
         ]])->assertOk();
 
-        $this->actingAs($root, 'admin')->getJson('/superadmin/system')->assertOk()
+        $this->actingAs($root, 'superadmin')->getJson('/superadmin/system')->assertOk()
             ->assertJsonPath('data.settings.0.key', 'orders.allow_cash')
             ->assertJsonPath('data.settings.0.value', true)
             ->assertJsonPath('data.settings.1.value', 25);
@@ -209,12 +213,12 @@ class SuperadminFeatureTest extends TestCase
         $root = $this->superadmin();
         $payload = ['enabled' => true, 'starts_at' => '2026-09-12 08:30:00', 'ends_at' => '2026-09-12 12:00:00'];
 
-        $this->actingAs($root, 'admin')->putJson('/superadmin/system/maintenance', $payload)
+        $this->actingAs($root, 'superadmin')->putJson('/superadmin/system/maintenance', $payload)
             ->assertOk()
             ->assertJsonPath('data.starts_at', $payload['starts_at'])
             ->assertJsonPath('data.ends_at', $payload['ends_at']);
 
-        $this->actingAs($root, 'admin')->getJson('/superadmin/system')
+        $this->actingAs($root, 'superadmin')->getJson('/superadmin/system')
             ->assertOk()
             ->assertJsonPath('data.maintenance.starts_at', $payload['starts_at'])
             ->assertJsonPath('data.maintenance.ends_at', $payload['ends_at']);
@@ -224,32 +228,32 @@ class SuperadminFeatureTest extends TestCase
     {
         $root = $this->superadmin();
         $room = Room::create(['name' => 'IT', 'slug' => 'reset-it']);
-        $this->actingAs($root, 'admin')->postJson('/superadmin/system/reset', ['password' => 'password123', 'phrase' => 'reset drinkflow'])->assertStatus(422);
+        $this->actingAs($root, 'superadmin')->postJson('/superadmin/system/reset', ['password' => 'password123', 'phrase' => 'reset drinkflow'])->assertStatus(422);
         $this->assertDatabaseHas('rooms', ['id' => $room->id]);
 
-        $this->actingAs($root, 'admin')->postJson('/superadmin/system/reset', ['password' => 'password123', 'phrase' => 'RESET DRINKFLOW'])->assertOk();
-        $this->assertDatabaseHas('admin_accounts', ['id' => $root->id, 'role' => 'superadmin']);
+        $this->actingAs($root, 'superadmin')->postJson('/superadmin/system/reset', ['password' => 'password123', 'phrase' => 'RESET DRINKFLOW'])->assertOk();
+        $this->assertDatabaseHas('superadmins', ['id' => $root->id, 'status' => 'active']);
         $this->assertDatabaseMissing('rooms', ['id' => $room->id]);
     }
 
     public function test_superadmin_can_block_and_unblock_admin(): void
     {
         $root = $this->superadmin();
-        $admin = AdminAccount::create(['name' => 'Operator', 'email' => 'operator-block@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Operator', 'email' => 'operator-block@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
 
-        $this->actingAs($root, 'admin')->patchJson("/superadmin/admins/{$admin->id}/status", ['status' => 'blocked'])
+        $this->actingAs($root, 'superadmin')->patchJson("/superadmin/admins/{$admin->id}/status", ['status' => 'suspended'])
             ->assertOk()
-            ->assertJsonPath('data.status', 'blocked');
-        $this->assertDatabaseHas('admin_accounts', ['id' => $admin->id, 'status' => 'blocked']);
+            ->assertJsonPath('data.status', 'suspended');
+        $this->assertDatabaseHas('admins', ['id' => $admin->id, 'status' => 'suspended']);
 
-        $this->actingAs($root, 'admin')->get('/superadmin/admins/page?status=blocked')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/admins/page?status=suspended')
             ->assertOk()
             ->assertSee('operator-block@drinkflow.test')
-            ->assertSee('status-pill status-blocked', false);
+            ->assertSee('status-pill status-suspended', false);
 
-        $this->actingAs($root, 'admin')->patchJson("/superadmin/admins/{$admin->id}/status", ['status' => 'unknown'])->assertStatus(422);
+        $this->actingAs($root, 'superadmin')->patchJson("/superadmin/admins/{$admin->id}/status", ['status' => 'unknown'])->assertStatus(422);
 
-        $this->actingAs($root, 'admin')->patchJson("/superadmin/admins/{$admin->id}/status", ['status' => 'active'])
+        $this->actingAs($root, 'superadmin')->patchJson("/superadmin/admins/{$admin->id}/status", ['status' => 'active'])
             ->assertOk()
             ->assertJsonPath('data.status', 'active');
     }
@@ -257,18 +261,17 @@ class SuperadminFeatureTest extends TestCase
     public function test_admin_management_page_uses_modals_and_block_only_actions(): void
     {
         $root = $this->superadmin();
-        $admin = AdminAccount::create(['name' => 'Operator', 'email' => 'operator-page@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Operator', 'email' => 'operator-page@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
 
-        $this->actingAs($root, 'admin')->get('/superadmin/admins/page')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/admins/page')
             ->assertOk()
             ->assertSee('id="create-admin-modal"', false)
             ->assertSee('data-password-toggle="create-admin-password"', false)
             ->assertSee('data-password-toggle="create-admin-password-confirmation"', false)
             ->assertSee('data-action="block-admin" data-admin-id="'.$admin->id.'"', false)
-            ->assertDontSee('data-admin-id="'.$root->id.'"', false)
             ->assertDontSee(__('superadmin.common.unblock'));
 
-        $this->actingAs($root, 'admin')->get("/superadmin/admins/{$admin->id}/page")
+        $this->actingAs($root, 'superadmin')->get("/superadmin/admins/{$admin->id}/page")
             ->assertOk()
             ->assertSee('id="room-access-modal"', false)
             ->assertSee('id="reset-password-modal"', false)
@@ -279,7 +282,7 @@ class SuperadminFeatureTest extends TestCase
             ->assertSee('id="tpl-no-assigned-rooms"', false)
             ->assertSee(__('superadmin.admins.no_assigned_rooms_description'));
 
-        $this->actingAs($root, 'admin')->get('/superadmin/admins/page?q=no-such-admin')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/admins/page?q=no-such-admin')
             ->assertOk()
             ->assertSee(__('superadmin.admins.no_results_title'))
             ->assertSee(__('superadmin.admins.no_results_description'));
@@ -290,16 +293,16 @@ class SuperadminFeatureTest extends TestCase
         $root = $this->superadmin();
         $user = GlobalUser::create(['name' => 'Alice', 'normalized_name' => 'ALICE', 'email' => 'alice-empty@drinkflow.test', 'status' => 'active']);
 
-        $this->actingAs($root, 'admin')->get('/superadmin/global-users/page')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/global-users/page')
             ->assertOk()
             ->assertSee('class="sa-button warning" type="button" data-action="toggle-user-status" data-user-id="'.$user->id.'"', false);
 
-        $this->actingAs($root, 'admin')->get('/superadmin/global-users/page?q=no-such-user')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/global-users/page?q=no-such-user')
             ->assertOk()
             ->assertSee(__('superadmin.users.no_results_title'))
             ->assertSee(__('superadmin.users.no_results_description'));
 
-        $this->actingAs($root, 'admin')->get("/superadmin/global-users/{$user->id}/page")
+        $this->actingAs($root, 'superadmin')->get("/superadmin/global-users/{$user->id}/page")
             ->assertOk()
             ->assertSee(__('superadmin.common.loading_title'))
             ->assertSee('id="tpl-no-memberships"', false)
@@ -314,19 +317,19 @@ class SuperadminFeatureTest extends TestCase
         $active = Campaign::create(['room_id' => $roomA->id, 'status' => CampaignStatus::Active, 'name' => 'Active lunch', 'restaurant' => 'Shop', 'type' => 'food', 'deadline_at' => now()->addHour()]);
         $draft = Campaign::create(['room_id' => $roomB->id, 'status' => CampaignStatus::Draft, 'name' => 'Draft tea', 'restaurant' => 'Shop', 'type' => 'drink', 'deadline_at' => now()->addHour()]);
 
-        $this->actingAs($root, 'admin')->get('/superadmin/campaigns/page')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/campaigns/page')
             ->assertOk()
             ->assertSee('data-action="force-close" data-campaign-id="'.$active->id.'"', false)
             ->assertSee('data-action="force-cancel" data-campaign-id="'.$draft->id.'"', false)
             ->assertDontSee('data-action="force-close" data-campaign-id="'.$draft->id.'"', false)
             ->assertSee('id="confirm-modal-description"', false);
 
-        $this->actingAs($root, 'admin')->get('/superadmin/campaigns/page?room_id='.$roomB->id)
+        $this->actingAs($root, 'superadmin')->get('/superadmin/campaigns/page?room_id='.$roomB->id)
             ->assertOk()
             ->assertSee('Draft tea')
             ->assertDontSee('Active lunch');
 
-        $this->actingAs($root, 'admin')->get('/superadmin/campaigns/page?room_id='.$roomA->id.'&status=cancelled')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/campaigns/page?room_id='.$roomA->id.'&status=cancelled')
             ->assertOk()
             ->assertSee(__('superadmin.campaigns.no_results_title'));
     }
@@ -334,9 +337,9 @@ class SuperadminFeatureTest extends TestCase
     public function test_audit_page_lists_only_admin_actor_logs_with_translated_events(): void
     {
         $root = $this->superadmin();
-        $admin = AdminAccount::create(['name' => 'Operator', 'email' => 'operator-audit@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Operator', 'email' => 'operator-audit@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
 
-        $this->actingAs($root, 'admin')->get('/superadmin/audit-logs/page')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/audit-logs/page')
             ->assertOk()->assertSee(__('superadmin.audit.no_events_title'));
 
         $log = fn (string $actorType, ?int $actorId, string $event) => AuditLog::create(['actor_type' => $actorType, 'actor_id' => $actorId, 'event' => $event, 'target_type' => 'campaign', 'target_id' => 1, 'created_at' => now()]);
@@ -345,7 +348,7 @@ class SuperadminFeatureTest extends TestCase
         $log('user', 99, 'user.logged_in');
         $log('system', null, 'system.reset');
 
-        $this->actingAs($root, 'admin')->get('/superadmin/audit-logs/page')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/audit-logs/page')
             ->assertOk()
             ->assertSee(__('admin.audit_event_campaign_force_closed'))
             ->assertSee(__('admin.audit_event_room_settings_updated'))
@@ -355,10 +358,10 @@ class SuperadminFeatureTest extends TestCase
             ->assertDontSee('system.reset');
 
         // An actor type outside admin/superadmin is ignored instead of exposing end-user logs.
-        $this->actingAs($root, 'admin')->get('/superadmin/audit-logs/page?actor_type=user')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/audit-logs/page?actor_type=user')
             ->assertOk()->assertDontSee('user.logged_in')->assertSee('campaign.force_closed');
 
-        $this->actingAs($root, 'admin')->get('/superadmin/audit-logs/page?actor_type=admin&event=campaign.force_closed')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/audit-logs/page?actor_type=admin&event=campaign.force_closed')
             ->assertOk()->assertSee(__('superadmin.audit.no_results_title'));
     }
 
@@ -366,7 +369,7 @@ class SuperadminFeatureTest extends TestCase
     {
         $root = $this->superadmin();
 
-        $this->actingAs($root, 'admin')->get('/superadmin/system/page')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/system/page')
             ->assertOk()
             ->assertSee('id="reset-system-modal"', false)
             ->assertSee('data-modal-open="reset-system-modal"', false)
@@ -381,7 +384,7 @@ class SuperadminFeatureTest extends TestCase
     {
         $root = $this->superadmin();
 
-        $this->actingAs($root, 'admin')->get('/superadmin/versions/page')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/versions/page')
             ->assertOk()
             ->assertSee('id="superadmin-logout-modal"', false)
             ->assertSee('data-modal-open="superadmin-logout-modal"', false)
@@ -394,7 +397,7 @@ class SuperadminFeatureTest extends TestCase
     {
         $root = $this->superadmin();
 
-        $this->actingAs($root, 'admin')->get('/superadmin/versions/page')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/versions/page')
             ->assertOk()
             ->assertSee('id="version-modal"', false)
             ->assertSee('id="version-md-upload"', false)
@@ -402,13 +405,13 @@ class SuperadminFeatureTest extends TestCase
             ->assertSee(__('superadmin.versions.no_releases_title'))
             ->assertDontSee('prompt(', false);
 
-        $this->actingAs($root, 'admin')->get('/superadmin/versions/page?q=missing')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/versions/page?q=missing')
             ->assertOk()
             ->assertSee(__('superadmin.versions.no_results_title'));
 
         \App\Models\Version::create(['version' => 'v9.9.9', 'title' => 'Big release', 'changelog' => '## Notes', 'release_date' => '2026-09-24', 'important' => true]);
 
-        $this->actingAs($root, 'admin')->get('/superadmin/versions/page')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/versions/page')
             ->assertOk()
             ->assertSee('data-action="edit-release"', false)
             ->assertSee('data-action="delete-release"', false)
@@ -419,7 +422,7 @@ class SuperadminFeatureTest extends TestCase
     {
         $root = $this->superadmin();
 
-        $html = $this->actingAs($root, 'admin')->postJson('/superadmin/versions/preview', [
+        $html = $this->actingAs($root, 'superadmin')->postJson('/superadmin/versions/preview', [
             'changelog' => "## Features\n- **Fast**\n\n<script>alert(1)</script>\n\n[bad](javascript:alert(1))",
         ])->assertOk()->json('data.html');
 
@@ -428,7 +431,7 @@ class SuperadminFeatureTest extends TestCase
         $this->assertStringNotContainsString('<script>', $html);
         $this->assertStringNotContainsString('javascript:', $html);
 
-        $this->actingAs($root, 'admin')->postJson('/superadmin/versions/preview', [
+        $this->actingAs($root, 'superadmin')->postJson('/superadmin/versions/preview', [
             'changelog' => str_repeat('a', \App\Http\Requests\VersionRequest::CHANGELOG_MAX_LENGTH + 1),
         ])->assertStatus(422);
     }
@@ -438,7 +441,7 @@ class SuperadminFeatureTest extends TestCase
         $root = $this->superadmin();
         $version = \App\Models\Version::create(['version' => 'v1.0.0', 'title' => 'First']);
 
-        $this->actingAs($root, 'admin')->putJson("/superadmin/versions/{$version->id}", [
+        $this->actingAs($root, 'superadmin')->putJson("/superadmin/versions/{$version->id}", [
             'version' => 'v1.0.1', 'title' => 'First fix', 'changelog' => "## Fixes\n- Bug", 'release_date' => '2026-09-24',
             'important' => false, 'force_refresh' => true,
         ])->assertOk()->assertJsonPath('data.version', 'v1.0.1');
@@ -467,7 +470,7 @@ class SuperadminFeatureTest extends TestCase
             '/superadmin/queue/page',
             '/superadmin/versions/page',
         ] as $uri) {
-            $this->actingAs($root, 'admin')->get($uri)->assertOk();
+            $this->actingAs($root, 'superadmin')->get($uri)->assertOk();
         }
     }
 }

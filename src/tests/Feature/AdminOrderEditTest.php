@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
@@ -28,7 +27,7 @@ class AdminOrderEditTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $admin;
+    private Admin $admin;
 
     private Room $room;
 
@@ -49,11 +48,10 @@ class AdminOrderEditTest extends TestCase
         parent::setUp();
         $this->withoutMiddleware(ValidateCsrfToken::class);
 
-        $this->admin = AdminAccount::create([
+        $this->admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'edit-order-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $this->room = Room::create(['name' => 'Edit Order Room', 'slug' => 'edit-order-room', 'status' => 'active']);
@@ -310,11 +308,10 @@ class AdminOrderEditTest extends TestCase
             'final_amount' => 20000,
             'status' => OrderStatus::Submitted,
         ]);
-        $stranger = AdminAccount::create([
+        $stranger = Admin::create([
             'name' => 'Stranger',
             'email' => 'edit-stranger@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
 

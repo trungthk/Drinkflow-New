@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\SocketHealthReason;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AdminNotification;
+use App\Models\Superadmin;
 use App\Services\System\SystemHealthService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
@@ -22,15 +22,20 @@ class SuperadminInboxAndDiagnosticsTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function admin(string $email, AdminRole $role = AdminRole::SuperAdmin): AdminAccount
+    private function admin(string $email): Admin
     {
-        return AdminAccount::create([
+        return Admin::create([
             'name' => 'Admin '.$email, 'email' => $email,
-            'password' => 'password123', 'role' => $role, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
     }
 
-    private function notificationFor(AdminAccount $admin, string $title, bool $read = false): AdminNotification
+    private function superadmin(string $email): Superadmin
+    {
+        return $this->createSuperadmin(['name' => 'Root '.$email, 'email' => $email, 'password' => 'password123', 'status' => 'active']);
+    }
+
+    private function notificationFor(Admin $admin, string $title, bool $read = false): AdminNotification
     {
         return AdminNotification::create([
             'admin_id' => $admin->id, 'type' => 'custom.event', 'title' => $title,
@@ -83,9 +88,9 @@ class SuperadminInboxAndDiagnosticsTest extends TestCase
     public function test_test_mail_is_sent_to_the_typed_address_with_escaped_message(): void
     {
         Config::set('mail.default', 'array');
-        $root = $this->admin('root-mail@drinkflow.test');
+        $root = $this->superadmin('root-mail@drinkflow.test');
 
-        $this->actingAs($root, 'admin')
+        $this->actingAs($root, 'superadmin')
             ->postJson(route('superadmin.system.mail-test'), ['email' => 'ops@example.com', 'message' => "Hello <b>team</b>\nLine 2"])
             ->assertOk()
             ->assertJsonPath('data.sent', true);
@@ -100,79 +105,55 @@ class SuperadminInboxAndDiagnosticsTest extends TestCase
 
     public function test_test_mail_requires_a_valid_email(): void
     {
-        $root = $this->admin('root-mail2@drinkflow.test');
+        $root = $this->superadmin('root-mail2@drinkflow.test');
 
-        $this->actingAs($root, 'admin')
+        $this->actingAs($root, 'superadmin')
             ->postJson(route('superadmin.system.mail-test'), ['email' => 'not-an-email'])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('email');
     }
 
-    public function test_inbox_only_lists_notifications_of_the_signed_in_account(): void
+    public function test_superadmin_inbox_never_lists_admin_notifications(): void
     {
-        $root = $this->admin('root-inbox@drinkflow.test');
-        $other = $this->admin('other-admin@drinkflow.test', AdminRole::Admin);
-        $this->notificationFor($root, 'Mine unread');
-        $this->notificationFor($root, 'Mine read', true);
+        $root = $this->superadmin('root-inbox@drinkflow.test');
+        // Same numeric ID as the superadmin, but in the `admins` table: never the superadmin's inbox.
+        $other = $this->admin('other-admin@drinkflow.test');
+        $this->assertSame($root->id, $other->id);
         $this->notificationFor($other, 'Someone else');
 
-        $this->actingAs($root, 'admin')
+        $this->actingAs($root, 'superadmin')
             ->get(route('superadmin.notifications.page'))
             ->assertOk()
-            ->assertSee('Mine unread')
-            ->assertSee('Mine read')
             ->assertDontSee('Someone else');
-
-        $this->actingAs($root, 'admin')
-            ->get(route('superadmin.notifications.page', ['inbox_status' => 'unread']))
-            ->assertOk()
-            ->assertSee('Mine unread')
-            ->assertDontSee('Mine read');
     }
 
-    public function test_mark_read_is_limited_to_own_notifications(): void
+    public function test_superadmin_cannot_mark_admin_notifications_as_read(): void
     {
-        $root = $this->admin('root-read@drinkflow.test');
-        $other = $this->admin('other-read@drinkflow.test', AdminRole::Admin);
-        $mine = $this->notificationFor($root, 'Mine');
+        $root = $this->superadmin('root-read@drinkflow.test');
+        $other = $this->admin('other-read@drinkflow.test');
         $theirs = $this->notificationFor($other, 'Theirs');
 
-        $this->actingAs($root, 'admin')
+        $this->actingAs($root, 'superadmin')
             ->patchJson(route('superadmin.admin-notifications.read', $theirs))
             ->assertNotFound();
         $this->assertNull($theirs->fresh()->read_at);
 
-        $this->actingAs($root, 'admin')
-            ->patchJson(route('superadmin.admin-notifications.read', $mine))
-            ->assertOk()
-            ->assertJsonPath('data.unread_count', 0);
-        $this->assertNotNull($mine->fresh()->read_at);
-    }
-
-    public function test_mark_all_read_only_touches_own_notifications(): void
-    {
-        $root = $this->admin('root-all@drinkflow.test');
-        $other = $this->admin('other-all@drinkflow.test', AdminRole::Admin);
-        $this->notificationFor($root, 'A');
-        $this->notificationFor($root, 'B');
-        $theirs = $this->notificationFor($other, 'C');
-
-        $this->actingAs($root, 'admin')
+        $this->actingAs($root, 'superadmin')
             ->postJson(route('superadmin.admin-notifications.read-all'))
             ->assertOk()
-            ->assertJsonPath('data.marked_count', 2);
+            ->assertJsonPath('data.marked_count', 0);
         $this->assertNull($theirs->fresh()->read_at);
     }
 
-    public function test_header_bell_shows_unread_count(): void
+    public function test_header_bell_renders_without_admin_notifications(): void
     {
-        $root = $this->admin('root-bell@drinkflow.test');
-        $this->notificationFor($root, 'Bell item');
+        $root = $this->superadmin('root-bell@drinkflow.test');
+        $this->notificationFor($this->admin('bell-admin@drinkflow.test'), 'Bell item');
 
-        $this->actingAs($root, 'admin')
+        $this->actingAs($root, 'superadmin')
             ->get(route('superadmin.system.page'))
             ->assertOk()
             ->assertSee('data-sa-notifications', false)
-            ->assertSee('Bell item');
+            ->assertDontSee('Bell item');
     }
 }

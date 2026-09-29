@@ -126,7 +126,7 @@
             if (!container) return;
             try {
                 const admins = [];
-                let nextPageUrl = '{{ route('superadmin.admins.index', ['role' => 'admin']) }}';
+                let nextPageUrl = '{{ route('superadmin.admins.index') }}';
                 while (nextPageUrl) {
                     const { data: page } = await dfApi(nextPageUrl);
                     admins.push(...page.data);

@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Events\OrderUpdated;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -22,7 +21,7 @@ class AdminOrderStatusTransitionTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $admin;
+    private Admin $admin;
     private GlobalUser $memberUser;
     private Room $room;
     private RoomUser $memberRoomUser;
@@ -32,11 +31,10 @@ class AdminOrderStatusTransitionTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = AdminAccount::create([
+        $this->admin = Admin::create([
             'name' => 'Order Admin',
             'email' => 'admin-test@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
 

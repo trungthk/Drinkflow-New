@@ -250,7 +250,7 @@ class SuperadminDashboardService
                 'campaigns as campaigns_cancelled' => fn(Builder $q): Builder => $q->where('created_at', '>=', $start)
                     ->where('status', CampaignStatus::Cancelled->value),
                 'orders as orders_period' => fn(Builder $q): Builder => $q->where('created_at', '>=', $start)->where('status', '!=', $cancelled),
-                'admins as active_admins' => fn(Builder $q): Builder => $q->where('admin_accounts.status', AdminStatus::Active->value),
+                'admins as active_admins' => fn(Builder $q): Builder => $q->where('admins.status', AdminStatus::Active->value),
             ])
             ->withSum(['orders as gmv_period' => fn(Builder $q): Builder => $q->where('created_at', '>=', $start)->where('status', '!=', $cancelled)], 'final_amount')
             ->withSum(['debts as debt_outstanding' => fn(Builder $q): Builder => $q->whereIn('status', $outstandingStatuses)], 'remaining_amount')

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -28,11 +27,10 @@ class AdminOrdersBackendFilterTest extends TestCase
      */
     public function test_order_management_uses_backend_search_and_status_filter(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Order Admin',
             'email' => 'order-admin@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create([

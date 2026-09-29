@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Events\ForceReloadRequested;
 use App\Events\MaintenanceStateChanged;
 use App\Listeners\PublishRealtimeEvent;
-use App\Models\AdminAccount;
+use App\Models\Admin;
+use App\Models\Superadmin;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
@@ -45,7 +45,7 @@ class RealtimeForceReloadTest extends TestCase
         [$user] = $this->member();
         $userId = $user->id;
 
-        $this->actingAs($this->superadmin(), 'admin')->deleteJson("/superadmin/global-users/{$userId}")->assertOk();
+        $this->actingAs($this->superadmin(), 'superadmin')->deleteJson("/superadmin/global-users/{$userId}")->assertOk();
 
         // Soft delete: the row stays (order/debt history) but the account is marked deleted.
         $this->assertDatabaseHas('global_users', ['id' => $userId, 'status' => 'deleted']);
@@ -57,7 +57,7 @@ class RealtimeForceReloadTest extends TestCase
     {
         Event::fake([MaintenanceStateChanged::class]);
 
-        $this->actingAs($this->superadmin(), 'admin')
+        $this->actingAs($this->superadmin(), 'superadmin')
             ->putJson('/superadmin/system/maintenance', ['enabled' => true])
             ->assertOk();
 
@@ -118,9 +118,9 @@ class RealtimeForceReloadTest extends TestCase
         return [$user, $roomUser];
     }
 
-    private function superadmin(): AdminAccount
+    private function superadmin(): Superadmin
     {
-        return AdminAccount::create(['name' => 'Root', 'email' => 'root-reload@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::SuperAdmin, 'status' => 'active']);
+        return $this->createSuperadmin(['name' => 'Root', 'email' => 'root-reload@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
     }
 
     private function fakeRealtime(): void

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -30,7 +29,7 @@ class AdminCampaignListColumnsTest extends TestCase
      */
     public function test_campaign_list_shows_items_gross_total_start_time_and_status_before_actions(): void
     {
-        $admin = AdminAccount::create(['name' => 'List Admin', 'email' => 'list-columns@example.test', 'password' => Hash::make('secret'), 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'List Admin', 'email' => 'list-columns@example.test', 'password' => Hash::make('secret'), 'status' => 'active']);
         $room = Room::create(['name' => 'List Room', 'slug' => 'list-columns-room', 'status' => 'active']);
         $admin->rooms()->attach($room);
         $campaign = Campaign::create([
@@ -83,7 +82,7 @@ class AdminCampaignListColumnsTest extends TestCase
      */
     public function test_campaign_search_matches_only_code_name_and_restaurant(): void
     {
-        $admin = AdminAccount::create(['name' => 'Search Admin', 'email' => 'list-search@example.test', 'password' => Hash::make('secret'), 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Search Admin', 'email' => 'list-search@example.test', 'password' => Hash::make('secret'), 'status' => 'active']);
         $room = Room::create(['name' => 'Search Room', 'slug' => 'list-search-room', 'status' => 'active']);
         $admin->rooms()->attach($room);
         $byCode = Campaign::create(['room_id' => $room->id, 'name' => 'Alpha', 'restaurant' => 'Store One', 'status' => CampaignStatus::Closed]);

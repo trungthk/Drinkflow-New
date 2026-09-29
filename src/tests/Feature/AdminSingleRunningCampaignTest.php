@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
 use App\Models\GlobalUser;
@@ -85,11 +84,11 @@ class AdminSingleRunningCampaignTest extends TestCase
     /**
      * Create an admin assigned to a fresh room.
      *
-     * @return array{0: AdminAccount, 1: Room}
+     * @return array{0: Admin, 1: Room}
      */
     private function adminWithRoom(): array
     {
-        $admin = AdminAccount::create(['name' => 'Room Admin', 'email' => 'single-running@example.test', 'password' => Hash::make('secret'), 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Room Admin', 'email' => 'single-running@example.test', 'password' => Hash::make('secret'), 'status' => 'active']);
         $room = Room::create(['name' => 'Single Running', 'slug' => 'single-running', 'status' => 'active']);
         $admin->rooms()->attach($room);
 

@@ -9,7 +9,7 @@ use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
 use App\Events\RoomRealtimeEvent;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Debt;
 use App\Models\DebtPayment;
 use App\Models\Order;
@@ -35,13 +35,13 @@ class ApproveDebtPaymentRequestAction
      *
      * @param Room $room Room owning the request.
      * @param int $requestId Payment request (parent debt) ID.
-     * @param AdminAccount|null $admin Reviewing admin.
+     * @param Admin|null $admin Reviewing admin.
      * @return Debt The approved request with its children loaded.
      * @throws ValidationException When the request was already reviewed.
      * @throws ConflictHttpException When the bundled debts no longer match the submitted request.
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException When the request does not exist in the room.
      */
-    public function execute(Room $room, int $requestId, ?AdminAccount $admin): Debt
+    public function execute(Room $room, int $requestId, ?Admin $admin): Debt
     {
         $approvedAt = now();
         $request = DB::transaction(function () use ($room, $requestId, $admin, $approvedAt): Debt {
@@ -110,11 +110,11 @@ class ApproveDebtPaymentRequestAction
      *
      * @param Debt $request Payment request being approved.
      * @param Debt $child Locked bundled debt.
-     * @param AdminAccount|null $admin Reviewing admin.
+     * @param Admin|null $admin Reviewing admin.
      * @param \Illuminate\Support\Carbon $paidAt Approval time.
      * @return void
      */
-    private function settleChild(Debt $request, Debt $child, ?AdminAccount $admin, \Illuminate\Support\Carbon $paidAt): void
+    private function settleChild(Debt $request, Debt $child, ?Admin $admin, \Illuminate\Support\Carbon $paidAt): void
     {
         $amount = (int) $child->remaining_amount;
         $before = ['status' => $child->status->value, 'remaining_amount' => $amount];
@@ -150,11 +150,11 @@ class ApproveDebtPaymentRequestAction
      *
      * @param Room $room Room owning the request.
      * @param Debt $request Approved request with children loaded.
-     * @param AdminAccount|null $admin Reviewing admin.
+     * @param Admin|null $admin Reviewing admin.
      * @param \Illuminate\Support\Carbon $approvedAt Approval time.
      * @return void
      */
-    private function notify(Room $room, Debt $request, ?AdminAccount $admin, \Illuminate\Support\Carbon $approvedAt): void
+    private function notify(Room $room, Debt $request, ?Admin $admin, \Illuminate\Support\Carbon $approvedAt): void
     {
         $request->loadMissing('roomUser');
         if ($request->roomUser) {

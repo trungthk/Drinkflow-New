@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
+use App\Models\Superadmin;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
@@ -26,7 +26,7 @@ class SuperadminDashboardInsightsTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $root;
+    private Superadmin $root;
     private Room $room;
 
     protected function setUp(): void
@@ -37,9 +37,9 @@ class SuperadminDashboardInsightsTest extends TestCase
         Carbon::setTestNow('2026-09-28 12:00:00');
         config(['app.display_timezone' => 'Asia/Ho_Chi_Minh']);
 
-        $this->root = AdminAccount::create([
+        $this->root = $this->createSuperadmin([
             'name' => 'Root', 'email' => 'root-insights@drinkflow.test', 'password' => 'password123',
-            'role' => AdminRole::SuperAdmin, 'status' => 'active', 'last_login_at' => '2026-09-28 08:00:00',
+            'status' => 'active', 'last_login_at' => '2026-09-28 08:00:00',
         ]);
         $this->room = Room::create(['name' => 'Insight Room', 'slug' => 'insight-room', 'status' => 'active']);
     }
@@ -57,17 +57,17 @@ class SuperadminDashboardInsightsTest extends TestCase
 
     public function test_insights_endpoint_is_superadmin_only(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room admin', 'email' => 'room-admin-insights@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
 
-        $this->actingAs($admin, 'admin')->getJson(route('superadmin.dashboard.insights'))->assertForbidden();
+        $this->actingAs($admin, 'admin')->getJson(route('superadmin.dashboard.insights'))->assertUnauthorized();
     }
 
     public function test_insights_endpoint_returns_payload(): void
     {
-        $this->actingAs($this->root, 'admin')->getJson(route('superadmin.dashboard.insights'))
+        $this->actingAs($this->root, 'superadmin')->getJson(route('superadmin.dashboard.insights'))
             ->assertOk()
             ->assertJsonStructure(['data' => ['security' => ['daily', 'types', 'top_ips'], 'admins', 'heatmap' => ['timezone', 'cells', 'max', 'total'], 'generated_at']]);
     }
@@ -110,14 +110,14 @@ class SuperadminDashboardInsightsTest extends TestCase
 
     public function test_admin_activity_counts_work_and_flags_stale_accounts(): void
     {
-        $busy = AdminAccount::create([
+        $busy = Admin::create([
             'name' => 'Busy', 'email' => 'busy-insights@drinkflow.test', 'password' => 'password123',
-            'role' => AdminRole::Admin, 'status' => 'active', 'last_login_at' => '2026-09-27 08:00:00',
+            'status' => 'active', 'last_login_at' => '2026-09-27 08:00:00',
         ]);
         $busy->rooms()->attach($this->room->id);
-        $stale = AdminAccount::create([
+        $stale = Admin::create([
             'name' => 'Stale', 'email' => 'stale-insights@drinkflow.test', 'password' => 'password123',
-            'role' => AdminRole::Admin, 'status' => 'active', 'last_login_at' => '2026-06-01 08:00:00',
+            'status' => 'active', 'last_login_at' => '2026-06-01 08:00:00',
         ]);
         Campaign::create(['room_id' => $this->room->id, 'status' => CampaignStatus::Closed, 'name' => 'C', 'restaurant' => 'Shop', 'creator_admin_id' => $busy->id]);
         AuditLog::create(['actor_type' => AuditLog::ACTOR_ADMIN, 'actor_id' => $busy->id, 'event' => 'campaign.created', 'target_type' => 'campaign', 'target_id' => 1, 'created_at' => now()]);
@@ -132,8 +132,8 @@ class SuperadminDashboardInsightsTest extends TestCase
             [SuperadminInsightsService::FLAG_STALE, SuperadminInsightsService::FLAG_NO_ROOMS],
             $admins['stale-insights@drinkflow.test']['flags'],
         );
-        // Superadmins manage every room, so they are never flagged for having none assigned.
-        $this->assertSame([], $admins['root-insights@drinkflow.test']['flags']);
+        // Superadmins are separate accounts and never appear in the Admin activity list.
+        $this->assertFalse($admins->has('root-insights@drinkflow.test'));
         $this->assertSame('stale-insights@drinkflow.test', $admins->keys()->first());
     }
 

@@ -70,6 +70,16 @@ class AppServiceProvider extends ServiceProvider
         // Superadmin mail/storage settings override the .env values (empty fields keep .env).
         $this->app->make(\App\Services\System\SystemConfigService::class)->apply();
 
+        // Superadmin features: one Gate per permission; resources: policies with the Agent scope.
+        foreach (\App\Enums\Permission::cases() as $permission) {
+            \Illuminate\Support\Facades\Gate::define(
+                $permission->value,
+                static fn (mixed $user): bool => $user instanceof \App\Models\Superadmin && $user->hasPermission($permission),
+            );
+        }
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\Admin::class, \App\Policies\AdminPolicy::class);
+        \Illuminate\Support\Facades\Gate::policy(\App\Models\Room::class, \App\Policies\RoomPolicy::class);
+
         Event::listen(OrderCreated::class, CreateOrderNotification::class);
         Event::listen(ProxyOrdersCreated::class, NotifyProxyOrderRecipients::class);
         Event::listen(OrderUpdated::class, CreateOrderStatusNotification::class);

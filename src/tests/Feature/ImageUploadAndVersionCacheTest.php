@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Version;
 use App\Services\Media\ImageUploadService;
 use App\Support\Helpers\FormatHelper;
@@ -52,11 +52,10 @@ class ImageUploadAndVersionCacheTest extends TestCase
 
     public function test_version_seeder_seeds_default_versions_and_clears_cache(): void
     {
-        $superadmin = AdminAccount::create([
+        $superadmin = $this->createSuperadmin([
             'name' => 'Super Admin',
             'email' => 'superadmin@drinkflow.local',
             'password' => Hash::make('secret'),
-            'role' => 'superadmin',
             'status' => 'active',
         ]);
 

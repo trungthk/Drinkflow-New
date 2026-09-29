@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AdminNotification;
 use App\Models\GlobalUser;
 use App\Models\UserNotification;
@@ -26,7 +26,7 @@ class PruneNotificationsTest extends TestCase
         config()->set('retention.read_admin_notifications_days', 30);
         config()->set('retention.read_user_notifications_days', 30);
 
-        $admin      = AdminAccount::create(['name' => 'Admin', 'email' => 'notif-prune@example.test', 'password' => 'password', 'role' => 'admin', 'status' => 'active']);
+        $admin      = Admin::create(['name' => 'Admin', 'email' => 'notif-prune@example.test', 'password' => 'password', 'status' => 'active']);
         $globalUser = GlobalUser::create(['name' => 'User', 'email' => 'notif-user@example.test', 'status' => 'active']);
 
         // Admin: old read (pruned) | unread old (kept) | recently read (kept)

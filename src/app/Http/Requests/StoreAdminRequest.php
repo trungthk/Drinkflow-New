@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests;
 
-use App\Enums\AdminRole;
+use App\Enums\AdminStatus;
 use App\Http\Requests\Concerns\AuthorizesUserAndAdmin;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -32,10 +32,9 @@ class StoreAdminRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:admin_accounts,email'],
+            'email' => ['required', 'email', 'max:255', 'unique:admins,email'],
             'password' => ['required', 'string', 'min:8'],
-            'role' => ['sometimes', Rule::enum(AdminRole::class)],
-            'status' => ['sometimes', Rule::in(['active', 'blocked', 'disabled'])],
+            'status' => ['sometimes', Rule::in(AdminStatus::manageableValues())],
             'room_ids' => ['sometimes', 'array'],
             'room_ids.*' => ['integer', 'exists:rooms,id'],
         ];
@@ -52,7 +51,6 @@ class StoreAdminRequest extends FormRequest
             'name' => __('validation.attributes.name'),
             'email' => __('validation.attributes.email'),
             'password' => __('validation.attributes.password'),
-            'role' => __('validation.attributes.role'),
             'status' => __('validation.attributes.status'),
             'room_ids' => __('validation.attributes.room_ids'),
             'room_ids.*' => __('validation.attributes.room_ids.*'),

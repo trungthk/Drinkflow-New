@@ -8,7 +8,7 @@ use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Events\RoomRealtimeEvent;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Debt;
 use App\Models\Order;
 use App\Models\Room;
@@ -29,14 +29,14 @@ class RejectDebtPaymentRequestAction
      *
      * @param Room $room Room owning the request.
      * @param int $requestId Payment request (parent debt) ID.
-     * @param AdminAccount|null $admin Reviewing admin.
+     * @param Admin|null $admin Reviewing admin.
      * @param string $reason Reason shown to the member.
      * @return Debt The rejected request with its children loaded.
      * @throws ValidationException When the request was already reviewed.
      * @throws ConflictHttpException When the request no longer has its bundled debts.
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException When the request does not exist in the room.
      */
-    public function execute(Room $room, int $requestId, ?AdminAccount $admin, string $reason): Debt
+    public function execute(Room $room, int $requestId, ?Admin $admin, string $reason): Debt
     {
         $request = DB::transaction(function () use ($room, $requestId, $admin, $reason): Debt {
             $request = Debt::paymentRequests()->where('room_id', $room->id)->whereKey($requestId)->lockForUpdate()->firstOrFail();

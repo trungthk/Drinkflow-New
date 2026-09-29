@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\CrawlerPreview;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +26,7 @@ class PruneCrawlerAndLogsTest extends TestCase
         config()->set('retention.crawler_previews_days', 2);
         config()->set('retention.log_files_days', 14);
 
-        $admin = AdminAccount::create(['name' => 'Admin', 'email' => 'crawler-prune@example.test', 'password' => 'password', 'role' => 'admin', 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Admin', 'email' => 'crawler-prune@example.test', 'password' => 'password', 'status' => 'active']);
         $room  = Room::create(['name' => 'Crawler Room', 'slug' => 'crawler-room', 'status' => 'active']);
 
         // Old preview: created 3 days ago, already expired

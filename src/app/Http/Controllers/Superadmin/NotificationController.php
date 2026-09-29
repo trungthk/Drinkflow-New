@@ -81,7 +81,7 @@ class NotificationController extends Controller
     {
         abort_unless($service->configured($channel), 422, __('admin.channel_not_configured'));
 
-        $admin = $request->user('admin');
+        $admin = $request->user('superadmin');
         $rateLimitKey = 'system-channel-test:'.$channel->id.':'.($admin?->id ?? $request->ip());
         $maxAttempts = 5;
         $decaySeconds = 60;

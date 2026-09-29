@@ -1,7 +1,8 @@
 <?php
 
 use App\Models\GlobalUser;
-use App\Models\AdminAccount;
+use App\Models\Admin;
+use App\Models\Superadmin;
 
 return [
 
@@ -47,6 +48,10 @@ return [
             'driver' => 'session',
             'provider' => 'admins',
         ],
+        'superadmin' => [
+            'driver' => 'session',
+            'provider' => 'superadmins',
+        ],
     ],
 
     /*
@@ -77,7 +82,11 @@ return [
         ],
         'admins' => [
             'driver' => 'eloquent',
-            'model' => AdminAccount::class,
+            'model' => Admin::class,
+        ],
+        'superadmins' => [
+            'driver' => 'eloquent',
+            'model' => Superadmin::class,
         ],
 
         // 'users' => [

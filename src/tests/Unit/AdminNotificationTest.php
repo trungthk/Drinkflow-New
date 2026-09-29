@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit;
 
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AdminNotification;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,7 +19,7 @@ class AdminNotificationTest extends TestCase
      */
     public function test_admin_notification_auto_generates_title_and_body_when_missing(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Admin Test',
             'email' => 'admin_test@company.com',
             'password' => bcrypt('secret123'),

@@ -466,7 +466,7 @@ function renderIps(tbody, ips, i18n, securityUrl, hours) {
 const ADMIN_FLAG_ICONS = { stale: 'schedule', never_logged_in: 'no_accounts', no_rooms: 'meeting_room', inactive: 'block' };
 const ADMIN_FLAG_CLASSES = { stale: 'no_admin', never_logged_in: 'no_admin', no_rooms: 'dormant', inactive: 'bad_debt' };
 
-function renderAdmins(tbody, admins, i18n, adminUrl, roleLabels, staleDays) {
+function renderAdmins(tbody, admins, i18n, adminUrl, staleDays) {
     if (!admins.length) {
         tbody.innerHTML = `<tr><td colspan="7" class="sa-empty">${escapeHtml(i18n.admins_empty)}</td></tr>`;
         return;
@@ -476,10 +476,9 @@ function renderAdmins(tbody, admins, i18n, adminUrl, roleLabels, staleDays) {
             ? admin.flags.map(flag => `<span class="sa-flag sa-flag-${ADMIN_FLAG_CLASSES[flag] || 'dormant'}" title="${escapeHtml(trans(i18n[`admin_flag_${flag}_hint`], { days: staleDays }))}">`
                 + `<span class="material-symbols-outlined" aria-hidden="true">${ADMIN_FLAG_ICONS[flag] || 'warning'}</span>${escapeHtml(i18n[`admin_flag_${flag}`] || flag)}</span>`).join('')
             : `<span class="sa-flag sa-flag-ok"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>${escapeHtml(i18n.flag_ok)}</span>`;
-        const rooms = admin.role === 'superadmin' ? i18n.all_rooms : number(admin.rooms);
         return `<tr><td><a class="sa-link" href="${escapeHtml(adminUrl.replace('__ID__', encodeURIComponent(admin.id)))}"><strong>${escapeHtml(admin.name)}</strong></a>`
-            + `<br><small class="sa-muted">${escapeHtml(admin.email)} · ${escapeHtml(roleLabels[admin.role] || admin.role)}</small></td>`
-            + `<td class="num">${escapeHtml(rooms)}</td>`
+            + `<br><small class="sa-muted">${escapeHtml(admin.email)}</small></td>`
+            + `<td class="num">${escapeHtml(number(admin.rooms))}</td>`
             + `<td class="num">${escapeHtml(number(admin.campaigns_created))}</td>`
             + `<td class="num">${escapeHtml(number(admin.payments_confirmed))}</td>`
             + `<td class="num">${escapeHtml(number(admin.audit_actions))}</td>`
@@ -667,7 +666,6 @@ export function initSuperadminDashboard() {
     const thresholds = parseData(root, 'thresholds');
     const insightThresholds = parseData(root, 'insightThresholds');
     const securityTypes = parseData(root, 'securityTypes');
-    const roleLabels = parseData(root, 'roleLabels');
     const contactTopics = parseData(root, 'contactTopics');
 
     const chart = root.querySelector('#sa-trend-chart');
@@ -715,7 +713,7 @@ export function initSuperadminDashboard() {
             renderSecurityTable(root.querySelector('#sa-security-table'), insights.security.daily);
             renderSecurityTypes(root.querySelector('#sa-security-types'), insights.security.types, securityTypes, i18n, insightThresholds.activity_days);
             renderIps(root.querySelector('#sa-ips-body'), insights.security.top_ips, i18n, root.dataset.securityUrl, insightThresholds.ip_hours);
-            renderAdmins(root.querySelector('#sa-admins-body'), insights.admins, i18n, root.dataset.adminUrl, roleLabels, insightThresholds.stale_days);
+            renderAdmins(root.querySelector('#sa-admins-body'), insights.admins, i18n, root.dataset.adminUrl, insightThresholds.stale_days);
         } catch (error) {
             showError(insightsNotice, error);
         }

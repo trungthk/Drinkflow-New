@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -26,11 +25,10 @@ class AdminDashboardTrendTest extends TestCase
      */
     public function test_weekly_trend_reports_spending_orders_and_peak_day(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'trend-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Trend Room', 'slug' => 'trend-room', 'status' => 'active']);
@@ -81,11 +79,10 @@ class AdminDashboardTrendTest extends TestCase
      */
     public function test_weekly_trend_spending_uses_campaign_gross_total(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'gross-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Gross Room', 'slug' => 'gross-room', 'status' => 'active']);
@@ -126,11 +123,10 @@ class AdminDashboardTrendTest extends TestCase
      */
     public function test_dashboard_metric_cards_have_no_status_badges(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'badge-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Badge Room', 'slug' => 'badge-room', 'status' => 'active']);
@@ -152,11 +148,10 @@ class AdminDashboardTrendTest extends TestCase
      */
     public function test_dashboard_exposes_localized_chart_labels(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'trend-admin2@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Trend Room 2', 'slug' => 'trend-room-2', 'status' => 'active']);
@@ -176,11 +171,10 @@ class AdminDashboardTrendTest extends TestCase
      */
     public function test_dashboard_reports_active_room_members_count(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'members-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Members Room', 'slug' => 'members-room', 'status' => 'active']);
@@ -212,11 +206,10 @@ class AdminDashboardTrendTest extends TestCase
      */
     public function test_dashboard_has_no_recent_orders_table(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'recent-orders-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Recent Room', 'slug' => 'recent-room', 'status' => 'active']);
@@ -242,11 +235,10 @@ class AdminDashboardTrendTest extends TestCase
 
     public function test_campaign_order_and_debt_metrics_link_to_their_pages(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'metric-links-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Metric Links Room', 'slug' => 'metric-links-room', 'status' => 'active']);

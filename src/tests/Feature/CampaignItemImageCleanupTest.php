@@ -6,7 +6,7 @@ namespace Tests\Feature;
 
 use App\Enums\CampaignItemStatus;
 use App\Enums\CampaignStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
 use App\Models\PaymentAccount;
@@ -21,11 +21,10 @@ class CampaignItemImageCleanupTest extends TestCase
 
     private function createAdminWithRoom(): array
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'email' => 'cleanup-admin@example.test',
             'name' => 'Cleanup Admin',
             'password' => bcrypt('password123'),
-            'role' => 'admin',
             'status' => 'active',
         ]);
 

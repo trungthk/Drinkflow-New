@@ -1,8 +1,7 @@
 <?php
 namespace Tests\Feature;
 use App\Models\GlobalUser;
-use App\Models\AdminAccount;
-use App\Enums\AdminRole;
+use App\Models\Admin;
 use App\Enums\AdminStatus;
 use App\Services\Auth\GoogleOAuthService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -94,11 +93,10 @@ class GoogleOAuthServiceTest extends TestCase {
             'services.google.allowed_domains' => ['company.com'],
         ]);
 
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Two Factor Admin',
             'email' => 'admin@company.com',
             'password' => Hash::make('CorrectPassword123!'),
-            'role' => AdminRole::Admin,
             'status' => AdminStatus::Active,
             'two_factor_enabled' => true,
         ]);
@@ -146,11 +144,10 @@ class GoogleOAuthServiceTest extends TestCase {
             'services.google.allowed_domains' => ['company.com'],
         ]);
 
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Two Factor Admin',
             'email' => 'admin@company.com',
             'password' => Hash::make('CorrectPassword123!'),
-            'role' => AdminRole::Admin,
             'status' => AdminStatus::Active,
             'two_factor_enabled' => true,
         ]);

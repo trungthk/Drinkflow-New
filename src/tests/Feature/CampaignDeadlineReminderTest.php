@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\NotificationType;
 use App\Enums\OrderStatus;
 use App\Events\AdminNotificationCreated;
 use App\Events\UserNotificationCreated;
 use App\Listeners\PublishRealtimeEvent;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AdminNotification;
 use App\Models\Campaign;
 use App\Models\CampaignParticipant;
@@ -31,7 +30,7 @@ class CampaignDeadlineReminderTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $admin;
+    private Admin $admin;
 
     private Room $room;
 
@@ -50,11 +49,10 @@ class CampaignDeadlineReminderTest extends TestCase
         parent::setUp();
         config()->set('campaign.deadline_reminder_minutes', 15);
 
-        $this->admin = AdminAccount::create([
+        $this->admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'reminder-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $this->room = Room::create(['name' => 'Reminder Room', 'slug' => 'reminder-room', 'status' => 'active']);

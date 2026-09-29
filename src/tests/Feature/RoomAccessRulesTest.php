@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\GlobalUserStatus;
 use App\Enums\RoomStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomSetting;
@@ -29,9 +28,9 @@ class RoomAccessRulesTest extends TestCase
         $this->room = Room::create(['name' => 'Access Room', 'slug' => 'access-room', 'status' => RoomStatus::Active]);
     }
 
-    private function admin(): AdminAccount
+    private function admin(): Admin
     {
-        $admin = AdminAccount::create(['name' => 'Room Admin', 'email' => 'access-admin@example.test', 'password' => 'secret123', 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Room Admin', 'email' => 'access-admin@example.test', 'password' => 'secret123', 'status' => 'active']);
         $admin->rooms()->attach($this->room);
 
         return $admin;

@@ -39,7 +39,7 @@ class StoreRoomRequest extends FormRequest
             'language' => ['sometimes', 'string', 'max:10'],
             'settings' => ['sometimes', 'array'],
             'admin_ids' => ['sometimes', 'array'],
-            'admin_ids.*' => ['integer', 'exists:admin_accounts,id'],
+            'admin_ids.*' => ['integer', 'exists:admins,id'],
         ];
     }
 

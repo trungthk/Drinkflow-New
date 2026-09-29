@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
-use App\Models\AdminAccount;
+use App\Models\Admin;
+use App\Models\Superadmin;
 use App\Services\System\MailHealthService;
 use App\Services\System\StorageHealthService;
 use App\Services\System\SupervisorHealthService;
@@ -18,11 +18,11 @@ class SystemHealthTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function superadmin(): AdminAccount
+    private function superadmin(): Superadmin
     {
-        return AdminAccount::create([
+        return $this->createSuperadmin([
             'name' => 'Root', 'email' => 'root-health@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::SuperAdmin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
     }
 
@@ -46,7 +46,7 @@ class SystemHealthTest extends TestCase
 
     public function test_dashboard_health_rows_link_to_their_detail_pages(): void
     {
-        $this->actingAs($this->superadmin(), 'admin')
+        $this->actingAs($this->superadmin(), 'superadmin')
             ->get(route('superadmin.dashboard'))
             ->assertOk()
             ->assertSee('<a class="sa-health-row" href="'.route('superadmin.queue.page').'">', false)
@@ -86,7 +86,7 @@ class SystemHealthTest extends TestCase
     {
         $root = $this->superadmin();
 
-        $response = $this->actingAs($root, 'admin')->getJson('/superadmin');
+        $response = $this->actingAs($root, 'superadmin')->getJson('/superadmin');
 
         $response->assertOk()
             ->assertJsonStructure(['data' => ['system_health' => ['database', 'queue', 'socket', 'mail', 'storage']]])
@@ -100,7 +100,7 @@ class SystemHealthTest extends TestCase
         $root = $this->superadmin();
 
         // The recipient is now typed in the "send test email" modal (SendTestMailRequest).
-        $this->actingAs($root, 'admin')->postJson('/superadmin/system/mail/test', ['email' => $root->email])
+        $this->actingAs($root, 'superadmin')->postJson('/superadmin/system/mail/test', ['email' => $root->email])
             ->assertOk()
             ->assertJsonPath('data.sent', true);
     }

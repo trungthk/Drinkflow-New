@@ -52,9 +52,9 @@ class ManageRoomAction
     public function syncAdmins(Room $room, array $adminIds): Room
     {
         return DB::transaction(function () use ($room, $adminIds): Room {
-            $before = $room->admins()->pluck('admin_accounts.id')->sort()->values()->all();
+            $before = $room->admins()->pluck('admins.id')->sort()->values()->all();
             $room->admins()->sync($adminIds);
-            $after = $room->admins()->pluck('admin_accounts.id')->sort()->values()->all();
+            $after = $room->admins()->pluck('admins.id')->sort()->values()->all();
             app(AuditService::class)->record('room.admins_updated', 'room', $room->id, $room->id, ['admin_ids' => $before], ['admin_ids' => $after]);
             return $room->fresh('admins');
         });

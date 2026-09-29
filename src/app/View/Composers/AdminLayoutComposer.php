@@ -9,7 +9,7 @@ use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Room;
 use App\Models\Order;
 use App\Services\Notification\AdminNotificationService;
@@ -42,10 +42,10 @@ class AdminLayoutComposer
         $data = $view->getData();
         $room = $data['room'] ?? request()->attributes->get('room') ?? request()->route('room');
         $adminUser = auth('admin')->user();
-        $adminUser = $adminUser instanceof AdminAccount ? $adminUser : null;
+        $adminUser = $adminUser instanceof Admin ? $adminUser : null;
         $assignedRooms = $data['assignedRooms'] ?? null;
         $assignedRoomsList = $this->assignedRooms($adminUser, $assignedRooms, $room);
-        $unreadNotifications = $room instanceof Room && $adminUser instanceof AdminAccount
+        $unreadNotifications = $room instanceof Room && $adminUser instanceof Admin
             ? $this->notifications->unreadForRoom($adminUser, $room)
             : collect();
 
@@ -77,18 +77,16 @@ class AdminLayoutComposer
     /**
      * Resolve rooms available in the admin workspace selector.
      *
-     * @param ?AdminAccount $admin Current admin account.
+     * @param ?Admin $admin Current admin account.
      * @param mixed $assignedRooms Rooms explicitly supplied by the caller.
      * @param mixed $room Active room.
      * @return Collection<int, Room> Available rooms.
      */
-    private function assignedRooms(?AdminAccount $admin, mixed $assignedRooms, mixed $room): Collection
+    private function assignedRooms(?Admin $admin, mixed $assignedRooms, mixed $room): Collection
     {
         $rooms = $assignedRooms instanceof Collection
             ? $assignedRooms
-            : ($admin?->isSuperadmin()
-                ? Room::where('status', RoomStatus::Active)->orderBy('name')->get()
-                : ($admin?->rooms()->where('status', RoomStatus::Active)->orderBy('name')->get() ?? collect()));
+            : ($admin?->rooms()->where('status', RoomStatus::Active)->orderBy('name')->get() ?? collect());
 
         if ($room instanceof Room && !$rooms->contains('id', $room->id)) {
             $rooms->prepend($room);

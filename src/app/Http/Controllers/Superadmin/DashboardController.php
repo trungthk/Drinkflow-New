@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Superadmin;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\GlobalUserStatus;
 use App\Enums\OrderStatus;
+use App\Enums\Permission;
 use App\Http\Controllers\Controller;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -37,13 +37,15 @@ class DashboardController extends Controller
         }
 
         $today = now()->toDateString();
+        $superadmin = $request->user('superadmin');
         return response()->json([
             'data' => [
                 'total_rooms' => Room::count(),
                 'active_rooms' => Room::active()->count(),
                 'total_global_users' => GlobalUser::where('status', '!=', GlobalUserStatus::Deleted->value)->count(),
                 'active_global_users' => GlobalUser::active()->count(),
-                'total_admins' => AdminAccount::where('role', AdminRole::Admin->value)->count(),
+                // Only Agents in the viewer's scope; hidden (null) without `agent.view`.
+                'total_admins' => $superadmin->hasPermission(Permission::AgentView) ? Admin::query()->visibleTo($superadmin)->count() : null,
                 'active_campaigns' => Campaign::where('status', CampaignStatus::Active)->count(),
                 'orders_today' => Order::whereDate('created_at', $today)->whereNot('status', OrderStatus::Cancelled)->count(),
                 'system_health' => $health->snapshot(),
@@ -72,7 +74,7 @@ class DashboardController extends Controller
      */
     public function insights(Request $request, SuperadminInsightsService $insights): JsonResponse
     {
-        return response()->json(['data' => $insights->insights($request->boolean('fresh'))]);
+        return response()->json(['data' => $insights->insightsFor($request->user('superadmin'), $request->boolean('fresh'))]);
     }
 
     /**

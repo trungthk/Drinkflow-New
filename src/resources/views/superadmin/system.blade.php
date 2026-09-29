@@ -169,7 +169,7 @@
             @csrf
             <div>
                 <label for="mail-test-email" class="block text-xs font-semibold text-on-surface mb-1">{{ __('superadmin.system.mail_test_email') }} <span class="text-error">*</span></label>
-                <input type="email" id="mail-test-email" name="email" required maxlength="255" autocomplete="email" value="{{ request()->user('admin')->email }}"
+                <input type="email" id="mail-test-email" name="email" required maxlength="255" autocomplete="email" value="{{ request()->user('superadmin')->email }}"
                     class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
             </div>
             <div>

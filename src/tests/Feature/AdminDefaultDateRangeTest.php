@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
@@ -23,7 +22,7 @@ class AdminDefaultDateRangeTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $admin;
+    private Admin $admin;
 
     private Room $room;
 
@@ -31,11 +30,10 @@ class AdminDefaultDateRangeTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = AdminAccount::create([
+        $this->admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'date-range-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $this->room = Room::create(['name' => 'Range Room', 'slug' => 'range-room', 'status' => 'active']);

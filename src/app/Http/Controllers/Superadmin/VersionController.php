@@ -29,7 +29,7 @@ class VersionController extends Controller
      */
     public function store(VersionRequest $request, AuditService $audit): JsonResponse
     {
-        $version = Version::create([...$request->validated(), 'created_by_admin_id' => request()->user('admin')->id]);
+        $version = Version::create([...$request->validated(), 'created_by_superadmin_id' => $request->user('superadmin')->id]);
         $audit->record('version.created', 'version', $version->id, null, [], $version->only(['version', 'title', 'release_date', 'force_refresh', 'important']));
         return response()->json(['data' => $version], 201);
     }

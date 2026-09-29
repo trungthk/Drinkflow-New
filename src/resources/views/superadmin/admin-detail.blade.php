@@ -9,9 +9,7 @@
         <div class="superadmin-actions">
             <button class="sa-button secondary" data-modal-open="reset-password-modal" type="button"><span class="material-symbols-outlined text-[16px]">lock_reset</span>{{ __('superadmin.admins.reset_password') }}</button>
             <button class="sa-button warning" id="admin-status" type="button"><span class="material-symbols-outlined text-[16px]">lock</span>{{ __('superadmin.admins.update_status') }}</button>
-            @unless((int) auth('admin')->id() === (int) request()->route('admin'))
-                <button class="sa-button danger" id="admin-delete" type="button"><span class="material-symbols-outlined text-[16px]">delete</span>{{ __('superadmin.admins.delete_account') }}</button>
-            @endunless
+            <button class="sa-button danger" id="admin-delete" type="button"><span class="material-symbols-outlined text-[16px]">delete</span>{{ __('superadmin.admins.delete_account') }}</button>
         </div>
     </div>
     <div id="notice" class="sa-notice" role="status"></div>
@@ -89,7 +87,6 @@
     <script>
         const adminId = @json(request()->route('admin'));
         const roomsUrl = @json(route('superadmin.rooms.index'));
-        const roleLabels = @json(['admin' => __('superadmin.admins.role_admin'), 'superadmin' => __('superadmin.admins.role_superadmin')]);
         let currentAdmin = null;
         const adminNotice = (message, type = 'success') => {
             const n = document.querySelector('#notice');
@@ -125,14 +122,12 @@
                 data: admin
             } = await dfApi(`/superadmin/admins/${adminId}`);
             currentAdmin = admin;
-            const roleLabel = roleLabels[admin.role] || admin.role;
             document.querySelector('#admin-name').textContent = admin.name;
-            document.querySelector('#admin-meta').innerHTML = `${escapeHtml(admin.email)} · ${escapeHtml(roleLabel)} · ${statusPill(admin.status)}`;
+            document.querySelector('#admin-meta').innerHTML = `${escapeHtml(admin.email)} · ${statusPill(admin.status)}`;
             document.querySelector('#admin-summary').innerHTML = [
                 detailRow(@js(__('superadmin.common.name')), escapeHtml(admin.name)),
                 detailRow(@js(__('superadmin.common.email')), escapeHtml(admin.email)),
                 detailRow(@js(__('superadmin.admins.field_phone')), escapeHtml(admin.phone || @js(__('superadmin.admins.not_provided')))),
-                detailRow(@js(__('superadmin.common.role')), escapeHtml(roleLabel)),
                 detailRow(@js(__('superadmin.common.status')), statusPill(admin.status)),
                 detailRow(@js(__('superadmin.admins.created_at')), escapeHtml(formatDateTime(admin.created_at, '—'))),
                 detailRow(@js(__('superadmin.admins.last_login')), escapeHtml(formatDateTime(admin.last_login_at, @js(__('superadmin.admins.never_logged_in'))))),
@@ -234,7 +229,7 @@
                 description: @js(__('superadmin.admins.block_description')),
                 confirmIcon: 'lock',
                 confirmLabel: @js(__('superadmin.admins.block_account')),
-                onConfirm: () => updateAdminStatus('blocked', true),
+                onConfirm: () => updateAdminStatus('suspended', true),
             });
         }
 

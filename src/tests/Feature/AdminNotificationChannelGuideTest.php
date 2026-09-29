@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -21,11 +20,10 @@ class AdminNotificationChannelGuideTest extends TestCase
      */
     public function test_notification_channel_page_renders_platform_guides(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Integration Admin',
             'email' => 'integration-admin@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create([

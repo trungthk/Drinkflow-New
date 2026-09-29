@@ -7,7 +7,7 @@ namespace App\Services\Auth;
 use App\Enums\AdminStatus;
 use App\Http\Requests\AdminLoginRequest;
 use App\Mail\AdminResetPasswordOtpMail;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\SecurityEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,10 +39,10 @@ class AdminAuthService
      * a captcha code is single-use, so a second check would always fail and lock every admin out.
      *
      * @param AdminLoginRequest $request Validated login request.
-     * @return AdminAccount Authenticated admin account instance.
+     * @return Admin Authenticated admin account instance.
      * @throws ValidationException If rate limited or the credentials are invalid.
      */
-    public function login(AdminLoginRequest $request): AdminAccount
+    public function login(AdminLoginRequest $request): Admin
     {
         $key = strtolower((string) $request->input('email')) . '|' . $request->ip();
 
@@ -53,7 +53,7 @@ class AdminAuthService
         }
 
         $credentials = $request->only('email', 'password');
-        $credentials['status'] = 'active';
+        $credentials['status'] = AdminStatus::Active->value;
 
         if (! Auth::guard('admin')->attempt($credentials, $request->boolean('remember'))) {
             RateLimiter::hit($key, 60);
@@ -72,7 +72,7 @@ class AdminAuthService
         RateLimiter::clear($key);
         $request->session()->regenerate();
 
-        /** @var AdminAccount $admin */
+        /** @var Admin $admin */
         $admin = Auth::guard('admin')->user();
         $admin->update(['last_login_at' => now()]);
 
@@ -114,7 +114,7 @@ class AdminAuthService
         }
         RateLimiter::hit($sendKey, self::OTP_WINDOW_SECONDS);
 
-        $admin = AdminAccount::where('email', $normalized)->where('status', AdminStatus::Active)->first();
+        $admin = Admin::where('email', $normalized)->where('status', AdminStatus::Active)->first();
 
         session()->forget(['admin_reset_otp', 'admin_reset_otp_expires_at', 'admin_reset_otp_attempts']);
         session()->put([
@@ -205,7 +205,7 @@ class AdminAuthService
     public function resetPassword(string $password, string $ip): void
     {
         $email = session()->get('admin_reset_email');
-        $admin = AdminAccount::where('email', $email)->where('status', AdminStatus::Active)->first();
+        $admin = Admin::where('email', $email)->where('status', AdminStatus::Active)->first();
 
         if (! $admin) {
             throw ValidationException::withMessages([

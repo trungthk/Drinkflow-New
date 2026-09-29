@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Room;
@@ -36,11 +35,10 @@ class LoadingOverlayTest extends TestCase
 
     public function test_admin_dashboard_uses_loading_overlay_for_trend_chart_and_close_summary(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'loading-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $admin->rooms()->attach($this->room);

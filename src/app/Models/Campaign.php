@@ -173,10 +173,10 @@ class Campaign extends Model
     /**
      * Get the administrator who created the campaign.
      *
-     * @return BelongsTo<AdminAccount, $this> Campaign creator relationship.
+     * @return BelongsTo<Admin, $this> Campaign creator relationship.
      */
     public function creator(): BelongsTo
     {
-        return $this->belongsTo(AdminAccount::class, 'creator_admin_id');
+        return $this->belongsTo(Admin::class, 'creator_admin_id');
     }
 }

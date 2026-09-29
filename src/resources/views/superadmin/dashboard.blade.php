@@ -7,9 +7,15 @@
             <h1>{{ __('superadmin.dashboard.title') }}</h1>
             <p>{{ __('superadmin.dashboard.description') }}</p>
         </div>
-        <div class="superadmin-actions"><a class="sa-button secondary" href="{{ route('superadmin.socket.page') }}"><span
-                    class="material-symbols-outlined">hub</span>{{ __('superadmin.dashboard.live_monitoring') }}</a><a class="sa-button"
-                href="{{ route('superadmin.system.page') }}"><span class="material-symbols-outlined">build_circle</span>{{ __('superadmin.dashboard.system_settings') }}</a></div>
+        <div class="superadmin-actions">
+@can('queue.view')<a class="sa-button secondary" href="{{ route('superadmin.socket.page') }}"><span
+                    class="material-symbols-outlined">hub</span>{{ __('superadmin.dashboard.live_monitoring') }}</a>
+@endcan
+
+@can('settings.view')<a class="sa-button"
+                href="{{ route('superadmin.system.page') }}"><span class="material-symbols-outlined">build_circle</span>{{ __('superadmin.dashboard.system_settings') }}</a>
+@endcan
+</div>
     </div>
     <div id="notice" class="sa-notice"></div>
     <section class="sa-grid kpis kpis-4">
@@ -35,23 +41,35 @@
                     <div><strong>{{ __('superadmin.dashboard.database') }}</strong><small id="database-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">database</span>
                 </div>
-                <a class="sa-health-row" href="{{ route('superadmin.queue.page') }}">
+                
+@can('queue.view')<a class="sa-health-row" href="{{ route('superadmin.queue.page') }}">
                     <div><strong>{{ __('superadmin.dashboard.queue') }}</strong><small id="queue-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">sync_alt</span>
                 </a>
-                <a class="sa-health-row" href="{{ route('superadmin.socket.page') }}">
+@endcan
+
+                
+@can('queue.view')<a class="sa-health-row" href="{{ route('superadmin.socket.page') }}">
                     <div><strong>Socket.IO</strong><small id="socket-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">hub</span>
                 </a>
-                <a class="sa-health-row" href="{{ route('superadmin.system.page') }}#mail">
+@endcan
+
+                
+@can('settings.view')<a class="sa-health-row" href="{{ route('superadmin.system.page') }}#mail">
                     <div><strong>{{ __('superadmin.dashboard.mail') }}</strong><small id="mail-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">mail</span>
                 </a>
-                <a class="sa-health-row" href="{{ route('superadmin.system.page') }}#storage">
+@endcan
+
+                
+@can('settings.view')<a class="sa-health-row" href="{{ route('superadmin.system.page') }}#storage">
                     <div><strong>{{ __('superadmin.dashboard.storage') }}</strong><small id="storage-status">{{ __('superadmin.dashboard.checking') }}</small><small
                             id="storage-usage" class="sa-health-detail"></small></div><span
                         class="material-symbols-outlined">hard_drive</span>
                 </a>
+@endcan
+
                 <div class="sa-health-row" id="supervisor-row" hidden>
                     <div><strong>{{ __('superadmin.dashboard.supervisor') }}</strong><small id="supervisor-status">{{ __('superadmin.dashboard.checking') }}</small></div><span
                         class="material-symbols-outlined">engineering</span>
@@ -65,16 +83,25 @@
                     <p>{{ __('superadmin.dashboard.quick_access_description') }}</p>
                 </div>
             </div>
-            <div class="sa-health-list"><a class="sa-health-row" href="{{ route('superadmin.security.page') }}">
+            <div class="sa-health-list">
+@can('security.view')<a class="sa-health-row" href="{{ route('superadmin.security.page') }}">
                     <div><strong>{{ __('superadmin.layout.security_center') }}</strong><small>{{ __('superadmin.dashboard.failed_login_events') }}</small></div><span
                         class="material-symbols-outlined">arrow_forward</span>
-                </a><a class="sa-health-row" href="{{ route('superadmin.audit.page') }}">
+                </a>
+@endcan
+
+@can('audit.view')<a class="sa-health-row" href="{{ route('superadmin.audit.page') }}">
                     <div><strong>{{ __('superadmin.audit.title') }}</strong><small>{{ __('superadmin.dashboard.global_change_history') }}</small></div><span
                         class="material-symbols-outlined">arrow_forward</span>
-                </a><a class="sa-health-row" href="{{ route('superadmin.queue.page') }}">
+                </a>
+@endcan
+
+@can('queue.view')<a class="sa-health-row" href="{{ route('superadmin.queue.page') }}">
                     <div><strong>{{ __('superadmin.dashboard.failed_jobs') }}</strong><small>{{ __('superadmin.dashboard.failed_jobs_description') }}</small></div><span
                         class="material-symbols-outlined">arrow_forward</span>
-                </a></div>
+                </a>
+@endcan
+</div>
         </section>
     </div>
 
@@ -89,7 +116,6 @@
         data-security-url="{{ route('superadmin.security.page') }}"
         data-admin-url="{{ route('superadmin.admins.detail.page', ['admin' => '__ID__']) }}"
         data-security-types="{{ json_encode(__('superadmin.security.types'), JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
-        data-role-labels="{{ json_encode(['admin' => __('superadmin.admins.role_admin'), 'superadmin' => __('superadmin.admins.role_superadmin')], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
         data-insight-thresholds="{{ json_encode([
             'stale_days' => \App\Services\Dashboard\SuperadminInsightsService::STALE_ADMIN_DAYS,
             'security_days' => \App\Services\Dashboard\SuperadminInsightsService::SECURITY_DAYS,
@@ -457,7 +483,7 @@
             document.querySelector('#active-rooms').textContent = @js(__('superadmin.dashboard.active_rooms', ['count' => '__COUNT__'])).replace('__COUNT__', data.active_rooms);
             document.querySelector('#total-users').textContent = data.total_global_users;
             document.querySelector('#active-users').textContent = @js(__('superadmin.dashboard.active_users', ['count' => '__COUNT__'])).replace('__COUNT__', data.active_global_users);
-            document.querySelector('#total-admins').textContent = data.total_admins;
+            document.querySelector('#total-admins').textContent = data.total_admins ?? '—';
             document.querySelector('#orders-today').textContent = data.orders_today;
             const health = data.system_health;
             document.querySelector('#database-status').innerHTML = statusPill(health.database.status);

@@ -60,7 +60,7 @@ class SystemController extends Controller
      */
     public function mailSettings(UpdateMailSettingsRequest $request, SystemConfigService $config, MailHealthService $mail, AuditService $audit): JsonResponse
     {
-        $changed = $config->save(SystemConfigService::GROUP_MAIL, $request->validated(), $request->user('admin')->id);
+        $changed = $config->save(SystemConfigService::GROUP_MAIL, $request->validated(), $request->user('superadmin')->id);
         $audit->record('system.mail_config_updated', 'system', 0, null, [], [], ['fields' => $changed]);
 
         return response()->json([
@@ -80,7 +80,7 @@ class SystemController extends Controller
      */
     public function storageSettings(UpdateStorageSettingsRequest $request, SystemConfigService $config, StorageHealthService $storage, AuditService $audit): JsonResponse
     {
-        $changed = $config->save(SystemConfigService::GROUP_STORAGE, $request->validated(), $request->user('admin')->id);
+        $changed = $config->save(SystemConfigService::GROUP_STORAGE, $request->validated(), $request->user('superadmin')->id);
         $audit->record('system.storage_config_updated', 'system', 0, null, [], [], ['fields' => $changed]);
 
         return response()->json([
@@ -124,7 +124,7 @@ class SystemController extends Controller
         foreach ($request->validated('settings') as $item) {
             $key = $item['key'];
             $before = SystemSetting::where('key', $key)->first();
-            $setting = $service->set($key, $item['value'] ?? null, $item['type'] ?? 'string', (bool) ($item['is_secret'] ?? false), request()->user('admin')->id);
+            $setting = $service->set($key, $item['value'] ?? null, $item['type'] ?? 'string', (bool) ($item['is_secret'] ?? false), request()->user('superadmin')->id);
             $audit->record('system_setting.updated', 'system_setting', $setting->id, null, ['key' => $key, 'configured' => (bool) $before?->value], ['key' => $key, 'configured' => true]);
             $saved[] = ['key' => $key, 'type' => $setting->type, 'is_secret' => $setting->is_secret, 'configured' => true];
         }
@@ -143,9 +143,9 @@ class SystemController extends Controller
         if ($request->isMethod('get'))
             return response()->json(['data' => $this->maintenanceState($service)]);
         $data = $request->validated();
-        $service->set('maintenance.enabled', $data['enabled'], 'boolean', false, $request->user('admin')->id);
-        $service->set('maintenance.starts_at', $data['starts_at'] ?? null, 'string', false, $request->user('admin')->id);
-        $service->set('maintenance.ends_at', $data['ends_at'] ?? null, 'string', false, $request->user('admin')->id);
+        $service->set('maintenance.enabled', $data['enabled'], 'boolean', false, $request->user('superadmin')->id);
+        $service->set('maintenance.starts_at', $data['starts_at'] ?? null, 'string', false, $request->user('superadmin')->id);
+        $service->set('maintenance.ends_at', $data['ends_at'] ?? null, 'string', false, $request->user('superadmin')->id);
         $audit->record('maintenance.updated', 'system_setting', 0, null, [], ['enabled' => $data['enabled'], 'starts_at' => $data['starts_at'] ?? null, 'ends_at' => $data['ends_at'] ?? null]);
         MaintenanceStateChanged::dispatch();
         return response()->json(['data' => $this->maintenanceState($service)]);
@@ -159,7 +159,7 @@ class SystemController extends Controller
      */
     public function reset(SystemResetRequest $request, ResetSystemAction $action): JsonResponse
     {
-        $result = $action->execute(request()->user('admin'), $request->validated('password'), $request->validated('phrase'));
+        $result = $action->execute($request->user('superadmin'), $request->validated('password'), $request->validated('phrase'));
         return response()->json(['data' => $result]);
     }
 

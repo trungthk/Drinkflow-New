@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\View\Composers;
 
-use App\Models\AdminAccount;
+use App\Models\Superadmin;
 use App\Services\Notification\AdminNotificationService;
 use App\Services\Notification\NotificationPresentationService;
 use Illuminate\View\View;
@@ -35,8 +35,8 @@ class SuperadminLayoutComposer
      */
     public function compose(View $view): void
     {
-        $admin = auth('admin')->user();
-        if (!$admin instanceof AdminAccount) {
+        $admin = auth('superadmin')->user();
+        if (!$admin instanceof Superadmin) {
             $view->with(['headerNotifications' => collect(), 'headerNotificationPresentations' => [], 'headerUnreadCount' => 0]);
 
             return;

@@ -18,7 +18,8 @@ class SetStatusRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->authorizeActiveRoomAdmin();
+        // Shared by the admin room-user screen and the superadmin console, each on its own guard.
+        return $this->is('superadmin/*') ? $this->authorizeActiveSuperadmin() : $this->authorizeActiveRoomAdmin();
     }
 
     /**

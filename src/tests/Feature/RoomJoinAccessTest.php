@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\AdminStatus;
 use App\Enums\GlobalUserStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
@@ -50,9 +49,9 @@ class RoomJoinAccessTest extends TestCase
     public function test_admin_without_global_user_cannot_register(): void
     {
         $room = $this->room();
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Admin', 'email' => 'join-admin@example.test', 'password' => 'secret',
-            'role' => AdminRole::Admin, 'status' => AdminStatus::Active,
+            'status' => AdminStatus::Active,
         ]);
         $this->actingAs($admin, 'admin');
 

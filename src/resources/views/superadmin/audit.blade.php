@@ -44,7 +44,7 @@
                     @forelse($audits as $audit)
                         @php
                             $isSuperadminActor = $audit->actor_type === \App\Models\AuditLog::ACTOR_SUPERADMIN;
-                            $actorName = $audit->actorAdmin?->name;
+                            $actorName = $audit->actor_type === \App\Models\AuditLog::ACTOR_SUPERADMIN ? $audit->actorSuperadmin?->name : $audit->actorAdmin?->name;
                         @endphp
                         <tr>
                             <td class="whitespace-nowrap">

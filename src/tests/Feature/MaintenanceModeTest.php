@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
-use App\Models\AdminAccount;
+use App\Models\Admin;
+use App\Models\Superadmin;
 use App\Models\GlobalUser;
 use App\Services\System\SystemSettingsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,7 +40,7 @@ class MaintenanceModeTest extends TestCase
         $user = GlobalUser::create(['name' => 'User', 'normalized_name' => 'USER', 'email' => 'user-maint@drinkflow.test', 'status' => 'active']);
         $this->actingAs($user, 'web')->get('/')->assertStatus(503);
 
-        $roomAdmin = AdminAccount::create(['name' => 'Room admin', 'email' => 'room-admin-maint@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active']);
+        $roomAdmin = Admin::create(['name' => 'Room admin', 'email' => 'room-admin-maint@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
         $this->actingAs($roomAdmin, 'admin')->get('/admin/profile')
             ->assertStatus(503)
             ->assertSee(__('errors.maintenance.title'));
@@ -55,31 +55,31 @@ class MaintenanceModeTest extends TestCase
 
         $this->get('/admin/login')->assertOk();
 
-        $root = AdminAccount::create(['name' => 'Root', 'email' => 'root-maint@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::SuperAdmin, 'status' => 'active']);
-        $this->actingAs($root, 'admin')->get('/superadmin')
+        $root = $this->createSuperadmin(['name' => 'Root', 'email' => 'root-maint@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
+        $this->actingAs($root, 'superadmin')->get('/superadmin')
             ->assertOk()
             ->assertSee('data-maintenance-banner="active"', false)
             ->assertSee(__('superadmin.maintenance_banner.active'));
 
         // The superadmin session must not unlock public/user pages sharing the same browser session.
-        $this->actingAs($root, 'admin')->get('/')
+        $this->actingAs($root, 'superadmin')->get('/')
             ->assertStatus(503)
             ->assertSee(__('errors.maintenance.title'));
     }
 
     public function test_scheduled_or_expired_maintenance_does_not_block_and_banner_reflects_schedule(): void
     {
-        $root = AdminAccount::create(['name' => 'Root', 'email' => 'root-sched@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::SuperAdmin, 'status' => 'active']);
+        $root = $this->createSuperadmin(['name' => 'Root', 'email' => 'root-sched@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
 
         $this->setMaintenance(true, now()->addDay()->format('Y-m-d\TH:i'));
         $this->get('/')->assertOk();
-        $this->actingAs($root, 'admin')->get('/superadmin')->assertOk()->assertSee('data-maintenance-banner="scheduled"', false);
+        $this->actingAs($root, 'superadmin')->get('/superadmin')->assertOk()->assertSee('data-maintenance-banner="scheduled"', false);
 
         $this->setMaintenance(true, now()->subDays(2)->format('Y-m-d\TH:i'), now()->subDay()->format('Y-m-d\TH:i'));
         $this->get('/')->assertOk();
 
         $this->setMaintenance(false);
-        $this->actingAs($root, 'admin')->get('/superadmin')->assertOk()->assertDontSee('data-maintenance-banner', false);
+        $this->actingAs($root, 'superadmin')->get('/superadmin')->assertOk()->assertDontSee('data-maintenance-banner', false);
     }
 
     private function setMaintenance(bool $enabled, ?string $startsAt = null, ?string $endsAt = null): void

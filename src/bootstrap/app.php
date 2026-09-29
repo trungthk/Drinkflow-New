@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'room.user' => \App\Http\Middleware\ResolveRoomUser::class,
             'admin.room' => \App\Http\Middleware\EnsureAdminRoomAccess::class,
             'superadmin' => \App\Http\Middleware\EnsureSuperadmin::class,
+            'permission' => \App\Http\Middleware\EnsureSuperadminPermission::class,
             'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
             'user.has_rooms' => \App\Http\Middleware\EnsureUserHasRooms::class,
             'user.active_room' => \App\Http\Middleware\EnsureUserHasActiveRoom::class,
@@ -28,9 +29,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'room.email_domain' => \App\Http\Middleware\EnsureRoomEmailDomainAllowed::class,
         ]);
         $middleware->redirectGuestsTo(function (Request $request): string {
-            return $request->is('admin', 'admin/*', 'superadmin', 'superadmin/*')
-                ? route('admin.login.page')
-                : route('auth.google');
+            if ($request->is('superadmin', 'superadmin/*')) {
+                return route('superadmin.login.page');
+            }
+
+            return $request->is('admin', 'admin/*') ? route('admin.login.page') : route('auth.google');
         });
         $middleware->validateCsrfTokens(except: ['logout']);
         $middleware->web(append: [
@@ -46,6 +49,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(
             before: \Illuminate\Routing\Middleware\SubstituteBindings::class,
             prepend: \App\Http\Middleware\SetLocale::class,
+        );
+        // Same for the security headers: a 404 from route model binding must still carry them (noindex, CSP...).
+        $middleware->prependToPriorityList(
+            before: \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            prepend: \App\Http\Middleware\SecurityHeaders::class,
         );
         $middleware->append(\App\Http\Middleware\SanitizeInputStrings::class);
     })

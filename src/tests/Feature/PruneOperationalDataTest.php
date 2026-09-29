@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AdminNotification;
 use App\Models\AuditLog;
 use App\Models\CrawlerPreview;
@@ -29,7 +29,7 @@ class PruneOperationalDataTest extends TestCase
         config()->set('retention.crawler_previews_days', 2);
         config()->set('retention.log_files_days', 14);
 
-        $admin = AdminAccount::create(['name' => 'Admin', 'email' => 'prune@example.test', 'password' => 'password', 'role' => 'admin', 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Admin', 'email' => 'prune@example.test', 'password' => 'password', 'status' => 'active']);
         $globalUser = GlobalUser::create(['name' => 'Prune User', 'email' => 'prune-user@example.test', 'status' => 'active']);
         $room = Room::create(['name' => 'Prune Room', 'slug' => 'prune-room', 'status' => 'active']);
 

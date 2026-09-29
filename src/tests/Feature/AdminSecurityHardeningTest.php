@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Exports\CampaignAggregateExport;
 use App\Http\Middleware\SanitizeInputStrings;
 use App\Mail\AdminResetPasswordOtpMail;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Room;
 use App\Services\FoodCrawler\Exceptions\FoodCrawlerException;
 use App\Services\FoodCrawler\FoodCrawlerGateway;
@@ -31,7 +30,7 @@ class AdminSecurityHardeningTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $admin;
+    private Admin $admin;
 
     private Room $room;
 
@@ -39,11 +38,10 @@ class AdminSecurityHardeningTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = AdminAccount::create([
+        $this->admin = Admin::create([
             'name' => 'Hardening Admin',
             'email' => 'hardening@example.test',
             'password' => Hash::make('a-very-long-password-1'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $this->room = Room::create(['name' => 'Hardening', 'slug' => 'hardening', 'status' => 'active']);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\AdminStatus;
 use App\Events\CampaignClosed;
 use App\Events\CampaignCreated;
@@ -17,7 +16,7 @@ use App\Listeners\NotifyCampaignClosed;
 use App\Listeners\NotifyCampaignCreated;
 use App\Listeners\NotifyOrderDeleted;
 use App\Listeners\PublishRealtimeEvent;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Order;
@@ -67,11 +66,10 @@ class SecurityAndDriverEnhancementsTest extends TestCase
 
     public function test_admin_login_bypasses_captcha_in_local_environment(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Local Admin',
             'email' => 'localadmin@example.test',
             'password' => 'secret123',
-            'role' => AdminRole::Admin,
             'status' => AdminStatus::Active,
         ]);
 
@@ -95,11 +93,10 @@ class SecurityAndDriverEnhancementsTest extends TestCase
      */
     public function test_admin_login_succeeds_with_valid_captcha_in_production_environment(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Prod Admin',
             'email' => 'captchaok@example.test',
             'password' => 'secret123',
-            'role' => AdminRole::Admin,
             'status' => AdminStatus::Active,
         ]);
 
@@ -126,11 +123,10 @@ class SecurityAndDriverEnhancementsTest extends TestCase
      */
     public function test_admin_login_rejects_wrong_captcha_and_records_security_event(): void
     {
-        AdminAccount::create([
+        Admin::create([
             'name' => 'Prod Admin',
             'email' => 'captchabad@example.test',
             'password' => 'secret123',
-            'role' => AdminRole::Admin,
             'status' => AdminStatus::Active,
         ]);
 
@@ -156,11 +152,10 @@ class SecurityAndDriverEnhancementsTest extends TestCase
 
     public function test_admin_login_requires_captcha_in_production_environment(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Prod Admin',
             'email' => 'prodadmin@example.test',
             'password' => 'secret123',
-            'role' => AdminRole::Admin,
             'status' => AdminStatus::Active,
         ]);
 

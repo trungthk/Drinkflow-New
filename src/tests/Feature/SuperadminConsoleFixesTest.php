@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Actions\Superadmin\DeleteGlobalUserAction;
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Events\CampaignCancelled;
-use App\Models\AdminAccount;
+use App\Models\Admin;
+use App\Models\Superadmin;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\GlobalUser;
@@ -25,16 +25,16 @@ class SuperadminConsoleFixesTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $root;
+    private Superadmin $root;
     private Room $room;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->root = AdminAccount::create([
+        $this->root = $this->createSuperadmin([
             'name' => 'Root', 'email' => 'root-fixes@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::SuperAdmin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
         $this->room = Room::create(['name' => 'Fix Room', 'slug' => 'fix-room', 'status' => 'active']);
     }
@@ -66,7 +66,7 @@ class SuperadminConsoleFixesTest extends TestCase
         [$user, $roomUser] = $this->memberWithOrderHistory();
         $device = RoomUserDevice::create(['room_user_id' => $roomUser->id, 'device_uuid' => 'device-fixes', 'token_hash' => 'x', 'verified_at' => now()]);
 
-        $this->actingAs($this->root, 'admin')->deleteJson("/superadmin/global-users/{$user->id}")->assertOk();
+        $this->actingAs($this->root, 'superadmin')->deleteJson("/superadmin/global-users/{$user->id}")->assertOk();
 
         $this->assertDatabaseHas('global_users', ['id' => $user->id, 'status' => 'deleted']);
         $this->assertDatabaseHas('room_users', ['id' => $roomUser->id, 'status' => 'removed']);
@@ -75,8 +75,8 @@ class SuperadminConsoleFixesTest extends TestCase
         $this->assertSame(1, AuditLog::where('event', 'global_user.deleted')->where('target_id', $user->id)->count());
 
         // A second delete, or bringing the account back through the status endpoint, is refused.
-        $this->actingAs($this->root, 'admin')->deleteJson("/superadmin/global-users/{$user->id}")->assertStatus(422);
-        $this->actingAs($this->root, 'admin')->patchJson("/superadmin/global-users/{$user->id}/status", ['status' => 'active'])->assertStatus(422);
+        $this->actingAs($this->root, 'superadmin')->deleteJson("/superadmin/global-users/{$user->id}")->assertStatus(422);
+        $this->actingAs($this->root, 'superadmin')->patchJson("/superadmin/global-users/{$user->id}/status", ['status' => 'active'])->assertStatus(422);
         $this->assertDatabaseHas('global_users', ['id' => $user->id, 'status' => 'deleted']);
     }
 
@@ -84,7 +84,7 @@ class SuperadminConsoleFixesTest extends TestCase
     {
         [$user] = $this->memberWithOrderHistory();
 
-        $this->actingAs($this->root, 'admin')->patchJson("/superadmin/global-users/{$user->id}/status", ['status' => 'deleted'])->assertStatus(422);
+        $this->actingAs($this->root, 'superadmin')->patchJson("/superadmin/global-users/{$user->id}/status", ['status' => 'deleted'])->assertStatus(422);
         $this->assertDatabaseHas('global_users', ['id' => $user->id, 'status' => 'active']);
     }
 
@@ -94,18 +94,18 @@ class SuperadminConsoleFixesTest extends TestCase
         $user->update(['status' => 'deleted']);
         GlobalUser::create(['name' => 'Visible Person', 'email' => 'visible-fixes@drinkflow.test']);
 
-        $this->actingAs($this->root, 'admin')->get('/superadmin/global-users/page')
+        $this->actingAs($this->root, 'superadmin')->get('/superadmin/global-users/page')
             ->assertOk()->assertSee('Visible Person')->assertDontSee('member-fixes@drinkflow.test');
-        $this->actingAs($this->root, 'admin')->get('/superadmin/global-users/page?status=deleted')
+        $this->actingAs($this->root, 'superadmin')->get('/superadmin/global-users/page?status=deleted')
             ->assertOk()->assertSee('member-fixes@drinkflow.test')->assertDontSee('Visible Person');
-        $this->actingAs($this->root, 'admin')->getJson('/superadmin/global-users')
+        $this->actingAs($this->root, 'superadmin')->getJson('/superadmin/global-users')
             ->assertOk()->assertJsonMissing(['email' => 'member-fixes@drinkflow.test']);
     }
 
     public function test_deleted_user_cannot_use_the_app(): void
     {
         [$user] = $this->memberWithOrderHistory();
-        $this->actingAs($this->root, 'admin')->deleteJson("/superadmin/global-users/{$user->id}")->assertOk();
+        $this->actingAs($this->root, 'superadmin')->deleteJson("/superadmin/global-users/{$user->id}")->assertOk();
 
         $this->actingAs($user->fresh(), 'web')->get('/me')->assertForbidden();
     }
@@ -115,9 +115,9 @@ class SuperadminConsoleFixesTest extends TestCase
         [$user] = $this->memberWithOrderHistory();
         app(DeleteGlobalUserAction::class)->execute($user);
 
-        $roomAdmin = AdminAccount::create([
+        $roomAdmin = Admin::create([
             'name' => 'Room Admin', 'email' => 'room-admin-fixes@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
         $roomAdmin->rooms()->attach($this->room);
         $this->actingAs($roomAdmin, 'admin')
@@ -139,7 +139,7 @@ class SuperadminConsoleFixesTest extends TestCase
             'subtotal' => 20000, 'final_amount' => 20000, 'status' => OrderStatus::Submitted,
         ]);
 
-        $this->actingAs($this->root, 'admin')->postJson("/superadmin/campaigns/{$campaign->id}/force-cancel")
+        $this->actingAs($this->root, 'superadmin')->postJson("/superadmin/campaigns/{$campaign->id}/force-cancel")
             ->assertOk()
             ->assertJsonPath('data.status', 'archived');
 
@@ -148,24 +148,24 @@ class SuperadminConsoleFixesTest extends TestCase
         $this->assertSame(1, AuditLog::where('event', 'campaign.force_cancelled')->where('target_id', $campaign->id)->count());
 
         // Already archived (or closed/cancelled) campaigns cannot be force-cancelled.
-        $this->actingAs($this->root, 'admin')->postJson("/superadmin/campaigns/{$campaign->id}/force-cancel")->assertStatus(422);
+        $this->actingAs($this->root, 'superadmin')->postJson("/superadmin/campaigns/{$campaign->id}/force-cancel")->assertStatus(422);
         $closed = Campaign::create(['room_id' => $this->room->id, 'status' => CampaignStatus::Closed, 'name' => 'Closed', 'restaurant' => 'Shop']);
-        $this->actingAs($this->root, 'admin')->postJson("/superadmin/campaigns/{$closed->id}/force-cancel")->assertStatus(422);
+        $this->actingAs($this->root, 'superadmin')->postJson("/superadmin/campaigns/{$closed->id}/force-cancel")->assertStatus(422);
         $this->assertSame(CampaignStatus::Closed, $closed->fresh()->status);
     }
 
     public function test_admin_and_room_actions_are_audited_once(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Operator', 'email' => 'operator-fixes@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
 
-        $this->actingAs($this->root, 'admin')->patchJson("/superadmin/admins/{$admin->id}/status", ['status' => 'disabled'])->assertOk();
-        $this->actingAs($this->root, 'admin')->patchJson("/superadmin/rooms/{$this->room->id}/status", ['status' => 'inactive'])->assertOk();
-        $this->actingAs($this->root, 'admin')->postJson('/superadmin/admins', [
+        $this->actingAs($this->root, 'superadmin')->patchJson("/superadmin/admins/{$admin->id}/status", ['status' => 'cancelled'])->assertOk();
+        $this->actingAs($this->root, 'superadmin')->patchJson("/superadmin/rooms/{$this->room->id}/status", ['status' => 'inactive'])->assertOk();
+        $this->actingAs($this->root, 'superadmin')->postJson('/superadmin/admins', [
             'name' => 'New Admin', 'email' => 'new-admin-fixes@drinkflow.test',
-            'password' => 'password123', 'password_confirmation' => 'password123', 'role' => 'admin', 'status' => 'active',
+            'password' => 'password123', 'password_confirmation' => 'password123', 'status' => 'active',
         ])->assertCreated();
 
         $this->assertSame(1, AuditLog::where('target_type', 'admin')->where('target_id', $admin->id)->count());
@@ -175,13 +175,13 @@ class SuperadminConsoleFixesTest extends TestCase
 
     public function test_room_detail_and_dashboard_have_no_hardcoded_labels(): void
     {
-        $this->actingAs($this->root, 'admin')->get("/superadmin/rooms/{$this->room->id}/page")
+        $this->actingAs($this->root, 'superadmin')->get("/superadmin/rooms/{$this->room->id}/page")
             ->assertOk()
             ->assertSee('<title>'.e(__('superadmin.rooms.profile')).' · DrinkFlow</title>', false)
             ->assertDontSee("'Enable room'", false)
             ->assertDontSee('Đã cập nhật trạng thái Room.', false);
 
-        $this->actingAs($this->root, 'admin')->get('/superadmin')
+        $this->actingAs($this->root, 'superadmin')->get('/superadmin')
             ->assertOk()
             ->assertSee(__('superadmin.dashboard.room_admins'))
             ->assertDontSee('</span>System', false);

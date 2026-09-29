@@ -19,15 +19,9 @@
             </div>
             <form method="GET" class="superadmin-actions">
                 <x-superadmin.search-input :value="$filters['search'] ?? ''" placeholder="{{ __('superadmin.admins.search') }}" />
-                <select name="role" class="sa-input">
-                    <option value="">{{ __('superadmin.admins.all_roles') }}</option>
-                    @foreach (['admin', 'superadmin'] as $value)
-                        <option value="{{ $value }}" @selected(($filters['role'] ?? '') === $value)>{{ __('superadmin.admins.role_'.$value) }}</option>
-                    @endforeach
-                </select>
                 <select name="status" class="sa-input">
                     <option value="">{{ __('superadmin.common.all_statuses') }}</option>
-                    @foreach (['active', 'blocked'] as $value)
+                    @foreach (array_column(\App\Enums\AdminStatus::cases(), 'value') as $value)
                         <option value="{{ $value }}" @selected(($filters['status'] ?? '') === $value)>{{ __('superadmin.common.'.$value) }}</option>
                     @endforeach
                 </select>
@@ -39,7 +33,6 @@
                 <thead>
                     <tr>
                         <th>{{ __('superadmin.common.admin') }}</th>
-                        <th>{{ __('superadmin.common.role') }}</th>
                         <th>{{ __('superadmin.common.status') }}</th>
                         <th>{{ __('superadmin.admins.assigned_rooms') }}</th>
                         <th class="text-right">{{ __('superadmin.common.actions') }}</th>
@@ -48,7 +41,6 @@
                 <tbody>
                     @forelse($admins as $admin)
                         @php
-                            $isSuperadmin = $admin->isSuperadmin();
                             $statusValue = $admin->status instanceof \BackedEnum ? $admin->status->value : (string) $admin->status;
                         @endphp
                         <tr>
@@ -61,30 +53,21 @@
                                     </span>
                                 </div>
                             </td>
-                            <td>
-                                <span class="inline-flex items-center gap-1 whitespace-nowrap font-semibold">
-                                    <span class="material-symbols-outlined text-[16px]">{{ $isSuperadmin ? 'shield_person' : 'person' }}</span>{{ __('superadmin.admins.role_'.($isSuperadmin ? 'superadmin' : 'admin')) }}
-                                </span>
-                            </td>
                             <td><x-superadmin.status-pill :status="$statusValue" /></td>
                             <td class="whitespace-nowrap">{{ __('superadmin.common.rooms_count', ['count' => $admin->rooms_count]) }}</td>
                             <td>
                                 <div class="flex items-center justify-end gap-2 whitespace-nowrap">
                                     <a class="sa-button secondary" href="{{ route('superadmin.admins.detail.page', $admin) }}"><span class="material-symbols-outlined text-[16px]">visibility</span>{{ __('superadmin.common.details') }}</a>
-                                    @if($isSuperadmin)
-                                        <span class="status-pill status-active"><span class="material-symbols-outlined text-[14px]">verified_user</span>{{ __('superadmin.common.protected') }}</span>
-                                    @else
-                                        @if($statusValue === 'active')
-                                            <button class="sa-button warning" type="button" data-action="block-admin" data-admin-id="{{ $admin->id }}" data-admin-name="{{ $admin->name }}"><span class="material-symbols-outlined text-[16px]">lock</span>{{ __('superadmin.common.block') }}</button>
-                                        @endif
-                                        <button class="sa-button danger" type="button" data-action="delete-admin" data-admin-id="{{ $admin->id }}" data-admin-name="{{ $admin->name }}"><span class="material-symbols-outlined text-[16px]">delete</span>{{ __('superadmin.common.delete') }}</button>
+                                    @if($statusValue === 'active')
+                                        <button class="sa-button warning" type="button" data-action="block-admin" data-admin-id="{{ $admin->id }}" data-admin-name="{{ $admin->name }}"><span class="material-symbols-outlined text-[16px]">lock</span>{{ __('superadmin.common.block') }}</button>
                                     @endif
+                                    <button class="sa-button danger" type="button" data-action="delete-admin" data-admin-id="{{ $admin->id }}" data-admin-name="{{ $admin->name }}"><span class="material-symbols-outlined text-[16px]">delete</span>{{ __('superadmin.common.delete') }}</button>
                                 </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5">
+                            <td colspan="4">
                                 <x-superadmin.empty-state icon="manage_search" :title="__('superadmin.admins.no_results_title')" :description="__('superadmin.admins.no_results_description')" />
                             </td>
                         </tr>
@@ -203,7 +186,7 @@
             try {
                 await dfApi(@json(route('superadmin.admins.store')), {
                     method: 'POST',
-                    body: { name: form.name.value, email: form.email.value, password: form.password.value, role: 'admin', room_ids: roomIds },
+                    body: { name: form.name.value, email: form.email.value, password: form.password.value, room_ids: roomIds },
                 });
                 window.location.reload();
             } catch (error) {
@@ -235,7 +218,7 @@
                 confirmIcon: 'lock',
                 confirmLabel: @js(__('superadmin.admins.block_account')),
                 onConfirm: async () => {
-                    await dfApi(`/superadmin/admins/${blockBtn.dataset.adminId}/status`, { method: 'PATCH', body: { status: 'blocked' } });
+                    await dfApi(`/superadmin/admins/${blockBtn.dataset.adminId}/status`, { method: 'PATCH', body: { status: 'suspended' } });
                     adminNotice(@js(__('superadmin.admins.updated')));
                     window.setTimeout(() => window.location.reload(), 500);
                 },

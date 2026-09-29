@@ -25,6 +25,7 @@ class Version extends Model
         'force_refresh',
         'important',
         'created_by_admin_id',
+        'created_by_superadmin_id',
     ];
 
     /**

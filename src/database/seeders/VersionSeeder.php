@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Models\AdminAccount;
+use App\Models\Superadmin;
 use App\Models\Version;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -16,7 +16,7 @@ class VersionSeeder extends Seeder
      */
     public function run(): void
     {
-        $superadmin = AdminAccount::query()->where('role', 'superadmin')->first();
+        $superadmin = Superadmin::query()->orderBy('id')->first();
 
         $versions = [
             [
@@ -26,7 +26,7 @@ class VersionSeeder extends Seeder
                 'release_date' => Carbon::createFromFormat('d/m/Y', '18/09/2026')->toDateString(),
                 'force_refresh' => false,
                 'important' => true,
-                'created_by_admin_id' => $superadmin?->id,
+                'created_by_superadmin_id' => $superadmin?->id,
             ]
         ];
 

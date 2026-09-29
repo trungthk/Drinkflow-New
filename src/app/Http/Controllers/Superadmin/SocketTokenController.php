@@ -19,6 +19,6 @@ class SocketTokenController extends Controller
      */
     public function __invoke(Request $request, SocketTokenService $tokens): JsonResponse
     {
-        return response()->json(['data' => ['token' => $tokens->issueForAdmin($request->user('admin')), 'channels' => ['superadmin', 'system'], 'expires_in' => 300]]);
+        return response()->json(['data' => ['token' => $tokens->issueForSuperadmin($request->user('superadmin')), 'channels' => ['superadmin', 'system'], 'expires_in' => 300]]);
     }
 }

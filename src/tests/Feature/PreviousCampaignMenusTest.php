@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -16,7 +15,7 @@ class PreviousCampaignMenusTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $admin;
+    private Admin $admin;
 
     private Room $room;
 
@@ -27,11 +26,10 @@ class PreviousCampaignMenusTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = AdminAccount::create([
+        $this->admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'prev-menus@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $this->room = Room::create(['name' => 'Prev Room', 'slug' => 'prev-room', 'status' => 'active']);

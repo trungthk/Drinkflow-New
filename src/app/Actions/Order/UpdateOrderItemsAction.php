@@ -8,7 +8,7 @@ use App\Enums\CampaignStatus;
 use App\Enums\NotificationType;
 use App\Enums\PaymentStatus;
 use App\Events\OrderUpdated;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -36,12 +36,12 @@ class UpdateOrderItemsAction
      * Only the order's own member is billed: ordering for someone else (proxy lines) is not supported here.
      *
      * @param Order $order Order being edited; must still be active, unpaid and in a live campaign (even past its deadline).
-     * @param AdminAccount $admin Admin editing the order.
+     * @param Admin $admin Admin editing the order.
      * @param array<string, mixed> $data Validated payload (items[], note).
      * @return Order Updated order with its items and member loaded.
      * @throws ValidationException When the order or campaign can no longer be edited, or a line is invalid.
      */
-    public function execute(Order $order, AdminAccount $admin, array $data): Order
+    public function execute(Order $order, Admin $admin, array $data): Order
     {
         $updated = DB::transaction(function () use ($order, $admin, $data): Order {
             $campaign = Campaign::query()->lockForUpdate()->findOrFail($order->campaign_id);

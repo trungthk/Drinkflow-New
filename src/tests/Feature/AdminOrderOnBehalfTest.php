@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
@@ -25,7 +24,7 @@ class AdminOrderOnBehalfTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $admin;
+    private Admin $admin;
 
     private Room $room;
 
@@ -40,11 +39,10 @@ class AdminOrderOnBehalfTest extends TestCase
         parent::setUp();
         $this->withoutMiddleware(ValidateCsrfToken::class);
 
-        $this->admin = AdminAccount::create([
+        $this->admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'on-behalf-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $this->room = Room::create(['name' => 'On Behalf Room', 'slug' => 'on-behalf-room', 'status' => 'active']);
@@ -128,11 +126,10 @@ class AdminOrderOnBehalfTest extends TestCase
 
     public function test_admin_of_another_room_cannot_order(): void
     {
-        $stranger = AdminAccount::create([
+        $stranger = Admin::create([
             'name' => 'Stranger',
             'email' => 'stranger-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
 

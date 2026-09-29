@@ -139,7 +139,7 @@ html {
 .sa-table tr:hover td { background: #f8f9ff; }
 .status-pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 99px; background: #eff4ff; padding: 5px 9px; color: #64748b; font-size: 10px; font-weight: 700; }
 .status-pill.status-active, .status-pill.status-ok, .status-pill.status-healthy { background: #d1fae5; color: #047857; }
-.status-pill.status-blocked, .status-pill.status-disabled, .status-pill.status-error, .status-pill.status-failed { background: #fee2e2; color: #b91c1c; }
+.status-pill.status-blocked, .status-pill.status-suspended, .status-pill.status-rejected, .status-pill.status-disabled, .status-pill.status-error, .status-pill.status-failed { background: #fee2e2; color: #b91c1c; }
 .status-pill.status-pending { background: #fef3c7; color: #92400e; }
 /* Campaign status palette — keep in sync with App\Enums\CampaignStatus::badgeClass()/dotClass() */
 .status-pill.status-scheduled { background: #f0f9ff; color: #0369a1; }

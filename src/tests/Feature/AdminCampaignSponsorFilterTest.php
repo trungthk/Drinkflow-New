@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,7 +23,7 @@ class AdminCampaignSponsorFilterTest extends TestCase
      */
     public function test_campaign_list_filters_by_sponsor_type_and_marks_sponsored_campaigns(): void
     {
-        $admin = AdminAccount::create(['name' => 'Sponsor Admin', 'email' => 'sponsor-filter@example.test', 'password' => Hash::make('secret'), 'role' => AdminRole::Admin, 'status' => 'active']);
+        $admin = Admin::create(['name' => 'Sponsor Admin', 'email' => 'sponsor-filter@example.test', 'password' => Hash::make('secret'), 'status' => 'active']);
         $room = Room::create(['name' => 'Sponsor Room', 'slug' => 'sponsor-room', 'status' => 'active']);
         $admin->rooms()->attach($room);
         Campaign::create(['room_id' => $room->id, 'name' => 'Self Paid Tea', 'restaurant' => 'Cafe', 'sponsor_type' => Campaign::SPONSOR_TYPE_NONE, 'status' => CampaignStatus::Closed]);

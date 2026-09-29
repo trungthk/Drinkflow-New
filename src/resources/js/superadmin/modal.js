@@ -61,6 +61,25 @@ export function initSuperadminModals() {
         document.querySelectorAll('[data-modal]:not(.hidden)').forEach((modal) => closeModal(modal));
     });
 
+    // Server-rendered forms with data-confirm="message" (and optional data-confirm-description,
+    // data-confirm-label, data-confirm-icon) ask through the shared confirm modal before submitting.
+    document.addEventListener('submit', (event) => {
+        const form = event.target;
+        if (!(form instanceof HTMLFormElement) || !form.dataset.confirm || form.dataset.confirmed === '1') return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        openSuperadminConfirm({
+            message: form.dataset.confirm,
+            description: form.dataset.confirmDescription,
+            confirmLabel: form.dataset.confirmLabel,
+            confirmIcon: form.dataset.confirmIcon,
+            onConfirm: () => {
+                form.dataset.confirmed = '1';
+                form.requestSubmit();
+            },
+        });
+    }, true);
+
     window.openSuperadminModal = (id) => {
         const modal = document.getElementById(id);
         if (modal) openModal(modal);

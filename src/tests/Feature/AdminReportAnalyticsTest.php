@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\GlobalUser;
@@ -120,12 +119,12 @@ class AdminReportAnalyticsTest extends TestCase
             ->assertJsonPath('data.sponsors_leaderboard.0.total_sponsored', 20000);
     }
 
-    private function admin(string $email = 'report-admin@example.test'): AdminAccount
+    private function admin(string $email = 'report-admin@example.test'): Admin
     {
-        return AdminAccount::create(['name' => 'Report Admin', 'email' => $email, 'password' => Hash::make('secret'), 'role' => AdminRole::Admin, 'status' => 'active']);
+        return Admin::create(['name' => 'Report Admin', 'email' => $email, 'password' => Hash::make('secret'), 'status' => 'active']);
     }
 
-    private function roomFor(AdminAccount $admin, string $slug = 'report-analytics-room'): Room
+    private function roomFor(Admin $admin, string $slug = 'report-analytics-room'): Room
     {
         $room = Room::create(['name' => 'Report Room', 'slug' => $slug, 'status' => 'active']);
         $admin->rooms()->attach($room);

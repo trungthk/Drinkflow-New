@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Mail;
 
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -18,12 +18,12 @@ class AdminResetPasswordOtpMail extends Mailable
     /**
      * Create a new message instance.
      *
-     * @param AdminAccount $admin Admin account instance.
+     * @param Admin $admin Admin account instance.
      * @param string $otp 6-digit OTP code.
      * @param int $validMinutes Validity duration in minutes.
      */
     public function __construct(
-        public readonly AdminAccount $admin,
+        public readonly Admin $admin,
         public readonly string $otp,
         public readonly int $validMinutes = 15,
     ) {

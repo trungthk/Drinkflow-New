@@ -7,7 +7,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Enums\AdminStatus;
 use App\Enums\GlobalUserStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Services\Audit\AuditService;
 use App\Services\Auth\GoogleOAuthService;
 use Illuminate\Http\RedirectResponse;
@@ -61,7 +61,7 @@ class GoogleAuthController extends Controller
             $pendingAdminId = $request->session()->get('admin_google_2fa_admin_id');
             if ($pendingAdminId) {
                 $profile = $service->fetchProfile($request);
-                $admin = AdminAccount::query()
+                $admin = Admin::query()
                     ->whereKey((int) $pendingAdminId)
                     ->where('email', strtolower((string) $profile['email']))
                     ->where('status', AdminStatus::Active->value)

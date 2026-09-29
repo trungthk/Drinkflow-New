@@ -7,7 +7,10 @@ namespace App\Http\Controllers\Superadmin;
 use App\Actions\Superadmin\ForceArchiveCampaignAction;
 use App\Actions\Campaign\CloseCampaignAction;
 use App\Http\Controllers\Controller;
+use App\Enums\Permission;
 use App\Models\Campaign;
+use App\Services\Authorization\AgentScope;
+use Illuminate\Support\Facades\Gate;
 use App\Services\Audit\AuditService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -23,6 +26,7 @@ class CampaignController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Campaign::query()->with(['room:id,name,slug', 'paymentAccount:id,room_id,bank_name,account_name'])->withCount('orders')->latest();
+        app(AgentScope::class)->applyToRoomOwned($query, $request->user('superadmin'), Permission::RoomView);
         if ($request->filled('room_id'))
             $query->where('room_id', $request->integer('room_id'));
         if ($request->filled('status'))
@@ -40,6 +44,7 @@ class CampaignController extends Controller
      */
     public function forceClose(Campaign $campaign, CloseCampaignAction $action, AuditService $audit): JsonResponse
     {
+        Gate::authorize('update', $campaign->room);
         $before = ['status' => $campaign->status?->value ?? (string) $campaign->status];
         $result = $action->execute($campaign);
         $audit->record('campaign.force_closed', 'campaign', $campaign->id, $campaign->room_id, $before, ['status' => $result->status?->value ?? (string) $result->status]);
@@ -56,6 +61,8 @@ class CampaignController extends Controller
      */
     public function forceCancel(Campaign $campaign, ForceArchiveCampaignAction $action): JsonResponse
     {
+        Gate::authorize('update', $campaign->room);
+
         return response()->json(['data' => $action->execute($campaign)]);
     }
 }

@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Events\CampaignCreated;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\CampaignParticipant;
 use App\Models\Debt;
@@ -26,7 +25,7 @@ class AdminCampaignSubViewsTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $admin;
+    private Admin $admin;
     private Room $room;
     private Campaign $campaign;
 
@@ -34,11 +33,10 @@ class AdminCampaignSubViewsTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = AdminAccount::create([
+        $this->admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'roomadmin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
 

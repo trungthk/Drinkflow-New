@@ -1,7 +1,6 @@
     <x-admin.layout :title="__('admin.profile_title')">
         @php
             $initials = mb_strtoupper(mb_substr($admin->name, 0, 2));
-            $role = $admin->role?->value ?? 'admin';
             $avatarUrl = $admin->avatar_url ? route('admin.profile.avatar.show') : null;
         @endphp
 
@@ -51,7 +50,7 @@
                             <div class="flex flex-wrap items-center gap-2">
                                 <h2 class="text-xl font-bold text-on-surface">{{ $admin->name }}</h2><span
                                     class="inline-flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-0.5 text-[10px] font-mono font-bold uppercase text-primary"><span
-                                        class="material-symbols-outlined text-[13px]">verified_user</span>{{ $role }}</span>
+                                        class="material-symbols-outlined text-[13px]">verified_user</span>{{ __('admin.room_dispatcher_role') }}</span>
                                 @if ($admin->two_factor_enabled)
                                     <span
                                         class="rounded-full border border-primary/25 bg-primary/10 px-2 py-0.5 text-[10px] font-mono font-semibold text-primary">2FA</span>

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\GlobalUser;
@@ -26,11 +25,10 @@ class AdminDebtLedgerPageTest extends TestCase
      */
     public function test_ledger_member_column_and_campaign_link(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'ledger-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Ledger Room', 'slug' => 'ledger-room', 'status' => 'active']);
@@ -80,11 +78,10 @@ class AdminDebtLedgerPageTest extends TestCase
      */
     public function test_ledger_status_icons_actions_and_modal_texts(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'ledger-ui-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create(['name' => 'Ledger UI Room', 'slug' => 'ledger-ui-room', 'status' => 'active']);

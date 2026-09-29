@@ -174,11 +174,11 @@ class Debt extends Model
     /**
      * Admin who approved or rejected this payment request.
      *
-     * @return BelongsTo<AdminAccount, Debt> Reviewer relation.
+     * @return BelongsTo<Admin, Debt> Reviewer relation.
      */
     public function reviewer(): BelongsTo
     {
-        return $this->belongsTo(AdminAccount::class, 'reviewed_by_admin_id');
+        return $this->belongsTo(Admin::class, 'reviewed_by_admin_id');
     }
 
     public function adjustments(): HasMany

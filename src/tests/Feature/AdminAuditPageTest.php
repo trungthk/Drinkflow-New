@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AuditLog;
 use App\Models\Room;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -22,11 +21,10 @@ class AdminAuditPageTest extends TestCase
      */
     public function test_admin_audit_page_hides_target_column_and_shows_details_modal(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Audit Admin',
             'email' => 'audit-admin@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create([
@@ -38,7 +36,7 @@ class AdminAuditPageTest extends TestCase
 
         $log = AuditLog::create([
             'room_id' => $room->id,
-            'actor_type' => 'AdminAccount',
+            'actor_type' => 'Admin',
             'actor_id' => $admin->id,
             'event' => 'campaign.create',
             'target_type' => 'Campaign',
@@ -75,11 +73,10 @@ class AdminAuditPageTest extends TestCase
      */
     public function test_debt_payment_approved_and_other_audit_events_are_translated(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Audit Admin 2',
             'email' => 'audit-admin2@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $room = Room::create([
@@ -91,7 +88,7 @@ class AdminAuditPageTest extends TestCase
 
         AuditLog::create([
             'room_id' => $room->id,
-            'actor_type' => 'AdminAccount',
+            'actor_type' => 'Admin',
             'actor_id' => $admin->id,
             'event' => 'debt.payment_approved',
             'target_type' => 'debt',
@@ -102,7 +99,7 @@ class AdminAuditPageTest extends TestCase
 
         AuditLog::create([
             'room_id' => $room->id,
-            'actor_type' => 'AdminAccount',
+            'actor_type' => 'Admin',
             'actor_id' => $admin->id,
             'event' => 'admin.logged_in',
             'target_type' => 'admin',

@@ -128,10 +128,10 @@ class SystemConfigService
      *
      * @param string $group self::GROUP_MAIL or self::GROUP_STORAGE.
      * @param array<string, mixed> $input Validated field values (and optional clear_<field> flags).
-     * @param int|null $adminId Superadmin performing the change.
+     * @param int|null $superadminId Superadmin performing the change.
      * @return array<int, string> Names of the fields whose stored value changed (for the audit log).
      */
-    public function save(string $group, array $input, ?int $adminId): array
+    public function save(string $group, array $input, ?int $superadminId): array
     {
         $saved = $this->settings->many($this->settingKeys($group));
         $changed = [];
@@ -146,7 +146,7 @@ class SystemConfigService
                         $changed[] = $field;
                     }
                 } elseif (! $this->isBlank($value)) {
-                    $this->settings->set($key, $value, $definition['type'], true, $adminId);
+                    $this->settings->set($key, $value, $definition['type'], true, $superadminId);
                     $changed[] = $field;
                 }
 
@@ -163,7 +163,7 @@ class SystemConfigService
 
             $typed = $definition['type'] === 'integer' ? (int) $value : (string) $value;
             if (! array_key_exists($key, $saved) || $saved[$key] !== $typed) {
-                $this->settings->set($key, $typed, $definition['type'], false, $adminId);
+                $this->settings->set($key, $typed, $definition['type'], false, $superadminId);
                 $changed[] = $field;
             }
         }

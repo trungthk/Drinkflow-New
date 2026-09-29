@@ -805,6 +805,7 @@ return [
     'audit_event_notification_channel_disabled' => 'Đã tắt kênh thông báo',
     'audit_event_notification_channel_deleted' => 'Đã xóa kênh thông báo',
     'audit_event_admin_logged_in' => 'Quản trị viên đăng nhập',
+    'audit_event_superadmin_logged_in' => 'Siêu quản trị viên đăng nhập',
     'audit_event_admin_created' => 'Đã tạo quản trị viên',
     'audit_event_admin_updated' => 'Đã cập nhật quản trị viên',
     'audit_event_admin_status_updated' => 'Đã cập nhật trạng thái quản trị viên',

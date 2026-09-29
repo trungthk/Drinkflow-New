@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Room;
 use App\Services\Notification\RoomNotificationChannelDispatcher;
 use App\Services\Notification\RoomNotificationChannelService;
@@ -18,18 +17,17 @@ class AdminNotificationChannelTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $admin;
+    private Admin $admin;
     private Room $room;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->admin = AdminAccount::create([
+        $this->admin = Admin::create([
             'name' => 'Channel Tester',
             'email' => 'channel-tester@example.test',
             'password' => 'secret-password',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
 

@@ -8,7 +8,7 @@ use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentAccountStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\Order;
@@ -27,10 +27,10 @@ class AdminDashboardService
      * Get aggregated data for Admin Dashboard Blade view.
      *
      * @param Room $room Room entity.
-     * @param ?AdminAccount $admin Current logged-in admin account.
+     * @param ?Admin $admin Current logged-in admin account.
      * @return array<string, mixed> Aggregated page payload.
      */
-    public function getDashboardPageData(Room $room, ?AdminAccount $admin): array
+    public function getDashboardPageData(Room $room, ?Admin $admin): array
     {
         $assignedRooms = $admin?->rooms()->get() ?: collect([$room]);
         if ($assignedRooms->isEmpty()) {
@@ -217,10 +217,10 @@ class AdminDashboardService
      * Get data for Admin Operations Management Hub (/admin/{room}/manage).
      *
      * @param Room $room Room entity.
-     * @param ?AdminAccount $admin Current logged-in admin account.
+     * @param ?Admin $admin Current logged-in admin account.
      * @return array<string, mixed> Manage page payload.
      */
-    public function getManagePageData(Room $room, ?AdminAccount $admin): array
+    public function getManagePageData(Room $room, ?Admin $admin): array
     {
         $assignedRooms = $admin?->rooms()->get() ?: collect([$room]);
         if ($assignedRooms->isEmpty()) {

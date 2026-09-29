@@ -8,7 +8,7 @@ use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Events\RoomRealtimeEvent;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AdminNotification;
 use App\Models\Debt;
 use App\Models\Order;
@@ -116,7 +116,7 @@ class SubmitDebtPaymentRequestAction
             'code' => $request->code,
         ]);
 
-        $room->admins()->each(function (AdminAccount $admin) use ($room, $request, $userName, $amount, $debtIds, $body): void {
+        $room->admins()->each(function (Admin $admin) use ($room, $request, $userName, $amount, $debtIds, $body): void {
             AdminNotification::create([
                 'admin_id' => $admin->id,
                 'room_id' => $room->id,

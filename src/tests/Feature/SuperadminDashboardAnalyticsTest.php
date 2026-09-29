@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
+use App\Models\Superadmin;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\GlobalUser;
@@ -27,7 +27,7 @@ class SuperadminDashboardAnalyticsTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $root;
+    private Superadmin $root;
     private Room $room;
     private RoomUser $member;
     private int $sequence = 0;
@@ -39,9 +39,9 @@ class SuperadminDashboardAnalyticsTest extends TestCase
         SystemSettingsService::clearCache();
         Carbon::setTestNow('2026-09-28 12:00:00');
 
-        $this->root = AdminAccount::create([
+        $this->root = $this->createSuperadmin([
             'name' => 'Root', 'email' => 'root-analytics@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::SuperAdmin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
         $this->room = Room::create(['name' => 'Busy Room', 'slug' => 'busy-room', 'status' => 'active']);
         $user = GlobalUser::create(['name' => 'Member', 'email' => 'member-analytics@drinkflow.test']);
@@ -90,20 +90,20 @@ class SuperadminDashboardAnalyticsTest extends TestCase
 
     public function test_analytics_endpoint_returns_payload_for_superadmin(): void
     {
-        $this->actingAs($this->root, 'admin')->getJson(route('superadmin.dashboard.analytics'))
+        $this->actingAs($this->root, 'superadmin')->getJson(route('superadmin.dashboard.analytics'))
             ->assertOk()
             ->assertJsonStructure(['data' => ['period_days', 'kpis', 'daily', 'debt_aging', 'rooms', 'stuck_campaigns', 'generated_at']]);
     }
 
     public function test_analytics_endpoint_rejects_guests_and_room_admins(): void
     {
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room admin', 'email' => 'room-admin-analytics@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
 
         $this->getJson(route('superadmin.dashboard.analytics'))->assertUnauthorized();
-        $this->actingAs($admin, 'admin')->getJson(route('superadmin.dashboard.analytics'))->assertForbidden();
+        $this->actingAs($admin, 'admin')->getJson(route('superadmin.dashboard.analytics'))->assertUnauthorized();
     }
 
     public function test_kpis_compare_current_and_previous_period_and_ignore_cancelled_orders(): void
@@ -171,9 +171,9 @@ class SuperadminDashboardAnalyticsTest extends TestCase
         $quiet = Room::create(['name' => 'Quiet Room', 'slug' => 'quiet-room', 'status' => 'active']);
         $quiet->forceFill(['created_at' => '2026-05-01 00:00:00'])->save();
         Room::create(['name' => 'Archived Room', 'slug' => 'archived-room', 'status' => 'archived']);
-        $admin = AdminAccount::create([
+        $admin = Admin::create([
             'name' => 'Room admin', 'email' => 'busy-admin@drinkflow.test',
-            'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active',
+            'password' => 'password123', 'status' => 'active',
         ]);
         $admin->rooms()->attach($this->room->id);
 

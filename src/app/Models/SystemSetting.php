@@ -13,7 +13,7 @@ class SystemSetting extends Model
     public const TYPE_BOOLEAN = 'boolean';
     public const TYPE_JSON = 'json';
 
-    protected $fillable = ['key', 'value', 'type', 'is_secret', 'updated_by_admin_id'];
+    protected $fillable = ['key', 'value', 'type', 'is_secret', 'updated_by_admin_id', 'updated_by_superadmin_id'];
     protected function casts(): array
     {
         return ['is_secret' => 'boolean'];

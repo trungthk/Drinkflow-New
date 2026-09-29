@@ -28,7 +28,7 @@ class EnsureAdminRoomAccess
         }
         abort_unless($room instanceof Room, 404);
 
-        if (! ($admin && $admin->isActive() && ($admin->isSuperadmin() || $admin->rooms()->whereKey($room->id)->exists()))) {
+        if (! ($admin && $admin->isActive() && $admin->rooms()->whereKey($room->id)->exists())) {
             if ($request->expectsJson()) {
                 abort(Response::HTTP_FORBIDDEN);
             }

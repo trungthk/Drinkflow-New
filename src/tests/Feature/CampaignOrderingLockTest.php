@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
@@ -24,7 +23,7 @@ class CampaignOrderingLockTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $admin;
+    private Admin $admin;
 
     private Room $room;
 
@@ -41,11 +40,10 @@ class CampaignOrderingLockTest extends TestCase
         parent::setUp();
         $this->withoutMiddleware(ValidateCsrfToken::class);
 
-        $this->admin = AdminAccount::create([
+        $this->admin = Admin::create([
             'name' => 'Room Admin',
             'email' => 'lock-admin@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $this->room = Room::create(['name' => 'Lock Room', 'slug' => 'lock-room', 'status' => 'active']);
@@ -209,11 +207,10 @@ class CampaignOrderingLockTest extends TestCase
 
     public function test_admin_of_another_room_cannot_lock(): void
     {
-        $stranger = AdminAccount::create([
+        $stranger = Admin::create([
             'name' => 'Stranger',
             'email' => 'lock-stranger@example.test',
             'password' => Hash::make('secret'),
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
 

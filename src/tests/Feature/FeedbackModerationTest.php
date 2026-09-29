@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\FeedbackStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
+use App\Models\Superadmin;
 use App\Models\Feedback;
 use App\Models\GlobalUser;
 use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
@@ -80,13 +80,13 @@ class FeedbackModerationTest extends TestCase
         $user = $this->user('viewer@company.com');
         $feedback = $this->feedback('Chờ được duyệt', 4, 'inactive');
 
-        $this->actingAs($root, 'admin')->patchJson(route('superadmin.feedbacks.status', $feedback), ['status' => 'active'])
+        $this->actingAs($root, 'superadmin')->patchJson(route('superadmin.feedbacks.status', $feedback), ['status' => 'active'])
             ->assertOk()->assertJsonPath('data.status', 'active');
         $this->assertSame(FeedbackStatus::Active, $feedback->fresh()->status);
         $this->assertDatabaseHas('audit_logs', ['event' => 'feedback.status_changed', 'target_id' => $feedback->id]);
         $this->actingAs($user, 'web')->get('/me/feedback')->assertSee('Chờ được duyệt');
 
-        $this->actingAs($root, 'admin')->patchJson(route('superadmin.feedbacks.status', $feedback), ['status' => 'inactive'])->assertOk();
+        $this->actingAs($root, 'superadmin')->patchJson(route('superadmin.feedbacks.status', $feedback), ['status' => 'inactive'])->assertOk();
         $this->actingAs($user, 'web')->get('/me/feedback')->assertDontSee('Chờ được duyệt');
     }
 
@@ -94,11 +94,11 @@ class FeedbackModerationTest extends TestCase
     public function test_moderation_is_restricted_and_validated(): void
     {
         $feedback = $this->feedback('Nội dung', 5, 'inactive');
-        $roomAdmin = AdminAccount::create(['name' => 'Room Admin', 'email' => 'roomadmin@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::Admin, 'status' => 'active']);
+        $roomAdmin = Admin::create(['name' => 'Room Admin', 'email' => 'roomadmin@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
 
         // Guest first: actingAs() keeps the user signed in for the rest of the test.
         $this->patchJson(route('superadmin.feedbacks.status', $feedback), ['status' => 'active'])->assertUnauthorized();
-        $this->actingAs($roomAdmin, 'admin')->patchJson(route('superadmin.feedbacks.status', $feedback), ['status' => 'active'])->assertForbidden();
+        $this->actingAs($roomAdmin, 'admin')->patchJson(route('superadmin.feedbacks.status', $feedback), ['status' => 'active'])->assertUnauthorized();
 
         $this->assertSame(FeedbackStatus::Inactive, $feedback->fresh()->status);
     }
@@ -108,7 +108,7 @@ class FeedbackModerationTest extends TestCase
     {
         $feedback = $this->feedback('Nội dung', 5, 'inactive');
 
-        $this->actingAs($this->superadmin(), 'admin')->patchJson(route('superadmin.feedbacks.status', $feedback), ['status' => 'published'])
+        $this->actingAs($this->superadmin(), 'superadmin')->patchJson(route('superadmin.feedbacks.status', $feedback), ['status' => 'published'])
             ->assertUnprocessable()->assertJsonValidationErrors('status');
 
         $this->assertSame(FeedbackStatus::Inactive, $feedback->fresh()->status);
@@ -121,11 +121,11 @@ class FeedbackModerationTest extends TestCase
         $this->feedback('Đang chờ duyệt', 5, 'inactive');
         $this->feedback('Đã được duyệt', 5, 'active');
 
-        $this->actingAs($root, 'admin')->get(route('superadmin.feedbacks.page'))
+        $this->actingAs($root, 'superadmin')->get(route('superadmin.feedbacks.page'))
             ->assertOk()->assertSee('Đang chờ duyệt')->assertDontSee('Đã được duyệt');
-        $this->actingAs($root, 'admin')->get(route('superadmin.feedbacks.page', ['status' => 'active']))
+        $this->actingAs($root, 'superadmin')->get(route('superadmin.feedbacks.page', ['status' => 'active']))
             ->assertOk()->assertSee('Đã được duyệt')->assertDontSee('Đang chờ duyệt');
-        $this->actingAs($root, 'admin')->get(route('superadmin.feedbacks.page', ['status' => 'all']))
+        $this->actingAs($root, 'superadmin')->get(route('superadmin.feedbacks.page', ['status' => 'all']))
             ->assertOk()->assertSee('Đang chờ duyệt')->assertSee('Đã được duyệt');
     }
 
@@ -134,19 +134,19 @@ class FeedbackModerationTest extends TestCase
     {
         $root = $this->superadmin();
 
-        $this->actingAs($root, 'admin')->get(route('superadmin.feedbacks.page'))
+        $this->actingAs($root, 'superadmin')->get(route('superadmin.feedbacks.page'))
             ->assertOk()->assertSee(__('superadmin.feedbacks.no_pending_title'));
 
         $pending = $this->feedback('Chờ duyệt', 4, 'inactive');
         $approved = $this->feedback('Đã duyệt', 5, 'active');
 
-        $this->actingAs($root, 'admin')->get(route('superadmin.feedbacks.page', ['status' => 'all']))
+        $this->actingAs($root, 'superadmin')->get(route('superadmin.feedbacks.page', ['status' => 'all']))
             ->assertOk()
             ->assertSee('data-feedback-id="'.$pending->id.'" data-status="active"', false)
             ->assertSee('data-feedback-id="'.$approved->id.'" data-status="inactive"', false)
             ->assertSee(__('superadmin.feedbacks.rating_value', ['rating' => 4]));
 
-        $this->actingAs($root, 'admin')->get(route('superadmin.feedbacks.page', ['status' => 'all', 'q' => 'không-tồn-tại']))
+        $this->actingAs($root, 'superadmin')->get(route('superadmin.feedbacks.page', ['status' => 'all', 'q' => 'không-tồn-tại']))
             ->assertOk()->assertSee(__('superadmin.feedbacks.empty_title'));
     }
 
@@ -155,9 +155,9 @@ class FeedbackModerationTest extends TestCase
         return GlobalUser::create(['name' => 'Feedback User', 'normalized_name' => 'FEEDBACK USER', 'email' => $email, 'status' => 'active']);
     }
 
-    private function superadmin(): AdminAccount
+    private function superadmin(): Superadmin
     {
-        return AdminAccount::create(['name' => 'Root', 'email' => 'root@drinkflow.test', 'password' => 'password123', 'role' => AdminRole::SuperAdmin, 'status' => 'active']);
+        return $this->createSuperadmin(['name' => 'Root', 'email' => 'root@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
     }
 
     private function feedback(string $content, int $rating, string $status): Feedback

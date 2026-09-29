@@ -36,11 +36,21 @@ class AdminLoginRequest extends FormRequest
                 'type' => 'failed_login',
                 'severity' => 'medium',
                 'ip_address' => $this->ip(),
-                'metadata' => ['actor' => 'admin', 'reason' => 'captcha'],
+                'metadata' => ['actor' => $this->securityActor(), 'reason' => 'captcha'],
             ]);
         }
 
         parent::failedValidation($validator);
+    }
+
+    /**
+     * Actor recorded on security events raised by this login form.
+     *
+     * @return string Actor type.
+     */
+    protected function securityActor(): string
+    {
+        return 'admin';
     }
 
     /**

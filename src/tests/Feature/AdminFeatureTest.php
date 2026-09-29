@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\CampaignItem;
 use App\Models\PaymentAccount;
@@ -27,12 +26,12 @@ class AdminFeatureTest extends TestCase
         config(['services.google.allowed_domains' => []]);
     }
 
-    private function admin(string $email = 'admin@example.test'): AdminAccount
+    private function admin(string $email = 'admin@example.test'): Admin
     {
-        return AdminAccount::create(['name' => 'Room Admin', 'email' => $email, 'password' => Hash::make('secret'), 'role' => AdminRole::Admin, 'status' => 'active']);
+        return Admin::create(['name' => 'Room Admin', 'email' => $email, 'password' => Hash::make('secret'), 'status' => 'active']);
     }
 
-    private function roomFor(AdminAccount $admin, string $slug = 'admin-room'): Room
+    private function roomFor(Admin $admin, string $slug = 'admin-room'): Room
     {
         $room = Room::create(['name' => 'Admin Room', 'slug' => $slug, 'status' => 'active']);
         $admin->rooms()->attach($room);
@@ -104,14 +103,14 @@ class AdminFeatureTest extends TestCase
             'two_factor_enabled' => true,
         ])->assertRedirect('/admin/profile');
 
-        $this->assertDatabaseHas('admin_accounts', [
+        $this->assertDatabaseHas('admins', [
             'id' => $admin->id,
             'name' => 'Updated Admin',
             'department' => 'Operations',
             'two_factor_enabled' => true,
         ]);
         $this->assertSame('0900000000', $admin->fresh()->phone);
-        $this->assertNotEquals('0900000000', \Illuminate\Support\Facades\DB::table('admin_accounts')->where('id', $admin->id)->value('phone'));
+        $this->assertNotEquals('0900000000', \Illuminate\Support\Facades\DB::table('admins')->where('id', $admin->id)->value('phone'));
         $this->assertDatabaseHas('audit_logs', ['event' => 'admin.profile_updated', 'target_id' => $admin->id]);
         $this->assertDatabaseHas('audit_logs', ['event' => 'admin.two_factor_updated', 'target_id' => $admin->id]);
     }

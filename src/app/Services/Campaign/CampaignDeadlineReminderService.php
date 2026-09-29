@@ -12,7 +12,7 @@ use App\Enums\OrderStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
 use App\Events\AdminNotificationCreated;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AdminNotification;
 use App\Models\Campaign;
 use App\Models\CampaignParticipant;
@@ -199,7 +199,7 @@ class CampaignDeadlineReminderService
     {
         $campaign->room->admins()
             ->where('status', AdminStatus::Active->value)
-            ->each(function (AdminAccount $admin) use ($campaign, $data, $replace): void {
+            ->each(function (Admin $admin) use ($campaign, $data, $replace): void {
                 $notification = AdminNotification::create([
                     'admin_id' => $admin->id,
                     'room_id' => $campaign->room_id,

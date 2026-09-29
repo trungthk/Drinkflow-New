@@ -7,7 +7,7 @@ namespace App\Actions\Order;
 use App\Enums\DebtStatus;
 use App\Enums\PaymentStatus;
 use App\Events\RoomRealtimeEvent;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\AdminNotification;
 use App\Models\Debt;
 use App\Models\Order;
@@ -89,7 +89,7 @@ class ConfirmOrderPaymentAction
         $orderIdentifier = $updatedOrder->code;
 
         // Notify room admins via AdminNotification table
-        $room->admins()->each(function (AdminAccount $admin) use ($room, $updatedOrder, $userName, $amountFmt, $orderIdentifier): void {
+        $room->admins()->each(function (Admin $admin) use ($room, $updatedOrder, $userName, $amountFmt, $orderIdentifier): void {
             AdminNotification::create([
                 'admin_id' => $admin->id,
                 'room_id' => $room->id,

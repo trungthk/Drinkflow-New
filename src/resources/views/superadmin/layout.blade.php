@@ -31,6 +31,7 @@
         'active' => __('superadmin.common.active'), 'disabled' => __('superadmin.common.disabled'),
         'inactive' => __('superadmin.common.inactive'),
         'archived' => __('superadmin.common.archived'), 'blocked' => __('superadmin.common.blocked'),
+        'suspended' => __('superadmin.common.suspended'), 'rejected' => __('superadmin.common.rejected'),
         'deleted' => __('superadmin.common.deleted'), 'removed' => __('superadmin.common.removed'),
         'pending' => __('superadmin.common.pending'), 'scheduled' => __('superadmin.common.scheduled'),
         'closed' => __('superadmin.common.closed'), 'cancelled' => __('superadmin.common.cancelled'),
@@ -52,29 +53,38 @@
         @php
             $navSections = [
                 __('superadmin.common.core_system') => [
-                    ['dashboard', 'superadmin.dashboard', 'monitoring', 'superadmin.layout.dashboard_health'],
-                    ['rooms', 'superadmin.rooms.page', 'meeting_room', 'superadmin.layout.room_management'],
-                    ['admins', 'superadmin.admins.page', 'admin_panel_settings', 'superadmin.layout.admin_assignments'],
-                    ['users', 'superadmin.global-users.page', 'badge', 'superadmin.layout.global_users'],
+                    ['dashboard', 'superadmin.dashboard', 'monitoring', 'superadmin.layout.dashboard_health', null],
+                    ['rooms', 'superadmin.rooms.page', 'meeting_room', 'superadmin.layout.room_management', 'room.view'],
+                    ['admins', 'superadmin.admins.page', 'admin_panel_settings', 'superadmin.layout.admin_assignments', 'agent.view'],
+                    ['users', 'superadmin.global-users.page', 'badge', 'superadmin.layout.global_users', 'global_user.view'],
                 ],
                 __('superadmin.common.platform_data') => [
-                    ['campaigns', 'superadmin.campaigns.page', 'campaign', 'superadmin.layout.global_campaigns'],
-                    ['feedbacks', 'superadmin.feedbacks.page', 'rate_review', 'superadmin.layout.feedbacks'],
-                    ['audit', 'superadmin.audit.page', 'history_toggle_off', 'superadmin.layout.audit_logs'],
+                    ['campaigns', 'superadmin.campaigns.page', 'campaign', 'superadmin.layout.global_campaigns', 'room.view'],
+                    ['feedbacks', 'superadmin.feedbacks.page', 'rate_review', 'superadmin.layout.feedbacks', 'feedback.view'],
+                    ['audit', 'superadmin.audit.page', 'history_toggle_off', 'superadmin.layout.audit_logs', 'audit.view'],
                 ],
                 __('superadmin.common.infra_security') => [
-                    ['security', 'superadmin.security.page', 'shield_locked', 'superadmin.layout.security_center'],
-                    ['socket', 'superadmin.socket.page', 'hub', 'superadmin.layout.socket_queue'],
-                    ['system', 'superadmin.system.page', 'build_circle', 'superadmin.layout.system_settings'],
-                    ['notifications', 'superadmin.notifications.page', 'notifications', 'superadmin.layout.global_notifications'],
-                    ['versions', 'superadmin.versions.page', 'new_releases', 'superadmin.layout.versions'],
+                    ['security', 'superadmin.security.page', 'shield_locked', 'superadmin.layout.security_center', 'security.view'],
+                    ['socket', 'superadmin.socket.page', 'hub', 'superadmin.layout.socket_queue', 'queue.view'],
+                    ['system', 'superadmin.system.page', 'build_circle', 'superadmin.layout.system_settings', 'settings.view'],
+                    ['notifications', 'superadmin.notifications.page', 'notifications', 'superadmin.layout.global_notifications', 'settings.view'],
+                    ['versions', 'superadmin.versions.page', 'new_releases', 'superadmin.layout.versions', 'version.view'],
+                ],
+                __('superadmin.common.governance') => [
+                    ['superadmins', 'superadmin.superadmins.index', 'manage_accounts', 'superadmin.layout.superadmins', 'superadmin.view'],
                 ],
             ];
+            // The menu follows the same Gates as the routes (the routes still enforce them).
+            $navGate = \Illuminate\Support\Facades\Gate::forUser(request()->user('superadmin'));
+            $navSections = array_filter(array_map(
+                static fn (array $links): array => array_values(array_filter($links, static fn (array $link): bool => $link[4] === null || $navGate->allows($link[4]))),
+                $navSections,
+            ));
         @endphp
         <nav class="superadmin-nav">
             @foreach ($navSections as $sectionLabel => $links)
                 <span class="superadmin-nav-label">{{ $sectionLabel }}</span>
-                @foreach ($links as [$key, $routeName, $icon, $labelKey])
+                @foreach ($links as [$key, $routeName, $icon, $labelKey, $permission])
                     <a class="{{ ($active ?? '') === $key ? 'is-active' : '' }}" href="{{ route($routeName) }}"
                         aria-label="{{ __($labelKey) }}"><span class="material-symbols-outlined">{{ $icon }}</span><span
                             class="superadmin-nav-text">{{ __($labelKey) }}</span><span class="superadmin-nav-tooltip"
@@ -95,8 +105,8 @@
             <div class="superadmin-clearance"><span class="material-symbols-outlined">verified</span>{{ __('superadmin.layout.clearance') }}</div>
             <div class="superadmin-profile">
                 <x-superadmin.notification-bell :notifications="$headerNotifications" :presentations="$headerNotificationPresentations" :unread-count="$headerUnreadCount" />
-                <div><strong>{{ request()->user('admin')->name }}</strong><small>{{ request()->user('admin')->email }}</small></div>
-                <div class="superadmin-avatar">{{ strtoupper(substr(request()->user('admin')->name, 0, 1)) }}</div>
+                <div><strong>{{ request()->user('superadmin')->name }}</strong><small>{{ request()->user('superadmin')->email }}</small></div>
+                <div class="superadmin-avatar">{{ strtoupper(substr(request()->user('superadmin')->name, 0, 1)) }}</div>
                 <button type="button" title="{{ __('superadmin.layout.logout') }}" aria-label="{{ __('superadmin.layout.logout') }}"
                     class="icon-button" data-modal-open="superadmin-logout-modal"><span class="material-symbols-outlined">logout</span></button>
             </div>

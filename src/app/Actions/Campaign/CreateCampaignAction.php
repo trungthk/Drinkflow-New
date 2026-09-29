@@ -6,7 +6,7 @@ namespace App\Actions\Campaign;
 
 use App\Events\CampaignCreated;
 use App\Enums\CampaignStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\PaymentAccount;
 use App\Models\Room;
@@ -43,7 +43,7 @@ class CreateCampaignAction
     {
         $settings = $room->roomSettings()->whereIn('key', ['campaign_title_template', 'max_campaign_budget'])->get()->keyBy('key');
         $titleTemplate = (string) ($settings->get('campaign_title_template')?->value ?? ('[' . $room->name . '] Trà chiều & Cafe {date}'));
-        $creatorName = $adminId !== null ? (string) (AdminAccount::query()->whereKey($adminId)->value('name') ?? '') : '';
+        $creatorName = $adminId !== null ? (string) (Admin::query()->whereKey($adminId)->value('name') ?? '') : '';
         $defaultName = strtr($titleTemplate, [
             '{date}' => now()->format('d/m/Y'),
             '{time}' => now()->format('H:i'),

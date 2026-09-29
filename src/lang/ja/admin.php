@@ -796,6 +796,7 @@ return [
     'audit_event_notification_channel_disabled' => '通知チャンネルを無効にしました',
     'audit_event_notification_channel_deleted' => '通知チャンネルを削除しました',
     'audit_event_admin_logged_in' => '管理者ログイン',
+    'audit_event_superadmin_logged_in' => 'スーパー管理者ログイン',
     'audit_event_admin_created' => '管理者を作成しました',
     'audit_event_admin_updated' => '管理者を更新しました',
     'audit_event_admin_status_updated' => '管理者ステータスを更新しました',

@@ -7,10 +7,12 @@ namespace App\Http\Requests\Concerns;
 use App\Enums\GlobalUserStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
-use App\Models\AdminAccount;
+use App\Enums\SuperadminStatus;
+use App\Models\Admin;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Models\Superadmin;
 
 /**
  * Trait cung cấp các phương thức xác thực phân quyền cơ bản (Authorization)
@@ -27,7 +29,7 @@ trait AuthorizesUserAndAdmin
      */
     protected function authorizeActiveAdmin(): bool
     {
-        /** @var AdminAccount|null $admin */
+        /** @var Admin|null $admin */
         $admin = $this->user('admin');
 
         return $admin !== null && $admin->isActive();
@@ -40,10 +42,10 @@ trait AuthorizesUserAndAdmin
      */
     protected function authorizeActiveSuperadmin(): bool
     {
-        /** @var AdminAccount|null $admin */
-        $admin = $this->user('admin');
+        /** @var Superadmin|null $superadmin */
+        $superadmin = $this->user('superadmin');
 
-        return $admin !== null && $admin->isActive() && $admin->isSuperadmin();
+        return $superadmin instanceof Superadmin && $superadmin->status === SuperadminStatus::Active;
     }
 
     /**
@@ -55,15 +57,11 @@ trait AuthorizesUserAndAdmin
      */
     protected function authorizeActiveRoomAdmin(Room|string|int|null $room = null): bool
     {
-        /** @var AdminAccount|null $admin */
+        /** @var Admin|null $admin */
         $admin = $this->user('admin');
 
         if ($admin === null || !$admin->isActive()) {
             return false;
-        }
-
-        if ($admin->isSuperadmin()) {
-            return true;
         }
 
         $resolvedRoom = $this->resolveRoomModel($room);

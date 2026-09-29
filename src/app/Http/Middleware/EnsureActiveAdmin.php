@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -54,10 +54,10 @@ class EnsureActiveAdmin
     /**
      * Build the value stored in the session to detect that an admin's password changed after the session began.
      *
-     * @param AdminAccount $admin Authenticated administrator.
+     * @param Admin $admin Authenticated administrator.
      * @return string Keyed hash of the stored password hash.
      */
-    public static function passwordFingerprint(AdminAccount $admin): string
+    public static function passwordFingerprint(Admin $admin): string
     {
         return hash_hmac('sha256', (string) $admin->getAuthPassword(), (string) config('app.key'));
     }
@@ -80,10 +80,10 @@ class EnsureActiveAdmin
      * A password reset or change therefore ends every other session of the same administrator.
      *
      * @param Request $request Incoming request.
-     * @param AdminAccount $admin Authenticated administrator.
+     * @param Admin $admin Authenticated administrator.
      * @return bool False when the password changed since this session recorded its fingerprint.
      */
-    private function passwordFingerprintMatches(Request $request, AdminAccount $admin): bool
+    private function passwordFingerprintMatches(Request $request, Admin $admin): bool
     {
         $current = self::passwordFingerprint($admin);
         $stored = $request->session()->get('admin_password_fingerprint');

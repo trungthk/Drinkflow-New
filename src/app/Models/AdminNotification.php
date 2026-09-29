@@ -134,9 +134,9 @@ class AdminNotification extends Model
     /**
      * Get the recipient admin.
      *
-     * @return BelongsTo<AdminAccount, $this>
+     * @return BelongsTo<Admin, $this>
      */
-    public function admin(): BelongsTo { return $this->belongsTo(AdminAccount::class); }
+    public function admin(): BelongsTo { return $this->belongsTo(Admin::class); }
 
     /**
      * Get the related room.

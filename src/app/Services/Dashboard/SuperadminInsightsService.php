@@ -6,7 +6,9 @@ namespace App\Services\Dashboard;
 
 use App\Enums\AdminStatus;
 use App\Enums\OrderStatus;
-use App\Models\AdminAccount;
+use App\Enums\Permission;
+use App\Models\Admin;
+use App\Models\Superadmin;
 use App\Models\AuditLog;
 use App\Models\Campaign;
 use App\Models\DebtPayment;
@@ -68,6 +70,27 @@ class SuperadminInsightsService
         }
 
         return Cache::remember(self::CACHE_KEY, self::CACHE_TTL, fn(): array => $this->compute(CarbonImmutable::now()));
+    }
+
+    /**
+     * Insights payload restricted to what a Superadmin may see.
+     *
+     * The cache holds every Agent; the Agent activity rows are then narrowed to the Agents visible
+     * to this Superadmin (Admin::visibleTo), and emptied without the `agent.view` permission.
+     *
+     * @param Superadmin $superadmin Viewing superadmin.
+     * @param bool $fresh Bypass and refresh the cache.
+     * @return array<string, mixed> Payload with keys security, admins, heatmap, generated_at.
+     */
+    public function insightsFor(Superadmin $superadmin, bool $fresh = false): array
+    {
+        $payload = $this->insights($fresh);
+        $visible = $superadmin->hasPermission(Permission::AgentView)
+            ? array_flip(Admin::query()->visibleTo($superadmin)->pluck('id')->all())
+            : [];
+        $payload['admins'] = array_values(array_filter($payload['admins'], static fn (array $row): bool => isset($visible[$row['id']])));
+
+        return $payload;
     }
 
     /**
@@ -196,20 +219,20 @@ class SuperadminInsightsService
             ->pluck('total', 'admin_id');
 
         $actions = AuditLog::query()
-            ->whereIn('actor_type', AuditLog::ADMIN_ACTOR_TYPES)->whereNotNull('actor_id')->where('created_at', '>=', $since)
+            // Superadmin entries identify a `superadmins` row, never an Admin.
+            ->where('actor_type', AuditLog::ACTOR_ADMIN)->whereNotNull('actor_id')->where('created_at', '>=', $since)
             ->selectRaw('actor_id AS admin_id, COUNT(*) AS total')
             ->groupBy('actor_id')
             ->pluck('total', 'admin_id');
 
         $staleBefore = $now->subDays(self::STALE_ADMIN_DAYS);
 
-        return AdminAccount::query()
-            ->select(['id', 'name', 'email', 'role', 'status', 'last_login_at', 'created_at'])
+        return Admin::query()
+            ->select(['id', 'name', 'email', 'status', 'last_login_at', 'created_at'])
             ->withCount('rooms')
             ->get()
-            ->map(function (AdminAccount $admin) use ($campaigns, $payments, $actions, $staleBefore): array {
+            ->map(function (Admin $admin) use ($campaigns, $payments, $actions, $staleBefore): array {
                 $status = $admin->status instanceof \BackedEnum ? $admin->status->value : (string) $admin->status;
-                $role = $admin->role instanceof \BackedEnum ? $admin->role->value : (string) $admin->role;
                 $lastLogin = $admin->last_login_at ? CarbonImmutable::parse($admin->last_login_at) : null;
 
                 $flags = [];
@@ -222,7 +245,7 @@ class SuperadminInsightsService
                 } elseif ($lastLogin->lt($staleBefore)) {
                     $flags[] = self::FLAG_STALE;
                 }
-                if (! $admin->isSuperadmin() && (int) $admin->rooms_count === 0) {
+                if ((int) $admin->rooms_count === 0) {
                     $flags[] = self::FLAG_NO_ROOMS;
                 }
 
@@ -230,7 +253,6 @@ class SuperadminInsightsService
                     'id' => $admin->id,
                     'name' => $admin->name,
                     'email' => $admin->email,
-                    'role' => $role,
                     'status' => $status,
                     'rooms' => (int) $admin->rooms_count,
                     'campaigns_created' => (int) ($campaigns[$admin->id] ?? 0),

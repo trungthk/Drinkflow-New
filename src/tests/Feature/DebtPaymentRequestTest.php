@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Enums\AdminRole;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
-use App\Models\AdminAccount;
+use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\GlobalUser;
@@ -25,7 +24,7 @@ class DebtPaymentRequestTest extends TestCase
 {
     use RefreshDatabase;
 
-    private AdminAccount $admin;
+    private Admin $admin;
 
     private Room $room;
 
@@ -36,11 +35,10 @@ class DebtPaymentRequestTest extends TestCase
         parent::setUp();
         $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
 
-        $this->admin = AdminAccount::create([
+        $this->admin = Admin::create([
             'name' => 'Request Admin',
             'email' => 'request-admin@example.test',
             'password' => 'secret',
-            'role' => AdminRole::Admin,
             'status' => 'active',
         ]);
         $this->room = Room::create(['name' => 'Request Room', 'slug' => 'request-room', 'status' => 'active']);
