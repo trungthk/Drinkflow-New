@@ -38,8 +38,11 @@ class UserRoomDebtService
             ->whereIn('status', DebtStatus::outstandingValues())
             ->get();
         $totalUnpaidAmount = (int) $unpaidDebts->sum('remaining_amount');
+        // Pay-all only covers debts never bundled into a payment request (same rule as DebtPaymentRequestService).
         $payableDebts = $unpaidDebts->filter(
             static fn (Debt $debt): bool => in_array($debt->status, [DebtStatus::Unpaid, DebtStatus::Partial], true)
+                && $debt->parent_id === null
+                && (int) $debt->remaining_amount > 0
         );
         $totalPayableAmount = (int) $payableDebts->sum('remaining_amount');
 

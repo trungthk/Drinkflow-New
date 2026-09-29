@@ -42,7 +42,8 @@ class DebtSettlementService
      */
     public function selectedOutstandingDebts(Room $room, array $criteria): Collection
     {
-        $query = Debt::query()->where('room_id', $room->id)->whereIn('status', DebtStatus::outstandingValues());
+        // Debts inside a pending payment request are settled only by reviewing that request.
+        $query = Debt::query()->where('room_id', $room->id)->whereIn('status', DebtStatus::outstandingValues())->notLockedByPaymentRequest();
         if (! empty($criteria['debt_ids'])) {
             $query->whereIn('id', array_map('intval', $criteria['debt_ids']));
         } elseif (! empty($criteria['campaign_id'])) {

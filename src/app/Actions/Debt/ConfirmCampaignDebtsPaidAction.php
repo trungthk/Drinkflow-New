@@ -26,6 +26,7 @@ class ConfirmCampaignDebtsPaidAction
                 ->where('campaign_id', $campaign->id)
                 ->whereIn('status', DebtStatus::outstandingValues())
                 ->where('remaining_amount', '>', 0)
+                ->notLockedByPaymentRequest()
                 ->lockForUpdate()
                 ->get();
 

@@ -21,16 +21,19 @@ use Illuminate\Validation\ValidationException;
 class ConfirmDebtPaymentAction
 {
     /**
-     * Mark debt record(s) as pending admin confirmation and notify room admins.
+     * Mark one debt as pending admin confirmation and notify room admins.
+     *
+     * Paying several debts at once goes through SubmitDebtPaymentRequestAction instead. A debt
+     * bundled into a pending or approved payment request cannot be confirmed on its own.
      *
      * @param Room $room Target room entity.
      * @param RoomUser $roomUser Room user who submitted the debt payment confirmation.
-     * @param ?int $debtId Specific debt ID, or null for all unpaid debts.
+     * @param int $debtId Debt being paid.
      * @param ?string $transferContent Custom transfer content / reference text.
      * @return Collection<int, Debt> Updated debt entities.
-     * @throws ValidationException If unauthorized or all debts already settled.
+     * @throws ValidationException If unauthorized, the debt is settled, already pending, or bundled into a request.
      */
-    public function execute(Room $room, RoomUser $roomUser, ?int $debtId = null, ?string $transferContent = null): Collection
+    public function execute(Room $room, RoomUser $roomUser, int $debtId, ?string $transferContent = null): Collection
     {
         if ($roomUser->room_id !== $room->id) {
             throw ValidationException::withMessages([
@@ -43,25 +46,24 @@ class ConfirmDebtPaymentAction
 
         /** @var Collection<int, Debt> $updatedDebts */
         $updatedDebts = DB::transaction(function () use ($room, $roomUser, $debtId, $fallbackContent, $paymentRequestedAt): Collection {
-            $query = Debt::query()
-                ->where('room_id', $room->id)
-                ->where('room_user_id', $roomUser->id);
-
-            if ($debtId !== null && $debtId > 0) {
-                $query->whereKey($debtId);
-            } else {
-                // Pay-all only includes debts for which no confirmation request exists.
-                $query->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])
-                    ->where('remaining_amount', '>', 0);
-            }
+            RoomUser::query()->whereKey($roomUser->id)->lockForUpdate()->firstOrFail();
 
             /** @var Collection<int, Debt> $debts */
-            $debts = $query->lockForUpdate()->get();
+            $debts = Debt::query()
+                ->where('room_id', $room->id)
+                ->where('room_user_id', $roomUser->id)
+                ->whereKey($debtId)
+                ->lockForUpdate()
+                ->get();
 
             if ($debts->isEmpty()) {
                 throw ValidationException::withMessages([
                     'debt' => __('room.debts.no_debts_to_confirm', ['default' => 'No active debts found to confirm payment.']),
                 ]);
+            }
+
+            if ($debts->contains(static fn (Debt $debt): bool => $debt->isLockedByPaymentRequest())) {
+                throw ValidationException::withMessages(['debt' => __('room.debts.request_locked')]);
             }
 
             if ($debts->contains(static fn (Debt $debt): bool => $debt->status === DebtStatus::Pending)) {

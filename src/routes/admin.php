@@ -126,6 +126,8 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::get('/debts/export', [\App\Http\Controllers\Admin\DebtController::class, 'export'])->middleware('throttle:admin-export')->name('admin.debts.export');
     Route::post('/debts/settle', [\App\Http\Controllers\Admin\DebtController::class, 'settle'])->middleware('throttle:admin-bulk')->name('admin.debts.settle');
     Route::post('/debts/remind', [\App\Http\Controllers\Admin\DebtController::class, 'remind'])->middleware('throttle:admin-bulk')->name('admin.debts.remind');
+    Route::post('/debts/payment-requests/{paymentRequest}/approve', [\App\Http\Controllers\Admin\DebtController::class, 'approveRequest'])->whereNumber('paymentRequest')->name('admin.debts.payment-requests.approve');
+    Route::post('/debts/payment-requests/{paymentRequest}/reject', [\App\Http\Controllers\Admin\DebtController::class, 'rejectRequest'])->whereNumber('paymentRequest')->name('admin.debts.payment-requests.reject');
     Route::get('/debts/{debt}', [\App\Http\Controllers\Admin\DebtController::class, 'show'])->name('admin.debts.show');
     Route::post('/debts/{debt}/payments', [\App\Http\Controllers\Admin\DebtController::class, 'pay'])->name('admin.debts.pay');
     Route::post('/debts/{debt}/approve', [\App\Http\Controllers\Admin\DebtController::class, 'approve'])->name('admin.debts.approve');

@@ -150,17 +150,14 @@
                     <p class="text-xs text-on-surface-variant mt-0.5">{{ __('room.debts.subtitle') }}</p>
                 </div>
             </div>
-            {{-- Pay-all button temporarily hidden; flip $showPayAllButton back to true to restore it. --}}
-            @php
-                $showPayAllButton = false;
-            @endphp
-            @if($showPayAllButton && $totalPayableAmount > 0)
+            {{-- Pay-all bundles every debt not yet in a request into one consolidated request (2+ debts). --}}
+            @if($paymentSummary['can_submit'])
                 <button
                     class="px-3.5 py-1.5 rounded-lg bg-[#006948] hover:bg-[#005137] text-white text-xs font-semibold shadow-2xs transition-all inline-flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
                     @click="openQr({{ $totalPayableAmount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}', '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}', '', null, false)">
                     <span class="material-symbols-outlined text-[17px] text-white">qr_code_2</span>
                     <span
-                        class="text-white">{{ __('room.debts.pay_all', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount)]) }}</span>
+                        class="text-white">{{ __('room.debts.pay_all', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['submittable'])]) }}</span>
                 </button>
             @endif
         </div>
@@ -189,6 +186,26 @@
                     </div>
                     <p class="mt-1 text-[11px] text-on-surface-variant leading-snug">{{ __('room.debts.unpaid_hint') }}
                     </p>
+                    <ul class="mt-1.5 space-y-0.5 text-[11px] leading-snug" data-debt-summary>
+                        @if($paymentSummary['pending'] > 0)
+                            <li class="flex items-center gap-1 text-amber-700">
+                                <span class="material-symbols-outlined text-[13px]" aria-hidden="true">hourglass_top</span>
+                                {{ __('room.debts.summary_pending', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['pending'])]) }}
+                            </li>
+                        @endif
+                        @if($paymentSummary['submittable'] > 0)
+                            <li class="flex items-center gap-1 text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[13px]" aria-hidden="true">send_money</span>
+                                {{ __('room.debts.summary_submittable', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['submittable']), 'count' => $paymentSummary['submittable_count']]) }}
+                            </li>
+                        @endif
+                        @if($paymentSummary['credit_enabled'])
+                            <li class="flex items-center gap-1 text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[13px]" aria-hidden="true">credit_score</span>
+                                {{ __('room.debts.credit_available', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['credit_available']), 'limit' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['credit_limit'])]) }}
+                            </li>
+                        @endif
+                    </ul>
                 </div>
                 <div
                     class="mt-3 pt-2.5 flex items-center justify-between text-on-surface-variant text-[11px] border-t border-outline-variant/20">
@@ -305,7 +322,10 @@
                                 @php
                                     $debtStatus = $debt->status instanceof \BackedEnum ? $debt->status->value : (string) $debt->status;
                                     $isPaid = $debtStatus === \App\Enums\DebtStatus::Paid->value;
-                                    $isPending = $debtStatus === \App\Enums\DebtStatus::Pending->value;
+                                    $bundleRequest = $debtRequests[$debt->id] ?? null;
+                                    $bundleStatus = $bundleRequest?->getStatusValue();
+                                    $isInOpenRequest = $bundleStatus === \App\Enums\DebtStatus::Pending->value;
+                                    $isPending = $debtStatus === \App\Enums\DebtStatus::Pending->value || ($isInOpenRequest && ! $isPaid);
                                 @endphp
                                 <tr class="hover:bg-surface-container-low/50 transition-colors">
                                     <td class="py-2.5 px-3 font-tabular-nums font-bold text-primary font-mono text-xs whitespace-nowrap">
@@ -361,9 +381,20 @@
                                                 {{ __('room.debts.status_unpaid') }}
                                             </span>
                                         @endif
+                                        @if($bundleRequest && ($isInOpenRequest || $bundleStatus === \App\Enums\DebtStatus::Rejected->value))
+                                            <a href="#payment-requests" class="mt-1 flex items-center justify-center gap-0.5 text-[10px] font-semibold hover:underline {{ $isInOpenRequest ? 'text-amber-700' : 'text-error' }}">
+                                                <span class="material-symbols-outlined text-[12px]" aria-hidden="true">stacks</span>
+                                                {{ $isInOpenRequest ? __('room.debts.in_request_label', ['code' => $bundleRequest->code]) : __('room.debts.rejected_request_label', ['code' => $bundleRequest->code]) }}
+                                            </a>
+                                        @endif
                                     </td>
                                     <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        @if(!$isPaid && $debt->remaining_amount > 0)
+                                        @if($isInOpenRequest && ! $isPaid)
+                                            <span class="inline-flex items-center gap-1 text-[11px] text-amber-700 font-medium">
+                                                <span class="material-symbols-outlined text-[13px]" aria-hidden="true">hourglass_top</span>
+                                                {{ __('room.debts.request_status_pending') }}
+                                            </span>
+                                        @elseif(!$isPaid && $debt->remaining_amount > 0)
                                             <button
                                                 class="px-2.5 py-1 rounded bg-[#006948] text-white hover:bg-[#005137] transition-all inline-flex items-center gap-1 shadow-2xs cursor-pointer font-medium text-xs"
                                                 @click="openQr({{ (int) $debt->remaining_amount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount) }}', {{ Js::from($transferContents[$debt->id] ?? $debt->code) }}, '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }})">
@@ -399,6 +430,58 @@
                     </div>
                 @endif
             </div>
+
+            @if($paymentRequests->isNotEmpty())
+                @php
+                    $requestBadge = [
+                        'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
+                        'approved' => 'bg-primary-fixed text-on-primary-fixed-variant border-transparent',
+                        'rejected' => 'bg-error-container text-on-error-container border-transparent',
+                    ];
+                @endphp
+                <section id="payment-requests" class="bg-surface-container-lowest rounded-xl shadow-2xs overflow-hidden border border-outline-variant/30">
+                    <div class="p-3 sm:p-3.5 border-b border-outline-variant/30">
+                        <h3 class="text-xs sm:text-sm text-on-surface font-bold">{{ __('room.debts.requests_title') }}</h3>
+                        <p class="text-[11px] text-on-surface-variant mt-0.5">{{ __('room.debts.requests_subtitle') }}</p>
+                    </div>
+                    <ul class="divide-y divide-outline-variant/20">
+                        @foreach($paymentRequests as $paymentRequest)
+                            @php $requestStatus = $paymentRequest->getStatusValue(); @endphp
+                            <li class="p-3 sm:p-3.5 flex flex-col gap-1.5" x-data="{ open: {{ $requestStatus === 'pending' ? 'true' : 'false' }} }">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <button type="button" @click="open = !open" :aria-expanded="open.toString()"
+                                        class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-left cursor-pointer min-w-0">
+                                        <span class="material-symbols-outlined text-[16px] text-on-surface-variant transition-transform" :class="open && 'rotate-90'" aria-hidden="true">chevron_right</span>
+                                        <span class="font-mono font-bold text-primary text-xs">{{ $paymentRequest->code }}</span>
+                                        <span class="text-[11px] text-on-surface-variant whitespace-nowrap">{{ $paymentRequest->payment_requested_at?->format('d/m/Y H:i') }}</span>
+                                        <span class="text-[11px] text-on-surface-variant whitespace-nowrap">· {{ __('room.debts.request_debts_count', ['count' => $paymentRequest->children->count()]) }}</span>
+                                    </button>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-tabular-nums font-bold text-xs text-on-surface">{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) $paymentRequest->original_amount) }}</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium border {{ $requestBadge[$requestStatus] ?? '' }}">
+                                            {{ __('room.debts.request_status_'.$requestStatus) }}
+                                        </span>
+                                    </div>
+                                </div>
+                                @if($paymentRequest->review_reason)
+                                    <p class="text-[11px] text-error pl-6">{{ __('room.debts.request_reason', ['reason' => $paymentRequest->review_reason]) }}</p>
+                                @endif
+                                <ul x-show="open" x-cloak class="pl-6 space-y-1">
+                                    @foreach($paymentRequest->children as $child)
+                                        <li class="flex items-center justify-between gap-2 text-[11px]">
+                                            <span class="min-w-0 truncate">
+                                                <span class="font-mono font-semibold text-on-surface">{{ $child->code }}</span>
+                                                <span class="text-on-surface-variant">· {{ $child->campaign?->name ?? __('global.common.campaign') }}</span>
+                                            </span>
+                                            <span class="font-tabular-nums text-on-surface-variant shrink-0">{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) ($child->remaining_amount > 0 ? $child->remaining_amount : $child->paid_amount)) }}</span>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            </li>
+                        @endforeach
+                    </ul>
+                </section>
+            @endif
 
         </div>
 
@@ -611,7 +694,8 @@
                         <div
                             class="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
                             <span class="material-symbols-outlined mt-0.5 shrink-0 text-[17px] text-amber-700">info</span>
-                            <span>{{ __('room.orders.confirm_modal_note') }}</span>
+                            <span x-show="currentDebtId">{{ __('room.orders.confirm_modal_note') }}</span>
+                            <span x-show="!currentDebtId" x-cloak>{{ __('room.debts.pay_all_confirm_note', ['count' => $paymentSummary['submittable_count']]) }}</span>
                         </div>
                     </div>
                     <div

@@ -7,7 +7,6 @@ namespace App\Http\Controllers\User;
 use App\Actions\Campaign\DeclineCampaignAction;
 use App\Actions\Campaign\RejoinCampaignAction;
 use App\Enums\CampaignStatus;
-use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Enums\GlobalUserStatus;
 use App\Http\Controllers\Controller;
@@ -21,6 +20,7 @@ use App\Models\RoomUser;
 use App\Services\Order\ProxyOrderPolicy;
 use App\Enums\RoomUserStatus;
 use App\Services\Campaign\UserRoomCampaignService;
+use App\Services\Debt\DebtCreditService;
 use App\Support\Helpers\FormatHelper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
@@ -337,11 +337,9 @@ class CampaignController extends Controller
         $requester = $request->attributes->get('room_user');
         abort_if($requester instanceof RoomUser && $roomUser->id === $requester->id, 422, __('room.campaign.proxy_self_not_allowed'));
 
-        $settings = $room->roomSettings()->whereIn('key', ['auto_lock_on_debt_limit', 'personal_debt_ceiling'])->get()->keyBy('key');
-        $autoLock = filter_var($settings->get('auto_lock_on_debt_limit')?->value ?? true, FILTER_VALIDATE_BOOLEAN);
-        $ceiling = (int) ($settings->get('personal_debt_ceiling')?->value ?? 150000);
-        $outstanding = (int) $roomUser->debts()->whereIn('status', DebtStatus::outstandingValues())->sum('remaining_amount');
-        abort_if($autoLock && $outstanding >= $ceiling, 422, __('room.campaign.proxy_debt_limit_reached', ['limit' => FormatHelper::formatCurrency($ceiling)]));
+        $credit = app(DebtCreditService::class);
+        $creditPolicy = $credit->policy($room);
+        abort_if($creditPolicy['enabled'] && $credit->used($roomUser) >= $creditPolicy['ceiling'], 422, __('room.campaign.proxy_debt_limit_reached', ['limit' => FormatHelper::formatCurrency($creditPolicy['ceiling'])]));
 
         return response()->json([
             'display_name' => $roomUser->display_name ?: $roomUser->globalUser?->name,

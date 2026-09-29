@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests;
+
+use App\Http\Requests\Concerns\AuthorizesUserAndAdmin;
+use Illuminate\Foundation\Http\FormRequest;
+
+/**
+ * Member confirmation of a debt transfer: one debt (`debt_id`) or all eligible debts (no `debt_id`).
+ */
+class ConfirmDebtPaymentRequest extends FormRequest
+{
+    use AuthorizesUserAndAdmin;
+
+    /**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool True when an active room member is signed in.
+     */
+    public function authorize(): bool
+    {
+        return $this->authorizeActiveRoomUser();
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, array<int, string>>
+     */
+    public function rules(): array
+    {
+        return [
+            'debt_id' => ['nullable', 'integer', 'min:1'],
+            'transfer_content' => ['nullable', 'string', 'max:255'],
+        ];
+    }
+}

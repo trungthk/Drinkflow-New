@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace App\Services\Order;
 
 use App\Enums\CampaignItemStatus;
-use App\Enums\DebtStatus;
 use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Services\Debt\DebtCreditService;
 use App\Support\Helpers\FormatHelper;
 use Illuminate\Validation\ValidationException;
 
@@ -19,6 +19,8 @@ use Illuminate\Validation\ValidationException;
  */
 class OrderPricingService
 {
+    public function __construct(private readonly DebtCreditService $credit) {}
+
     /**
      * Validate requested lines against the campaign's active menu and price them.
      *
@@ -107,6 +109,9 @@ class OrderPricingService
     /**
      * Enforce the room's personal debt ceiling when automatic locking is enabled.
      *
+     * Credit in use counts every outstanding campaign debt, including debts waiting in a payment
+     * request. The member row is locked so concurrent orders and debt bundling are serialized.
+     *
      * @param RoomUser $roomUser Ordering room member.
      * @param int $orderAmount Net amount of the order.
      * @return void
@@ -116,19 +121,14 @@ class OrderPricingService
     {
         /** @var Room $room */
         $room = $roomUser->room()->firstOrFail();
-        $settings = $room->roomSettings()
-            ->whereIn('key', ['personal_debt_ceiling', 'auto_lock_on_debt_limit'])
-            ->get()
-            ->keyBy('key');
-        $autoLock = filter_var($settings->get('auto_lock_on_debt_limit')?->value ?? true, FILTER_VALIDATE_BOOLEAN);
-        if (! $autoLock) {
+        $policy = $this->credit->policy($room);
+        if (! $policy['enabled']) {
             return;
         }
-        $ceiling = (int) ($settings->get('personal_debt_ceiling')?->value ?? 150000);
-        $outstanding = (int) $roomUser->debts()->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])->sum('remaining_amount');
-        if ($outstanding + $orderAmount > $ceiling) {
+        RoomUser::query()->whereKey($roomUser->id)->lockForUpdate()->first();
+        if ($this->credit->used($roomUser) + $orderAmount > $policy['ceiling']) {
             throw ValidationException::withMessages([
-                'order' => __('admin.debt_limit_reached', ['limit' => FormatHelper::formatCurrency($ceiling)]),
+                'order' => __('admin.debt_limit_reached', ['limit' => FormatHelper::formatCurrency($policy['ceiling'])]),
             ]);
         }
     }

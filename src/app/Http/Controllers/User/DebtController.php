@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\User;
 
+use App\Actions\Debt\ConfirmDebtPaymentAction;
+use App\Actions\Debt\SubmitDebtPaymentRequestAction;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ConfirmDebtPaymentRequest;
+use App\Services\Debt\DebtPaymentRequestService;
 use App\Services\Debt\UserRoomDebtService;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,9 +22,10 @@ class DebtController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
      * @param  \App\Services\Debt\UserRoomDebtService  $service  Service xử lý công nợ phòng
+     * @param  DebtPaymentRequestService  $requests  Consolidated payment request read service.
      * @return \Illuminate\Http\JsonResponse|\Illuminate\Contracts\View\View  Phản hồi JSON hoặc Giao diện View
      */
-    public function index(Request $request, UserRoomDebtService $service): JsonResponse|View
+    public function index(Request $request, UserRoomDebtService $service, DebtPaymentRequestService $requests): JsonResponse|View
     {
         $room = $request->attributes->get('room');
         $roomUser = $request->attributes->get('room_user');
@@ -32,25 +38,45 @@ class DebtController extends Controller
 
         $data = $service->getDebtViewData($room, $roomUser, $user);
 
-        return view('user.debts', $data);
+        return view('user.debts', array_merge($data, $requests->memberViewData($room, $roomUser, $data['debts']->getCollection())));
     }
 
     /**
-     * Submit debt payment confirmation to await admin approval.
+     * Submit a debt payment for admin approval.
      *
-     * @param Request $request Incoming HTTP request.
-     * @param \App\Actions\Debt\ConfirmDebtPaymentAction $action Domain action.
+     * With a `debt_id` the single debt is confirmed; without it every eligible debt is bundled into
+     * one consolidated payment request (at least two debts are required).
+     *
+     * @param ConfirmDebtPaymentRequest $request Validated member request.
+     * @param ConfirmDebtPaymentAction $single Single-debt confirmation action.
+     * @param SubmitDebtPaymentRequestAction $bundle Consolidated request action.
      * @return JsonResponse Success response.
      */
-    public function confirmPayment(Request $request, \App\Actions\Debt\ConfirmDebtPaymentAction $action): JsonResponse
+    public function confirmPayment(ConfirmDebtPaymentRequest $request, ConfirmDebtPaymentAction $single, SubmitDebtPaymentRequestAction $bundle): JsonResponse
     {
         $room = $request->attributes->get('room');
         $roomUser = $request->attributes->get('room_user');
 
-        $debtId = $request->input('debt_id') ? (int) $request->input('debt_id') : null;
-        $content = $request->input('transfer_content') ? (string) $request->input('transfer_content') : null;
+        $debtId = $request->validated('debt_id');
+        $content = $request->validated('transfer_content');
+        $content = $content !== null && $content !== '' ? (string) $content : null;
 
-        $updatedDebts = $action->execute($room, $roomUser, $debtId, $content);
+        if ($debtId === null) {
+            $paymentRequest = $bundle->execute($room, $roomUser, $content);
+
+            return response()->json([
+                'success' => true,
+                'message' => __('room.debts.request_submitted', [
+                    'code' => $paymentRequest->code,
+                    'amount' => FormatHelper::formatCurrency((int) $paymentRequest->original_amount),
+                ]),
+                'payment_status' => 'pending',
+                'payment_request_id' => $paymentRequest->id,
+                'updated_count' => $paymentRequest->children->count(),
+            ]);
+        }
+
+        $updatedDebts = $single->execute($room, $roomUser, (int) $debtId, $content);
 
         return response()->json([
             'success' => true,

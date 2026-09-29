@@ -12,6 +12,10 @@ enum DebtStatus: string
     case Paid = 'paid';
     case Waived = 'waived';
 
+    // Decision states of a consolidated payment request (the parent `debts` row); campaign debts never use them.
+    case Approved = 'approved';
+    case Rejected = 'rejected';
+
     /**
      * Return debt statuses that still have an outstanding balance.
      *

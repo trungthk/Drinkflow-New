@@ -94,6 +94,82 @@
         </div>
     </form>
 
+    <!-- Consolidated Payment Requests -->
+    @if(! empty($paymentRequests))
+        @php
+            $pendingRequestCount = collect($paymentRequests)->where('status', \App\Enums\DebtStatus::Pending->value)->count();
+            $requestStatusClass = [
+                'pending' => 'bg-amber-100 text-amber-900 border-amber-300',
+                'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
+            ];
+        @endphp
+        <section id="payment-requests" class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
+            <div class="flex flex-wrap items-start justify-between gap-2 px-4 py-3 border-b border-outline-variant bg-surface-container-low">
+                <div class="min-w-0">
+                    <h2 class="text-sm font-bold text-on-surface flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">stacks</span>
+                        {{ __('admin.payment_requests_title') }}
+                    </h2>
+                    <p class="text-[11px] text-outline mt-0.5">{{ __('admin.payment_requests_subtitle') }}</p>
+                </div>
+                @if($pendingRequestCount > 0)
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-amber-100 text-amber-900 border-amber-300">
+                        <span class="material-symbols-outlined text-[14px]" aria-hidden="true">hourglass_top</span>
+                        {{ __('admin.payment_requests_pending_count', ['count' => $pendingRequestCount]) }}
+                    </span>
+                @endif
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[48rem] text-left text-xs border-collapse">
+                    <thead>
+                        <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
+                            <th class="py-2.5 px-4">{{ __('admin.payment_request_code') }}</th>
+                            <th class="py-2.5 px-4">{{ __('admin.debt_member') }}</th>
+                            <th class="py-2.5 px-4 text-center">{{ __('admin.payment_request_debts') }}</th>
+                            <th class="py-2.5 px-4 text-right">{{ __('admin.payment_request_amount') }}</th>
+                            <th class="py-2.5 px-4">{{ __('admin.request_time') }}</th>
+                            <th class="py-2.5 px-4 text-center">{{ __('admin.th_status') }}</th>
+                            <th class="py-2.5 px-4 text-center">{{ __('admin.th_actions') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-outline-variant/50">
+                        @foreach($paymentRequests as $paymentRequest)
+                            <tr class="hover:bg-surface-container-low/50 transition-colors" data-payment-request-row="{{ $paymentRequest['id'] }}">
+                                <td class="py-3 px-4 font-mono font-bold text-primary whitespace-nowrap">{{ $paymentRequest['code'] }}</td>
+                                <td class="py-3 px-4">
+                                    <div class="font-semibold text-on-surface">{{ $paymentRequest['member'] }}</div>
+                                    <div class="text-[11px] text-outline">{{ $paymentRequest['member_meta'] }}</div>
+                                </td>
+                                <td class="py-3 px-4 text-center font-mono">{{ count($paymentRequest['debts']) }}</td>
+                                <td class="py-3 px-4 text-right font-mono font-bold text-on-surface whitespace-nowrap">
+                                    {{ \App\Support\Helpers\FormatHelper::formatCurrency($paymentRequest['amount']) }}
+                                    @if($paymentRequest['conflict'])
+                                        <span class="material-symbols-outlined text-[15px] text-rose-600 align-middle" data-tooltip="{{ __('admin.payment_request_conflict_notice', ['expected' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentRequest['amount']), 'actual' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentRequest['current_total'])]) }}" aria-hidden="true">warning</span>
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 text-outline whitespace-nowrap">{{ $paymentRequest['requested_at'] }}</td>
+                                <td class="py-3 px-4 text-center">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full whitespace-nowrap text-[11px] font-semibold border {{ $requestStatusClass[$paymentRequest['status']] ?? 'bg-surface-container text-secondary border-outline-variant' }}">
+                                        {{ $paymentRequest['status_label'] }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    <button type="button" data-open-payment-request
+                                        data-payment-request="{{ json_encode($paymentRequest, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
+                                        class="px-2.5 py-1 rounded text-[11px] font-bold inline-flex items-center gap-1 shadow-2xs transition-colors cursor-pointer {{ $paymentRequest['status'] === 'pending' ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-surface-container text-primary border border-outline-variant/60 hover:bg-surface-container-high' }}">
+                                        <span class="material-symbols-outlined text-[14px]" aria-hidden="true">{{ $paymentRequest['status'] === 'pending' ? 'pending_actions' : 'visibility' }}</span>
+                                        <span>{{ $paymentRequest['status'] === 'pending' ? __('admin.payment_request_view_btn') : __('admin.payment_request_view_detail') }}</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    @endif
+
     <!-- Debts Table Ledger -->
     <div class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
@@ -128,6 +204,9 @@
                             $createdAt     = $debt->created_at ? $debt->created_at->format('H:i d/m/Y') : '';
                             $transferContent = $debt->payment_content ?: $debt->code;
                             $debtStatusValue = $debt->status instanceof \BackedEnum ? $debt->status->value : (string) $debt->status;
+                            $bundleRequest = $debtRequests[$debt->id] ?? null;
+                            $bundleStatus = $bundleRequest?->getStatusValue();
+                            $isLockedByRequest = in_array($bundleStatus, [\App\Enums\DebtStatus::Pending->value, \App\Enums\DebtStatus::Approved->value], true);
                             $isPayAll      = !empty($debt->payment_content) && $debt->roomUser && $debt->payment_content === $debt->roomUser->user_code;
                             $userPendingDebts = ($isPayAll && $debt->roomUser) ? $debt->roomUser->debts->map(fn($d) => [
                                 'id' => $d->id,
@@ -189,6 +268,12 @@
                                     <span class="material-symbols-outlined text-[14px]" aria-hidden="true">{{ $stIcon }}</span>
                                     {{ __('admin.status_' . $debtStatusValue) }}
                                 </span>
+                                @if($bundleRequest)
+                                    <a href="#payment-requests" class="mt-1 flex items-center justify-center gap-0.5 text-[10px] font-semibold no-underline {{ $bundleStatus === \App\Enums\DebtStatus::Pending->value ? 'text-amber-700' : ($bundleStatus === \App\Enums\DebtStatus::Rejected->value ? 'text-rose-600' : 'text-emerald-700') }}">
+                                        <span class="material-symbols-outlined text-[12px]" aria-hidden="true">stacks</span>
+                                        {{ __('admin.debt_in_payment_request', ['code' => $bundleRequest->code]) }}
+                                    </a>
+                                @endif
                             </td>
                             <td class="py-3.5 px-4 text-right font-mono text-secondary">
                                 {{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->original_amount ?? 0) }}
@@ -227,7 +312,7 @@
                                             <span>{{ __('admin.approve_payment_btn') }}</span>
                                         </button>
                                     @endif
-                                    @if($debt->remaining_amount > 0 && $debtStatusValue !== 'pending')
+                                    @if($debt->remaining_amount > 0 && $debtStatusValue !== 'pending' && ! $isLockedByRequest)
                                         <button type="button" onclick="openRecordPaymentModal({{ $debt->id }}, {{ $debt->remaining_amount }}, @js($member), @js($campaignName))" class="px-2.5 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-[11px] font-semibold flex items-center gap-1 shadow-2xs transition-colors">
                                             <span class="material-symbols-outlined text-[14px]">payments</span>
                                             <span>{{ __('admin.record_payment_btn') }}</span>
@@ -434,6 +519,99 @@
                         class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 shadow-xs transition-colors cursor-pointer">
                     <span class="material-symbols-outlined text-[15px]">check_circle</span>
                     <span id="approve-modal-confirm-text">{{ __('admin.confirm_approve_btn') }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consolidated Payment Request Review Modal -->
+    @php
+        $paymentRequestI18n = [
+            'conflict' => __('admin.payment_request_conflict_notice'),
+            'reviewed' => __('admin.payment_request_reviewed'),
+            'reason' => __('room.debts.request_reason'),
+            'reasonRequired' => __('admin.debt_modal_reason_required'),
+            'serverError' => __('admin.debt_modal_server_error'),
+        ];
+    @endphp
+    <div id="payment-request-modal" data-i18n="{{ json_encode($paymentRequestI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}"
+        data-approve-url="{{ route('admin.debts.payment-requests.approve', [$room, '__ID__']) }}"
+        data-reject-url="{{ route('admin.debts.payment-requests.reject', [$room, '__ID__']) }}"
+        class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/65 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="payment-request-title">
+        <div class="absolute inset-0" data-payment-request-close></div>
+        <div class="relative z-10 w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-outline-variant bg-amber-50/60 shrink-0">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[20px]" aria-hidden="true">stacks</span>
+                    </span>
+                    <div class="min-w-0">
+                        <h3 id="payment-request-title" class="font-bold text-base text-on-surface">{{ __('admin.payment_requests_title') }}</h3>
+                        <p class="text-[11px] font-mono text-outline mt-0.5" data-payment-request-field="code">—</p>
+                    </div>
+                </div>
+                <button type="button" data-payment-request-close aria-label="{{ __('admin.close') }}" class="w-8 h-8 flex items-center justify-center text-outline hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors cursor-pointer">
+                    <span class="material-symbols-outlined text-[20px]">close</span>
+                </button>
+            </div>
+
+            <div class="px-6 py-5 space-y-4 overflow-y-auto flex-1 text-xs">
+                <div class="flex items-start gap-3">
+                    <span class="material-symbols-outlined text-[18px] text-outline mt-0.5 shrink-0" aria-hidden="true">account_circle</span>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-0.5">{{ __('admin.requester_user') }}</div>
+                        <div class="font-bold text-on-surface text-sm" data-payment-request-field="member">—</div>
+                        <div class="text-xs text-outline mt-0.5" data-payment-request-field="member_meta">—</div>
+                    </div>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-surface-container text-on-surface border-outline-variant shrink-0" data-payment-request-field="status_label">—</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-surface-container rounded-lg p-3">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.request_time') }}</div>
+                        <div class="text-xs font-semibold text-on-surface" data-payment-request-field="requested_at">—</div>
+                    </div>
+                    <div class="bg-surface-container rounded-lg p-3">
+                        <div class="text-[11px] font-mono uppercase text-outline tracking-wider mb-1">{{ __('admin.request_content') }}</div>
+                        <div class="text-xs font-mono font-bold text-primary break-words" data-payment-request-field="transfer_content">—</div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-[11px] font-mono uppercase text-outline tracking-wider">
+                        <span>{{ __('admin.payment_request_frozen_debts') }}</span>
+                        <span class="font-bold text-primary" data-payment-request-field="debt_count"></span>
+                    </div>
+                    <div class="border border-outline-variant/60 rounded-xl overflow-hidden divide-y divide-outline-variant/40 max-h-48 overflow-y-auto bg-surface-container-low" data-payment-request-debts></div>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] font-mono uppercase text-emerald-700 tracking-wider mb-0.5">{{ __('admin.payment_request_amount') }}</div>
+                        <div class="text-2xl font-bold font-mono text-emerald-700" data-payment-request-field="amount">—</div>
+                    </div>
+                    <span class="material-symbols-outlined text-[32px] text-emerald-400" aria-hidden="true">payments</span>
+                </div>
+
+                <p class="hidden rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700" data-payment-request-conflict role="alert"></p>
+                <p class="hidden rounded-xl border border-outline-variant bg-surface-container px-3 py-2 text-on-surface" data-payment-request-review></p>
+
+                <div class="hidden space-y-1.5" data-payment-request-reject-form>
+                    <label for="payment-request-reason" class="block font-semibold text-on-surface">{{ __('admin.debt_modal_reason') }} <span class="text-error">*</span></label>
+                    <textarea id="payment-request-reason" rows="2" maxlength="500" placeholder="{{ __('admin.payment_request_reject_placeholder') }}" class="w-full p-3 bg-surface border border-outline-variant rounded-xl text-on-surface focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"></textarea>
+                </div>
+                <p class="hidden rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-rose-700" data-payment-request-error role="alert"></p>
+            </div>
+
+            <div class="px-6 py-4 border-t border-outline-variant flex flex-wrap items-center justify-end gap-2 bg-surface-container-low/40 shrink-0">
+                <button type="button" data-payment-request-close class="px-4 py-2 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-lg text-xs font-semibold transition-colors cursor-pointer">{{ __('admin.close') }}</button>
+                <button type="button" data-payment-request-action="reject" class="hidden px-4 py-2 border border-rose-300 text-rose-700 hover:bg-rose-50 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-60">
+                    <span class="material-symbols-outlined text-[15px]" aria-hidden="true">block</span>
+                    <span data-reject-label data-label-start="{{ __('admin.payment_request_reject_btn') }}" data-label-confirm="{{ __('admin.payment_request_reject_confirm') }}">{{ __('admin.payment_request_reject_btn') }}</span>
+                </button>
+                <button type="button" data-payment-request-action="approve" class="hidden px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed">
+                    <span class="material-symbols-outlined text-[15px]" aria-hidden="true">check_circle</span>
+                    <span>{{ __('admin.payment_request_approve_btn') }}</span>
                 </button>
             </div>
         </div>

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\Debt\AdjustDebtAction;
+use App\Actions\Debt\ApproveDebtPaymentRequestAction;
+use App\Actions\Debt\RejectDebtPaymentRequestAction;
 use App\Exports\AdminDebtLedgerExport;
 use App\Actions\Debt\RecordDebtPaymentAction;
 use App\Actions\Debt\SetDebtStatusAction;
@@ -12,11 +14,13 @@ use App\Enums\DebtStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DebtAdjustmentRequest;
 use App\Http\Requests\DebtPaymentRequest;
+use App\Http\Requests\RejectDebtPaymentRequestRequest;
 use App\Http\Requests\RemindDebtsRequest;
 use App\Http\Requests\SetDebtStatusRequest;
 use App\Http\Requests\SettleDebtsRequest;
 use App\Models\Debt;
 use App\Models\Room;
+use App\Services\Debt\DebtPaymentRequestService;
 use App\Services\Debt\DebtReminderService;
 use App\Services\Debt\DebtSettlementService;
 use Illuminate\Contracts\View\View;
@@ -50,9 +54,10 @@ class DebtController extends Controller
      * @param Request $request Incoming request.
      * @param Room $room Room entity.
      * @param \App\Services\Admin\AdminDebtService $debtService Debt summary service.
+     * @param DebtPaymentRequestService $paymentRequests Consolidated payment request read service.
      * @return View Blade view.
      */
-    public function page(Request $request, Room $room, \App\Services\Admin\AdminDebtService $debtService): View
+    public function page(Request $request, Room $room, \App\Services\Admin\AdminDebtService $debtService, DebtPaymentRequestService $paymentRequests): View
     {
         $query = Debt::query()
             ->where('room_id', $room->id)
@@ -129,6 +134,10 @@ class DebtController extends Controller
                 'label' => __('admin.filter_debt_'.$status->value),
             ])->all(),
             'memberFilters' => $debtService->getMemberFilterOptions($room),
+            'paymentRequests' => $paymentRequests->requestsForRoom($room)
+                ->map(static fn (Debt $paymentRequest): array => $paymentRequests->formatForAdmin($paymentRequest))
+                ->all(),
+            'debtRequests' => $paymentRequests->requestsByChild($debts->getCollection()),
             'debtDetails' => $debts->getCollection()->mapWithKeys(
                 static fn (Debt $debt): array => [$debt->id => $debtService->formatDetail($debt)]
             )->all(),
@@ -206,6 +215,44 @@ class DebtController extends Controller
         return response()->json([
             'data' => $action->execute($debt),
             'message' => __('admin.payment_approved_successfully'),
+        ]);
+    }
+
+    /**
+     * Approve a pending consolidated payment request and settle the debts bundled into it.
+     *
+     * @param Request $request Incoming request.
+     * @param Room $room Current room.
+     * @param int $paymentRequest Payment request (parent debt) ID.
+     * @param ApproveDebtPaymentRequestAction $action Approval action.
+     * @return JsonResponse Approved request payload.
+     */
+    public function approveRequest(Request $request, Room $room, int $paymentRequest, ApproveDebtPaymentRequestAction $action): JsonResponse
+    {
+        $approved = $action->execute($room, $paymentRequest, $request->user('admin'));
+
+        return response()->json([
+            'data' => ['id' => $approved->id, 'code' => $approved->code, 'status' => $approved->getStatusValue()],
+            'message' => __('admin.payment_request_approved_message', ['code' => $approved->code]),
+        ]);
+    }
+
+    /**
+     * Reject a pending consolidated payment request with a reason for the member.
+     *
+     * @param RejectDebtPaymentRequestRequest $request Validated rejection.
+     * @param Room $room Current room.
+     * @param int $paymentRequest Payment request (parent debt) ID.
+     * @param RejectDebtPaymentRequestAction $action Rejection action.
+     * @return JsonResponse Rejected request payload.
+     */
+    public function rejectRequest(RejectDebtPaymentRequestRequest $request, Room $room, int $paymentRequest, RejectDebtPaymentRequestAction $action): JsonResponse
+    {
+        $rejected = $action->execute($room, $paymentRequest, $request->user('admin'), (string) $request->validated('reason'));
+
+        return response()->json([
+            'data' => ['id' => $rejected->id, 'code' => $rejected->code, 'status' => $rejected->getStatusValue()],
+            'message' => __('admin.payment_request_rejected_message', ['code' => $rejected->code]),
         ]);
     }
 

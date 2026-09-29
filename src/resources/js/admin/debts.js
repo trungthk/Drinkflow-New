@@ -590,7 +590,168 @@ export function initAdminDebts() {
         }
     });
 
+    initPaymentRequestModal(csrfToken, escapeHtml);
+
     window.exportDebtCSV = function() {
         window.location.assign(`/admin/${roomSlug}/debts/export`);
     };
+}
+
+/**
+ * Review modal for consolidated payment requests: shows the captured debts and lets the admin
+ * approve or reject a pending request. The server re-checks status and balances on every call.
+ *
+ * @param {string} csrfToken CSRF token for the POST requests.
+ * @param {(value: unknown) => string} escapeHtml HTML escaper.
+ * @returns {void}
+ */
+function initPaymentRequestModal(csrfToken, escapeHtml) {
+    const modal = document.querySelector('#payment-request-modal');
+    if (!modal) return;
+
+    const i18n = JSON.parse(modal.dataset.i18n || '{}');
+    const t = (key, replacements = {}) => Object.entries(replacements).reduce(
+        (text, [name, value]) => text.replaceAll(`:${name}`, value),
+        i18n[key] || '',
+    );
+    const field = (name) => modal.querySelector(`[data-payment-request-field="${name}"]`);
+    const approveBtn = modal.querySelector('[data-payment-request-action="approve"]');
+    const rejectBtn = modal.querySelector('[data-payment-request-action="reject"]');
+    const rejectLabel = modal.querySelector('[data-reject-label]');
+    const rejectForm = modal.querySelector('[data-payment-request-reject-form]');
+    const reasonInput = modal.querySelector('#payment-request-reason');
+    const errorBox = modal.querySelector('[data-payment-request-error]');
+    const conflictBox = modal.querySelector('[data-payment-request-conflict]');
+    const reviewBox = modal.querySelector('[data-payment-request-review]');
+    let current = null;
+    let busy = false;
+
+    const showMessage = (box, message) => {
+        if (!box) return;
+        box.textContent = message || '';
+        box.classList.toggle('hidden', !message);
+    };
+    const setRejecting = (rejecting) => {
+        rejectForm?.classList.toggle('hidden', !rejecting);
+        if (rejectLabel) rejectLabel.textContent = rejecting ? rejectLabel.dataset.labelConfirm : rejectLabel.dataset.labelStart;
+        if (rejecting) reasonInput?.focus();
+    };
+    const close = () => {
+        if (busy) return;
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    };
+
+    const open = (request) => {
+        current = request;
+        const isPending = request.status === 'pending';
+        ['code', 'member', 'member_meta', 'status_label', 'requested_at', 'transfer_content'].forEach((name) => {
+            const el = field(name);
+            if (el) el.textContent = request[name] || '—';
+        });
+        const amountEl = field('amount');
+        if (amountEl) amountEl.textContent = formatMoney(request.amount);
+        const countEl = field('debt_count');
+        if (countEl) countEl.textContent = String((request.debts || []).length);
+        const list = modal.querySelector('[data-payment-request-debts]');
+        if (list) {
+            list.innerHTML = (request.debts || []).map((debt) => `
+                <div class="p-2.5 flex items-center justify-between gap-2">
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-1.5 font-semibold text-on-surface">
+                            <span class="font-mono text-[11px] text-primary font-bold">${escapeHtml(debt.code)}</span>
+                            <span class="text-outline-variant">•</span>
+                            <span class="truncate">${escapeHtml(debt.campaign)}</span>
+                        </div>
+                        ${debt.note ? `<div class="text-[11px] text-outline truncate italic mt-0.5">${escapeHtml(debt.note)}</div>` : ''}
+                    </div>
+                    <span class="font-mono font-bold text-amber-600 shrink-0">${escapeHtml(formatMoney(debt.amount))}</span>
+                </div>`).join('');
+        }
+
+        showMessage(conflictBox, request.conflict
+            ? t('conflict', { expected: formatMoney(request.amount), actual: formatMoney(request.current_total) })
+            : '');
+        const reviewParts = [];
+        if (!isPending && request.reviewed_at) reviewParts.push(t('reviewed', { name: request.reviewer || '—', time: request.reviewed_at }));
+        if (request.review_reason) reviewParts.push(t('reason', { reason: request.review_reason }));
+        showMessage(reviewBox, reviewParts.join(' · '));
+        showMessage(errorBox, '');
+        if (reasonInput) reasonInput.value = '';
+        setRejecting(false);
+
+        approveBtn?.classList.toggle('hidden', !isPending);
+        rejectBtn?.classList.toggle('hidden', !isPending);
+        if (approveBtn) approveBtn.disabled = Boolean(request.conflict);
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    };
+
+    /**
+     * Post a review decision and reload the page on success.
+     *
+     * @param {'approve'|'reject'} action Decision.
+     * @param {HTMLButtonElement} button Clicked button, disabled while the request runs.
+     * @param {object} body JSON payload.
+     * @returns {Promise<void>}
+     */
+    const submit = async (action, button, body = {}) => {
+        if (!current || busy) return;
+        busy = true;
+        button.disabled = true;
+        showMessage(errorBox, '');
+        const url = modal.dataset[action === 'approve' ? 'approveUrl' : 'rejectUrl'].replace('__ID__', String(current.id));
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            const payload = await res.json().catch(() => ({}));
+            if (res.ok) {
+                if (payload.message) window.notify?.(payload.message, 'success');
+                window.location.reload();
+                return;
+            }
+            showMessage(errorBox, Object.values(payload.errors || {}).flat()[0] || payload.message || t('serverError'));
+        } catch (error) {
+            console.error(error);
+            showMessage(errorBox, t('serverError'));
+        }
+        busy = false;
+        button.disabled = action === 'approve' && Boolean(current?.conflict);
+    };
+
+    approveBtn?.addEventListener('click', () => submit('approve', approveBtn));
+    rejectBtn?.addEventListener('click', () => {
+        if (rejectForm?.classList.contains('hidden')) {
+            setRejecting(true);
+            return;
+        }
+        const reason = reasonInput?.value.trim() || '';
+        if (!reason) {
+            showMessage(errorBox, t('reasonRequired'));
+            reasonInput?.focus();
+            return;
+        }
+        submit('reject', rejectBtn, { reason });
+    });
+
+    document.addEventListener('click', (event) => {
+        const target = event.target instanceof Element ? event.target : null;
+        const openButton = target?.closest('[data-open-payment-request]');
+        if (openButton) {
+            try {
+                open(JSON.parse(openButton.dataset.paymentRequest || '{}'));
+            } catch (error) {
+                console.error(error);
+            }
+            return;
+        }
+        if (target?.closest('[data-payment-request-close]') && modal.contains(target)) close();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !modal.classList.contains('hidden')) close();
+    });
 }
