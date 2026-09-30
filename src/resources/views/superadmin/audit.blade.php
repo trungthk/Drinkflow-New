@@ -20,10 +20,11 @@
                         <option value="{{ $value }}" @selected($filters['event'] === $value)>{{ $label }}</option>
                     @endforeach
                 </select>
-                <select name="actor_type" class="sa-input" aria-label="{{ __('superadmin.audit.actor') }}">
-                    <option value="">{{ __('superadmin.common.all_actors') }}</option>
-                    <option value="{{ \App\Models\AuditLog::ACTOR_ADMIN }}" @selected($filters['actor_type'] === \App\Models\AuditLog::ACTOR_ADMIN)>{{ __('superadmin.common.actor_admin') }}</option>
-                    <option value="{{ \App\Models\AuditLog::ACTOR_SUPERADMIN }}" @selected($filters['actor_type'] === \App\Models\AuditLog::ACTOR_SUPERADMIN)>{{ __('superadmin.common.actor_superadmin') }}</option>
+                <select name="target_type" class="sa-input" aria-label="{{ __('superadmin.audit.target') }}">
+                    <option value="">{{ __('platform.audit.all_targets') }}</option>
+                    @foreach ($targetOptions as $value => $label)
+                        <option value="{{ $value }}" @selected($filters['target_type'] === $value)>{{ $label }}</option>
+                    @endforeach
                 </select>
                 <x-admin.date-range-filter id="audit-date-range" :dateFrom="$filters['date_from']" :dateTo="$filters['date_to']" />
                 <button class="sa-button secondary" type="submit"><span class="material-symbols-outlined text-[16px]">filter_list</span>{{ __('superadmin.common.filter') }}</button>
@@ -43,8 +44,7 @@
                 <tbody>
                     @forelse($audits as $audit)
                         @php
-                            $isSuperadminActor = $audit->actor_type === \App\Models\AuditLog::ACTOR_SUPERADMIN;
-                            $actorName = $audit->actor_type === \App\Models\AuditLog::ACTOR_SUPERADMIN ? $audit->actorSuperadmin?->name : $audit->actorAdmin?->name;
+                            $actorName = $audit->actorSuperadmin?->name;
                         @endphp
                         <tr>
                             <td class="whitespace-nowrap">
@@ -57,7 +57,7 @@
                                     <span class="min-w-0">
                                         <strong class="block truncate">{{ $actorName ?? '#'.$audit->actor_id }}</strong>
                                         <small class="flex items-center gap-1 text-outline">
-                                            <span class="material-symbols-outlined text-[14px]" aria-hidden="true">{{ $isSuperadminActor ? 'shield_person' : 'person' }}</span>{{ $isSuperadminActor ? __('superadmin.common.actor_superadmin') : __('superadmin.common.actor_admin') }}
+                                            <span class="material-symbols-outlined text-[14px]" aria-hidden="true">shield_person</span>{{ __('superadmin.common.actor_superadmin') }}
                                         </small>
                                     </span>
                                 </div>
@@ -70,7 +70,7 @@
                             <td>{{ $audit->room?->name ?? __('superadmin.common.global') }}</td>
                         </tr>
                     @empty
-                        @php($isFiltered = $filters['event'] !== '' || $filters['actor_type'] !== '' || $filters['date_from'] !== '' || $filters['date_to'] !== '')
+                        @php($isFiltered = $filters['event'] !== '' || $filters['target_type'] !== '' || $filters['date_from'] !== '' || $filters['date_to'] !== '')
                         <tr>
                             <td colspan="5">
                                 @if ($isFiltered)

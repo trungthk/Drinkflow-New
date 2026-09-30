@@ -208,6 +208,16 @@
             <p class="font-body-md text-body-md text-on-surface-variant max-w-3xl mt-1.5">
                 {{ __('admin.select_room_desc_count', ['count' => $roomsCount]) }}
             </p>
+            {{-- Agent account: owned rooms and quota (Rooms X / Limit). --}}
+            @isset($roomUsage)
+                <div class="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-outline-variant bg-white px-3 py-1 font-semibold text-on-surface" data-room-quota="{{ $roomUsage['state'] }}">
+                        <span class="material-symbols-outlined text-[16px] text-primary">meeting_room</span>
+                        {{ __('platform.rooms.quota_usage', ['used' => $roomUsage['used'], 'limit' => $roomUsage['limit']]) }}
+                    </span>
+                    <a href="{{ route('admin.rooms.index') }}" class="font-semibold text-primary hover:underline">{{ __('platform.rooms.manage_link') }}</a>
+                </div>
+            @endisset
         </div>
 
         @if($roomsCount > 0)

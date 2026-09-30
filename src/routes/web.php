@@ -49,5 +49,8 @@ Route::get('/lang/{locale}', function (string $locale) {
 })->name('locale.switch');
 
 require __DIR__.'/user.php';
+// Signed payment notifications of the platform invoice gateway (no session, no CSRF).
+Route::post('/payments/webhook', \App\Http\Controllers\Public\PaymentWebhookController::class)->middleware('throttle:60,1')->name('payments.webhook');
+
 require __DIR__.'/admin.php';
 require __DIR__.'/superadmin.php';

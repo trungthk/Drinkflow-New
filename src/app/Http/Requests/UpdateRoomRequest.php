@@ -33,13 +33,14 @@ class UpdateRoomRequest extends FormRequest
 
         return [
             'name' => ['sometimes', 'string', 'max:255'],
-            'slug' => ['sometimes', 'string', 'max:255', 'alpha_dash', Rule::unique('rooms', 'slug')->ignore($room)],
+            'slug' => ['sometimes', 'string', 'max:255', 'alpha_dash', Rule::notIn(\App\Models\Room::RESERVED_SLUGS), Rule::unique('rooms', 'slug')->ignore($room)],
             'description' => ['nullable', 'string'],
             'avatar_url' => ['nullable', 'url', 'max:2048'],
             'status' => [Rule::in(['active', 'inactive', 'archived'])],
             'timezone' => ['sometimes', 'timezone'],
             'language' => ['sometimes', 'string', 'max:10'],
             'settings' => ['sometimes', 'array'],
+            'owner_admin_id' => ['sometimes', 'nullable', 'integer', 'exists:admins,id'],
             'admin_ids' => ['sometimes', 'array'],
             'admin_ids.*' => ['integer', 'exists:admins,id'],
         ];

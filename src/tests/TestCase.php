@@ -13,6 +13,10 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
+        // The settings cache is static and outlives the database refresh: without this a maintenance window
+        // saved by an earlier test would still apply (e.g. once a later test travels in time).
+        \App\Services\System\SystemSettingsService::clearCache();
+
         // Keep tests offline: every host name resolves to a fixed public address, so only IP literals and
         // reserved names such as "localhost" can exercise the private-address checks of the SSRF guard.
         $this->app->bind(OutboundUrlGuard::class, fn (): OutboundUrlGuard => new class extends OutboundUrlGuard {

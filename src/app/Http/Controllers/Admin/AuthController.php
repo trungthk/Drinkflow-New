@@ -140,6 +140,7 @@ class AuthController extends Controller
             'liveCount' => $liveCount,
             'debtCount' => $debtCount,
             'idleCount' => $idleCount,
+            'roomUsage' => app(\App\Services\Room\RoomQuotaService::class)->usage($admin),
         ]);
     }
 

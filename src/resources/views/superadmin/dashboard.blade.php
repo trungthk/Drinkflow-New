@@ -18,6 +18,7 @@
 </div>
     </div>
     <div id="notice" class="sa-notice"></div>
+    @include('superadmin.dashboard._platform-widgets', ['widgets' => $widgets])
     <section class="sa-grid kpis kpis-4">
         <article class="sa-card sa-kpi"><span class="label">{{ __('superadmin.dashboard.total_rooms') }}</span><strong id="total-rooms"
                 class="value">—</strong><span id="active-rooms" class="hint">{{ __('superadmin.common.loading') }}</span></article>
@@ -105,6 +106,7 @@
         </section>
     </div>
 
+    @if ($platformAnalytics)
     @php($analyticsDays = \App\Services\Dashboard\SuperadminDashboardService::PERIOD_DAYS)
     <section id="sa-analytics" class="sa-analytics" aria-labelledby="sa-analytics-title"
         data-url="{{ route('superadmin.dashboard.analytics') }}"
@@ -449,6 +451,9 @@
             </div>
         </section>
     </section>
+    @else
+        <p class="sa-notice is-visible mt-4" data-platform-analytics-hidden>{{ __('platform.dashboard.analytics_hidden') }}</p>
+    @endif
 @endsection
 
 @push('scripts')
@@ -479,13 +484,15 @@
         dfApi('{{ route('superadmin.dashboard') }}').then(({
             data
         }) => {
-            document.querySelector('#total-rooms').textContent = data.total_rooms;
-            document.querySelector('#active-rooms').textContent = @js(__('superadmin.dashboard.active_rooms', ['count' => '__COUNT__'])).replace('__COUNT__', data.active_rooms);
-            document.querySelector('#total-users').textContent = data.total_global_users;
-            document.querySelector('#active-users').textContent = @js(__('superadmin.dashboard.active_users', ['count' => '__COUNT__'])).replace('__COUNT__', data.active_global_users);
+            // Figures outside the viewer's permissions come back as null and stay "—".
+            document.querySelector('#total-rooms').textContent = data.total_rooms ?? '—';
+            document.querySelector('#active-rooms').textContent = data.active_rooms === null ? '' : @js(__('superadmin.dashboard.active_rooms', ['count' => '__COUNT__'])).replace('__COUNT__', data.active_rooms);
+            document.querySelector('#total-users').textContent = data.total_global_users ?? '—';
+            document.querySelector('#active-users').textContent = data.active_global_users === null ? '' : @js(__('superadmin.dashboard.active_users', ['count' => '__COUNT__'])).replace('__COUNT__', data.active_global_users);
             document.querySelector('#total-admins').textContent = data.total_admins ?? '—';
-            document.querySelector('#orders-today').textContent = data.orders_today;
+            document.querySelector('#orders-today').textContent = data.orders_today ?? '—';
             const health = data.system_health;
+            if (!health) return;
             document.querySelector('#database-status').innerHTML = statusPill(health.database.status);
             document.querySelector('#queue-status').textContent =
                 `${health.queue.connection} · ${@js(__('superadmin.dashboard.failed_count', ['count' => '__COUNT__'])).replace('__COUNT__', health.queue.failed_jobs)}`;

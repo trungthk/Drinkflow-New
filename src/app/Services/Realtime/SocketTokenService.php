@@ -86,7 +86,8 @@ class SocketTokenService
     {
         abort_unless($admin->isActive(), 403);
 
-        if (!$room || !$admin->rooms()->whereKey($room->id)->exists()) {
+        // Same rule as the admin room area (RoomPolicy::operate): owner or collaborator only.
+        if (!$room || !\Illuminate\Support\Facades\Gate::forUser($admin)->allows('operate', $room)) {
             abort(403);
         }
         $roomIds = [$room->id];

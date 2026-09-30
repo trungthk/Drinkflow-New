@@ -28,7 +28,8 @@ class EnsureAdminRoomAccess
         }
         abort_unless($room instanceof Room, 404);
 
-        if (! ($admin && $admin->isActive() && $admin->rooms()->whereKey($room->id)->exists())) {
+        // RoomPolicy::operate: the active owner or a collaborator, never another Agent's room.
+        if (! ($admin && \Illuminate\Support\Facades\Gate::forUser($admin)->allows('operate', $room))) {
             if ($request->expectsJson()) {
                 abort(Response::HTTP_FORBIDDEN);
             }

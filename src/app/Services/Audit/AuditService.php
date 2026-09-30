@@ -25,9 +25,11 @@ class AuditService
     public function record(string $event, string $targetType, int $targetId, ?int $roomId = null, array $before = [], array $after = [], array $metadata = []): AuditLog
     {
         $request = app(Request::class);
-        $superadmin = $request->user('superadmin');
-        $admin = $superadmin === null ? $request->user('admin') : null;
-        $actor = $superadmin ?? $admin ?? $request->user('web');
+        // Read the actor from the guards themselves: the request's user resolver is not reliable for
+        // actions run outside an HTTP request (console, queued jobs, tests calling services directly).
+        $superadmin = auth()->guard('superadmin')->user();
+        $admin = $superadmin === null ? auth()->guard('admin')->user() : null;
+        $actor = $superadmin ?? $admin ?? auth()->guard('web')->user();
         $actorType = match (true) {
             $superadmin !== null => AuditLog::ACTOR_SUPERADMIN,
             $admin !== null => AuditLog::ACTOR_ADMIN,

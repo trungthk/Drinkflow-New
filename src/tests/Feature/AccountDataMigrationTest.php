@@ -27,12 +27,21 @@ class AccountDataMigrationTest extends TestCase
         'migrations/2026_09_30_020000_move_legacy_superadmins_out_of_admins.php',
     ];
 
+    /** Later migrations that change `admins`; rolled back first (newest first) so the split can be undone. */
+    private const LATER_ADMIN_MIGRATIONS = [
+        'migrations/2026_09_30_070000_create_admin_subscriptions_table.php',
+        'migrations/2026_09_30_060000_add_registration_columns_to_admins_table.php',
+    ];
+
     /** @var array<int, Migration> */
     private array $migrations = [];
 
     protected function setUp(): void
     {
         parent::setUp();
+        foreach (self::LATER_ADMIN_MIGRATIONS as $path) {
+            (require database_path($path))->down();
+        }
         foreach (self::MIGRATIONS as $path) {
             $this->migrations[] = require database_path($path);
         }

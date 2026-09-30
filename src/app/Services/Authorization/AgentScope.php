@@ -52,7 +52,7 @@ class AgentScope
     }
 
     /**
-     * Restrict a room query to rooms of Agents visible for the permission.
+     * Restrict a room query to rooms owned by Agents visible for the permission.
      *
      * @param Builder<\App\Models\Room> $query Room query.
      * @param Superadmin $superadmin Acting superadmin.
@@ -63,7 +63,16 @@ class AgentScope
     {
         $ids = $this->adminIds($superadmin, $permission);
 
-        return $ids === null ? $query : $query->whereHas('admins', static fn (Builder $admins) => $admins->whereIn('admins.id', $ids));
+        if ($ids === null) {
+            return $query;
+        }
+
+        // Ownership decides visibility; rooms not mapped to an owner yet fall back to their assigned Admins.
+        return $query->where(static fn (Builder $rooms) => $rooms
+            ->whereIn($rooms->qualifyColumn('owner_admin_id'), $ids)
+            ->orWhere(static fn (Builder $legacy) => $legacy
+                ->whereNull($legacy->qualifyColumn('owner_admin_id'))
+                ->whereHas('admins', static fn (Builder $admins) => $admins->whereIn('admins.id', $ids))));
     }
 
     /**

@@ -50,6 +50,18 @@ class DatabaseSeeder extends Seeder
 
         $admin->rooms()->syncWithoutDetaching([$techRoom->id]);
 
+        // 3. Demo subscription packages (production packages are created by Superadmins).
+        foreach ([
+            ['starter', 'Starter', 0, 1, 1],
+            ['business', 'Business', 100000, 10, 2],
+            ['enterprise', 'Enterprise', 500000, 50, 3],
+        ] as [$code, $name, $price, $roomLimit, $sortOrder]) {
+            \App\Models\Package::updateOrCreate(
+                ['code' => $code],
+                ['name' => $name, 'monthly_price' => $price, 'room_limit' => $roomLimit, 'status' => 'active', 'sort_order' => $sortOrder],
+            );
+        }
+
         // 9. System Versions
         $this->call(VersionSeeder::class);
     }

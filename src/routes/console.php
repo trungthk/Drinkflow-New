@@ -33,3 +33,19 @@ Schedule::command('drinkflow:remind-campaign-deadlines')
 Schedule::command('drinkflow:capture-system-metrics')
     ->everyFifteenMinutes()
     ->withoutOverlapping();
+
+// 6. Close ended subscription periods: renew, apply scheduled downgrades, end cancelled subscriptions
+Schedule::command('subscriptions:process')
+    ->hourly()
+    ->withoutOverlapping();
+
+// 7. Platform billing: invoice new subscription periods, then flag unpaid invoices past their due date
+Schedule::command('billing:generate-invoices')
+    ->hourlyAt(10)
+    ->withoutOverlapping();
+Schedule::command('billing:process-overdue')
+    ->dailyAt('01:30')
+    ->withoutOverlapping();
+Schedule::command('billing:enforce-overdue')
+    ->dailyAt('01:45')
+    ->withoutOverlapping();

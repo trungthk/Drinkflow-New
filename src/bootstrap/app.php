@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'global.user' => \App\Http\Middleware\ResolveGlobalUser::class,
             'room.user' => \App\Http\Middleware\ResolveRoomUser::class,
             'admin.room' => \App\Http\Middleware\EnsureAdminRoomAccess::class,
+            'room.subscription' => \App\Http\Middleware\EnsureRoomSubscriptionActive::class,
             'superadmin' => \App\Http\Middleware\EnsureSuperadmin::class,
             'permission' => \App\Http\Middleware\EnsureSuperadminPermission::class,
             'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
@@ -35,7 +36,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return $request->is('admin', 'admin/*') ? route('admin.login.page') : route('auth.google');
         });
-        $middleware->validateCsrfTokens(except: ['logout']);
+        // The payment provider cannot send a CSRF token; its notifications are HMAC-signed instead.
+        $middleware->validateCsrfTokens(except: ['logout', 'payments/webhook']);
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
             \App\Http\Middleware\EnsureActiveAdmin::class,

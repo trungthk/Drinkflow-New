@@ -19,6 +19,17 @@ class AuditLog extends Model
     /** Actor types performed through the admin console (room admins and superadmins). */
     public const ADMIN_ACTOR_TYPES = [self::ACTOR_ADMIN, self::ACTOR_SUPERADMIN];
 
+    /**
+     * Audit logs are append-only: a model update or delete is refused (retention pruning deletes in bulk).
+     *
+     * @return void
+     */
+    protected static function booted(): void
+    {
+        static::updating(static fn (): never => throw new \LogicException('Audit logs are append-only.'));
+        static::deleting(static fn (): never => throw new \LogicException('Audit logs are append-only.'));
+    }
+
     public $timestamps = false;
     protected $fillable = ['actor_type', 'actor_id', 'event', 'target_type', 'target_id', 'room_id', 'ip_address', 'user_agent', 'device_uuid', 'before_data', 'after_data', 'metadata', 'created_at'];
     protected function casts(): array
@@ -66,8 +77,14 @@ class AuditLog extends Model
     {
         $key = 'admin.audit_event_'.str_replace('.', '_', $event);
         $label = __($key);
+        if ($label !== $key) {
+            return $label;
+        }
+        // SaaS platform events (registration, subscriptions, billing…) live in lang/*/platform.php.
+        $platformKey = 'platform.audit.events.'.str_replace('.', '_', $event);
+        $platformLabel = __($platformKey);
 
-        return $label === $key ? $event : $label;
+        return $platformLabel === $platformKey ? $event : $platformLabel;
     }
 
     /**
@@ -89,8 +106,13 @@ class AuditLog extends Model
     {
         $key = 'admin.audit_target_'.$this->target_type;
         $label = __($key);
+        if ($label !== $key) {
+            return $label;
+        }
+        $platformKey = 'platform.audit.targets.'.$this->target_type;
+        $platformLabel = __($platformKey);
 
-        return $label === $key ? (string) $this->target_type : $label;
+        return $platformLabel === $platformKey ? (string) $this->target_type : $platformLabel;
     }
 
     public function admins(): BelongsToMany

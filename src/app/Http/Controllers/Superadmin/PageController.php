@@ -183,37 +183,46 @@ class PageController extends Controller
      * from the events that actually exist for admin actors, and the actor filter only accepts
      * admin/superadmin.
      *
-     * @param Request $request Query string: event, actor_type, date_from, date_to.
+     * @param Request $request Query string: event, target_type, date_from, date_to.
      * @return View Audit log page with translated event options.
      */
     public function audit(Request $request): View
     {
+        // Superadmin actions only: room admins' activity is shown in each room's own audit page.
+        $actorTypes = [AuditLog::ACTOR_SUPERADMIN];
         $query = AuditLog::query()
-            ->whereIn('actor_type', AuditLog::ADMIN_ACTOR_TYPES)
-            ->with(['room:id,name', 'actorAdmin:id,name,email', 'actorSuperadmin:id,name,email'])
+            ->whereIn('actor_type', $actorTypes)
+            ->with(['room:id,name', 'actorSuperadmin:id,name,email'])
             ->latest('created_at')
             ->latest('id');
         $event = trim($request->string('event')->toString());
         if ($event !== '') $query->where('event', $event);
-        $actorType = $request->string('actor_type')->toString();
-        if (! in_array($actorType, AuditLog::ADMIN_ACTOR_TYPES, true)) $actorType = '';
-        if ($actorType !== '') $query->where('actor_type', $actorType);
+        $targetType = trim($request->string('target_type')->toString());
+        if ($targetType !== '') $query->where('target_type', $targetType);
         $dateFrom = $request->string('date_from')->toString();
         $dateTo = $request->string('date_to')->toString();
         if ($dateFrom !== '') $query->whereDate('created_at', '>=', $dateFrom);
         if ($dateTo !== '') $query->whereDate('created_at', '<=', $dateTo);
 
         $eventOptions = AuditLog::query()
-            ->whereIn('actor_type', AuditLog::ADMIN_ACTOR_TYPES)
+            ->whereIn('actor_type', $actorTypes)
             ->distinct()
             ->pluck('event')
             ->mapWithKeys(fn (string $key): array => [$key => AuditLog::labelForEvent($key)])
+            ->sort();
+        $targetOptions = AuditLog::query()
+            ->whereIn('actor_type', $actorTypes)
+            ->distinct()
+            ->pluck('target_type')
+            ->filter()
+            ->mapWithKeys(fn (string $type): array => [$type => (new AuditLog(['target_type' => $type]))->targetLabel()])
             ->sort();
 
         return view('superadmin.audit', [
             'audits' => $query->paginate(\App\Constants\Pagination::ADMIN_PER_PAGE)->withQueryString(),
             'eventOptions' => $eventOptions,
-            'filters' => ['event' => $event, 'actor_type' => $actorType, 'date_from' => $dateFrom, 'date_to' => $dateTo],
+            'targetOptions' => $targetOptions,
+            'filters' => ['event' => $event, 'target_type' => $targetType, 'date_from' => $dateFrom, 'date_to' => $dateTo],
         ]);
     }
     /**

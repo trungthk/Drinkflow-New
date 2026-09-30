@@ -56,10 +56,14 @@ class RoomController extends Controller
         Gate::authorize('create', Room::class);
         $data = $request->validated();
         $adminIds = $data['admin_ids'] ?? [];
-        unset($data['admin_ids']);
-        $this->assertAdminsInScope($request, $adminIds);
+        $ownerId = $data['owner_admin_id'] ?? null;
+        unset($data['admin_ids'], $data['owner_admin_id']);
+        $this->assertAdminsInScope($request, $ownerId !== null ? [...$adminIds, $ownerId] : $adminIds);
 
         $room = $action->create($data);
+        if ($ownerId !== null) {
+            $room = app(\App\Services\Room\RoomOwnershipService::class)->assign($room, \App\Models\Admin::query()->findOrFail((int) $ownerId));
+        }
         if ($adminIds !== []) {
             $room = $action->syncAdmins($room, $adminIds);
         }
@@ -89,10 +93,14 @@ class RoomController extends Controller
         Gate::authorize('update', $room);
         $data = $request->validated();
         $adminIds = $data['admin_ids'] ?? null;
-        unset($data['admin_ids']);
-        $this->assertAdminsInScope($request, $adminIds ?? []);
+        $ownerId = $data['owner_admin_id'] ?? null;
+        unset($data['admin_ids'], $data['owner_admin_id']);
+        $this->assertAdminsInScope($request, $ownerId !== null ? [...($adminIds ?? []), $ownerId] : ($adminIds ?? []));
 
         $result = $action->update($room, $data);
+        if ($ownerId !== null) {
+            $result = app(\App\Services\Room\RoomOwnershipService::class)->assign($result, \App\Models\Admin::query()->findOrFail((int) $ownerId));
+        }
         if ($adminIds !== null) {
             $result = $action->syncAdmins($result, $adminIds);
         }

@@ -3,6 +3,7 @@
     'active' => 'dashboard',
     'room' => null,
     'assignedRooms' => null,
+    'breadcrumb' => null,
 ])
 
 @php
@@ -261,6 +262,7 @@
                             </div>
                         </a>
                     @endif
+                    <x-admin.account-nav :active="$active" />
                 </nav>
             </div>
 
@@ -330,7 +332,10 @@
                     <span class="hidden sm:inline">{{ __('global.common.admin') }}</span>
                     <span class="hidden sm:inline">/</span>
                     <a href="{{ route('admin.landing') }}" class="hidden sm:inline hover:text-on-surface transition-colors">{{ __('admin.breadcrumb_rooms') }}</a>
-                    @if (request()->routeIs('admin.profile'))
+                    @if ($breadcrumb)
+                        <span class="hidden sm:inline">/</span>
+                        <span class="text-on-surface font-semibold truncate">{{ $breadcrumb }}</span>
+                    @elseif (request()->routeIs('admin.profile'))
                         <span class="hidden sm:inline">/</span>
                         <span class="text-on-surface font-semibold truncate">{{ __('admin.profile') }}</span>
                     @elseif($room)

@@ -74,7 +74,7 @@ trait AuthorizesUserAndAdmin
             return false;
         }
 
-        return $admin->rooms()->whereKey($resolvedRoom->id)->exists();
+        return \Illuminate\Support\Facades\Gate::forUser($admin)->allows('operate', $resolvedRoom);
     }
 
     /**

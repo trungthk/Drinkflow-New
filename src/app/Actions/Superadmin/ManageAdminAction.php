@@ -82,7 +82,8 @@ class ManageAdminAction
     {
         return DB::transaction(function () use ($admin, $roomIds): Admin {
             $before = $admin->rooms()->pluck('rooms.id')->sort()->values()->all();
-            $admin->rooms()->sync($roomIds);
+            // Rooms the Agent owns stay accessible; ownership changes go through RoomOwnershipService.
+            $admin->rooms()->sync(array_values(array_unique([...array_map('intval', $roomIds), ...$admin->ownedRooms()->pluck('id')->map(static fn ($id): int => (int) $id)->all()])));
             $after = $admin->rooms()->pluck('rooms.id')->sort()->values()->all();
             app(AuditService::class)->record('admin.rooms_updated', 'admin', $admin->id, null, ['room_ids' => $before], ['room_ids' => $after]);
             event(new AdminRoomsUpdated($admin->id, $after));

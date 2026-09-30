@@ -7,6 +7,8 @@ namespace App\Models;
 use App\Enums\RoomStatus;
 use App\Models\Concerns\HasStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
@@ -14,7 +16,14 @@ class Room extends Model
 {
     use HasStatus;
 
-    protected $fillable = ['name', 'slug', 'description', 'avatar_url', 'status', 'timezone', 'language', 'settings'];
+    /**
+     * Slugs that would clash with the static /admin/* routes (the room area lives at /admin/{room}).
+     *
+     * @var array<int, string>
+     */
+    public const RESERVED_SLUGS = ['rooms', 'register', 'login', 'logout', 'profile', 'subscription', 'billing', 'forgot-password', 'verify-otp', 'reset-password'];
+
+    protected $fillable = ['owner_admin_id', 'name', 'slug', 'description', 'avatar_url', 'status', 'timezone', 'language', 'settings'];
 
     protected function casts(): array
     {
@@ -77,6 +86,43 @@ class Room extends Model
         return $this->hasMany(Debt::class);
     }
 
+    /**
+     * Owning Agent: carries the subscription, quota and platform billing of the room.
+     *
+     * @return BelongsTo<Admin, $this> Owner.
+     */
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class, 'owner_admin_id');
+    }
+
+    /**
+     * Whether the Admin owns this room.
+     *
+     * @param Admin $admin Admin.
+     * @return bool True for the owner.
+     */
+    public function isOwnedBy(Admin $admin): bool
+    {
+        return $this->owner_admin_id !== null && (int) $this->owner_admin_id === (int) $admin->id;
+    }
+
+    /**
+     * Rooms that use a slot of the owner's quota (active and disabled; archived rooms are free).
+     *
+     * @param Builder<Room> $query Room query.
+     * @return Builder<Room> Constrained query.
+     */
+    public function scopeCountingTowardQuota(Builder $query): Builder
+    {
+        return $query->whereIn('status', RoomStatus::quotaValues());
+    }
+
+    /**
+     * Admins with operational access to the room (the owner and collaborators).
+     *
+     * @return BelongsToMany<Admin, $this> Admins.
+     */
     public function admins(): BelongsToMany
     {
         return $this->belongsToMany(Admin::class, 'admin_rooms', 'room_id', 'admin_id');

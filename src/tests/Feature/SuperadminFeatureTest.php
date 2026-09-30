@@ -334,7 +334,7 @@ class SuperadminFeatureTest extends TestCase
             ->assertSee(__('superadmin.campaigns.no_results_title'));
     }
 
-    public function test_audit_page_lists_only_admin_actor_logs_with_translated_events(): void
+    public function test_audit_page_lists_only_superadmin_logs_with_translated_events(): void
     {
         $root = $this->superadmin();
         $admin = Admin::create(['name' => 'Operator', 'email' => 'operator-audit@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
@@ -348,20 +348,21 @@ class SuperadminFeatureTest extends TestCase
         $log('user', 99, 'user.logged_in');
         $log('system', null, 'system.reset');
 
+        // Only actions performed by superadmins are shown; room admins, users and the system are not.
         $this->actingAs($root, 'superadmin')->get('/superadmin/audit-logs/page')
             ->assertOk()
             ->assertSee(__('admin.audit_event_campaign_force_closed'))
-            ->assertSee(__('admin.audit_event_room_settings_updated'))
-            ->assertSee('Operator')
             ->assertSee(__('admin.audit_target_campaign'))
+            ->assertDontSee('room.settings_updated')
+            ->assertDontSee('Operator')
             ->assertDontSee('user.logged_in')
             ->assertDontSee('system.reset');
 
-        // An actor type outside admin/superadmin is ignored instead of exposing end-user logs.
-        $this->actingAs($root, 'superadmin')->get('/superadmin/audit-logs/page?actor_type=user')
-            ->assertOk()->assertDontSee('user.logged_in')->assertSee('campaign.force_closed');
+        // An actor_type parameter cannot widen the list to other actors.
+        $this->actingAs($root, 'superadmin')->get('/superadmin/audit-logs/page?actor_type=admin')
+            ->assertOk()->assertDontSee('room.settings_updated')->assertSee('campaign.force_closed');
 
-        $this->actingAs($root, 'superadmin')->get('/superadmin/audit-logs/page?actor_type=admin&event=campaign.force_closed')
+        $this->actingAs($root, 'superadmin')->get('/superadmin/audit-logs/page?event=room.settings_updated')
             ->assertOk()->assertSee(__('superadmin.audit.no_results_title'));
     }
 

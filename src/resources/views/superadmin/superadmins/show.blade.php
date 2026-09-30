@@ -71,33 +71,25 @@
                     <p>{{ __('superadmin.superadmins.permissions_description') }}</p>
                 </div>
             </div>
+            @php($roles = \App\Models\SuperadminRole::query()->orderBy('name')->get(['id', 'name']))
+            @if ($canManage && $roles->isNotEmpty())
+                <form method="POST" action="{{ route('superadmin.superadmins.role', $superadmin) }}" class="flex flex-wrap items-end gap-2 mb-4 pb-4 border-b border-outline-variant"
+                    data-confirm="{{ __('platform.roles.apply_confirm') }}">
+                    @csrf
+                    <label class="flex flex-col gap-1 text-xs font-semibold flex-1 min-w-[200px]">{{ __('platform.roles.apply_label') }}
+                        <select name="role_id" class="sa-input !min-w-0 w-full !py-2">
+                            @foreach ($roles as $role)
+                                <option value="{{ $role->id }}" @selected($superadmin->superadmin_role_id === $role->id)>{{ $role->name }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <button type="submit" class="sa-button secondary"><span class="material-symbols-outlined text-[16px]">badge</span>{{ __('platform.roles.apply') }}</button>
+                </form>
+            @endif
             <form method="POST" action="{{ route('superadmin.superadmins.permissions', $superadmin) }}" class="space-y-4">
                 @csrf
                 @method('PUT')
-                <fieldset class="space-y-4" @disabled(! $canManage)>
-                    @foreach ($permissionGroups as $group => $permissions)
-                        <div class="border border-outline-variant rounded-xl p-3">
-                            <h3 class="text-xs font-bold text-on-surface mb-2">{{ $permissions->first()->groupLabel() }}</h3>
-                            <div class="space-y-1.5">
-                                @foreach ($permissions as $permission)
-                                    <div class="flex flex-wrap items-center justify-between gap-2">
-                                        <label class="flex items-center gap-2 text-xs text-on-surface cursor-pointer">
-                                            <input type="checkbox" name="permissions[]" value="{{ $permission->value }}" @checked(array_key_exists($permission->value, $grants))>
-                                            <span>{{ $permission->label() }} <code class="text-[10px] text-outline">{{ $permission->value }}</code></span>
-                                        </label>
-                                        @if ($permission->supportsScope())
-                                            <select name="scopes[{{ $permission->value }}]" class="sa-input !min-w-0 !py-1 text-xs" aria-label="{{ __('superadmin.superadmins.scope') }}">
-                                                @foreach (\App\Enums\PermissionScope::cases() as $scope)
-                                                    <option value="{{ $scope->value }}" @selected(($grants[$permission->value] ?? 'all') === $scope->value)>{{ __('superadmin.permissions.scopes.'.$scope->value) }}</option>
-                                                @endforeach
-                                            </select>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endforeach
-                </fieldset>
+                @include('superadmin.superadmins._permission-matrix')
                 @if ($canManage)
                     <div class="flex justify-end">
                         <button type="submit" class="sa-button"><span class="material-symbols-outlined text-[16px]">verified_user</span>{{ __('superadmin.superadmins.save_permissions') }}</button>

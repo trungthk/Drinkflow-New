@@ -12,7 +12,20 @@ Route::post('/admin/login', [\App\Http\Controllers\Admin\AuthController::class, 
 Route::post('/admin/login/two-factor/cancel', [\App\Http\Controllers\Admin\AuthController::class, 'cancelTwoFactorLogin'])
     ->middleware('throttle:admin-login')
     ->name('admin.login.two-factor.cancel');
-Route::get('/admin/forgot-password', [\App\Http\Controllers\Admin\AuthController::class, 'forgotPasswordPage'])
+// Public Agent registration: pending account + email verification, approved later by a Superadmin.
+Route::get('/admin/register', [\App\Http\Controllers\Admin\RegistrationController::class, 'create'])->name('admin.register.page');
+Route::post('/admin/register', [\App\Http\Controllers\Admin\RegistrationController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('admin.register');
+Route::get('/admin/register/pending', [\App\Http\Controllers\Admin\RegistrationController::class, 'pending'])->name('admin.register.pending');
+Route::post('/admin/register/resend', [\App\Http\Controllers\Admin\RegistrationController::class, 'resend'])
+    ->middleware('throttle:3,1')
+    ->name('admin.register.resend');
+Route::get('/admin/register/verify/{admin}/{hash}', [\App\Http\Controllers\Admin\RegistrationController::class, 'verify'])
+    ->whereNumber('admin')
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('admin.register.verify');
+Route::get('/admin/forgot-password',[\App\Http\Controllers\Admin\AuthController::class, 'forgotPasswordPage'])
     ->middleware('throttle:admin-forgot-password')
     ->name('admin.forgot-password.page');
 Route::post('/admin/forgot-password', [\App\Http\Controllers\Admin\AuthController::class, 'sendResetOtp'])
@@ -41,7 +54,31 @@ Route::middleware('auth:admin')->prefix('admin/profile')->group(function () {
     Route::patch('/two-factor', [\App\Http\Controllers\Admin\ProfileController::class, 'updateTwoFactor'])->name('admin.profile.two-factor');
 });
 
-Route::middleware(['auth:admin', 'admin.room'])
+// The Agent's own rooms (ownership + quota). Declared before /admin/{room}; these slugs are reserved (Room::RESERVED_SLUGS).
+Route::middleware('auth:admin')->prefix('admin/rooms')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\RoomController::class, 'index'])->name('admin.rooms.index');
+    Route::get('/create', [\App\Http\Controllers\Admin\RoomController::class, 'create'])->name('admin.rooms.create');
+    Route::post('/', [\App\Http\Controllers\Admin\RoomController::class, 'store'])->middleware('throttle:20,1')->name('admin.rooms.store');
+    Route::get('/{room}/edit', [\App\Http\Controllers\Admin\RoomController::class, 'edit'])->name('admin.rooms.edit');
+    Route::put('/{room}', [\App\Http\Controllers\Admin\RoomController::class, 'update'])->name('admin.rooms.update');
+    Route::post('/{room}/archive', [\App\Http\Controllers\Admin\RoomController::class, 'archive'])->name('admin.rooms.archive');
+    Route::post('/{room}/restore', [\App\Http\Controllers\Admin\RoomController::class, 'restore'])->name('admin.rooms.restore');
+});
+
+// The Agent's subscription: package, quota, upgrade/downgrade, cancellation and history.
+Route::middleware('auth:admin')->prefix('admin/subscription')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Admin\SubscriptionController::class, 'show'])->name('admin.subscription.show');
+    Route::post('/change', [\App\Http\Controllers\Admin\SubscriptionController::class, 'change'])->middleware('throttle:10,1')->name('admin.subscription.change');
+    Route::post('/scheduled/cancel', [\App\Http\Controllers\Admin\SubscriptionController::class, 'cancelScheduled'])->middleware('throttle:10,1')->name('admin.subscription.scheduled.cancel');
+    Route::post('/cancel', [\App\Http\Controllers\Admin\SubscriptionController::class, 'cancel'])->middleware('throttle:10,1')->name('admin.subscription.cancel');
+    Route::post('/resume', [\App\Http\Controllers\Admin\SubscriptionController::class, 'resume'])->middleware('throttle:10,1')->name('admin.subscription.resume');
+});
+
+// The Agent's platform billing history (invoices and payments of its own account).
+Route::get('/admin/billing', [\App\Http\Controllers\Admin\BillingController::class, 'index'])->middleware('auth:admin')->name('admin.billing.index');
+Route::get('/admin/billing/invoices/{invoice}/pay', [\App\Http\Controllers\Admin\BillingController::class, 'pay'])->whereNumber('invoice')->middleware(['auth:admin', 'throttle:10,1'])->name('admin.billing.pay');
+
+Route::middleware(['auth:admin', 'admin.room', 'room.subscription'])
     ->prefix('admin/{room}')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'page'])->name('admin.dashboard.page');
     Route::get('/manage', [\App\Http\Controllers\Admin\DashboardController::class, 'manage'])->name('admin.manage.page');

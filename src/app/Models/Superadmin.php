@@ -105,6 +105,16 @@ class Superadmin extends Authenticatable
     }
 
     /**
+     * Role whose permissions were last applied to this Superadmin (informational; grants live in superadmin_permissions).
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<SuperadminRole, $this> Role.
+     */
+    public function role(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(SuperadminRole::class, 'superadmin_role_id');
+    }
+
+    /**
      * Agents assigned to this Superadmin.
      *
      * @return BelongsToMany<Admin, $this> Assigned Agents with the assignment data on the pivot.

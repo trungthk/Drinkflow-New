@@ -80,6 +80,44 @@ Route::middleware(['auth:superadmin', 'superadmin'])->prefix('superadmin')->grou
     Route::delete('/queue/failed/{failedJob}', [\App\Http\Controllers\Superadmin\QueueController::class, 'forget'])->middleware('permission:queue.manage')->name('superadmin.queue.failed.forget');
     Route::get('/feedbacks/page', [\App\Http\Controllers\Superadmin\PageController::class, 'feedbacks'])->middleware('permission:feedback.view')->name('superadmin.feedbacks.page');
     Route::patch('/feedbacks/{feedback}/status', [\App\Http\Controllers\Superadmin\FeedbackController::class, 'status'])->middleware('permission:feedback.manage')->name('superadmin.feedbacks.status');
+    // Agents: list, detail tabs, manager assignment and suspension.
+    Route::get('/agents', [\App\Http\Controllers\Superadmin\AgentController::class, 'index'])->middleware('permission:agent.view')->name('superadmin.agents.index');
+    Route::get('/agents/{admin}', [\App\Http\Controllers\Superadmin\AgentController::class, 'show'])->whereNumber('admin')->middleware('permission:agent.view')->name('superadmin.agents.show');
+    Route::post('/agents/{admin}/managers', [\App\Http\Controllers\Superadmin\AgentController::class, 'assign'])->whereNumber('admin')->middleware('permission:agent.manage')->name('superadmin.agents.assign');
+    Route::delete('/agents/{admin}/managers/{superadmin}', [\App\Http\Controllers\Superadmin\AgentController::class, 'unassign'])->whereNumber(['admin', 'superadmin'])->middleware('permission:agent.manage')->name('superadmin.agents.unassign');
+    Route::post('/agents/{admin}/suspend', [\App\Http\Controllers\Superadmin\AgentController::class, 'suspend'])->whereNumber('admin')->middleware('permission:agent.manage')->name('superadmin.agents.suspend');
+    Route::post('/agents/{admin}/reactivate', [\App\Http\Controllers\Superadmin\AgentController::class, 'reactivate'])->whereNumber('admin')->middleware('permission:agent.manage')->name('superadmin.agents.reactivate');
+    // Agents: self-service registrations waiting for review.
+    Route::get('/agents/registrations', [\App\Http\Controllers\Superadmin\AgentRegistrationController::class, 'index'])->middleware('permission:agent.approve')->name('superadmin.registrations.index');
+    Route::get('/agents/registrations/{admin}', [\App\Http\Controllers\Superadmin\AgentRegistrationController::class, 'show'])->whereNumber('admin')->middleware('permission:agent.approve')->name('superadmin.registrations.show');
+    Route::post('/agents/registrations/{admin}/approve', [\App\Http\Controllers\Superadmin\AgentRegistrationController::class, 'approve'])->whereNumber('admin')->middleware('permission:agent.approve')->name('superadmin.registrations.approve');
+    Route::post('/agents/registrations/{admin}/reject', [\App\Http\Controllers\Superadmin\AgentRegistrationController::class, 'reject'])->whereNumber('admin')->middleware('permission:agent.approve')->name('superadmin.registrations.reject');
+    // Agents: subscriptions (list, per-Agent page, package change, cancellation).
+    Route::get('/subscriptions', [\App\Http\Controllers\Superadmin\SubscriptionController::class, 'index'])->middleware('permission:subscription.view')->name('superadmin.subscriptions.index');
+    Route::get('/subscriptions/agents/{admin}', [\App\Http\Controllers\Superadmin\SubscriptionController::class, 'show'])->whereNumber('admin')->middleware('permission:subscription.view')->name('superadmin.subscriptions.show');
+    Route::post('/subscriptions/agents/{admin}/change', [\App\Http\Controllers\Superadmin\SubscriptionController::class, 'change'])->whereNumber('admin')->middleware('permission:subscription.manage')->name('superadmin.subscriptions.change');
+    Route::post('/subscriptions/agents/{admin}/cancel', [\App\Http\Controllers\Superadmin\SubscriptionController::class, 'cancel'])->whereNumber('admin')->middleware('permission:subscription.manage')->name('superadmin.subscriptions.cancel');
+    // Platform finance: revenue, outstanding invoices, Agent billing, manual payments and voids.
+    Route::get('/revenue', [\App\Http\Controllers\Superadmin\BillingController::class, 'revenue'])->middleware('permission:revenue.view')->name('superadmin.billing.revenue');
+    Route::get('/billing/outstanding', [\App\Http\Controllers\Superadmin\BillingController::class, 'outstanding'])->middleware('permission:debt.view')->name('superadmin.billing.outstanding');
+    Route::get('/billing/agents/{admin}', [\App\Http\Controllers\Superadmin\BillingController::class, 'agent'])->whereNumber('admin')->middleware('permission:debt.view')->name('superadmin.billing.agent');
+    Route::post('/billing/invoices/{invoice}/payments', [\App\Http\Controllers\Superadmin\BillingController::class, 'recordPayment'])->whereNumber('invoice')->middleware(['permission:debt.manage', 'throttle:30,1'])->name('superadmin.billing.payments.store');
+    Route::post('/billing/invoices/{invoice}/void', [\App\Http\Controllers\Superadmin\BillingController::class, 'void'])->whereNumber('invoice')->middleware('permission:debt.manage')->name('superadmin.billing.invoices.void');
+    // Plans: subscription packages sold to Agents.
+    Route::get('/packages', [\App\Http\Controllers\Superadmin\PackageController::class, 'index'])->middleware('permission:package.view')->name('superadmin.packages.index');
+    Route::post('/packages', [\App\Http\Controllers\Superadmin\PackageController::class, 'store'])->middleware('permission:package.manage')->name('superadmin.packages.store');
+    Route::get('/packages/{package}', [\App\Http\Controllers\Superadmin\PackageController::class, 'show'])->whereNumber('package')->middleware('permission:package.view')->name('superadmin.packages.show');
+    Route::put('/packages/{package}', [\App\Http\Controllers\Superadmin\PackageController::class, 'update'])->whereNumber('package')->middleware('permission:package.manage')->name('superadmin.packages.update');
+    Route::post('/packages/{package}/archive', [\App\Http\Controllers\Superadmin\PackageController::class, 'archive'])->whereNumber('package')->middleware('permission:package.manage')->name('superadmin.packages.archive');
+    Route::delete('/packages/{package}', [\App\Http\Controllers\Superadmin\PackageController::class, 'destroy'])->whereNumber('package')->middleware('permission:package.manage')->name('superadmin.packages.destroy');
+    // Governance: superadmin roles (permission templates).
+    Route::get('/roles', [\App\Http\Controllers\Superadmin\SuperadminRoleController::class, 'index'])->middleware('permission:superadmin.view')->name('superadmin.roles.index');
+    Route::get('/roles/create', [\App\Http\Controllers\Superadmin\SuperadminRoleController::class, 'create'])->middleware('permission:superadmin.manage')->name('superadmin.roles.create');
+    Route::post('/roles', [\App\Http\Controllers\Superadmin\SuperadminRoleController::class, 'store'])->middleware('permission:superadmin.manage')->name('superadmin.roles.store');
+    Route::get('/roles/{role}', [\App\Http\Controllers\Superadmin\SuperadminRoleController::class, 'edit'])->whereNumber('role')->middleware('permission:superadmin.view')->name('superadmin.roles.edit');
+    Route::put('/roles/{role}', [\App\Http\Controllers\Superadmin\SuperadminRoleController::class, 'update'])->whereNumber('role')->middleware('permission:superadmin.manage')->name('superadmin.roles.update');
+    Route::delete('/roles/{role}', [\App\Http\Controllers\Superadmin\SuperadminRoleController::class, 'destroy'])->whereNumber('role')->middleware('permission:superadmin.manage')->name('superadmin.roles.destroy');
+    Route::post('/superadmins/{superadmin}/role', [\App\Http\Controllers\Superadmin\SuperadminRoleController::class, 'apply'])->middleware('permission:superadmin.manage')->name('superadmin.superadmins.role');
     // Governance: superadmin accounts, permissions and scopes.
     Route::get('/superadmins', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'index'])->middleware('permission:superadmin.view')->name('superadmin.superadmins.index');
     Route::post('/superadmins', [\App\Http\Controllers\Superadmin\SuperadminController::class, 'store'])->middleware('permission:superadmin.manage')->name('superadmin.superadmins.store');

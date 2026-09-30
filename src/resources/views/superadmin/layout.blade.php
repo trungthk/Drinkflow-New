@@ -51,27 +51,43 @@
             <div class="superadmin-brand-text"><strong>DrinkFlow</strong><span>{{ __('superadmin.layout.enterprise_superadmin') }}</span></div>
         </a>
         @php
+            // Grouped as in the Navigation Target of documents/features/development_tasks_saas_extension.md.
             $navSections = [
-                __('superadmin.common.core_system') => [
+                '' => [
                     ['dashboard', 'superadmin.dashboard', 'monitoring', 'superadmin.layout.dashboard_health', null],
-                    ['rooms', 'superadmin.rooms.page', 'meeting_room', 'superadmin.layout.room_management', 'room.view'],
-                    ['admins', 'superadmin.admins.page', 'admin_panel_settings', 'superadmin.layout.admin_assignments', 'agent.view'],
-                    ['users', 'superadmin.global-users.page', 'badge', 'superadmin.layout.global_users', 'global_user.view'],
                 ],
-                __('superadmin.common.platform_data') => [
+                __('platform.nav.agents') => [
+                    ['agents', 'superadmin.agents.index', 'storefront', 'platform.nav.agent_list', 'agent.view'],
+                    ['admins', 'superadmin.admins.page', 'admin_panel_settings', 'superadmin.layout.admin_assignments', 'agent.view'],
+                    ['registrations', 'superadmin.registrations.index', 'how_to_reg', 'platform.nav.registrations', 'agent.approve'],
+                    ['subscriptions', 'superadmin.subscriptions.index', 'workspace_premium', 'platform.nav.subscriptions', 'subscription.view'],
+                ],
+                __('platform.nav.plans') => [
+                    ['packages', 'superadmin.packages.index', 'inventory_2', 'platform.nav.packages', 'package.view'],
+                ],
+                __('platform.nav.platform_finance') => [
+                    ['revenue', 'superadmin.billing.revenue', 'payments', 'platform.nav.revenue', 'revenue.view'],
+                    ['outstanding', 'superadmin.billing.outstanding', 'request_quote', 'platform.nav.outstanding', 'debt.view'],
+                ],
+                __('platform.nav.system') => [
+                    ['rooms', 'superadmin.rooms.page', 'meeting_room', 'superadmin.layout.room_management', 'room.view'],
+                    ['users', 'superadmin.global-users.page', 'badge', 'superadmin.layout.global_users', 'global_user.view'],
                     ['campaigns', 'superadmin.campaigns.page', 'campaign', 'superadmin.layout.global_campaigns', 'room.view'],
                     ['feedbacks', 'superadmin.feedbacks.page', 'rate_review', 'superadmin.layout.feedbacks', 'feedback.view'],
-                    ['audit', 'superadmin.audit.page', 'history_toggle_off', 'superadmin.layout.audit_logs', 'audit.view'],
                 ],
-                __('superadmin.common.infra_security') => [
+                __('platform.nav.content') => [
+                    ['versions', 'superadmin.versions.page', 'new_releases', 'superadmin.layout.versions', 'version.view'],
+                    ['notifications', 'superadmin.notifications.page', 'notifications', 'superadmin.layout.global_notifications', 'settings.view'],
+                ],
+                __('platform.nav.governance') => [
+                    ['superadmins', 'superadmin.superadmins.index', 'manage_accounts', 'superadmin.layout.superadmins', 'superadmin.view'],
+                    ['roles', 'superadmin.roles.index', 'badge', 'platform.nav.roles', 'superadmin.view'],
+                    ['audit', 'superadmin.audit.page', 'history_toggle_off', 'superadmin.layout.audit_logs', 'audit.view'],
                     ['security', 'superadmin.security.page', 'shield_locked', 'superadmin.layout.security_center', 'security.view'],
+                ],
+                __('platform.nav.infrastructure') => [
                     ['socket', 'superadmin.socket.page', 'hub', 'superadmin.layout.socket_queue', 'queue.view'],
                     ['system', 'superadmin.system.page', 'build_circle', 'superadmin.layout.system_settings', 'settings.view'],
-                    ['notifications', 'superadmin.notifications.page', 'notifications', 'superadmin.layout.global_notifications', 'settings.view'],
-                    ['versions', 'superadmin.versions.page', 'new_releases', 'superadmin.layout.versions', 'version.view'],
-                ],
-                __('superadmin.common.governance') => [
-                    ['superadmins', 'superadmin.superadmins.index', 'manage_accounts', 'superadmin.layout.superadmins', 'superadmin.view'],
                 ],
             ];
             // The menu follows the same Gates as the routes (the routes still enforce them).
@@ -83,7 +99,9 @@
         @endphp
         <nav class="superadmin-nav">
             @foreach ($navSections as $sectionLabel => $links)
-                <span class="superadmin-nav-label">{{ $sectionLabel }}</span>
+                @if ($sectionLabel !== '')
+                    <span class="superadmin-nav-label">{{ $sectionLabel }}</span>
+                @endif
                 @foreach ($links as [$key, $routeName, $icon, $labelKey, $permission])
                     <a class="{{ ($active ?? '') === $key ? 'is-active' : '' }}" href="{{ route($routeName) }}"
                         aria-label="{{ __($labelKey) }}"><span class="material-symbols-outlined">{{ $icon }}</span><span

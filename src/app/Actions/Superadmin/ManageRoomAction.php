@@ -53,7 +53,8 @@ class ManageRoomAction
     {
         return DB::transaction(function () use ($room, $adminIds): Room {
             $before = $room->admins()->pluck('admins.id')->sort()->values()->all();
-            $room->admins()->sync($adminIds);
+            // The owner keeps operational access; collaborators never decide ownership.
+            $room->admins()->sync(app(\App\Services\Room\RoomOwnershipService::class)->withOwner($room, $adminIds));
             $after = $room->admins()->pluck('admins.id')->sort()->values()->all();
             app(AuditService::class)->record('room.admins_updated', 'room', $room->id, $room->id, ['admin_ids' => $before], ['admin_ids' => $after]);
             return $room->fresh('admins');

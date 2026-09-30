@@ -13,7 +13,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Admin extends Authenticatable
 {
@@ -42,7 +44,10 @@ class Admin extends Authenticatable
 
     protected $table = 'admins';
 
-    protected $fillable = ['name', 'email', 'password', 'status', 'last_login_at', 'avatar_url', 'phone', 'department', 'two_factor_enabled'];
+    protected $fillable = [
+        'name', 'company', 'email', 'password', 'status', 'last_login_at', 'avatar_url', 'phone', 'department', 'two_factor_enabled',
+        'requested_package_id', 'email_verified_at', 'registered_at', 'reviewed_at', 'reviewed_by_superadmin_id', 'rejection_reason',
+    ];
 
     protected $hidden = ['password', 'remember_token'];
 
@@ -54,9 +59,98 @@ class Admin extends Authenticatable
             'last_login_at' => 'datetime',
             'two_factor_enabled' => 'boolean',
             'phone'         => 'encrypted',
+            'email_verified_at' => 'datetime',
+            'registered_at' => 'datetime',
+            'reviewed_at' => 'datetime',
+            'billing_suspended_at' => 'datetime',
         ];
     }
 
+    /**
+     * Whether the Agent confirmed their email address.
+     *
+     * @return bool True once the verification link was opened.
+     */
+    public function hasVerifiedEmail(): bool
+    {
+        return $this->email_verified_at !== null;
+    }
+
+    /**
+     * Package chosen on the registration form (a request only; quota comes from the subscription).
+     *
+     * @return BelongsTo<Package, $this> Requested package.
+     */
+    public function requestedPackage(): BelongsTo
+    {
+        return $this->belongsTo(Package::class, 'requested_package_id');
+    }
+
+    /**
+     * Superadmin who approved or rejected the registration.
+     *
+     * @return BelongsTo<Superadmin, $this> Reviewer.
+     */
+    public function reviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(Superadmin::class, 'reviewed_by_superadmin_id');
+    }
+
+    /**
+     * Every subscription of the Agent, current and past.
+     *
+     * @return HasMany<AdminSubscription, $this> Subscriptions.
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(AdminSubscription::class);
+    }
+
+    /**
+     * Platform invoices billed to this Agent.
+     *
+     * @return HasMany<AdminInvoice, $this> Invoices.
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(AdminInvoice::class);
+    }
+
+    /**
+     * Payments of this Agent against platform invoices.
+     *
+     * @return HasMany<AdminPayment, $this> Payments.
+     */
+    public function platformPayments(): HasMany
+    {
+        return $this->hasMany(AdminPayment::class);
+    }
+
+    /**
+     * Current subscription (at most one, enforced by a unique index).
+     *
+     * @return HasOne<AdminSubscription, $this> Active subscription.
+     */
+    public function activeSubscription(): HasOne
+    {
+        return $this->hasOne(AdminSubscription::class)->where('status', \App\Enums\SubscriptionStatus::Active->value);
+    }
+
+    /**
+     * Rooms owned by this Agent (ownership, quota and billing).
+     *
+     * @return HasMany<Room, $this> Owned rooms.
+     */
+    public function ownedRooms(): HasMany
+    {
+        return $this->hasMany(Room::class, 'owner_admin_id');
+    }
+
+    /**
+     * Rooms the Admin can operate: owned rooms and rooms shared as collaborator (`admin_rooms`).
+     *
+     * @return BelongsToMany<Room, $this> Rooms.
+     */
     public function rooms(): BelongsToMany
     {
         return $this->belongsToMany(Room::class, 'admin_rooms', 'admin_id', 'room_id');

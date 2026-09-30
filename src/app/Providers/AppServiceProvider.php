@@ -48,6 +48,8 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(BrowserTransportInterface::class, PuppeteerBrowserTransport::class);
+        // Online payment of platform invoices (hosted checkout + signed notifications).
+        $this->app->bind(\App\Services\Billing\Gateway\PaymentGateway::class, \App\Services\Billing\Gateway\SignedLinkGateway::class);
         // Singleton so the .env-based mail/storage config is captured once, before overrides.
         $this->app->singleton(\App\Services\System\SystemConfigService::class);
         // One instance per request: middleware and actions share the room lists it has already read.

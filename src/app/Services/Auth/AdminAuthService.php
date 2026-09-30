@@ -65,7 +65,8 @@ class AdminAuthService
             ]);
 
             throw ValidationException::withMessages([
-                'email' => __('admin.invalid_credentials'),
+                'email' => $this->inactiveAccountMessage((string) $request->input('email'), (string) $request->input('password'))
+                    ?? __('admin.invalid_credentials'),
             ]);
         }
 
@@ -77,6 +78,32 @@ class AdminAuthService
         $admin->update(['last_login_at' => now()]);
 
         return $admin;
+    }
+
+    /**
+     * Explain why a correct password was refused for an account that cannot sign in yet.
+     *
+     * Only returned when the password is right, so it never reveals more than a successful login would.
+     *
+     * @param string $email Submitted email.
+     * @param string $password Submitted password.
+     * @return string|null Message for pending/rejected accounts, null otherwise (generic error).
+     */
+    private function inactiveAccountMessage(string $email, string $password): ?string
+    {
+        $admin = Admin::query()->where('email', mb_strtolower(trim($email)))->first();
+        if ($admin === null || $admin->status->canSignIn() || ! Hash::check($password, (string) $admin->getAuthPassword())) {
+            return null;
+        }
+
+        return match ($admin->status) {
+            AdminStatus::Pending => $admin->hasVerifiedEmail()
+                ? __('platform.registration.login_pending_review')
+                : __('platform.registration.login_pending_verification'),
+            AdminStatus::Rejected => __('platform.registration.login_rejected'),
+            AdminStatus::Suspended => $admin->billing_suspended_at !== null ? __('platform.billing.login_suspended_billing') : null,
+            default => null,
+        };
     }
 
     /**

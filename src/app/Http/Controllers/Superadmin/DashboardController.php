@@ -14,6 +14,8 @@ use App\Models\Campaign;
 use App\Models\GlobalUser;
 use App\Models\Order;
 use App\Models\Room;
+use App\Services\Authorization\AgentScope;
+use App\Services\Dashboard\PlatformDashboardService;
 use App\Services\Dashboard\SuperadminDashboardService;
 use App\Services\Dashboard\SuperadminInsightsService;
 use App\Services\Dashboard\SuperadminTrendsService;
@@ -28,27 +30,36 @@ class DashboardController extends Controller
      * Handle the index operation.
      * @param Request $request Parameter value.
      * @param SystemHealthService $health Infrastructure health snapshot service.
+     * @param PlatformDashboardService $platform Permission-aware platform widgets.
      * @return JsonResponse|View Result of the operation.
      */
-    public function index(Request $request, SystemHealthService $health): JsonResponse|View
+    public function index(Request $request, SystemHealthService $health, PlatformDashboardService $platform): JsonResponse|View
     {
+        /** @var \App\Models\Superadmin $superadmin */
+        $superadmin = $request->user('superadmin');
         if (!$request->expectsJson()) {
-            return view('superadmin.dashboard');
+            return view('superadmin.dashboard', [
+                'widgets' => $platform->widgetsFor($superadmin),
+                'platformAnalytics' => $platform->canSeePlatformAnalytics($superadmin),
+            ]);
         }
 
         $today = now()->toDateString();
-        $superadmin = $request->user('superadmin');
+        // Every figure follows its permission and the Agent scope; hidden figures are null.
+        $scope = app(AgentScope::class);
+        $rooms = $superadmin->hasPermission(Permission::RoomView) ? $scope->applyToRooms(Room::query(), $superadmin, Permission::RoomView) : null;
+        $users = $superadmin->hasPermission(Permission::GlobalUserView);
         return response()->json([
             'data' => [
-                'total_rooms' => Room::count(),
-                'active_rooms' => Room::active()->count(),
-                'total_global_users' => GlobalUser::where('status', '!=', GlobalUserStatus::Deleted->value)->count(),
-                'active_global_users' => GlobalUser::active()->count(),
+                'total_rooms' => $rooms ? (clone $rooms)->count() : null,
+                'active_rooms' => $rooms ? (clone $rooms)->active()->count() : null,
+                'total_global_users' => $users ? GlobalUser::where('status', '!=', GlobalUserStatus::Deleted->value)->count() : null,
+                'active_global_users' => $users ? GlobalUser::active()->count() : null,
                 // Only Agents in the viewer's scope; hidden (null) without `agent.view`.
                 'total_admins' => $superadmin->hasPermission(Permission::AgentView) ? Admin::query()->visibleTo($superadmin)->count() : null,
-                'active_campaigns' => Campaign::where('status', CampaignStatus::Active)->count(),
-                'orders_today' => Order::whereDate('created_at', $today)->whereNot('status', OrderStatus::Cancelled)->count(),
-                'system_health' => $health->snapshot(),
+                'active_campaigns' => $rooms ? $scope->applyToRoomOwned(Campaign::query(), $superadmin, Permission::RoomView)->where('status', CampaignStatus::Active)->count() : null,
+                'orders_today' => $rooms ? $scope->applyToRoomOwned(Order::query(), $superadmin, Permission::RoomView)->whereDate('created_at', $today)->whereNot('status', OrderStatus::Cancelled)->count() : null,
+                'system_health' => $superadmin->hasPermission(Permission::SettingsView) || $superadmin->hasPermission(Permission::QueueView) ? $health->snapshot() : null,
             ]
         ]);
     }
@@ -62,6 +73,7 @@ class DashboardController extends Controller
      */
     public function analytics(Request $request, SuperadminDashboardService $dashboard): JsonResponse
     {
+        $this->ensurePlatformAnalytics($request);
         return response()->json(['data' => $dashboard->analytics($request->boolean('fresh'))]);
     }
 
@@ -86,6 +98,18 @@ class DashboardController extends Controller
      */
     public function trends(Request $request, SuperadminTrendsService $trends): JsonResponse
     {
+        $this->ensurePlatformAnalytics($request);
         return response()->json(['data' => $trends->trends($request->boolean('fresh'))]);
+    }
+
+    /**
+     * Platform-wide analytics are not scoped per Agent, so only unrestricted Superadmins may read them.
+     *
+     * @param Request $request Incoming request.
+     * @return void
+     */
+    private function ensurePlatformAnalytics(Request $request): void
+    {
+        abort_unless(app(PlatformDashboardService::class)->canSeePlatformAnalytics($request->user('superadmin')), 403);
     }
 }

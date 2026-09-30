@@ -90,6 +90,18 @@ class SuperadminInsightsService
             : [];
         $payload['admins'] = array_values(array_filter($payload['admins'], static fn (array $row): bool => isset($visible[$row['id']])));
 
+        // Security figures need `security.view`; the order heatmap covers every room, so it needs an unrestricted room scope.
+        if (! $superadmin->hasPermission(Permission::SecurityView)) {
+            $payload['security'] = [
+                'daily' => array_map(static fn (array $day): array => ['date' => $day['date']] + array_fill_keys(self::SEVERITIES, 0), $payload['security']['daily']),
+                'types' => [],
+                'top_ips' => [],
+            ];
+        }
+        if ($superadmin->scopeFor(Permission::RoomView) !== \App\Enums\PermissionScope::All) {
+            $payload['heatmap'] = ['cells' => array_fill(0, 7, array_fill(0, 24, 0)), 'total' => 0, 'max' => 0] + $payload['heatmap'];
+        }
+
         return $payload;
     }
 
