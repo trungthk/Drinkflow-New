@@ -222,6 +222,14 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                     this.applyMenuItems(event.detail.items);
                 }
             });
+
+            // Internal menu analysis found the restaurant name: use it only when the field is still empty.
+            window.addEventListener('drinkflow:suggest-restaurant', (event) => {
+                const name = String(event.detail?.name || '').trim();
+                if (name && !String(this.form.restaurant || '').trim()) {
+                    this.form.restaurant = name;
+                }
+            });
         },
 
         setDeadlineMinutes(mins) {

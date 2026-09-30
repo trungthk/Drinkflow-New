@@ -122,6 +122,9 @@ Route::middleware(['auth:admin', 'admin.room'])
     Route::post('/data-gateway/generate-prompt', [\App\Http\Controllers\Admin\DataGatewayController::class, 'generatePrompt'])
         ->middleware('throttle:crawler-preview')
         ->name('admin.data-gateway.generate-prompt');
+    Route::post('/data-gateway/analyze', [\App\Http\Controllers\Admin\DataGatewayController::class, 'analyze'])
+        ->middleware('throttle:crawler-preview')
+        ->name('admin.data-gateway.analyze');
     Route::get('/debts', [\App\Http\Controllers\Admin\DebtController::class, 'index'])->name('admin.debts.index');
     Route::get('/debts/export', [\App\Http\Controllers\Admin\DebtController::class, 'export'])->middleware('throttle:admin-export')->name('admin.debts.export');
     Route::post('/debts/settle', [\App\Http\Controllers\Admin\DebtController::class, 'settle'])->middleware('throttle:admin-bulk')->name('admin.debts.settle');

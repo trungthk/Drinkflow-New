@@ -18,6 +18,17 @@
         $resolvedPromptUrl = route('admin.data-gateway.generate-prompt', request()->route('room'));
     }
 
+    $routeRoom = $room ?? request()->route('room');
+    $resolvedAnalyzeUrl = $routeRoom ? route('admin.data-gateway.analyze', $routeRoom) : '';
+    $internalI18n = [
+        'success' => __('admin.data_gateway_internal_success'),
+        'platformSwitched' => __('admin.data_gateway_internal_platform_switched'),
+        'failed' => __('admin.data_gateway_internal_failed'),
+        'emptyOrigin' => __('admin.data_gateway_err_empty_origin'),
+        'invalidJson' => __('admin.data_gateway_err_invalid_json'),
+        'counts' => __('admin.data_gateway_internal_summary_counts'),
+    ];
+
     $resolvedConfigUrl = $configUrl;
     if (!$resolvedConfigUrl && $room) {
         $resolvedConfigUrl = route('admin.data-gateway.config', $room);
@@ -28,7 +39,8 @@
 
 <div x-data="dataGatewayConverterComponent('{{ $resolvedPromptUrl }}', '{{ $resolvedConfigUrl }}', {{ \Illuminate\Support\Js::from($platformsData) }}, {{ \Illuminate\Support\Js::from($agentsData) }})"
     class="space-y-4 rounded-xl border border-outline-variant bg-surface-container-low/40 p-4 transition-all"
-    data-gateway-converter>
+    data-gateway-converter data-analyze-url="{{ $resolvedAnalyzeUrl }}"
+    data-internal-i18n="{{ json_encode($internalI18n, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) }}">
 
     <!-- Header & Badge -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-outline-variant/60 pb-3">
@@ -120,6 +132,15 @@
 
         <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
             <div class="flex flex-wrap items-center gap-2">
+                <!-- Button 0: Internal analysis (no AI agent) -->
+                <button type="button" @click="analyzeInternally()" :disabled="loading || analyzing || !originJson.trim()"
+                    title="{{ __('admin.data_gateway_internal_hint') }}" data-internal-analyze-btn
+                    class="px-3.5 py-2 bg-secondary text-on-secondary rounded-lg text-xs font-semibold hover:opacity-95 shadow-xs transition-all flex items-center gap-1.5 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span class="material-symbols-outlined text-[16px]" :class="analyzing ? 'animate-spin' : ''"
+                        x-text="analyzing ? 'sync' : 'analytics'"></span>
+                    <span>{{ __('admin.data_gateway_btn_internal_analyze') }}</span>
+                </button>
+
                 <!-- Button 1: Copy Prompt -->
                 <button type="button" @click="copyPrompt()" :disabled="loading || !originJson.trim()"
                     class="px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs font-semibold text-on-surface hover:bg-surface-container-low hover:border-primary shadow-xs transition-all flex items-center gap-1.5 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -151,6 +172,28 @@
                 <span>{{ __('admin.data_gateway_btn_clear') }}</span>
             </button>
         </div>
+    </div>
+
+    <p class="text-[11px] text-outline flex items-start gap-1.5 -mt-2">
+        <span class="material-symbols-outlined text-[14px] text-secondary shrink-0">info</span>
+        <span>{{ __('admin.data_gateway_internal_hint') }}</span>
+    </p>
+
+    <!-- Internal Analysis Summary -->
+    <div x-show="analysis" x-cloak data-internal-analysis-summary
+        class="rounded-lg border border-secondary/30 bg-secondary-container/40 p-3 text-xs text-on-surface space-y-1.5">
+        <div class="flex items-center gap-1.5 font-semibold">
+            <span class="material-symbols-outlined text-[16px] text-secondary">analytics</span>
+            <span>{{ __('admin.data_gateway_internal_summary_title') }}</span>
+            <span class="rounded bg-secondary/15 px-1.5 py-0.5 font-mono text-[10px] uppercase" x-text="analysis?.platform"></span>
+        </div>
+        <p x-text="analysisCountsText"></p>
+        <template x-if="analysis?.summary?.ignored_groups?.length">
+            <div class="text-[11px] text-outline">
+                <span>{{ __('admin.data_gateway_internal_ignored_groups') }}</span>
+                <span class="font-medium text-on-surface" x-text="analysis.summary.ignored_groups.join(', ')"></span>
+            </div>
+        </template>
     </div>
 
     <!-- Toast / Notification Alert Box -->
@@ -239,6 +282,8 @@
             originJson: '',
             aiResultJson: '',
             loading: false,
+            analyzing: false,
+            analysis: null,
             toast: {
                 show: false,
                 type: 'success',
@@ -275,6 +320,83 @@
             get selectedAgentUrl() {
                 return this.selectedAgent?.url || (this.aiAgent === 'chatgpt' ? 'https://chatgpt.com/' :
                     'https://gemini.google.com/');
+            },
+
+            get internalI18n() {
+                try {
+                    return JSON.parse(this.$root.dataset.internalI18n || '{}');
+                } catch (e) {
+                    return {};
+                }
+            },
+
+            get analysisCountsText() {
+                const summary = this.analysis?.summary;
+                if (!summary) return '';
+                return (this.internalI18n.counts || '')
+                    .replace(':items', summary.item_count)
+                    .replace(':categories', summary.category_count)
+                    .replace(':duplicates', summary.skipped_duplicates)
+                    .replace(':unavailable', summary.skipped_unavailable);
+            },
+
+            /**
+             * Convert the origin JSON on the server (no AI agent) and put the menu into the step 4 result box,
+             * so the admin reviews it and loads it with the existing "apply to menu" button.
+             */
+            async analyzeInternally() {
+                const i18n = this.internalI18n;
+                const raw = this.originJson.trim();
+                if (!raw) {
+                    this.showToastMessage(i18n.emptyOrigin, 'error');
+                    return;
+                }
+                try {
+                    JSON.parse(raw);
+                } catch (e) {
+                    this.showToastMessage(i18n.invalidJson, 'error');
+                    return;
+                }
+
+                this.analyzing = true;
+                try {
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                    const response = await fetch(this.$root.dataset.analyzeUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify({ platform: this.platform, origin_json: raw }),
+                    });
+                    const result = await response.json().catch(() => ({}));
+                    if (!response.ok || !result.data) {
+                        throw new Error(result.message || i18n.failed);
+                    }
+
+                    const data = result.data;
+                    this.analysis = data;
+                    this.aiResultJson = JSON.stringify(data.items, null, 2);
+
+                    let message = (i18n.success || '')
+                        .replace(':items', data.summary.item_count)
+                        .replace(':categories', data.summary.category_count);
+                    if (data.platform_mismatch) {
+                        const platformName = this.platforms.find(p => p.id === data.platform)?.name || data.platform;
+                        message = (i18n.platformSwitched || '').replaceAll(':platform', platformName) + ' ' + message;
+                    }
+                    this.platform = data.platform;
+                    if (data.restaurant) {
+                        window.dispatchEvent(new CustomEvent('drinkflow:suggest-restaurant', { detail: { name: data.restaurant } }));
+                    }
+                    this.showToastMessage(message, 'success', 8000);
+                } catch (err) {
+                    this.analysis = null;
+                    this.showToastMessage(err.message || i18n.failed, 'error');
+                } finally {
+                    this.analyzing = false;
+                }
             },
 
             get originJsonCharCount() {

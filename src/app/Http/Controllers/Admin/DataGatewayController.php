@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\DataGatewayAnalyzeRequest;
 use App\Http\Requests\DataGatewayGeneratePromptRequest;
 use App\Services\DataGateway\DataGatewayConverterService;
+use App\Services\DataGateway\InternalMenuAnalyzerService;
 use Illuminate\Http\JsonResponse;
+use InvalidArgumentException;
 
 class DataGatewayController extends Controller
 {
@@ -55,5 +58,32 @@ class DataGatewayController extends Controller
             'prompt' => $prompt,
             'agent_url' => $agentData['url'] ?? 'https://chatgpt.com/',
         ]);
+    }
+
+    /**
+     * Convert the raw platform JSON into DrinkFlow menu items inside the system, without an AI agent.
+     *
+     * @param DataGatewayAnalyzeRequest $request Validated request.
+     * @param InternalMenuAnalyzerService $analyzer Deterministic ShopeeFood / GrabFood menu analyzer.
+     * @return JsonResponse Menu items plus an analysis summary, or 422 when the structure is unknown.
+     */
+    public function analyze(DataGatewayAnalyzeRequest $request, InternalMenuAnalyzerService $analyzer): JsonResponse
+    {
+        $decoded = json_decode((string) $request->validated('origin_json'), true);
+        if (! is_array($decoded)) {
+            return response()->json(['message' => __('admin.data_gateway_err_invalid_json')], 422);
+        }
+
+        try {
+            $result = $analyzer->analyze($decoded, $request->validated('platform'));
+        } catch (InvalidArgumentException) {
+            return response()->json(['message' => __('admin.data_gateway_err_unknown_structure')], 422);
+        }
+
+        if ($result['items'] === []) {
+            return response()->json(['message' => __('admin.data_gateway_err_no_items')], 422);
+        }
+
+        return response()->json(['success' => true, 'data' => $result]);
     }
 }
