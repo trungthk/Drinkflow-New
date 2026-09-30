@@ -24,8 +24,8 @@ function parseJsonAttr(el, attr, fallback) {
 }
 
 // Categorical slots in fixed order (validated: adjacent CVD ΔE >= 9.1, normal-vision ΔE >= 19.6 on white).
-// The leaderboard holds at most 5 sponsors; slot i always belongs to rank i.
-const SPONSOR_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4'];
+// The leaderboard holds at most 7 sponsors; slot i always belongs to rank i.
+const SPONSOR_COLORS = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7'];
 
 /** Render the "Top nhà tài trợ" ranking as a donut chart with a legend and a hover tooltip. */
 function renderTopSponsorsChart(container, sponsors, labels) {

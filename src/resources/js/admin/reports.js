@@ -138,6 +138,7 @@ export function initAdminReports() {
         const debtsList = document.querySelector('#debts-users-list');
         const sponsorsList = document.querySelector('#sponsors-leaderboard-list');
         const usersList = document.querySelector('#users-analytics-list');
+        const accountsList = document.querySelector('#payment-accounts-list');
 
         const skeletonHtml = `
             <div class="space-y-2 animate-pulse py-2">
@@ -157,6 +158,8 @@ export function initAdminReports() {
             if (sponsorsList) sponsorsList.innerHTML = skeletonHtml;
         } else if (tabId === 'users') {
             if (usersList) usersList.innerHTML = skeletonHtml;
+        } else if (tabId === 'accounts') {
+            if (accountsList) accountsList.innerHTML = skeletonHtml;
         }
 
         try {
@@ -281,6 +284,41 @@ export function initAdminReports() {
                         sponsorsList.innerHTML = reportTableHtml(columns, rows);
                     } else {
                         sponsorsList.innerHTML = emptyStateHtml('volunteer_activism', escapeHtml(i18n.noSponsorsTitle), escapeHtml(i18n.noSponsorsDesc));
+                    }
+                }
+            }
+
+            // Render Receiving Accounts Tab
+            if (tabId === 'accounts' || tabId === 'all') {
+                if (accountsList) {
+                    if (data.payment_accounts && data.payment_accounts.length > 0) {
+                        const columns = [
+                            { label: i18n.paymentAccount, width: '40%' },
+                            { label: i18n.ordersCount, align: 'center', width: '14%' },
+                            { label: i18n.totalReceived, align: 'right', width: '23%' },
+                            { label: i18n.totalOutstanding, align: 'right', width: '23%' },
+                        ];
+                        const rows = data.payment_accounts.map((a) => {
+                            const outstanding = Number(a.total_outstanding || 0);
+                            const accountCell = a.payment_account_id === null
+                                ? `<div class="font-semibold text-outline italic">${escapeHtml(i18n.accountUnassigned)}</div>`
+                                : `
+                                    <div class="flex items-center gap-1.5 min-w-0">
+                                        <span class="shrink-0 px-1.5 py-0.5 rounded bg-primary/10 text-primary font-mono font-bold text-[10px]">${escapeHtml(a.bank_code)}</span>
+                                        <span class="font-mono font-semibold text-on-surface truncate">${escapeHtml(a.account_number)}</span>
+                                    </div>
+                                    <div class="text-[11px] text-outline uppercase truncate">${escapeHtml(a.account_name)}</div>
+                                `;
+                            return [
+                                accountCell,
+                                `<span class="font-mono font-semibold text-on-surface">${escapeHtml(a.order_count)}</span>`,
+                                `<span class="font-mono font-bold text-emerald-600">${money(a.total_received)}</span>`,
+                                `<span class="font-mono font-bold ${outstanding > 0 ? 'text-error' : 'text-outline'}">${money(outstanding)}</span>`,
+                            ];
+                        });
+                        accountsList.innerHTML = reportTableHtml(columns, rows, { minWidth: '36rem' });
+                    } else {
+                        accountsList.innerHTML = emptyStateHtml('account_balance', escapeHtml(i18n.noAccountsTitle), escapeHtml(i18n.noAccountsDesc));
                     }
                 }
             }

@@ -198,6 +198,24 @@ class DebtApprovalTest extends TestCase
     }
 
     /**
+     * The debt payment button carries its campaign ID so a "?campaign={id}" link (campaign-closed
+     * notification) can open that campaign's payment modal.
+     */
+    public function test_debts_page_marks_pay_button_with_campaign_for_auto_open(): void
+    {
+        [, $room] = $this->adminWithRoom('auto-open@example.test', 'auto-open-room');
+        $campaign = $this->campaign($room);
+        $member   = $this->member($room, 'Tran Thi D', 'ttd@example.test');
+        $this->debt($room, $campaign, $member, DebtStatus::Unpaid, 40000);
+
+        $this->actingAs($member->globalUser, 'web')
+            ->get(route('user.debts.index', ['room' => $room, 'campaign' => $campaign->id]))
+            ->assertOk()
+            ->assertSee('data-pay-debt-campaign="'.$campaign->id.'"', false)
+            ->assertSee("get('campaign')", false);
+    }
+
+    /**
      * Approving a debt also synchronises the payment_status on all orders
      * belonging to the same campaign + member combination.
      */
@@ -205,6 +223,8 @@ class DebtApprovalTest extends TestCase
     {
         [$admin, $room] = $this->adminWithRoom('approve-order@example.test', 'approve-order-room');
         $campaign = $this->campaign($room);
+        // "My Orders" only lists orders of the live campaign.
+        $campaign->update(['status' => CampaignStatus::Active]);
         $member   = $this->member($room, 'Le Van C', 'lvc@example.test');
         $debt     = $this->debt($room, $campaign, $member, DebtStatus::Pending, 30000);
 

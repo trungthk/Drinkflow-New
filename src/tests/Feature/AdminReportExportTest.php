@@ -42,6 +42,10 @@ class AdminReportExportTest extends TestCase
             ]],
             'sponsors_leaderboard' => [['user_name' => 'Binh', 'user_email' => 'binh@example.test', 'sponsored_campaigns' => 2, 'total_sponsored' => 142000]],
             'top_users' => [['user_name' => 'An', 'user_email' => 'an@example.test', 'order_count' => 2, 'total_spent' => 284000]],
+            'payment_accounts' => [
+                ['payment_account_id' => 5, 'bank_code' => 'VCB', 'account_number' => '001****233', 'account_name' => 'NGUYEN VAN A', 'order_count' => 2, 'total_received' => 213000, 'total_outstanding' => 71000],
+                ['payment_account_id' => null, 'bank_code' => null, 'account_number' => null, 'account_name' => null, 'order_count' => 1, 'total_received' => 0, 'total_outstanding' => 5000],
+            ],
         ]))->array();
 
         $flat = array_map('json_encode', $rows);
@@ -52,6 +56,8 @@ class AdminReportExportTest extends TestCase
         $this->assertContains(json_encode(['An', 'an@example.test', 1, 142000, 71000, 71000], JSON_UNESCAPED_UNICODE), $flat);
         $this->assertContains(json_encode([1, 'Binh', 'binh@example.test', 2, 142000]), $flat);
         $this->assertContains(json_encode([1, 'An', 'an@example.test', 2, 284000]), $flat);
+        $this->assertContains(json_encode(['VCB - 001****233 - NGUYEN VAN A', 2, 213000, 71000]), $flat);
+        $this->assertContains(json_encode([__('admin.report_payment_account_unassigned'), 1, 0, 5000]), $flat);
     }
 
     /**

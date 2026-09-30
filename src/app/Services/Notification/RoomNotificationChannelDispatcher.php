@@ -87,7 +87,6 @@ class RoomNotificationChannelDispatcher
                     'sponsorship_amount' => 20000,
                     'max_product_budget' => 60000,
                     'order_url' => url("/rooms/{$roomSlug}/campaigns"),
-                    'register_url' => url("/rooms/{$roomSlug}"),
                 ],
                 'message' => implode("\n", [
                     __('messages.campaign_created_title'),
@@ -97,7 +96,6 @@ class RoomNotificationChannelDispatcher
                     __('messages.campaign_product_budget', ['amount' => FormatHelper::formatCurrency(60000)]),
                     __('messages.campaign_sponsorship', ['sponsor' => 'Team Lead', 'amount' => FormatHelper::formatCurrency(20000)]),
                     __('messages.campaign_order', ['url' => url("/rooms/{$roomSlug}/campaigns")]),
-                    __('messages.campaign_register', ['url' => url("/rooms/{$roomSlug}")]),
                 ]),
             ],
             'campaign.closed' => [

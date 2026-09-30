@@ -247,13 +247,8 @@ class UserRoomDashboardTopItemsTest extends TestCase
     }
 
     /**
-     * Sponsors are ranked by total sponsor_amount received, highest first, excluding cancelled orders.
-     *
-     * @return void
-     */
-    /**
      * The leaderboard must rank the campaigns' actual sponsors (sponsor_name / sponsor_allocations),
-     * never the members who merely received the subsidy on their own order.
+     * never the members who merely received the subsidy on their own order, counting completed orders only.
      *
      * @return void
      */
@@ -268,7 +263,7 @@ class UserRoomDashboardTopItemsTest extends TestCase
         ]);
         $member->orders()->create([
             'room_id' => $room->id, 'campaign_id' => $topCampaign->id,
-            'subtotal' => 100000, 'sponsor_amount' => 80000, 'final_amount' => 20000, 'status' => OrderStatus::Submitted,
+            'subtotal' => 100000, 'sponsor_amount' => 80000, 'final_amount' => 20000, 'status' => OrderStatus::Completed,
         ]);
 
         $secondCampaign = Campaign::create([
@@ -277,7 +272,17 @@ class UserRoomDashboardTopItemsTest extends TestCase
         ]);
         $member->orders()->create([
             'room_id' => $room->id, 'campaign_id' => $secondCampaign->id,
-            'subtotal' => 60000, 'sponsor_amount' => 30000, 'final_amount' => 30000, 'status' => OrderStatus::Submitted,
+            'subtotal' => 60000, 'sponsor_amount' => 30000, 'final_amount' => 30000, 'status' => OrderStatus::Completed,
+        ]);
+
+        // Orders that have not finished yet must not count toward the sponsor total.
+        $pendingCampaign = Campaign::create([
+            'room_id' => $room->id, 'name' => 'Coffee E', 'restaurant' => 'Test Restaurant',
+            'status' => CampaignStatus::Active, 'sponsor_type' => 'per_item', 'sponsor_name' => 'Pending Sponsor',
+        ]);
+        $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $pendingCampaign->id,
+            'subtotal' => 400000, 'sponsor_amount' => 400000, 'final_amount' => 0, 'status' => OrderStatus::Delivering,
         ]);
 
         // A cancelled order's sponsor amount must not count toward its campaign's sponsor total.
@@ -298,7 +303,7 @@ class UserRoomDashboardTopItemsTest extends TestCase
         ]);
         $member->orders()->create([
             'room_id' => $room->id, 'campaign_id' => $noSponsorCampaign->id,
-            'subtotal' => 90000, 'sponsor_amount' => 90000, 'final_amount' => 0, 'status' => OrderStatus::Submitted,
+            'subtotal' => 90000, 'sponsor_amount' => 90000, 'final_amount' => 0, 'status' => OrderStatus::Completed,
         ]);
 
         $data = app(UserRoomDashboardService::class)->getDashboardData($room, $member, null);
@@ -308,7 +313,36 @@ class UserRoomDashboardTopItemsTest extends TestCase
     }
 
     /**
-     * The 7-day trend aggregates daily item count and order value, oldest day first, today last.
+     * The sponsor leaderboard shows at most seven sponsors, highest amount first.
+     *
+     * @return void
+     */
+    public function test_dashboard_top_sponsors_are_limited_to_seven(): void
+    {
+        $room = Room::create(['name' => 'Technology', 'slug' => 'technology-top-sponsors-limit', 'status' => RoomStatus::Active]);
+        $member = $this->member($room, $this->user('limit@example.test'), 'LIMIT');
+
+        foreach (range(1, 8) as $rank) {
+            $campaign = Campaign::create([
+                'room_id' => $room->id, 'name' => 'Coffee '.$rank, 'restaurant' => 'Test Restaurant',
+                'status' => CampaignStatus::Closed, 'sponsor_type' => 'per_item', 'sponsor_name' => 'Sponsor '.$rank,
+            ]);
+            $member->orders()->create([
+                'room_id' => $room->id, 'campaign_id' => $campaign->id,
+                'subtotal' => 100000, 'sponsor_amount' => $rank * 10000, 'final_amount' => 100000 - $rank * 10000,
+                'status' => OrderStatus::Completed,
+            ]);
+        }
+
+        $data = app(UserRoomDashboardService::class)->getDashboardData($room, $member, null);
+
+        $this->assertCount(7, $data['topSponsors']);
+        $this->assertSame('Sponsor 8', $data['topSponsors'][0]['name']);
+        $this->assertNotContains('Sponsor 1', array_column($data['topSponsors'], 'name'));
+    }
+
+    /**
+     * The 7-day trend aggregates daily item count and value of completed orders, oldest day first, today last.
      *
      * @return void
      */
@@ -325,7 +359,7 @@ class UserRoomDashboardTopItemsTest extends TestCase
 
         $todayOrder = $member->orders()->create([
             'room_id' => $room->id, 'campaign_id' => $campaign->id,
-            'subtotal' => 50000, 'final_amount' => 50000, 'status' => OrderStatus::Submitted,
+            'subtotal' => 50000, 'final_amount' => 50000, 'status' => OrderStatus::Completed,
         ]);
         $todayOrder->items()->create([
             'item_name' => 'Drink today', 'unit_price' => 25000, 'quantity' => 2, 'line_subtotal' => 50000,
@@ -339,10 +373,18 @@ class UserRoomDashboardTopItemsTest extends TestCase
         ]);
         $sponsoredOrder = $member->orders()->create([
             'room_id' => $room->id, 'campaign_id' => $sponsoredCampaign->id,
-            'subtotal' => 30000, 'sponsor_amount' => 30000, 'final_amount' => 0, 'status' => OrderStatus::Submitted,
+            'subtotal' => 30000, 'sponsor_amount' => 30000, 'final_amount' => 0, 'status' => OrderStatus::Completed,
         ]);
         $sponsoredOrder->items()->create([
             'item_name' => 'Sponsored drink', 'unit_price' => 30000, 'quantity' => 1, 'line_subtotal' => 30000,
+        ]);
+        // Orders that have not finished yet are excluded from the trend.
+        $pendingOrder = $member->orders()->create([
+            'room_id' => $room->id, 'campaign_id' => $campaign->id,
+            'subtotal' => 70000, 'final_amount' => 70000, 'status' => OrderStatus::Ordered,
+        ]);
+        $pendingOrder->items()->create([
+            'item_name' => 'Pending drink', 'unit_price' => 35000, 'quantity' => 2, 'line_subtotal' => 70000,
         ]);
 
         $data = app(UserRoomDashboardService::class)->getDashboardData($room, $member, null);

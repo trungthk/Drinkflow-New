@@ -11,6 +11,7 @@ use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\GlobalUser;
+use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Models\RoomUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -79,6 +80,56 @@ class AdminReportAnalyticsTest extends TestCase
         $response->assertOk()
             ->assertJsonCount(1, 'data.debts_by_user')
             ->assertJsonPath('data.debts_by_user.0.user_email', 'owing@example.test');
+    }
+
+    /**
+     * The receiving-accounts tab groups order count, received and outstanding money by the
+     * campaign's payment account; campaigns without an account fall into one "unassigned" row.
+     *
+     * @return void
+     */
+    public function test_accounts_tab_summarises_orders_and_money_per_payment_account(): void
+    {
+        $admin = $this->admin();
+        $room = $this->roomFor($admin);
+        $vcb = PaymentAccount::create(['room_id' => $room->id, 'bank_code' => 'VCB', 'bank_name' => 'Vietcombank', 'account_number' => '0011002233', 'account_name' => 'NGUYEN VAN A', 'is_default' => true, 'status' => 'active']);
+        PaymentAccount::create(['room_id' => $room->id, 'bank_code' => 'TCB', 'bank_name' => 'Techcombank', 'account_number' => '1900123456', 'account_name' => 'TRAN THI B', 'status' => 'active']);
+
+        $vcbCampaign = Campaign::create(['room_id' => $room->id, 'name' => 'Lunch', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Closed, 'payment_account_id' => $vcb->id]);
+        $noAccountCampaign = Campaign::create(['room_id' => $room->id, 'name' => 'Tea', 'restaurant' => 'Tea shop', 'status' => CampaignStatus::Closed]);
+
+        $paid = $this->member($room, 'acc-paid@example.test', 'ACCPAID');
+        $owing = $this->member($room, 'acc-owing@example.test', 'ACCOWE');
+        $cancelled = $this->member($room, 'acc-cancel@example.test', 'ACCCAN');
+        foreach ([[$paid, OrderStatus::Completed], [$owing, OrderStatus::Completed], [$cancelled, OrderStatus::Cancelled]] as [$member, $status]) {
+            $member->orders()->create(['room_id' => $room->id, 'campaign_id' => $vcbCampaign->id, 'subtotal' => 30000, 'final_amount' => 30000, 'status' => $status]);
+        }
+        Debt::create(['room_id' => $room->id, 'campaign_id' => $vcbCampaign->id, 'room_user_id' => $paid->id, 'original_amount' => 30000, 'paid_amount' => 30000, 'remaining_amount' => 0, 'status' => DebtStatus::Paid]);
+        Debt::create(['room_id' => $room->id, 'campaign_id' => $vcbCampaign->id, 'room_user_id' => $owing->id, 'original_amount' => 30000, 'paid_amount' => 10000, 'remaining_amount' => 20000, 'status' => DebtStatus::Partial]);
+
+        $paid->orders()->create(['room_id' => $room->id, 'campaign_id' => $noAccountCampaign->id, 'subtotal' => 25000, 'final_amount' => 25000, 'status' => OrderStatus::Completed]);
+        Debt::create(['room_id' => $room->id, 'campaign_id' => $noAccountCampaign->id, 'room_user_id' => $paid->id, 'original_amount' => 25000, 'paid_amount' => 0, 'remaining_amount' => 25000, 'status' => DebtStatus::Unpaid]);
+
+        $response = $this->actingAs($admin, 'admin')->getJson("/admin/{$room->id}/reports?period=all&tab=accounts");
+
+        // The unused TCB account has no activity and is not listed.
+        $response->assertOk()->assertJsonCount(2, 'data.payment_accounts');
+        $rows = collect($response->json('data.payment_accounts'))->keyBy(fn (array $row): string => (string) $row['payment_account_id']);
+
+        $this->assertSame('VCB', $rows[(string) $vcb->id]['bank_code']);
+        $this->assertStringNotContainsString('0011002233', (string) $rows[(string) $vcb->id]['account_number']);
+        $this->assertSame(2, $rows[(string) $vcb->id]['order_count']);
+        $this->assertSame(40000, $rows[(string) $vcb->id]['total_received']);
+        $this->assertSame(20000, $rows[(string) $vcb->id]['total_outstanding']);
+
+        $this->assertSame(1, $rows['']['order_count']);
+        $this->assertSame(0, $rows['']['total_received']);
+        $this->assertSame(25000, $rows['']['total_outstanding']);
+
+        $this->actingAs($admin, 'admin')->get("/admin/{$room->slug}/reports/analytics")
+            ->assertOk()
+            ->assertSee(__('admin.tab_payment_accounts_analytics'))
+            ->assertSee('id="payment-accounts-list"', false);
     }
 
     /**

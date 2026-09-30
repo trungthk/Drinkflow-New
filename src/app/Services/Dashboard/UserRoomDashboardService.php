@@ -102,18 +102,19 @@ class UserRoomDashboardService
 
     /**
      * Rank the room's actual sponsors (people/entities who funded a campaign) over the last 7
-     * days, not the members who merely benefited from a sponsored order.
+     * days, not the members who merely benefited from a sponsored order. Only completed
+     * (finished) orders count toward the sponsored amount.
      *
      * @param Room $room Current active room instance.
      * @param int $limit Maximum number of sponsors to return.
      * @return array<int, array{name: string, amount: int, sponsored_campaigns: int}> Top sponsors, highest amount first.
      */
-    private function getTopSponsors(Room $room, int $limit = 5): array
+    private function getTopSponsors(Room $room, int $limit = 7): array
     {
         $from = Carbon::today()->subDays(6)->startOfDay();
         $to = Carbon::today()->endOfDay();
 
-        return $this->sponsorLeaderboard->build($room, $from, $to, $limit)
+        return $this->sponsorLeaderboard->build($room, $from, $to, $limit, [OrderStatus::Completed])
             ->map(fn (array $row): array => [
                 'name' => $row['user_name'],
                 'amount' => $row['total_sponsored'],
@@ -124,7 +125,7 @@ class UserRoomDashboardService
     }
 
     /**
-     * Aggregate daily order item count and order value for the last 7 days.
+     * Aggregate daily order item count and order value of completed (finished) orders for the last 7 days.
      *
      * @param Room $room Current active room instance.
      * @return array<int, array{date: string, day_name: string, items_count: int, value_amount: int}> One entry per day, oldest first.
@@ -151,7 +152,7 @@ class UserRoomDashboardService
             $dayOrders = Order::query()
                 ->where('room_id', $room->id)
                 ->whereDate('created_at', $currentDate)
-                ->where('status', '!=', OrderStatus::Cancelled->value);
+                ->where('status', OrderStatus::Completed->value);
 
             // Order value before sponsorship, so fully sponsored orders still count.
             $valueAmount = (int) (clone $dayOrders)->sum('subtotal');

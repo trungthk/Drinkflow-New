@@ -42,6 +42,13 @@
             'copied' => __('admin.copied'),
             'copyFailed' => __('admin.copy_failed'),
             'copyEmail' => __('admin.copy_email'),
+            'paymentAccount' => __('admin.report_col_payment_account'),
+            'ordersCount' => __('admin.th_orders_count'),
+            'totalReceived' => __('admin.report_col_total_received'),
+            'totalOutstanding' => __('admin.report_col_total_outstanding'),
+            'accountUnassigned' => __('admin.report_payment_account_unassigned'),
+            'noAccountsTitle' => __('admin.report_no_payment_accounts_found'),
+            'noAccountsDesc' => __('admin.report_no_payment_accounts_found_desc'),
         ];
     @endphp
     <!-- 5 Report Tabs Navigation -->
@@ -61,6 +68,10 @@
         <button type="button" onclick="switchReportTab('sponsors')" id="rtab-sponsors" class="rtab flex items-center gap-2 px-3.5 py-2.5 border-b-2 border-transparent text-outline hover:text-on-surface transition-colors whitespace-nowrap">
             <span class="material-symbols-outlined text-[18px]">volunteer_activism</span>
             <span>{{ __('admin.tab_sponsors_analytics') }}</span>
+        </button>
+        <button type="button" onclick="switchReportTab('accounts')" id="rtab-accounts" class="rtab flex items-center gap-2 px-3.5 py-2.5 border-b-2 border-transparent text-outline hover:text-on-surface transition-colors whitespace-nowrap">
+            <span class="material-symbols-outlined text-[18px]">account_balance</span>
+            <span>{{ __('admin.tab_payment_accounts_analytics') }}</span>
         </button>
         <button type="button" onclick="switchReportTab('users')" id="rtab-users" class="rtab flex items-center gap-2 px-3.5 py-2.5 border-b-2 border-transparent text-outline hover:text-on-surface transition-colors whitespace-nowrap">
             <span class="material-symbols-outlined text-[18px]">group</span>
@@ -220,6 +231,23 @@
             </div>
             
             <div id="sponsors-leaderboard-list">
+                <!-- Loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab: Receiving Payment Account Analytics Panel -->
+    <div id="panel-accounts" class="report-panel space-y-6 hidden">
+        <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 shadow-xs space-y-4">
+            <div class="pb-3 border-b border-outline-variant">
+                <h3 class="font-bold text-sm text-on-surface flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-[18px]">account_balance</span>
+                    <span>{{ __('admin.payment_accounts_report_title') }}</span>
+                </h3>
+                <p class="text-[11px] text-outline mt-0.5">{{ __('admin.payment_accounts_report_desc') }}</p>
+            </div>
+
+            <div id="payment-accounts-list">
                 <!-- Loaded dynamically -->
             </div>
         </div>

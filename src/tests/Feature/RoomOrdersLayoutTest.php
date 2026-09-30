@@ -147,4 +147,45 @@ class RoomOrdersLayoutTest extends TestCase
             ->assertSee('Coffee Live')
             ->assertDontSee('Cancelled Campaign');
     }
+
+    /**
+     * "My Orders" only lists the live campaign's orders: the tab is hidden and the page redirects
+     * to the dashboard when the room has no live campaign.
+     *
+     * @return void
+     */
+    public function test_my_orders_only_shows_live_campaign_orders(): void
+    {
+        $user = GlobalUser::create(['name' => 'Live Only', 'email' => 'live-only@example.com', 'status' => 'active']);
+        $room = Room::create(['name' => 'Live Room', 'slug' => 'live-only-room', 'code' => 'LIVE', 'status' => 'active']);
+        $roomUser = app(JoinRoomAction::class)->execute($user, $room, 'Chrome', 'live-only-hash');
+        $myOrdersTab = '>'.__('room.nav.my_orders').'</span>';
+
+        $closedCampaign = Campaign::create(['room_id' => $room->id, 'name' => 'Old Campaign', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Closed]);
+        $closedOrder = Order::create([
+            'room_id' => $room->id, 'campaign_id' => $closedCampaign->id, 'room_user_id' => $roomUser->id,
+            'subtotal' => 20000, 'final_amount' => 20000, 'status' => OrderStatus::Completed,
+        ]);
+        OrderItem::create(['order_id' => $closedOrder->id, 'item_name' => 'Old Drink', 'unit_price' => 20000, 'quantity' => 1, 'line_subtotal' => 20000]);
+
+        // No live campaign: tab hidden, page redirects to the dashboard.
+        $this->actingAs($user, 'web')->get(route('user.dashboard', $room->slug))->assertOk()->assertDontSee($myOrdersTab, false);
+        $this->actingAs($user, 'web')->get(route('user.orders.index', $room->slug))->assertRedirect(route('user.dashboard', $room->slug));
+
+        // Live campaign without an order from this member: tab still hidden.
+        $liveCampaign = Campaign::create(['room_id' => $room->id, 'name' => 'Live Campaign', 'restaurant' => 'Cafe', 'status' => CampaignStatus::Active]);
+        $this->actingAs($user, 'web')->get(route('user.dashboard', $room->slug))->assertOk()->assertDontSee($myOrdersTab, false);
+
+        $liveOrder = Order::create([
+            'room_id' => $room->id, 'campaign_id' => $liveCampaign->id, 'room_user_id' => $roomUser->id,
+            'subtotal' => 30000, 'final_amount' => 30000, 'status' => OrderStatus::Submitted,
+        ]);
+        OrderItem::create(['order_id' => $liveOrder->id, 'item_name' => 'Live Drink', 'unit_price' => 30000, 'quantity' => 1, 'line_subtotal' => 30000]);
+
+        $this->actingAs($user, 'web')->get(route('user.dashboard', $room->slug))->assertOk()->assertSee($myOrdersTab, false);
+        $this->actingAs($user, 'web')->get(route('user.orders.index', $room->slug))
+            ->assertOk()
+            ->assertSee('Live Drink')
+            ->assertDontSee('Old Drink');
+    }
 }

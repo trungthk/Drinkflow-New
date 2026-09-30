@@ -6,6 +6,7 @@ namespace App\Http\Controllers\User;
 
 use App\Actions\Order\CreateOrderAction;
 use App\Actions\Order\CreateProxyOrdersAction;
+use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentAccountStatus;
 use App\Enums\PaymentStatus;
@@ -27,26 +28,30 @@ use Illuminate\Http\Request;
 class OrderController extends Controller
 {
     /**
-     * Display a paginated list of user's orders in the room, or JSON response for API requests.
+     * Display a paginated list of the user's orders in the room's live campaign, or JSON response
+     * for API requests. Without a live campaign the page redirects back to the room dashboard.
      *
      * @param Request $request Current HTTP request.
-     * @return JsonResponse|View View response or JSON payload.
+     * @return JsonResponse|View|RedirectResponse View response, JSON payload or redirect to the dashboard.
      */
-    public function index(Request $request): JsonResponse|View
+    public function index(Request $request): JsonResponse|View|RedirectResponse
     {
         /** @var Room $room */
         $room = $request->attributes->get('room');
         /** @var RoomUser $roomUser */
         $roomUser = $request->attributes->get('room_user');
 
+        if (! $request->expectsJson() && ! $room->campaigns()->where('status', CampaignStatus::Active->value)->exists()) {
+            // Keep flash messages (e.g. payment confirmation) for the dashboard.
+            $request->session()->reflash();
+
+            return redirect()->route('user.dashboard', $room->slug);
+        }
+
         $query = Order::query()
             ->where('room_id', $room->id)
-            ->where(static function (\Illuminate\Database\Eloquent\Builder $orderQuery) use ($roomUser): void {
-                $orderQuery->where('room_user_id', $roomUser->id)
-                    ->orWhereHas('parent', static function (\Illuminate\Database\Eloquent\Builder $parentQuery) use ($roomUser): void {
-                        $parentQuery->where('room_user_id', $roomUser->id);
-                    });
-            })
+            ->visibleToMember($roomUser)
+            ->inLiveCampaign()
             ->where('status', '!=', OrderStatus::Cancelled->value)
             ->with(['items.toppings', 'items.campaignItem', 'children.roomUser.globalUser', 'children.items.toppings', 'children.items.campaignItem', 'campaign.paymentAccount', 'campaign.orders'])
             ->latest();

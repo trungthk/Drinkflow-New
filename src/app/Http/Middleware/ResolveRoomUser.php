@@ -13,6 +13,9 @@ use Symfony\Component\HttpFoundation\Response;
 
 class ResolveRoomUser
 {
+    /** Session key holding the room page a non-member opened, so joining the room returns them there. */
+    public const JOIN_REDIRECT_SESSION_KEY = 'room_join_redirect';
+
     /**
      * Xác định RoomUser từ request và bảo vệ route khỏi truy cập trái phép.
      *
@@ -49,6 +52,10 @@ class ResolveRoomUser
         if (!$roomUser) {
             if ($request->expectsJson()) {
                 abort(403, __('errors.common.room_membership_required'));
+            }
+
+            if ($request->isMethod('GET')) {
+                $request->session()->put(self::JOIN_REDIRECT_SESSION_KEY, ['room_id' => $room->id, 'url' => $request->fullUrl()]);
             }
 
             return redirect()->route('user.rooms.join.show', $room->slug);

@@ -11,6 +11,7 @@ use App\Models\Debt;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Room;
+use App\Services\Reporting\PaymentAccountReportService;
 use App\Services\Reporting\SponsorLeaderboardService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -19,9 +20,12 @@ class AdminReportService
 {
     /**
      * @param SponsorLeaderboardService $sponsorLeaderboard Resolves actual campaign sponsors (not subsidy beneficiaries).
+     * @param PaymentAccountReportService $paymentAccountReport Order count and received/outstanding money per receiving account.
      */
-    public function __construct(private readonly SponsorLeaderboardService $sponsorLeaderboard)
-    {
+    public function __construct(
+        private readonly SponsorLeaderboardService $sponsorLeaderboard,
+        private readonly PaymentAccountReportService $paymentAccountReport,
+    ) {
     }
 
     /**
@@ -130,6 +134,10 @@ class AdminReportService
 
         if ($tab === 'sponsors' || empty($tab) || $tab === 'all') {
             $payload['sponsors_leaderboard'] = $this->sponsorLeaderboard->build($room, $from, $to);
+        }
+
+        if ($tab === 'accounts' || empty($tab) || $tab === 'all') {
+            $payload['payment_accounts'] = $this->paymentAccountReport->build($room, $from, $to);
         }
 
         if ($tab === 'users' || empty($tab) || $tab === 'all') {

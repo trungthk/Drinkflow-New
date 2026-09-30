@@ -10,6 +10,7 @@ use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
 use App\Models\Debt;
 use App\Models\GlobalUser;
+use App\Models\Order;
 use App\Models\Room;
 use App\Models\RoomUser;
 use App\Services\Notification\NotificationPresentationService;
@@ -74,19 +75,15 @@ class UserRoomLayoutComposer
             ] : null;
         }
 
-        // "Đơn hàng của tôi" is hidden while a campaign is live and this member has not ordered
-        // in it yet, so they are nudged toward the menu instead of an empty order history.
-        $hasOrderedActiveCampaign = true;
-        if ($activeCampaign !== null && $roomUser instanceof RoomUser) {
-            $activeCampaignId = is_array($activeCampaign) ? ($activeCampaign['id'] ?? null) : null;
-            $hasOrderedActiveCampaign = $activeCampaign['has_ordered']
-                ?? ($activeCampaignId !== null
-                    ? $roomUser->orders()
-                        ->where('campaign_id', $activeCampaignId)
-                        ->where('status', '!=', OrderStatus::Cancelled->value)
-                        ->exists()
-                    : true);
-        }
+        // "Đơn hàng của tôi" only lists orders of the live campaign, so it is shown only when this
+        // member has a (non-cancelled) order in a live campaign of the room.
+        $showMyOrdersTab = $room instanceof Room && $roomUser instanceof RoomUser
+            && Order::query()
+                ->where('room_id', $room->id)
+                ->visibleToMember($roomUser)
+                ->inLiveCampaign()
+                ->where('status', '!=', OrderStatus::Cancelled->value)
+                ->exists();
 
         $unpaidDebtCount = (int) ($data['unpaidDebtCount'] ?? 0);
         if (! array_key_exists('unpaidDebtCount', $data) && $room instanceof Room && $roomUser !== null) {
@@ -118,7 +115,7 @@ class UserRoomLayoutComposer
             'unreadNotificationsCount' => (int) ($unreadCount ?? 0),
             'activeCampaign' => $activeCampaign,
             'hasActiveCampaign' => $activeCampaign !== null,
-            'hasUnorderedActiveCampaign' => $activeCampaign !== null && ! $hasOrderedActiveCampaign,
+            'showMyOrdersTab' => $showMyOrdersTab,
             'unpaidDebtCount' => $unpaidDebtCount,
             'userRooms' => $userRooms,
             'currentLocale' => $currentLocale,

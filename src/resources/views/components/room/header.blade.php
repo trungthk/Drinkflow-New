@@ -227,15 +227,15 @@
           </a>
         @endif
 
-        <!-- Tab 3: Đơn hàng của tôi (ẩn khi có chiến dịch đang live mà thành viên chưa đặt món) -->
-        @unless($hasUnorderedActiveCampaign ?? false)
+        <!-- Tab 3: Đơn hàng của tôi (chỉ hiện khi thành viên có đơn trong chiến dịch đang live) -->
+        @if($showMyOrdersTab ?? false)
           <a href="{{ $room ? route('user.orders.index', $room->slug) : '#' }}"
             @if ($activeTab === 'orders') aria-current="page" @endif
             class="h-full px-3.5 inline-flex items-center gap-1.5 text-xs font-semibold transition-all border-b-2 whitespace-nowrap {{ $activeTab === 'orders' ? 'border-[#006948] text-[#006948] bg-emerald-50/40' : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
             <span class="material-symbols-outlined text-[16px]">receipt_long</span>
             <span>{{ __('room.nav.my_orders') }}</span>
           </a>
-        @endunless
+        @endif
 
         <!-- Tab 4: Thanh toán & Nợ -->
         <a href="{{ $room ? route('user.debts.index', $room->slug) : '#' }}"

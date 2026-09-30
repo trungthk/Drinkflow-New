@@ -100,6 +100,18 @@ final class AdminReportExport extends DefaultValueBinder implements FromArray, W
             (int) data_get($row, 'total_sponsored', 0),
         ]);
 
+        $rows = $this->appendSection($rows, __('admin.payment_accounts_report_title'), [
+            __('admin.report_col_payment_account'),
+            __('admin.th_orders_count'),
+            __('admin.report_col_total_received'),
+            __('admin.report_col_total_outstanding'),
+        ], $this->metrics['payment_accounts'] ?? [], fn (mixed $row): array => [
+            self::paymentAccountLabel($row),
+            (int) data_get($row, 'order_count', 0),
+            (int) data_get($row, 'total_received', 0),
+            (int) data_get($row, 'total_outstanding', 0),
+        ]);
+
         return $this->appendSection($rows, __('admin.tab_users_analytics'), [
             '#',
             __('admin.report_col_member'),
@@ -113,6 +125,25 @@ final class AdminReportExport extends DefaultValueBinder implements FromArray, W
             (int) data_get($row, 'order_count', 0),
             (int) data_get($row, 'total_spent', 0),
         ]);
+    }
+
+    /**
+     * Describe a receiving account as "BANK - number - holder", or the "no account" label.
+     *
+     * @param mixed $row Payment account report row.
+     * @return string Account label.
+     */
+    private static function paymentAccountLabel(mixed $row): string
+    {
+        if (data_get($row, 'payment_account_id') === null) {
+            return __('admin.report_payment_account_unassigned');
+        }
+
+        return implode(' - ', array_filter([
+            (string) data_get($row, 'bank_code', ''),
+            (string) data_get($row, 'account_number', ''),
+            (string) data_get($row, 'account_name', ''),
+        ], static fn (string $part): bool => $part !== ''));
     }
 
     /**
