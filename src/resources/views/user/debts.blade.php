@@ -9,6 +9,16 @@
         campaignModalOpen: false,
         campaignLoading: false,
         campaignData: null,
+        init() {
+            // Links from the campaign-closed notification carry ?campaign={id}: open that campaign's debt payment modal.
+            const campaignId = new URLSearchParams(window.location.search).get('campaign');
+            if (!/^\d+$/.test(campaignId || '')) return;
+            this.$nextTick(() => {
+                const payButton = this.$root.querySelector(`[data-pay-debt-campaign='${campaignId}']`);
+                payButton?.scrollIntoView({ block: 'center' });
+                payButton?.click();
+            });
+        },
         async openCampaignDetail(campaignId) {
             if (!campaignId) return;
             this.campaignModalOpen = true;
@@ -397,6 +407,7 @@
                                         @elseif(!$isPaid && $debt->remaining_amount > 0)
                                             <button
                                                 class="px-2.5 py-1 rounded bg-[#006948] text-white hover:bg-[#005137] transition-all inline-flex items-center gap-1 shadow-2xs cursor-pointer font-medium text-xs"
+                                                @if($debt->campaign_id) data-pay-debt-campaign="{{ (int) $debt->campaign_id }}" @endif
                                                 @click="openQr({{ (int) $debt->remaining_amount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount) }}', {{ Js::from($transferContents[$debt->id] ?? $debt->code) }}, '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }})">
                                                 <span class="material-symbols-outlined text-[14px] text-white">qr_code</span>
                                                 <span class="text-white">{{ __('room.debts.btn_view_qr') }}</span>

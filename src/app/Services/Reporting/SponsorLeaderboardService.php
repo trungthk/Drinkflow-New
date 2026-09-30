@@ -28,9 +28,10 @@ class SponsorLeaderboardService
      * @param Carbon|null $from Inclusive campaign creation period start; null = no lower bound.
      * @param Carbon|null $to Inclusive campaign creation period end; null = no upper bound.
      * @param int|null $limit Maximum rows to return; null = unlimited.
+     * @param list<OrderStatus>|null $orderStatuses Only count orders in these statuses; null = every non-cancelled order.
      * @return Collection<int, array{room_user_id: ?int, user_name: string, user_email: ?string, sponsored_campaigns: int, total_sponsored: int}> Highest total first.
      */
-    public function build(Room $room, ?Carbon $from = null, ?Carbon $to = null, ?int $limit = null): Collection
+    public function build(Room $room, ?Carbon $from = null, ?Carbon $to = null, ?int $limit = null, ?array $orderStatuses = null): Collection
     {
         $campaignsQuery = Campaign::query()->where('room_id', $room->id);
         if ($from !== null && $to !== null) {
@@ -44,7 +45,11 @@ class SponsorLeaderboardService
 
         $orderTotalsByCampaign = Order::query()
             ->whereIn('campaign_id', $campaigns->pluck('id'))
-            ->whereNotIn('status', [OrderStatus::Cancelled->value])
+            ->when(
+                $orderStatuses !== null,
+                fn ($query) => $query->whereIn('status', array_map(static fn (OrderStatus $status): string => $status->value, $orderStatuses)),
+                fn ($query) => $query->whereNotIn('status', [OrderStatus::Cancelled->value]),
+            )
             ->selectRaw('campaign_id, SUM(subtotal) as gross_subtotal, SUM(sponsor_amount) as sponsor_amount_total')
             ->groupBy('campaign_id')
             ->get()

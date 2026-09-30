@@ -122,6 +122,22 @@ class Order extends Model
     }
 
     /**
+     * Limit the query to the orders a member can see on "My Orders": their own orders plus the
+     * proxy orders they placed for other members.
+     *
+     * @param Builder<Order> $query Order query being scoped.
+     * @param RoomUser $roomUser Member viewing their orders.
+     * @return Builder<Order> Scoped query.
+     */
+    public function scopeVisibleToMember(Builder $query, RoomUser $roomUser): Builder
+    {
+        return $query->where(static function (Builder $orderQuery) use ($roomUser): void {
+            $orderQuery->where('room_user_id', $roomUser->id)
+                ->orWhereHas('parent', static fn (Builder $parentQuery): Builder => $parentQuery->where('room_user_id', $roomUser->id));
+        });
+    }
+
+    /**
      * Limit the query to one order type: placed by the member, by a room admin, or by another member (proxy).
      *
      * @param Builder<Order> $query Order query being scoped.

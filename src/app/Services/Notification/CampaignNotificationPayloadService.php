@@ -32,16 +32,17 @@ class CampaignNotificationPayloadService
         $orderUrl = in_array($event, [NotificationType::CampaignCreated->value, NotificationType::CampaignUpdated->value], true) && $room !== null
             ? route('user.campaigns.index', $room)
             : null;
-        // Link a new member can follow to sign up and join this room.
-        $registerUrl = $event === NotificationType::CampaignCreated->value && $room !== null
-            ? route('user.rooms.show', $room)
-            : null;
-        $orderCheckUrl = $event === NotificationType::CampaignClosed->value
+        // Public link to check the campaign's ordered items once it is closed or delivered.
+        $orderCheckUrl = in_array($event, [NotificationType::CampaignClosed->value, NotificationType::CampaignDelivering->value], true)
             ? URL::temporarySignedRoute(
                 'public.order-check',
                 now()->addDays(30),
                 ['campaign' => $campaign->id, 'hash' => app(PublicOrderCheckService::class)->hash($campaign)]
             )
+            : null;
+        // Debts page link; the campaign query parameter opens that campaign's debt payment modal.
+        $paymentUrl = $event === NotificationType::CampaignClosed->value && $room !== null
+            ? route('user.debts.index', ['room' => $room, 'campaign' => $campaign->id])
             : null;
 
         return [
@@ -57,10 +58,10 @@ class CampaignNotificationPayloadService
                 'sponsorship_amount' => $campaign->max_budget,
                 'max_product_budget' => $campaign->max_budget,
                 'order_url' => $orderUrl,
-                'register_url' => $registerUrl,
                 'order_check_url' => $orderCheckUrl,
+                'payment_url' => $paymentUrl,
             ],
-            'message' => $this->message($title, $campaign, $event === NotificationType::CampaignClosed->value ? $orderCheckUrl : $orderUrl, $event, $registerUrl),
+            'message' => $this->message($title, $campaign, $orderUrl, $event, $orderCheckUrl, $paymentUrl),
         ];
     }
 
@@ -72,10 +73,11 @@ class CampaignNotificationPayloadService
      * @param Campaign $campaign Campaign data.
      * @param ?string $orderUrl User order link when ordering is available.
      * @param string $event Lifecycle event name.
-     * @param ?string $registerUrl Link for new members to register and join the room.
+     * @param ?string $orderCheckUrl Signed public link to check the campaign's ordered items.
+     * @param ?string $paymentUrl Debts page link that opens the campaign's debt payment modal.
      * @return string Formatted notification text.
      */
-    private function message(string $title, Campaign $campaign, ?string $orderUrl, string $event = 'campaign.created', ?string $registerUrl = null): string
+    private function message(string $title, Campaign $campaign, ?string $orderUrl, string $event = 'campaign.created', ?string $orderCheckUrl = null, ?string $paymentUrl = null): string
     {
         $lines = [$title, __('messages.campaign_name', ['name' => $campaign->name])];
         if (! empty($campaign->restaurant)) {
@@ -100,9 +102,6 @@ class CampaignNotificationPayloadService
             if ($orderUrl !== null) {
                 $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
             }
-            if ($registerUrl !== null) {
-                $lines[] = __('messages.campaign_register', ['url' => $registerUrl]);
-            }
         } elseif ($event === NotificationType::CampaignUpdated->value) {
             $lines[] = __('messages.campaign_updated_body');
             if ($campaign->deadline) {
@@ -117,10 +116,13 @@ class CampaignNotificationPayloadService
             $hasSponsor = $campaign->sponsor_type !== Campaign::SPONSOR_TYPE_NONE
                 && (filled($campaign->sponsor_type) || filled($campaign->sponsor_name) || ! empty($campaign->sponsor_allocations));
             $reminder = __($hasSponsor ? 'messages.campaign_closed_sponsored_body' : 'messages.campaign_closed_body');
-            if ($orderUrl !== null) {
-                $reminder .= ' => '.$orderUrl;
+            if ($orderCheckUrl !== null) {
+                $reminder .= ' => '.$orderCheckUrl;
             }
             $lines[] = $reminder;
+            if ($paymentUrl !== null) {
+                $lines[] = __('messages.campaign_payment', ['url' => $paymentUrl]);
+            }
         } elseif ($event === NotificationType::CampaignCancelled->value) {
             $lines[] = __('messages.campaign_cancelled_body');
         } elseif ($event === NotificationType::CampaignDelivering->value) {
@@ -128,6 +130,9 @@ class CampaignNotificationPayloadService
                 'restaurant' => $campaign->restaurant,
                 'code' => $campaign->code,
             ]);
+            if ($orderCheckUrl !== null) {
+                $lines[] = __('messages.campaign_order_check', ['url' => $orderCheckUrl]);
+            }
         }
 
         return implode("\n", $lines);

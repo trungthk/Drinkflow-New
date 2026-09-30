@@ -9,6 +9,7 @@ use App\Enums\GlobalUserStatus;
 use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\ResolveRoomUser;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Services\Audit\AuditService;
@@ -128,7 +129,7 @@ class RoomController extends Controller
         $token = $devices->issue($roomUser, $deviceUuid);
 
         if (! $request->expectsJson()) {
-            return redirect()->route('user.dashboard', $room->slug)
+            return redirect()->to($this->pullJoinRedirect($request, $room) ?? route('user.dashboard', $room->slug))
                 ->withCookie(cookie('drinkflow_device_uuid', $deviceUuid, 60 * 24 * 365, '/', null, $request->isSecure(), true, false, 'lax'))
                 ->withCookie(cookie('drinkflow_trusted_token', $token, 60 * 24 * 30, '/', null, $request->isSecure(), true, false, 'lax'));
         }
@@ -136,5 +137,25 @@ class RoomController extends Controller
         return response()->json(['data' => $roomUser->load('room'), 'redirect' => route('user.campaigns.index', $room->slug)])
             ->withCookie(cookie('drinkflow_device_uuid', $deviceUuid, 60 * 24 * 365, '/', null, $request->isSecure(), true, false, 'lax'))
             ->withCookie(cookie('drinkflow_trusted_token', $token, 60 * 24 * 30, '/', null, $request->isSecure(), true, false, 'lax'));
+    }
+
+    /**
+     * Take the room page a member opened before joining (e.g. a campaign order link), if it belongs to this room.
+     *
+     * @param Request $request Current HTTP request.
+     * @param Room $room Room that was just joined.
+     * @return string|null Same-room URL to continue to, or null to fall back to the dashboard.
+     */
+    private function pullJoinRedirect(Request $request, Room $room): ?string
+    {
+        $redirect = $request->session()->pull(ResolveRoomUser::JOIN_REDIRECT_SESSION_KEY);
+        if (! is_array($redirect) || (int) ($redirect['room_id'] ?? 0) !== $room->id) {
+            return null;
+        }
+
+        $url = (string) ($redirect['url'] ?? '');
+        $roomPrefix = route('user.rooms.show', $room->slug).'/';
+
+        return str_starts_with($url, $roomPrefix) ? $url : null;
     }
 }

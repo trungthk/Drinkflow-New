@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Enums\GlobalUserStatus;
+use App\Models\Room;
 use App\Services\Auth\DeviceTrustService;
 use Closure;
 use Illuminate\Http\Request;
@@ -58,12 +59,16 @@ class ResolveGlobalUser
             if ($request->expectsJson()) {
                 abort(401, __('errors.common.unauthenticated'));
             }
-            // Room links (e.g. campaign announcements) send guests home with the sign-up modal open.
-            if ($request->route('room') !== null) {
+            // Room links (e.g. campaign announcements) send guests home with the login modal open; after
+            // login they come back to the link, which sends non-members through the room join page.
+            if (($room = $request->route('room')) !== null) {
                 if ($request->isMethod('GET')) {
                     $request->session()->put('url.intended', $request->fullUrl());
                 }
-                $response = redirect()->to('/')->with('auth_notice', __('public.auth_modal.require_register'));
+                $roomName = $room instanceof Room ? $room->name : Room::query()->where('slug', (string) $room)->value('name');
+                $response = redirect()->to('/')->with('auth_notice', $roomName !== null
+                    ? __('public.auth_modal.require_login_room', ['room' => $roomName])
+                    : __('public.auth_modal.require_register'));
 
                 return $clearTrustedDeviceCookies ? $this->forgetTrustedDeviceCookies($response) : $response;
             }
