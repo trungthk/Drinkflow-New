@@ -143,6 +143,8 @@ class ProfileController extends Controller
             $request->session()->getId(),
             (string) $request->cookie('drinkflow_device_uuid', ''),
         );
+        // Keep this device signed in with a "remember me" cookie carrying the new token.
+        \Illuminate\Support\Facades\Auth::guard('web')->login($user->fresh(), true);
 
         return back()->with('status', __('global.devices.logout_other_devices_success'));
     }

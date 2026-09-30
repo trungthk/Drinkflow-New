@@ -44,9 +44,9 @@ class RoomsController extends Controller
 
         // Backward compatibility for JSON clients
         if ($request->wantsJson()) {
-            return response()->json([
-                'data' => $user->roomUsers()->with('room')->where('status', RoomUserStatus::Active->value)->paginate(20),
-            ]);
+            return \App\Http\Resources\Member\MembershipResource::collection(
+                $user->roomUsers()->with('room')->where('status', RoomUserStatus::Active->value)->paginate(20),
+            )->response();
         }
 
         $data = $service->getRoomsData($user, $request);

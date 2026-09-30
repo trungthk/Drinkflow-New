@@ -54,7 +54,7 @@ Route::middleware(['room.ip', 'global.user', 'room.user'])->group(function () {
     Route::delete('/rooms/{room}/campaigns/{campaign}/cart', [\App\Http\Controllers\User\CampaignController::class, 'clearCart'])->name('user.campaigns.cart.clear');
     Route::delete('/rooms/{room}/campaigns/{campaign}/cart/{index}', [\App\Http\Controllers\User\CampaignController::class, 'removeFromCart'])->name('user.campaigns.cart.remove');
     Route::post('/rooms/{room}/campaigns/{campaign}/orders', [\App\Http\Controllers\User\OrderController::class, 'store'])->name('user.orders.store');
-    Route::get('/rooms/{room}/members/lookup', [\App\Http\Controllers\User\CampaignController::class, 'lookupMember'])->name('user.room-members.lookup');
+    Route::get('/rooms/{room}/members/lookup', [\App\Http\Controllers\User\CampaignController::class, 'lookupMember'])->middleware('throttle:room-member-lookup')->name('user.room-members.lookup');
     Route::get('/rooms/{room}/orders/{order}', [\App\Http\Controllers\User\OrderController::class, 'show'])->name('user.orders.show');
     Route::get('/rooms/{room}/orders/{order}/view', \App\Http\Controllers\User\OrderPageController::class)->name('user.orders.page');
     Route::get('/rooms/{room}/orders/{order}/payment', [\App\Http\Controllers\User\OrderController::class, 'payment'])->name('user.orders.payment');

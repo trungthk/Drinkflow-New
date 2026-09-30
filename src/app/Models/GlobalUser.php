@@ -136,4 +136,17 @@ class GlobalUser extends Authenticatable
             ->where('remaining_amount', '>', 0)
             ->exists();
     }
+
+    /**
+     * Invalidate every "remember me" cookie of this user (UPG-02.1).
+     *
+     * The cookie stores the remember token; replacing it makes the cookies held by other browsers
+     * useless, so a signed-out device cannot silently log back in.
+     *
+     * @return void
+     */
+    public function rotateRememberToken(): void
+    {
+        $this->forceFill(['remember_token' => \Illuminate\Support\Str::random(60)])->save();
+    }
 }

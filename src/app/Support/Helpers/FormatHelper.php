@@ -106,4 +106,40 @@ class FormatHelper
 
         return $maskedPart . $visiblePart;
     }
+
+    /**
+     * Partially hide an email address: first character of the local part, then the domain.
+     *
+     * @param string|null $email Email address.
+     * @return string|null Masked email (e.g. "n***@company.com"), null when empty.
+     */
+    public static function maskEmail(?string $email): ?string
+    {
+        $email = trim((string) $email);
+        if ($email === '' || ! str_contains($email, '@')) {
+            return $email === '' ? null : self::mask($email, 0, '*');
+        }
+        [$local, $domain] = explode('@', $email, 2);
+
+        return mb_substr($local, 0, 1).'***@'.$domain;
+    }
+
+    /**
+     * Partially hide a phone number: first two and last three digits stay visible.
+     *
+     * @param string|null $phone Phone number.
+     * @return string|null Masked phone (e.g. "09****123"), null when empty.
+     */
+    public static function maskPhone(?string $phone): ?string
+    {
+        $digits = preg_replace('/[^0-9+]/', '', (string) $phone) ?: '';
+        if ($digits === '') {
+            return null;
+        }
+        if (mb_strlen($digits) <= 5) {
+            return str_repeat('*', mb_strlen($digits));
+        }
+
+        return mb_substr($digits, 0, 2).'****'.mb_substr($digits, -3);
+    }
 }

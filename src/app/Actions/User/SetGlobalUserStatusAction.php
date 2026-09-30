@@ -46,6 +46,9 @@ class SetGlobalUserStatusAction
             $user->refresh();
             $before = $user->status->value;
             $user->update(['status' => $status]);
+            if ($status !== GlobalUserStatus::Active->value) {
+                $user->rotateRememberToken();
+            }
             app(AuditService::class)->record('global_user.status_updated', 'global_user', $user->id, null, ['status' => $before], ['status' => $status]);
 
             return $user->fresh();

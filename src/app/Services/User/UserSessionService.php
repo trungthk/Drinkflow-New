@@ -84,28 +84,71 @@ class UserSessionService
         );
     }
 
+    /** Session key holding the trusted device UUID the session was opened from (set by ResolveGlobalUser). */
+    public const SESSION_DEVICE_KEY = 'trusted_device_uuid';
+
     /**
-     * Hủy bỏ và đăng xuất một phiên làm việc từ xa theo Session ID.
+     * Sign out one remote session and revoke only the trusted device it belongs to (UPG-02.2).
+     *
+     * The remember token is rotated too (admin decision: option a): the selected browser's "remember me"
+     * cookie stops working, other browsers joined to a room restore their session from their own trusted
+     * device token, and browsers signed in with Google only must sign in again.
      *
      * @param  \App\Models\GlobalUser  $user  Tài khoản người dùng sở hữu phiên
      * @param  string  $sessionId  Mã định danh phiên làm việc cần xóa
+     * @param  string  $currentDeviceUuid  Thiết bị của phiên hiện tại (không bao giờ bị thu hồi)
      * @return void
      */
     public function logoutDevice(GlobalUser $user, string $sessionId, string $currentDeviceUuid): void
     {
+        $deviceUuid = $this->sessionDeviceUuid($user, $sessionId);
+
         DB::table('sessions')
             ->where('id', $sessionId)
             ->where('user_id', $user->id)
             ->delete();
+        $user->rotateRememberToken();
+
+        if ($deviceUuid === null || $deviceUuid === $currentDeviceUuid) {
+            return;
+        }
 
         $roomUserIds = $user->roomUsers()->pluck('id');
-        $query = RoomUserDevice::query()->whereIn('room_user_id', $roomUserIds)->whereNull('revoked_at');
-        if ($currentDeviceUuid !== '') {
-            $query->where('device_uuid', '!=', $currentDeviceUuid);
+        $revoked = RoomUserDevice::query()
+            ->whereIn('room_user_id', $roomUserIds)
+            ->where('device_uuid', $deviceUuid)
+            ->whereNull('revoked_at')
+            ->update(['revoked_at' => now()]);
+        if ($revoked > 0) {
+            $this->publishRevocations([$deviceUuid]);
         }
-        $deviceUuids = $query->pluck('device_uuid')->all();
-        $query->update(['revoked_at' => now()]);
-        $this->publishRevocations($deviceUuids);
+    }
+
+    /**
+     * Trusted device UUID recorded in a session of the user, read through Laravel's own session store
+     * (the payload may be encrypted).
+     *
+     * @param GlobalUser $user Owner of the session.
+     * @param string $sessionId Session ID.
+     * @return string|null Device UUID, or null when the session is unknown or has no device.
+     */
+    public function sessionDeviceUuid(GlobalUser $user, string $sessionId): ?string
+    {
+        $owned = DB::table('sessions')->where('id', $sessionId)->where('user_id', $user->id)->exists();
+        if (! $owned) {
+            return null;
+        }
+
+        $handler = app('session')->driver()->getHandler();
+        $name = (string) config('session.cookie');
+        $serialization = (string) config('session.serialization', 'php');
+        $store = config('session.encrypt')
+            ? new \Illuminate\Session\EncryptedStore($name, $handler, app('encrypter'), $sessionId, $serialization)
+            : new \Illuminate\Session\Store($name, $handler, $sessionId, $serialization);
+        $store->start();
+        $deviceUuid = $store->get(self::SESSION_DEVICE_KEY);
+
+        return is_string($deviceUuid) && $deviceUuid !== '' ? $deviceUuid : null;
     }
 
     /**
@@ -121,6 +164,9 @@ class UserSessionService
             ->where('user_id', $user->id)
             ->where('id', '!=', $currentSessionId)
             ->delete();
+        // The other devices also hold a "remember me" cookie: without a new token they would log
+        // straight back in. The caller re-issues the cookie of the current session.
+        $user->rotateRememberToken();
 
         // Revoke trusted device tokens
         $roomUserIds = $user->roomUsers()->pluck('id');

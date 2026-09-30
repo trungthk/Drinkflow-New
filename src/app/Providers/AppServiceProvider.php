@@ -143,6 +143,12 @@ class AppServiceProvider extends ServiceProvider
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(20)->by('admin-bulk:' . ($request->user('admin')?->id ?? $request->ip() ?: '127.0.0.1'));
         });
 
+        // Member lookup for ordering on behalf: limited per member so the room directory cannot be enumerated (UPG-03.2).
+        \Illuminate\Support\Facades\RateLimiter::for('room-member-lookup', function (\Illuminate\Http\Request $request) {
+            $userKey = $request->user('web')?->id ? 'user:' . $request->user('web')->id : ($request->ip() ?: '127.0.0.1');
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(20)->by('room-member-lookup:' . $userKey);
+        });
+
         \Illuminate\Support\Facades\RateLimiter::for('room-join', function (\Illuminate\Http\Request $request) {
             return \Illuminate\Cache\RateLimiting\Limit::perMinute(15)->by($request->ip() ?: '127.0.0.1');
         });

@@ -8,6 +8,7 @@ use App\Enums\GlobalUserStatus;
 use App\Enums\OrderStatus;
 use App\Enums\RoomUserStatus;
 use App\Events\OrderCreated;
+use App\Exceptions\ActiveOrderExistsException;
 use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\RoomUser;
@@ -55,6 +56,16 @@ class CreateOrderAction
             // Serialize daily order numbering across campaigns in the same room.
             \App\Models\Room::query()->whereKey($campaign->room_id)->lockForUpdate()->firstOrFail();
             $this->ensureCampaignIsOrderable($campaign, $allowLocked);
+            // One active order per member per campaign. The campaign row is locked, so this check and the
+            // insert below are serialized; the unique index on orders is the last line of defence.
+            $hasActiveOrder = Order::query()
+                ->where('campaign_id', $campaign->id)
+                ->where('room_user_id', $roomUser->id)
+                ->whereIn('status', OrderStatus::activeValues())
+                ->exists();
+            if ($hasActiveOrder) {
+                throw ActiveOrderExistsException::make();
+            }
             $items = $data['items'] ?? [];
             if ($items === [] && ! $allowEmpty) {
                 throw ValidationException::withMessages([

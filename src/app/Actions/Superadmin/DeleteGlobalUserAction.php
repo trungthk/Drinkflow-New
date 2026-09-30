@@ -71,6 +71,7 @@ class DeleteGlobalUserAction
                 ->update(['revoked_at' => $now]);
 
             $user->update(['status' => GlobalUserStatus::Deleted]);
+            $user->rotateRememberToken();
             $this->audit->record('global_user.deleted', 'global_user', $user->id, null, $before, ['status' => GlobalUserStatus::Deleted->value]);
 
             return $user->fresh();

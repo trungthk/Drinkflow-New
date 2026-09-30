@@ -246,6 +246,7 @@ class UserProfileService
         }
 
         $user->update(['status' => GlobalUserStatus::Disabled]);
+        $user->rotateRememberToken();
 
         Auth::guard('web')->logout();
         $request->session()->invalidate();

@@ -98,7 +98,10 @@ class RoomController extends Controller
             return redirect()->route('user.dashboard', $room->slug);
         }
 
-        return response()->json(['data' => $room->loadCount(['campaigns']), 'room_user' => $membership]);
+        return response()->json([
+            'data' => new \App\Http\Resources\Member\RoomResource($room->loadCount(['campaigns'])),
+            'room_user' => new \App\Http\Resources\Member\MembershipResource($membership),
+        ]);
     }
 
     /**
@@ -133,7 +136,7 @@ class RoomController extends Controller
                 ->withCookie(cookie('drinkflow_trusted_token', $token, 60 * 24 * 30, '/', null, $request->isSecure(), true, false, 'lax'));
         }
 
-        return response()->json(['data' => $roomUser->load('room'), 'redirect' => route('user.campaigns.index', $room->slug)])
+        return response()->json(['data' => new \App\Http\Resources\Member\MembershipResource($roomUser->load('room')), 'redirect' => route('user.campaigns.index', $room->slug)])
             ->withCookie(cookie('drinkflow_device_uuid', $deviceUuid, 60 * 24 * 365, '/', null, $request->isSecure(), true, false, 'lax'))
             ->withCookie(cookie('drinkflow_trusted_token', $token, 60 * 24 * 30, '/', null, $request->isSecure(), true, false, 'lax'));
     }

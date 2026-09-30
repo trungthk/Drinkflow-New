@@ -13,10 +13,8 @@
     $accountNumber = $campaignAccount?->account_number ?? '';
     $accountName = $campaignAccount?->account_name ?? '';
     $isFullSponsor = $activeOrder?->campaign?->sponsor_type === \App\Models\Campaign::SPONSOR_TYPE_FULL || ((int) ($activeOrder?->sponsor_amount ?? 0) >= (int) ($activeOrder?->subtotal ?? 0) && (int) ($activeOrder?->subtotal ?? 0) > 0);
-    $campaignOrders = $orderCampaign?->relationLoaded('orders')
-        ? $orderCampaign->orders->filter(static fn ($order): bool => $order->status !== \App\Enums\OrderStatus::Cancelled && $order->cancelled_at === null)
-        : collect();
-    $campaignSubtotal = (int) $campaignOrders->sum('subtotal');
+    // Sum of the campaign's non-cancelled orders, aggregated in SQL by OrderController::index (UPG-03.1).
+    $campaignSubtotal = (int) ($orderCampaign?->active_orders_subtotal ?? 0);
     $orderSubtotal = (int) ($activeOrder?->subtotal ?? 0);
     $orderDeliveryAmount = (int) ($activeOrder?->delivery_amount ?? 0);
     $orderDiscountAmount = (int) ($activeOrder?->discount_amount ?? 0);

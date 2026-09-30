@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Enums\GlobalUserStatus;
+use App\Services\User\UserSessionService;
 use App\Services\Auth\DeviceTrustService;
 use Closure;
 use Illuminate\Http\Request;
@@ -100,6 +101,11 @@ class ResolveGlobalUser
 
         abort_unless($status === GlobalUserStatus::Active, 403);
         $request->attributes->set('global_user', $user);
+        // Remember which trusted device this session belongs to, so "sign out this device" on
+        // /me/devices can revoke exactly that device (UPG-02.2). The device was validated above.
+        if ($deviceUuid !== '' && $request->session()->get(UserSessionService::SESSION_DEVICE_KEY) !== $deviceUuid) {
+            $request->session()->put(UserSessionService::SESSION_DEVICE_KEY, $deviceUuid);
+        }
 
         return $next($request);
     }

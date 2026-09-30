@@ -60,7 +60,7 @@ class PaymentsController extends Controller
                     'paid_count' => $data['paidThisMonthCount'],
                     'sponsor_received' => $data['totalSponsorReceived'],
                 ],
-                'orders' => $data['displayedOrders']->values(),
+                'orders' => \App\Http\Resources\Member\OrderResource::collection($data['displayedOrders']->values())->resolve($request),
                 'default_bank' => $data['defaultBank'],
             ]);
         }

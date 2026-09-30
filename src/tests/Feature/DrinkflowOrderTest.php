@@ -41,7 +41,8 @@ class DrinkflowOrderTest extends TestCase
         $order = $action->execute($campaign, $roomUser, ['items' => [['item_id' => $item->id, 'quantity' => 2]], 'discount_amount' => 999999, 'sponsor_amount' => 999999]);
         $this->assertSame(40000, $order->final_amount);
         $this->assertDatabaseHas('user_notifications', ['global_user_id' => $user->id, 'type' => 'order.created']);
-        $this->expectException(QueryException::class);
+        // UPG-01.1: the action refuses the second active order itself (the unique index remains a backstop).
+        $this->expectException(\App\Exceptions\ActiveOrderExistsException::class);
         $action->execute($campaign, $roomUser, ['items' => [['item_id' => $item->id, 'quantity' => 1]]]);
     }
 

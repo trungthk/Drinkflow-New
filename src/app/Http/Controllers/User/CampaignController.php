@@ -341,10 +341,11 @@ class CampaignController extends Controller
         $creditPolicy = $credit->policy($room);
         abort_if($creditPolicy['enabled'] && $credit->used($roomUser) >= $creditPolicy['ceiling'], 422, __('room.campaign.proxy_debt_limit_reached', ['limit' => FormatHelper::formatCurrency($creditPolicy['ceiling'])]));
 
+        // Contact details are only returned masked, enough to recognise the right colleague (UPG-03.2).
         return response()->json([
             'display_name' => $roomUser->display_name ?: $roomUser->globalUser?->name,
-            'email' => $roomUser->globalUser?->email,
-            'phone' => $roomUser->globalUser?->phone,
+            'email' => FormatHelper::maskEmail($roomUser->globalUser?->email),
+            'phone' => FormatHelper::maskPhone($roomUser->globalUser?->phone),
             'user_code' => $roomUser->user_code,
             'avatar_url' => $roomUser->globalUser?->avatar_url,
         ]);
@@ -402,7 +403,8 @@ class CampaignController extends Controller
         abort_unless($campaign->room_id === $room->id && in_array($campaign->status?->value, ['active', 'scheduled'], true), 404);
 
         if ($request->expectsJson()) {
-            return response()->json(['data' => $campaign->load(['items' => fn ($q) => $q->where('status', 'active')->with(['sizes', 'toppings']), 'room'])]);
+            // Explicit fields only (UPG-03.3): no room settings, owner or internal campaign columns.
+            return (new \App\Http\Resources\Member\CampaignDetailResource($campaign->load(['items' => fn ($q) => $q->where('status', 'active')->with(['sizes', 'toppings']), 'room'])))->response();
         }
 
         return redirect()->route('user.campaigns.index', $room->slug);

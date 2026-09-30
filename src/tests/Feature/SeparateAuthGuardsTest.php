@@ -164,10 +164,12 @@ class SeparateAuthGuardsTest extends TestCase
     public function test_superadmin_socket_token_carries_the_superadmin_actor(): void
     {
         $superadmin = $this->superadmin();
+        // Pin the signing secret so the check does not depend on SOCKET_TOKEN_SECRET in the local .env.
+        config(['services.realtime.socket_token_secret' => 'test-socket-secret']);
 
         $token = $this->actingAs($superadmin, 'superadmin')->getJson(route('superadmin.socket-token'))->assertOk()->json('data.token');
         [$encoded, $signature] = explode('.', $token, 2);
-        $this->assertTrue(hash_equals(hash_hmac('sha256', $encoded, (string) config('app.key')), $signature));
+        $this->assertTrue(hash_equals(hash_hmac('sha256', $encoded, 'test-socket-secret'), $signature));
         $claims = json_decode((string) base64_decode(strtr($encoded, '-_', '+/')), true);
 
         $this->assertSame('superadmin', $claims['actor_type']);
