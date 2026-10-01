@@ -4,7 +4,6 @@ import { initLazyImages } from './shared/lazy-image';
 
 initLazyImages();
 
-import { initOrderStatus } from './room/order-status';
 import { initCampaignOrder } from './room/campaign-order';
 import { initGlobalGoToTop } from './global/go-to-top';
 import { initGlobalLoading } from './global/loading';
@@ -17,7 +16,6 @@ import { initGroupedImageLightbox, initGuideLightbox } from './shared/image-ligh
 
 document.addEventListener('DOMContentLoaded', () => {
     initToastNotifications();
-    initOrderStatus();
     initCampaignOrder();
     initGlobalGoToTop();
     initGlobalLoading();

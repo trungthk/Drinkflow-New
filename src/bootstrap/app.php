@@ -23,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'superadmin' => \App\Http\Middleware\EnsureSuperadmin::class,
             'permission' => \App\Http\Middleware\EnsureSuperadminPermission::class,
             'maintenance' => \App\Http\Middleware\CheckMaintenanceMode::class,
+            'json.only' => \App\Http\Middleware\EnsureJsonRequest::class,
             'user.has_rooms' => \App\Http\Middleware\EnsureUserHasRooms::class,
             'user.active_room' => \App\Http\Middleware\EnsureUserHasActiveRoom::class,
             // Per-room access rules configured on the room settings page (App\Services\Room\RoomAccessPolicy).

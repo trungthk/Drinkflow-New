@@ -79,15 +79,22 @@ class DebtPaymentRequestService
      * @param Room $room Current room.
      * @param RoomUser $roomUser Room member.
      * @param iterable<Debt> $debts Campaign debts listed on the page.
-     * @return array{paymentSummary: array<string, mixed>, paymentRequests: Collection<int, Debt>, debtRequests: array<int, Debt>}
-     *         Summary figures, the member's recent requests, and the request of each listed bundled debt.
+     * @return array{paymentSummary: array<string, mixed>, paymentRequests: Collection<int, Debt>, debtRequests: array<int, Debt>, paymentRequestDetails: array<string, array<string, mixed>>}
+     *         Summary figures, the member's recent requests, the request of each listed bundled debt,
+     *         and the pre-built detail payload of each request.
      */
     public function memberViewData(Room $room, RoomUser $roomUser, iterable $debts): array
     {
+        $requests = $this->requestsFor($room, $roomUser);
+
         return [
             'paymentSummary' => $this->summary($room, $roomUser),
-            'paymentRequests' => $this->requestsFor($room, $roomUser),
+            'paymentRequests' => $requests,
             'debtRequests' => $this->requestsByChild($debts),
+            // Pre-built modal payloads, keyed by request code, so the page needs no extra request.
+            'paymentRequestDetails' => $requests
+                ->mapWithKeys(fn (Debt $request): array => [(string) $request->code => $this->formatForMember($request)])
+                ->all(),
         ];
     }
 
@@ -104,7 +111,10 @@ class DebtPaymentRequestService
         return Debt::paymentRequests()
             ->where('room_id', $room->id)
             ->where('room_user_id', $roomUser->id)
-            ->with(['children' => fn ($query) => $query->orderBy('id')->with('campaign:id,name')])
+            ->with([
+                'reviewer:id,name',
+                'children' => fn ($query) => $query->orderBy('id')->with(['campaign:id,name', 'payments']),
+            ])
             ->latest('id')
             ->limit($limit)
             ->get();
@@ -199,6 +209,52 @@ class DebtPaymentRequestService
                 'amount' => $status === DebtStatus::Approved->value
                     ? (int) $child->payments->where('reference', $request->code)->sum('amount')
                     : (int) $child->remaining_amount,
+                'note' => (string) $child->note,
+            ])->values()->all(),
+        ];
+    }
+
+    /**
+     * Build the localized payload the member page renders in the payment-request detail modal.
+     *
+     * Mirrors {@see self::formatForAdmin()} but with member-facing wording: the frozen amount of each
+     * child is its current balance while the request is pending, and the amount booked under the
+     * request code once it was approved.
+     *
+     * @param Debt $request Payment request with children.campaign and children.payments loaded.
+     * @return array<string, mixed> Display-ready request data.
+     */
+    public function formatForMember(Debt $request): array
+    {
+        $status = $request->getStatusValue();
+        $isApproved = $status === DebtStatus::Approved->value;
+        $childrenTotal = (int) $request->children->sum('remaining_amount');
+        $isPending = $status === DebtStatus::Pending->value;
+
+        return [
+            'id' => $request->id,
+            'code' => (string) $request->code,
+            'status' => $status,
+            'status_label' => __('room.debts.request_status_'.$status),
+            'requested_at' => $request->payment_requested_at ? FormatHelper::formatDateTime($request->payment_requested_at, 'H:i d/m/Y') : '',
+            'transfer_content' => (string) $request->payment_content,
+            'amount' => (int) $request->original_amount,
+            'amount_formatted' => FormatHelper::formatCurrency((int) $request->original_amount),
+            'current_total' => $childrenTotal,
+            'conflict' => $isPending && $childrenTotal !== (int) $request->original_amount,
+            'reviewed_at' => $request->reviewed_at ? FormatHelper::formatDateTime($request->reviewed_at, 'H:i d/m/Y') : '',
+            'reviewer' => (string) ($request->reviewer?->name ?? ''),
+            'review_reason' => (string) $request->review_reason,
+            'debts_count' => $request->children->count(),
+            'debts' => $request->children->map(static fn (Debt $child): array => [
+                'code' => (string) $child->code,
+                'campaign' => (string) ($child->campaign?->name ?? __('global.common.campaign')),
+                'amount' => $isApproved
+                    ? (int) $child->payments->where('reference', $request->code)->sum('amount')
+                    : (int) $child->remaining_amount,
+                'amount_formatted' => FormatHelper::formatCurrency($isApproved
+                    ? (int) $child->payments->where('reference', $request->code)->sum('amount')
+                    : (int) $child->remaining_amount),
                 'note' => (string) $child->note,
             ])->values()->all(),
         ];

@@ -14,6 +14,7 @@ use App\Models\Debt;
 use App\Models\DebtPayment;
 use App\Models\GlobalUser;
 use App\Models\Order;
+use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Models\RoomUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -194,7 +195,8 @@ class DebtApprovalTest extends TestCase
             ->get(route('user.debts.index', $room))
             ->assertOk()
             ->assertSeeText(__('room.debts.status_paid'))
-            ->assertDontSeeText(__('room.debts.status_unpaid'));
+            ->assertDontSeeText(__('room.debts.status_unpaid'))
+            ->assertSee('<meta property="og:image" content="'.asset('images/og-debt-payment.jpg').'">', false);
     }
 
     /**
@@ -206,13 +208,27 @@ class DebtApprovalTest extends TestCase
         [, $room] = $this->adminWithRoom('auto-open@example.test', 'auto-open-room');
         $campaign = $this->campaign($room);
         $member   = $this->member($room, 'Tran Thi D', 'ttd@example.test');
-        $this->debt($room, $campaign, $member, DebtStatus::Unpaid, 40000);
+        $debt = $this->debt($room, $campaign, $member, DebtStatus::Unpaid, 40000);
 
         $this->actingAs($member->globalUser, 'web')
-            ->get(route('user.debts.index', ['room' => $room, 'campaign' => $campaign->id]))
+            ->get(route('user.debts.index', ['room' => $room, 'campaign' => $campaign->code]))
             ->assertOk()
-            ->assertSee('data-pay-debt-campaign="'.$campaign->id.'"', false)
-            ->assertSee("get('campaign')", false);
+            ->assertSee('data-pay-debt-campaign="'.$campaign->code.'"', false)
+            ->assertSee("get('campaign')", false)
+            // The QR modal shows the debt code of the debt being paid.
+            ->assertSee('data-qr-debt-code', false)
+            ->assertSee("'".$debt->code."')", false);
+    }
+
+    /** Paying all debts uses only the member's name (ASCII, uppercase) as the transfer content. */
+    public function test_pay_all_transfer_content_is_member_name_only(): void
+    {
+        [, $room] = $this->adminWithRoom('pay-all-name@example.test', 'pay-all-name-room');
+        $member = $this->member($room, 'Trần Thị Đào', 'ttdao@example.test');
+
+        $data = app(\App\Services\Debt\UserRoomDebtService::class)->getDebtViewData($room, $member->fresh(), $member->globalUser);
+
+        $this->assertSame('TRAN THI DAO', $data['payAllContent']);
     }
 
     /**
@@ -223,8 +239,12 @@ class DebtApprovalTest extends TestCase
     {
         [$admin, $room] = $this->adminWithRoom('approve-order@example.test', 'approve-order-room');
         $campaign = $this->campaign($room);
-        // "My Orders" only lists orders of the live campaign.
-        $campaign->update(['status' => CampaignStatus::Active]);
+        // "My Orders" only lists orders of the live campaign; reporting a payment needs a receiving account.
+        $account = PaymentAccount::create([
+            'room_id' => $room->id, 'bank_code' => 'VCB', 'bank_name' => 'Vietcombank',
+            'account_number' => '0011223344', 'account_name' => 'DRINKFLOW', 'is_default' => true, 'status' => 'active',
+        ]);
+        $campaign->update(['status' => CampaignStatus::Active, 'payment_account_id' => $account->id]);
         $member   = $this->member($room, 'Le Van C', 'lvc@example.test');
         $debt     = $this->debt($room, $campaign, $member, DebtStatus::Pending, 30000);
 

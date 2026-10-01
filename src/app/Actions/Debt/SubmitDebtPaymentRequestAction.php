@@ -16,13 +16,17 @@ use App\Models\Room;
 use App\Models\RoomUser;
 use App\Services\Audit\AuditService;
 use App\Services\Debt\DebtPaymentRequestService;
+use App\Services\Payment\ReceivingAccountResolver;
 use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class SubmitDebtPaymentRequestAction
 {
-    public function __construct(private readonly DebtPaymentRequestService $requests) {}
+    public function __construct(
+        private readonly DebtPaymentRequestService $requests,
+        private readonly ReceivingAccountResolver $accounts
+    ) {}
 
     /**
      * Bundle all of a member's eligible debts into one consolidated payment request awaiting approval.
@@ -36,13 +40,16 @@ class SubmitDebtPaymentRequestAction
      * @param RoomUser $roomUser Member submitting the request.
      * @param string|null $transferContent Bank transfer content the member used, defaults to the member code.
      * @return Debt The pending payment request with its children loaded.
-     * @throws ValidationException When the member is not in the room, fewer than two debts are eligible, or a debt was bundled concurrently.
+     * @throws ValidationException When the member is not in the room, the room has no receiving account, fewer than two debts are eligible, or a debt was bundled concurrently.
      */
     public function execute(Room $room, RoomUser $roomUser, ?string $transferContent = null): Debt
     {
         if ($roomUser->room_id !== $room->id) {
             throw ValidationException::withMessages(['debt' => __('room.debts.unauthorized_debt_access')]);
         }
+
+        // Pay-all is transferred to the room account; without one a "paid" report cannot be valid.
+        $this->accounts->ensureConfigured($this->accounts->forRoom($room), 'debt');
 
         $request = DB::transaction(function () use ($room, $roomUser, $transferContent): Debt {
             RoomUser::query()->whereKey($roomUser->id)->lockForUpdate()->firstOrFail();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\Campaign\ExtendCampaignDeadlineAction;
+use App\Actions\Campaign\UpdateClosedCampaignPaymentAccountAction;
 use App\Actions\Campaign\CloseCampaignAction;
 use App\Actions\Campaign\CreateCampaignAction;
 use App\Actions\Campaign\CreateCampaignItemAction;
@@ -26,6 +27,7 @@ use App\Exports\CampaignAggregateExport;
 use App\Exports\CampaignDetailExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ExtendCampaignDeadlineRequest;
+use App\Http\Requests\UpdateCampaignPaymentAccountRequest;
 use App\Http\Requests\BatchUpdateCampaignItemStatusRequest;
 use App\Http\Requests\CampaignPageRequest;
 use App\Http\Requests\CloseCampaignRequest;
@@ -257,13 +259,17 @@ class CampaignController extends Controller
         }
 
         $data = $detailService->getCampaignViewData($room, $campaign);
-        $data['orderCheckUrl'] = in_array($campaign->status?->value, ['closed', 'archived'], true)
+        $data['orderCheckUrl'] = $orderCheckService->isCheckable($campaign)
             ? URL::temporarySignedRoute(
                 'public.order-check',
                 now()->addDays(30),
                 ['campaign' => $campaign->id, 'hash' => $orderCheckService->hash($campaign)]
             )
             : null;
+
+        $data['adjustablePaymentAccounts'] = $campaign->isLocked()
+            ? $room->paymentAccounts()->where('status', PaymentAccountStatus::Active)->orderByDesc('is_default')->get()
+            : collect();
 
         return view('admin.campaign-info', $data);
     }
@@ -302,7 +308,7 @@ class CampaignController extends Controller
         }
 
         $data = $detailService->getCampaignViewData($room, $campaign);
-        $data['orderCheckUrl'] = in_array($campaign->status?->value, ['closed', 'archived'], true)
+        $data['orderCheckUrl'] = $orderCheckService->isCheckable($campaign)
             ? URL::temporarySignedRoute(
                 'public.order-check',
                 now()->addDays(30),
@@ -442,6 +448,26 @@ class CampaignController extends Controller
         return response()->json([
             'message' => __('admin.campaign_updated_successfully'),
             'data' => $updatedCampaign,
+        ]);
+    }
+
+    /**
+     * Change the receiving bank account of a closed campaign.
+     *
+     * @param UpdateCampaignPaymentAccountRequest $request Validated request carrying the new account ID.
+     * @param Room $room Current room.
+     * @param Campaign $campaign Closed campaign to adjust.
+     * @param UpdateClosedCampaignPaymentAccountAction $action Payment account update action.
+     * @return JsonResponse Updated payment account and a human readable message.
+     */
+    public function updatePaymentAccount(UpdateCampaignPaymentAccountRequest $request, Room $room, Campaign $campaign, UpdateClosedCampaignPaymentAccountAction $action): JsonResponse
+    {
+        $this->assertCampaign($campaign);
+        $updated = $action->execute($campaign, (int) $request->validated('payment_account_id'), $request->user('admin')?->id);
+
+        return response()->json([
+            'message' => __('admin.campaign_payment_account_updated'),
+            'data' => ['payment_account' => $updated->paymentAccount],
         ]);
     }
 

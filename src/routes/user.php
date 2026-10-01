@@ -56,13 +56,13 @@ Route::middleware(['room.ip', 'global.user', 'room.user'])->group(function () {
     Route::post('/rooms/{room}/campaigns/{campaign}/orders', [\App\Http\Controllers\User\OrderController::class, 'store'])->name('user.orders.store');
     Route::get('/rooms/{room}/members/lookup', [\App\Http\Controllers\User\CampaignController::class, 'lookupMember'])->name('user.room-members.lookup');
     Route::get('/rooms/{room}/orders/{order}', [\App\Http\Controllers\User\OrderController::class, 'show'])->name('user.orders.show');
-    Route::get('/rooms/{room}/orders/{order}/view', \App\Http\Controllers\User\OrderPageController::class)->name('user.orders.page');
+    Route::get('/rooms/{room}/orders/{order:code}/view', \App\Http\Controllers\User\OrderPageController::class)->name('user.orders.page');
     Route::get('/rooms/{room}/orders/{order}/payment', [\App\Http\Controllers\User\OrderController::class, 'payment'])->name('user.orders.payment');
     Route::post('/rooms/{room}/orders/{order}/confirm-payment', [\App\Http\Controllers\User\OrderController::class, 'confirmPayment'])->name('user.orders.confirm-payment');
     Route::get('/rooms/{room}/debts', [\App\Http\Controllers\User\DebtController::class, 'index'])->name('user.debts.index');
     Route::post('/rooms/{room}/debts/confirm-payment', [\App\Http\Controllers\User\DebtController::class, 'confirmPayment'])->name('user.debts.confirm-payment');
     Route::get('/rooms/{room}/analytics', [\App\Http\Controllers\User\AnalyticsController::class, 'room'])->name('user.analytics.room');
-    Route::get('/rooms/{room}/socket-token', \App\Http\Controllers\User\SocketTokenController::class)->name('user.socket-token');
+    Route::get('/rooms/{room}/socket-token', \App\Http\Controllers\User\SocketTokenController::class)->middleware('json.only')->name('user.socket-token');
     Route::get('/rooms/{room}/notifications', [\App\Http\Controllers\User\RoomNotificationController::class, 'index'])->name('user.rooms.notifications');
     Route::get('/rooms/{room}/profile', [\App\Http\Controllers\User\RoomProfileController::class, 'index'])->name('user.rooms.profile');
     Route::get('/rooms/{room}/guides', [\App\Http\Controllers\User\RoomGuideController::class, 'index'])->name('user.rooms.guides');
@@ -70,7 +70,7 @@ Route::middleware(['room.ip', 'global.user', 'room.user'])->group(function () {
 });
 
 Route::middleware(['global.user'])->group(function () {
-    Route::get('/me/socket-token', \App\Http\Controllers\User\GlobalSocketTokenController::class)->name('user.me.socket-token');
+    Route::get('/me/socket-token', \App\Http\Controllers\User\GlobalSocketTokenController::class)->middleware('json.only')->name('user.me.socket-token');
     // Global User Portal Pages (/me/*) - Available to all users
     Route::get('/me', \App\Http\Controllers\User\Global\DashboardController::class)->name('user.me.dashboard');
     Route::get('/me/profile', \App\Http\Controllers\User\Global\ProfileController::class)->name('user.me.profile');

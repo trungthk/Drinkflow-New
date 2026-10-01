@@ -7,26 +7,38 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Room;
+use App\Models\RoomUser;
+use App\Services\Order\MemberOrderPageService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
+/**
+ * Single order page of a member, addressed by the order code:
+ * /rooms/{room}/orders/{order:code}/view.
+ */
 class OrderPageController extends Controller
 {
     /**
-     * Hiển thị trang chi tiết đơn hàng cá nhân trong phòng (/rooms/{room}/orders/{order}).
+     * Show one order of the signed-in member in the room, rendered by the same view as the order
+     * list so both pages stay identical.
      *
-     * @param  \Illuminate\Http\Request  $request  Đối tượng HTTP Request hiện tại
-     * @param  \App\Models\Room  $room  Đối tượng phòng
-     * @param  \App\Models\Order  $order  Đối tượng đơn hàng cá nhân
-     * @return \Illuminate\Contracts\View\View  Giao diện chi tiết đơn hàng
+     * The URL carries the order code rather than the id, so links survive being shared or stored
+     * in notifications.
+     *
+     * @param Request $request Current HTTP request.
+     * @param Room $room Room the order belongs to.
+     * @param Order $order Order resolved from its code.
+     * @param MemberOrderPageService $orderPage Builds the shared list/order-page view data.
+     * @return View Order page.
      */
-    public function __invoke(Request $request, Room $room, Order $order): View
+    public function __invoke(Request $request, Room $room, Order $order, MemberOrderPageService $orderPage): View
     {
+        /** @var RoomUser $roomUser */
         $roomUser = $request->attributes->get('room_user');
         $canViewOrder = $order->room_user_id === $roomUser->id
             || $order->parent()->where('room_user_id', $roomUser->id)->exists();
         abort_unless($order->room_id === $room->id && $canViewOrder, 404);
 
-        return view('user.order', ['room' => $room, 'order' => $order->load(['items.toppings', 'campaign'])]);
+        return view('user.orders', $orderPage->build($room, $roomUser, $order));
     }
 }

@@ -52,6 +52,19 @@
                 console.error(e);
             }
         },
+        openNotification(item) {
+            if (!item.link) return;
+            if (!item.is_read) {
+                // keepalive lets the read request finish while the browser navigates away.
+                fetch(this.singleReadUrl.replace('__notification__', String(item.id)), {
+                    method: 'PATCH',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                    keepalive: true
+                }).catch(e => console.error(e));
+            }
+            window.location.href = item.link;
+        },
         get filteredNotifications() {
             if (this.currentTab === 'all') return this.notifications;
             return this.notifications.filter(n => n.category === this.currentTab);
@@ -123,7 +136,9 @@
         <div class="flex flex-col gap-2.5">
             <template x-for="item in filteredNotifications" :key="item.id">
                 <div class="p-3 sm:p-3.5 rounded-xl transition-all border border-outline-variant/30 flex items-start gap-3 group"
-                     :class="item.is_read ? 'bg-surface-container-lowest/60 opacity-85' : 'bg-surface-container-lowest shadow-2xs ring-1 ring-primary/20'">
+                     :class="[item.is_read ? 'bg-surface-container-lowest/60 opacity-85' : 'bg-surface-container-lowest shadow-2xs ring-1 ring-primary/20', item.link ? 'cursor-pointer hover:border-primary/40' : '']"
+                     :data-notification-link="item.link || null"
+                     @click="openNotification(item)">
                     
                     <!-- Icon -->
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
@@ -146,7 +161,7 @@
                     <!-- Actions -->
                     <div class="flex items-center gap-1 shrink-0 self-center" x-show="!item.is_read">
                         <button class="p-1 rounded-md hover:bg-surface-container text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
-                                @click="markSingleRead(item.id)"
+                                @click.stop="markSingleRead(item.id)"
                                 title="{{ __('room.notifications.mark_read') }}">
                             <span class="material-symbols-outlined text-[16px]">check</span>
                         </button>

@@ -172,7 +172,9 @@ class AdminCampaignSubViewsTest extends TestCase
             ->assertSee(__('admin.campaign_nav_orders'))
             ->assertSee(__('admin.aggregated_items_list'))
             ->assertSee(__('admin.orders_list_tab'))
-            ->assertSee('Nguyễn Văn A');
+            ->assertSee('Nguyễn Văn A')
+            // The bulk "confirm campaign debts paid" modal preselects bank transfer.
+            ->assertSee('bulkPaymentMethod: '.\Illuminate\Support\Js::from(\App\Enums\PaymentMethod::Transfer->value)->toHtml(), false);
     }
 
     public function test_campaign_orders_tab_excludes_cancelled_orders_from_list_and_totals(): void

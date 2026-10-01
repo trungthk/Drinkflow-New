@@ -1516,6 +1516,11 @@ return [
     'campaign_budget_unlimited'     => 'Không giới hạn ngân sách',
     'campaign_payment_account_label' => 'Tài khoản nhận thanh toán',
     'campaign_no_payment_account'   => 'Chưa cấu hình tài khoản nhận',
+    'campaign_payment_account_adjust' => 'Điều chỉnh tài khoản nhận tiền',
+    'campaign_payment_account_adjust_desc' => 'Đổi tài khoản ngân hàng nhận tiền công nợ của chiến dịch đã đóng. Đơn hàng và số tiền công nợ không thay đổi.',
+    'campaign_payment_account_updated' => 'Đã cập nhật tài khoản nhận tiền của chiến dịch.',
+    'campaign_payment_account_closed_only' => 'Chỉ có thể điều chỉnh tài khoản nhận tiền khi chiến dịch đã đóng.',
+    'audit_event_campaign_payment_account_updated' => 'Đã đổi tài khoản nhận tiền của chiến dịch',
     'campaign_account_holder_label' => 'Chủ TK',
     'campaign_account_number_label' => 'STK',
 

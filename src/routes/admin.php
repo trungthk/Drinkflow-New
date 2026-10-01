@@ -83,7 +83,7 @@ Route::middleware(['auth:admin', 'admin.room', 'room.subscription'])
     Route::get('/dashboard', [\App\Http\Controllers\Admin\DashboardController::class, 'page'])->name('admin.dashboard.page');
     Route::get('/manage', [\App\Http\Controllers\Admin\DashboardController::class, 'manage'])->name('admin.manage.page');
     Route::get('/dashboard/data', [\App\Http\Controllers\Admin\DashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('/socket-token', \App\Http\Controllers\Admin\SocketTokenController::class)->name('admin.socket-token');
+    Route::get('/socket-token', \App\Http\Controllers\Admin\SocketTokenController::class)->middleware('json.only')->name('admin.socket-token');
     Route::post('/notifications/read-all', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllRead'])->name('admin.notifications.read-all');
     Route::post('/notifications/broadcast', [\App\Http\Controllers\Admin\NotificationController::class, 'broadcast'])->middleware('throttle:admin-bulk')->name('admin.notifications.broadcast');
 
@@ -128,6 +128,7 @@ Route::middleware(['auth:admin', 'admin.room', 'room.subscription'])
     Route::delete('/campaigns/{campaign}', [\App\Http\Controllers\Admin\CampaignController::class, 'destroy'])->name('admin.campaigns.destroy');
     Route::post('/campaigns/{campaign}/activate', [\App\Http\Controllers\Admin\CampaignController::class, 'activate'])->name('admin.campaigns.activate');
     Route::post('/campaigns/{campaign}/extend-deadline', [\App\Http\Controllers\Admin\CampaignController::class, 'extendDeadline'])->name('admin.campaigns.extend-deadline');
+    Route::patch('/campaigns/{campaign}/payment-account', [\App\Http\Controllers\Admin\CampaignController::class, 'updatePaymentAccount'])->name('admin.campaigns.payment-account');
     Route::post('/campaigns/{campaign}/lock-ordering', [\App\Http\Controllers\Admin\CampaignController::class, 'lockOrdering'])->name('admin.campaigns.lock-ordering');
     Route::post('/campaigns/{campaign}/unlock-ordering', [\App\Http\Controllers\Admin\CampaignController::class, 'unlockOrdering'])->name('admin.campaigns.unlock-ordering');
     Route::post('/campaigns/{campaign}/mark-delivering', [\App\Http\Controllers\Admin\CampaignController::class, 'markDelivering'])->name('admin.campaigns.mark-delivering');

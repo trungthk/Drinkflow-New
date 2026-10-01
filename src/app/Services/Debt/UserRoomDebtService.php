@@ -7,19 +7,23 @@ namespace App\Services\Debt;
 use App\Enums\CampaignStatus;
 use App\Enums\DebtStatus;
 use App\Enums\OrderStatus;
-use App\Enums\PaymentAccountStatus;
 use App\Enums\RoomStatus;
 use App\Models\Debt;
 use App\Models\GlobalUser;
+use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Services\Payment\ReceivingAccountResolver;
 use App\Services\Payment\VietQrService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 class UserRoomDebtService
 {
-    public function __construct(private readonly VietQrService $vietQr) {}
+    public function __construct(
+        private readonly VietQrService $vietQr,
+        private readonly ReceivingAccountResolver $accounts
+    ) {}
 
     /**
      * Thu thập danh sách công nợ trong phòng, tính toán tổng nợ chưa trả và tạo payload VietQR chuyển khoản nhanh.
@@ -33,6 +37,14 @@ class UserRoomDebtService
     {
         $baseDebtsQuery = $this->queryVisibleDebts($room, $roomUser);
         $debts = (clone $baseDebtsQuery)->with('campaign.paymentAccount')->latest()->paginate(20);
+        // Merged ledger: only top-level debts, because a debt bundled into a consolidated payment
+        // request (parent_id set) is revealed by expanding the request, never as a row of its own.
+        // `debts` is kept unfiltered for the legacy markup until the page switches to the component.
+        $ledgerDebts = (clone $baseDebtsQuery)
+            ->whereNull('parent_id')
+            ->with('campaign.paymentAccount')
+            ->latest()
+            ->paginate(20);
 
         $unpaidDebts = (clone $baseDebtsQuery)
             ->whereIn('status', DebtStatus::outstandingValues())
@@ -55,10 +67,13 @@ class UserRoomDebtService
         $totalPaidMonthCount = $paidThisMonth->count();
 
         // Default Payment Account in this room for VietQR
-        $paymentAccount = $room->paymentAccounts()->where('status', PaymentAccountStatus::Active)->first();
+        $paymentAccount = $this->accounts->forRoom($room);
         $vietqrData = null;
+        $payerName = $roomUser->payerName();
+        // Pay-all transfer content is just the member's name; the member code is a fallback when no name exists.
+        $payAllContent = $this->vietQr->payerContent($payerName) ?: (string) $roomUser->user_code;
         if ($paymentAccount && $totalPayableAmount > 0) {
-            $transferContent = $roomUser->user_code;
+            $transferContent = $payAllContent;
             $vietqrData = [
                 'bank_code'       => $paymentAccount->bank_code,
                 'bank_name'       => $paymentAccount->bank_name,
@@ -70,20 +85,12 @@ class UserRoomDebtService
             ];
         }
 
-        $qrPayloads = [];
-        $transferContents = [];
-        $payerName = $roomUser->payerName();
-        foreach ($debts->getCollection() as $debt) {
-            $transferContents[$debt->id] = $this->vietQr->transferContent((string) $debt->code, $payerName);
-            $account = $debt->campaign?->paymentAccount ?? $paymentAccount;
-            if ($account && (int) $debt->remaining_amount > 0) {
-                $qrPayloads[$debt->id] = $this->vietQr->generate(
-                    $account,
-                    (int) $debt->remaining_amount,
-                    $transferContents[$debt->id],
-                );
-            }
-        }
+        // QR payloads cover every visible debt, including the bundled ones that only appear inside
+        // their payment request: a child of a rejected request is still payable on its own.
+        $qrMaps = $this->qrMapsFor((clone $baseDebtsQuery)->with('campaign.paymentAccount')->get(), $paymentAccount, $payerName);
+        $qrPayloads = $qrMaps['qrPayloads'];
+        $qrAccounts = $qrMaps['qrAccounts'];
+        $transferContents = $qrMaps['transferContents'];
 
         $activeCampaign = $room->campaigns()
             ->where('status', CampaignStatus::Active->value)
@@ -99,6 +106,7 @@ class UserRoomDebtService
             'roomUser' => $roomUser,
             'user' => $user,
             'debts' => $debts,
+            'ledgerDebts' => $ledgerDebts,
             'unpaidDebts' => $unpaidDebts,
             'totalUnpaidAmount' => $totalUnpaidAmount,
             'totalPayableAmount' => $totalPayableAmount,
@@ -107,13 +115,62 @@ class UserRoomDebtService
             'totalSponsorAmount' => (int) (clone $baseDebtsQuery)->sum('sponsor_amount'),
             'vietqrData' => $vietqrData,
             'qrPayloads' => $qrPayloads,
+            'qrAccounts' => $qrAccounts,
             'transferContents' => $transferContents,
+            'payAllContent' => $payAllContent,
             'activeCampaign' => $activeCampaign ? [
                 'name' => $activeCampaign->name,
                 'time_remaining' => $activeCampaign->deadline ? ($activeCampaign->deadline->isFuture() ? $activeCampaign->deadline->diffForHumans(['parts' => 2, 'short' => true]) : '00:00') : '14:22',
             ] : null,
             'userRooms' => $userRooms,
             'unreadNotificationsCount' => $unreadCount,
+        ];
+    }
+
+    /**
+     * Build the VietQR payload, receiving account and transfer content of every debt.
+     *
+     * A campaign debt is paid to that campaign's own active account only; without one the QR modal
+     * reports "not configured" instead of a QR for another account. Debts without a campaign use the
+     * room account.
+     *
+     * @param iterable<Debt> $debts Debts (top-level and bundled) to build QR data for.
+     * @param PaymentAccount|null $roomAccount Room-level fallback account.
+     * @param string $payerName Name used in the transfer content.
+     * @return array{qrPayloads: array<int, string>, qrAccounts: array<int, array{bank_name: string, account_number: string, account_name: string}>, transferContents: array<int, string>}
+     *         VietQR payload, account details and transfer content keyed by debt ID.
+     */
+    private function qrMapsFor(iterable $debts, ?PaymentAccount $roomAccount, string $payerName): array
+    {
+        $qrPayloads = [];
+        $qrAccounts = [];
+        $transferContents = [];
+
+        foreach ($debts as $debt) {
+            $transferContents[$debt->id] = $this->vietQr->transferContent((string) $debt->code, $payerName);
+            $account = $debt->campaign !== null ? $this->accounts->forCampaign($debt->campaign) : $roomAccount;
+
+            if ($account) {
+                $qrAccounts[$debt->id] = [
+                    'bank_name' => $account->bank_name,
+                    'account_number' => $account->account_number,
+                    'account_name' => $account->account_name,
+                ];
+            }
+
+            if ($account && (int) $debt->remaining_amount > 0) {
+                $qrPayloads[$debt->id] = $this->vietQr->generate(
+                    $account,
+                    (int) $debt->remaining_amount,
+                    $transferContents[$debt->id],
+                );
+            }
+        }
+
+        return [
+            'qrPayloads' => $qrPayloads,
+            'qrAccounts' => $qrAccounts,
+            'transferContents' => $transferContents,
         ];
     }
 

@@ -23,11 +23,11 @@ class CampaignNotificationPayloadService
     {
         $room = $campaign->room;
         $title = match ($event) {
-            NotificationType::CampaignCreated->value => __('messages.campaign_created_title'),
+            NotificationType::CampaignCreated->value => __('messages.campaign_created_title', ['code' => $campaign->code]),
             NotificationType::CampaignCancelled->value => __('messages.campaign_cancelled_title'),
             NotificationType::CampaignUpdated->value => __('messages.campaign_updated_title'),
             NotificationType::CampaignDelivering->value => __('messages.campaign_delivering_title'),
-            default => __('messages.campaign_closed_title'),
+            default => __('messages.campaign_closed_title', ['code' => $campaign->code]),
         };
         $orderUrl = in_array($event, [NotificationType::CampaignCreated->value, NotificationType::CampaignUpdated->value], true) && $room !== null
             ? route('user.campaigns.index', $room)
@@ -40,9 +40,9 @@ class CampaignNotificationPayloadService
                 ['campaign' => $campaign->id, 'hash' => app(PublicOrderCheckService::class)->hash($campaign)]
             )
             : null;
-        // Debts page link; the campaign query parameter opens that campaign's debt payment modal.
+        // Debts page link; the campaign code query parameter opens that campaign's debt payment modal.
         $paymentUrl = $event === NotificationType::CampaignClosed->value && $room !== null
-            ? route('user.debts.index', ['room' => $room, 'campaign' => $campaign->id])
+            ? route('user.debts.index', ['room' => $room, 'campaign' => $campaign->code])
             : null;
 
         return [
@@ -85,11 +85,7 @@ class CampaignNotificationPayloadService
         }
 
         if ($event === NotificationType::CampaignCreated->value) {
-            $lines[] = __('messages.campaign_deadline', [
-                'date' => $campaign->deadline
-                    ? FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i')
-                    : __('messages.campaign_deadline_not_set'),
-            ]);
+            $lines[] = $this->deadlineLine($campaign);
             $lines[] = __('messages.campaign_product_budget', [
                 'amount' => $campaign->max_budget
                     ? FormatHelper::formatCurrency((int) $campaign->max_budget)
@@ -113,19 +109,14 @@ class CampaignNotificationPayloadService
                 $lines[] = __('messages.campaign_order', ['url' => $orderUrl]);
             }
         } elseif ($event === NotificationType::CampaignClosed->value) {
-            $hasSponsor = $campaign->sponsor_type !== Campaign::SPONSOR_TYPE_NONE
-                && (filled($campaign->sponsor_type) || filled($campaign->sponsor_name) || ! empty($campaign->sponsor_allocations));
-            $reminder = __($hasSponsor ? 'messages.campaign_closed_sponsored_body' : 'messages.campaign_closed_body');
-            if ($orderCheckUrl !== null) {
-                $reminder .= ' => '.$orderCheckUrl;
-            }
-            $lines[] = $reminder;
+            $lines[] = $this->deadlineLine($campaign);
             if ($paymentUrl !== null) {
                 $lines[] = __('messages.campaign_payment', ['url' => $paymentUrl]);
             }
         } elseif ($event === NotificationType::CampaignCancelled->value) {
             $lines[] = __('messages.campaign_cancelled_body');
         } elseif ($event === NotificationType::CampaignDelivering->value) {
+            $lines[] = $this->deadlineLine($campaign);
             $lines[] = __('messages.campaign_delivering_body', [
                 'restaurant' => $campaign->restaurant,
                 'code' => $campaign->code,
@@ -136,6 +127,21 @@ class CampaignNotificationPayloadService
         }
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * Format the "Deadline: ..." line, falling back to "Not set" when the campaign has no deadline.
+     *
+     * @param Campaign $campaign Campaign being notified.
+     * @return string Localized deadline line.
+     */
+    private function deadlineLine(Campaign $campaign): string
+    {
+        return __('messages.campaign_deadline', [
+            'date' => $campaign->deadline
+                ? FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i')
+                : __('messages.campaign_deadline_not_set'),
+        ]);
     }
 
     /**

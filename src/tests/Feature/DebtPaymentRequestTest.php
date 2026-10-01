@@ -10,6 +10,7 @@ use App\Models\Admin;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\GlobalUser;
+use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Models\RoomUser;
 use App\Services\Debt\DebtCreditService;
@@ -74,6 +75,20 @@ class DebtPaymentRequestTest extends TestCase
     }
 
     /**
+     * Get (or create) the active receiving account of a room; paying without one is refused.
+     *
+     * @param int $roomId Owning room.
+     * @return PaymentAccount Active account.
+     */
+    private function receivingAccount(int $roomId): PaymentAccount
+    {
+        return PaymentAccount::firstOrCreate(
+            ['room_id' => $roomId, 'account_number' => '0011223344'],
+            ['bank_code' => 'VCB', 'bank_name' => 'Vietcombank', 'account_name' => 'DRINKFLOW', 'is_default' => true, 'status' => 'active']
+        );
+    }
+
+    /**
      * Create an unpaid campaign debt in its own closed campaign.
      *
      * @param int $amount Remaining amount.
@@ -88,6 +103,7 @@ class DebtPaymentRequestTest extends TestCase
             'name' => 'Campaign '.$amount,
             'restaurant' => 'Cafe',
             'status' => CampaignStatus::Closed,
+            'payment_account_id' => $this->receivingAccount($member->room_id)->id,
         ]);
 
         return Debt::create([

@@ -107,6 +107,26 @@ class AdminOrderStatusTransitionTest extends TestCase
         ]);
     }
 
+    /** Delivering is announced by the room-wide "items delivered" notification, so no per-order status notice is created. */
+    public function test_delivering_status_does_not_create_order_status_notification(): void
+    {
+        $order = Order::create([
+            'room_id' => $this->room->id,
+            'campaign_id' => $this->campaign->id,
+            'room_user_id' => $this->memberRoomUser->id,
+            'subtotal' => 45000,
+            'final_amount' => 45000,
+            'status' => OrderStatus::Delivering,
+        ]);
+
+        app(\App\Listeners\CreateOrderStatusNotification::class)->handle(new OrderUpdated($order, OrderStatus::Ordered->value));
+
+        $this->assertDatabaseMissing('user_notifications', [
+            'room_user_id' => $this->memberRoomUser->id,
+            'type' => 'order.status',
+        ]);
+    }
+
     public function test_admin_can_transition_order_from_confirmed_back_to_submitted(): void
     {
         $order = Order::create([

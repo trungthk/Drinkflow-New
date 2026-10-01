@@ -239,6 +239,40 @@
                 }
             };
 
+            // ----- Adjust receiving payment account (closed campaigns) -----
+            window.executeUpdatePaymentAccount = async function () {
+                const select = document.getElementById('adjust-payment-account-select');
+                const btn = document.getElementById('execute-payment-account-btn');
+                const cancelBtn = document.getElementById('cancel-payment-account-btn');
+                const icon = btn?.querySelector('[data-payment-account-icon]');
+                if (!select || !btn || btn.disabled) return;
+                btn.disabled = true;
+                if (cancelBtn) cancelBtn.disabled = true;
+                if (icon) { icon.textContent = 'progress_activity'; icon.classList.add('animate-spin'); }
+
+                try {
+                    const response = await fetch(@js(route('admin.campaigns.payment-account', [$room, $campaign])), {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ payment_account_id: Number(select.value) })
+                    });
+                    const res = await response.json().catch(() => ({}));
+                    if (!response.ok) throw new Error(res.message || @js(__('admin.invalid_payment_account')));
+
+                    if (window.notify) window.notify(res.message, 'success');
+                    window.location.reload();
+                } catch (err) {
+                    if (window.notify) window.notify(err.message, 'error');
+                    btn.disabled = false;
+                    if (cancelBtn) cancelBtn.disabled = false;
+                    if (icon) { icon.textContent = 'save'; icon.classList.remove('animate-spin'); }
+                }
+            };
+
             // ----- Resend Notification -----
             let isResendingNotification = false;
             window.executeResendNotification = async function () {
@@ -533,6 +567,14 @@
                                     <span>{{ __('admin.edit_campaign') }}</span>
                                 </a>
                             @endunless
+
+                            @if ($isCampaignClosed)
+                                <button type="button" data-adjust-payment-account-open onclick="openModal('adjust-payment-account-modal');"
+                                    class="w-full h-10 px-4 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 text-primary text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer">
+                                    <span class="material-symbols-outlined text-[18px]">account_balance</span>
+                                    <span>{{ __('admin.campaign_payment_account_adjust') }}</span>
+                                </button>
+                            @endif
 
                             <button type="button" onclick="openModal('confirm-duplicate-modal');"
                                 class="w-full h-10 px-4 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-surface-container text-on-surface text-xs font-semibold flex items-center gap-2.5 transition-colors cursor-pointer">
@@ -1012,6 +1054,54 @@
                 </div>
             </div>
         </div>
+
+        @if ($isCampaignClosed)
+            <!-- MODAL: ADJUST RECEIVING PAYMENT ACCOUNT (closed campaigns) -->
+            <div id="adjust-payment-account-modal" class="fixed inset-0 z-50 items-center justify-center p-4 bg-black/50 backdrop-blur-xs" style="display: none;" onclick="closeModalOnBackdrop(event, 'adjust-payment-account-modal', () => !document.getElementById('execute-payment-account-btn')?.disabled)">
+                <div class="bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col">
+                    <div class="p-5 border-b border-outline-variant/60 flex items-center gap-3 bg-surface-container-low">
+                        <span class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-[22px]">account_balance</span>
+                        </span>
+                        <div class="min-w-0">
+                            <h3 class="text-base font-bold text-on-surface">{{ __('admin.campaign_payment_account_adjust') }}</h3>
+                            <p class="text-xs text-outline font-mono font-code truncate">#{{ $campaign->code }} · {{ $campaign->name }}</p>
+                        </div>
+                    </div>
+
+                    <div class="p-5 space-y-4 text-xs">
+                        <p class="text-on-surface-variant leading-relaxed">{{ __('admin.campaign_payment_account_adjust_desc') }}</p>
+                        @if ($adjustablePaymentAccounts->isEmpty())
+                            <p class="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800">{{ __('admin.no_payment_accounts') }}</p>
+                        @else
+                            <div>
+                                <label for="adjust-payment-account-select" class="mb-1.5 block font-semibold text-on-surface">{{ __('admin.campaign_payment_account_label') }}</label>
+                                <select id="adjust-payment-account-select"
+                                    class="w-full px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
+                                    @foreach ($adjustablePaymentAccounts as $account)
+                                        <option value="{{ $account->id }}" @selected($account->id === $campaign->payment_account_id)>{{ $account->bank_code }} · {{ $account->account_number }} ({{ $account->account_name }})</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+
+                        <div class="pt-3 border-t border-outline-variant/60 flex items-center justify-end gap-2">
+                            <button type="button" id="cancel-payment-account-btn" onclick="closeModal('adjust-payment-account-modal')"
+                                class="px-4 py-2 rounded-lg border border-outline-variant text-xs font-semibold text-on-surface hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+                                {{ __('admin.cancel') }}
+                            </button>
+                            @if ($adjustablePaymentAccounts->isNotEmpty())
+                                <button type="button" id="execute-payment-account-btn" onclick="executeUpdatePaymentAccount()"
+                                    class="px-4 py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary text-xs font-semibold transition-colors cursor-pointer shadow-xs disabled:opacity-70 disabled:cursor-not-allowed inline-flex items-center gap-1.5">
+                                    <span data-payment-account-icon class="material-symbols-outlined text-[16px]">save</span>
+                                    <span>{{ __('admin.save_changes') }}</span>
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <!-- MODAL: QR ENLARGE -->
         <div id="qr-modal" class="fixed inset-0 z-50 items-center justify-center p-4 bg-black/60 backdrop-blur-xs" style="display: none;" onclick="closeModalOnBackdrop(event, 'qr-modal')">

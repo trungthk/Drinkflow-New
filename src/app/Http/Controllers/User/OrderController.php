@@ -6,18 +6,16 @@ namespace App\Http\Controllers\User;
 
 use App\Actions\Order\CreateOrderAction;
 use App\Actions\Order\CreateProxyOrdersAction;
-use App\Enums\CampaignStatus;
 use App\Enums\OrderStatus;
-use App\Enums\PaymentAccountStatus;
-use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreOrderRequest;
 use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\Order;
-use App\Models\PaymentAccount;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Services\Order\MemberOrderPageService;
+use App\Services\Payment\ReceivingAccountResolver;
 use App\Services\Payment\VietQrService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\QueryException;
@@ -32,61 +30,28 @@ class OrderController extends Controller
      * for API requests. Without a live campaign the page redirects back to the room dashboard.
      *
      * @param Request $request Current HTTP request.
+     * @param MemberOrderPageService $orderPage Builds the shared list/order-page view data.
      * @return JsonResponse|View|RedirectResponse View response, JSON payload or redirect to the dashboard.
      */
-    public function index(Request $request): JsonResponse|View|RedirectResponse
+    public function index(Request $request, MemberOrderPageService $orderPage): JsonResponse|View|RedirectResponse
     {
         /** @var Room $room */
         $room = $request->attributes->get('room');
         /** @var RoomUser $roomUser */
         $roomUser = $request->attributes->get('room_user');
 
-        if (! $request->expectsJson() && ! $room->campaigns()->where('status', CampaignStatus::Active->value)->exists()) {
+        if (! $request->expectsJson() && ! $orderPage->roomHasLiveCampaign($room)) {
             // Keep flash messages (e.g. payment confirmation) for the dashboard.
             $request->session()->reflash();
 
             return redirect()->route('user.dashboard', $room->slug);
         }
 
-        $query = Order::query()
-            ->where('room_id', $room->id)
-            ->visibleToMember($roomUser)
-            ->inLiveCampaign()
-            ->where('status', '!=', OrderStatus::Cancelled->value)
-            ->with(['items.toppings', 'items.campaignItem', 'children.roomUser.globalUser', 'children.items.toppings', 'children.items.campaignItem', 'campaign.paymentAccount', 'campaign.orders'])
-            ->latest();
-
-        $orders = $query->paginate(20);
-
         if ($request->expectsJson()) {
-            return response()->json(['data' => $orders]);
+            return response()->json(['data' => $orderPage->paginatedOrders($room, $roomUser)]);
         }
 
-        $activeOrder = $orders->firstWhere('room_user_id', $roomUser->id) ?? $orders->first();
-        $paymentConfirmationDetails = null;
-        if ($activeOrder instanceof Order) {
-            $debt = Debt::query()
-                ->where('campaign_id', $activeOrder->campaign_id)
-                ->where('room_user_id', $activeOrder->room_user_id)
-                ->with('payments.createdByAdmin')
-                ->first();
-            $approvalPayment = $activeOrder->payment_status === PaymentStatus::Paid
-                ? $debt?->payments->sortByDesc('paid_at')->first()
-                : null;
-
-            $paymentConfirmationDetails = [
-                'requestedAt' => $debt?->payment_requested_at?->format('d/m/Y H:i'),
-                'content' => $debt?->note ?: $activeOrder->code,
-                'approvedBy' => $approvalPayment?->createdByAdmin?->name,
-                'approvedAt' => $approvalPayment?->paid_at?->format('d/m/Y H:i'),
-            ];
-        }
-
-        return view('user.orders', [
-            'orders' => $orders,
-            'activeOrder' => $activeOrder,
-            'paymentConfirmationDetails' => $paymentConfirmationDetails,
-        ]);
+        return view('user.orders', $orderPage->build($room, $roomUser));
     }
 
     /**
@@ -137,6 +102,8 @@ class OrderController extends Controller
                         'message' => __('global.orders.active_order_exists'),
                         'code' => 'active_order_exists',
                         'order_id' => $activeOrder?->id,
+                        // The order page is addressed by code, so the link and the label both use it.
+                        'order_code' => $activeOrder?->code,
                         'order_status' => $activeOrder?->status?->value,
                         'order_url' => $activeOrder && $roomAttr ? route('user.orders.page', [$roomAttr, $activeOrder]) : null,
                     ], 422);
@@ -185,19 +152,18 @@ class OrderController extends Controller
      * @param Request $request Current HTTP request.
      * @param Room $room Current room model.
      * @param Order $order Target order model.
+     * @param ReceivingAccountResolver $accounts Resolves the campaign's receiving account.
      * @return JsonResponse JSON payload containing bank info and QR payment link.
      */
-    public function payment(Request $request, Room $room, Order $order): JsonResponse
+    public function payment(Request $request, Room $room, Order $order, ReceivingAccountResolver $accounts): JsonResponse
     {
         /** @var RoomUser $roomUser */
         $roomUser = $request->attributes->get('room_user');
         abort_unless($order->room_id === $room->id && $order->room_user_id === $roomUser->id, 404);
 
-        /** @var PaymentAccount|null $account */
-        $account = $order->campaign?->paymentAccount
-            ?? $room->paymentAccounts()->where('is_default', true)->first()
-            ?? $room->paymentAccounts()->first();
-        abort_unless($account && $account->status === PaymentAccountStatus::Active, 404);
+        // Same rule as the debts page: only the campaign's own active account receives the order payment.
+        $account = $accounts->forCampaign($order->campaign);
+        abort_unless($account !== null, 404);
 
         /** @var VietQrService $vietQr */
         $vietQr = app(VietQrService::class);

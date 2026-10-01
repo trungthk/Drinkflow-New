@@ -184,6 +184,9 @@ function renderWeeklyTrendChart(container, trend, labels) {
     }).join('');
 
     const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+    // Area chart: close the value line down to the baseline so the region underneath can be filled.
+    const areaPath = `${linePath} L ${points[points.length - 1].x} ${bottomPad} L ${points[0].x} ${bottomPad} Z`;
+    const areaGradientId = `weekly-trend-area-${Math.random().toString(36).slice(2, 8)}`;
 
     const gridHtml = [topPad, bottomPad].map((y, i) => `
         <line x1="${leftPad}" y1="${y}" x2="${rightPad}" y2="${y}" stroke="currentColor" class="${i === 1 ? 'text-slate-200' : 'text-slate-100'}" stroke-width="1"></line>
@@ -200,7 +203,14 @@ function renderWeeklyTrendChart(container, trend, labels) {
         <div class="relative flex w-full h-full min-h-[200px] flex-col">
             <!-- flex-1 (not h-full) so the day labels below stay inside the card instead of overflowing it. -->
             <svg viewBox="0 0 ${width} ${height}" class="w-full min-h-0 flex-1 overflow-visible">
+                <defs>
+                    <linearGradient id="${areaGradientId}" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="${COLOR_VALUE}" stop-opacity="0.32"></stop>
+                        <stop offset="100%" stop-color="${COLOR_VALUE}" stop-opacity="0.02"></stop>
+                    </linearGradient>
+                </defs>
                 ${gridHtml}
+                <path d="${areaPath}" fill="url(#${areaGradientId})" stroke="none" class="pointer-events-none"></path>
                 ${barsHtml}
                 <path d="${linePath}" fill="none" stroke="${COLOR_VALUE}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"></path>
                 ${hitHtml}

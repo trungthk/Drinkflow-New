@@ -187,7 +187,7 @@
         <section class="lg:col-span-7 bg-white border border-slate-200/80 rounded-xl p-4 shadow-2xs flex flex-col">
           <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-100 mb-2.5">
             <div class="flex items-center gap-2 min-w-0">
-              <span class="material-symbols-outlined text-[#006948] text-[18px]" aria-hidden="true">show_chart</span>
+              <span class="material-symbols-outlined text-[#006948] text-[18px]" aria-hidden="true">area_chart</span>
               <div class="min-w-0">
                 <h3 class="text-[11px] font-bold uppercase tracking-wider text-slate-700">{{ __('room.dashboard.weekly_trend_title') }}</h3>
                 <p class="text-[10px] text-slate-400 truncate">{{ __('room.dashboard.weekly_trend_subtitle') }}</p>
@@ -195,7 +195,7 @@
             </div>
             <div class="flex items-center gap-3 text-[10px] text-slate-500 shrink-0">
               <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-[#006948]"></span>{{ __('room.dashboard.chart_items_label') }}</span>
-              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>{{ __('room.dashboard.chart_value_label') }}</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm border-t-2 border-blue-600 bg-blue-600/25"></span>{{ __('room.dashboard.chart_value_label') }}</span>
             </div>
           </div>
           <div class="relative flex-1 min-h-[200px]">

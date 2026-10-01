@@ -92,19 +92,49 @@ class NotificationPresentationTest extends TestCase
         $this->assertSame('Mọi người vào phòng họp A', $presented['body']);
     }
 
-    public function test_new_campaign_links_to_campaign_only_while_live(): void
+    /** "New campaign #CODE" opens the campaign info page. */
+    public function test_new_campaign_title_has_code_and_links_to_campaign_info(): void
     {
         $notification = $this->notify(NotificationType::CampaignCreated->value, ['campaign_id' => $this->campaign->id, 'room_id' => $this->room->id]);
-        $service = app(NotificationPresentationService::class);
 
-        $this->assertSame(route('user.campaigns.order-page', [$this->room, $this->campaign]), $service->present($notification)['link']);
+        $presented = app(NotificationPresentationService::class)->present($notification);
 
-        $this->campaign->update(['status' => CampaignStatus::Closed]);
-
-        $this->assertNull($service->present($notification->fresh())['link']);
+        $this->assertSame(__('messages.campaign_created_title', ['code' => $this->campaign->code]), $presented['title']);
+        $this->assertStringContainsString('#' . $this->campaign->code, $presented['title']);
+        $this->assertSame(route('user.campaigns.index', $this->room), $presented['link']);
     }
 
-    public function test_payment_reminder_title_contains_code(): void
+    /** "Campaign #CODE closed" carries the campaign code. */
+    public function test_campaign_closed_title_has_code(): void
+    {
+        $notification = $this->notify(NotificationType::CampaignClosed->value, ['campaign_id' => $this->campaign->id, 'room_id' => $this->room->id]);
+
+        $presented = app(NotificationPresentationService::class)->present($notification);
+
+        $this->assertSame('Chiến dịch #' . $this->campaign->code . ' đã đóng', $presented['title']);
+    }
+
+    /** "Campaign #CODE ordering locked" opens the campaign info page; the reopened notice keeps its stored title. */
+    public function test_ordering_locked_title_has_code_and_links_to_campaign_info(): void
+    {
+        $service = app(NotificationPresentationService::class);
+        $locked = $this->notify(NotificationType::CampaignUpdated->value, ['campaign_id' => $this->campaign->id, 'room_id' => $this->room->id, 'ordering_locked' => true]);
+        $unlocked = $this->notify(NotificationType::CampaignUpdated->value, ['campaign_id' => $this->campaign->id, 'room_id' => $this->room->id, 'ordering_locked' => false], 'Reopened');
+
+        $this->assertSame(__('messages.campaign_ordering_locked_title', ['code' => $this->campaign->code]), $service->present($locked)['title']);
+        $this->assertSame(route('user.campaigns.index', $this->room), $service->present($locked)['link']);
+        $this->assertSame('Reopened', $service->present($unlocked)['title']);
+    }
+
+    /** "Items delivered" opens the member's "My orders" page. */
+    public function test_items_delivered_links_to_my_orders(): void
+    {
+        $notification = $this->notify(NotificationType::CampaignDelivering->value, ['campaign_id' => $this->campaign->id]);
+
+        $this->assertSame(route('user.orders.index', $this->room), app(NotificationPresentationService::class)->present($notification)['link']);
+    }
+
+    public function test_payment_reminder_title_contains_debt_code_and_opens_debt_payment(): void
     {
         $debt = Debt::create([
             'room_id' => $this->room->id,
@@ -114,11 +144,25 @@ class NotificationPresentationTest extends TestCase
             'remaining_amount' => 30000,
             'status' => 'unpaid',
         ]);
-        $notification = $this->notify(NotificationType::PaymentReminder->value, ['debt_id' => $debt->id]);
+        // Even when an order code is present, the reminder refers to the debt.
+        $notification = $this->notify(NotificationType::PaymentReminder->value, ['debt_id' => $debt->id, 'order_code' => 'ORD-1', 'campaign_id' => $this->campaign->id]);
 
         $presented = app(NotificationPresentationService::class)->present($notification);
 
-        $this->assertSame(__('messages.payment_reminder_with_code', ['code' => $debt->code]), $presented['title']);
+        $this->assertSame('Vui lòng thanh toán cho công nợ #' . $debt->code . ' của bạn', $presented['title']);
+        $this->assertSame(route('user.debts.index', ['room' => $this->room, 'debt' => $debt->code]), $presented['link']);
+    }
+
+    /** The room notification center shows presented titles and exposes each item's link for click-through. */
+    public function test_room_notification_page_items_carry_link(): void
+    {
+        $this->notify(NotificationType::CampaignDelivering->value, ['campaign_id' => $this->campaign->id]);
+
+        $this->actingAs($this->user, 'web')->get(route('user.rooms.notifications', $this->room))
+            ->assertOk()
+            ->assertSee('openNotification(item)', false)
+            // Js::from() escapes "/" as "\\\/" inside JSON.parse('...').
+            ->assertSee(str_replace('/', '\\\\\\/', route('user.orders.index', $this->room)), false);
     }
 
     public function test_header_items_expose_read_url_for_click_to_read(): void

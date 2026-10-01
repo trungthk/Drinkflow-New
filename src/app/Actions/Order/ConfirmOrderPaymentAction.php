@@ -12,19 +12,22 @@ use App\Models\AdminNotification;
 use App\Models\Debt;
 use App\Models\Order;
 use App\Models\RoomUser;
+use App\Services\Payment\ReceivingAccountResolver;
 use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class ConfirmOrderPaymentAction
 {
+    public function __construct(private readonly ReceivingAccountResolver $accounts) {}
+
     /**
      * Mark an order as pending admin confirmation and notify room admins.
      *
      * @param Order $order Order to confirm payment.
      * @param RoomUser $roomUser Room user who made the order.
      * @return Order Updated order entity.
-     * @throws ValidationException If payment is already completed or unauthorized.
+     * @throws ValidationException If payment is already completed, unauthorized, or the campaign has no receiving account.
      */
     public function execute(Order $order, RoomUser $roomUser): Order
     {
@@ -39,6 +42,9 @@ class ConfirmOrderPaymentAction
                 'order' => __('room.orders.already_paid'),
             ]);
         }
+
+        // An order is paid to its campaign's own account; without one a "paid" report cannot be valid.
+        $this->accounts->ensureConfigured($this->accounts->forCampaign($order->campaign), 'order');
 
         $updatedOrder = DB::transaction(function () use ($order, $roomUser): Order {
             $lockedOrder = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();

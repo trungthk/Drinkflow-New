@@ -23,7 +23,7 @@ class NotifyCampaignCreated implements ShouldQueue
             return;
         }
         $payload = app(CampaignNotificationPayloadService::class)->make($campaign, 'campaign.created');
-        app(UserNotificationService::class)->toRoom($campaign->room, 'campaign.created', $payload['title'], $payload['message'], ['campaign_id' => $campaign->id, 'room_id' => $campaign->room_id, 'deadline' => $payload['campaign']['deadline'], 'order_url' => $payload['campaign']['order_url']]);
+        app(UserNotificationService::class)->toRoom($campaign->room, 'campaign.created', $payload['title'], $payload['message'], ['campaign_id' => $campaign->id, 'campaign_code' => $campaign->code, 'room_id' => $campaign->room_id, 'deadline' => $payload['campaign']['deadline'], 'order_url' => $payload['campaign']['order_url']], route('user.campaigns.index', $campaign->room));
         app(RoomNotificationChannelDispatcher::class)->dispatch($campaign->room, $payload);
     }
 }

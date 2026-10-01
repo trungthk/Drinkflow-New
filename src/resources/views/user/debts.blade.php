@@ -1,5 +1,5 @@
-<x-room.layout :room="$room" :room-user="$roomUser" :user-rooms="$userRooms"
-    :unread-notifications-count="$unreadNotificationsCount" :active-tab="'debts'" :title="__('room.debts.page_title')">
+<x-room.layout :room="$room" :room-user="$roomUser" :user-rooms="$userRooms" :unread-notifications-count="$unreadNotificationsCount" :active-tab="'debts'"
+    :title="__('room.debts.page_title')" :description="__('room.debts.subtitle')" :og-image="asset('images/og-debt-payment.jpg')">
     <div class="flex flex-col w-full gap-space-lg" x-data="{
         qrModalOpen: false,
         paymentConfirmModalOpen: false,
@@ -10,11 +10,18 @@
         campaignLoading: false,
         campaignData: null,
         init() {
-            // Links from the campaign-closed notification carry ?campaign={id}: open that campaign's debt payment modal.
-            const campaignId = new URLSearchParams(window.location.search).get('campaign');
-            if (!/^\d+$/.test(campaignId || '')) return;
+            // Notification links carry ?debt={debt code} (payment reminder) or ?campaign={campaign code} (campaign closed):
+            // open the matching debt's payment modal.
+            const params = new URLSearchParams(window.location.search);
+            const isCode = (value) => /^[A-Za-z0-9-]+$/.test(value || '');
+            const debtCode = params.get('debt');
+            const campaignCode = params.get('campaign');
+            const selector = isCode(debtCode) ?
+                `[data-pay-debt-code='${debtCode}']` :
+                (isCode(campaignCode) ? `[data-pay-debt-campaign='${campaignCode}']` : null);
+            if (!selector) return;
             this.$nextTick(() => {
-                const payButton = this.$root.querySelector(`[data-pay-debt-campaign='${campaignId}']`);
+                const payButton = this.$root.querySelector(selector);
                 payButton?.scrollIntoView({ block: 'center' });
                 payButton?.click();
             });
@@ -52,40 +59,58 @@
             amount: ''
         },
         qrData: {
+            configured: {{ $vietqrData ? 'true' : 'false' }},
             bankName: '{{ $vietqrData['bank_name'] ?? '' }}',
             accountNumber: '{{ $vietqrData['account_number'] ?? '' }}',
             accountName: '{{ $vietqrData['account_name'] ?? '' }}',
             amount: {{ $totalPayableAmount }},
             formattedAmount: '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}',
-            transferContent: '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}',
+            transferContent: {{ Js::from($payAllContent) }},
+            debtCode: '',
             qrPayload: {{ Js::from($vietqrData['payload'] ?? '') }},
             qrDataUrl: ''
         },
-        async openQr(amount, formattedAmount, content, customQrUrl, debtId = null, isPending = false, payload = '') {
+        async openQr(amount, formattedAmount, content, customQrUrl, debtId = null, isPending = false, payload = '', account = null, debtCode = '') {
+            this.qrData.debtCode = debtCode || '';
             this.currentDebtId = debtId || null;
             this.currentDebtPending = Boolean(isPending);
             this.qrData.amount = amount;
             this.qrData.formattedAmount = formattedAmount;
             this.qrData.transferContent = content;
-            this.qrData.qrPayload = payload || this.qrData.qrPayload;
+            // Each QR belongs to one receiving account; never reuse another debt's payload or bank details.
+            this.qrData.configured = Boolean(account && account.account_number);
+            this.qrData.bankName = account?.bank_name || '';
+            this.qrData.accountNumber = account?.account_number || '';
+            this.qrData.accountName = account?.account_name || '';
+            this.qrData.qrPayload = this.qrData.configured ? (payload || '') : '';
             try {
-                this.qrData.qrDataUrl = this.qrData.qrPayload && window.QRCode
-                    ? await QRCode.toDataURL(this.qrData.qrPayload, { width: 220, margin: 1, errorCorrectionLevel: 'M' })
-                    : '';
+                this.qrData.qrDataUrl = this.qrData.qrPayload && window.QRCode ?
+                    await QRCode.toDataURL(this.qrData.qrPayload, { width: 220, margin: 1, errorCorrectionLevel: 'M' }) :
+                    '';
             } catch (error) {
                 console.error('QR render error:', error);
                 this.qrData.qrDataUrl = '';
             }
             this.qrModalOpen = true;
         },
-        copyText(text) {
+        copiedField: null,
+        copiedTimer: null,
+        copyText(text, field) {
             navigator.clipboard?.writeText(text);
-            alert('{{ __('room.debts.copied_alert', ['text' => '']) }}' + text);
+            // No toast: the copy icon turns into a check mark for 2 seconds.
+            this.copiedField = field;
+            clearTimeout(this.copiedTimer);
+            this.copiedTimer = setTimeout(() => { this.copiedField = null; }, 2000);
         },
         openPaymentConfirm() {
-            if (this.currentDebtPending) return;
+            // No receiving account: there is nowhere to transfer to, so a payment cannot be reported (also enforced server-side).
+            if (this.currentDebtPending || !this.qrData.configured) return;
             this.paymentDetails.requestedAt = new Intl.DateTimeFormat(document.documentElement.lang || 'vi-VN', {
-                day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
             }).format(new Date());
             this.paymentDetails.content = this.qrData.transferContent;
             this.paymentDetails.amount = this.qrData.formattedAmount;
@@ -101,7 +126,7 @@
             this.isSubmittingPayment = true;
             this.paymentConfirmModalOpen = false;
             window.showGlobalLoading?.({{ Js::from(__('room.orders.confirm_modal_submitting', ['default' => 'Đang gửi xác nhận...'])) }});
-
+    
             try {
                 const response = await fetch('{{ route('user.debts.confirm-payment', $room) }}', {
                     method: 'POST',
@@ -143,7 +168,7 @@
                     <div class="flex items-center gap-2">
                         <span
                             class="text-sm sm:text-base text-on-surface font-bold">{{ __('room.debts.page_title') }}</span>
-                        @if($totalUnpaidAmount > 0)
+                        @if ($totalUnpaidAmount > 0)
                             <span
                                 class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-error-container text-on-error-container text-[11px] font-semibold">
                                 <span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
@@ -161,10 +186,10 @@
                 </div>
             </div>
             {{-- Pay-all bundles every debt not yet in a request into one consolidated request (2+ debts). --}}
-            @if($paymentSummary['can_submit'])
+            @if ($paymentSummary['can_submit'])
                 <button
                     class="px-3.5 py-1.5 rounded-lg bg-[#006948] hover:bg-[#005137] text-white text-xs font-semibold shadow-2xs transition-all inline-flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
-                    @click="openQr({{ $totalPayableAmount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}', '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}', '', null, false)">
+                    @click="openQr({{ $totalPayableAmount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}', {{ Js::from($payAllContent) }}, '', null, false, {{ Js::from($vietqrData['payload'] ?? '') }}, {{ Js::from($vietqrData ? ['bank_name' => $vietqrData['bank_name'], 'account_number' => $vietqrData['account_number'], 'account_name' => $vietqrData['account_name']] : null) }})">
                     <span class="material-symbols-outlined text-[17px] text-white">qr_code_2</span>
                     <span
                         class="text-white">{{ __('room.debts.pay_all', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['submittable'])]) }}</span>
@@ -197,21 +222,23 @@
                     <p class="mt-1 text-[11px] text-on-surface-variant leading-snug">{{ __('room.debts.unpaid_hint') }}
                     </p>
                     <ul class="mt-1.5 space-y-0.5 text-[11px] leading-snug" data-debt-summary>
-                        @if($paymentSummary['pending'] > 0)
+                        @if ($paymentSummary['pending'] > 0)
                             <li class="flex items-center gap-1 text-amber-700">
-                                <span class="material-symbols-outlined text-[13px]" aria-hidden="true">hourglass_top</span>
+                                <span class="material-symbols-outlined text-[13px]"
+                                    aria-hidden="true">hourglass_top</span>
                                 {{ __('room.debts.summary_pending', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['pending'])]) }}
                             </li>
                         @endif
-                        @if($paymentSummary['submittable'] > 0)
+                        @if ($paymentSummary['submittable'] > 0)
                             <li class="flex items-center gap-1 text-on-surface-variant">
                                 <span class="material-symbols-outlined text-[13px]" aria-hidden="true">send_money</span>
                                 {{ __('room.debts.summary_submittable', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['submittable']), 'count' => $paymentSummary['submittable_count']]) }}
                             </li>
                         @endif
-                        @if($paymentSummary['credit_enabled'])
+                        @if ($paymentSummary['credit_enabled'])
                             <li class="flex items-center gap-1 text-on-surface-variant">
-                                <span class="material-symbols-outlined text-[13px]" aria-hidden="true">credit_score</span>
+                                <span class="material-symbols-outlined text-[13px]"
+                                    aria-hidden="true">credit_score</span>
                                 {{ __('room.debts.credit_available', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['credit_available']), 'limit' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['credit_limit'])]) }}
                             </li>
                         @endif
@@ -298,203 +325,8 @@
         </div>
 
         <!-- Debt Ledger Table -->
-        <div class="w-full flex flex-col gap-3" id="unpaid-bills">
-            <div
-                class="bg-surface-container-lowest rounded-xl shadow-2xs overflow-hidden border border-outline-variant/30">
-                <div
-                    class="p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-surface-container-lowest border-b border-outline-variant/30">
-                    <div>
-                        <h3 class="text-xs sm:text-sm text-on-surface font-bold">{{ __('room.debts.history_title') }}
-                        </h3>
-                        <p class="text-[11px] text-on-surface-variant mt-0.5">{{ __('room.debts.subtitle') }}</p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span
-                            class="text-[11px] px-2 py-0.5 rounded bg-surface-container-high text-on-surface font-medium">{{ __('room.debts.all_debts_badge') }}</span>
-                    </div>
-                </div>
-
-                <div class="w-full overflow-x-auto">
-                    <table class="w-full min-w-[42rem] sm:min-w-full text-left text-xs">
-                        <thead>
-                            <tr
-                                class="bg-surface-container-low text-on-surface-variant text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border-b border-outline-variant/20">
-                                <th class="py-2.5 px-3 whitespace-nowrap">{{ __('room.debts.table_tx_id') }}</th>
-                                <th class="py-2.5 px-2.5 whitespace-nowrap">{{ __('room.debts.table_time') }}</th>
-                                <th class="py-2.5 px-2.5 min-w-[220px] sm:min-w-[260px]">{{ __('room.debts.table_content_campaign') }}</th>
-                                <th class="py-2.5 px-2.5 text-right whitespace-nowrap">{{ __('room.debts.table_total') }}</th>
-                                <th class="py-2.5 px-2.5 text-center whitespace-nowrap">{{ __('room.debts.table_status') }}</th>
-                                <th class="py-2.5 px-3 text-center whitespace-nowrap">{{ __('room.debts.table_action') }}</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-on-surface divide-y divide-outline-variant/20">
-                            @forelse($debts as $debt)
-                                @php
-                                    $debtStatus = $debt->status instanceof \BackedEnum ? $debt->status->value : (string) $debt->status;
-                                    $isPaid = $debtStatus === \App\Enums\DebtStatus::Paid->value;
-                                    $bundleRequest = $debtRequests[$debt->id] ?? null;
-                                    $bundleStatus = $bundleRequest?->getStatusValue();
-                                    $isInOpenRequest = $bundleStatus === \App\Enums\DebtStatus::Pending->value;
-                                    $isPending = $debtStatus === \App\Enums\DebtStatus::Pending->value || ($isInOpenRequest && ! $isPaid);
-                                @endphp
-                                <tr class="hover:bg-surface-container-low/50 transition-colors">
-                                    <td class="py-2.5 px-3 font-tabular-nums font-bold text-primary font-mono text-xs whitespace-nowrap">
-                                        {{ $debt->code ?? 'N/A' }}
-                                    </td>
-                                    <td class="py-2.5 px-2.5 text-on-surface-variant whitespace-nowrap text-[11px]">
-                                        {{ $debt->created_at?->format('d/m/Y H:i') }}
-                                    </td>
-                                    <td class="py-2.5 px-2.5 font-medium max-w-sm min-w-[220px] sm:min-w-[260px]">
-                                        <div class="flex flex-col gap-0.5">
-                                            <span class="text-on-surface text-xs font-medium leading-snug">
-                                                {{ $debt->note ?: ($debt->sponsor_description ?: __('room.debts.default_debt_content')) }}
-                                            </span>
-                                            @if($debt->campaign_id)
-                                                <button type="button"
-                                                    @click="openCampaignDetail({{ (int) $debt->campaign_id }})"
-                                                    class="text-[11px] text-primary hover:text-[#005137] hover:underline flex items-center gap-1 font-semibold text-left transition-colors cursor-pointer group">
-                                                    <span
-                                                        class="material-symbols-outlined text-[13px] text-primary group-hover:scale-110 transition-transform">campaign</span>
-                                                    <span>{{ $debt->campaign?->name ?? __('global.common.campaign') }}</span>
-                                                </button>
-                                            @else
-                                                <span
-                                                    class="text-[11px] text-on-surface-variant flex items-center gap-1 font-semibold">
-                                                    <span
-                                                        class="material-symbols-outlined text-[13px] text-primary">campaign</span>
-                                                    {{ $debt->campaign?->name ?? __('global.common.campaign') }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td
-                                        class="py-2.5 px-2.5 text-right whitespace-nowrap font-tabular-nums font-bold text-xs {{ $debt->remaining_amount > 0 ? 'text-error' : 'text-on-surface' }}">
-                                        {{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount > 0 ? $debt->remaining_amount : $debt->original_amount) }}
-                                    </td>
-                                    <td class="py-2.5 px-2.5 text-center whitespace-nowrap">
-                                        @if($isPaid)
-                                            <span
-                                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] bg-primary-fixed text-on-primary-fixed-variant font-medium">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                                                {{ __('room.debts.status_paid') }}
-                                            </span>
-                                        @elseif($isPending)
-                                            <span
-                                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] bg-amber-50 text-amber-700 border border-amber-200 font-medium">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                                                {{ __('room.orders.payment_pending_badge', ['default' => 'Chờ duyệt']) }}
-                                            </span>
-                                        @else
-                                            <span
-                                                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] bg-error-container text-on-error-container font-medium">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-error"></span>
-                                                {{ __('room.debts.status_unpaid') }}
-                                            </span>
-                                        @endif
-                                        @if($bundleRequest && ($isInOpenRequest || $bundleStatus === \App\Enums\DebtStatus::Rejected->value))
-                                            <a href="#payment-requests" class="mt-1 flex items-center justify-center gap-0.5 text-[10px] font-semibold hover:underline {{ $isInOpenRequest ? 'text-amber-700' : 'text-error' }}">
-                                                <span class="material-symbols-outlined text-[12px]" aria-hidden="true">stacks</span>
-                                                {{ $isInOpenRequest ? __('room.debts.in_request_label', ['code' => $bundleRequest->code]) : __('room.debts.rejected_request_label', ['code' => $bundleRequest->code]) }}
-                                            </a>
-                                        @endif
-                                    </td>
-                                    <td class="py-2.5 px-3 text-center whitespace-nowrap">
-                                        @if($isInOpenRequest && ! $isPaid)
-                                            <span class="inline-flex items-center gap-1 text-[11px] text-amber-700 font-medium">
-                                                <span class="material-symbols-outlined text-[13px]" aria-hidden="true">hourglass_top</span>
-                                                {{ __('room.debts.request_status_pending') }}
-                                            </span>
-                                        @elseif(!$isPaid && $debt->remaining_amount > 0)
-                                            <button
-                                                class="px-2.5 py-1 rounded bg-[#006948] text-white hover:bg-[#005137] transition-all inline-flex items-center gap-1 shadow-2xs cursor-pointer font-medium text-xs"
-                                                @if($debt->campaign_id) data-pay-debt-campaign="{{ (int) $debt->campaign_id }}" @endif
-                                                @click="openQr({{ (int) $debt->remaining_amount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount) }}', {{ Js::from($transferContents[$debt->id] ?? $debt->code) }}, '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }})">
-                                                <span class="material-symbols-outlined text-[14px] text-white">qr_code</span>
-                                                <span class="text-white">{{ __('room.debts.btn_view_qr') }}</span>
-                                            </button>
-                                        @else
-                                            <span class="inline-flex items-center gap-1 text-[11px] text-primary font-medium">
-                                                <span class="material-symbols-outlined text-[13px]">verified</span>
-                                                {{ __('room.debts.status_done') }}
-                                            </span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="6" class="py-8 text-center text-on-surface-variant text-xs">
-                                        <div class="sticky left-0 flex w-[calc(100vw-4rem)] max-w-full flex-col items-center justify-center gap-1.5 whitespace-normal">
-                                            <span class="material-symbols-outlined text-[28px] text-outline-variant"
-                                                aria-hidden="true">receipt_long</span>
-                                            <span>{{ __('room.debts.all_settled') }}</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
-
-                @if($debts->hasPages())
-                    <div class="p-3 border-t border-outline-variant/30 text-xs">
-                        {{ $debts->links() }}
-                    </div>
-                @endif
-            </div>
-
-            @if($paymentRequests->isNotEmpty())
-                @php
-                    $requestBadge = [
-                        'pending' => 'bg-amber-50 text-amber-700 border-amber-200',
-                        'approved' => 'bg-primary-fixed text-on-primary-fixed-variant border-transparent',
-                        'rejected' => 'bg-error-container text-on-error-container border-transparent',
-                    ];
-                @endphp
-                <section id="payment-requests" class="bg-surface-container-lowest rounded-xl shadow-2xs overflow-hidden border border-outline-variant/30">
-                    <div class="p-3 sm:p-3.5 border-b border-outline-variant/30">
-                        <h3 class="text-xs sm:text-sm text-on-surface font-bold">{{ __('room.debts.requests_title') }}</h3>
-                        <p class="text-[11px] text-on-surface-variant mt-0.5">{{ __('room.debts.requests_subtitle') }}</p>
-                    </div>
-                    <ul class="divide-y divide-outline-variant/20">
-                        @foreach($paymentRequests as $paymentRequest)
-                            @php $requestStatus = $paymentRequest->getStatusValue(); @endphp
-                            <li class="p-3 sm:p-3.5 flex flex-col gap-1.5" x-data="{ open: {{ $requestStatus === 'pending' ? 'true' : 'false' }} }">
-                                <div class="flex flex-wrap items-center justify-between gap-2">
-                                    <button type="button" @click="open = !open" :aria-expanded="open.toString()"
-                                        class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-left cursor-pointer min-w-0">
-                                        <span class="material-symbols-outlined text-[16px] text-on-surface-variant transition-transform" :class="open && 'rotate-90'" aria-hidden="true">chevron_right</span>
-                                        <span class="font-mono font-bold text-primary text-xs">{{ $paymentRequest->code }}</span>
-                                        <span class="text-[11px] text-on-surface-variant whitespace-nowrap">{{ $paymentRequest->payment_requested_at?->format('d/m/Y H:i') }}</span>
-                                        <span class="text-[11px] text-on-surface-variant whitespace-nowrap">· {{ __('room.debts.request_debts_count', ['count' => $paymentRequest->children->count()]) }}</span>
-                                    </button>
-                                    <div class="flex items-center gap-2">
-                                        <span class="font-tabular-nums font-bold text-xs text-on-surface">{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) $paymentRequest->original_amount) }}</span>
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium border {{ $requestBadge[$requestStatus] ?? '' }}">
-                                            {{ __('room.debts.request_status_'.$requestStatus) }}
-                                        </span>
-                                    </div>
-                                </div>
-                                @if($paymentRequest->review_reason)
-                                    <p class="text-[11px] text-error pl-6">{{ __('room.debts.request_reason', ['reason' => $paymentRequest->review_reason]) }}</p>
-                                @endif
-                                <ul x-show="open" x-cloak class="pl-6 space-y-1">
-                                    @foreach($paymentRequest->children as $child)
-                                        <li class="flex items-center justify-between gap-2 text-[11px]">
-                                            <span class="min-w-0 truncate">
-                                                <span class="font-mono font-semibold text-on-surface">{{ $child->code }}</span>
-                                                <span class="text-on-surface-variant">· {{ $child->campaign?->name ?? __('global.common.campaign') }}</span>
-                                            </span>
-                                            <span class="font-tabular-nums text-on-surface-variant shrink-0">{{ \App\Support\Helpers\FormatHelper::formatCurrency((int) ($child->remaining_amount > 0 ? $child->remaining_amount : $child->paid_amount)) }}</span>
-                                        </li>
-                                    @endforeach
-                                </ul>
-                            </li>
-                        @endforeach
-                    </ul>
-                </section>
-            @endif
-
-        </div>
+        <x-room.debt-ledger :debts="$ledgerDebts" :payment-requests="$paymentRequests" :payment-request-details="$paymentRequestDetails" :transfer-contents="$transferContents" :qr-payloads="$qrPayloads"
+            :qr-accounts="$qrAccounts" />
 
         <!-- VietQR Modal -->
         <style>
@@ -578,15 +410,24 @@
                     <div class="p-3.5 sm:p-4 flex flex-col gap-3">
                         <div
                             class="flex flex-col items-center justify-center p-3 bg-surface-container-low rounded-xl border border-outline-variant/40">
-                            <div
+                            <div x-show="!qrData.configured" data-qr-not-configured
+                                class="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-amber-300 bg-amber-50 px-4 py-6 text-center">
+                                <span
+                                    class="material-symbols-outlined text-[32px] text-amber-500">account_balance</span>
+                                <p class="text-sm font-semibold text-amber-800">
+                                    {{ __('room.debts.payment_account_not_configured') }}</p>
+                                <p class="text-[11px] leading-relaxed text-amber-700">
+                                    {{ __('room.debts.payment_account_not_configured_hint') }}</p>
+                            </div>
+                            <div x-show="qrData.configured"
                                 class="vietqr-snake-box relative bg-surface-container-lowest p-3 rounded-2xl shadow-sm border border-outline-variant flex flex-col items-center overflow-hidden">
                                 <!-- SVG Snake Border Animation -->
                                 <svg class="vietqr-snake-svg" viewBox="0 0 100 100" preserveAspectRatio="none"
                                     aria-hidden="true">
-                                    <rect class="vietqr-snake-track" x="1.5" y="1.5" width="97" height="97" rx="8" ry="8"
-                                        pathLength="100" />
-                                    <rect class="vietqr-snake-line" x="1.5" y="1.5" width="97" height="97" rx="8" ry="8"
-                                        pathLength="100" />
+                                    <rect class="vietqr-snake-track" x="1.5" y="1.5" width="97" height="97"
+                                        rx="8" ry="8" pathLength="100" />
+                                    <rect class="vietqr-snake-line" x="1.5" y="1.5" width="97" height="97"
+                                        rx="8" ry="8" pathLength="100" />
                                 </svg>
                                 <img :src="qrData.qrDataUrl" alt="VietQR"
                                     class="w-48 h-48 object-contain rounded-lg relative z-0" loading="lazy" />
@@ -596,9 +437,14 @@
                                     class="text-[11px] text-on-surface-variant">{{ __('room.debts.vietqr_amount_label') }}</span>
                                 <div class="text-lg sm:text-xl font-bold text-error tracking-tight font-tabular-nums"
                                     x-text="qrData.formattedAmount"></div>
+                                <div x-show="qrData.debtCode" x-cloak data-qr-debt-code
+                                    class="mt-1 inline-flex items-center gap-1 text-[11px] text-on-surface-variant">
+                                    <span>{{ __('room.debts.vietqr_debt_code') }}</span>
+                                    <span class="font-mono font-bold text-primary" x-text="qrData.debtCode"></span>
+                                </div>
                             </div>
                         </div>
-                        <div
+                        <div x-show="qrData.configured"
                             class="flex flex-col gap-1.5 bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-2.5 text-xs">
                             <div
                                 class="flex items-center justify-between py-1 border-b border-surface-container-high text-xs">
@@ -611,20 +457,23 @@
                             </div>
                             <div
                                 class="flex items-center justify-between py-1 border-b border-surface-container-high text-xs">
-                                <span class="text-on-surface-variant">{{ __('room.debts.vietqr_account_number') }}</span>
+                                <span
+                                    class="text-on-surface-variant">{{ __('room.debts.vietqr_account_number') }}</span>
                                 <div class="flex items-center gap-1">
                                     <span class="font-tabular-nums font-bold text-on-surface text-xs"
                                         x-text="qrData.accountNumber"></span>
                                     <button
                                         class="p-0.5 rounded hover:bg-surface-container-high text-primary transition-colors flex items-center cursor-pointer"
-                                        @click="copyText(qrData.accountNumber)">
-                                        <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                                        @click="copyText(qrData.accountNumber, 'account')">
+                                        <span class="material-symbols-outlined text-[14px]"
+                                            x-text="copiedField === 'account' ? 'check' : 'content_copy'">content_copy</span>
                                     </button>
                                 </div>
                             </div>
                             <div
                                 class="flex items-center justify-between py-1 border-b border-surface-container-high text-xs">
-                                <span class="text-on-surface-variant">{{ __('room.debts.vietqr_account_name') }}</span>
+                                <span
+                                    class="text-on-surface-variant">{{ __('room.debts.vietqr_account_name') }}</span>
                                 <span class="font-semibold text-on-surface uppercase text-xs"
                                     x-text="qrData.accountName"></span>
                             </div>
@@ -638,8 +487,9 @@
                                 </div>
                                 <button
                                     class="p-0.5 rounded hover:bg-primary-fixed text-primary transition-colors flex items-center cursor-pointer"
-                                    @click="copyText(qrData.transferContent)">
-                                    <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                                    @click="copyText(qrData.transferContent, 'content')">
+                                    <span class="material-symbols-outlined text-[14px]"
+                                        x-text="copiedField === 'content' ? 'check' : 'content_copy'">content_copy</span>
                                 </button>
                             </div>
                         </div>
@@ -650,7 +500,8 @@
                                 class="px-4 py-2 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface font-semibold text-xs hover:bg-surface-container-high transition-colors cursor-pointer">
                                 {{ __('global.common.close') }}
                             </button>
-                            <button type="button" x-show="!currentDebtPending" :disabled="isSubmittingPayment" @click="openPaymentConfirm()"
+                            <button type="button" x-show="!currentDebtPending && qrData.configured"
+                                :disabled="isSubmittingPayment" @click="openPaymentConfirm()"
                                 class="px-4 py-2 rounded-xl bg-[#006948] hover:bg-[#005137] text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50">
                                 <span class="material-symbols-outlined text-[16px] text-white"
                                     x-show="!isSubmittingPayment">check_circle</span>
@@ -671,8 +522,9 @@
                 role="dialog" aria-modal="true" aria-labelledby="debt-payment-confirm-title">
                 <div x-show="paymentConfirmModalOpen" x-transition:enter="transition ease-out duration-200"
                     x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95" @click.outside="closePaymentConfirm()"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+                    @click.outside="closePaymentConfirm()"
                     class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
                     <div class="p-5 sm:p-6">
                         <div
@@ -704,9 +556,11 @@
                         </div>
                         <div
                             class="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
-                            <span class="material-symbols-outlined mt-0.5 shrink-0 text-[17px] text-amber-700">info</span>
+                            <span
+                                class="material-symbols-outlined mt-0.5 shrink-0 text-[17px] text-amber-700">info</span>
                             <span x-show="currentDebtId">{{ __('room.orders.confirm_modal_note') }}</span>
-                            <span x-show="!currentDebtId" x-cloak>{{ __('room.debts.pay_all_confirm_note', ['count' => $paymentSummary['submittable_count']]) }}</span>
+                            <span x-show="!currentDebtId"
+                                x-cloak>{{ __('room.debts.pay_all_confirm_note', ['count' => $paymentSummary['submittable_count']]) }}</span>
                         </div>
                     </div>
                     <div

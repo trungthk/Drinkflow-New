@@ -1,7 +1,7 @@
 @php
-    $campaignAccount = $activeOrder?->campaign?->paymentAccount
-        ?? $room->paymentAccounts->firstWhere('is_default', true)
-        ?? $room->paymentAccounts->first();
+    // Same rule as the debts page: the order is paid only to its campaign's own active account.
+    $campaignAccount = app(\App\Services\Payment\ReceivingAccountResolver::class)->forCampaign($activeOrder?->campaign);
+    $paymentAccountConfigured = $campaignAccount !== null;
     $orderCode = $activeOrder?->code ?? '';
     $proxyOrders = $activeOrder?->children ?? collect();
     $orderDisplayCode = $activeOrder?->code ? ('#' . $activeOrder->code) : '';
@@ -86,6 +86,7 @@
         paymentDetails: {{ Js::from($paymentConfirmationDetails ?? ['requestedAt' => null, 'content' => null, 'approvedBy' => null, 'approvedAt' => null]) }},
         isSubmittingPayment: false,
         qrData: {
+            configured: {{ $paymentAccountConfigured ? 'true' : 'false' }},
             bankCode: {{ Js::from($bankCode) }},
             bankName: {{ Js::from($bankName) }},
             accountNumber: {{ Js::from($accountNumber) }},
@@ -115,11 +116,18 @@
             }
             this.qrModalOpen = true;
         },
-        copyText(text) {
+        copiedField: null,
+        copiedTimer: null,
+        copyText(text, field) {
             navigator.clipboard?.writeText(text);
-            alert('{{ __('room.orders.copied_alert', ['text' => '']) }}' + text);
+            // No notification: the clicked icon turns into a check mark for 2 seconds.
+            this.copiedField = field;
+            clearTimeout(this.copiedTimer);
+            this.copiedTimer = setTimeout(() => { this.copiedField = null; }, 2000);
         },
         openPaymentConfirm(orderId) {
+            // No receiving account: there is nowhere to transfer to, so a payment cannot be reported (also enforced server-side).
+            if (!this.qrData.configured) return;
             this.pendingPaymentOrderId = orderId;
             if (!this.paymentDetails.requestedAt) {
                 this.paymentDetails.requestedAt = new Intl.DateTimeFormat(document.documentElement.lang || 'vi-VN', {
@@ -320,8 +328,8 @@
                             </div>
                             <button
                                 class="p-2 rounded-lg bg-surface-container-lowest hover:bg-surface-container-high text-on-surface-variant transition-colors shadow-sm cursor-pointer"
-                                @click="copyText(window.location.href)" title="{{ __('room.orders.copy') }}">
-                                <span class="material-symbols-outlined text-[18px]">share</span>
+                                @click="copyText(window.location.href, 'link')" title="{{ __('room.orders.copy') }}">
+                                <span class="material-symbols-outlined text-[18px]" x-text="copiedField === 'link' ? 'check' : 'share'">share</span>
                             </button>
                         </div>
                     </div>
@@ -655,7 +663,7 @@
                                         </button>
 
                                         <!-- Button Đã thanh toán -->
-                                        <template x-if="paymentStatus !== 'pending'">
+                                        <template x-if="paymentStatus !== 'pending' && qrData.configured">
                                             <button
                                                 class="w-full sm:w-auto py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-label-md text-label-md font-bold shadow-sm transition-all flex items-center justify-center gap-1.5 active:scale-[0.99] cursor-pointer shrink-0 disabled:opacity-50"
                                                 :disabled="isSubmittingPayment" @click="openPaymentConfirm({{ $activeOrder->id }})"
@@ -783,7 +791,13 @@
                         <div class="p-space-md flex flex-col gap-space-md">
                             <div
                                 class="flex flex-col items-center justify-center p-space-md bg-surface-container-low rounded-xl border border-outline-variant/60">
-                                <div
+                                <div x-show="!qrData.configured" data-qr-not-configured
+                                    class="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-amber-300 bg-amber-50 px-4 py-6 text-center">
+                                    <span class="material-symbols-outlined text-[32px] text-amber-500">account_balance</span>
+                                    <p class="text-sm font-semibold text-amber-800">{{ __('room.debts.payment_account_not_configured') }}</p>
+                                    <p class="text-[11px] leading-relaxed text-amber-700">{{ __('room.debts.payment_account_not_configured_hint') }}</p>
+                                </div>
+                                <div x-show="qrData.configured"
                                     class="vietqr-snake-box relative bg-surface-container-lowest p-3 rounded-2xl shadow-sm border border-outline-variant flex flex-col items-center overflow-hidden">
                                     <!-- SVG Snake Border Animation -->
                                     <svg class="vietqr-snake-svg" viewBox="0 0 100 100" preserveAspectRatio="none"
@@ -803,7 +817,7 @@
                                         x-text="qrData.formattedAmount"></div>
                                 </div>
                             </div>
-                            <div
+                            <div x-show="qrData.configured"
                                 class="flex flex-col gap-space-xs bg-surface-container-lowest border border-outline-variant rounded-xl p-space-sm">
                                 <div
                                     class="flex items-center justify-between py-1 border-b border-surface-container-high text-body-sm">
@@ -823,8 +837,8 @@
                                             x-text="qrData.accountNumber"></span>
                                         <button
                                             class="p-1 rounded hover:bg-surface-container-high text-primary transition-colors flex items-center cursor-pointer"
-                                            @click="copyText(qrData.accountNumber)">
-                                            <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                                            @click="copyText(qrData.accountNumber, 'account')">
+                                            <span class="material-symbols-outlined text-[16px]" x-text="copiedField === 'account' ? 'check' : 'content_copy'">content_copy</span>
                                         </button>
                                     </div>
                                 </div>
@@ -844,8 +858,8 @@
                                     </div>
                                     <button
                                         class="p-1 rounded hover:bg-primary-fixed text-primary transition-colors flex items-center cursor-pointer"
-                                        @click="copyText(qrData.transferContent)">
-                                        <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                                        @click="copyText(qrData.transferContent, 'content')">
+                                        <span class="material-symbols-outlined text-[16px]" x-text="copiedField === 'content' ? 'check' : 'content_copy'">content_copy</span>
                                     </button>
                                 </div>
                             </div>
@@ -856,7 +870,7 @@
                                     class="px-4 py-2 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface font-semibold text-xs hover:bg-surface-container-high transition-colors cursor-pointer">
                                     {{ __('room.orders.close') }}
                                 </button>
-                                <template x-if="paymentStatus !== 'paid' && paymentStatus !== 'pending'">
+                                <template x-if="paymentStatus !== 'paid' && paymentStatus !== 'pending' && qrData.configured">
                                     <button type="button" :disabled="isSubmittingPayment"
                                         @click="openPaymentConfirm({{ $activeOrder->id }})"
                                         class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer disabled:opacity-50">

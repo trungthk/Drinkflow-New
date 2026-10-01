@@ -12,6 +12,7 @@ use App\Enums\RoomStatus;
 use App\Enums\RoomUserStatus;
 use App\Models\GlobalUser;
 use App\Models\Order;
+use App\Models\Room;
 use App\Models\RoomUser;
 use App\Services\Room\UserRoomsService;
 use Illuminate\Support\Str;
@@ -126,7 +127,10 @@ class UserGlobalDashboardService
                     'is_paid' => $isPaid,
                     'is_pending' => $isPending,
                     'status_label' => $isPaid ? __('global.dashboard.paid') : ($isPending ? __('global.dashboard.unpaid') : __('global.common.cancelled')),
-                    'detail_url' => $order->room_id ? route('user.orders.page', ['room' => $order->room_id, 'order' => $order->id]) : '#',
+                    // The order page is addressed by the order code, and the room by its slug.
+                    'detail_url' => $order->room instanceof Room
+                        ? route('user.orders.page', ['room' => $order->room, 'order' => $order->code])
+                        : '#',
                 ];
             });
 

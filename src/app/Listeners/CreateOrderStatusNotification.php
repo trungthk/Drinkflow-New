@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Listeners;
 
 use App\Enums\NotificationType;
+use App\Enums\OrderStatus;
 use App\Events\OrderUpdated;
 use App\Services\Notification\UserNotificationService;
 
@@ -36,6 +37,11 @@ class CreateOrderStatusNotification
 
         // Only send status change notification when status actually changed
         if ($order->status->value === $event->previousStatus) {
+            return;
+        }
+
+        // Delivering is already announced room-wide by the "items delivered" notification.
+        if ($order->status === OrderStatus::Delivering) {
             return;
         }
 

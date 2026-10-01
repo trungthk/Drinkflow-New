@@ -13,6 +13,7 @@ use App\Models\Debt;
 use App\Models\Order;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Services\Payment\ReceivingAccountResolver;
 use App\Support\Helpers\FormatHelper;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,8 @@ use Illuminate\Validation\ValidationException;
 
 class ConfirmDebtPaymentAction
 {
+    public function __construct(private readonly ReceivingAccountResolver $accounts) {}
+
     /**
      * Mark one debt as pending admin confirmation and notify room admins.
      *
@@ -31,7 +34,7 @@ class ConfirmDebtPaymentAction
      * @param int $debtId Debt being paid.
      * @param ?string $transferContent Custom transfer content / reference text.
      * @return Collection<int, Debt> Updated debt entities.
-     * @throws ValidationException If unauthorized, the debt is settled, already pending, or bundled into a request.
+     * @throws ValidationException If unauthorized, the debt is settled, already pending, bundled into a request, or has no receiving account.
      */
     public function execute(Room $room, RoomUser $roomUser, int $debtId, ?string $transferContent = null): Collection
     {
@@ -70,6 +73,11 @@ class ConfirmDebtPaymentAction
                 throw ValidationException::withMessages([
                     'debt' => __('room.debts.payment_already_pending', ['default' => 'Payment confirmation is already awaiting approval.']),
                 ]);
+            }
+
+            // Without a receiving account there is nowhere to transfer to, so a "paid" report cannot be valid.
+            foreach ($debts as $debt) {
+                $this->accounts->ensureConfigured($this->accounts->forDebt($debt, $room), 'debt');
             }
 
             foreach ($debts as $debt) {

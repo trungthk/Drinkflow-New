@@ -73,7 +73,7 @@ Route::middleware(['auth:superadmin', 'superadmin'])->prefix('superadmin')->grou
     Route::get('/security-events', [\App\Http\Controllers\Superadmin\SecurityController::class, 'index'])->middleware('permission:security.view')->name('superadmin.security-events.index');
     Route::get('/socket/page', [\App\Http\Controllers\Superadmin\PageController::class, 'socket'])->middleware('permission:queue.view')->name('superadmin.socket.page');
     Route::get('/socket', [\App\Http\Controllers\Superadmin\SocketMonitoringController::class, 'index'])->middleware('permission:queue.view')->name('superadmin.socket.index');
-    Route::get('/socket-token', \App\Http\Controllers\Superadmin\SocketTokenController::class)->name('superadmin.socket-token');
+    Route::get('/socket-token', \App\Http\Controllers\Superadmin\SocketTokenController::class)->middleware('json.only')->name('superadmin.socket-token');
     Route::get('/queue/page', [\App\Http\Controllers\Superadmin\PageController::class, 'queue'])->middleware('permission:queue.view')->name('superadmin.queue.page');
     Route::get('/queue/failed', [\App\Http\Controllers\Superadmin\QueueController::class, 'index'])->middleware('permission:queue.view')->name('superadmin.queue.failed.index');
     Route::post('/queue/failed/{failedJob}/retry', [\App\Http\Controllers\Superadmin\QueueController::class, 'retry'])->middleware('permission:queue.manage')->name('superadmin.queue.failed.retry');

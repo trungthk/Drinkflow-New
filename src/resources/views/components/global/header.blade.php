@@ -127,6 +127,7 @@
                 @endphp
                 <div data-header-notification-id="{{ $notif->id }}"
                   data-read-url="{{ route('user.notifications.read', $notif) }}"
+                  @if(!empty($notificationPresentation['link'])) data-notification-link="{{ $notificationPresentation['link'] }}" @endif
                   data-unread="{{ is_null($notif->read_at) ? '1' : '0' }}"
                   class="p-3.5 flex items-start gap-3 cursor-pointer hover:bg-slate-50/80 transition-colors {{ is_null($notif->read_at) ? 'bg-emerald-50/20' : '' }}">
                   <span
