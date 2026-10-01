@@ -6,6 +6,8 @@
     'activeTab' => 'overview',
     'unreadNotificationsCount' => 0,
     'userRooms' => collect(),
+    'description' => null,
+    'ogImage' => null,
 ])
 
 <!DOCTYPE html>
@@ -15,6 +17,26 @@
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>{{ $title }}</title>
+  @if ($ogImage)
+  <meta name="robots" content="noindex, nofollow">
+  @if ($description)
+  <meta name="description" content="{{ $description }}">
+  @endif
+  <meta property="og:site_name" content="DrinkFlow">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="{{ url()->current() }}">
+  <meta property="og:title" content="{{ $title }}">
+  @if ($description)
+  <meta property="og:description" content="{{ $description }}">
+  @endif
+  <meta property="og:image" content="{{ $ogImage }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{{ $title }}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ $title }}">
+  <meta name="twitter:image" content="{{ $ogImage }}">
+  @endif
   <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
   <link rel="alternate icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
   <link href="https://fonts.googleapis.com" rel="preconnect">

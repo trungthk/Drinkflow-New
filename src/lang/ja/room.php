@@ -424,6 +424,8 @@ return [
         'support_heading' => '振込依頼人の記載を忘れた、または間違えましたか？',
         'support_desc' => '支払いが更新されていない場合は、取引完了画面のスクリーンショットをルーム管理者に送ってください。',
         'vietqr_modal_title' => 'VietQR決済',
+        'payment_account_not_configured' => '受取口座が設定されていません',
+        'payment_account_not_configured_hint' => '振込の前に、ルーム管理者に受取口座を確認してください。',
         'vietqr_amount_label' => '支払金額:',
         'vietqr_bank_label' => '銀行:',
         'vietqr_account_number' => '口座番号:',

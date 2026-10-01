@@ -71,11 +71,23 @@ class UserRoomDebtService
         }
 
         $qrPayloads = [];
+        $qrAccounts = [];
         $transferContents = [];
         $payerName = $roomUser->payerName();
         foreach ($debts->getCollection() as $debt) {
             $transferContents[$debt->id] = $this->vietQr->transferContent((string) $debt->code, $payerName);
-            $account = $debt->campaign?->paymentAccount ?? $paymentAccount;
+            // A campaign debt is paid to that campaign's own active account only; without one the QR modal
+            // reports "not configured" instead of a QR for another account. Debts without a campaign use the room account.
+            $account = $debt->campaign !== null
+                ? ($debt->campaign->paymentAccount?->status === PaymentAccountStatus::Active ? $debt->campaign->paymentAccount : null)
+                : $paymentAccount;
+            if ($account) {
+                $qrAccounts[$debt->id] = [
+                    'bank_name' => $account->bank_name,
+                    'account_number' => $account->account_number,
+                    'account_name' => $account->account_name,
+                ];
+            }
             if ($account && (int) $debt->remaining_amount > 0) {
                 $qrPayloads[$debt->id] = $this->vietQr->generate(
                     $account,
@@ -107,6 +119,7 @@ class UserRoomDebtService
             'totalSponsorAmount' => (int) (clone $baseDebtsQuery)->sum('sponsor_amount'),
             'vietqrData' => $vietqrData,
             'qrPayloads' => $qrPayloads,
+            'qrAccounts' => $qrAccounts,
             'transferContents' => $transferContents,
             'activeCampaign' => $activeCampaign ? [
                 'name' => $activeCampaign->name,

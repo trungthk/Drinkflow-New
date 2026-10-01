@@ -40,17 +40,18 @@ class PublicOrderCheckService
      * Determine whether the campaign is eligible for public order lookup.
      *
      * @param Campaign $campaign Campaign to inspect.
-     * @return bool True for closed or archived campaigns.
+     * @return bool True for every campaign except drafts and cancelled ones.
      */
-    public function isExpired(Campaign $campaign): bool
+    public function isCheckable(Campaign $campaign): bool
     {
-        return in_array($campaign->status, [CampaignStatus::Closed, CampaignStatus::Archived], true);
+        return $campaign->status !== null
+            && ! in_array($campaign->status, [CampaignStatus::Draft, CampaignStatus::Cancelled], true);
     }
 
     /**
      * Find orders in the campaign matching one order code, email, phone, or room code.
      *
-     * @param Campaign $campaign Closed campaign to search.
+     * @param Campaign $campaign Checkable campaign to search.
      * @param string $identifier User-supplied lookup value.
      * @return Collection<int, Order> Matching orders.
      */

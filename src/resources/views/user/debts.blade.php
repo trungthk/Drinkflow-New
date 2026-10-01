@@ -1,5 +1,6 @@
 <x-room.layout :room="$room" :room-user="$roomUser" :user-rooms="$userRooms"
-    :unread-notifications-count="$unreadNotificationsCount" :active-tab="'debts'" :title="__('room.debts.page_title')">
+    :unread-notifications-count="$unreadNotificationsCount" :active-tab="'debts'" :title="__('room.debts.page_title')"
+    :description="__('room.debts.subtitle')" :og-image="asset('images/og-debt-payment.jpg')">
     <div class="flex flex-col w-full gap-space-lg" x-data="{
         qrModalOpen: false,
         paymentConfirmModalOpen: false,
@@ -52,6 +53,7 @@
             amount: ''
         },
         qrData: {
+            configured: {{ $vietqrData ? 'true' : 'false' }},
             bankName: '{{ $vietqrData['bank_name'] ?? '' }}',
             accountNumber: '{{ $vietqrData['account_number'] ?? '' }}',
             accountName: '{{ $vietqrData['account_name'] ?? '' }}',
@@ -61,13 +63,18 @@
             qrPayload: {{ Js::from($vietqrData['payload'] ?? '') }},
             qrDataUrl: ''
         },
-        async openQr(amount, formattedAmount, content, customQrUrl, debtId = null, isPending = false, payload = '') {
+        async openQr(amount, formattedAmount, content, customQrUrl, debtId = null, isPending = false, payload = '', account = null) {
             this.currentDebtId = debtId || null;
             this.currentDebtPending = Boolean(isPending);
             this.qrData.amount = amount;
             this.qrData.formattedAmount = formattedAmount;
             this.qrData.transferContent = content;
-            this.qrData.qrPayload = payload || this.qrData.qrPayload;
+            // Each QR belongs to one receiving account; never reuse another debt's payload or bank details.
+            this.qrData.configured = Boolean(account && account.account_number);
+            this.qrData.bankName = account?.bank_name || '';
+            this.qrData.accountNumber = account?.account_number || '';
+            this.qrData.accountName = account?.account_name || '';
+            this.qrData.qrPayload = this.qrData.configured ? (payload || '') : '';
             try {
                 this.qrData.qrDataUrl = this.qrData.qrPayload && window.QRCode
                     ? await QRCode.toDataURL(this.qrData.qrPayload, { width: 220, margin: 1, errorCorrectionLevel: 'M' })
@@ -164,7 +171,7 @@
             @if($paymentSummary['can_submit'])
                 <button
                     class="px-3.5 py-1.5 rounded-lg bg-[#006948] hover:bg-[#005137] text-white text-xs font-semibold shadow-2xs transition-all inline-flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
-                    @click="openQr({{ $totalPayableAmount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}', '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}', '', null, false)">
+                    @click="openQr({{ $totalPayableAmount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}', '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}', '', null, false, {{ Js::from($vietqrData['payload'] ?? '') }}, {{ Js::from($vietqrData ? ['bank_name' => $vietqrData['bank_name'], 'account_number' => $vietqrData['account_number'], 'account_name' => $vietqrData['account_name']] : null) }})">
                     <span class="material-symbols-outlined text-[17px] text-white">qr_code_2</span>
                     <span
                         class="text-white">{{ __('room.debts.pay_all', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['submittable'])]) }}</span>
@@ -408,7 +415,7 @@
                                             <button
                                                 class="px-2.5 py-1 rounded bg-[#006948] text-white hover:bg-[#005137] transition-all inline-flex items-center gap-1 shadow-2xs cursor-pointer font-medium text-xs"
                                                 @if($debt->campaign_id) data-pay-debt-campaign="{{ (int) $debt->campaign_id }}" @endif
-                                                @click="openQr({{ (int) $debt->remaining_amount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount) }}', {{ Js::from($transferContents[$debt->id] ?? $debt->code) }}, '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }})">
+                                                @click="openQr({{ (int) $debt->remaining_amount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount) }}', {{ Js::from($transferContents[$debt->id] ?? $debt->code) }}, '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }}, {{ Js::from($qrAccounts[$debt->id] ?? null) }})">
                                                 <span class="material-symbols-outlined text-[14px] text-white">qr_code</span>
                                                 <span class="text-white">{{ __('room.debts.btn_view_qr') }}</span>
                                             </button>
@@ -578,7 +585,13 @@
                     <div class="p-3.5 sm:p-4 flex flex-col gap-3">
                         <div
                             class="flex flex-col items-center justify-center p-3 bg-surface-container-low rounded-xl border border-outline-variant/40">
-                            <div
+                            <div x-show="!qrData.configured" data-qr-not-configured
+                                class="flex w-full flex-col items-center gap-2 rounded-xl border border-dashed border-amber-300 bg-amber-50 px-4 py-6 text-center">
+                                <span class="material-symbols-outlined text-[32px] text-amber-500">account_balance</span>
+                                <p class="text-sm font-semibold text-amber-800">{{ __('room.debts.payment_account_not_configured') }}</p>
+                                <p class="text-[11px] leading-relaxed text-amber-700">{{ __('room.debts.payment_account_not_configured_hint') }}</p>
+                            </div>
+                            <div x-show="qrData.configured"
                                 class="vietqr-snake-box relative bg-surface-container-lowest p-3 rounded-2xl shadow-sm border border-outline-variant flex flex-col items-center overflow-hidden">
                                 <!-- SVG Snake Border Animation -->
                                 <svg class="vietqr-snake-svg" viewBox="0 0 100 100" preserveAspectRatio="none"
@@ -598,7 +611,7 @@
                                     x-text="qrData.formattedAmount"></div>
                             </div>
                         </div>
-                        <div
+                        <div x-show="qrData.configured"
                             class="flex flex-col gap-1.5 bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-2.5 text-xs">
                             <div
                                 class="flex items-center justify-between py-1 border-b border-surface-container-high text-xs">

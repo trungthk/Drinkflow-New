@@ -424,6 +424,8 @@ return [
         'support_heading' => 'Quên ghi hoặc sai nội dung chuyển khoản?',
         'support_desc' => 'Nếu thông tin thanh toán chưa được cập nhật, vui lòng gửi ảnh chụp giao dịch thành công cho Quản trị viên Room để được hỗ trợ.',
         'vietqr_modal_title' => 'Thanh toán VietQR',
+        'payment_account_not_configured' => 'Chưa cấu hình tài khoản nhận thanh toán',
+        'payment_account_not_configured_hint' => 'Vui lòng liên hệ quản trị Room để được cung cấp tài khoản nhận tiền trước khi chuyển khoản.',
         'vietqr_amount_label' => 'Số tiền thanh toán:',
         'vietqr_bank_label' => 'Ngân hàng:',
         'vietqr_account_number' => 'Số tài khoản:',

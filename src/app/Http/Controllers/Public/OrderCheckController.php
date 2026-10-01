@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\CampaignStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PublicOrderLookupRequest;
 use App\Models\Campaign;
@@ -23,7 +24,7 @@ class OrderCheckController extends Controller
      */
     public function page(Campaign $campaign, string $hash, PublicOrderCheckService $service): View
     {
-        abort_unless($service->hashMatches($campaign, $hash) && $service->isExpired($campaign), 404);
+        abort_unless($service->hashMatches($campaign, $hash) && $service->isCheckable($campaign), 404);
 
         return view('public.order-check', [
             'campaign' => $campaign,
@@ -42,7 +43,7 @@ class OrderCheckController extends Controller
      */
     public function lookup(PublicOrderLookupRequest $request, Campaign $campaign, string $hash, PublicOrderCheckService $service): JsonResponse
     {
-        abort_unless($service->hashMatches($campaign, $hash) && $service->isExpired($campaign), 404);
+        abort_unless($service->hashMatches($campaign, $hash) && $service->isCheckable($campaign), 404);
         $orders = $service->findOrders($campaign, (string) $request->validated('identifier'));
 
         if ($orders->isEmpty()) {
@@ -52,6 +53,8 @@ class OrderCheckController extends Controller
         return response()->json([
             'campaign' => [
                 'name' => $campaign->name,
+                'status' => $campaign->status?->value,
+                'status_label' => $campaign->status?->label($campaign->status === CampaignStatus::Active && $campaign->deadline?->isPast() === true),
                 'restaurant' => $campaign->restaurant,
                 'started_at' => $campaign->started_at?->toIso8601String(),
                 'closed_at' => $campaign->closed_at?->toIso8601String(),

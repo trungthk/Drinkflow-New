@@ -194,7 +194,8 @@ class DebtApprovalTest extends TestCase
             ->get(route('user.debts.index', $room))
             ->assertOk()
             ->assertSeeText(__('room.debts.status_paid'))
-            ->assertDontSeeText(__('room.debts.status_unpaid'));
+            ->assertDontSeeText(__('room.debts.status_unpaid'))
+            ->assertSee('<meta property="og:image" content="'.asset('images/og-debt-payment.jpg').'">', false);
     }
 
     /**

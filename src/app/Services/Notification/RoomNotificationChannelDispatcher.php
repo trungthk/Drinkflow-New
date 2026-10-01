@@ -111,7 +111,7 @@ class RoomNotificationChannelDispatcher
                     __('messages.campaign_closed_title'),
                     __('messages.campaign_name', ['name' => 'Trà Sữa Phê La (Mẫu thử)']),
                     __('messages.campaign_restaurant', ['restaurant' => 'Phê La Tea & Coffee']),
-                    __('messages.campaign_closed_body'),
+                    __('messages.campaign_payment', ['url' => url("/rooms/{$roomSlug}/debts")]),
                 ]),
             ],
             'campaign.cancelled' => [

@@ -26,7 +26,6 @@ return [
     'campaign_restaurant' => 'Quán / Thương hiệu: :restaurant',
     'campaign_order' => 'Đặt món: :url',
     'campaign_order_now' => 'Bấm vào đây để đặt món ngay',
-    'campaign_closed_body' => 'Các bạn nhớ vào kiểm tra và thanh toán tiền nhé',
     'campaign_closed_sponsored_body' => 'Các nhà tài trợ nhớ vào kiểm tra và thanh toán tiền công nợ nhé',
     'campaign_order_check' => 'Tra cứu đơn hàng: :url',
     'campaign_payment' => 'Thanh toán công nợ: :url',

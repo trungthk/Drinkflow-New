@@ -107,7 +107,7 @@ class GuestCampaignLinkTest extends TestCase
         $this->actingAs($user, 'web')->post(route('user.rooms.join', $other->slug))->assertRedirect(route('user.dashboard', $other->slug));
     }
 
-    /** Closed campaign gateway copy uses the sponsor-specific reminder and signed order check link. */
+    /** Closed campaign gateway copy adds the sponsor reminder and signed order check link only for sponsored campaigns. */
     public function test_closed_campaign_gateway_reminder_depends_on_sponsorship(): void
     {
         $room = Room::create(['name' => 'Marketing', 'slug' => 'marketing']);
@@ -121,10 +121,8 @@ class GuestCampaignLinkTest extends TestCase
 
         $service = app(CampaignNotificationPayloadService::class);
         $withoutSponsor = $service->make($campaign, 'campaign.closed');
-        $this->assertStringContainsString(
-            __('messages.campaign_closed_body').' => '.$withoutSponsor['campaign']['order_check_url'],
-            $withoutSponsor['message']
-        );
+        // Without a sponsor the closed message carries neither a reminder note nor the order-check link.
+        $this->assertStringNotContainsString($withoutSponsor['campaign']['order_check_url'], $withoutSponsor['message']);
         $this->assertStringNotContainsString(__('messages.campaign_closed_sponsored_body'), $withoutSponsor['message']);
 
         $campaign->update(['sponsor_type' => Campaign::SPONSOR_TYPE_FULL, 'sponsor_name' => 'Team Lead']);
@@ -133,7 +131,7 @@ class GuestCampaignLinkTest extends TestCase
             __('messages.campaign_closed_sponsored_body').' => '.$withSponsor['campaign']['order_check_url'],
             $withSponsor['message']
         );
-        $this->assertStringNotContainsString(__('messages.campaign_closed_body'), $withSponsor['message']);
+        $this->assertStringNotContainsString(__('messages.campaign_order_check', ['url' => '']), $withSponsor['message']);
         $this->assertStringContainsString(
             __('messages.campaign_closed_sponsored_body'),
             app(RoomNotificationChannelDispatcher::class)->formatTelegramMessage($withSponsor)

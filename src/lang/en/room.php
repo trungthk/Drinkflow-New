@@ -424,6 +424,8 @@ return [
         'support_heading' => 'Forgot or mistyped the transfer description?',
         'support_desc' => 'If your payment has not been updated, send a screenshot of the successful transaction to the Room Administrator for assistance.',
         'vietqr_modal_title' => 'VietQR Payment',
+        'payment_account_not_configured' => 'No receiving payment account configured',
+        'payment_account_not_configured_hint' => 'Please contact the room admin for the receiving account before making a transfer.',
         'vietqr_amount_label' => 'Payment Amount:',
         'vietqr_bank_label' => 'Bank:',
         'vietqr_account_number' => 'Account Number:',

@@ -640,7 +640,7 @@
 
                 @if ($isCampaignClosed || $campaign->debts->isNotEmpty())
                     <div class="overflow-x-auto w-full rounded-xl border border-outline-variant/60">
-                        <table class="table-colgroup w-full min-w-[40rem] text-left border-collapse text-xs table-fixed">
+                        <table class="table-colgroup w-full min-w-[814px] text-left border-collapse text-xs table-fixed">
                             <thead>
                                 <tr class="h-10 bg-surface-container-low border-b border-outline-variant text-outline uppercase font-mono tracking-wider">
                                     <th class="px-4 py-2 w-14 text-left">{{ __('admin.order_no') }}</th>
@@ -1170,7 +1170,6 @@
                                     <span class="text-[11px] text-outline block">{{ __('admin.debt_member') }}</span>
                                     <span class="font-bold text-on-surface text-sm block mt-0.5" x-text="selectedDebt.user_name"></span>
                                     <div class="flex items-center gap-2 mt-1 text-[11px] text-outline font-mono">
-                                        <span x-show="selectedDebt.user_code" x-text="'#' + selectedDebt.user_code"></span>
                                         <span x-show="selectedDebt.email" x-text="selectedDebt.email"></span>
                                     </div>
                                 </div>
@@ -1250,7 +1249,7 @@
             selectedDebt: null,
             isConfirmingAllOrders: false,
             showBulkConfirmModal: false,
-            bulkPaymentMethod: '',
+            bulkPaymentMethod: @js(\App\Enums\PaymentMethod::Transfer->value),
             showDeleteOrderModal: false,
             isDeletingOrder: false,
             showConfirmPaymentModal: false,
@@ -1308,7 +1307,6 @@
                         'id' => $d->id,
                         'code' => $d->code,
                         'user_name' => $d->roomUser?->display_name ?? __('admin.member'),
-                        'user_code' => $d->roomUser?->user_code,
                         'email' => $d->roomUser?->globalUser?->email,
                         'desk_location' => $d->roomUser?->globalUser?->desk_location,
                         'original_amount' => (int) $d->original_amount,

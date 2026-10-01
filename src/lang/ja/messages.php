@@ -26,7 +26,6 @@ return [
     'campaign_restaurant' => '店舗 / ブランド: :restaurant',
     'campaign_order' => '注文: :url',
     'campaign_order_now' => 'ここをクリックして今すぐ注文',
-    'campaign_closed_body' => '内容を確認して、お支払いをお願いします',
     'campaign_closed_sponsored_body' => 'スポンサーの皆さん、未払い金額を確認してお支払いをお願いします',
     'campaign_cancelled_body' => 'キャンペーンは中止されました。次回のドリンク注文をお楽しみに！',
     'test_ping_title' => '通知チャンネルの接続テスト',

@@ -26,7 +26,6 @@ return [
     'campaign_restaurant' => 'Store / Brand: :restaurant',
     'campaign_order' => 'Order: :url',
     'campaign_order_now' => 'Click here to place your order now',
-    'campaign_closed_body' => 'Please check your balance and make your payment',
     'campaign_closed_sponsored_body' => 'Sponsors, please check and pay your outstanding debts',
     'campaign_order_check' => 'Check your order: :url',
     'campaign_payment' => 'Pay your debt: :url',

@@ -115,11 +115,10 @@ class CampaignNotificationPayloadService
         } elseif ($event === NotificationType::CampaignClosed->value) {
             $hasSponsor = $campaign->sponsor_type !== Campaign::SPONSOR_TYPE_NONE
                 && (filled($campaign->sponsor_type) || filled($campaign->sponsor_name) || ! empty($campaign->sponsor_allocations));
-            $reminder = __($hasSponsor ? 'messages.campaign_closed_sponsored_body' : 'messages.campaign_closed_body');
-            if ($orderCheckUrl !== null) {
-                $reminder .= ' => '.$orderCheckUrl;
+            // Only sponsored campaigns get a reminder line (with the order-check link); others add nothing.
+            if ($hasSponsor) {
+                $lines[] = __('messages.campaign_closed_sponsored_body').($orderCheckUrl !== null ? ' => '.$orderCheckUrl : '');
             }
-            $lines[] = $reminder;
             if ($paymentUrl !== null) {
                 $lines[] = __('messages.campaign_payment', ['url' => $paymentUrl]);
             }
