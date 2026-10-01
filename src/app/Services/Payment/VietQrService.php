@@ -302,6 +302,17 @@ class VietQrService
     }
 
     /**
+     * Build the pay-all transfer content: only the payer's full name, uppercased and ASCII-safe.
+     *
+     * @param  ?string  $payerName  Member name with or without Vietnamese diacritics.
+     * @return string               Sanitized name (≤ 25 chars), or an empty string when no usable name exists.
+     */
+    public function payerContent(?string $payerName): string
+    {
+        return strtoupper($this->sanitizeReference((string) $payerName));
+    }
+
+    /**
      * Sanitize a transfer reference / memo string for embedding in the QR payload.
      *
      * Steps:

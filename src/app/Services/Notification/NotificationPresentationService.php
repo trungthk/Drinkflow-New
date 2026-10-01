@@ -44,10 +44,13 @@ class NotificationPresentationService
             $title = (string) ($notification->title ?? __('global.notifications.default_title'));
         }
         if ($notification instanceof UserNotification && $this->isPaymentReminder($type)) {
-            $code = $this->paymentCode($data);
+            $code = $this->debtCode($data);
             if ($code !== null) {
                 $title = __('messages.payment_reminder_with_code', ['code' => $code]);
             }
+        }
+        if ($notification instanceof UserNotification) {
+            $title = $this->campaignTitle($type, $data) ?? $title;
         }
 
         $body = $this->body($notification, $type, $data);
@@ -88,17 +91,15 @@ class NotificationPresentationService
     }
 
     /**
-     * Resolve the code shown in a payment reminder: the order code when known, otherwise the debt code.
+     * Resolve the debt code a payment reminder refers to.
      *
      * @param array<string, mixed> $data Structured notification data.
-     * @return string|null Order/debt code, or null when the notification carries no reference.
+     * @return string|null Debt code, or null when the notification carries no debt reference.
      */
-    private function paymentCode(array $data): ?string
+    private function debtCode(array $data): ?string
     {
-        foreach (['order_code', 'debt_code'] as $key) {
-            if (! empty($data[$key])) {
-                return (string) $data[$key];
-            }
+        if (! empty($data['debt_code'])) {
+            return (string) $data['debt_code'];
         }
 
         if (! empty($data['debt_id'])) {
@@ -108,6 +109,32 @@ class NotificationPresentationService
         }
 
         return null;
+    }
+
+    /**
+     * Build the coded title ("Campaign #CODE ...") of campaign created/closed/ordering-locked notifications.
+     *
+     * @param string $type Notification type.
+     * @param array<string, mixed> $data Structured notification data.
+     * @return string|null Localized title, or null when the type has no coded title or the campaign code is unknown.
+     */
+    private function campaignTitle(string $type, array $data): ?string
+    {
+        $key = match (true) {
+            $type === NotificationType::CampaignCreated->value => 'messages.campaign_created_title',
+            $type === NotificationType::CampaignClosed->value => 'messages.campaign_closed_title',
+            $type === NotificationType::CampaignUpdated->value && ($data['ordering_locked'] ?? null) === true => 'messages.campaign_ordering_locked_title',
+            default => null,
+        };
+        if ($key === null) {
+            return null;
+        }
+
+        $code = ! empty($data['campaign_code'])
+            ? (string) $data['campaign_code']
+            : (! empty($data['campaign_id']) ? Campaign::query()->whereKey($data['campaign_id'])->value('code') : null);
+
+        return $code !== null && $code !== '' ? __($key, ['code' => $code]) : null;
     }
 
     /**
@@ -123,8 +150,32 @@ class NotificationPresentationService
      */
     private function link(UserNotification $notification, string $type, array $data): ?string
     {
-        if (in_array($type, [NotificationType::CampaignCreated->value, NotificationType::CampaignDeadlineReminder->value], true)) {
+        if ($type === NotificationType::CampaignDeadlineReminder->value) {
             return $this->liveCampaignLink($data);
+        }
+
+        // New campaign / ordering locked: the campaign info page.
+        if ($type === NotificationType::CampaignCreated->value
+            || ($type === NotificationType::CampaignUpdated->value && ($data['ordering_locked'] ?? null) === true)) {
+            $room = $this->campaignRoom($data);
+
+            return $room !== null ? route('user.campaigns.index', $room) : $notification->link;
+        }
+
+        // Items delivered: the member's "My orders" page.
+        if ($type === NotificationType::CampaignDelivering->value) {
+            $room = $this->campaignRoom($data);
+
+            return $room !== null ? route('user.orders.index', $room) : $notification->link;
+        }
+
+        // Payment reminders: the debts page, opening that debt's payment modal.
+        if ($this->isPaymentReminder($type)) {
+            $code = $this->debtCode($data);
+            $room = $this->campaignRoom($data);
+            if ($code !== null && $room !== null) {
+                return route('user.debts.index', ['room' => $room, 'debt' => $code]);
+            }
         }
 
         if (! empty($notification->link)) {
@@ -152,6 +203,30 @@ class NotificationPresentationService
         }
 
         return route('user.orders.page', [$order->room, $order]);
+    }
+
+    /**
+     * Resolve the room of a notification from its room or campaign reference.
+     *
+     * @param array<string, mixed> $data Structured notification data.
+     * @return Room|null Room, or null when neither reference resolves.
+     */
+    private function campaignRoom(array $data): ?Room
+    {
+        if (! empty($data['room_id'])) {
+            $room = Room::query()->find($data['room_id'], ['id', 'slug']);
+            if ($room !== null) {
+                return $room;
+            }
+        }
+
+        if (! empty($data['campaign_id'])) {
+            $roomId = Campaign::query()->whereKey($data['campaign_id'])->value('room_id');
+
+            return $roomId !== null ? Room::query()->find($roomId, ['id', 'slug']) : null;
+        }
+
+        return null;
     }
 
     /**
@@ -189,8 +264,6 @@ class NotificationPresentationService
         }
 
         return match ($type) {
-            NotificationType::CampaignCreated->value => 'messages.campaign_created_title',
-            NotificationType::CampaignClosed->value => 'messages.campaign_closed_title',
             NotificationType::CampaignCancelled->value => 'messages.campaign_cancelled_title',
             NotificationType::CampaignDeadlineReminder->value => 'messages.campaign_deadline_reminder_title',
             NotificationType::OrderCreated->value => 'messages.order_created',

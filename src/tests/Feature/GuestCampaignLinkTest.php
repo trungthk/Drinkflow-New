@@ -11,6 +11,7 @@ use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Services\Notification\RoomNotificationChannelDispatcher;
 use App\Services\Notification\CampaignNotificationPayloadService;
+use App\Support\Helpers\FormatHelper;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -107,46 +108,38 @@ class GuestCampaignLinkTest extends TestCase
         $this->actingAs($user, 'web')->post(route('user.rooms.join', $other->slug))->assertRedirect(route('user.dashboard', $other->slug));
     }
 
-    /** Closed campaign gateway copy adds the sponsor reminder and signed order check link only for sponsored campaigns. */
-    public function test_closed_campaign_gateway_reminder_depends_on_sponsorship(): void
+    /** Closed campaign gateway copy shows the deadline and no longer carries the sponsor reminder or order-check link. */
+    public function test_closed_campaign_gateway_message_shows_deadline_without_sponsor_reminder(): void
     {
         $room = Room::create(['name' => 'Marketing', 'slug' => 'marketing']);
         $campaign = Campaign::create([
             'room_id' => $room->id,
             'name' => 'Friday coffee',
             'restaurant' => 'Cafe',
-            'sponsor_type' => Campaign::SPONSOR_TYPE_NONE,
+            'sponsor_type' => Campaign::SPONSOR_TYPE_FULL,
+            'sponsor_name' => 'Team Lead',
+            'deadline' => now()->setDate(2026, 10, 1)->setTime(15, 30),
             'status' => CampaignStatus::Closed,
         ])->load('room');
 
-        $service = app(CampaignNotificationPayloadService::class);
-        $withoutSponsor = $service->make($campaign, 'campaign.closed');
-        // Without a sponsor the closed message carries neither a reminder note nor the order-check link.
-        $this->assertStringNotContainsString($withoutSponsor['campaign']['order_check_url'], $withoutSponsor['message']);
-        $this->assertStringNotContainsString(__('messages.campaign_closed_sponsored_body'), $withoutSponsor['message']);
+        $payload = app(CampaignNotificationPayloadService::class)->make($campaign, 'campaign.closed');
 
-        $campaign->update(['sponsor_type' => Campaign::SPONSOR_TYPE_FULL, 'sponsor_name' => 'Team Lead']);
-        $withSponsor = $service->make($campaign->fresh('room'), 'campaign.closed');
         $this->assertStringContainsString(
-            __('messages.campaign_closed_sponsored_body').' => '.$withSponsor['campaign']['order_check_url'],
-            $withSponsor['message']
+            __('messages.campaign_deadline', ['date' => FormatHelper::formatDateTime($campaign->deadline, 'd/m/Y H:i')]),
+            $payload['message']
         );
-        $this->assertStringNotContainsString(__('messages.campaign_order_check', ['url' => '']), $withSponsor['message']);
-        $this->assertStringContainsString(
-            __('messages.campaign_closed_sponsored_body'),
-            app(RoomNotificationChannelDispatcher::class)->formatTelegramMessage($withSponsor)
-        );
+        $this->assertStringNotContainsString($payload['campaign']['order_check_url'], $payload['message']);
 
-        // The order-check link must survive every channel formatter intact (no "https: //").
-        $dispatcher = app(RoomNotificationChannelDispatcher::class);
-        $checkUrl = $withSponsor['campaign']['order_check_url'];
-        $this->assertStringContainsString($checkUrl, $dispatcher->formatChatworkMessage($withSponsor));
-        $this->assertStringContainsString($checkUrl, $dispatcher->formatSlackMessage($withSponsor));
-        $this->assertStringContainsString(htmlspecialchars($checkUrl, ENT_QUOTES), $dispatcher->formatTelegramMessage($withSponsor));
-        $this->assertStringNotContainsString('https: //', $dispatcher->formatChatworkMessage($withSponsor));
+        // Without a deadline the line still appears with the "not set" fallback.
+        $campaign->update(['deadline' => null]);
+        $withoutDeadline = app(CampaignNotificationPayloadService::class)->make($campaign->fresh('room'), 'campaign.closed');
+        $this->assertStringContainsString(
+            __('messages.campaign_deadline', ['date' => __('messages.campaign_deadline_not_set')]),
+            $withoutDeadline['message']
+        );
     }
 
-    /** Closed campaign gateway copy links to the debts page with the campaign ID to open its payment modal. */
+    /** Closed campaign gateway copy links to the debts page with the campaign code to open its payment modal. */
     public function test_closed_campaign_gateway_message_links_to_campaign_debt_payment(): void
     {
         $room = Room::create(['name' => 'Marketing', 'slug' => 'marketing-payment-link']);
@@ -155,7 +148,7 @@ class GuestCampaignLinkTest extends TestCase
         ])->load('room');
 
         $payload = app(CampaignNotificationPayloadService::class)->make($campaign, 'campaign.closed');
-        $paymentUrl = route('user.debts.index', ['room' => $room, 'campaign' => $campaign->id]);
+        $paymentUrl = route('user.debts.index', ['room' => $room, 'campaign' => $campaign->code]);
 
         $this->assertSame($paymentUrl, $payload['campaign']['payment_url']);
         $this->assertStringContainsString(__('messages.campaign_payment', ['url' => $paymentUrl]), $payload['message']);
@@ -178,6 +171,10 @@ class GuestCampaignLinkTest extends TestCase
 
         $this->assertNotNull($payload['campaign']['order_check_url']);
         $this->assertNull($payload['campaign']['payment_url']);
+        $this->assertStringContainsString(
+            __('messages.campaign_deadline', ['date' => __('messages.campaign_deadline_not_set')]),
+            $payload['message']
+        );
         $this->assertStringContainsString(
             __('messages.campaign_order_check', ['url' => $payload['campaign']['order_check_url']]),
             $payload['message']

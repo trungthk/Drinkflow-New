@@ -71,11 +71,12 @@ class RoomNotificationChannelDispatcher
     {
         $roomName = $room ? $room->name : 'DrinkFlow Team';
         $roomSlug = $room ? $room->slug : 'general';
+        $sampleCode = 'CMP-'.now()->format('Ymd').'-DEMO';
 
         return match ($template) {
             'campaign.created' => [
                 'event' => 'campaign.created',
-                'title' => __('messages.campaign_created_title'),
+                'title' => __('messages.campaign_created_title', ['code' => $sampleCode]),
                 'room_name' => $roomName,
                 'campaign' => [
                     'id' => 999,
@@ -89,7 +90,7 @@ class RoomNotificationChannelDispatcher
                     'order_url' => url("/rooms/{$roomSlug}/campaigns"),
                 ],
                 'message' => implode("\n", [
-                    __('messages.campaign_created_title'),
+                    __('messages.campaign_created_title', ['code' => $sampleCode]),
                     __('messages.campaign_name', ['name' => 'Trà Sữa Phê La (Mẫu thử)']),
                     __('messages.campaign_restaurant', ['restaurant' => 'Phê La Tea & Coffee']),
                     __('messages.campaign_deadline', ['date' => FormatHelper::formatDateTime(now()->addMinutes(45), 'd/m/Y H:i')]),
@@ -100,7 +101,7 @@ class RoomNotificationChannelDispatcher
             ],
             'campaign.closed' => [
                 'event' => 'campaign.closed',
-                'title' => __('messages.campaign_closed_title'),
+                'title' => __('messages.campaign_closed_title', ['code' => $sampleCode]),
                 'room_name' => $roomName,
                 'campaign' => [
                     'id' => 999,
@@ -108,9 +109,10 @@ class RoomNotificationChannelDispatcher
                     'restaurant' => 'Phê La Tea & Coffee',
                 ],
                 'message' => implode("\n", [
-                    __('messages.campaign_closed_title'),
+                    __('messages.campaign_closed_title', ['code' => $sampleCode]),
                     __('messages.campaign_name', ['name' => 'Trà Sữa Phê La (Mẫu thử)']),
                     __('messages.campaign_restaurant', ['restaurant' => 'Phê La Tea & Coffee']),
+                    __('messages.campaign_deadline', ['date' => FormatHelper::formatDateTime(now()->subMinutes(5), 'd/m/Y H:i')]),
                     __('messages.campaign_payment', ['url' => url("/rooms/{$roomSlug}/debts")]),
                 ]),
             ],

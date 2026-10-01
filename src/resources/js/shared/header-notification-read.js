@@ -1,5 +1,5 @@
 /**
- * Header notification dropdown: clicking an unread item marks it as read.
+ * Header notification dropdown: clicking an item opens its link (when it has one) and marks it as read when unread.
  *
  * Items carry `data-read-url` and `data-unread="1"`. The PATCH request uses `keepalive` so it still
  * completes when the click also follows the item's "view detail" link.
@@ -22,7 +22,15 @@ export function initHeaderNotificationRead() {
 
     document.addEventListener('click', (event) => {
         const item = event.target.closest('[data-header-notification-id][data-read-url]');
-        if (!item || item.dataset.unread !== '1' || !csrfToken) return;
+        if (!item) return;
+
+        // Clicking anywhere on an item with a link opens it (the inner "view detail" anchor navigates by itself).
+        const link = item.dataset.notificationLink;
+        if (link && !event.target.closest('a')) {
+            setTimeout(() => { window.location.href = link; }, 0);
+        }
+
+        if (item.dataset.unread !== '1' || !csrfToken) return;
 
         item.dataset.unread = '0';
         item.classList.remove('bg-emerald-50/20');

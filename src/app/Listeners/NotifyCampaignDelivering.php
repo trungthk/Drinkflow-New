@@ -49,7 +49,10 @@ class NotifyCampaignDelivering implements ShouldQueue
                 'campaign_id' => $campaign->id,
                 'campaign_code' => $campaign->code,
                 'restaurant' => $campaign->restaurant,
-            ]
+                'room_id' => $campaign->room_id,
+            ],
+            // Members pick up their items from "My orders".
+            link: route('user.orders.index', $room),
         );
 
         // 2. Gửi thông báo qua Channel Gateway (Telegram / Discord / Slack)

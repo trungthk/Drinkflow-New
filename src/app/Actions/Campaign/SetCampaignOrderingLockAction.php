@@ -92,7 +92,7 @@ class SetCampaignOrderingLockAction
     private function notifyMembers(Campaign $campaign, bool $locked): void
     {
         $title = $locked
-            ? __('messages.campaign_ordering_locked_title')
+            ? __('messages.campaign_ordering_locked_title', ['code' => $campaign->code])
             : __('messages.campaign_ordering_unlocked_title');
         $body = $locked
             ? __('messages.campaign_ordering_locked_body', ['name' => $campaign->name])
@@ -108,7 +108,7 @@ class SetCampaignOrderingLockAction
             NotificationType::CampaignUpdated->value,
             $title,
             $body,
-            ['campaign_id' => $campaign->id, 'room_id' => $campaign->room_id, 'ordering_locked' => $locked],
+            ['campaign_id' => $campaign->id, 'campaign_code' => $campaign->code, 'room_id' => $campaign->room_id, 'ordering_locked' => $locked],
             route('user.campaigns.index', $campaign->room->slug),
         );
     }

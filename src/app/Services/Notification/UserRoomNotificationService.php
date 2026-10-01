@@ -8,12 +8,14 @@ use App\Enums\CampaignStatus;
 use App\Models\GlobalUser;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Models\UserNotification;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class UserRoomNotificationService
 {
+    public function __construct(private readonly NotificationPresentationService $presentation) {}
+
     /**
      * Thu thập danh sách thông báo liên quan đến người dùng trong phạm vi một phòng cụ thể.
      *
@@ -25,7 +27,7 @@ class UserRoomNotificationService
      */
     public function getRoomNotificationData(Room $room, ?RoomUser $roomUser, ?GlobalUser $user, Request $request): array
     {
-        $notifications = DB::table('user_notifications')
+        $notifications = UserNotification::query()
             ->where('global_user_id', $user?->id)
             ->where(function ($q) use ($roomUser) {
                 $q->where('room_user_id', $roomUser?->id)
@@ -34,12 +36,16 @@ class UserRoomNotificationService
             ->orderByDesc('created_at')
             ->limit(50)
             ->get()
-            ->map(function ($notif) {
+            ->map(function (UserNotification $notif) {
+                // Same localized title/body/link as the header dropdown, so a click opens the related page.
+                $presented = $this->presentation->present($notif);
+
                 return [
                     'id' => $notif->id,
                     'type' => $notif->type,
-                    'title' => $notif->title,
-                    'body' => $notif->body,
+                    'title' => $presented['title'],
+                    'body' => $presented['body'],
+                    'link' => $presented['link'],
                     'is_read' => !is_null($notif->read_at),
                     'created_at_formatted' => Carbon::parse($notif->created_at)->diffForHumans(),
                     'created_at_time' => \App\Support\Helpers\FormatHelper::formatDateTime($notif->created_at),

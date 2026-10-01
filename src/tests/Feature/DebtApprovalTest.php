@@ -207,13 +207,27 @@ class DebtApprovalTest extends TestCase
         [, $room] = $this->adminWithRoom('auto-open@example.test', 'auto-open-room');
         $campaign = $this->campaign($room);
         $member   = $this->member($room, 'Tran Thi D', 'ttd@example.test');
-        $this->debt($room, $campaign, $member, DebtStatus::Unpaid, 40000);
+        $debt = $this->debt($room, $campaign, $member, DebtStatus::Unpaid, 40000);
 
         $this->actingAs($member->globalUser, 'web')
-            ->get(route('user.debts.index', ['room' => $room, 'campaign' => $campaign->id]))
+            ->get(route('user.debts.index', ['room' => $room, 'campaign' => $campaign->code]))
             ->assertOk()
-            ->assertSee('data-pay-debt-campaign="'.$campaign->id.'"', false)
-            ->assertSee("get('campaign')", false);
+            ->assertSee('data-pay-debt-campaign="'.$campaign->code.'"', false)
+            ->assertSee("get('campaign')", false)
+            // The QR modal shows the debt code of the debt being paid.
+            ->assertSee('data-qr-debt-code', false)
+            ->assertSee("'".$debt->code."')", false);
+    }
+
+    /** Paying all debts uses only the member's name (ASCII, uppercase) as the transfer content. */
+    public function test_pay_all_transfer_content_is_member_name_only(): void
+    {
+        [, $room] = $this->adminWithRoom('pay-all-name@example.test', 'pay-all-name-room');
+        $member = $this->member($room, 'Trần Thị Đào', 'ttdao@example.test');
+
+        $data = app(\App\Services\Debt\UserRoomDebtService::class)->getDebtViewData($room, $member->fresh(), $member->globalUser);
+
+        $this->assertSame('TRAN THI DAO', $data['payAllContent']);
     }
 
     /**

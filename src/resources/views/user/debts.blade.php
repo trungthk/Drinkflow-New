@@ -11,11 +11,18 @@
         campaignLoading: false,
         campaignData: null,
         init() {
-            // Links from the campaign-closed notification carry ?campaign={id}: open that campaign's debt payment modal.
-            const campaignId = new URLSearchParams(window.location.search).get('campaign');
-            if (!/^\d+$/.test(campaignId || '')) return;
+            // Notification links carry ?debt={debt code} (payment reminder) or ?campaign={campaign code} (campaign closed):
+            // open the matching debt's payment modal.
+            const params = new URLSearchParams(window.location.search);
+            const isCode = (value) => /^[A-Za-z0-9-]+$/.test(value || '');
+            const debtCode = params.get('debt');
+            const campaignCode = params.get('campaign');
+            const selector = isCode(debtCode)
+                ? `[data-pay-debt-code='${debtCode}']`
+                : (isCode(campaignCode) ? `[data-pay-debt-campaign='${campaignCode}']` : null);
+            if (!selector) return;
             this.$nextTick(() => {
-                const payButton = this.$root.querySelector(`[data-pay-debt-campaign='${campaignId}']`);
+                const payButton = this.$root.querySelector(selector);
                 payButton?.scrollIntoView({ block: 'center' });
                 payButton?.click();
             });
@@ -59,11 +66,13 @@
             accountName: '{{ $vietqrData['account_name'] ?? '' }}',
             amount: {{ $totalPayableAmount }},
             formattedAmount: '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}',
-            transferContent: '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}',
+            transferContent: {{ Js::from($payAllContent) }},
+            debtCode: '',
             qrPayload: {{ Js::from($vietqrData['payload'] ?? '') }},
             qrDataUrl: ''
         },
-        async openQr(amount, formattedAmount, content, customQrUrl, debtId = null, isPending = false, payload = '', account = null) {
+        async openQr(amount, formattedAmount, content, customQrUrl, debtId = null, isPending = false, payload = '', account = null, debtCode = '') {
+            this.qrData.debtCode = debtCode || '';
             this.currentDebtId = debtId || null;
             this.currentDebtPending = Boolean(isPending);
             this.qrData.amount = amount;
@@ -85,9 +94,14 @@
             }
             this.qrModalOpen = true;
         },
-        copyText(text) {
+        copiedField: null,
+        copiedTimer: null,
+        copyText(text, field) {
             navigator.clipboard?.writeText(text);
-            alert('{{ __('room.debts.copied_alert', ['text' => '']) }}' + text);
+            // No toast: the copy icon turns into a check mark for 2 seconds.
+            this.copiedField = field;
+            clearTimeout(this.copiedTimer);
+            this.copiedTimer = setTimeout(() => { this.copiedField = null; }, 2000);
         },
         openPaymentConfirm() {
             if (this.currentDebtPending) return;
@@ -171,7 +185,7 @@
             @if($paymentSummary['can_submit'])
                 <button
                     class="px-3.5 py-1.5 rounded-lg bg-[#006948] hover:bg-[#005137] text-white text-xs font-semibold shadow-2xs transition-all inline-flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
-                    @click="openQr({{ $totalPayableAmount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}', '{{ $roomUser->user_code ?: ($vietqrData['transfer_content'] ?? '') }}', '', null, false, {{ Js::from($vietqrData['payload'] ?? '') }}, {{ Js::from($vietqrData ? ['bank_name' => $vietqrData['bank_name'], 'account_number' => $vietqrData['account_number'], 'account_name' => $vietqrData['account_name']] : null) }})">
+                    @click="openQr({{ $totalPayableAmount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($totalPayableAmount) }}', {{ Js::from($payAllContent) }}, '', null, false, {{ Js::from($vietqrData['payload'] ?? '') }}, {{ Js::from($vietqrData ? ['bank_name' => $vietqrData['bank_name'], 'account_number' => $vietqrData['account_number'], 'account_name' => $vietqrData['account_name']] : null) }})">
                     <span class="material-symbols-outlined text-[17px] text-white">qr_code_2</span>
                     <span
                         class="text-white">{{ __('room.debts.pay_all', ['amount' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentSummary['submittable'])]) }}</span>
@@ -414,8 +428,9 @@
                                         @elseif(!$isPaid && $debt->remaining_amount > 0)
                                             <button
                                                 class="px-2.5 py-1 rounded bg-[#006948] text-white hover:bg-[#005137] transition-all inline-flex items-center gap-1 shadow-2xs cursor-pointer font-medium text-xs"
-                                                @if($debt->campaign_id) data-pay-debt-campaign="{{ (int) $debt->campaign_id }}" @endif
-                                                @click="openQr({{ (int) $debt->remaining_amount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount) }}', {{ Js::from($transferContents[$debt->id] ?? $debt->code) }}, '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }}, {{ Js::from($qrAccounts[$debt->id] ?? null) }})">
+                                                data-pay-debt-code="{{ $debt->code }}"
+                                                @if($debt->campaign?->code) data-pay-debt-campaign="{{ $debt->campaign->code }}" @endif
+                                                @click="openQr({{ (int) $debt->remaining_amount }}, '{{ \App\Support\Helpers\FormatHelper::formatCurrency($debt->remaining_amount) }}', {{ Js::from($transferContents[$debt->id] ?? $debt->code) }}, '', {{ $debt->id }}, {{ $debt->status === \App\Enums\DebtStatus::Pending ? 'true' : 'false' }}, {{ Js::from($qrPayloads[$debt->id] ?? '') }}, {{ Js::from($qrAccounts[$debt->id] ?? null) }}, {{ Js::from((string) $debt->code) }})">
                                                 <span class="material-symbols-outlined text-[14px] text-white">qr_code</span>
                                                 <span class="text-white">{{ __('room.debts.btn_view_qr') }}</span>
                                             </button>
@@ -609,6 +624,11 @@
                                     class="text-[11px] text-on-surface-variant">{{ __('room.debts.vietqr_amount_label') }}</span>
                                 <div class="text-lg sm:text-xl font-bold text-error tracking-tight font-tabular-nums"
                                     x-text="qrData.formattedAmount"></div>
+                                <div x-show="qrData.debtCode" x-cloak data-qr-debt-code
+                                    class="mt-1 inline-flex items-center gap-1 text-[11px] text-on-surface-variant">
+                                    <span>{{ __('room.debts.vietqr_debt_code') }}</span>
+                                    <span class="font-mono font-bold text-primary" x-text="qrData.debtCode"></span>
+                                </div>
                             </div>
                         </div>
                         <div x-show="qrData.configured"
@@ -630,8 +650,8 @@
                                         x-text="qrData.accountNumber"></span>
                                     <button
                                         class="p-0.5 rounded hover:bg-surface-container-high text-primary transition-colors flex items-center cursor-pointer"
-                                        @click="copyText(qrData.accountNumber)">
-                                        <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                                        @click="copyText(qrData.accountNumber, 'account')">
+                                        <span class="material-symbols-outlined text-[14px]" x-text="copiedField === 'account' ? 'check' : 'content_copy'">content_copy</span>
                                     </button>
                                 </div>
                             </div>
@@ -651,8 +671,8 @@
                                 </div>
                                 <button
                                     class="p-0.5 rounded hover:bg-primary-fixed text-primary transition-colors flex items-center cursor-pointer"
-                                    @click="copyText(qrData.transferContent)">
-                                    <span class="material-symbols-outlined text-[14px]">content_copy</span>
+                                    @click="copyText(qrData.transferContent, 'content')">
+                                    <span class="material-symbols-outlined text-[14px]" x-text="copiedField === 'content' ? 'check' : 'content_copy'">content_copy</span>
                                 </button>
                             </div>
                         </div>

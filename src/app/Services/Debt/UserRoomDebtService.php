@@ -57,8 +57,11 @@ class UserRoomDebtService
         // Default Payment Account in this room for VietQR
         $paymentAccount = $room->paymentAccounts()->where('status', PaymentAccountStatus::Active)->first();
         $vietqrData = null;
+        $payerName = $roomUser->payerName();
+        // Pay-all transfer content is just the member's name; the member code is a fallback when no name exists.
+        $payAllContent = $this->vietQr->payerContent($payerName) ?: (string) $roomUser->user_code;
         if ($paymentAccount && $totalPayableAmount > 0) {
-            $transferContent = $roomUser->user_code;
+            $transferContent = $payAllContent;
             $vietqrData = [
                 'bank_code'       => $paymentAccount->bank_code,
                 'bank_name'       => $paymentAccount->bank_name,
@@ -73,7 +76,6 @@ class UserRoomDebtService
         $qrPayloads = [];
         $qrAccounts = [];
         $transferContents = [];
-        $payerName = $roomUser->payerName();
         foreach ($debts->getCollection() as $debt) {
             $transferContents[$debt->id] = $this->vietQr->transferContent((string) $debt->code, $payerName);
             // A campaign debt is paid to that campaign's own active account only; without one the QR modal
@@ -121,6 +123,7 @@ class UserRoomDebtService
             'qrPayloads' => $qrPayloads,
             'qrAccounts' => $qrAccounts,
             'transferContents' => $transferContents,
+            'payAllContent' => $payAllContent,
             'activeCampaign' => $activeCampaign ? [
                 'name' => $activeCampaign->name,
                 'time_remaining' => $activeCampaign->deadline ? ($activeCampaign->deadline->isFuture() ? $activeCampaign->deadline->diffForHumans(['parts' => 2, 'short' => true]) : '00:00') : '14:22',
