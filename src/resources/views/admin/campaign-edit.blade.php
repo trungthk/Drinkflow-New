@@ -240,16 +240,8 @@
                 </div>
 
                 <!-- Tab 3: URL Crawler -->
-                <div x-show="menuTab === 'crawler'" x-cloak class="space-y-3">
-                    <div class="text-xs text-outline">{{ __('admin.crawler_desc') }}</div>
-                    <div class="flex gap-2">
-                        <input type="url" x-model="crawlerUrl" placeholder="{{ __('admin.crawler_url_placeholder') }}" class="flex-1 px-3 py-2 bg-surface border border-outline-variant rounded-lg text-xs text-on-surface focus:outline-none focus:border-primary">
-                        <button type="button" @click="previewCrawler()" :disabled="crawlerLoading || !crawlerUrl" class="px-4 py-2 bg-primary text-on-primary rounded-lg text-xs font-semibold hover:bg-primary-container disabled:opacity-50 transition-colors flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-[16px]" :class="crawlerLoading ? 'animate-spin' : ''">sync</span>
-                            <span>{{ __('admin.crawl_menu_btn') }}</span>
-                        </button>
-                    </div>
-                    <div x-show="crawlerMessage" class="text-xs p-2.5 rounded bg-surface-container-low border border-outline-variant text-on-surface" x-text="crawlerMessage"></div>
+                <div x-show="menuTab === 'crawler'" x-cloak>
+                    <x-admin.campaign-crawler-panel />
                 </div>
             </div>
         </div>

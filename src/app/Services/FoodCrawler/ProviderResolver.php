@@ -28,6 +28,6 @@ final class ProviderResolver
             }
         }
 
-        throw new UnsupportedFoodProviderException('Food crawler provider is not supported for this URL.');
+        throw new UnsupportedFoodProviderException(__('admin.crawler_unsupported_url'));
     }
 }

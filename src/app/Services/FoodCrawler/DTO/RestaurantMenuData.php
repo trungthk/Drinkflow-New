@@ -6,13 +6,21 @@ namespace App\Services\FoodCrawler\DTO;
 
 final class RestaurantMenuData
 {
-    /** @param array<int, MenuCategoryData> $categories */
+    /**
+     * @param array<int, MenuCategoryData> $categories
+     * @param string|null $restaurantName Display name of the brand/restaurant when the provider knows it.
+     * @param array<string, mixed> $report Crawl run summary (counts, skipped categories, failed URLs).
+     * @param string|null $crawledAt ISO-8601 time the crawl finished.
+     */
     public function __construct(
         public readonly string $provider,
         public readonly string $sourceUrl,
         public readonly string $externalRestaurantId,
         public readonly ?string $externalDeliveryId,
         public readonly array $categories = [],
+        public readonly ?string $restaurantName = null,
+        public readonly array $report = [],
+        public readonly ?string $crawledAt = null,
     ) {
     }
 
@@ -25,6 +33,9 @@ final class RestaurantMenuData
             'restaurant' => ['external_id' => $this->externalRestaurantId],
             'external_delivery_id' => $this->externalDeliveryId,
             'categories' => array_map(static fn (MenuCategoryData $category): array => $category->toArray(), $this->categories),
+            'restaurant_name' => $this->restaurantName,
+            'report' => $this->report,
+            'crawled_at' => $this->crawledAt,
         ];
     }
 

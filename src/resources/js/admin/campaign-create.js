@@ -115,6 +115,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         crawlerUrl: '',
         crawlerLoading: false,
         crawlerMessage: '',
+        crawlerReport: null,
         rawJson: '',
         form: {
             name: initialCampaign?.name || campaignSettings.name,
@@ -585,6 +586,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         async previewCrawler() {
             if (!this.crawlerUrl) return;
             this.crawlerLoading = true;
+            this.crawlerReport = null;
             this.crawlerMessage = msg('crawlerConnecting', { url: this.crawlerUrl });
 
             try {
@@ -607,6 +609,7 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                     throw new Error(response.message || msg('crawlerFailed'));
                 }
                 const data = response.data || response;
+                this.crawlerReport = this.crawlerReportView(data.report);
                 if (data.items && data.items.length > 0) {
                     this.applyMenuItems(data.items.map(item => ({
                         ...item,
@@ -623,6 +626,25 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             } finally {
                 this.crawlerLoading = false;
             }
+        },
+
+        /** Turn the crawl run summary returned by the server into display strings (null when absent). */
+        crawlerReportView(report) {
+            if (!report || typeof report !== 'object') return null;
+            const skipped = Array.isArray(report.categories_skipped_empty) ? report.categories_skipped_empty : [];
+            return {
+                summary: msg('crawlerReportSummary', {
+                    found: report.categories_found ?? 0,
+                    with: report.categories_with_items ?? 0,
+                    empty: skipped.length,
+                    products: report.products_found ?? 0,
+                    new: report.products_new ?? 0,
+                    duplicates: report.products_duplicate ?? 0,
+                    failed: report.products_failed ?? 0,
+                }),
+                skipped: skipped.length ? msg('crawlerReportSkipped', { names: skipped.join(', ') }) : '',
+                errors: Array.isArray(report.errors) ? report.errors : [],
+            };
         },
 
         formatCurrencyDisplay(value) {

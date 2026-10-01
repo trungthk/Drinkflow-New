@@ -16,5 +16,30 @@ return [
     ],
     'providers' => [
         \App\Services\FoodCrawler\Providers\ShopeeFoodProvider::class,
+        \App\Services\FoodCrawler\Providers\HighlandsCoffeeProvider::class,
+    ],
+
+    // Plain-HTML brand websites crawled over HTTP (no headless browser).
+    // A URL belongs to a brand only when its host equals one of `domains` or is a subdomain of one
+    // (exact suffix ".domain"); substring matches such as "highlandscoffee.com.vn.evil.test" never pass.
+    'http' => [
+        'timeout' => (int) env('FOOD_CRAWLER_HTTP_TIMEOUT', 10),
+        'retries' => (int) env('FOOD_CRAWLER_HTTP_RETRIES', 2),
+        'retry_delay_ms' => (int) env('FOOD_CRAWLER_HTTP_RETRY_DELAY_MS', 500),
+        // Pause between two requests of one crawl run so the source site is not hammered.
+        'request_delay_ms' => (int) env('FOOD_CRAWLER_HTTP_REQUEST_DELAY_MS', 250),
+        'max_redirects' => 3,
+        'user_agent' => 'Mozilla/5.0 (compatible; DrinkFlowMenuBot/1.0)',
+    ],
+    'brands' => [
+        'highlands' => [
+            'name' => 'Highlands Coffee',
+            // highlandscoffee.com is not listed: it did not resolve to a working Highlands site when this
+            // crawler was built (HTTP 523). Add it here once it is confirmed to belong to Highlands.
+            'domains' => ['highlandscoffee.com.vn'],
+            'menu_url' => 'https://www.highlandscoffee.com.vn/vn/san-pham.html',
+            // Safety cap on product detail pages fetched in one run.
+            'max_products' => 200,
+        ],
     ],
 ];

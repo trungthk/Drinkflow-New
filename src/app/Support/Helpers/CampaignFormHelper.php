@@ -30,6 +30,8 @@ class CampaignFormHelper
             'crawlerSuccess' => __('admin.campaign_form_crawler_success'),
             'crawlerFallback' => __('admin.campaign_form_crawler_fallback'),
             'crawlerError' => __('admin.campaign_form_crawler_error'),
+            'crawlerReportSummary' => __('admin.campaign_form_crawler_report_summary'),
+            'crawlerReportSkipped' => __('admin.campaign_form_crawler_report_skipped'),
             'nameRequired' => __('admin.campaign_form_name_required'),
             'createFailed' => __('admin.campaign_form_create_failed'),
             'updateFailed' => __('admin.campaign_form_update_failed'),

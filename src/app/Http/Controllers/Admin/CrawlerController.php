@@ -50,8 +50,11 @@ class CrawlerController extends Controller
                 'source_url' => $preview->source_url,
                 'provider' => $menu->provider,
                 'restaurant' => ['external_id' => $menu->externalRestaurantId],
+                'restaurant_name' => $menu->restaurantName,
                 'categories' => $menu->toArray()['categories'],
                 'items' => $items,
+                'report' => $menu->report,
+                'crawled_at' => $menu->crawledAt,
                 'expires_at' => $preview->expires_at,
             ],
         ], 201);

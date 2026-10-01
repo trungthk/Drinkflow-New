@@ -6,7 +6,11 @@ namespace App\Services\FoodCrawler\DTO;
 
 final class MenuProductData
 {
-    /** @param array<int, ProductOptionGroupData> $optionGroups */
+    /**
+     * @param array<int, ProductOptionGroupData> $optionGroups
+     * @param array<int, array{name: string, price_delta: int}> $sizes Sizes in the campaign item shape.
+     * @param string|null $sourceUrl Product page on the source website.
+     */
     public function __construct(
         public readonly string $externalId,
         public readonly string $name,
@@ -19,6 +23,8 @@ final class MenuProductData
         public readonly bool $isAvailable,
         public readonly int $displayOrder,
         public readonly array $optionGroups = [],
+        public readonly array $sizes = [],
+        public readonly ?string $sourceUrl = null,
     ) {
     }
 
@@ -38,6 +44,8 @@ final class MenuProductData
             'sort_order' => $this->displayOrder,
             'option_groups' => array_map(static fn (ProductOptionGroupData $group): array => $group->toArray(), $this->optionGroups),
             'source_item_key' => $this->externalId,
+            'options' => $this->sizes,
+            'source_url' => $this->sourceUrl,
         ];
     }
 }

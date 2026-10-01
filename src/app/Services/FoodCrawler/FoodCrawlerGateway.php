@@ -26,7 +26,7 @@ final class FoodCrawlerGateway
         $url = trim($url);
         $parts = parse_url($url);
         if (! is_array($parts) || ! in_array($parts['scheme'] ?? '', ['http', 'https'], true) || ! isset($parts['host'])) {
-            throw new FoodCrawlerException('The crawler URL must use HTTP or HTTPS.');
+            throw new FoodCrawlerException(__('admin.crawler_invalid_url'));
         }
 
         // Resolve the provider first: its host allowlist is the primary SSRF control.
@@ -37,7 +37,7 @@ final class FoodCrawlerGateway
         try {
             $this->guard->assertSafe($url);
         } catch (InvalidArgumentException) {
-            throw new FoodCrawlerException('The crawler URL must point to a public host.');
+            throw new FoodCrawlerException(__('admin.crawler_private_network_forbidden'));
         }
 
         return $provider->crawl($url);
