@@ -1,0 +1,84 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature;
+
+use App\Models\Admin;
+use App\Models\AdminInvoice;
+use App\Models\Package;
+use App\Services\Billing\InvoicePdfService;
+use App\Services\Subscription\SubscriptionService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Mockery\MockInterface;
+use Tests\TestCase;
+
+/**
+ * An Agent downloads its own platform invoices as PDF from /admin/billing.
+ */
+class InvoiceDownloadTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private Admin $alice;
+
+    private Admin $bob;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $package = Package::create(['code' => 'std', 'name' => 'Standard', 'monthly_price' => 500000, 'room_limit' => 5, 'status' => 'active']);
+        foreach (['alice', 'bob'] as $name) {
+            $this->{$name} = Admin::create(['name' => ucfirst($name), 'company' => 'Tea Corp', 'email' => $name.'@drinkflow.test', 'password' => 'password123', 'status' => 'active']);
+            app(SubscriptionService::class)->activate($this->{$name}, $package);
+        }
+        $this->artisan('billing:generate-invoices')->assertSuccessful();
+    }
+
+    private function invoiceOf(Admin $admin): AdminInvoice
+    {
+        return $admin->invoices()->latest('id')->firstOrFail();
+    }
+
+    public function test_billing_page_links_each_invoice_pdf(): void
+    {
+        $invoice = $this->invoiceOf($this->alice);
+
+        $this->actingAs($this->alice, 'admin')->get(route('admin.billing.index'))
+            ->assertOk()
+            ->assertSee(route('admin.billing.download', $invoice), false);
+    }
+
+    public function test_agent_downloads_its_invoice_as_pdf(): void
+    {
+        $invoice = $this->invoiceOf($this->alice);
+        $this->mock(InvoicePdfService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('pdf')->once()->andReturn('%PDF-1.4 test');
+            $mock->shouldReceive('fileName')->andReturn('drinkflow-invoice-test.pdf');
+        });
+
+        $this->actingAs($this->alice, 'admin')->get(route('admin.billing.download', $invoice))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf')
+            ->assertHeader('Content-Disposition', 'attachment; filename="drinkflow-invoice-test.pdf"');
+    }
+
+    public function test_printable_page_is_served_when_pdf_rendering_fails(): void
+    {
+        $invoice = $this->invoiceOf($this->alice);
+        $this->partialMock(InvoicePdfService::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('pdf')->andThrow(new \RuntimeException('Chrome missing'));
+        });
+
+        $this->actingAs($this->alice, 'admin')->get(route('admin.billing.download', $invoice))
+            ->assertOk()
+            ->assertSee((string) $invoice->number)
+            ->assertSee('Tea Corp')
+            ->assertSee('window.print()', false);
+    }
+
+    public function test_another_agents_invoice_is_not_found(): void
+    {
+        $this->actingAs($this->alice, 'admin')->get(route('admin.billing.download', $this->invoiceOf($this->bob)))->assertNotFound();
+    }
+}

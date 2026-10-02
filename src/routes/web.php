@@ -23,6 +23,12 @@ Route::post('/check-order/{campaign}/{hash}', [\App\Http\Controllers\Public\Orde
     ->middleware(['signed', 'throttle:public-order-check'])
     ->name('public.order-check.lookup');
 
+// Hướng dẫn cho Đại lý (Agents) phải được đăng ký trước route động /guides/{slug} để không bị nuốt.
+Route::get('/guides/agent', [\App\Http\Controllers\Public\GuideController::class, 'agentIndex'])->name('public.guides.agent');
+Route::get('/guides/agent/{slug}', [\App\Http\Controllers\Public\GuideController::class, 'agentShow'])
+    ->where('slug', '[a-z0-9\-]+')
+    ->name('public.guides.agent.show');
+
 Route::get('/guides', [\App\Http\Controllers\Public\GuideController::class, 'index'])->name('public.guides');
 Route::get('/guides/{slug}', [\App\Http\Controllers\Public\GuideController::class, 'show'])
     ->where('slug', '[a-z0-9\-]+')

@@ -74,6 +74,29 @@ export function initAdminOrderOnBehalf() {
      */
     let cart = [];
 
+    /** Who placed the edited order when it is a proxy ("đặt dùm") order; null otherwise. */
+    let proxyBy = null;
+
+    /**
+     * Badges shown under a cart line: "Trả riêng" for a self-paid line, "Đặt dùm" for every line of a proxy order.
+     *
+     * @param {{is_self_paid: boolean}} line Cart line.
+     * @returns {string} HTML.
+     */
+    const lineBadges = (line) => {
+        const badges = [];
+        if (line.is_self_paid) {
+            badges.push('<span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300">'
+                + '<span class="material-symbols-outlined text-[12px]">payments</span>' + escapeHtml(i18n.selfPaidBadge || '') + '</span>');
+        }
+        if (proxyBy !== null) {
+            badges.push('<span class="inline-flex items-center gap-1 rounded-full bg-violet-50 border border-violet-200 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-950/40 dark:border-violet-800 dark:text-violet-300" title="' + escapeHtml(proxyBy) + '">'
+                + '<span class="material-symbols-outlined text-[12px]">account_tree</span>' + escapeHtml(i18n.proxyBadge || '') + '</span>');
+        }
+
+        return badges.length ? '<div class="mt-1 flex flex-wrap gap-1">' + badges.join('') + '</div>' : '';
+    };
+
     const findItem = (id) => menu.find((item) => item.id === Number(id));
     const clampQuantity = (value) => Math.min(MAX_QUANTITY, Math.max(1, Number.parseInt(value, 10) || 1));
 
@@ -150,6 +173,7 @@ export function initAdminOrderOnBehalf() {
             + (line.unavailable ? 'border-rose-300 bg-rose-50/60 dark:border-rose-800 dark:bg-rose-950/30' : 'border-outline-variant/60') + '">'
             + '<div class="min-w-0"><div class="font-semibold text-on-surface">' + escapeHtml(line.label) + '</div>'
             + (line.detail ? '<div class="text-[11px] text-outline">' + escapeHtml(line.detail) + '</div>' : '')
+            + lineBadges(line)
             + (line.unavailable ? '<div class="text-[11px] font-semibold text-rose-600 dark:text-rose-300">' + escapeHtml(i18n.unavailable || '') + '</div>' : '')
             + '</div>'
             + '<div class="flex items-center gap-2 shrink-0">'
@@ -184,7 +208,7 @@ export function initAdminOrderOnBehalf() {
         note,
         is_self_paid: selfPaid,
         label: item.name + (size ? ' (' + size.name + ')' : ''),
-        detail: [toppings.map((topping) => '+ ' + topping.name).join(', '), note, selfPaid ? i18n.selfPaid : ''].filter(Boolean).join(' · '),
+        detail: [toppings.map((topping) => '+ ' + topping.name).join(', '), note].filter(Boolean).join(' · '),
         unit: item.price + (size?.price_delta || 0) + toppings.reduce((sum, topping) => sum + topping.price, 0),
         unavailable: false,
     });
@@ -217,7 +241,7 @@ export function initAdminOrderOnBehalf() {
             note,
             is_self_paid: selfPaid,
             label: (saved.item_name || '') + (saved.size_name ? ' (' + saved.size_name + ')' : ''),
-            detail: [savedToppings.map((topping) => '+ ' + topping.topping_name).join(', '), note, selfPaid ? i18n.selfPaid : ''].filter(Boolean).join(' · '),
+            detail: [savedToppings.map((topping) => '+ ' + topping.topping_name).join(', '), note].filter(Boolean).join(' · '),
             unit: 0,
             unavailable: true,
         };
@@ -243,6 +267,7 @@ export function initAdminOrderOnBehalf() {
 
     const reset = () => {
         cart = [];
+        proxyBy = null;
         setSelect(memberSelect, '');
         setSelect(itemSelect, '');
         noteInput.value = '';
@@ -322,6 +347,11 @@ export function initAdminOrderOnBehalf() {
             const order = (await response.json()).data || {};
             // Ignore a late response when the admin already switched to another order.
             if (mode.orderId !== orderId) return;
+            // A child order (parent_id) was placed by another member for this one: "đặt dùm".
+            const parentMember = order.parent?.room_user;
+            proxyBy = order.parent_id
+                ? (i18n.proxyBy || ':name').replace(':name', parentMember?.global_user?.name || parentMember?.display_name || '')
+                : null;
             cart = (order.items || []).map(lineFromOrderItem);
             noteInput.value = order.note || '';
             renderCart();

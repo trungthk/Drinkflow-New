@@ -296,9 +296,10 @@ class CampaignController extends Controller
      * @param Campaign $campaign Campaign entity.
      * @param \App\Services\Admin\AdminCampaignDetailService $detailService Campaign detail service.
      * @param PublicOrderCheckService $orderCheckService Public order check service.
+     * @param \App\Services\Admin\AdminOrderOnBehalfService $onBehalf Data of the "order on behalf" / "edit order" modal.
      * @return JsonResponse|View Response payload or Blade view.
      */
-    public function showOrders(Request $request, Room $room, Campaign $campaign, \App\Services\Admin\AdminCampaignDetailService $detailService, PublicOrderCheckService $orderCheckService): JsonResponse|View
+    public function showOrders(Request $request, Room $room, Campaign $campaign, \App\Services\Admin\AdminCampaignDetailService $detailService, PublicOrderCheckService $orderCheckService, \App\Services\Admin\AdminOrderOnBehalfService $onBehalf): JsonResponse|View
     {
         $this->assertCampaign($campaign);
 
@@ -315,6 +316,8 @@ class CampaignController extends Controller
                 ['campaign' => $campaign->id, 'hash' => $orderCheckService->hash($campaign)]
             )
             : null;
+        // Same "order on behalf" / "edit order" modal as the orders page; null once the campaign is not live.
+        $data['onBehalfData'] = $onBehalf->formData($room, $campaign);
 
         return view('admin.campaign-orders', $data);
     }

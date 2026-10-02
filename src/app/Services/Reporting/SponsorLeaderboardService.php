@@ -9,18 +9,24 @@ use App\Models\Campaign;
 use App\Models\Order;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Services\Campaign\CampaignSponsorshipCalculator;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class SponsorLeaderboardService
 {
+    public function __construct(private readonly CampaignSponsorshipCalculator $sponsorship)
+    {
+    }
+
     /**
      * Rank the actual sponsors of a room's campaigns (the people/entities who funded the
      * subsidy), never the members who merely benefited from a sponsored order.
      *
      * A campaign's sponsor is resolved the same way the campaign detail page does: for
-     * sponsor_type "full" the whole order total is treated as the sponsored amount and split
-     * across `sponsor_allocations` (specific room members funding it); for any other sponsor
+     * sponsor_type "full" the order total minus the "trả riêng" (self-paid) lines is the sponsored
+     * amount, split across `sponsor_allocations` exactly like the sponsor debts written on close
+     * ({@see CampaignSponsorshipCalculator}); for any other sponsor
      * type, the sponsored amount is `SUM(orders.sponsor_amount)` and attributed to the free-text
      * `sponsor_name` (e.g. a department or external sponsor with no room account).
      *
@@ -37,25 +43,42 @@ class SponsorLeaderboardService
         if ($from !== null && $to !== null) {
             $campaignsQuery->whereBetween('created_at', [$from, $to]);
         }
-        $campaigns = $campaignsQuery->get(['id', 'sponsor_name', 'sponsor_type', 'sponsor_allocations', 'delivery_fee', 'discount']);
+        $campaigns = $campaignsQuery->get(['id', 'sponsor_name', 'sponsor_type', 'sponsor_allocations', 'delivery_fee', 'discount', 'self_paid_price_basis']);
 
         if ($campaigns->isEmpty()) {
             return collect();
         }
 
+        $statusFilter = function ($query) use ($orderStatuses): void {
+            $orderStatuses !== null
+                ? $query->whereIn('status', array_map(static fn (OrderStatus $status): string => $status->value, $orderStatuses))
+                : $query->whereNotIn('status', [OrderStatus::Cancelled->value]);
+        };
+
         $orderTotalsByCampaign = Order::query()
             ->whereIn('campaign_id', $campaigns->pluck('id'))
-            ->when(
-                $orderStatuses !== null,
-                fn ($query) => $query->whereIn('status', array_map(static fn (OrderStatus $status): string => $status->value, $orderStatuses)),
-                fn ($query) => $query->whereNotIn('status', [OrderStatus::Cancelled->value]),
-            )
+            ->where($statusFilter)
             ->selectRaw('campaign_id, SUM(subtotal) as gross_subtotal, SUM(sponsor_amount) as sponsor_amount_total')
             ->groupBy('campaign_id')
             ->get()
             ->keyBy('campaign_id');
 
-        $totals = $this->accumulateSponsorTotals($campaigns, $orderTotalsByCampaign);
+        // Fully sponsored campaigns need their order lines to leave the self-paid ones out.
+        $fullSponsorCampaigns = $campaigns->filter(fn (Campaign $campaign): bool => $this->sponsorship->isFullSponsorship($campaign));
+        $fullSponsorOrders = $fullSponsorCampaigns->isEmpty() ? collect() : Order::query()
+            ->whereIn('campaign_id', $fullSponsorCampaigns->pluck('id'))
+            ->where($statusFilter)
+            ->with('items:id,order_id,line_subtotal,is_self_paid')
+            ->get(['id', 'campaign_id', 'room_user_id', 'subtotal'])
+            ->groupBy('campaign_id');
+        $sponsorSharesByCampaign = $fullSponsorCampaigns->mapWithKeys(fn (Campaign $campaign): array => [
+            $campaign->id => collect($this->sponsorship->allocate(
+                $campaign,
+                $this->sponsorship->fullSponsorPool($campaign, $fullSponsorOrders->get($campaign->id, collect())),
+            ))->keyBy('room_user_id'),
+        ]);
+
+        $totals = $this->accumulateSponsorTotals($campaigns, $orderTotalsByCampaign, $sponsorSharesByCampaign);
 
         return $this->resolveLeaderboard($totals, $limit);
     }
@@ -65,9 +88,10 @@ class SponsorLeaderboardService
      *
      * @param Collection<int, Campaign> $campaigns Campaigns to attribute.
      * @param Collection<int, object{gross_subtotal: int, sponsor_amount_total: int}> $orderTotalsByCampaign Order aggregates keyed by campaign id.
+     * @param Collection<int, Collection<int, array{amount: int}>> $sponsorSharesByCampaign Full-sponsorship shares keyed by campaign id, then room_user_id.
      * @return array<string, array{room_user_id: ?int, name: ?string, campaigns: int, amount: int}> Running totals keyed by sponsor identity.
      */
-    private function accumulateSponsorTotals(Collection $campaigns, Collection $orderTotalsByCampaign): array
+    private function accumulateSponsorTotals(Collection $campaigns, Collection $orderTotalsByCampaign, Collection $sponsorSharesByCampaign): array
     {
         $totals = [];
 
@@ -77,9 +101,9 @@ class SponsorLeaderboardService
                 continue;
             }
 
-            $grossTotal = max(0, (int) $orderTotals->gross_subtotal + (int) ($campaign->delivery_fee ?? 0) - (int) ($campaign->discount ?? 0));
-            $sponsorSubsidy = $campaign->sponsor_type === Campaign::SPONSOR_TYPE_FULL
-                ? $grossTotal
+            $shares = $sponsorSharesByCampaign->get($campaign->id);
+            $sponsorSubsidy = $shares !== null
+                ? (int) $shares->sum('amount')
                 : (int) $orderTotals->sponsor_amount_total;
 
             if ($sponsorSubsidy <= 0) {
@@ -105,7 +129,7 @@ class SponsorLeaderboardService
                     continue;
                 }
                 $percentage = (float) ($allocation['percentage'] ?? 0);
-                $amount = (int) round(($sponsorSubsidy * $percentage) / 100);
+                $amount = (int) ($shares?->get($roomUserId)['amount'] ?? round(($sponsorSubsidy * $percentage) / 100));
                 $key = 'user:'.$roomUserId;
                 $totals[$key] ??= ['room_user_id' => $roomUserId, 'name' => null, 'campaigns' => 0, 'amount' => 0];
                 $totals[$key]['campaigns']++;

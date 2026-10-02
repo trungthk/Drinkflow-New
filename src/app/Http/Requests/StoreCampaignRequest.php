@@ -36,7 +36,7 @@ class StoreCampaignRequest extends FormRequest
             'sponsor_description' => ['nullable', 'string', 'max:2000'],
             'sponsor_allocations' => ['nullable', 'array'],
             'sponsor_allocations.*.room_user_id' => ['required', 'integer'],
-            'sponsor_allocations.*.percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+            'sponsor_allocations.*.percentage' => ['required', 'integer', 'min:0', 'max:100'],
             'deadline' => ['nullable', 'date', 'after:now'],
             'max_budget' => ['required', 'integer', 'min:0'],
             'flat_price' => ['nullable', 'integer', 'min:0'],

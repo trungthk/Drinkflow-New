@@ -81,6 +81,37 @@ class SubscriptionManagementTest extends TestCase
         $this->actingAs($legacy, 'admin')->post(route('admin.subscription.change'), ['package_id' => $this->large->id])->assertSessionHasErrors('package_id');
     }
 
+    public function test_auto_renew_can_be_switched_off_and_on_behind_a_confirmation(): void
+    {
+        $page = fn () => $this->actingAs($this->agent, 'admin')->get(route('admin.subscription.show'))->assertOk();
+
+        $page()->assertSee('data-auto-renew="on"', false)
+            ->assertSee('data-confirm-message="'.e(__('platform.subscriptions.cancel_confirm', ['date' => $this->current()->expires_at->toAppDate()])).'"', false)
+            ->assertDontSee('return confirm(', false);
+
+        $this->actingAs($this->agent, 'admin')->post(route('admin.subscription.cancel'))->assertRedirect();
+        $page()->assertSee('data-auto-renew="off"', false)->assertSee(__('platform.subscriptions.resume'));
+
+        $this->actingAs($this->agent, 'admin')->post(route('admin.subscription.resume'))->assertRedirect();
+        $page()->assertSee('data-auto-renew="on"', false);
+
+        // With auto-renew on, the scheduler renews the ended period.
+        $this->travelTo($this->current()->expires_at->copy()->addMinute());
+        $this->assertSame(1, $this->service->processDuePeriods()['renewed']);
+        $this->assertTrue($this->current()->expires_at->isFuture());
+    }
+
+    public function test_account_pages_use_the_shared_empty_state(): void
+    {
+        $this->actingAs($this->agent, 'admin')->get(route('admin.billing.index'))
+            ->assertOk()
+            ->assertSee(__('platform.billing.no_invoices'))
+            ->assertSee('material-symbols-outlined text-[26px]">receipt_long', false);
+        $this->actingAs($this->agent, 'admin')->get(route('admin.rooms.index'))
+            ->assertOk()
+            ->assertSee('material-symbols-outlined text-[26px]">meeting_room', false);
+    }
+
     public function test_upgrade_applies_now_with_a_proration_credit(): void
     {
         $old = $this->current();

@@ -450,6 +450,7 @@ return [
     ],
     'inbox' => [
         'title' => 'Thông báo của tôi',
+        'platform_default_title' => 'Thông báo hệ thống',
         'description' => 'Chỉ hiển thị thông báo gửi tới tài khoản quản trị đang đăng nhập · :count chưa đọc.',
         'unread' => 'Thông báo chưa đọc',
         'mark_read' => 'Đánh dấu đã đọc',

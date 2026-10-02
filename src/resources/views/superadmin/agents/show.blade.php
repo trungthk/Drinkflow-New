@@ -73,6 +73,17 @@
                         </form>
                     @endif
                 </section>
+                @if ($canManage && $agent->status === \App\Enums\AdminStatus::Pending)
+                    <section class="sa-card sa-section">
+                        <div class="sa-section-header"><div><h2>{{ __('platform.agents.invitation_title') }}</h2><p>{{ __('platform.agents.invitation_hint') }}</p></div></div>
+                        <p class="text-sm"><strong class="text-on-surface">{{ __('platform.agents.invited_at') }}</strong> {{ $agent->invited_at !== null ? \Illuminate\Support\Carbon::parse($agent->invited_at)->toAppDateTime() : __('platform.agents.not_invited') }}</p>
+                        <p class="text-xs text-outline mt-1">{{ $agent->email_verified_at === null ? __('platform.agents.activation_pending') : __('platform.agents.activation_ready') }}</p>
+                        <form method="POST" action="{{ route('superadmin.agents.resend-activation', $agent) }}" class="mt-4 pt-4 border-t border-outline-variant">
+                            @csrf
+                            <button type="submit" class="sa-button"><span class="material-symbols-outlined text-[16px]">forward_to_inbox</span>{{ __('platform.agents.resend_invitation') }}</button>
+                        </form>
+                    </section>
+                @endif
                 @if ($canManage && in_array($agent->status, [\App\Enums\AdminStatus::Active, \App\Enums\AdminStatus::Suspended], true))
                     <section class="sa-card sa-section">
                         @php $suspended = $agent->status === \App\Enums\AdminStatus::Suspended; @endphp

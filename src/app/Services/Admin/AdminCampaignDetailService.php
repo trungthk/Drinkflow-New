@@ -13,9 +13,14 @@ use App\Models\CampaignParticipant;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Room;
+use App\Services\Campaign\CampaignSponsorshipCalculator;
 
 class AdminCampaignDetailService
 {
+    public function __construct(private readonly CampaignSponsorshipCalculator $sponsorship)
+    {
+    }
+
     /**
      * Build aggregated financial, participation and item details for campaign view.
      *
@@ -104,9 +109,10 @@ class AdminCampaignDetailService
 
         $grossSubtotal = (int) $orders->sum('subtotal');
         $grossTotal = max(0, $grossSubtotal + (int) ($campaign->delivery_fee ?? 0) - (int) ($campaign->discount ?? 0));
-        $sponsorSubsidy = $campaign->sponsor_type === Campaign::SPONSOR_TYPE_FULL
-            ? $grossTotal
-            : (int) $orders->sum('sponsor_amount');
+        // Full sponsorship covers everything except "trả riêng" lines: same figures as the debts written on close.
+        $isFullSponsorship = $this->sponsorship->isFullSponsorship($campaign);
+        $sponsorPool = $isFullSponsorship ? $this->sponsorship->fullSponsorPool($campaign, $orders) : null;
+        $sponsorSubsidy = $sponsorPool !== null ? $sponsorPool['pool'] : (int) $orders->sum('sponsor_amount');
         $netPayables = (int) $orders->sum('final_amount');
         $paidViaQr = (int) $campaign->debts->sum('paid_amount');
         $memberDebt = (int) $campaign->debts->whereIn('status', [DebtStatus::Unpaid->value, DebtStatus::Partial->value])->sum('remaining_amount');
@@ -117,25 +123,24 @@ class AdminCampaignDetailService
             ? $room->roomUsers()->with('globalUser')->whereIn('id', $sponsorUserIds)->get()->keyBy('id')
             : collect();
 
-        $sponsorsList = $sponsorAllocationsData->map(function ($alloc) use ($sponsorRoomUsers, $sponsorSubsidy): array {
-            $user = $sponsorRoomUsers->get((int) ($alloc['room_user_id'] ?? 0));
+        // Each sponsor's amount is exactly its debt on close (rounding remainder on the first sponsor).
+        $sponsorShares = $sponsorPool !== null
+            ? collect($this->sponsorship->allocate($campaign, $sponsorPool))->keyBy('room_user_id')
+            : collect();
+        $sponsorsList = $sponsorAllocationsData->map(function ($alloc) use ($sponsorRoomUsers, $sponsorSubsidy, $sponsorShares): array {
+            $roomUserId = (int) ($alloc['room_user_id'] ?? 0);
+            $user = $sponsorRoomUsers->get($roomUserId);
             $name = $user?->display_name ?? $user?->globalUser?->name ?? __('admin.sponsor_info');
             $percentage = (float) ($alloc['percentage'] ?? 0);
-            $amount = (int) round(($sponsorSubsidy * $percentage) / 100);
+
             return [
                 'name' => $name,
-                'percentage' => $percentage,
-                'amount' => $amount,
+                // Whole percents are shown without decimals (older campaigns may store 33.33).
+                'percentage' => floor($percentage) === $percentage ? (int) $percentage : round($percentage, 2),
+                'amount' => (int) ($sponsorShares->get($roomUserId)['amount'] ?? round(($sponsorSubsidy * $percentage) / 100)),
                 'avatar' => $user?->globalUser?->avatar_url ?? null,
             ];
         })->values();
-
-        // Match the sponsor debt allocation: assign rounding remainder to the first sponsor.
-        if ($campaign->sponsor_type === Campaign::SPONSOR_TYPE_FULL && $sponsorsList->isNotEmpty()) {
-            $firstSponsor = $sponsorsList->first();
-            $firstSponsor['amount'] = max(0, $firstSponsor['amount'] + $sponsorSubsidy - (int) $sponsorsList->sum('amount'));
-            $sponsorsList->put(0, $firstSponsor);
-        }
 
         if ($sponsorsList->isEmpty() && !empty($campaign->sponsor_name)) {
             $sponsorsList->push([
@@ -284,8 +289,9 @@ class AdminCampaignDetailService
         $deliveryFee = (int) ($campaign->delivery_fee ?? 0);
         $discount = (int) ($campaign->discount ?? 0);
         $grossTotal = $campaign->grossTotal($grossSubtotal);
-        $sponsorTotal = $campaign->sponsor_type === Campaign::SPONSOR_TYPE_FULL
-            ? $grossTotal
+        // Self-paid lines are billed to their member, never to the sponsors (same rule as the close action).
+        $sponsorTotal = $this->sponsorship->isFullSponsorship($campaign)
+            ? $this->sponsorship->fullSponsorPool($campaign, $orders)['pool']
             : (int) $orders->sum('sponsor_amount');
 
         return [

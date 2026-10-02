@@ -42,6 +42,10 @@ class AgentRegistrationController extends Controller
         $registrations = Admin::query()
             ->with('requestedPackage')
             ->where('status', AdminStatus::Pending->value)
+            // Invited Agents carry `invited_at` and activate themselves from the invitation email,
+            // so they never enter the self-service review queue.
+            ->whereNotNull('registered_at')
+            ->whereNull('invited_at')
             ->when($search !== '', static fn ($query) => $query->where(static fn ($q) => $q->where('name', 'like', "%{$search}%")
                 ->orWhere('email', 'like', "%{$search}%")
                 ->orWhere('company', 'like', "%{$search}%")))

@@ -25,6 +25,15 @@ Route::get('/admin/register/verify/{admin}/{hash}', [\App\Http\Controllers\Admin
     ->whereNumber('admin')
     ->middleware(['signed', 'throttle:6,1'])
     ->name('admin.register.verify');
+// Invited Agent activation: choose the sign-in value, then the account becomes active.
+Route::get('/admin/activate/{admin}/{hash}', [\App\Http\Controllers\Admin\ActivationController::class, 'form'])
+    ->whereNumber('admin')
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('admin.activate.form');
+Route::post('/admin/activate/{admin}/{hash}', [\App\Http\Controllers\Admin\ActivationController::class, 'activate'])
+    ->whereNumber('admin')
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('admin.activate');
 Route::get('/admin/forgot-password',[\App\Http\Controllers\Admin\AuthController::class, 'forgotPasswordPage'])
     ->middleware('throttle:admin-forgot-password')
     ->name('admin.forgot-password.page');
@@ -69,6 +78,7 @@ Route::middleware('auth:admin')->prefix('admin/rooms')->group(function () {
 Route::middleware('auth:admin')->prefix('admin/subscription')->group(function () {
     Route::get('/', [\App\Http\Controllers\Admin\SubscriptionController::class, 'show'])->name('admin.subscription.show');
     Route::post('/change', [\App\Http\Controllers\Admin\SubscriptionController::class, 'change'])->middleware('throttle:10,1')->name('admin.subscription.change');
+    Route::post('/upgrade/cancel', [\App\Http\Controllers\Admin\SubscriptionController::class, 'cancelUpgrade'])->middleware('throttle:10,1')->name('admin.subscription.upgrade.cancel');
     Route::post('/scheduled/cancel', [\App\Http\Controllers\Admin\SubscriptionController::class, 'cancelScheduled'])->middleware('throttle:10,1')->name('admin.subscription.scheduled.cancel');
     Route::post('/cancel', [\App\Http\Controllers\Admin\SubscriptionController::class, 'cancel'])->middleware('throttle:10,1')->name('admin.subscription.cancel');
     Route::post('/resume', [\App\Http\Controllers\Admin\SubscriptionController::class, 'resume'])->middleware('throttle:10,1')->name('admin.subscription.resume');
@@ -76,6 +86,7 @@ Route::middleware('auth:admin')->prefix('admin/subscription')->group(function ()
 
 // The Agent's platform billing history (invoices and payments of its own account).
 Route::get('/admin/billing', [\App\Http\Controllers\Admin\BillingController::class, 'index'])->middleware('auth:admin')->name('admin.billing.index');
+Route::get('/admin/billing/invoices/{invoice}/pdf', [\App\Http\Controllers\Admin\BillingController::class, 'download'])->whereNumber('invoice')->middleware(['auth:admin', 'throttle:20,1'])->name('admin.billing.download');
 Route::get('/admin/billing/invoices/{invoice}/pay', [\App\Http\Controllers\Admin\BillingController::class, 'pay'])->whereNumber('invoice')->middleware(['auth:admin', 'throttle:10,1'])->name('admin.billing.pay');
 
 Route::middleware(['auth:admin', 'admin.room', 'room.subscription'])

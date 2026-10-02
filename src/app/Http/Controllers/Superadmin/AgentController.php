@@ -6,12 +6,14 @@ namespace App\Http\Controllers\Superadmin;
 
 use App\Actions\Superadmin\AgentLifecycleAction;
 use App\Actions\Superadmin\AssignAgentAction;
+use App\Actions\Superadmin\InviteAgentAction;
 use App\Enums\AdminStatus;
 use App\Enums\Permission;
 use App\Enums\SuperadminStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AgentAssignmentRequest;
 use App\Http\Requests\AgentStatusRequest;
+use App\Http\Requests\StoreAgentRequest;
 use App\Models\Admin;
 use App\Models\AuditLog;
 use App\Models\Campaign;
@@ -71,6 +73,51 @@ class AgentController extends Controller
             'packages' => Package::query()->ordered()->get(['id', 'name']),
             'filters' => ['search' => $search, 'status' => $status?->value ?? '', 'package' => $packageId],
         ]);
+    }
+
+    /**
+     * Agent creation form: the new Agent is pending until it activates its account.
+     *
+     * @return View Form.
+     */
+    public function create(): View
+    {
+        return view('superadmin.agents.create', [
+            'packages' => Package::query()->selectable()->orderBy('sort_order')->orderBy('monthly_price')->get(),
+        ]);
+    }
+
+    /**
+     * Create the Agent and send its activation invitation.
+     *
+     * @param StoreAgentRequest $request Validated Agent data.
+     * @param InviteAgentAction $action Invitation action.
+     * @return RedirectResponse Agent page.
+     */
+    public function store(StoreAgentRequest $request, InviteAgentAction $action): RedirectResponse
+    {
+        $admin = $action->invite($request->validated(), $this->actor($request));
+
+        return redirect()->route('superadmin.agents.show', $admin)->with('status', __('platform.agents.invited', ['name' => $admin->name]));
+    }
+
+    /**
+     * Send a new activation link to an Agent that has not activated its account yet.
+     *
+     * @param Request $request Incoming request.
+     * @param Admin $admin Pending Agent.
+     * @param InviteAgentAction $action Invitation action.
+     * @return RedirectResponse Agent page.
+     */
+    public function resendActivation(Request $request, Admin $admin, InviteAgentAction $action): RedirectResponse
+    {
+        abort_unless($this->directory->allows($this->actor($request), Permission::AgentManage, $admin), Response::HTTP_FORBIDDEN);
+        $sent = $action->resend($admin, $this->actor($request));
+
+        return redirect()->route('superadmin.agents.show', $admin)->with(
+            'status',
+            $sent ? __('platform.agents.invitation_resent', ['name' => $admin->name]) : __('platform.agents.not_awaiting_activation'),
+        );
     }
 
     /**

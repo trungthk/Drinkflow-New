@@ -8,12 +8,33 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use League\CommonMark\GithubFlavoredMarkdownConverter;
 
+/**
+ * Đọc và render các bộ bài hướng dẫn Markdown trong public/guide-content.
+ *
+ * Có hai bộ tài liệu độc lập, phân biệt bằng "audience":
+ *  - client: hướng dẫn cho thành viên đặt món (/guides, /me/guides, /rooms/{room}/guides);
+ *  - agent: hướng dẫn cho Đại lý quản trị phòng ban (/guides/agent).
+ *
+ * Mỗi bộ nằm trong một thư mục riêng và giữ nguyên quy ước đặt tên "NN-slug.md" của dự án, nên cả hai
+ * dùng chung toàn bộ logic đọc file, render và viết lại liên kết nội bộ; chỉ khác thư mục gốc.
+ */
 class UserGuideService
 {
+    /** Bộ hướng dẫn dành cho thành viên đặt món (Client). */
+    public const AUDIENCE_CLIENT = 'client';
+
+    /** Bộ hướng dẫn dành cho Đại lý quản trị phòng ban (Agent). */
+    public const AUDIENCE_AGENT = 'agent';
+
     /**
-     * Thư mục (tương đối trong public/) chứa các file Markdown hướng dẫn sử dụng cho User.
+     * Thư mục (tương đối trong public/) của từng bộ hướng dẫn.
+     *
+     * @var array<string, string>
      */
-    private const GUIDES_DIR = 'guide-content/user';
+    private const DIRECTORIES = [
+        self::AUDIENCE_CLIENT => 'guide-content/user',
+        self::AUDIENCE_AGENT => 'guide-content/admin',
+    ];
 
     /**
      * Slug không được xem là một bài hướng dẫn thật sự (file mục lục nội bộ).
@@ -21,13 +42,24 @@ class UserGuideService
     private const INDEX_SLUG = 'README';
 
     /**
+     * Mọi bộ hướng dẫn được phục vụ.
+     *
+     * @return array<int, string> Danh sách audience.
+     */
+    public static function audiences(): array
+    {
+        return array_keys(self::DIRECTORIES);
+    }
+
+    /**
      * Lấy danh sách bài hướng dẫn (đã sắp xếp theo số thứ tự trong tên file) để hiển thị dạng lưới.
      *
+     * @param string $audience Bộ hướng dẫn (client hoặc agent).
      * @return array<int, array{slug: string, number: int, title: string, excerpt: string}>
      */
-    public function list(): array
+    public function list(string $audience = self::AUDIENCE_CLIENT): array
     {
-        $directory = public_path(self::GUIDES_DIR);
+        $directory = $this->directory($audience);
 
         if (! File::isDirectory($directory)) {
             return [];
@@ -65,16 +97,17 @@ class UserGuideService
      *
      * @param string $slug Định danh bài viết lấy từ URL.
      * @param string $indexUrl URL trang danh sách công khai (gốc cho các liên kết nội bộ).
+     * @param string $audience Bộ hướng dẫn (client hoặc agent).
      * @return array{slug: string, title: string, html: string, excerpt: string}|null Dữ liệu bài viết hoặc null nếu không tìm thấy.
      */
-    public function findPublic(string $slug, string $indexUrl): ?array
+    public function findPublic(string $slug, string $indexUrl, string $audience = self::AUDIENCE_CLIENT): ?array
     {
-        $article = $this->find($slug, $indexUrl);
+        $article = $this->find($slug, $indexUrl, $audience);
         if ($article === null) {
             return null;
         }
 
-        $raw = File::get(public_path(self::GUIDES_DIR . '/' . $slug . '.md'));
+        $raw = File::get($this->directory($audience) . DIRECTORY_SEPARATOR . $slug . '.md');
 
         return $article + ['excerpt' => $this->extractExcerpt($raw)];
     }
@@ -87,15 +120,16 @@ class UserGuideService
      *
      * @param string $slug Định danh file (tên file không có phần mở rộng .md), lấy từ URL.
      * @param string $indexUrl URL của trang danh sách hướng dẫn (route index, dùng làm gốc cho link chi tiết và link README.md).
+     * @param string $audience Bộ hướng dẫn (client hoặc agent).
      * @return array{slug: string, title: string, html: string}|null Dữ liệu bài viết, hoặc null nếu không tìm thấy/slug không hợp lệ.
      */
-    public function find(string $slug, string $indexUrl): ?array
+    public function find(string $slug, string $indexUrl, string $audience = self::AUDIENCE_CLIENT): ?array
     {
         if (! preg_match('/^[a-z0-9\-]+$/', $slug) || strcasecmp($slug, self::INDEX_SLUG) === 0) {
             return null;
         }
 
-        $directory = public_path(self::GUIDES_DIR);
+        $directory = $this->directory($audience);
         $path = realpath($directory . DIRECTORY_SEPARATOR . $slug . '.md');
         $baseDirReal = realpath($directory);
 
@@ -108,8 +142,19 @@ class UserGuideService
         return [
             'slug' => $slug,
             'title' => $this->extractTitle($raw) ?: $slug,
-            'html' => $this->renderHtml($raw, $indexUrl),
+            'html' => $this->renderHtml($raw, $indexUrl, $audience),
         ];
+    }
+
+    /**
+     * Đường dẫn tuyệt đối tới thư mục chứa Markdown của một bộ hướng dẫn.
+     *
+     * @param string $audience Bộ hướng dẫn.
+     * @return string Đường dẫn thư mục; audience lạ được quy về bộ Client.
+     */
+    public function directory(string $audience): string
+    {
+        return public_path(self::DIRECTORIES[$audience] ?? self::DIRECTORIES[self::AUDIENCE_CLIENT]);
     }
 
     /**
@@ -199,24 +244,26 @@ class UserGuideService
      *
      * @param string $raw Nội dung Markdown gốc.
      * @param string $indexUrl URL trang danh sách (gốc cho liên kết README.md và liên kết sang bài khác).
+     * @param string $audience Bộ hướng dẫn (quyết định thư mục ảnh).
      * @return string HTML đã render, an toàn để hiển thị trực tiếp.
      */
-    private function renderHtml(string $raw, string $indexUrl): string
+    private function renderHtml(string $raw, string $indexUrl, string $audience): string
     {
         $content = $this->stripNavBlock($raw);
 
-        // Ảnh tương đối "images/xxx.png" -> đường dẫn tuyệt đối tới thư mục public/guide-content/user/images.
-        $content = str_replace('](images/', '](/' . self::GUIDES_DIR . '/images/', $content);
+        // Ảnh tương đối "images/xxx.png" -> đường dẫn tuyệt đối tới thư mục images của bộ hướng dẫn.
+        $imagesBase = '/'.(self::DIRECTORIES[$audience] ?? self::DIRECTORIES[self::AUDIENCE_CLIENT]).'/images/';
+        $content = str_replace('](images/', ']('.$imagesBase, $content);
 
         // Liên kết nội bộ tới các bài khác ("12-slug.md" hoặc "12-slug.md#anchor") -> route trang chi tiết tương ứng.
         $content = preg_replace_callback(
             '/\]\((?:\.\/)?([a-z0-9\-]+)\.md(#[^)\s]*)?\)/i',
             function (array $m) use ($indexUrl): string {
                 if (strcasecmp($m[1], self::INDEX_SLUG) === 0) {
-                    return '](' . $indexUrl . ')';
+                    return ']('.$indexUrl.')';
                 }
 
-                return '](' . rtrim($indexUrl, '/') . '/' . $m[1] . ($m[2] ?? '') . ')';
+                return ']('.rtrim($indexUrl, '/').'/'.$m[1].($m[2] ?? '').')';
             },
             $content
         ) ?? $content;

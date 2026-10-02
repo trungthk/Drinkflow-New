@@ -324,6 +324,14 @@
                         </div>
                         <p class="text-xs text-outline">{{ __('admin.orders_list_desc') }}</p>
                     </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                    @if (($onBehalfData ?? null) && $onBehalfData['can_place'])
+                        <button type="button" data-on-behalf-open
+                            class="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-on-primary shadow-xs hover:opacity-90 transition-opacity cursor-pointer">
+                            <span class="material-symbols-outlined text-[16px]">person_add</span>
+                            <span>{{ __('admin.on_behalf_button') }}</span>
+                        </button>
+                    @endif
                     @if ($ordersCount > 0)
                         <div class="flex items-center gap-2">
                             @if ($campaign->debts->contains(fn ($debt) => in_array($debt->status, [\App\Enums\DebtStatus::Unpaid, \App\Enums\DebtStatus::Partial, \App\Enums\DebtStatus::Pending], true) && $debt->remaining_amount > 0))
@@ -342,6 +350,7 @@
                             </a>
                         </div>
                     @endif
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto w-full rounded-xl border border-outline-variant/60">
@@ -422,6 +431,11 @@
                                                             <span class="material-symbols-outlined text-[11px]">payments</span>{{ __('admin.self_paid_badge') }}
                                                         </span>
                                                     @endif
+                                                    @if ($order->parent_id !== null)
+                                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-violet-50 text-violet-700 border border-violet-200 mt-0.5">
+                                                            <span class="material-symbols-outlined text-[11px]">account_tree</span>{{ __('admin.proxy_order_badge') }}
+                                                        </span>
+                                                    @endif
                                                 </div>
                                             @endforeach
                                             @if (!empty($order->note))
@@ -461,6 +475,14 @@
                                                     <span class="material-symbols-outlined text-[16px]">visibility</span>
                                                     <span>{{ __('admin.view_order_detail') }}</span>
                                                 </button>
+                                                @if (($onBehalfData ?? null) && $order->status->isActive() && ! in_array($order->payment_status, [\App\Enums\PaymentStatus::Paid, \App\Enums\PaymentStatus::Pending], true))
+                                                    {{-- Same rule as the orders page: an order already paid or awaiting payment review is not edited. --}}
+                                                    <button type="button" data-order-edit="{{ $order->id }}" data-order-code="{{ $order->code }}" data-order-member="{{ $roomUser?->display_name ?? __('admin.member') }}"
+                                                        class="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-on-surface hover:bg-surface-container text-left cursor-pointer">
+                                                        <span class="material-symbols-outlined text-[16px] text-primary">edit_note</span>
+                                                        <span>{{ __('admin.edit_order_btn') }}</span>
+                                                    </button>
+                                                @endif
                                                 @if ($isCampaignLive)
                                                     @if ($order->payment_status !== \App\Enums\PaymentStatus::Paid)
                                                         <button type="button" @click="openConfirmPaymentModal({{ $order->id }}); $el.closest('details').open = false"
@@ -1586,4 +1608,7 @@
         };
     }
     </script>
+    @if ($onBehalfData ?? null)
+        @include('admin.partials.order-on-behalf-modal', ['room' => $room, 'data' => $onBehalfData])
+    @endif
 </x-admin.layout>

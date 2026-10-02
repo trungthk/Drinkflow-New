@@ -3,11 +3,11 @@
     $tones = ['open' => 'bg-amber-50 text-amber-800', 'overdue' => 'bg-error-container text-on-error-container', 'paid' => 'bg-emerald-50 text-emerald-800', 'void' => 'bg-surface-container text-on-surface-variant'];
 @endphp
 <x-admin.layout :title="__('platform.billing.history_title')" active="billing" :breadcrumb="__('platform.billing.history_title')">
-    <div class="max-w-7xl mx-auto space-y-6">
-        <section class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div class="space-y-6">
+        <section class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
             <div>
-                <h1 class="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-on-surface">{{ __('platform.billing.history_title') }}</h1>
-                <p class="mt-1.5 max-w-3xl text-sm text-on-surface-variant">{{ __('platform.billing.history_subtitle') }}</p>
+                <h1 class="text-2xl font-bold tracking-tight text-on-surface">{{ __('platform.billing.history_title') }}</h1>
+                <p class="mt-1 max-w-3xl text-xs text-outline">{{ __('platform.billing.history_subtitle') }}</p>
             </div>
             <div class="rounded-xl border border-outline-variant bg-surface-container-lowest px-5 py-3" data-billing-balance="{{ $balance }}">
                 <p class="text-[11px] font-semibold uppercase tracking-wider text-outline">{{ __('platform.billing.amount_due') }}</p>
@@ -34,7 +34,16 @@
                     <tbody class="divide-y divide-outline-variant/60">
                         @forelse ($invoices as $invoice)
                             <tr>
-                                <td class="px-5 py-3"><strong class="font-mono">{{ $invoice->number }}</strong><small class="block text-outline">{{ $invoice->package?->name }}@if ($invoice->credit > 0) · {{ __('platform.billing.credit', ['amount' => $money($invoice->credit)]) }}@endif</small></td>
+                                <td class="px-5 py-3">
+                                    <div class="flex items-center gap-2">
+                                        <strong class="font-mono">{{ $invoice->number }}</strong>
+                                        <a href="{{ route('admin.billing.download', $invoice) }}" class="inline-flex items-center gap-1 rounded-md border border-outline-variant px-1.5 py-0.5 text-[11px] font-semibold text-primary hover:bg-primary/5"
+                                            title="{{ __('platform.billing.download_pdf') }}" aria-label="{{ __('platform.billing.download_pdf') }} {{ $invoice->number }}">
+                                            <span class="material-symbols-outlined text-[15px]">picture_as_pdf</span>{{ __('platform.billing.download_pdf_short') }}
+                                        </a>
+                                    </div>
+                                    <small class="block text-outline">{{ $invoice->package?->name }}@if ($invoice->credit > 0) · {{ __('platform.billing.credit', ['amount' => $money($invoice->credit)]) }}@endif</small>
+                                </td>
                                 <td class="px-5 py-3 whitespace-nowrap">{{ $invoice->period_start->toAppDate() }} → {{ $invoice->period_end->toAppDate() }}</td>
                                 <td class="px-5 py-3 text-right whitespace-nowrap">{{ $money($invoice->total) }}</td>
                                 <td class="px-5 py-3 text-right whitespace-nowrap">{{ $money($invoice->paid_amount) }}</td>
@@ -47,7 +56,9 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="px-5 py-8 text-center text-outline">{{ __('platform.billing.no_invoices') }}</td></tr>
+                            <tr><td colspan="6" class="p-4">
+                                <x-admin.empty-state icon="receipt_long" :title="__('platform.billing.no_invoices')" />
+                            </td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -66,7 +77,9 @@
                         <strong>{{ $money($payment->amount) }}</strong>
                     </li>
                 @empty
-                    <li class="px-5 py-8 text-center text-outline">{{ __('platform.billing.no_payments') }}</li>
+                    <li class="p-4">
+                        <x-admin.empty-state icon="payments" :title="__('platform.billing.no_payments')" />
+                    </li>
                 @endforelse
             </ul>
         </section>

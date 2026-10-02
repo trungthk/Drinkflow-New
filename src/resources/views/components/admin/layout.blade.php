@@ -497,6 +497,7 @@
 
     <!-- Shared Admin Alert Modal (replaces native alert() popups) -->
     <x-admin.alert-modal />
+    <x-admin.confirm-modal />
 
     <!-- Admin Page Navigation & Submit Loading Overlay -->
     <x-admin.loading />

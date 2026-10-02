@@ -54,6 +54,9 @@ class RegistrationController extends Controller
     /**
      * "Check your inbox / waiting for approval" notice, with the resend form.
      *
+     * Only self-service registrations reach this page: an Agent invited by a Superadmin receives its
+     * activation link by email and never passes through the registration flow.
+     *
      * @param Request $request Incoming request.
      * @return View Notice.
      */

@@ -224,6 +224,17 @@ class AdminOrderEditTest extends TestCase
             ->assertDontSee('data-on-behalf-open', false);
     }
 
+    public function test_campaign_orders_tab_offers_order_on_behalf_and_edit(): void
+    {
+        $order = $this->placeOrder();
+
+        $this->actingAs($this->admin, 'admin')
+            ->get(route('admin.campaigns.orders', [$this->room, $order->campaign_id]))
+            ->assertOk()
+            ->assertSee('id="order-on-behalf-modal"', false)
+            ->assertSee('data-order-edit="' . $order->id . '"', false);
+    }
+
     public function test_orders_table_shows_member_email_and_one_line_per_item(): void
     {
         $order = $this->placeOrder();
@@ -239,8 +250,11 @@ class AdminOrderEditTest extends TestCase
         $this->assertStringContainsString('data-order-member-email>edit-member@example.test</div>', $html);
         $lines = (string) str($html)->after('data-order-item-lines>')->before('</ul>');
         $this->assertSame(2, substr_count($lines, '<li '));
-        $this->assertStringContainsString('2× Trà sữa (L) + Trân châu</li>', $lines);
-        $this->assertStringContainsString('1× Cà phê</li>', $lines);
+        $this->assertStringContainsString('2× Trà sữa (L) + Trân châu</div>', $lines);
+        $this->assertStringContainsString('1× Cà phê</div>', $lines);
+        // The coffee line is "trả riêng": it carries the badge under the item, the tea line does not.
+        $this->assertSame(1, substr_count($lines, 'data-item-self-paid'));
+        $this->assertSame(0, substr_count($lines, 'data-item-proxy'));
     }
 
     public function test_orders_page_filters_by_order_type_and_offers_code_copy(): void

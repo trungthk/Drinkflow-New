@@ -18,6 +18,7 @@ import { initAdminDebts } from './admin/debts';
 import { initAdminNotifications } from './admin/notifications';
 import { initAdminOrders } from './admin/orders';
 import { initAdminOrderOnBehalf } from './admin/order-on-behalf';
+import { initAdminConfirmForms } from './admin/confirm-form';
 import { initCampaignOrderingLock } from './admin/campaign-ordering-lock';
 import { initAdminReports } from './admin/reports';
 import { initAdminSettings } from './admin/settings';
@@ -64,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Runs after initToastNotifications() so this modal-based override wins over the toast-based
     // `window.alert` it sets: every alert(...) in the admin bundle should open a modal, not a toast.
     initAdminAlertModal();
+    initAdminConfirmForms();
     window.__DF_ROOM_SLUG__ = window.__DF_ROOM_SLUG__ || document.querySelector('meta[name="room-slug"]')?.content || document.body?.dataset?.roomSlug || '';
 
     initUiEnhancements();

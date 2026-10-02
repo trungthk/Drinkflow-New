@@ -7,6 +7,8 @@ use App\Services\FoodCrawler\Contracts\BrowserTransportInterface;
 use App\Services\FoodCrawler\Browser\PuppeteerBrowserTransport;
 use App\Services\FoodCrawler\ProviderResolver;
 use App\Events\AdminNotificationCreated;
+use App\Events\SuperadminNotificationCreated;
+use App\Listeners\PublishSuperadminNotification;
 use App\Events\CampaignClosed;
 use App\Events\CampaignCancelled;
 use App\Events\CampaignCreated;
@@ -82,6 +84,9 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Gate::policy(\App\Models\Admin::class, \App\Policies\AdminPolicy::class);
         \Illuminate\Support\Facades\Gate::policy(\App\Models\Room::class, \App\Policies\RoomPolicy::class);
 
+        // A self-service Agent registration announces itself to every active Superadmin (see AdminObserver).
+        \App\Models\Admin::observe(\App\Observers\AdminObserver::class);
+
         Event::listen(OrderCreated::class, CreateOrderNotification::class);
         Event::listen(ProxyOrdersCreated::class, NotifyProxyOrderRecipients::class);
         Event::listen(OrderUpdated::class, CreateOrderStatusNotification::class);
@@ -103,6 +108,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(RoomMembershipUpdated::class, PublishRealtimeEvent::class);
         Event::listen(UserNotificationCreated::class, PublishRealtimeEvent::class);
         Event::listen(AdminNotificationCreated::class, PublishRealtimeEvent::class);
+        Event::listen(SuperadminNotificationCreated::class, PublishSuperadminNotification::class);
         Event::listen(ForceReloadRequested::class, PublishRealtimeEvent::class);
         Event::listen(MaintenanceStateChanged::class, PublishRealtimeEvent::class);
 

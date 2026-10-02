@@ -39,7 +39,7 @@
                 <div class="sa-inbox-row" data-sa-inbox-row data-id="{{ $notification->id }}" @if(!$notification->read_at) data-unread @endif>
                     <span class="sa-bell-icon"><span class="material-symbols-outlined">{{ $presentation['icon'] }}</span></span>
                     <div class="sa-inbox-text">
-                        <strong>{{ $presentation['title'] }}</strong>
+                        <strong>@if(!empty($presentation['link']))<a href="{{ $presentation['link'] }}">{{ $presentation['title'] }}</a>@else{{ $presentation['title'] }}@endif</strong>
                         @if($presentation['body'])<p>{{ $presentation['body'] }}</p>@endif
                         <small>
                             @if($notification->room)

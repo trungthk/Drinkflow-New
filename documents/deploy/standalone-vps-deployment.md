@@ -475,6 +475,22 @@ FOOD_CRAWLER_NODE_BINARY=/usr/bin/node
 FOOD_CRAWLER_NPM_BINARY=/usr/bin/npm
 FOOD_CRAWLER_HEADLESS=true
 FOOD_CRAWLER_USER_DATA_DIR=/var/www/drinkflow/src/storage/app/chrome-profile
+
+# SaaS platform: gói dịch vụ, hoá đơn nền tảng và thanh toán online
+PLATFORM_DEFAULT_PACKAGE=starter
+PLATFORM_INVOICE_DUE_DAYS=7
+PLATFORM_INVOICE_GRACE_DAYS=7
+# Chỉ bật khi đã cấu hình cron `platform:enforce-overdue` và muốn tạm khoá tự động
+PLATFORM_AUTO_SUSPEND=false
+PLATFORM_PAYMENTS_ENABLED=false
+PLATFORM_PAYMENTS_CHECKOUT_URL=
+PLATFORM_PAYMENTS_WEBHOOK_SECRET=
+
+# Tài khoản chủ nền tảng do `php artisan db:seed` tạo (chỉ chạy ở môi trường không phải production)
+# Giá trị đăng nhập không nằm trong mã nguồn: để trống sẽ sinh ngẫu nhiên và in một lần ra console.
+PLATFORM_SEED_OWNER_EMAIL=superadmin@drinkflow.local
+PLATFORM_SEED_OWNER_NAME="DrinkFlow Superadmin"
+PLATFORM_SEED_OWNER_VALUE=
 ```
 
 Khóa quyền đọc `.env` (chỉ chủ sở hữu và `www-data` được đọc; Realtime Gateway cũng đọc file này):

@@ -22,8 +22,8 @@ class LandingPageTest extends TestCase
         $response->assertSee('Vấn đề truyền thống vs Giải pháp DrinkFlow');
         $response->assertSee('Lợi ích cốt lõi cho văn phòng hiện đại');
         $response->assertSee('Quy trình đặt đơn 4 bước đơn giản');
-        $response->assertSee('Bảo mật tài khoản doanh nghiệp với Google OAuth');
-        $response->assertSee('SAML & OAuth 2.0');
+        $response->assertDontSee('Bảo mật tài khoản doanh nghiệp với Google OAuth');
+        $response->assertDontSee('SAML & OAuth 2.0');
         $response->assertSee('v2.3.0');
         $response->assertSee('Giới thiệu về DrinkFlow');
         $response->assertSee('about-drinkflow-player');

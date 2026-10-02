@@ -6,8 +6,8 @@
     $blocked = ! $editing && ! ($usage['has_subscription'] && $usage['remaining'] > 0);
 @endphp
 <x-admin.layout :title="$title" active="my-rooms" :breadcrumb="__('platform.rooms.title')">
-    <div class="max-w-3xl mx-auto space-y-6">
-        <section>
+    <div class="max-w-3xl space-y-6">
+        <section class="pb-4 border-b border-outline-variant/40">
             <a href="{{ route('admin.rooms.index') }}" class="text-xs font-semibold text-primary hover:underline">← {{ __('platform.rooms.title') }}</a>
             <h1 class="mt-2 text-2xl font-bold tracking-tight text-on-surface">{{ $title }}</h1>
         </section>

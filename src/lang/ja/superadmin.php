@@ -432,6 +432,7 @@ return [
     ],
     'inbox' => [
         'title' => '自分の通知',
+        'platform_default_title' => 'プラットフォーム通知',
         'description' => 'ログイン中の管理者アカウント宛ての通知のみ表示します · 未読 :count 件。',
         'unread' => '未読の通知',
         'mark_read' => '既読にする',

@@ -78,9 +78,11 @@ class AgentRegistrationReviewTest extends TestCase
             ->assertOk()
             ->assertSee('waiting@example.test')
             ->assertDontSee('active@example.test');
-        $this->actingAs($this->owner, 'superadmin')->get(route('superadmin.registrations.index', ['verification' => 'unverified']))
+        // Only the queue table is checked: the header bell legitimately mentions the new registration.
+        $html = $this->actingAs($this->owner, 'superadmin')->get(route('superadmin.registrations.index', ['verification' => 'unverified']))
             ->assertOk()
-            ->assertDontSee('waiting@example.test');
+            ->getContent();
+        $this->assertStringNotContainsString('waiting@example.test', (string) strstr((string) strstr($html, '<table class="sa-table">'), '</table>', true));
     }
 
     public function test_queue_requires_the_approve_permission(): void

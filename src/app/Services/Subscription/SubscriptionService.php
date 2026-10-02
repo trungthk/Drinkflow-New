@@ -148,10 +148,11 @@ class SubscriptionService
     /**
      * Change the Agent's package.
      *
-     * Upgrades start now with a proration credit. Downgrades are refused when the owned rooms do not
-     * fit the new limit; requested by the Agent they are scheduled for the period end, while a
-     * Superadmin applies them immediately. Without a current subscription (legacy Agent) only a
-     * Superadmin can start one.
+     * A Superadmin's upgrade starts now with a proration credit; an Agent's upgrade is refused here
+     * because it goes through an upgrade invoice ({@see SubscriptionUpgradeService}). Downgrades are
+     * refused when the owned rooms do not fit the new limit; requested by the Agent they are scheduled
+     * for the period end (no refund of the current period), while a Superadmin applies them immediately.
+     * Without a current subscription (legacy Agent) only a Superadmin can start one.
      *
      * @param Admin $admin Agent.
      * @param Package $package Target package (must be active).
@@ -185,6 +186,10 @@ class SubscriptionService
             }
 
             $upgrade = $this->isUpgrade($current, $package);
+            if ($upgrade && $actor === null) {
+                // An Agent's upgrade is billed first and applied once paid (SubscriptionUpgradeService).
+                throw ValidationException::withMessages(['package_id' => __('platform.subscriptions.upgrade_requires_payment')]);
+            }
             if (! $upgrade) {
                 $this->ensureRoomsFit($admin, $package);
             }
@@ -382,7 +387,7 @@ class SubscriptionService
      * @param AdminSubscription $subscription Subscription being replaced.
      * @return int Credit in VND.
      */
-    private function unusedCredit(AdminSubscription $subscription): int
+    public function unusedCredit(AdminSubscription $subscription): int
     {
         if ($subscription->expires_at === null || $subscription->price_snapshot === 0) {
             return 0;

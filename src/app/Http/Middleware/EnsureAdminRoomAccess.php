@@ -40,6 +40,10 @@ class EnsureAdminRoomAccess
         abort_unless($room->status === RoomStatus::Active, 404);
         $request->route()->setParameter('room', $room);
         $request->attributes->set('room', $room);
+        // Account pages without a room (my rooms, subscription, billing, profile) keep this room's menu.
+        if ($request->hasSession()) {
+            $request->session()->put(\App\View\Composers\AdminLayoutComposer::CONTEXT_ROOM_SESSION_KEY, $room->id);
+        }
 
         return $next($request);
     }

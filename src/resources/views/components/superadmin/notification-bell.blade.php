@@ -8,7 +8,8 @@
 
 <div class="sa-bell" data-sa-notifications
     data-read-url-template="{{ route('superadmin.admin-notifications.read', ['notification' => '__ID__']) }}"
-    data-mark-all-url="{{ route('superadmin.admin-notifications.read-all') }}">
+    data-mark-all-url="{{ route('superadmin.admin-notifications.read-all') }}"
+    data-i18n="{{ json_encode(['just_now' => __('admin.just_now')], JSON_UNESCAPED_UNICODE) }}">
     <button type="button" class="icon-button sa-bell-toggle" data-sa-notifications-toggle aria-expanded="false"
         aria-controls="sa-notifications-menu" aria-haspopup="true"
         title="{{ __('superadmin.inbox.unread') }}" aria-label="{{ __('superadmin.inbox.unread') }}">
@@ -24,7 +25,7 @@
         <div class="sa-bell-list" data-sa-notifications-list>
             @foreach($notifications as $notification)
                 @php($presentation = $presentations[$notification->id] ?? ['title' => $notification->title, 'body' => $notification->body, 'icon' => 'notifications'])
-                <button type="button" class="sa-bell-item" data-sa-notification-item data-id="{{ $notification->id }}">
+                <button type="button" class="sa-bell-item" data-sa-notification-item data-id="{{ $notification->id }}" @if(!empty($presentation['link'])) data-link="{{ $presentation['link'] }}" @endif>
                     <span class="sa-bell-icon"><span class="material-symbols-outlined">{{ $presentation['icon'] }}</span></span>
                     <span class="sa-bell-text">
                         <strong>{{ $presentation['title'] }}</strong>

@@ -293,7 +293,7 @@
                             </div>
                             <!-- Percentage input with % suffix -->
                             <div class="relative w-24 shrink-0">
-                                <input type="number" min="0" max="100" step="0.01" x-model="sponsor.percentage" @input="clampSponsorPercentage(sponsor)" @blur="sponsor.percentage = sponsor.percentage === '' ? 0 : sponsor.percentage" placeholder="0" class="w-full pl-2.5 pr-6 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs font-mono text-on-surface focus:outline-none focus:border-primary text-right">
+                                <input type="number" min="0" max="100" step="1" inputmode="numeric" x-model="sponsor.percentage" @input="clampSponsorPercentage(sponsor)" @blur="sponsor.percentage = sponsor.percentage === '' ? 0 : sponsor.percentage" placeholder="0" class="w-full pl-2.5 pr-6 py-1.5 bg-surface-container-lowest border border-outline-variant rounded text-xs font-mono text-on-surface focus:outline-none focus:border-primary text-right">
                                 <span class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-outline">%</span>
                             </div>
                             <!-- Delete button -->

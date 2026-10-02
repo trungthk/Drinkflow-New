@@ -59,16 +59,19 @@ class DebtController extends Controller
      */
     public function page(Request $request, Room $room, \App\Services\Admin\AdminDebtService $debtService, DebtPaymentRequestService $paymentRequests): View
     {
-        $query = Debt::query()
-            ->where('room_id', $room->id)
+        // Payment requests (parents) and unbundled campaign debts; bundled children are reached through their request.
+        $query = $debtService->ledgerQuery($room)
             ->with([
                 'roomUser.globalUser',
                 'roomUser.debts' => fn($q) => $q->where('room_id', $room->id)->where('status', DebtStatus::Pending)->with('campaign'),
                 'campaign',
                 'payments',
                 'adjustments',
+                'reviewer:id,name',
+                'children' => fn ($q) => $q->orderBy('id')->with(['campaign:id,name', 'payments']),
             ])
-            ->latest();
+            ->latest()
+            ->latest('id');
 
         $userId = $request->integer('user');
         if ($userId > 0) {
@@ -112,7 +115,8 @@ class DebtController extends Controller
         $selectedStatus = $request->string('status')->toString() ?: 'all';
         $status = DebtStatus::tryFrom($selectedStatus);
         if ($status !== null) {
-            $query->where('status', $status->value);
+            // An approved payment request is the paid counterpart of its bundled debts.
+            $query->whereIn('status', $status === DebtStatus::Paid ? [DebtStatus::Paid->value, DebtStatus::Approved->value] : [$status->value]);
         } elseif ($selectedStatus !== 'all') {
             $selectedStatus = 'all';
         }
@@ -134,13 +138,17 @@ class DebtController extends Controller
                 'label' => __('admin.filter_debt_'.$status->value),
             ])->all(),
             'memberFilters' => $debtService->getMemberFilterOptions($room),
-            'paymentRequests' => $paymentRequests->requestsForRoom($room)
-                ->map(static fn (Debt $paymentRequest): array => $paymentRequests->formatForAdmin($paymentRequest))
-                ->all(),
+            'pendingRequestCount' => Debt::paymentRequests()->where('room_id', $room->id)->where('status', DebtStatus::Pending->value)->count(),
             'debtRequests' => $paymentRequests->requestsByChild($debts->getCollection()),
-            'debtDetails' => $debts->getCollection()->mapWithKeys(
-                static fn (Debt $debt): array => [$debt->id => $debtService->formatDetail($debt)]
-            )->all(),
+            // Detail modal payloads: the review modal for a payment request, the debt modal for a campaign debt.
+            'paymentRequestRows' => $debts->getCollection()
+                ->filter(static fn (Debt $debt): bool => $debt->campaign_id === null)
+                ->mapWithKeys(static fn (Debt $request): array => [$request->id => $paymentRequests->formatForAdmin($request)])
+                ->all(),
+            'debtDetails' => $debts->getCollection()
+                ->filter(static fn (Debt $debt): bool => $debt->campaign_id !== null)
+                ->mapWithKeys(static fn (Debt $debt): array => [$debt->id => $debtService->formatDetail($debt)])
+                ->all(),
             'filters' => [
                 'search' => $search,
                 'status' => $selectedStatus,

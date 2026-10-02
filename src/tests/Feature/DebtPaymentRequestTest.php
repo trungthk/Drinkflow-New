@@ -334,12 +334,34 @@ class DebtPaymentRequestTest extends TestCase
             ->assertSeeText(__('room.debts.in_request_label', ['code' => $request->code]))
             ->assertSee('data-debt-summary', false);
 
-        $this->actingAs($this->admin, 'admin')
+        // The ledger lists the request itself in place of the two debts bundled into it.
+        $html = $this->actingAs($this->admin, 'admin')
             ->get(route('admin.debts.page', $this->room->slug))
             ->assertOk()
-            ->assertSeeText(__('admin.payment_requests_title'))
+            ->assertSee('data-payment-request-row="'.$request->id.'"', false)
+            ->assertSeeText(__('admin.payment_request_ledger_label', ['count' => 2]))
             ->assertSee('data-open-payment-request', false)
             ->assertSee('payment-request-modal', false)
-            ->assertSeeText(__('admin.debt_in_payment_request', ['code' => $request->code]));
+            ->assertSee('data-pending-requests-notice', false)
+            ->getContent();
+        foreach ($request->children as $child) {
+            $this->assertStringNotContainsString('data-debt-id="'.$child->id.'"', $html);
+        }
+    }
+
+    public function test_ledger_summary_counts_a_pending_request_instead_of_its_debts(): void
+    {
+        $this->debt(500000);
+        $this->debt(300000);
+        $this->submitPayAll()->assertOk();
+        $request = $this->onlyRequest();
+        // Created after the request, so it is not bundled into it.
+        $this->debt(100000);
+
+        $summary = app(\App\Services\Admin\AdminDebtService::class)->getLedgerSummary($this->room);
+
+        // Owed = the pending request amount + the debt outside any request, each counted once.
+        $this->assertSame(800000, (int) $request->original_amount);
+        $this->assertSame(900000, $summary['storeDebtPending']);
     }
 }

@@ -10,6 +10,7 @@ use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\Order;
 use App\Models\Room;
+use App\Models\SuperadminNotification;
 use App\Models\UserNotification;
 use App\Services\Campaign\CampaignDeadlineReminderService;
 use Illuminate\Support\Carbon;
@@ -22,10 +23,21 @@ class NotificationPresentationService
      * @param UserNotification|AdminNotification $notification Notification model.
      * @return array{title: string, body: string, icon: string, link: ?string} Presentation data.
      */
-    public function present(UserNotification|AdminNotification $notification): array
+    public function present(UserNotification|AdminNotification|SuperadminNotification $notification): array
     {
         $type = (string) $notification->type;
         $data = is_array($notification->data) ? $notification->data : [];
+
+        // Platform notifications of Superadmins carry their own translated title/body.
+        if ($notification instanceof SuperadminNotification) {
+            return [
+                'title' => (string) ($notification->title ?: __('superadmin.inbox.platform_default_title')),
+                'body' => (string) ($notification->body ?? ''),
+                'icon' => $this->icon($type),
+                // Written server-side by the sender (e.g. the registration review page), never by a client.
+                'link' => is_string($data['url'] ?? null) && $data['url'] !== '' ? $data['url'] : null,
+            ];
+        }
 
         // Messages written by a room admin are shown exactly as they were sent.
         if ($notification instanceof UserNotification && $this->isAdminBroadcast($type, $data)) {
@@ -360,6 +372,8 @@ class NotificationPresentationService
     {
         return match (true) {
             $type === NotificationType::CampaignDeadlineReminder->value => 'alarm',
+            // Platform alerts about Agents: same icon as the Agents section of the console.
+            str_starts_with($type, 'agent.') => 'storefront',
             str_starts_with($type, 'campaign.') => 'local_fire_department',
             str_starts_with($type, 'order.') => 'check_circle',
             str_starts_with($type, 'payment.'), str_starts_with($type, 'debt.') => 'payments',

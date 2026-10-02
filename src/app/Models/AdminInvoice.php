@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\InvoiceStatus;
+use App\Enums\InvoiceType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $credit
  * @property int $total
  * @property int $paid_amount
+ * @property InvoiceType $type
  * @property InvoiceStatus $status
  * @property \Illuminate\Support\Carbon $issued_at
  * @property \Illuminate\Support\Carbon $due_at
@@ -35,7 +37,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class AdminInvoice extends Model
 {
     protected $fillable = [
-        'number', 'admin_id', 'admin_subscription_id', 'package_id', 'period_start', 'period_end', 'subtotal', 'credit', 'total',
+        'number', 'admin_id', 'admin_subscription_id', 'type', 'package_id', 'period_start', 'period_end', 'subtotal', 'credit', 'total',
         'paid_amount', 'status', 'issued_at', 'due_at', 'paid_at', 'overdue_at', 'voided_at', 'void_reason',
     ];
 
@@ -43,6 +45,7 @@ class AdminInvoice extends Model
     {
         return [
             'status' => InvoiceStatus::class,
+            'type' => InvoiceType::class,
             'subtotal' => 'integer',
             'credit' => 'integer',
             'total' => 'integer',
@@ -65,6 +68,16 @@ class AdminInvoice extends Model
     public function remaining(): int
     {
         return $this->status->isOutstanding() ? max(0, $this->total - $this->paid_amount) : 0;
+    }
+
+    /**
+     * Whether this invoice pays for a package upgrade (applied once it is fully paid).
+     *
+     * @return bool True for an upgrade invoice.
+     */
+    public function isUpgrade(): bool
+    {
+        return $this->type === InvoiceType::Upgrade;
     }
 
     /**

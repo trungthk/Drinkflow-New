@@ -384,6 +384,21 @@ GOOGLE_CLIENT_SECRET=
 GOOGLE_REDIRECT_URI=http://localhost:8080/auth/google/callback
 GOOGLE_ALLOWED_DOMAINS=company.com
 
+# SaaS platform: gói dịch vụ, hoá đơn nền tảng và thanh toán online
+PLATFORM_DEFAULT_PACKAGE=starter
+PLATFORM_INVOICE_DUE_DAYS=7
+PLATFORM_INVOICE_GRACE_DAYS=7
+# Chỉ bật khi cron `platform:enforce-overdue` đã chạy và muốn tạm khoá tự động
+PLATFORM_AUTO_SUSPEND=false
+PLATFORM_PAYMENTS_ENABLED=false
+PLATFORM_PAYMENTS_CHECKOUT_URL=
+PLATFORM_PAYMENTS_WEBHOOK_SECRET=
+# Tài khoản chủ nền tảng do seeder tạo, CHỈ ở môi trường không phải production.
+# PLATFORM_SEED_OWNER_VALUE để trống: seeder sinh ngẫu nhiên và in một lần ra console.
+# PLATFORM_SEED_OWNER_EMAIL=superadmin@drinkflow.local
+# PLATFORM_SEED_OWNER_NAME="DrinkFlow Superadmin"
+# PLATFORM_SEED_OWNER_VALUE=
+
 SOCKET_INTERNAL_URL=http://socket:6001
 SOCKET_SIGNING_SECRET=
 

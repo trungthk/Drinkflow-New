@@ -9,6 +9,9 @@
             <h1>{{ __('platform.agents.title') }}</h1>
             <p>{{ __('platform.agents.description') }}</p>
         </div>
+        @can('agent.manage')
+            <a class="sa-button" href="{{ route('superadmin.agents.create') }}"><span class="material-symbols-outlined text-[16px]">person_add</span>{{ __('platform.agents.create_action') }}</a>
+        @endcan
     </div>
     <x-superadmin.flash />
     <section class="sa-card sa-section">

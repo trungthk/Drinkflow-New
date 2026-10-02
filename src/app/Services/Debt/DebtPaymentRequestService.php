@@ -121,38 +121,6 @@ class DebtPaymentRequestService
     }
 
     /**
-     * List a room's payment requests for admin review: every pending one plus the latest decisions.
-     *
-     * @param Room $room Current room.
-     * @param int $recentLimit Number of already-reviewed requests to include.
-     * @return Collection<int, Debt> Pending requests first (oldest first), then recent decisions.
-     */
-    public function requestsForRoom(Room $room, int $recentLimit = 10): Collection
-    {
-        $relations = [
-            'roomUser.globalUser:id,name,email',
-            'reviewer:id,name',
-            'children' => fn ($query) => $query->orderBy('id')->with(['campaign:id,name', 'payments']),
-        ];
-        $pending = Debt::paymentRequests()
-            ->where('room_id', $room->id)
-            ->where('status', DebtStatus::Pending->value)
-            ->with($relations)
-            ->orderBy('id')
-            ->get();
-        $recent = Debt::paymentRequests()
-            ->where('room_id', $room->id)
-            ->where('status', '!=', DebtStatus::Pending->value)
-            ->with($relations)
-            ->latest('reviewed_at')
-            ->latest('id')
-            ->limit($recentLimit)
-            ->get();
-
-        return $pending->concat($recent)->values();
-    }
-
-    /**
      * Map each bundled debt ID to its request, for the debts listed on a page.
      *
      * @param iterable<Debt> $debts Campaign debts shown on the page.

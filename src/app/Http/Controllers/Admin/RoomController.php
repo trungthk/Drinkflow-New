@@ -43,14 +43,23 @@ class RoomController extends Controller
     }
 
     /**
-     * Create form (shown even when the quota is full, with the reason).
+     * Create form; back to the room list with the reason when the quota is used up.
      *
      * @param Request $request Incoming request.
-     * @return View Form.
+     * @return View|RedirectResponse Form, or the room list when no room can be added.
      */
-    public function create(Request $request): View
+    public function create(Request $request): View|RedirectResponse
     {
-        return view('admin.my-rooms.form', ['room' => null, 'usage' => $this->quota->usage($this->admin($request))]);
+        $admin = $this->admin($request);
+        if (! $this->quota->canAdd($admin)) {
+            $usage = $this->quota->usage($admin);
+
+            return redirect()->route('admin.rooms.index')->withErrors(['room' => $usage['has_subscription']
+                ? __('platform.rooms.quota_reached', ['limit' => $usage['limit']])
+                : __('platform.rooms.no_subscription')]);
+        }
+
+        return view('admin.my-rooms.form', ['room' => null, 'usage' => $this->quota->usage($admin)]);
     }
 
     /**

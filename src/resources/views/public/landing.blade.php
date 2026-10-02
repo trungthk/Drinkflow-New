@@ -90,8 +90,8 @@
         <!-- 5. HOW IT WORKS -->
         <x-public.how-it-works />
 
-        <!-- 6. GOOGLE SSO HIGHLIGHT -->
-        <x-public.google-sso />
+        <!-- 6. AGENT PROGRAM (Đại lý) -->
+        <x-public.agent-program />
 
         <!-- 7. FINAL CTA -->
         <x-public.cta

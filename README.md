@@ -1,4 +1,4 @@
-# DrinkFlow
+﻿# DrinkFlow
 
 DrinkFlow là hệ thống quản lý đặt đồ uống/đồ ăn theo nhóm dành cho doanh nghiệp. Hệ thống tổ chức người dùng theo nhiều **Room**, vận hành các **Campaign** đặt món, tổng hợp **Order**, chia hóa đơn, theo dõi **Debt**, thanh toán qua VietQR và cập nhật trạng thái theo thời gian thực.
 
@@ -310,14 +310,15 @@ docker compose logs -f app queue realtime postgres
 docker exec drinkflow-new-app-1 php artisan db:seed
 ```
 
-Seeder tạo dữ liệu Room/Campaign/Order mẫu và hai tài khoản quản trị chỉ dùng cho local:
+Seeder chỉ nạp dữ liệu tham chiếu cho môi trường local: danh mục quyền, role mặc định **Full** (mọi quyền, phạm vi toàn hệ thống), các gói dịch vụ mẫu (Starter/Business/Enterprise) và dữ liệu phiên bản hệ thống. Seeder **không** tạo Admin mẫu và **không** tạo Room mẫu, nên cài đặt mới khởi đầu sạch; đại lý thật đầu tiên do Superadmin tạo tại **Agents → Thêm đại lý**.
 
-| Vai trò | Email | Mật khẩu |
+Ngoài môi trường production, seeder tạo thêm tài khoản chủ nền tảng để đăng nhập console và `/superadmin`:
+
+| Vai trò | Email | Đăng nhập |
 | --- | --- | --- |
-| Admin | `admin@drinkflow.local` | `password` |
-| Superadmin | `superadmin@drinkflow.local` | `password` |
+| Superadmin (chủ nền tảng) | `superadmin@drinkflow.local` (đổi bằng `PLATFORM_SEED_OWNER_EMAIL`) | Đặt `PLATFORM_SEED_OWNER_VALUE` trong `.env`; nếu để trống, seeder sinh ngẫu nhiên và in **một lần** ra console |
 
-Phải đổi hoặc vô hiệu hóa các tài khoản mẫu trước khi dùng dữ liệu seed ở bất kỳ môi trường chia sẻ nào.
+Seeder không chứa giá trị đăng nhập dạng literal trong mã nguồn: giá trị luôn đọc từ biến môi trường hoặc sinh ngẫu nhiên.
 
 ### 4. Dừng hệ thống
 
@@ -393,6 +394,16 @@ php artisan schedule:work
 | `FOOD_CRAWLER_CHROME_PATH` | Đường dẫn Chrome/Chromium | Docker: `/usr/bin/chromium` |
 | `FOOD_CRAWLER_*` | Binary Node/npm, timeout, headless, profile và diagnostics | Xem `src/config/food-crawler.php` |
 | `MAIL_*` | Gửi OTP reset mật khẩu Admin | Local mặc định ghi log |
+| `PLATFORM_DEFAULT_PACKAGE` | Gói cấp cho đại lý chưa từng có subscription | `starter` |
+| `PLATFORM_INVOICE_DUE_DAYS` | Số ngày đại lý phải thanh toán hoá đơn nền tảng | `7` |
+| `PLATFORM_INVOICE_GRACE_DAYS` | Số ngày ân hạn trước khi hoá đơn quá hạn bị xử lý | `7` |
+| `PLATFORM_AUTO_SUSPEND` | Tự tạm khoá đại lý khi hoá đơn quá hạn hết ân hạn | `false` |
+| `PLATFORM_PAYMENTS_ENABLED` | Bật thanh toán hoá đơn nền tảng qua trang checkout | `false` |
+| `PLATFORM_PAYMENTS_CHECKOUT_URL` | URL trang checkout của nhà cung cấp thanh toán | Để trống khi chưa dùng |
+| `PLATFORM_PAYMENTS_WEBHOOK_SECRET` | Secret ký link checkout và xác thực webhook thanh toán | Để trống để tắt webhook |
+| `PLATFORM_SEED_OWNER_EMAIL` | Email tài khoản chủ nền tảng do seeder tạo (ngoài production) | `superadmin@drinkflow.local` |
+| `PLATFORM_SEED_OWNER_NAME` | Tên hiển thị của tài khoản chủ nền tảng | `DrinkFlow Superadmin` |
+| `PLATFORM_SEED_OWNER_VALUE` | Giá trị đăng nhập của tài khoản chủ nền tảng | Để trống: seeder sinh ngẫu nhiên và in một lần ra console |
 
 Khi thay đổi `.env`, chạy:
 

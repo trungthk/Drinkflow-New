@@ -7,6 +7,7 @@ namespace App\Services\Notification;
 use App\Models\SystemNotificationChannel;
 use App\Services\Notification\Concerns\SendsNotificationChannelPayloads;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Send a test ping through a configured system-level (superadmin) notification channel, reusing
@@ -32,6 +33,45 @@ class SystemNotificationChannelDispatcher
         ];
 
         $this->send($channel->type, $this->config($channel), $payload);
+    }
+
+    /**
+     * Deliver a payload to every enabled and correctly configured system channel.
+     *
+     * Used for platform alerts (a new Agent registration waiting for review, ops/security events).
+     * A channel that is disabled, has no configuration or fails is skipped with a log entry: the
+     * alert is already stored in the Superadmin inbox, so outbound delivery is best-effort.
+     *
+     * @param array<string, mixed> $payload Driver-neutral payload.
+     * @return int Number of channels the payload was delivered to.
+     */
+    public function dispatch(array $payload): int
+    {
+        $delivered = 0;
+
+        SystemNotificationChannel::query()
+            ->where('status', 'active')
+            ->orderBy('id')
+            ->each(function (SystemNotificationChannel $channel) use ($payload, &$delivered): void {
+                try {
+                    $config = $this->config($channel);
+                    if ($config === []) {
+                        return;
+                    }
+                    $this->send($channel->type, $config, $payload);
+                    $delivered++;
+                } catch (\Throwable $exception) {
+                    Log::warning('System notification channel delivery failed.', [
+                        'channel_id' => $channel->id,
+                        'type' => $channel->type,
+                        'event' => $payload['event'] ?? null,
+                        'exception' => $exception::class,
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
+            });
+
+        return $delivered;
     }
 
     /**

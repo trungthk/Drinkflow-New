@@ -12,12 +12,17 @@ use App\Models\Campaign;
 use App\Models\Debt;
 use App\Models\Order;
 use App\Services\Audit\AuditService;
+use App\Services\Campaign\CampaignSponsorshipCalculator;
 use App\Support\Helpers\FormatHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CloseCampaignAction
 {
+    public function __construct(private readonly CampaignSponsorshipCalculator $sponsorship)
+    {
+    }
+
     /**
      * Execute the close campaign operation and generate debts according to sponsorship and proportional rules.
      *
@@ -55,99 +60,47 @@ class CloseCampaignAction
                 // vì một người có thể có nhiều order (kể cả order dùm) trong cùng chiến dịch.
                 $selfPaidDebtsByUser = [];
 
-                $sponsorAllocations = collect($campaign->sponsor_allocations ?? []);
-                $isFullSponsor = $campaign->sponsor_type === Campaign::SPONSOR_TYPE_FULL
-                    || ($sponsorAllocations->isNotEmpty() && abs((float) $sponsorAllocations->sum('percentage') - 100.0) < 0.01);
-
-                if ($isFullSponsor && $sponsorAllocations->isNotEmpty()) {
+                if ($this->sponsorship->isFullSponsorship($campaign)) {
                     // -------------------------------------------------------------
                     // TRƯỜNG HỢP 1: ĐƠN ĐƯỢC TÀI TRỢ FULL (100%) THEO TỶ LỆ SPONSORS
                     // -------------------------------------------------------------
                     // 1. Cập nhật các đơn hàng của user: sponsor chỉ gánh phần không "trả riêng"; phần trả riêng
                     //    (nếu có) vẫn ghi nợ trực tiếp cho người đặt qua $selfPaidDebtsByUser bên dưới.
-                    $sponsorPoolTotal = 0;
-                    $sponsorGrossSubtotalTotal = 0;
-                    $sponsorFeeTotal = 0;
-                    $sponsorDiscountTotal = 0;
+                    //    Cùng công thức với màn hình chi tiết chiến dịch (CampaignSponsorshipCalculator).
+                    $pool = $this->sponsorship->fullSponsorPool($campaign, $orders);
+                    $selfPaidDebtsByUser = $pool['self_paid_by_user'];
                     foreach ($orders as $order) {
-                        $orderSubtotal = (int) $order->subtotal;
-                        $orderRatio = $grossSubtotal > 0 ? ($orderSubtotal / $grossSubtotal) : 0;
-                        $orderDeliveryFee = (int) round($deliveryFee * $orderRatio);
-                        $orderDiscount = (int) round($discount * $orderRatio);
-
-                        [$selfPaidSubtotal, $sponsorableSubtotal] = $this->splitSelfPaidSubtotal($order);
-                        [$selfPaidFee, $selfPaidDiscount, $sponsorFee, $sponsorDiscount] = $this->splitFeeAndDiscount(
-                            $priceBasis, $orderSubtotal, $selfPaidSubtotal, $orderDeliveryFee, $orderDiscount
-                        );
-                        $selfPaidDebt = max(0, $selfPaidSubtotal + $selfPaidFee - $selfPaidDiscount);
-                        $orderGross = max(0, $sponsorableSubtotal + $sponsorFee - $sponsorDiscount);
-                        $sponsorPoolTotal += $orderGross;
-                        $sponsorGrossSubtotalTotal += $sponsorableSubtotal;
-                        $sponsorFeeTotal += $sponsorFee;
-                        $sponsorDiscountTotal += $sponsorDiscount;
-
-                        if ($selfPaidDebt > 0) {
-                            $selfPaidDebtsByUser[(int) $order->room_user_id] = ($selfPaidDebtsByUser[(int) $order->room_user_id] ?? 0) + $selfPaidDebt;
-                        }
-
+                        $split = $pool['orders'][(int) $order->id];
                         $order->update([
-                            'delivery_amount' => $orderDeliveryFee,
-                            'discount_amount' => $orderDiscount,
-                            'sponsor_amount' => $orderGross,
-                            'final_amount' => $selfPaidDebt,
+                            'delivery_amount' => $split['fee'],
+                            'discount_amount' => $split['discount'],
+                            'sponsor_amount' => $split['sponsored'],
+                            'final_amount' => $split['self_paid'],
                             'status' => OrderStatus::Completed->value,
                         ]);
                     }
 
-                    // 2. Ghi nợ cho các NHÀ TÀI TRỢ theo tỷ lệ % đã đăng ký (chỉ trên phần sponsor thực sự gánh)
-                    $sponsorDebts = [];
-                    $allocatedTotal = 0;
-                    foreach ($sponsorAllocations as $alloc) {
-                        $roomUserId = (int) ($alloc['room_user_id'] ?? 0);
-                        $percentage = (float) ($alloc['percentage'] ?? 0);
-                        if ($roomUserId <= 0 || $percentage <= 0) {
-                            continue;
-                        }
-                        $sponsorAmount = (int) round(($sponsorPoolTotal * $percentage) / 100);
-                        $grossPart = (int) round(($sponsorGrossSubtotalTotal * $percentage) / 100);
-                        $feePart = (int) round(($sponsorFeeTotal * $percentage) / 100);
-                        $discPart = (int) round(($sponsorDiscountTotal * $percentage) / 100);
-
-                        $allocatedTotal += $sponsorAmount;
-                        $sponsorDebts[] = [
-                            'room_user_id' => $roomUserId,
-                            'percentage' => $percentage,
-                            'amount' => $sponsorAmount,
-                            'gross_part' => $grossPart,
-                            'fee_part' => $feePart,
-                            'disc_part' => $discPart,
-                        ];
-                    }
-
-                    // Điều chỉnh sai số làm tròn vào sponsor đầu tiên
-                    $diff = $sponsorPoolTotal - $allocatedTotal;
-                    if ($diff !== 0 && count($sponsorDebts) > 0) {
-                        $sponsorDebts[0]['amount'] = max(0, $sponsorDebts[0]['amount'] + $diff);
-                    }
-
+                    // 2. Ghi nợ cho các NHÀ TÀI TRỢ theo tỷ lệ % đã đăng ký (chỉ trên phần sponsor thực sự gánh);
+                    //    sai số làm tròn dồn vào sponsor đầu tiên.
                     // Gộp nợ sponsor + nợ trả riêng của cùng một room_user_id (trường hợp hiếm: sponsor cũng
                     // tự đặt món trả riêng) vào một Debt duy nhất trước khi ghi, tránh updateOrCreate ghi đè nhau.
                     $debtWrites = [];
-                    foreach ($sponsorDebts as $sp) {
+                    foreach ($this->sponsorship->allocate($campaign, $pool) as $sp) {
                         $note = sprintf(
                             "Tài trợ %s%% chiến dịch #%s (%s) - Thực trả: %s [Món: %s, Phí ship: +%s, Giảm giá: -%s]",
                             (string) $sp['percentage'],
                             (string) $campaign->code,
                             (string) ($campaign->restaurant ?: $campaign->name),
                             FormatHelper::formatCurrency($sp['amount']),
-                            FormatHelper::formatCurrency($sp['gross_part']),
-                            FormatHelper::formatCurrency($sp['fee_part']),
-                            FormatHelper::formatCurrency($sp['disc_part'])
+                            FormatHelper::formatCurrency($sp['items']),
+                            FormatHelper::formatCurrency($sp['fee']),
+                            FormatHelper::formatCurrency($sp['discount'])
                         );
 
+                        // original + adjustment = remaining, so SetDebtStatusAction derives the paid amount exactly.
                         $debtWrites[$sp['room_user_id']] = [
-                            'original_amount' => $sp['gross_part'],
-                            'adjustment_amount' => $sp['fee_part'] - $sp['disc_part'],
+                            'original_amount' => $sp['items'],
+                            'adjustment_amount' => $sp['fee'] - $sp['discount'],
                             'remaining_amount' => $sp['amount'],
                             'note' => $note,
                         ];
@@ -226,8 +179,8 @@ class CloseCampaignAction
                             $ordFee = (int) round($userDeliveryFee * $ordRatio);
                             $ordDisc = (int) round($userDiscount * $ordRatio);
 
-                            [$selfPaidSubtotal, $sponsorableSubtotal] = $this->splitSelfPaidSubtotal($ord);
-                            [$selfPaidFee, $selfPaidDisc, $sponsorFee, $sponsorDisc] = $this->splitFeeAndDiscount(
+                            [$selfPaidSubtotal, $sponsorableSubtotal] = $this->sponsorship->splitSelfPaidSubtotal($ord);
+                            [$selfPaidFee, $selfPaidDisc, $sponsorFee, $sponsorDisc] = $this->sponsorship->splitFeeAndDiscount(
                                 $priceBasis, $ordSubtotal, $selfPaidSubtotal, $ordFee, $ordDisc
                             );
                             $ordSelfPaidDebt = max(0, $selfPaidSubtotal + $selfPaidFee - $selfPaidDisc);
@@ -354,56 +307,5 @@ class CloseCampaignAction
         CampaignClosed::dispatch($closed->load('room'));
 
         return $closed;
-    }
-
-    /**
-     * Split an order's subtotal into the "trả riêng" (self-paid) portion and the portion
-     * still eligible for sponsorship, based on each item's `is_self_paid` flag.
-     *
-     * @param Order $order Order whose items must already be eager-loaded.
-     * @return array{0: int, 1: int} [selfPaidSubtotal, sponsorableSubtotal]
-     */
-    private function splitSelfPaidSubtotal(Order $order): array
-    {
-        $selfPaidSubtotal = (int) $order->items
-            ->where('is_self_paid', true)
-            ->sum('line_subtotal');
-
-        return [$selfPaidSubtotal, max(0, (int) $order->subtotal - $selfPaidSubtotal)];
-    }
-
-    /**
-     * Split a delivery fee / discount pair between the self-paid and sponsorable portions
-     * of an order (or a user's grouped orders), according to the campaign's configured
-     * self-paid price basis.
-     *
-     * - `original`: self-paid items pay their raw price only; the sponsorable portion
-     *   absorbs 100% of the shared delivery fee and discount.
-     * - `campaign_prorated`: the fee and discount are split proportionally between the
-     *   self-paid and sponsorable portions, based on their share of the subtotal.
-     *
-     * @param string $priceBasis One of Campaign::SELF_PAID_PRICE_BASIS_*.
-     * @param int $subtotal Total subtotal (self-paid + sponsorable).
-     * @param int $selfPaidSubtotal Portion of $subtotal that is self-paid.
-     * @param int $fee Delivery fee already allocated to this subtotal.
-     * @param int $discount Discount already allocated to this subtotal.
-     * @return array{0: int, 1: int, 2: int, 3: int} [selfPaidFee, selfPaidDiscount, sponsorFee, sponsorDiscount]
-     */
-    private function splitFeeAndDiscount(string $priceBasis, int $subtotal, int $selfPaidSubtotal, int $fee, int $discount): array
-    {
-        if ($selfPaidSubtotal <= 0) {
-            return [0, 0, $fee, $discount];
-        }
-
-        if ($priceBasis !== Campaign::SELF_PAID_PRICE_BASIS_CAMPAIGN_PRORATED) {
-            // 'original' (mặc định): món trả riêng không cộng ship, không trừ giảm giá chung.
-            return [0, 0, $fee, $discount];
-        }
-
-        $selfPaidRatio = $subtotal > 0 ? ($selfPaidSubtotal / $subtotal) : 0;
-        $selfPaidFee = (int) round($fee * $selfPaidRatio);
-        $selfPaidDiscount = (int) round($discount * $selfPaidRatio);
-
-        return [$selfPaidFee, $selfPaidDiscount, $fee - $selfPaidFee, $discount - $selfPaidDiscount];
     }
 }

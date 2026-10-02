@@ -148,6 +148,21 @@ CORS_ORIGIN=https://drinkflow.yourcompany.com
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_REDIRECT_URI=https://drinkflow.yourcompany.com/auth/google/callback
+
+# SaaS platform: gói dịch vụ, hoá đơn nền tảng và thanh toán online
+PLATFORM_DEFAULT_PACKAGE=starter
+PLATFORM_INVOICE_DUE_DAYS=7
+PLATFORM_INVOICE_GRACE_DAYS=7
+# Chỉ bật khi cron `platform:enforce-overdue` đã chạy và muốn tạm khoá tự động
+PLATFORM_AUTO_SUSPEND=false
+PLATFORM_PAYMENTS_ENABLED=false
+PLATFORM_PAYMENTS_CHECKOUT_URL=
+PLATFORM_PAYMENTS_WEBHOOK_SECRET=
+# Tài khoản chủ nền tảng do seeder tạo, CHỈ ở môi trường không phải production.
+# PLATFORM_SEED_OWNER_VALUE để trống: seeder sinh ngẫu nhiên và in một lần ra console.
+# PLATFORM_SEED_OWNER_EMAIL=superadmin@drinkflow.local
+# PLATFORM_SEED_OWNER_NAME="DrinkFlow Superadmin"
+# PLATFORM_SEED_OWNER_VALUE=
 ```
 
 ### Bước 3.3: Tinh chỉnh `docker-compose.yml` cho Production

@@ -13,6 +13,13 @@ return [
     'read_more' => 'Read guide',
     'back_to_list' => 'Back to guide list',
     'lightbox_title' => 'Guide image viewer',
+    'audience_toggle_label' => 'Choose the guide set',
+    'audience_client' => 'Client guides',
+    'audience_agent' => 'Agent guides',
+    'agent_page_title' => 'DrinkFlow Agent Guide',
+    'agent_page_subtitle' => 'How to run the DrinkFlow management console: sign-in, rooms, campaigns, group orders, debts and settings.',
+    'agent_public_meta_title' => 'DrinkFlow Agent Guides - Room Operations & Group Order Campaigns',
+    'agent_public_meta_description' => 'DrinkFlow Agent guides: sign in to the management console, manage rooms and members, run group-order campaigns, settle debts and configure the system.',
     'public_meta_title' => 'DrinkFlow User Guides - Group Drink Ordering & Bill Splitting',
     'public_meta_description' => 'DrinkFlow how-to guides: sign in with Google Workspace, join a room, order in group campaigns, pay via VietQR and track debts.',
 ];

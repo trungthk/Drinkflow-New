@@ -120,6 +120,22 @@ class AdminCampaignSubViewsTest extends TestCase
     /**
      * Test the cancel-campaign confirm button carries a loading state for its submit.
      */
+    public function test_info_page_offers_the_join_link_only_while_members_can_join(): void
+    {
+        $joinLink = route('user.campaigns.show', [$this->room, $this->campaign]);
+
+        // Closed campaign (setUp): nothing to join any more.
+        $this->actingAs($this->admin, 'admin')->get(route('admin.campaigns.info', [$this->room->slug, $this->campaign]))
+            ->assertOk()
+            ->assertDontSee('data-copy="'.$joinLink.'"', false);
+
+        $this->campaign->update(['status' => CampaignStatus::Active]);
+        $this->actingAs($this->admin, 'admin')->get(route('admin.campaigns.info', [$this->room->slug, $this->campaign]))
+            ->assertOk()
+            ->assertSee('data-copy="'.$joinLink.'"', false)
+            ->assertSee(__('admin.copy_join_link'));
+    }
+
     public function test_cancel_campaign_button_has_submit_loading_state(): void
     {
         $this->campaign->update(['status' => CampaignStatus::Active]);

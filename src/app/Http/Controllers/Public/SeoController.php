@@ -77,9 +77,13 @@ class SeoController extends Controller
                 $xml .= "  <url>\n    <loc>".e(LocaleUrl::url($path, $code))."</loc>\n".$alternates."    <lastmod>{$lastmod}</lastmod>\n    <changefreq>{$freq}</changefreq>\n    <priority>{$priority}</priority>\n  </url>\n";
             }
         }
-        $guides = [['/guides', '0.7', 'monthly']];
-        foreach (app(UserGuideService::class)->list() as $article) {
+        $guides = [['/guides', '0.7', 'monthly'], ['/guides/agent', '0.7', 'monthly']];
+        $service = app(UserGuideService::class);
+        foreach ($service->list() as $article) {
             $guides[] = ['/guides/'.$article['slug'], '0.6', 'monthly'];
+        }
+        foreach ($service->list(UserGuideService::AUDIENCE_AGENT) as $article) {
+            $guides[] = ['/guides/agent/'.$article['slug'], '0.6', 'monthly'];
         }
         foreach ($guides as [$path, $priority, $freq]) {
             $xml .= "  <url>\n    <loc>".e(url($path))."</loc>\n    <lastmod>{$lastmod}</lastmod>\n    <changefreq>{$freq}</changefreq>\n    <priority>{$priority}</priority>\n  </url>\n";

@@ -4,13 +4,50 @@
     $card = 'rounded-xl border border-outline-variant bg-surface-container-lowest p-5';
 @endphp
 <x-admin.layout :title="__('platform.subscriptions.title')" active="subscription" :breadcrumb="__('platform.subscriptions.title')">
-    <div class="max-w-7xl mx-auto space-y-6">
-        <section>
-            <h1 class="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-on-surface">{{ __('platform.subscriptions.title') }}</h1>
-            <p class="mt-1.5 max-w-3xl text-sm text-on-surface-variant">{{ __('platform.subscriptions.subtitle') }}</p>
+    <div class="space-y-6">
+        <section class="pb-4 border-b border-outline-variant/40">
+            <h1 class="text-2xl font-bold tracking-tight text-on-surface">{{ __('platform.subscriptions.title') }}</h1>
+            <p class="mt-1 max-w-3xl text-xs text-outline">{{ __('platform.subscriptions.subtitle') }}</p>
         </section>
 
         <x-admin.billing-warning />
+
+        @if ($pendingUpgrade)
+            {{-- Upgrade waiting for payment: the current package stays until the invoice is paid and confirmed. --}}
+            <section class="rounded-xl border border-sky-200 bg-sky-50 px-5 py-4 text-sm text-sky-950 dark:border-sky-800 dark:bg-sky-950/30 dark:text-sky-100" data-pending-upgrade="{{ $pendingUpgrade->id }}">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="flex items-start gap-3 min-w-0">
+                        <span class="material-symbols-outlined text-[22px] text-sky-700">hourglass_top</span>
+                        <div class="min-w-0">
+                            <p class="font-semibold">{{ __('platform.subscriptions.upgrade_pending_title', ['package' => $pendingUpgrade->package?->name]) }}</p>
+                            <p class="mt-0.5 text-xs">{{ __('platform.subscriptions.upgrade_pending_hint', [
+                                'number' => $pendingUpgrade->number,
+                                'amount' => $money($pendingUpgrade->remaining()),
+                                'date' => $pendingUpgrade->due_at?->toAppDate(),
+                            ]) }}</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if ($onlinePayment && $pendingUpgrade->remaining() > 0)
+                            <a href="{{ route('admin.billing.pay', $pendingUpgrade) }}" class="h-9 px-4 inline-flex items-center gap-1.5 rounded-lg bg-primary text-on-primary text-xs font-semibold">
+                                <span class="material-symbols-outlined text-[16px]">payments</span>{{ __('platform.billing.pay_online') }}
+                            </a>
+                        @endif
+                        <a href="{{ route('admin.billing.download', $pendingUpgrade) }}" class="h-9 px-3 inline-flex items-center gap-1.5 rounded-lg border border-sky-300 bg-white text-xs font-semibold text-sky-900 hover:bg-sky-100 dark:bg-transparent dark:text-sky-100">
+                            <span class="material-symbols-outlined text-[16px]">picture_as_pdf</span>{{ __('platform.billing.download_pdf') }}
+                        </a>
+                        @if ($pendingUpgrade->paid_amount === 0)
+                            <form method="POST" action="{{ route('admin.subscription.upgrade.cancel') }}" data-loading-form="true"
+                                data-confirm-message="{{ __('platform.subscriptions.upgrade_cancel_confirm', ['number' => $pendingUpgrade->number]) }}"
+                                data-confirm-button="{{ __('platform.subscriptions.upgrade_cancel') }}" data-confirm-tone="danger">
+                                @csrf
+                                <button type="submit" class="h-9 px-3 rounded-lg border border-error/40 text-error text-xs font-semibold hover:bg-error-container/40 cursor-pointer">{{ __('platform.subscriptions.upgrade_cancel') }}</button>
+                            </form>
+                        @endif
+                    </div>
+                </div>
+            </section>
+        @endif
 
         @if (session('status'))
             <div class="rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-on-primary-fixed-variant" role="status">{{ session('status') }}</div>
@@ -40,30 +77,54 @@
                     </dl>
                     @if ($subscription->scheduledPackage)
                         <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900">
-                            <span>{{ __('platform.subscriptions.scheduled_notice', ['package' => $subscription->scheduledPackage->name, 'date' => $subscription->expires_at?->toAppDate()]) }}</span>
-                            <form method="POST" action="{{ route('admin.subscription.scheduled.cancel') }}" data-loading-form="true">
+                            <span>
+                                {{ __('platform.subscriptions.scheduled_notice', ['package' => $subscription->scheduledPackage->name, 'date' => $subscription->expires_at?->toAppDate()]) }}
+                                <small class="block text-xs">{{ __('platform.subscriptions.downgrade_no_refund', ['date' => $subscription->expires_at?->toAppDate()]) }}</small>
+                            </span>
+                            <form method="POST" action="{{ route('admin.subscription.scheduled.cancel') }}" data-loading-form="true"
+                                data-confirm-message="{{ __('platform.subscriptions.keep_current_confirm', ['package' => $subscription->package?->name]) }}"
+                                data-confirm-button="{{ __('platform.subscriptions.keep_current') }}">
                                 @csrf
                                 <button type="submit" class="text-xs font-semibold underline cursor-pointer">{{ __('platform.subscriptions.keep_current') }}</button>
                             </form>
                         </div>
                     @endif
-                    <div class="mt-4 flex justify-end">
-                        @if ($subscription->cancel_at_period_end)
-                            <form method="POST" action="{{ route('admin.subscription.resume') }}" data-loading-form="true">
-                                @csrf
-                                <button type="submit" class="h-9 px-4 rounded-lg bg-primary text-on-primary text-xs font-semibold cursor-pointer">{{ __('platform.subscriptions.resume') }}</button>
-                            </form>
-                        @else
+                    {{-- Auto-renew: the scheduler (subscriptions:process) renews the period at expires_at unless it is switched off. --}}
+                    @php $autoRenew = ! $subscription->cancel_at_period_end; @endphp
+                    <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-outline-variant px-4 py-3" data-auto-renew="{{ $autoRenew ? 'on' : 'off' }}">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-[22px] {{ $autoRenew ? 'text-primary' : 'text-outline' }}">autorenew</span>
+                            <div>
+                                <p class="text-sm font-semibold text-on-surface">{{ __('platform.subscriptions.auto_renew') }}
+                                    <span class="ml-1 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $autoRenew ? 'bg-emerald-50 text-emerald-800' : 'bg-surface-container text-on-surface-variant' }}">{{ $autoRenew ? __('platform.subscriptions.auto_renew_on') : __('platform.subscriptions.auto_renew_off') }}</span>
+                                </p>
+                                <p class="text-xs text-outline mt-0.5">
+                                    {{ $autoRenew
+                                        ? __('platform.subscriptions.auto_renew_on_hint', ['date' => $subscription->expires_at?->toAppDate(), 'price' => $money($subscription->scheduledPackage?->monthly_price ?? $subscription->price_snapshot)])
+                                        : __('platform.subscriptions.auto_renew_off_hint', ['date' => $subscription->expires_at?->toAppDate()]) }}
+                                </p>
+                            </div>
+                        </div>
+                        @if ($autoRenew)
                             <form method="POST" action="{{ route('admin.subscription.cancel') }}" data-loading-form="true"
-                                onsubmit="return confirm(@js(__('platform.subscriptions.cancel_confirm', ['date' => $subscription->expires_at?->toAppDate()])))">
+                                data-confirm-title="{{ __('platform.subscriptions.auto_renew_off_title') }}"
+                                data-confirm-message="{{ __('platform.subscriptions.cancel_confirm', ['date' => $subscription->expires_at?->toAppDate()]) }}"
+                                data-confirm-button="{{ __('platform.subscriptions.cancel') }}" data-confirm-tone="danger">
                                 @csrf
                                 <button type="submit" class="h-9 px-4 rounded-lg border border-error/40 text-error text-xs font-semibold hover:bg-error-container/40 cursor-pointer">{{ __('platform.subscriptions.cancel') }}</button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('admin.subscription.resume') }}" data-loading-form="true"
+                                data-confirm-title="{{ __('platform.subscriptions.auto_renew_on_title') }}"
+                                data-confirm-message="{{ __('platform.subscriptions.resume_confirm', ['date' => $subscription->expires_at?->toAppDate()]) }}"
+                                data-confirm-button="{{ __('platform.subscriptions.resume') }}">
+                                @csrf
+                                <button type="submit" class="h-9 px-4 rounded-lg bg-primary text-on-primary text-xs font-semibold cursor-pointer">{{ __('platform.subscriptions.resume') }}</button>
                             </form>
                         @endif
                     </div>
                 @else
-                    <h2 class="text-lg font-bold text-on-surface">{{ __('platform.subscriptions.none_title') }}</h2>
-                    <p class="mt-1 text-sm text-on-surface-variant">{{ __('platform.subscriptions.none_description') }}</p>
+                    <x-admin.empty-state icon="workspace_premium" :title="__('platform.subscriptions.none_title')" :description="__('platform.subscriptions.none_description')" />
                 @endif
             </section>
             <x-admin.room-quota :usage="$usage" />
@@ -84,13 +145,24 @@
                             <strong class="text-sm text-on-surface">{{ $package->name }}</strong>
                             <span class="text-xs font-semibold text-primary">{{ __('platform.packages.per_month', ['price' => $money($package->monthly_price)]) }}</span>
                             <span class="text-xs text-outline">{{ __('platform.packages.rooms_limit', ['count' => $package->room_limit]) }}</span>
+                            @if (! $isCurrent && ! $tooSmall)
+                                {{-- What happens to the money: an upgrade is invoiced first, a downgrade refunds nothing. --}}
+                                <p class="text-[11px] leading-snug {{ $upgrade ? 'text-sky-800 dark:text-sky-300' : 'text-amber-800 dark:text-amber-300' }}" data-package-note="{{ $upgrade ? 'upgrade' : 'downgrade' }}">
+                                    <span class="material-symbols-outlined text-[13px] align-[-2px]">{{ $upgrade ? 'receipt_long' : 'info' }}</span>
+                                    {{ $upgrade ? __('platform.subscriptions.upgrade_note') : __('platform.subscriptions.downgrade_no_refund', ['date' => $subscription->expires_at?->toAppDate()]) }}
+                                </p>
+                            @endif
                             @if ($isCurrent)
                                 <span class="mt-auto text-xs font-semibold text-primary">{{ __('platform.subscriptions.current') }}</span>
                             @elseif ($tooSmall)
                                 <span class="mt-auto text-xs text-error">{{ __('platform.subscriptions.too_many_rooms', ['used' => $usage['used'], 'limit' => $package->room_limit]) }}</span>
+                            @elseif ($pendingUpgrade && $pendingUpgrade->package_id === $package->id)
+                                <span class="mt-auto text-xs font-semibold text-sky-800 dark:text-sky-300">{{ __('platform.subscriptions.upgrade_awaiting_payment') }}</span>
                             @else
                                 <form method="POST" action="{{ route('admin.subscription.change') }}" class="mt-auto" data-loading-form="true"
-                                    onsubmit="return confirm(@js($upgrade ? __('platform.subscriptions.upgrade_confirm', ['package' => $package->name]) : __('platform.subscriptions.downgrade_confirm', ['package' => $package->name, 'date' => $subscription->expires_at?->toAppDate()])))">
+                                    data-confirm-title="{{ $upgrade ? __('platform.subscriptions.upgrade') : __('platform.subscriptions.downgrade') }}"
+                                    data-confirm-message="{{ $upgrade ? __('platform.subscriptions.upgrade_confirm', ['package' => $package->name]) : __('platform.subscriptions.downgrade_confirm', ['package' => $package->name, 'date' => $subscription->expires_at?->toAppDate()]) }}"
+                                    data-confirm-button="{{ $upgrade ? __('platform.subscriptions.upgrade') : __('platform.subscriptions.downgrade') }}">
                                     @csrf
                                     <input type="hidden" name="package_id" value="{{ $package->id }}">
                                     <button type="submit" class="w-full h-9 rounded-lg text-xs font-semibold cursor-pointer {{ $upgrade ? 'bg-primary text-on-primary' : 'border border-outline-variant hover:bg-surface-container' }}">
@@ -129,7 +201,9 @@
                                 <td class="px-5 py-3 whitespace-nowrap">{{ $row->starts_at->toAppDate() }} → {{ ($row->ended_at ?? $row->expires_at)?->toAppDate() ?? '—' }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="5" class="px-5 py-8 text-center text-outline">{{ __('platform.subscriptions.history_empty') }}</td></tr>
+                            <tr><td colspan="5" class="p-4">
+                                <x-admin.empty-state icon="history" :title="__('platform.subscriptions.history_empty')" />
+                            </td></tr>
                         @endforelse
                     </tbody>
                 </table>

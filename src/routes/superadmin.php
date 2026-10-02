@@ -82,6 +82,10 @@ Route::middleware(['auth:superadmin', 'superadmin'])->prefix('superadmin')->grou
     Route::patch('/feedbacks/{feedback}/status', [\App\Http\Controllers\Superadmin\FeedbackController::class, 'status'])->middleware('permission:feedback.manage')->name('superadmin.feedbacks.status');
     // Agents: list, detail tabs, manager assignment and suspension.
     Route::get('/agents', [\App\Http\Controllers\Superadmin\AgentController::class, 'index'])->middleware('permission:agent.view')->name('superadmin.agents.index');
+    // Agents: a Superadmin creates an Agent, which stays pending until it activates its account.
+    Route::get('/agents/create', [\App\Http\Controllers\Superadmin\AgentController::class, 'create'])->middleware('permission:agent.manage')->name('superadmin.agents.create');
+    Route::post('/agents', [\App\Http\Controllers\Superadmin\AgentController::class, 'store'])->middleware(['permission:agent.manage', 'throttle:30,1'])->name('superadmin.agents.store');
+    Route::post('/agents/{admin}/resend-activation', [\App\Http\Controllers\Superadmin\AgentController::class, 'resendActivation'])->whereNumber('admin')->middleware(['permission:agent.manage', 'throttle:10,1'])->name('superadmin.agents.resend-activation');
     Route::get('/agents/{admin}', [\App\Http\Controllers\Superadmin\AgentController::class, 'show'])->whereNumber('admin')->middleware('permission:agent.view')->name('superadmin.agents.show');
     Route::post('/agents/{admin}/managers', [\App\Http\Controllers\Superadmin\AgentController::class, 'assign'])->whereNumber('admin')->middleware('permission:agent.manage')->name('superadmin.agents.assign');
     Route::delete('/agents/{admin}/managers/{superadmin}', [\App\Http\Controllers\Superadmin\AgentController::class, 'unassign'])->whereNumber(['admin', 'superadmin'])->middleware('permission:agent.manage')->name('superadmin.agents.unassign');

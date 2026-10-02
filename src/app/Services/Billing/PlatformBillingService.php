@@ -12,7 +12,9 @@ use App\Models\AdminSubscription;
 use App\Models\Superadmin;
 use App\Services\Audit\AuditService;
 use App\Services\Billing\Gateway\GatewayNotification;
+use App\Enums\InvoiceType;
 use App\Services\Subscription\SubscriptionService;
+use App\Services\Subscription\SubscriptionUpgradeService;
 use Carbon\CarbonInterface;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +33,7 @@ class PlatformBillingService
     public function __construct(
         private readonly AuditService $audit,
         private readonly BillingEnforcementService $enforcement,
+        private readonly SubscriptionUpgradeService $upgrades,
     ) {}
 
     /**
@@ -113,7 +116,8 @@ class PlatformBillingService
     }
 
     /**
-     * Mark open invoices past their due date as overdue.
+     * Mark open period invoices past their due date as overdue; unpaid upgrade requests past their due
+     * date are voided instead (the Agent simply keeps its current package).
      *
      * @param CarbonInterface|null $now Reference time.
      * @return int Number of invoices that became overdue.
@@ -121,8 +125,10 @@ class PlatformBillingService
     public function processOverdue(?CarbonInterface $now = null): int
     {
         $now ??= now();
+        // An unpaid upgrade request is not a debt: it expires instead of becoming overdue (no suspension).
+        $this->upgrades->expireUnpaid($now);
         $count = 0;
-        $ids = AdminInvoice::query()->where('status', InvoiceStatus::Open->value)->where('due_at', '<', $now)->pluck('id');
+        $ids = AdminInvoice::query()->where('status', InvoiceStatus::Open->value)->where('type', '!=', InvoiceType::Upgrade->value)->where('due_at', '<', $now)->pluck('id');
         foreach ($ids as $id) {
             $changed = DB::transaction(function () use ($id, $now): bool {
                 $invoice = AdminInvoice::query()->lockForUpdate()->find($id);
@@ -199,6 +205,10 @@ class PlatformBillingService
                 'amount' => $amount,
                 'method' => $method->value,
             ]);
+            if ($settled && $invoice->isUpgrade()) {
+                // The upgrade was waiting for this payment: start the new package in the same transaction.
+                $this->upgrades->applyPaid($invoice, $paidAt);
+            }
 
             return $payment;
         });

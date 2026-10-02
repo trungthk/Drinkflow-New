@@ -1,6 +1,8 @@
 @props([
     'title' => null,
     'brandHero' => null,
+    // Single centered card on a full-width stage (no brand column), used by the wide registration form.
+    'centered' => false,
 ])
 
 @php
@@ -33,6 +35,7 @@
 <body data-submit-loading-text="{{ __('global.common.loading') }}"
     class="admin-shell h-full bg-surface text-on-surface font-sans antialiased overflow-hidden selection:bg-primary/20">
     <div class="h-screen overflow-hidden flex flex-col lg:flex-row">
+        @unless ($centered)
         <!-- LEFT COLUMN: Brand & Operations Engine (~46% width) -->
         <aside
             class="lg:w-5/12 xl:w-1/2 bg-gradient-to-br from-emerald-50 via-white to-emerald-100/70 text-on-surface hidden md:flex flex-col p-6 lg:py-8 lg:px-10 relative overflow-hidden border-b lg:border-b-0 lg:border-r border-emerald-100 justify-between select-none shrink-0">
@@ -121,12 +124,38 @@
                 @endif
             </div>
         </aside>
+        @endunless
 
-        <!-- RIGHT COLUMN: Interactive Form (~54% width) -->
+        <!-- RIGHT COLUMN: Interactive Form (~54% width), or the whole page when centered -->
         <main
-            class="lg:w-7/12 xl:w-1/2 flex flex-col p-6 lg:py-6 lg:px-12 justify-between bg-surface-container-lowest overflow-y-auto">
+            @class([
+                'flex flex-col overflow-y-auto',
+                'lg:w-7/12 xl:w-1/2 p-6 lg:py-6 lg:px-12 justify-between bg-surface-container-lowest' => ! $centered,
+                'relative w-full min-h-0 flex-1 bg-gradient-to-br from-emerald-50 via-[#f8fcfa] to-emerald-50/80' => $centered,
+            ])>
+            @if ($centered)
+                <div class="pointer-events-none fixed inset-0 opacity-[0.18] bg-[radial-gradient(#8ecfb2_0.8px,transparent_0.8px)] [background-size:20px_20px]" aria-hidden="true"></div>
+            @endif
             <!-- Top Controls (Language Switcher + Help) -->
-            <div class="flex items-center justify-between pb-3">
+            <div @class([
+                'flex items-center justify-between',
+                'pb-3' => ! $centered,
+                'sticky top-0 z-40 h-16 px-4 sm:px-8 bg-white/90 backdrop-blur border-b border-emerald-100/70' => $centered,
+            ])>
+                @if ($centered)
+                    <a href="{{ route('admin.login.page') }}" class="flex items-center gap-3 no-underline">
+                        <span class="w-9 h-9 rounded-xl flex items-center justify-center shadow-md shadow-emerald-900/10 shrink-0" style="background: linear-gradient(135deg, #006948 0%, #047857 100%);">
+                            <svg viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px; fill: #ffffff;">
+                                <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z" />
+                            </svg>
+                        </span>
+                        <span class="leading-tight">
+                            <span class="block text-sm sm:text-base font-bold tracking-tight text-on-surface">{{ __('admin.brand_title') }}</span>
+                            <span class="block text-[10px] font-mono tracking-widest text-primary/70 uppercase">{{ __('admin.brand_subtitle') }}</span>
+                        </span>
+                    </a>
+                    <div class="flex items-center gap-3 sm:gap-5">
+                @endif
                 <!-- Language Selector Dropdown -->
                 <div class="relative" id="admin-auth-lang-selector">
                     <button type="button" id="admin-auth-lang-btn" aria-haspopup="true" aria-expanded="false"
@@ -139,7 +168,7 @@
 
                     <!-- Dropdown Menu -->
                     <div id="admin-auth-lang-menu"
-                        class="hidden absolute left-0 mt-1.5 w-36 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-50 animate-fadeIn">
+                        class="hidden absolute {{ $centered ? 'right-0' : 'left-0' }} mt-1.5 w-36 bg-white rounded-xl shadow-lg border border-slate-200 py-1.5 z-50 animate-fadeIn">
                         @foreach ($locales as $code => $meta)
                             <a href="{{ route('locale.switch', $code) }}"
                                 class="flex items-center justify-between px-3 py-2 text-xs text-slate-700 hover:bg-emerald-50 hover:text-[#006948] transition-colors {{ $currentLocale === $code ? 'font-semibold text-[#006948] bg-emerald-50/50' : '' }}">
@@ -160,10 +189,17 @@
                     <span class="material-symbols-outlined text-[16px]">contact_support</span>
                     <span>{{ __('admin.contact_support') }}</span>
                 </a>
+                @if ($centered)
+                    </div>
+                @endif
             </div>
 
             <!-- Center Form Content Slot -->
-            <div class="w-full max-w-md mx-auto my-auto py-2">
+            <div @class([
+                'w-full mx-auto my-auto',
+                'max-w-md py-2' => ! $centered,
+                'relative max-w-[1010px] px-3 py-6 sm:px-6 sm:py-10' => $centered,
+            ])>
                 {{ $slot }}
             </div>
         </main>

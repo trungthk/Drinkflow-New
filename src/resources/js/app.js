@@ -23,6 +23,7 @@ import { exposeSuperadminGlobals } from './superadmin/shared';
 import { initSuperadminModals, openSuperadminConfirm } from './superadmin/modal';
 import { initSuperadminSearchClear } from './superadmin/search-clear';
 import { initSuperadminNotifications } from './superadmin/notifications';
+import { initSuperadminRealtime } from './superadmin/realtime';
 import { initSuperadminSidebar } from './superadmin/sidebar';
 import { initSuperadminVersions } from './superadmin/versions';
 import { initSuperadminDashboard } from './superadmin/dashboard';
@@ -58,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initSuperadminModals();
     initSuperadminSearchClear();
     initSuperadminNotifications();
+    initSuperadminRealtime();
     initSuperadminSidebar();
     initSuperadminVersions();
     initSuperadminDashboard();

@@ -2,20 +2,17 @@
     @php
         $canAdd = $usage['has_subscription'] && $usage['remaining'] > 0;
     @endphp
-    <div class="max-w-7xl mx-auto space-y-6">
-        <section class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+    <div class="space-y-6">
+        <section class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-outline-variant/40">
             <div>
-                <h1 class="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-on-surface">{{ __('platform.rooms.title') }}</h1>
-                <p class="mt-1.5 max-w-3xl text-sm text-on-surface-variant">{{ __('platform.rooms.subtitle') }}</p>
+                <h1 class="text-2xl font-bold tracking-tight text-on-surface">{{ __('platform.rooms.title') }}</h1>
+                <p class="mt-1 max-w-3xl text-xs text-outline">{{ __('platform.rooms.subtitle') }}</p>
             </div>
+            {{-- Hidden once the package quota is used up (the quota card explains why); the server refuses it too. --}}
             @if ($canAdd)
-                <a href="{{ route('admin.rooms.create') }}" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-primary text-on-primary text-sm font-semibold hover:bg-primary-container">
+                <a href="{{ route('admin.rooms.create') }}" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-primary text-on-primary text-sm font-semibold hover:bg-primary-container" data-create-room>
                     <span class="material-symbols-outlined text-[18px]">add</span>{{ __('platform.rooms.create') }}
                 </a>
-            @else
-                <span class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-surface-container text-outline text-sm font-semibold cursor-not-allowed" aria-disabled="true" title="{{ $usage['has_subscription'] ? __('platform.rooms.quota_reached', ['limit' => $usage['limit']]) : __('platform.rooms.no_subscription') }}">
-                    <span class="material-symbols-outlined text-[18px]">block</span>{{ __('platform.rooms.create') }}
-                </span>
             @endif
         </section>
 
@@ -67,7 +64,7 @@
                                         @else
                                             <a href="{{ route('admin.rooms.edit', $room) }}" class="h-8 px-3 inline-flex items-center rounded-lg border border-outline-variant text-xs font-semibold hover:bg-surface-container">{{ __('platform.rooms.edit') }}</a>
                                             <form method="POST" action="{{ route('admin.rooms.archive', $room) }}" data-loading-form="true"
-                                                onsubmit="return confirm(@js(__('platform.rooms.archive_confirm', ['name' => $room->name])))">
+                                                data-confirm-message="{{ __('platform.rooms.archive_confirm', ['name' => $room->name]) }}" data-confirm-button="{{ __('platform.rooms.archive') }}" data-confirm-tone="danger">
                                                 @csrf
                                                 <button type="submit" class="h-8 px-3 rounded-lg border border-error/40 text-error text-xs font-semibold hover:bg-error-container/40 cursor-pointer">{{ __('platform.rooms.archive') }}</button>
                                             </form>
@@ -76,7 +73,9 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-5 py-8 text-center text-sm text-outline">{{ __('platform.rooms.empty') }}</td></tr>
+                            <tr><td colspan="4" class="p-4">
+                                <x-admin.empty-state icon="meeting_room" :title="__('platform.rooms.empty')" :description="$canAdd ? __('platform.rooms.empty_hint') : null" />
+                            </td></tr>
                         @endforelse
                     </tbody>
                 </table>

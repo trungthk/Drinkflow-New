@@ -94,80 +94,20 @@
         </div>
     </form>
 
-    <!-- Consolidated Payment Requests -->
-    @if(! empty($paymentRequests))
-        @php
-            $pendingRequestCount = collect($paymentRequests)->where('status', \App\Enums\DebtStatus::Pending->value)->count();
-            $requestStatusClass = [
-                'pending' => 'bg-amber-100 text-amber-900 border-amber-300',
-                'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
-            ];
-        @endphp
-        <section id="payment-requests" class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-xs">
-            <div class="flex flex-wrap items-start justify-between gap-2 px-4 py-3 border-b border-outline-variant bg-surface-container-low">
-                <div class="min-w-0">
-                    <h2 class="text-sm font-bold text-on-surface flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-[18px] text-primary" aria-hidden="true">stacks</span>
-                        {{ __('admin.payment_requests_title') }}
-                    </h2>
-                    <p class="text-[11px] text-outline mt-0.5">{{ __('admin.payment_requests_subtitle') }}</p>
-                </div>
-                @if($pendingRequestCount > 0)
-                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold border bg-amber-100 text-amber-900 border-amber-300">
-                        <span class="material-symbols-outlined text-[14px]" aria-hidden="true">hourglass_top</span>
-                        {{ __('admin.payment_requests_pending_count', ['count' => $pendingRequestCount]) }}
-                    </span>
-                @endif
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full min-w-[48rem] text-left text-xs border-collapse">
-                    <thead>
-                        <tr class="bg-surface-container-low text-outline font-mono uppercase text-[11px] border-b border-outline-variant">
-                            <th class="py-2.5 px-4">{{ __('admin.payment_request_code') }}</th>
-                            <th class="py-2.5 px-4">{{ __('admin.debt_member') }}</th>
-                            <th class="py-2.5 px-4 text-center">{{ __('admin.payment_request_debts') }}</th>
-                            <th class="py-2.5 px-4 text-right">{{ __('admin.payment_request_amount') }}</th>
-                            <th class="py-2.5 px-4">{{ __('admin.request_time') }}</th>
-                            <th class="py-2.5 px-4 text-center">{{ __('admin.th_status') }}</th>
-                            <th class="py-2.5 px-4 text-center">{{ __('admin.th_actions') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-outline-variant/50">
-                        @foreach($paymentRequests as $paymentRequest)
-                            <tr class="hover:bg-surface-container-low/50 transition-colors" data-payment-request-row="{{ $paymentRequest['id'] }}">
-                                <td class="py-3 px-4 font-mono font-bold text-primary whitespace-nowrap">{{ $paymentRequest['code'] }}</td>
-                                <td class="py-3 px-4">
-                                    <div class="font-semibold text-on-surface">{{ $paymentRequest['member'] }}</div>
-                                    <div class="text-[11px] text-outline">{{ $paymentRequest['member_meta'] }}</div>
-                                </td>
-                                <td class="py-3 px-4 text-center font-mono">{{ count($paymentRequest['debts']) }}</td>
-                                <td class="py-3 px-4 text-right font-mono font-bold text-on-surface whitespace-nowrap">
-                                    {{ \App\Support\Helpers\FormatHelper::formatCurrency($paymentRequest['amount']) }}
-                                    @if($paymentRequest['conflict'])
-                                        <span class="material-symbols-outlined text-[15px] text-rose-600 align-middle" data-tooltip="{{ __('admin.payment_request_conflict_notice', ['expected' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentRequest['amount']), 'actual' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentRequest['current_total'])]) }}" aria-hidden="true">warning</span>
-                                    @endif
-                                </td>
-                                <td class="py-3 px-4 text-outline whitespace-nowrap">{{ $paymentRequest['requested_at'] }}</td>
-                                <td class="py-3 px-4 text-center">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full whitespace-nowrap text-[11px] font-semibold border {{ $requestStatusClass[$paymentRequest['status']] ?? 'bg-surface-container text-secondary border-outline-variant' }}">
-                                        {{ $paymentRequest['status_label'] }}
-                                    </span>
-                                </td>
-                                <td class="py-3 px-4 text-center">
-                                    <button type="button" data-open-payment-request
-                                        data-payment-request="{{ json_encode($paymentRequest, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
-                                        class="px-2.5 py-1 rounded text-[11px] font-bold inline-flex items-center gap-1 shadow-2xs transition-colors cursor-pointer {{ $paymentRequest['status'] === 'pending' ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-surface-container text-primary border border-outline-variant/60 hover:bg-surface-container-high' }}">
-                                        <span class="material-symbols-outlined text-[14px]" aria-hidden="true">{{ $paymentRequest['status'] === 'pending' ? 'pending_actions' : 'visibility' }}</span>
-                                        <span>{{ $paymentRequest['status'] === 'pending' ? __('admin.payment_request_view_btn') : __('admin.payment_request_view_detail') }}</span>
-                                    </button>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </section>
+    <!-- Consolidated payment requests are listed in the ledger below, in place of the debts they bundle. -->
+    @php
+        $requestStatusClass = [
+            'pending' => 'bg-amber-100 text-amber-900 border-amber-300 font-bold',
+            'approved' => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            'rejected' => 'bg-rose-50 text-rose-700 border-rose-200',
+        ];
+    @endphp
+    @if(($pendingRequestCount ?? 0) > 0)
+        <a href="{{ route('admin.debts.page', [$room, 'status' => \App\Enums\DebtStatus::Pending->value]) }}"
+            class="flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs font-semibold text-amber-900 no-underline hover:bg-amber-100 transition-colors" data-pending-requests-notice>
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">hourglass_top</span>
+            {{ __('admin.payment_requests_pending_notice', ['count' => $pendingRequestCount]) }}
+        </a>
     @endif
 
     <!-- Debts Table Ledger -->
@@ -195,6 +135,54 @@
                 </thead>
                 <tbody id="debts-tbody" class="divide-y divide-outline-variant/50">
                     @forelse($debts as $debt)
+                        @if ($debt->campaign_id === null && isset($paymentRequestRows[$debt->id]))
+                            {{-- Consolidated payment request (parent): stands for the campaign debts bundled into it. --}}
+                            @php $paymentRequest = $paymentRequestRows[$debt->id]; @endphp
+                            <tr id="payment-request-{{ $debt->id }}" class="hover:bg-surface-container-low/50 transition-colors bg-primary/[0.02]"
+                                data-debt-row data-payment-request-row="{{ $debt->id }}" data-debt-id="{{ $debt->id }}" data-status="{{ $paymentRequest['status'] }}">
+                                <td class="py-3.5 px-4">
+                                    <button type="button" data-open-payment-request
+                                        data-payment-request="{{ json_encode($paymentRequest, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
+                                        class="font-bold text-on-surface text-sm text-left hover:text-primary transition-colors cursor-pointer">{{ $paymentRequest['member'] }}</button>
+                                    <div class="text-secondary text-[11px] mt-0.5">{{ $paymentRequest['member_meta'] }}</div>
+                                    <div class="mt-0.5 text-[11px] font-mono text-outline">{{ $paymentRequest['code'] }}</div>
+                                </td>
+                                <td class="py-3.5 px-4">
+                                    <div class="font-semibold text-on-surface flex items-center gap-1.5">
+                                        <span class="material-symbols-outlined text-[16px] text-primary" aria-hidden="true">stacks</span>
+                                        {{ __('admin.payment_request_ledger_label', ['count' => count($paymentRequest['debts'])]) }}
+                                        @if($paymentRequest['conflict'])
+                                            <span class="material-symbols-outlined text-[15px] text-rose-600" data-tooltip="{{ __('admin.payment_request_conflict_notice', ['expected' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentRequest['amount']), 'actual' => \App\Support\Helpers\FormatHelper::formatCurrency($paymentRequest['current_total'])]) }}" aria-hidden="true">warning</span>
+                                        @endif
+                                    </div>
+                                    <div class="text-[11px] text-outline truncate" title="{{ collect($paymentRequest['debts'])->pluck('campaign')->unique()->implode(', ') }}">
+                                        {{ collect($paymentRequest['debts'])->pluck('campaign')->unique()->implode(', ') }}
+                                    </div>
+                                    <div class="text-[11px] text-outline">{{ $paymentRequest['requested_at'] }}</div>
+                                </td>
+                                <td class="py-3.5 px-4 text-center">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full whitespace-nowrap text-[11px] font-semibold border {{ $requestStatusClass[$paymentRequest['status']] ?? 'bg-surface-container text-secondary border-outline-variant' }}" data-debt-status-badge>
+                                        {{ $paymentRequest['status_label'] }}
+                                    </span>
+                                </td>
+                                <td class="py-3.5 px-4 text-right font-mono text-secondary">
+                                    {{ \App\Support\Helpers\FormatHelper::formatCurrency($paymentRequest['amount']) }}
+                                </td>
+                                <td class="py-3.5 px-4 text-right font-mono font-bold text-sm {{ $paymentRequest['status'] === 'pending' ? 'text-amber-600' : 'text-emerald-600' }}">
+                                    {{-- Only a pending request is still owed; an approved one is settled, a rejected one owes nothing itself. --}}
+                                    {{ \App\Support\Helpers\FormatHelper::formatCurrency($paymentRequest['status'] === 'pending' ? $paymentRequest['amount'] : 0) }}
+                                </td>
+                                <td class="py-3.5 px-4 text-center">
+                                    <button type="button" data-open-payment-request
+                                        data-payment-request="{{ json_encode($paymentRequest, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
+                                        class="px-2.5 py-1 rounded text-[11px] font-bold inline-flex items-center gap-1 shadow-2xs transition-colors cursor-pointer {{ $paymentRequest['status'] === 'pending' ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-surface-container text-primary border border-outline-variant/60 hover:bg-surface-container-high' }}">
+                                        <span class="material-symbols-outlined text-[14px]" aria-hidden="true">{{ $paymentRequest['status'] === 'pending' ? 'pending_actions' : 'visibility' }}</span>
+                                        <span>{{ $paymentRequest['status'] === 'pending' ? __('admin.payment_request_view_btn') : __('admin.payment_request_view_detail') }}</span>
+                                    </button>
+                                </td>
+                            </tr>
+                            @continue
+                        @endif
                         @php
                             $member        = $debt->roomUser?->globalUser?->name ?? $debt->roomUser?->display_name ?? 'Member #' . $debt->room_user_id;
                             $memberEmail   = $debt->roomUser?->globalUser?->email ?? '';
@@ -238,7 +226,9 @@
                             data-status="{{ $debtStatusValue }}"
                             data-search="{{ strtolower($member . ' ' . $debt->id . ' ' . $campaignName) }}">
                             <td class="py-3.5 px-4">
-                                <div class="font-bold text-on-surface text-sm">{{ $member }}</div>
+                                <button type="button" data-open-debt-detail
+                                    data-debt-detail="{{ json_encode($debtDetails[$debt->id] ?? [], JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) }}"
+                                    class="font-bold text-on-surface text-sm text-left hover:text-primary transition-colors cursor-pointer">{{ $member }}</button>
                                 <div class="text-secondary text-[11px] mt-0.5">{{ $memberEmail }}</div>
                                 <div class="mt-0.5 flex items-center gap-1 text-[11px] font-mono text-outline">
                                     <span>{{ $debt->code ?? 'N/A' }}</span>
@@ -269,7 +259,7 @@
                                     {{ __('admin.status_' . $debtStatusValue) }}
                                 </span>
                                 @if($bundleRequest)
-                                    <a href="#payment-requests" class="mt-1 flex items-center justify-center gap-0.5 text-[10px] font-semibold no-underline {{ $bundleStatus === \App\Enums\DebtStatus::Pending->value ? 'text-amber-700' : ($bundleStatus === \App\Enums\DebtStatus::Rejected->value ? 'text-rose-600' : 'text-emerald-700') }}">
+                                    <a href="#payment-request-{{ $bundleRequest->id }}" class="mt-1 flex items-center justify-center gap-0.5 text-[10px] font-semibold no-underline {{ $bundleStatus === \App\Enums\DebtStatus::Pending->value ? 'text-amber-700' : ($bundleStatus === \App\Enums\DebtStatus::Rejected->value ? 'text-rose-600' : 'text-emerald-700') }}">
                                         <span class="material-symbols-outlined text-[12px]" aria-hidden="true">stacks</span>
                                         {{ __('admin.debt_in_payment_request', ['code' => $bundleRequest->code]) }}
                                     </a>

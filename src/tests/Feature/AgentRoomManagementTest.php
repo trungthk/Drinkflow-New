@@ -95,6 +95,35 @@ class AgentRoomManagementTest extends TestCase
         $this->assertSame(2, Room::query()->count());
     }
 
+    public function test_create_button_and_form_are_unavailable_when_the_quota_is_full(): void
+    {
+        $this->actingAs($this->agent, 'admin')->get(route('admin.rooms.index'))->assertOk()->assertSee('data-create-room', false);
+        $this->actingAs($this->agent, 'admin')->get(route('admin.rooms.create'))->assertOk();
+
+        $this->ownedRoom('one');
+        $this->ownedRoom('two');
+
+        $this->actingAs($this->agent, 'admin')->get(route('admin.rooms.index'))->assertOk()->assertDontSee('data-create-room', false);
+        $this->actingAs($this->agent, 'admin')->get(route('admin.rooms.create'))
+            ->assertRedirect(route('admin.rooms.index'))
+            ->assertSessionHasErrors(['room' => __('platform.rooms.quota_reached', ['limit' => 2])]);
+    }
+
+    public function test_legacy_room_without_owner_is_given_to_its_first_linked_agent(): void
+    {
+        $collaborator = $this->agentWithQuota('collab@drinkflow.test', 1);
+        $legacy = Room::create(['name' => 'Legacy', 'slug' => 'legacy', 'status' => 'active']);
+        $legacy->admins()->attach($this->agent->id);
+        $legacy->admins()->attach($collaborator->id);
+
+        $migration = require database_path('migrations/2026_10_02_020000_assign_owner_to_legacy_rooms.php');
+        $migration->up();
+
+        $this->assertSame($this->agent->id, (int) $legacy->fresh()->owner_admin_id);
+        $this->assertSame(1, app(\App\Services\Room\RoomQuotaService::class)->used($this->agent));
+        $this->actingAs($this->agent, 'admin')->get(route('admin.rooms.index'))->assertOk()->assertSee('/legacy');
+    }
+
     public function test_agent_without_subscription_cannot_create_rooms(): void
     {
         $legacy = $this->agentWithQuota('legacy@drinkflow.test', null);

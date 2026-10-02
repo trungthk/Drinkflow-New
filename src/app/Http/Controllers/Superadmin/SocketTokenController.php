@@ -19,6 +19,13 @@ class SocketTokenController extends Controller
      */
     public function __invoke(Request $request, SocketTokenService $tokens): JsonResponse
     {
-        return response()->json(['data' => ['token' => $tokens->issueForSuperadmin($request->user('superadmin')), 'channels' => ['superadmin', 'system'], 'expires_in' => 300]]);
+        $superadmin = $request->user('superadmin');
+
+        return response()->json(['data' => [
+            'token' => $tokens->issueForSuperadmin($superadmin),
+            // `superadmin:{id}` is this account's private inbox channel (platform notifications).
+            'channels' => ['superadmin', 'system', 'superadmin:'.$superadmin->id],
+            'expires_in' => 300,
+        ]]);
     }
 }

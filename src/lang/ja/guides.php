@@ -13,6 +13,13 @@ return [
     'read_more' => 'ガイドを見る',
     'back_to_list' => 'ガイド一覧に戻る',
     'lightbox_title' => 'ガイド画像ビューア',
+    'audience_toggle_label' => 'ガイドの種類を選択',
+    'audience_client' => 'クライアント向けガイド',
+    'audience_agent' => 'エージェント向けガイド',
+    'agent_page_title' => 'DrinkFlow エージェントガイド',
+    'agent_page_subtitle' => 'DrinkFlow 管理コンソールの運用手順：ログイン、ルーム管理、キャンペーン、共同注文、請求、設定。',
+    'agent_public_meta_title' => 'DrinkFlow エージェントガイド - ルーム運用と共同注文キャンペーン',
+    'agent_public_meta_description' => 'DrinkFlow エージェント向けガイド：管理コンソールへのログイン、ルームとメンバーの管理、共同注文キャンペーンの実行、請求の精算、システム設定。',
     'public_meta_title' => 'DrinkFlow 利用ガイド - ドリンク共同注文と割り勘',
     'public_meta_description' => 'DrinkFlow の使い方ガイド：Google Workspace ログイン、ルーム参加、共同注文、VietQR 支払い、未払い管理。',
 ];

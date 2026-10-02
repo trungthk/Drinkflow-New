@@ -1,6 +1,23 @@
 import { formatMoney } from '../shared/money';
 
 /**
+ * Whole-percent sponsor shares from stored allocations (older campaigns may hold decimals such as
+ * 33.33): each share is rounded down and the lost fraction goes to the first sponsor, so a set that
+ * totalled 100% still does.
+ *
+ * @param {Array<{percentage?: number|string}>} allocations Stored allocations.
+ * @returns {number[]} Whole percents, in the same order.
+ */
+const wholeSponsorPercentages = (allocations) => {
+    const raw = allocations.map((allocation) => Math.max(0, Number(allocation.percentage) || 0));
+    const whole = raw.map((value) => Math.floor(value));
+    const leftover = Math.round(raw.reduce((sum, value) => sum + value, 0)) - whole.reduce((sum, value) => sum + value, 0);
+    if (whole.length > 0 && leftover > 0) whole[0] = Math.min(100, whole[0] + leftover);
+
+    return whole;
+};
+
+/**
  * Admin Campaign Creator & Editor (Alpine Component)
  */
 export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], initialCampaign = null) {
@@ -203,9 +220,11 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
                 this.form.max_budget = initialCampaign.max_budget ?? this.campaignSettings.max_budget;
                 this.form.flat_price = initialCampaign.flat_price ?? '';
                 this.form.status = initialCampaign.status || 'active';
-                this.sponsors = (initialCampaign.sponsor_allocations || []).map(alloc => ({
+                const initialAllocations = initialCampaign.sponsor_allocations || [];
+                const initialPercentages = wholeSponsorPercentages(initialAllocations);
+                this.sponsors = initialAllocations.map((alloc, index) => ({
                     user_id: String(alloc.room_user_id || ''),
-                    percentage: Number(alloc.percentage) || 0,
+                    percentage: initialPercentages[index],
                     search: this.roomUsers.find(u => u.id === String(alloc.room_user_id || ''))?.label || '',
                     open: false
                 }));
@@ -316,8 +335,9 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
         clampSponsorPercentage(sponsor) {
             if (String(sponsor.percentage) === '') return;
             const percentage = Number(sponsor.percentage);
+            // Sponsorship shares are whole percents (the backend rejects decimals).
             sponsor.percentage = Number.isFinite(percentage)
-                ? Math.min(100, Math.max(0, percentage))
+                ? Math.min(100, Math.max(0, Math.trunc(percentage)))
                 : 0;
         },
 
@@ -529,9 +549,11 @@ export function campaignCreateComponent(defaults = {}, availableRoomUsers = [], 
             this.form.sponsor_type = ['none', 'full'].includes(campaign.sponsor_type) ? campaign.sponsor_type : 'none';
             this.form.sponsor_description = campaign.sponsor_description || '';
             this.form.self_paid_price_basis = ['original', 'campaign_prorated'].includes(campaign.self_paid_price_basis) ? campaign.self_paid_price_basis : 'original';
-            this.sponsors = (campaign.sponsor_allocations || []).map(allocation => ({
+            const previousAllocations = campaign.sponsor_allocations || [];
+            const previousPercentages = wholeSponsorPercentages(previousAllocations);
+            this.sponsors = previousAllocations.map((allocation, index) => ({
                 user_id: String(allocation.room_user_id || ''),
-                percentage: Number(allocation.percentage) || 0,
+                percentage: previousPercentages[index],
                 search: this.roomUsers.find(user => user.id === String(allocation.room_user_id || ''))?.label || '',
                 open: false
             }));

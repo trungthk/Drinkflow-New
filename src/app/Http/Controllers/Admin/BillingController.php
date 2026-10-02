@@ -8,7 +8,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\AdminInvoice;
 use App\Services\Billing\Gateway\PaymentGateway;
+use App\Services\Billing\InvoicePdfService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 
@@ -35,6 +38,38 @@ class BillingController extends Controller
             'balance' => (int) $admin->invoices()->outstanding()->selectRaw('COALESCE(SUM(total - paid_amount), 0) as due')->value('due'),
             'onlinePayment' => $gateway->isEnabled(),
         ]);
+    }
+
+    /**
+     * Download one of the Agent's own invoices as a PDF.
+     *
+     * When the server cannot render PDFs (no Node/Chrome), the same document opens as a printable
+     * page with the print dialog, so the Agent can still save it as PDF from the browser.
+     *
+     * @param Request $request Incoming request.
+     * @param AdminInvoice $invoice Invoice (404 when it belongs to another Agent).
+     * @param InvoicePdfService $documents Invoice document renderer.
+     * @return Response PDF download, or the printable HTML fallback.
+     */
+    public function download(Request $request, AdminInvoice $invoice, InvoicePdfService $documents): Response
+    {
+        abort_unless((int) $invoice->admin_id === (int) $request->user('admin')->id, 404);
+
+        try {
+            return response($documents->pdf($invoice), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$documents->fileName($invoice).'"',
+                'Cache-Control' => 'private, no-store',
+            ]);
+        } catch (\Throwable $exception) {
+            Log::warning('Invoice PDF rendering failed; serving the printable page instead.', [
+                'invoice_id' => $invoice->id,
+                'exception' => $exception::class,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return response($documents->html($invoice, autoPrint: true), 200, ['Cache-Control' => 'private, no-store']);
+        }
     }
 
     /**

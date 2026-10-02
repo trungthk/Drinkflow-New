@@ -42,12 +42,12 @@ const internalSecret = process.env.REALTIME_INTERNAL_SECRET || '';
 if (!secret) throw new Error('SOCKET_TOKEN_SECRET or APP_KEY is required (check .env in realtime/ or src/)');
 const maxBodyBytes = 256 * 1024;
 // Events addressed to a single user, trusted device or admin account (see PublishRealtimeEvent): delivered on user_channel only.
-const privateEvents = new Set(['notification.created', 'admin.notification.created', 'room.membership.updated', 'session.force_reload']);
+const privateEvents = new Set(['notification.created', 'admin.notification.created', 'superadmin.notification.created', 'room.membership.updated', 'session.force_reload']);
 // Events for every connected page, including anonymous public visitors: delivered on the `public` channel only.
 const broadcastEvents = new Set(['system.maintenance']);
 // Events that are not tied to a room, so they are sent with room_id 0.
-const roomlessEvents = new Set(['notification.created', 'admin.notification.created', 'session.force_reload', 'system.maintenance']);
-const userChannelPattern = /^(?:(?:user|global_user|admin):\d+|device:[A-Za-z0-9-]{1,128})$/;
+const roomlessEvents = new Set(['notification.created', 'admin.notification.created', 'superadmin.notification.created', 'session.force_reload', 'system.maintenance']);
+const userChannelPattern = /^(?:(?:user|global_user|admin|superadmin):\d+|device:[A-Za-z0-9-]{1,128})$/;
 
 const decode = value => Buffer.from(value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - value.length % 4) % 4), 'base64').toString('utf8');
 const verify = token => {
@@ -98,7 +98,7 @@ const httpServer = createServer((req, res) => {
           'campaign.created', 'campaign.updated', 'campaign.deleted', 'campaign.closed',
           'campaign.cancelled', 'campaign.delivering',
           'campaign.menu.updated', 'campaign.menu.deleted', 'campaign.participant.declined', 'campaign.participant.rejoined', 'notification.created',
-          'admin.notification.created',
+          'admin.notification.created', 'superadmin.notification.created',
           'room.membership.updated', 'session.force_reload', 'system.maintenance'
         ]);
         const roomId = Number(input.room_id);
@@ -188,7 +188,12 @@ io.on('connection', socket => {
   if (claims.actor_type === 'user' && Number.isInteger(Number(claims.global_user_id))) allowed.add(`global_user:${claims.global_user_id}`);
   if (claims.actor_type === 'user' && typeof claims.device_uuid === 'string' && /^[A-Za-z0-9-]{1,128}$/.test(claims.device_uuid)) allowed.add(`device:${claims.device_uuid}`);
   if (claims.actor_type === 'admin') allowed.add(`admin:${claims.admin_id}`);
-  if (claims.actor_type === 'superadmin') { allowed.add('superadmin'); allowed.add('system'); }
+  if (claims.actor_type === 'superadmin') {
+    allowed.add('superadmin');
+    allowed.add('system');
+    // Private inbox of this account only (platform alerts such as a new Agent registration).
+    if (Number.isInteger(Number(claims.superadmin_id)) && Number(claims.superadmin_id) > 0) allowed.add(`superadmin:${claims.superadmin_id}`);
+  }
   for (const roomId of claims.room_ids || (claims.room_id ? [claims.room_id] : [])) allowed.add(`room:${roomId}`);
   for (const channel of allowed) socket.join(channel);
   socket.on('disconnect', reason => { recentDisconnects.unshift({ actor_type: claims.actor_type, reason, at: new Date().toISOString() }); recentDisconnects.splice(20); });

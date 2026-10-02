@@ -13,6 +13,13 @@ return [
     'read_more' => 'Xem hướng dẫn',
     'back_to_list' => 'Quay lại danh sách hướng dẫn',
     'lightbox_title' => 'Xem ảnh hướng dẫn',
+    'audience_toggle_label' => 'Chọn bộ hướng dẫn',
+    'audience_client' => 'Hướng dẫn cho Client',
+    'audience_agent' => 'Hướng dẫn cho Đại lý',
+    'agent_page_title' => 'Hướng dẫn sử dụng dành cho Đại lý',
+    'agent_page_subtitle' => 'Bộ tài liệu vận hành cổng quản trị DrinkFlow: đăng nhập, quản lý phòng, chiến dịch, đơn gom, công nợ và cấu hình.',
+    'agent_public_meta_title' => 'Hướng dẫn Đại lý DrinkFlow - Vận hành phòng ban & chiến dịch gom đơn',
+    'agent_public_meta_description' => 'Hướng dẫn dành cho Đại lý DrinkFlow: đăng nhập cổng quản trị, quản lý phòng và thành viên, chạy chiến dịch gom đơn, đối soát công nợ và cấu hình hệ thống.',
     'public_meta_title' => 'Hướng dẫn sử dụng DrinkFlow - Đặt đồ uống nhóm & chia bill',
     'public_meta_description' => 'Tổng hợp hướng dẫn sử dụng DrinkFlow: đăng nhập Google Workspace, tham gia room, đặt món chiến dịch gom đơn, thanh toán VietQR và theo dõi công nợ.',
 ];

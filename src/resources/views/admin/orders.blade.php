@@ -374,11 +374,16 @@
                                 'cancelled' => 'bg-rose-50 text-rose-700 border-rose-200 line-through dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800',
                                 default => 'bg-surface-container text-secondary border-outline-variant'
                             };
-                            // One line per ordered item: "2× Name (Size) + Topping, Topping".
+                            // One line per ordered item: "2× Name (Size) + Topping, Topping", with its self-paid flag.
                             $itemLines = $ord->items->map(function ($i) {
                                 $topps = $i->toppings->pluck('topping_name')->filter()->implode(', ');
-                                return $i->quantity . '× ' . $i->item_name . ($i->size_name ? ' (' . $i->size_name . ')' : '') . ($topps ? ' + ' . $topps : '');
+                                return [
+                                    'text' => $i->quantity . '× ' . $i->item_name . ($i->size_name ? ' (' . $i->size_name . ')' : '') . ($topps ? ' + ' . $topps : ''),
+                                    'self_paid' => (bool) $i->is_self_paid,
+                                ];
                             });
+                            // A child order was placed by another member for this one ("đặt dùm"): every line is on behalf.
+                            $isProxyOrder = $ord->parent_id !== null;
                         @endphp
                         <tr class="hover:bg-surface-container-low/50 transition-colors" data-order-row="{{ $ord->id }}">
                             <td class="py-3.5 px-3 w-10 text-center">
@@ -459,7 +464,23 @@
                                 @else
                                     <ul class="space-y-0.5" data-order-item-lines>
                                         @foreach($itemLines as $itemLine)
-                                            <li class="text-on-surface font-medium truncate" title="{{ $itemLine }}">{{ $itemLine }}</li>
+                                            <li class="min-w-0">
+                                                <div class="text-on-surface font-medium truncate" title="{{ $itemLine['text'] }}">{{ $itemLine['text'] }}</div>
+                                                @if($itemLine['self_paid'] || $isProxyOrder)
+                                                    <div class="mt-0.5 flex flex-wrap gap-1">
+                                                        @if($itemLine['self_paid'])
+                                                            <span class="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-1.5 py-px text-[10px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:border-amber-800 dark:text-amber-300" data-item-self-paid>
+                                                                <span class="material-symbols-outlined text-[11px]">payments</span>{{ __('admin.self_paid_badge') }}
+                                                            </span>
+                                                        @endif
+                                                        @if($isProxyOrder)
+                                                            <span class="inline-flex items-center gap-1 rounded-full bg-violet-50 border border-violet-200 px-1.5 py-px text-[10px] font-semibold text-violet-700 dark:bg-violet-950/40 dark:border-violet-800 dark:text-violet-300" data-item-proxy>
+                                                                <span class="material-symbols-outlined text-[11px]">account_tree</span>{{ __('admin.proxy_order_badge') }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            </li>
                                         @endforeach
                                     </ul>
                                 @endif

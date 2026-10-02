@@ -27,7 +27,10 @@
     @endif
 </head>
 
-<body data-submit-loading-text="{{ __('global.common.loading') }}" data-status-labels="{{ json_encode([
+<body data-submit-loading-text="{{ __('global.common.loading') }}"
+    data-sa-realtime-url="{{ rtrim((string) config('services.realtime.public_url', 'http://localhost:3001'), '/') }}"
+    @auth('superadmin') data-sa-socket-token-url="{{ route('superadmin.socket-token') }}" @endauth
+    data-status-labels="{{ json_encode([
         'active' => __('superadmin.common.active'), 'disabled' => __('superadmin.common.disabled'),
         'inactive' => __('superadmin.common.inactive'),
         'archived' => __('superadmin.common.archived'), 'blocked' => __('superadmin.common.blocked'),
@@ -158,6 +161,10 @@
             return `<span class="status-pill status-${window.escapeHtml(value)}"><span class="status-dot"></span>${window.escapeHtml(labels[value] || value)}</span>`;
         });
     </script>
+    {{-- Socket.IO client served by the realtime gateway (live inbox notifications, resources/js/superadmin/realtime.js). --}}
+    @auth('superadmin')
+        <script src="{{ rtrim((string) config('services.realtime.public_url', 'http://localhost:3001'), '/') }}/socket.io/socket.io.js" defer></script>
+    @endauth
     @stack('scripts')
 </body>
 

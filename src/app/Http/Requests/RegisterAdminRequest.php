@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Enums\PackageStatus;
+use App\Support\Helpers\CaptchaHelper;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -53,9 +54,10 @@ class RegisterAdminRequest extends FormRequest
             'package_id' => ['required', 'integer', Rule::exists('packages', 'id')->where('status', PackageStatus::Active->value)],
         ];
 
-        $rules['captcha'] = app()->isLocal() || config('captcha.disable')
-            ? ['nullable', 'string', 'max:20']
-            : ['required', 'string', 'captcha'];
+        // Same switch as the form (components/admin-auth/captcha.blade.php), so the two never disagree.
+        $rules['captcha'] = CaptchaHelper::isCaptchaEnabled()
+            ? ['required', 'string', 'captcha']
+            : ['nullable', 'string', 'max:20'];
 
         return $rules;
     }

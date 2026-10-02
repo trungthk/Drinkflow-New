@@ -604,6 +604,7 @@ return [
     ],
     'inbox' => [
         'title' => 'My notifications',
+        'platform_default_title' => 'Platform notification',
         'description' => 'Only notifications addressed to the signed-in admin account · :count unread.',
         'unread' => 'Unread notifications',
         'mark_read' => 'Mark as read',

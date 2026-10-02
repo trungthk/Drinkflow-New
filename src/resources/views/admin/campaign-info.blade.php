@@ -16,6 +16,17 @@
                     title="{{ __('admin.back_to_campaigns') }}">
                     <span class="material-symbols-outlined text-[20px]">arrow_back</span>
                 </a>
+                @unless ($isDraft || $isCampaignClosed)
+                    {{-- Member-facing campaign page, to share in the team chat (copy handled by [data-copy] in ui-enhancements.js). --}}
+                    <button type="button" data-copy="{{ route('user.campaigns.show', [$room, $campaign]) }}"
+                        data-copied-message="{{ __('admin.join_link_copied') }}"
+                        data-copy-failed-message="{{ __('admin.copy_failed') }}"
+                        data-tooltip="{{ __('admin.copy_join_link_hint') }}"
+                        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-outline-variant bg-surface-container-lowest hover:bg-primary/5 text-xs font-semibold text-primary transition-colors cursor-pointer">
+                        <span class="material-symbols-outlined text-[18px]">link</span>
+                        <span>{{ __('admin.copy_join_link') }}</span>
+                    </button>
+                @endunless
             </div>
 
             <!-- Sub-navigation Tabs -->

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\View\Composers;
 
 use App\Models\Superadmin;
-use App\Services\Notification\AdminNotificationService;
 use App\Services\Notification\NotificationPresentationService;
+use App\Services\Notification\SuperadminNotificationService;
 use Illuminate\View\View;
 
 /**
@@ -18,11 +18,11 @@ class SuperadminLayoutComposer
     private const DROPDOWN_LIMIT = 5;
 
     /**
-     * @param AdminNotificationService $notifications Admin notification service.
+     * @param SuperadminNotificationService $notifications Superadmin notification service.
      * @param NotificationPresentationService $presentation Localized title/body/icon for each notification.
      */
     public function __construct(
-        private readonly AdminNotificationService $notifications,
+        private readonly SuperadminNotificationService $notifications,
         private readonly NotificationPresentationService $presentation,
     ) {
     }
@@ -42,7 +42,7 @@ class SuperadminLayoutComposer
             return;
         }
 
-        $unread = $this->notifications->unreadForAdmin($admin, self::DROPDOWN_LIMIT);
+        $unread = $this->notifications->unreadFor($admin, self::DROPDOWN_LIMIT);
         $presentations = [];
         foreach ($unread as $notification) {
             $presentations[$notification->id] = $this->presentation->present($notification);
@@ -51,7 +51,7 @@ class SuperadminLayoutComposer
         $view->with([
             'headerNotifications' => $unread,
             'headerNotificationPresentations' => $presentations,
-            'headerUnreadCount' => $this->notifications->unreadCountForAdmin($admin),
+            'headerUnreadCount' => $this->notifications->unreadCountFor($admin),
         ]);
     }
 }

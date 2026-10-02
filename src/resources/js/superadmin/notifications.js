@@ -62,7 +62,12 @@ export function initSuperadminNotifications() {
 
     list.addEventListener('click', (event) => {
         const item = event.target.closest('[data-sa-notification-item]');
-        if (item) markRead(item.dataset.id).catch((error) => console.error(error));
+        if (!item) return;
+        const { link } = item.dataset;
+        markRead(item.dataset.id)
+            .catch((error) => console.error(error))
+            // Notifications that point somewhere (e.g. a registration to review) open it once marked as read.
+            .finally(() => { if (link) window.location.assign(link); });
     });
 
     const markAll = async (button) => {

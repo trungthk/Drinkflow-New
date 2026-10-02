@@ -19,6 +19,9 @@ use Illuminate\View\View;
 
 class AdminLayoutComposer
 {
+    /** Session key of the room the Agent operated last (written by EnsureAdminRoomAccess). */
+    public const CONTEXT_ROOM_SESSION_KEY = 'admin_context_room_id';
+
     /**
      * Create a composer for shared admin layout data.
      *
@@ -45,6 +48,10 @@ class AdminLayoutComposer
         $adminUser = $adminUser instanceof Admin ? $adminUser : null;
         $assignedRooms = $data['assignedRooms'] ?? null;
         $assignedRoomsList = $this->assignedRooms($adminUser, $assignedRooms, $room);
+        if (! $room instanceof Room) {
+            // Pages outside a room use the same sidebar, header and bell as the room pages.
+            $room = $this->contextRoom($assignedRoomsList);
+        }
         $unreadNotifications = $room instanceof Room && $adminUser instanceof Admin
             ? $this->notifications->unreadForRoom($adminUser, $room)
             : collect();
@@ -93,6 +100,22 @@ class AdminLayoutComposer
         }
 
         return $rooms;
+    }
+
+    /**
+     * Room whose menu a roomless admin page (my rooms, subscription, billing, profile) shows.
+     *
+     * Only rooms from the Agent's own operable list qualify, so a stale or foreign ID kept in the
+     * session never exposes another room; without a remembered room the first one is used.
+     *
+     * @param Collection<int, Room> $rooms Rooms the signed-in Agent can operate.
+     * @return Room|null Context room, or null when the Agent has no active room yet.
+     */
+    private function contextRoom(Collection $rooms): ?Room
+    {
+        $rememberedId = (int) session(self::CONTEXT_ROOM_SESSION_KEY, 0);
+
+        return $rooms->firstWhere('id', $rememberedId) ?? $rooms->first();
     }
 
     /**

@@ -8,7 +8,9 @@ use App\Enums\DebtStatus;
 use App\Models\Debt;
 use App\Models\Room;
 use App\Models\RoomUser;
+use App\Models\Scopes\CampaignDebtScope;
 use App\Support\Helpers\FormatHelper;
+use Illuminate\Database\Eloquent\Builder;
 
 class AdminDebtService
 {
@@ -20,9 +22,17 @@ class AdminDebtService
      */
     public function getLedgerSummary(Room $room): array
     {
-        $totalSpent = (int) Debt::where('room_id', $room->id)->sum('original_amount');
-        $totalCollected = (int) Debt::where('room_id', $room->id)->where('status', DebtStatus::Paid->value)->sum('original_amount');
-        $storeDebtPending = (int) Debt::where('room_id', $room->id)->whereIn('status', DebtStatus::outstandingValues())->sum('remaining_amount');
+        // A pending/approved payment request stands in for the campaign debts bundled into it, so those
+        // children are never counted next to it; a rejected request is not owed (its children are, again).
+        $standalone = Debt::query()->where('room_id', $room->id)->notLockedByPaymentRequest();
+        $requests = Debt::paymentRequests()->where('room_id', $room->id);
+
+        $totalSpent = (int) (clone $standalone)->sum('original_amount')
+            + (int) (clone $requests)->whereIn('status', [DebtStatus::Pending->value, DebtStatus::Approved->value])->sum('original_amount');
+        $totalCollected = (int) (clone $standalone)->where('status', DebtStatus::Paid->value)->sum('original_amount')
+            + (int) (clone $requests)->where('status', DebtStatus::Approved->value)->sum('original_amount');
+        $storeDebtPending = (int) (clone $standalone)->whereIn('status', DebtStatus::outstandingValues())->sum('remaining_amount')
+            + (int) (clone $requests)->where('status', DebtStatus::Pending->value)->sum('original_amount');
 
         return [
             'totalSpent' => $totalSpent,
@@ -30,6 +40,26 @@ class AdminDebtService
             'storeDebtPending' => $storeDebtPending,
             'memberDebtRemaining' => $storeDebtPending,
         ];
+    }
+
+    /**
+     * Rows of the room ledger: consolidated payment requests (parents) and the campaign debts that are
+     * not bundled into a pending or approved request. Children of a rejected request are listed again,
+     * because the member still owes them.
+     *
+     * @param Room $room Room entity.
+     * @return Builder<Debt> Ledger query (payment requests have no campaign_id).
+     */
+    public function ledgerQuery(Room $room): Builder
+    {
+        return Debt::query()
+            ->withoutGlobalScope(CampaignDebtScope::class)
+            ->where('room_id', $room->id)
+            ->where(static function (Builder $query): void {
+                $query->whereNull('parent_id')->orWhereIn('parent_id', Debt::paymentRequests()
+                    ->where('status', DebtStatus::Rejected->value)
+                    ->select('id'));
+            });
     }
 
     /**
